@@ -166,7 +166,12 @@ class AdapterFactory(
                 BlockchainType.Dash -> {
                     val syncMode =
                         btcBlockchainManager.syncMode(BlockchainType.Dash, wallet.account.origin)
-                    DashAdapter(wallet, syncMode, backgroundManager)
+                    DashAdapter(
+                        wallet = wallet,
+                        syncMode = syncMode,
+                        backgroundManager = backgroundManager,
+                        customPeers = localStorage.customDashPeers
+                    )
                 }
 
                 BlockchainType.Zcash -> {
