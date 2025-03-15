@@ -37,12 +37,16 @@ object SendTransactionServiceFactory {
                 } else throw UnsupportedException("Unsupported token type: $tokenType")
             }
 
-            TokenType.Native -> when (token.blockchainType) {
-                BlockchainType.ECash -> {
-                    BitcoinSendTransactionService(token)
-                }
+            is TokenType.AddressSpecTyped -> {
+                if (token.blockchainType == BlockchainType.Zcash) {
+                    ZCashSendTransactionService(token)
+                } else throw UnsupportedException("Unsupported token type: $tokenType")
+            }
 
-                BlockchainType.Dash -> {
+            TokenType.Native -> when (token.blockchainType) {
+                BlockchainType.Dash,
+                BlockchainType.Dogecoin,
+                BlockchainType.ECash -> {
                     BitcoinSendTransactionService(token)
                 }
 
@@ -56,6 +60,7 @@ object SendTransactionServiceFactory {
                 BlockchainType.Avalanche,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom,
                 BlockchainType.ArbitrumOne -> {

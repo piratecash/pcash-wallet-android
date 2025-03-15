@@ -10,6 +10,7 @@ import cash.p.terminal.core.adapters.BinanceAdapter
 import cash.p.terminal.core.adapters.BitcoinAdapter
 import cash.p.terminal.core.adapters.BitcoinCashAdapter
 import cash.p.terminal.core.adapters.DashAdapter
+import cash.p.terminal.core.adapters.DogecoinAdapter
 import cash.p.terminal.core.adapters.ECashAdapter
 import cash.p.terminal.core.adapters.Eip20Adapter
 import cash.p.terminal.core.adapters.EvmAdapter
@@ -206,6 +207,18 @@ class AdapterFactory(
                     )
                 }
 
+                BlockchainType.Dogecoin -> {
+                    val syncMode = btcBlockchainManager.syncMode(
+                        BlockchainType.Dogecoin,
+                        wallet.account.origin
+                    )
+                    DogecoinAdapter(
+                        wallet = wallet,
+                        syncMode = syncMode,
+                        backgroundManager = backgroundManager
+                    )
+                }
+
                 BlockchainType.Zcash -> {
                     ZcashAdapter(
                         context = context,
@@ -225,6 +238,7 @@ class AdapterFactory(
                 BlockchainType.Avalanche,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom,
                 BlockchainType.ArbitrumOne -> {
@@ -355,6 +369,7 @@ class AdapterFactory(
             BlockchainType.Polygon,
             BlockchainType.Optimism,
             BlockchainType.Base,
+            BlockchainType.ZkSync,
             BlockchainType.ArbitrumOne -> {
                 val evmKitManager = evmBlockchainManager.getEvmKitManager(blockchainType)
                 evmKitManager.unlink(wallet.account)
@@ -387,6 +402,7 @@ class AdapterFactory(
             BlockchainType.Polygon,
             BlockchainType.Optimism,
             BlockchainType.Base,
+            BlockchainType.ZkSync,
             BlockchainType.ArbitrumOne -> {
                 val evmKitManager = evmBlockchainManager.getEvmKitManager(blockchainType)
                 evmKitManager.unlink(transactionSource.account)
