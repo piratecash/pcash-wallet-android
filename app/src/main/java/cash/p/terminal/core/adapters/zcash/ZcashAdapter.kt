@@ -47,15 +47,21 @@ import cash.z.ecc.android.sdk.tool.DerivationTool
 import cash.z.ecc.android.sdk.type.AddressType
 import co.electriccoin.lightwallet.client.model.LightWalletEndpoint
 import io.horizontalsystems.bitcoincore.extensions.toReversedHex
+import io.horizontalsystems.core.BackgroundManager
+import io.horizontalsystems.core.BackgroundManagerState
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Single
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.regex.Pattern
 import kotlin.math.max
@@ -66,6 +72,7 @@ class ZcashAdapter(
     restoreSettings: RestoreSettings,
     private val addressSpecTyped: AddressSpecType?,
     private val localStorage: ILocalStorage,
+    private val backgroundManager: BackgroundManager,
 ) : IAdapter, IBalanceAdapter, IReceiveAdapter, ITransactionsAdapter, ISendZcashAdapter {
     private var accountBirthday = 0L
     private val existingWallet = localStorage.zcashAccountIds.contains(wallet.account.id)
@@ -90,6 +97,7 @@ class ZcashAdapter(
     override val receiveAddress: String
 
     override val isMainNet: Boolean = true
+    private val scope = CoroutineScope(Dispatchers.Default)
 
     init {
         println("ZcashAdapter type $addressSpecTyped")
@@ -189,7 +197,31 @@ class ZcashAdapter(
             )
         synchronizer.onProcessorErrorHandler = ::onProcessorError
         synchronizer.onChainErrorHandler = ::onChainError
+
+        subscribeToEvents()
     }
+
+    private fun subscribeToEvents() {
+        scope.launch {
+            backgroundManager.stateFlow.collect { state ->
+                when (state) {
+                    BackgroundManagerState.EnterForeground -> {
+                        start()
+                    }
+
+                    BackgroundManagerState.EnterBackground -> {
+                        stop()
+                    }
+
+                    BackgroundManagerState.Unknown,
+                    BackgroundManagerState.AllActivitiesDestroyed -> {
+
+                    }
+                }
+            }
+        }
+    }
+
 
     private suspend fun getFirstAccount(): Account {
         return synchronizer.getAccounts().firstOrNull() ?: throw Exception("No account found")
@@ -379,6 +411,29 @@ class ZcashAdapter(
             memo = memo
         )
         return synchronizer.createProposedTransactions(
+            proposal = proposal,
+            usk = spendingKey
+        ).first().txId
+    }
+
+    suspend fun proposeShielding(): FirstClassByteArray = withContext(Dispatchers.IO) {
+        val spendingKey =
+            DerivationTool.getInstance()
+                .deriveUnifiedSpendingKey(seed, network, zcashAccount?.hdAccountIndex!!)
+        val proposal = synchronizer.proposeShielding(
+            account = zcashAccount!!,
+            shieldingThreshold = Zatoshi(100000L),
+            // Using empty string for memo to clear the default memo prefix value defined in
+            // the SDK
+            memo = "",
+            // Using null will select whichever of the account's trans. receivers has funds
+            // to shield
+            transparentReceiver = null
+        )
+        if (proposal == null) {
+            throw Throwable("Failed to create proposal")
+        }
+        synchronizer.createProposedTransactions(
             proposal = proposal,
             usk = spendingKey
         ).first().txId

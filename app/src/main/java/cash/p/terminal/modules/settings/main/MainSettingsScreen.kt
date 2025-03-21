@@ -89,12 +89,32 @@ private fun SettingSections(
     val uiState = viewModel.uiState
     val context = LocalContext.current
 
+    if (uiState.isUpdateAvailable) {
+        CellUniversalLawrenceSection(
+            listOf {
+                HsSettingCell(
+                    title = R.string.update_app,
+                    icon = R.drawable.ic_refresh,
+                    iconTint = ComposeAppTheme.colors.jacob,
+                    showAlert = true,
+                    onClick = {
+                        RateAppManager.openPlayMarket(context)
+
+                        stat(page = StatPage.Settings, event = StatEvent.Open(StatPage.Update))
+                    }
+                )
+            }
+        )
+
+        VSpacer(32.dp)
+    }
+
     CellUniversalLawrenceSection(
         listOf {
             HsSettingCell(
-                R.string.Settings_Donate,
-                R.drawable.ic_heart_filled_24,
-                ComposeAppTheme.colors.jacob,
+                title = R.string.Settings_Donate,
+                icon = R.drawable.ic_heart_filled_24,
+                iconTint = ComposeAppTheme.colors.jacob,
                 onClick = {
                     navController.slideFromRight(R.id.donateTokenSelectFragment)
 

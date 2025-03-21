@@ -104,6 +104,7 @@ enum class StatPage(val key: String) {
     Privacy("privacy"),
     PublicKeys("public_keys"),
     RateUs("rate_us"),
+    Update("update"),
     Receive("receive"),
     ReceiveTokenList("receive_token_list"),
     RecoveryPhrase("recovery_phrase"),
@@ -258,6 +259,7 @@ sealed class StatEvent {
 
     data class Add(val entity: StatEntity) : StatEvent()
     data class AddToken(val token: Token) : StatEvent()
+    data class BalanceClick(val token: Token) : StatEvent()
 
     val name: String
         get() = when (this) {
@@ -345,6 +347,7 @@ sealed class StatEvent {
             is WatchWallet -> "watch_wallet"
             is Add -> "add"
             is AddToken -> "add_token"
+            is BalanceClick -> "balance_click"
         }
 
     val params: Map<StatParam, Any>?

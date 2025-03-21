@@ -17,6 +17,9 @@ sealed class BlockchainType : Parcelable {
     object Litecoin : BlockchainType()
 
     @Parcelize
+    object Dogecoin : BlockchainType()
+
+    @Parcelize
     object Dash : BlockchainType()
 
     @Parcelize
@@ -62,6 +65,9 @@ sealed class BlockchainType : Parcelable {
     object Base: BlockchainType()
 
     @Parcelize
+    object ZkSync: BlockchainType()
+
+    @Parcelize
     class Unsupported(val _uid: String) : BlockchainType()
 
     val uid: String
@@ -70,6 +76,7 @@ sealed class BlockchainType : Parcelable {
             is BitcoinCash -> "bitcoin-cash"
             is ECash -> "ecash"
             is Litecoin -> "litecoin"
+            is Dogecoin -> "dogecoin"
             is Dash -> "dash"
             is Zcash -> "zcash"
             is Ethereum -> "ethereum"
@@ -85,6 +92,7 @@ sealed class BlockchainType : Parcelable {
             is Tron -> "tron"
             is Ton -> "the-open-network"
             is Base -> "base"
+            is ZkSync -> "zksync"
             is Unsupported -> this._uid
         }
 
@@ -101,6 +109,7 @@ sealed class BlockchainType : Parcelable {
         BitcoinCash -> "bitcoinCash"
         ECash -> "ecash"
         Litecoin -> "litecoin"
+        Dogecoin -> "dogecoin"
         Dash -> "dash"
         Zcash -> "zcash"
         Ethereum -> "ethereum"
@@ -116,6 +125,7 @@ sealed class BlockchainType : Parcelable {
         Tron -> "tron"
         Ton -> "the-open-network"
         Base -> "base"
+        ZkSync -> "zksync"
         is Unsupported -> "unsupported|$uid"
     }
 
@@ -127,6 +137,7 @@ sealed class BlockchainType : Parcelable {
                 "bitcoin-cash" -> BitcoinCash
                 "ecash" -> ECash
                 "litecoin" -> Litecoin
+                "dogecoin" -> Dogecoin
                 "dash" -> Dash
                 "zcash" -> Zcash
                 "ethereum" -> Ethereum

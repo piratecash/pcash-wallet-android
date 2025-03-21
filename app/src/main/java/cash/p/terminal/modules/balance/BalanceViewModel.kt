@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.factories.uriScheme
 import cash.p.terminal.core.managers.PriceManager
@@ -40,6 +41,7 @@ import com.walletconnect.web3.wallet.client.Web3Wallet
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.ViewState
+import io.horizontalsystems.core.helpers.HudHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -71,6 +73,7 @@ class BalanceViewModel(
 
     private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
+    private val itemsBalanceHidden by lazy { mutableMapOf<Wallet, Boolean>() }
 
     private val sortTypes =
         listOf(BalanceSortType.Value, BalanceSortType.Name, BalanceSortType.PercentGrowth)
@@ -93,13 +96,18 @@ class BalanceViewModel(
                         )
                     })
                     detectPirateAndCosanta(items)
-
+                    if (balanceHidden && items != null && !itemsBalanceHidden.keys.containsAll(items.map { it.wallet })) {
+                        addWalletsToHidden(items.map(BalanceItem::wallet))
+                    }
                     refreshViewItems(items)
                 }
         }
 
         viewModelScope.launch {
             totalBalance.stateFlow.collect {
+                if (it is TotalService.State.Hidden) {
+                    addWalletsToHidden(balanceViewItems.map(BalanceViewItem2::wallet))
+                }
                 refreshViewItems(service.balanceItemsFlow.value)
             }
         }
@@ -126,6 +134,11 @@ class BalanceViewModel(
         service.start()
 
         totalBalance.start(viewModelScope)
+    }
+
+    private fun addWalletsToHidden(items: List<Wallet>) {
+        itemsBalanceHidden.clear()
+        items.forEach { itemsBalanceHidden.put(it, true) }
     }
 
     override fun createState() = BalanceUiState(
@@ -157,6 +170,23 @@ class BalanceViewModel(
         return account.headerNote(nonRecommendedDismissed)
     }
 
+    fun onBalanceClick(item: BalanceViewItem2) {
+        stat(page = StatPage.Balance, event = StatEvent.BalanceClick(item.wallet.token))
+        if(balanceHidden) {
+            HudHelper.vibrate(App.instance)
+            itemsBalanceHidden[item.wallet] = itemsBalanceHidden[item.wallet] != true
+            refreshViewItems(service.balanceItemsFlow.value)
+            emitState()
+        }
+    }
+
+    override fun toggleBalanceVisibility() {
+        itemsBalanceHidden.keys.forEach {
+            itemsBalanceHidden[it] = !balanceHidden
+        }
+        totalBalance.toggleBalanceVisibility()
+    }
+
     private fun refreshViewItems(balanceItems: List<BalanceItem>?) {
         refreshViewItemsJob?.cancel()
         refreshViewItemsJob = viewModelScope.launch(Dispatchers.Default) {
@@ -167,7 +197,7 @@ class BalanceViewModel(
                     balanceViewItemFactory.viewItem2(
                         item = balanceItem,
                         currency = service.baseCurrency,
-                        hideBalance = balanceHidden,
+                        hideBalance = balanceHidden && itemsBalanceHidden[balanceItem.wallet] == true,
                         watchAccount = service.isWatchAccount,
                         balanceViewType = balanceViewType,
                         networkAvailable = service.networkAvailable

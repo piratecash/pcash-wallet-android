@@ -39,6 +39,7 @@ val BitcoinAddress.tokenType: TokenType
         BlockchainType.BitcoinCash -> TokenType.AddressTyped(TokenType.AddressType.Type145)
         BlockchainType.ECash -> TokenType.Native
         BlockchainType.Litecoin -> TokenType.Derived(this.scriptType.derivation)
+        BlockchainType.Dogecoin -> TokenType.Derived(this.scriptType.derivation)
         BlockchainType.Dash -> TokenType.Native
 
         BlockchainType.Zcash,
@@ -49,6 +50,7 @@ val BitcoinAddress.tokenType: TokenType
         BlockchainType.Avalanche,
         BlockchainType.Optimism,
         BlockchainType.Base,
+        BlockchainType.ZkSync,
         BlockchainType.ArbitrumOne,
         BlockchainType.Solana,
         BlockchainType.Gnosis,
