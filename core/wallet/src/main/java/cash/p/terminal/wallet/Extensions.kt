@@ -85,6 +85,7 @@ val BlockchainType.title: String
         BlockchainType.BitcoinCash -> "Bitcoin Cash"
         BlockchainType.ECash -> "Ecash"
         BlockchainType.Litecoin -> "Litecoin"
+        BlockchainType.Dogecoin -> "Doge"
         BlockchainType.Dash -> "Dash"
         BlockchainType.Zcash -> "Zcash"
         BlockchainType.Ethereum -> "Ethereum"
@@ -95,11 +96,13 @@ val BlockchainType.title: String
         BlockchainType.BinanceChain -> "BNB Beacon Coin"
         BlockchainType.Optimism -> "Optimism"
         BlockchainType.Base -> "Base"
+        BlockchainType.ZkSync -> "ZKsync"
         BlockchainType.Solana -> "Solana"
         BlockchainType.Gnosis -> "Gnosis"
         BlockchainType.Fantom -> "Fantom"
         BlockchainType.Tron -> "Tron"
         BlockchainType.Ton -> "Ton"
+        BlockchainType.Cosanta -> "Cosanta"
         is BlockchainType.Unsupported -> this.uid
     }
 

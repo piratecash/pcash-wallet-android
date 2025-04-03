@@ -138,6 +138,8 @@ class WatchAddressViewModel(
         BlockchainType.BitcoinCash,
         BlockchainType.ECash,
         BlockchainType.Litecoin,
+        BlockchainType.Dogecoin,
+        BlockchainType.Cosanta,
         BlockchainType.Dash -> Type.BitcoinAddress
 
         BlockchainType.Ethereum,
@@ -147,6 +149,7 @@ class WatchAddressViewModel(
         BlockchainType.Avalanche,
         BlockchainType.Optimism,
         BlockchainType.Base,
+        BlockchainType.ZkSync,
         BlockchainType.ArbitrumOne,
         BlockchainType.Gnosis,
         BlockchainType.Fantom -> Type.EvmAddress

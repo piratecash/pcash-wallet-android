@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -16,7 +16,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import cash.p.terminal.R
 import cash.p.terminal.core.description
 import cash.p.terminal.modules.receive.viewmodels.NetworkSelectViewModel
@@ -31,6 +30,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.entities.FullCoin
+import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.imageUrl
 import kotlinx.coroutines.launch
 
@@ -45,7 +45,7 @@ fun NetworkSelectScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        backgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.tyler,
+        containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
             AppBar(
                 title = stringResource(R.string.Balance_Network),
@@ -101,7 +101,7 @@ fun NetworkCell(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .size(32.dp),
-            painter = rememberAsyncImagePainter(
+            painter = rememberAsyncImagePainterWithFallback(
                 model = imageUrl,
                 error = painterResource(R.drawable.ic_platform_placeholder_32)
             ),

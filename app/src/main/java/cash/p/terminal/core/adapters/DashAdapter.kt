@@ -4,10 +4,8 @@ import android.util.Log
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.UnsupportedAccountException
-import cash.p.terminal.core.adapters.dash.DashKit
-import cash.p.terminal.core.adapters.dash.DashKit.Companion.getIpByUrl
-import cash.p.terminal.core.adapters.dash.MainNetDash
 import cash.p.terminal.core.splitToAddresses
+import cash.p.terminal.core.utils.Utils.getIpByUrl
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.network.pirate.domain.repository.MasterNodesRepository
 import cash.p.terminal.wallet.AccountType
@@ -16,11 +14,13 @@ import cash.p.terminal.wallet.entities.UsedAddress
 import io.horizontalsystems.bitcoincore.BitcoinCore
 import io.horizontalsystems.bitcoincore.models.BalanceInfo
 import io.horizontalsystems.bitcoincore.models.BlockInfo
+import io.horizontalsystems.bitcoincore.models.TransactionInfo
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.dashkit.DashKit
 import io.horizontalsystems.dashkit.DashKit.NetworkType
-import io.horizontalsystems.dashkit.models.DashTransactionInfo
+import io.horizontalsystems.dashkit.MainNetDash
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -83,8 +83,8 @@ class DashAdapter(
     }
 
     override fun onTransactionsUpdate(
-        inserted: List<DashTransactionInfo>,
-        updated: List<DashTransactionInfo>
+        inserted: List<TransactionInfo>,
+        updated: List<TransactionInfo>
     ) {
         val records = mutableListOf<TransactionRecord>()
 
@@ -137,7 +137,8 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = confirmationsThreshold,
+                        initWithEmptySeeds = true
                     ).apply {
                         setupPeers(masterNodesRepository, userPeers)
                     }
@@ -151,7 +152,8 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = confirmationsThreshold,
+                        initWithEmptySeeds = true
                     ).apply {
                         setupPeers(masterNodesRepository, userPeers)
                     }
@@ -164,7 +166,8 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = confirmationsThreshold,
+                        initWithEmptySeeds = true
                     ).apply {
                         setupPeers(masterNodesRepository, userPeers)
                     }

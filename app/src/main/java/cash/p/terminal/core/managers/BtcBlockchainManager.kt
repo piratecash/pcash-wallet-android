@@ -26,6 +26,8 @@ class BtcBlockchainManager(
         listOf(
             BlockchainType.Bitcoin,
             BlockchainType.BitcoinCash,
+            BlockchainType.Dogecoin,
+            BlockchainType.Cosanta,
             BlockchainType.Litecoin
         )
 
@@ -35,6 +37,8 @@ class BtcBlockchainManager(
             BlockchainType.BitcoinCash,
             BlockchainType.Litecoin,
             BlockchainType.Dash,
+            BlockchainType.Dogecoin,
+            BlockchainType.Cosanta,
             BlockchainType.ECash,
         )
     }

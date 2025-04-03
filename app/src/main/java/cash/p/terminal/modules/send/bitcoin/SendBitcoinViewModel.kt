@@ -23,6 +23,7 @@ import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.hodler.LockTimeInterval
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,6 +45,13 @@ class SendBitcoinViewModel(
     private val showAddressInput: Boolean,
     private val localStorage: ILocalStorage,
 ) : ViewModelUiState<SendBitcoinUiState>() {
+    private companion object {
+        val BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS  = listOf(
+            BlockchainType.Dogecoin,
+            BlockchainType.Cosanta
+        )
+    }
+
     val coinMaxAllowedDecimals = wallet.token.decimals
     val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
 
@@ -60,6 +68,8 @@ class SendBitcoinViewModel(
     private var fee: BigDecimal? = feeService.bitcoinFeeInfoFlow.value?.fee
     private var utxoData = SendBitcoinModule.UtxoData()
     private var memo: String? = null
+    private var isMemoAvailable: Boolean = blockchainType !in  BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS
+    private var isAdvancedSettingsAvailable: Boolean =  blockchainType !in  BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS
 
     private val logger = AppLogger("Send-${wallet.coin.code}")
 
@@ -106,6 +116,7 @@ class SendBitcoinViewModel(
         feeRate = feeRateState.feeRate,
         address = addressState.validAddress,
         memo = memo,
+        isMemoAvailable = isMemoAvailable,
         fee = fee,
         lockTimeInterval = pluginState.lockTimeInterval,
         addressError = addressState.addressError,
@@ -114,6 +125,7 @@ class SendBitcoinViewModel(
         canBeSend = amountState.canBeSend && addressState.canBeSend && feeRateState.canBeSend,
         showAddressInput = showAddressInput,
         utxoData = if (utxoExpertModeEnabled) utxoData else null,
+        isAdvancedSettingsAvailable = isAdvancedSettingsAvailable
     )
 
     fun onEnterAmount(amount: BigDecimal?) {
@@ -258,15 +270,15 @@ class SendBitcoinViewModel(
             sendResult = SendResult.Sending
 
             val send = adapter.send(
-                amountState.amount!!,
-                addressState.validAddress!!.hex,
-                memo,
-                feeRateState.feeRate!!,
-                customUnspentOutputs,
-                pluginState.pluginData,
-                btcBlockchainManager.transactionSortMode(adapter.blockchainType),
-                localStorage.rbfEnabled,
-                logger
+                amount = amountState.amount!!,
+                address = addressState.validAddress!!.hex,
+                memo = memo,
+                feeRate = feeRateState.feeRate!!,
+                unspentOutputs = customUnspentOutputs,
+                pluginData = pluginState.pluginData,
+                transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
+                rbfEnabled = localStorage.rbfEnabled,
+                logger = logger
             ).blockingGet()
 
             logger.info("success")
@@ -292,11 +304,13 @@ data class SendBitcoinUiState(
     val feeRate: Int?,
     val address: Address?,
     val memo: String?,
+    val isMemoAvailable: Boolean,
     val lockTimeInterval: LockTimeInterval?,
     val addressError: Throwable?,
     val amountCaution: HSCaution?,
     val feeRateCaution: HSCaution?,
     val canBeSend: Boolean,
     val showAddressInput: Boolean,
-    val utxoData: SendBitcoinModule.UtxoData?
+    val utxoData: SendBitcoinModule.UtxoData?,
+    val isAdvancedSettingsAvailable: Boolean
 )

@@ -60,6 +60,7 @@
     <string name="Button_Share">Поделиться</string>
     <string name="Button_Apply">Применить</string>
     <string name="Button_SetAmount">Установить сумму</string>
+    <string name="not_enough_ton_for_fee">Недостаточно TON для оплаты комиссии</string>
     <string name="Error_OutOfRange">Не может быть меньше %1$s или более чем %2$s</string>
     <string name="Error_NotInteger">Неверное целое число</string>
     <string name="Error">Ошибка</string>
@@ -329,6 +330,7 @@
     <string name="Balance_Withdraw">Вывод средств</string>
     <string name="Balance_Title">Баланс</string>
     <string name="Balance_Send">Отправить</string>
+    <string name="shield_funds">Переместить на защищённый адрес</string>
     <string name="Balance_Swap">Обменять</string>
     <string name="Balance_Deposit">Получить</string>
     <string name="Balance_Receive">Получить</string>
@@ -832,6 +834,7 @@
     <string name="Settings_LaunchScreen">Экран запуска</string>
     <string name="Settings_Appearance">Оформление</string>
     <string name="Settings_Contact_ViaTelegram">через Telegram</string>
+    <string name="telegram_link">https://t.me/PirateCash_RUS</string>
     <string name="Settings_Contact_ViaEmail">по электронной почте</string>
     <string name="Settings_AutoLock">Блокировка</string>
     <string name="Settings_JoinUnstoppables">Следите за нами</string>
@@ -1022,6 +1025,8 @@
     <!--Errors-->
     <string name="Binance_Backend_Error_MemoRequired">При отправке транзакции получателю необходимо заполнить поле мемо</string>
     <string name="Binance_Backend_Error_RequiresDigits">Поле мемо должно содержать только цифры</string>
+    <string name="transaction_error_need_to_check">Транзакция, возможно, не была завершена из-за непредвиденных проблем. Рекомендуем проверить статус перед повторной отправкой, чтобы избежать двойной оплаты.</string>
+
     <!--Hud texts-->
     <string name="Hud_Text_NoInternet">Нет интернета</string>
     <string name="Hud_Text_Copied">Скопировано</string>
@@ -1258,6 +1263,7 @@
     <string name="Coin_Tab_Market">Рынки</string>
     <string name="Coin_Tab_Details">Аналитика</string>
     <string name="Coin_Tab_Tweets">Твиты</string>
+    <string name="typical_fee">"<![CDATA[Ожидаемая комиссия: < 0.001 ZEC]]> "</string>
     <string name="CoinPage_TimeDuration_Today">СГД</string>
     <string name="CoinPage_TimeDuration_Hour">1Ч</string>
     <string name="CoinPage_TimeDuration_Day">1Д</string>
@@ -1803,4 +1809,5 @@
     <string name="zcash_transparent_description">Полностью отслеживаемые транзакции</string>
     <string name="zcash_shielded_description">Частные защищённые транзакции</string>
     <string name="zcash_unified_description">Комбинированные прозрачные и приватные транзакции</string>
+    <string name="update_app">Обновить приложение</string>
 </resources>

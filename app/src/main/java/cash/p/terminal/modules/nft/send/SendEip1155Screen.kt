@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +61,7 @@ fun SendEip1155Screen(
 ) {
 
     Scaffold(
-        backgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.tyler,
+        containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
             AppBar(
                 title = stringResource(R.string.SendNft_Title),
@@ -164,8 +164,8 @@ private fun ItemCountInput(
     onValueChange: (Int) -> Unit,
 ) {
     val borderColor = when (state) {
-        is DataState.Error -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.red50
-        else -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel20
+        is DataState.Error -> ComposeAppTheme.colors.red50
+        else -> ComposeAppTheme.colors.steel20
     }
 
     Row(

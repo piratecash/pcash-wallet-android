@@ -31,6 +31,7 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import java.math.BigDecimal
 
 @Composable
@@ -59,7 +60,7 @@ fun SendTonScreen(
     val amountUnique = paymentAddressViewModel.amountUnique
 
 
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         val focusRequester = remember { FocusRequester() }
 
         LaunchedEffect(Unit) {
@@ -70,16 +71,21 @@ fun SendTonScreen(
             title = title,
             onCloseClick = { navController.popBackStack() }
         ) {
-            AvailableBalance(
-                coinCode = wallet.coin.code,
-                coinDecimal = viewModel.coinMaxAllowedDecimals,
-                fiatDecimal = viewModel.fiatMaxAllowedDecimals,
-                availableBalance = availableBalance,
-                amountInputType = amountInputType,
-                rate = viewModel.coinRate
-            )
+            if (uiState.showAddressInput) {
+                HSAddressInput(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    initial = prefilledData?.address?.let { Address(it) },
+                    tokenQuery = wallet.token.tokenQuery,
+                    coinCode = wallet.coin.code,
+                    error = addressError,
+                    textPreprocessor = paymentAddressViewModel,
+                    navController = navController
+                ) {
+                    viewModel.onEnterAddress(it)
+                }
+                VSpacer(12.dp)
+            }
 
-            VSpacer(12.dp)
             HSAmountInput(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 focusRequester = focusRequester,
@@ -99,20 +105,15 @@ fun SendTonScreen(
                 amountUnique = amountUnique
             )
 
-            if (uiState.showAddressInput) {
-                VSpacer(12.dp)
-                HSAddressInput(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    initial = prefilledData?.address?.let { Address(it) },
-                    tokenQuery = wallet.token.tokenQuery,
-                    coinCode = wallet.coin.code,
-                    error = addressError,
-                    textPreprocessor = paymentAddressViewModel,
-                    navController = navController
-                ) {
-                    viewModel.onEnterAddress(it)
-                }
-            }
+            VSpacer(12.dp)
+            AvailableBalance(
+                coinCode = wallet.coin.code,
+                coinDecimal = viewModel.coinMaxAllowedDecimals,
+                fiatDecimal = viewModel.fiatMaxAllowedDecimals,
+                availableBalance = availableBalance,
+                amountInputType = amountInputType,
+                rate = viewModel.coinRate
+            )
 
             VSpacer(12.dp)
             HSMemoInput(maxLength = 120) {

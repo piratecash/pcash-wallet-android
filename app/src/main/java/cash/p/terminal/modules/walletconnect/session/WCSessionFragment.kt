@@ -8,14 +8,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Text
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +31,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import io.horizontalsystems.core.getInputX
@@ -47,6 +50,7 @@ import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.findNavController
+import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.helpers.HudHelper
 
 class WCSessionFragment : BaseComposeFragment() {
@@ -87,11 +91,14 @@ class WCSessionFragment : BaseComposeFragment() {
 fun WCSessionPage(
     navController: NavController,
     viewModel: WCSessionViewModel,
+    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
     val uiState = viewModel.uiState
 
     Column(
-        modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)
+        modifier = Modifier
+            .windowInsetsPadding(windowInsets)
+            .background(color = ComposeAppTheme.colors.tyler)
     ) {
         AppBar(
             title = stringResource(R.string.WalletConnect_Title),
@@ -139,7 +146,7 @@ private fun ColumnScope.WCSessionListContent(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(RoundedCornerShape(15.dp)),
-                painter = rememberAsyncImagePainter(
+                painter = rememberAsyncImagePainterWithFallback(
                     model = uiState.peerMeta?.icon,
                     error = painterResource(R.drawable.ic_platform_placeholder_24)
                 ),

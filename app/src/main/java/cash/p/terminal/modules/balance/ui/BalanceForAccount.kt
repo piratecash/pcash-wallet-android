@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -38,10 +39,10 @@ import cash.p.terminal.core.stats.StatEvent
 import cash.p.terminal.core.stats.StatPage
 import cash.p.terminal.core.stats.stat
 import cash.p.terminal.core.utils.ModuleField
-import io.horizontalsystems.core.entities.ViewState
 import cash.p.terminal.modules.backupalert.BackupAlert
 import cash.p.terminal.modules.balance.AccountViewItem
 import cash.p.terminal.modules.balance.BalanceModule
+import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -50,17 +51,23 @@ import cash.p.terminal.modules.qrscanner.QRScannerActivity
 import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
+import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.entities.ViewState
 import io.horizontalsystems.core.helpers.HudHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun BalanceForAccount(navController: NavController, accountViewItem: AccountViewItem) {
+fun BalanceForAccount(
+    navController: NavController,
+    accountViewItem: AccountViewItem,
+    paddingValuesParent: PaddingValues
+) {
     val viewModel = viewModel<BalanceViewModel>(factory = BalanceModule.Factory())
 
     val context = LocalContext.current
@@ -99,13 +106,13 @@ fun BalanceForAccount(navController: NavController, accountViewItem: AccountView
     BackupAlert(navController)
     ModalBottomSheetLayout(
         sheetState = invalidUrlBottomSheetState,
-        sheetBackgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.transparent,
+        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmationBottomSheet(
                 title = stringResource(R.string.WalletConnect_Title),
                 text = stringResource(R.string.WalletConnect_Error_InvalidUrl),
                 iconPainter = painterResource(R.drawable.ic_wallet_connect_24),
-                iconTint = ColorFilter.tint(cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.jacob),
+                iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
                 confirmText = stringResource(R.string.Button_TryAgain),
                 cautionType = Caution.Type.Warning,
                 cancelText = stringResource(R.string.Button_Cancel),
@@ -122,7 +129,7 @@ fun BalanceForAccount(navController: NavController, accountViewItem: AccountView
         }
     ) {
         Scaffold(
-            backgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.tyler,
+            containerColor = ComposeAppTheme.colors.tyler,
             topBar = {
                 AppBar(
                     title = {
@@ -185,10 +192,24 @@ fun BalanceForAccount(navController: NavController, accountViewItem: AccountView
         ) { paddingValues ->
             val uiState = viewModel.uiState
 
+            val navigateToTokenBalance: (BalanceViewItem2) -> Unit = remember {
+                {
+                    navController.slideFromRight(
+                        R.id.tokenBalanceFragment,
+                        it.wallet
+                    )
+
+                    stat(page = StatPage.Balance, event = StatEvent.OpenTokenPage(it.wallet.token))
+                }
+            }
+
             Crossfade(
                 targetState = uiState.viewState,
                 modifier = Modifier
-                    .padding(paddingValues)
+                    .padding(
+                        top = paddingValues.calculateTopPadding(),
+                        bottom = paddingValuesParent.calculateBottomPadding()
+                    )
                     .fillMaxSize(),
                 label = ""
             ) { viewState ->
@@ -196,12 +217,20 @@ fun BalanceForAccount(navController: NavController, accountViewItem: AccountView
                     ViewState.Success -> {
                         val balanceViewItems = uiState.balanceViewItems
                         BalanceItems(
-                            balanceViewItems,
-                            viewModel,
-                            accountViewItem,
-                            navController,
-                            uiState,
-                            viewModel.totalUiState,
+                            balanceViewItems = balanceViewItems,
+                            viewModel = viewModel,
+                            onItemClick = navigateToTokenBalance,
+                            onBalanceClick = {
+                                if (viewModel.balanceHidden) {
+                                    viewModel.onBalanceClick(it)
+                                } else {
+                                    navigateToTokenBalance(it)
+                                }
+                            },
+                            accountViewItem = accountViewItem,
+                            navController = navController,
+                            uiState = uiState,
+                            totalState = viewModel.totalUiState,
                         )
                     }
 

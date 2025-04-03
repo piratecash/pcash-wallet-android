@@ -15,7 +15,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,6 +60,7 @@ import cash.p.terminal.ui_compose.components.body_lucian
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui.extensions.BottomSheetHeader
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.SnackbarDuration
 import io.horizontalsystems.core.helpers.HudHelper
 import io.horizontalsystems.core.imageUrl
@@ -156,7 +157,7 @@ fun ContactScreen(
         }
 
         Scaffold(
-            backgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.tyler,
+            containerColor = ComposeAppTheme.colors.tyler,
             topBar = {
                 AppBar(
                     title = uiState.headerTitle.getString(),
@@ -364,7 +365,7 @@ private fun ContactAddress(
             modifier = Modifier
                 .padding(end = 16.dp)
                 .size(32.dp),
-            painter = rememberAsyncImagePainter(
+            painter = rememberAsyncImagePainterWithFallback(
                 model = addressViewItem.blockchain.type.imageUrl,
                 error = painterResource(R.drawable.ic_platform_placeholder_32)
             ),

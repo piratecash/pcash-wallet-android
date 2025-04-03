@@ -29,6 +29,10 @@ class FeeRateProvider(appConfig: AppConfigProvider) {
         return feeRateKit.litecoin()
     }
 
+    fun dogecoinFeeRate(): Single<BigInteger> {
+        return Single.just(BigInteger("3000"))
+    }
+
     fun bitcoinCashFeeRate(): Single<BigInteger> {
         return feeRateKit.bitcoinCash()
     }
@@ -55,6 +59,13 @@ class LitecoinFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IF
     }
 }
 
+class DogecoinFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IFeeRateProvider {
+    override suspend fun getFeeRates(): FeeRates {
+        val feeRate = feeRateProvider.dogecoinFeeRate().await()
+        return FeeRates(feeRate.toInt())
+    }
+}
+
 class BitcoinCashFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IFeeRateProvider {
     override suspend fun getFeeRates(): FeeRates {
         val feeRate = feeRateProvider.bitcoinCashFeeRate().await()
@@ -63,6 +74,13 @@ class BitcoinCashFeeRateProvider(private val feeRateProvider: FeeRateProvider) :
 }
 
 class DashFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IFeeRateProvider {
+    override suspend fun getFeeRates(): FeeRates {
+        val feeRate = feeRateProvider.dashFeeRate().await()
+        return FeeRates(feeRate.toInt())
+    }
+}
+
+class CosantaFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IFeeRateProvider {
     override suspend fun getFeeRates(): FeeRates {
         val feeRate = feeRateProvider.dashFeeRate().await()
         return FeeRates(feeRate.toInt())

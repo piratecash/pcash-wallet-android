@@ -91,6 +91,8 @@ class TransactionRecordRepository(
                 BlockchainType.BitcoinCash,
                 BlockchainType.ECash,
                 BlockchainType.Litecoin,
+                BlockchainType.Dogecoin,
+                BlockchainType.Cosanta,
                 BlockchainType.Dash,
                 BlockchainType.Zcash,
                 BlockchainType.BinanceChain -> mergedWallets.add(wallet)
@@ -101,6 +103,7 @@ class TransactionRecordRepository(
                 BlockchainType.Avalanche,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.ArbitrumOne,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom,

@@ -27,7 +27,6 @@ import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -45,7 +44,7 @@ import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.advanced.SendBtcAdvancedSettingsScreen
 import cash.p.terminal.modules.send.bitcoin.utxoexpert.UtxoExpertModeScreen
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -57,6 +56,7 @@ import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import java.math.BigDecimal
 
 
@@ -156,28 +156,36 @@ fun SendBitcoinScreen(
                 navigationIcon = {
                     HsBackButton(onClick = { fragmentNavController.popBackStack() })
                 },
-                menuItems = listOf(
-                    MenuItem(
-                        title = TranslatableString.ResString(R.string.SendEvmSettings_Title),
-                        icon = R.drawable.ic_manage_2,
-                        tint = ComposeAppTheme.colors.jacob,
-                        onClick = { composeNavController.navigate(SendBtcAdvancedSettingsPage) }
-                    ),
-                )
+                menuItems = if (uiState.isAdvancedSettingsAvailable) {
+                    listOf(
+                        MenuItem(
+                            title = TranslatableString.ResString(R.string.SendEvmSettings_Title),
+                            icon = R.drawable.ic_manage_2,
+                            tint = ComposeAppTheme.colors.jacob,
+                            onClick = { composeNavController.navigate(SendBtcAdvancedSettingsPage) }
+                        ),
+                    )
+                } else {
+                    emptyList()
+                }
             )
 
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                if (uiState.showAddressInput) {
+                    HSAddressInput(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        initial = prefilledData?.address?.let { Address(it) },
+                        tokenQuery = wallet.token.tokenQuery,
+                        coinCode = wallet.coin.code,
+                        error = addressError,
+                        textPreprocessor = paymentAddressViewModel,
+                        navController = fragmentNavController
+                    ) {
+                        viewModel.onEnterAddress(it)
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
 
-                AvailableBalance(
-                    coinCode = wallet.coin.code,
-                    coinDecimal = viewModel.coinMaxAllowedDecimals,
-                    fiatDecimal = viewModel.fiatMaxAllowedDecimals,
-                    availableBalance = availableBalance,
-                    amountInputType = amountInputType,
-                    rate = rate
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
                 HSAmountInput(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     focusRequester = focusRequester,
@@ -197,24 +205,22 @@ fun SendBitcoinScreen(
                     amountUnique = amountUnique
                 )
 
-                if (uiState.showAddressInput) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    HSAddressInput(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        initial = prefilledData?.address?.let { Address(it) },
-                        tokenQuery = wallet.token.tokenQuery,
-                        coinCode = wallet.coin.code,
-                        error = addressError,
-                        textPreprocessor = paymentAddressViewModel,
-                        navController = fragmentNavController
-                    ) {
-                        viewModel.onEnterAddress(it)
-                    }
-                }
+                Spacer(modifier = Modifier.height(12.dp))
+                AvailableBalance(
+                    coinCode = wallet.coin.code,
+                    coinDecimal = viewModel.coinMaxAllowedDecimals,
+                    fiatDecimal = viewModel.fiatMaxAllowedDecimals,
+                    availableBalance = availableBalance,
+                    amountInputType = amountInputType,
+                    rate = rate
+                )
 
-                VSpacer(12.dp)
-                HSMemoInput(maxLength = 120) {
-                    viewModel.onEnterMemo(it)
+
+                if (uiState.isMemoAvailable) {
+                    VSpacer(12.dp)
+                    HSMemoInput(maxLength = 120) {
+                        viewModel.onEnterMemo(it)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))

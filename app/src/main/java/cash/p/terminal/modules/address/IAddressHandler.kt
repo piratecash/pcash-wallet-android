@@ -110,6 +110,7 @@ class AddressHandlerUdn(
             BlockchainType.Polygon,
             BlockchainType.Optimism,
             BlockchainType.Base,
+            BlockchainType.ZkSync,
             BlockchainType.Avalanche,
             BlockchainType.Gnosis,
             BlockchainType.Fantom,
@@ -119,11 +120,13 @@ class AddressHandlerUdn(
             BlockchainType.BitcoinCash -> "BCH"
             BlockchainType.ECash -> "XEC"
             BlockchainType.Litecoin -> "LTC"
+            BlockchainType.Dogecoin -> "DOGE"
             BlockchainType.Dash -> "DASH"
             BlockchainType.Zcash -> "ZEC"
             BlockchainType.Solana -> "SOL"
             BlockchainType.Tron -> "TRX"
             BlockchainType.Ton -> "TON"
+            BlockchainType.Cosanta -> "COSA"
             is BlockchainType.Unsupported -> blockchainType.uid
         }
 
@@ -140,6 +143,7 @@ class AddressHandlerUdn(
                 BlockchainType.Ethereum,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.ArbitrumOne,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom -> "ERC20"

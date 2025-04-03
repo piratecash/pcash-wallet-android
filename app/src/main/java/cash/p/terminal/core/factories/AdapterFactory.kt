@@ -9,7 +9,9 @@ import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.adapters.BinanceAdapter
 import cash.p.terminal.core.adapters.BitcoinAdapter
 import cash.p.terminal.core.adapters.BitcoinCashAdapter
+import cash.p.terminal.core.adapters.CosantaAdapter
 import cash.p.terminal.core.adapters.DashAdapter
+import cash.p.terminal.core.adapters.DogecoinAdapter
 import cash.p.terminal.core.adapters.ECashAdapter
 import cash.p.terminal.core.adapters.Eip20Adapter
 import cash.p.terminal.core.adapters.EvmAdapter
@@ -180,7 +182,8 @@ class AdapterFactory(
                                 wallet.token.blockchainType
                             ),
                             addressSpecTyped = tokenType.type,
-                            localStorage = localStorage
+                            localStorage = localStorage,
+                            backgroundManager = backgroundManager
                         )
                     }
                     else -> null
@@ -206,6 +209,28 @@ class AdapterFactory(
                     )
                 }
 
+                BlockchainType.Cosanta -> {
+                    val syncMode =
+                        btcBlockchainManager.syncMode(BlockchainType.Cosanta, wallet.account.origin)
+                    CosantaAdapter(
+                        wallet = wallet,
+                        syncMode = syncMode,
+                        backgroundManager = backgroundManager
+                    )
+                }
+
+                BlockchainType.Dogecoin -> {
+                    val syncMode = btcBlockchainManager.syncMode(
+                        BlockchainType.Dogecoin,
+                        wallet.account.origin
+                    )
+                    DogecoinAdapter(
+                        wallet = wallet,
+                        syncMode = syncMode,
+                        backgroundManager = backgroundManager
+                    )
+                }
+
                 BlockchainType.Zcash -> {
                     ZcashAdapter(
                         context = context,
@@ -215,7 +240,8 @@ class AdapterFactory(
                             wallet.token.blockchainType
                         ),
                         addressSpecTyped = null,
-                        localStorage = localStorage
+                        localStorage = localStorage,
+                        backgroundManager = backgroundManager
                     )
                 }
 
@@ -225,6 +251,7 @@ class AdapterFactory(
                 BlockchainType.Avalanche,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom,
                 BlockchainType.ArbitrumOne -> {
@@ -355,6 +382,7 @@ class AdapterFactory(
             BlockchainType.Polygon,
             BlockchainType.Optimism,
             BlockchainType.Base,
+            BlockchainType.ZkSync,
             BlockchainType.ArbitrumOne -> {
                 val evmKitManager = evmBlockchainManager.getEvmKitManager(blockchainType)
                 evmKitManager.unlink(wallet.account)
@@ -387,6 +415,7 @@ class AdapterFactory(
             BlockchainType.Polygon,
             BlockchainType.Optimism,
             BlockchainType.Base,
+            BlockchainType.ZkSync,
             BlockchainType.ArbitrumOne -> {
                 val evmKitManager = evmBlockchainManager.getEvmKitManager(blockchainType)
                 evmKitManager.unlink(transactionSource.account)

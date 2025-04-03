@@ -70,6 +70,8 @@ class SendFragment : BaseFragment() {
                     BlockchainType.BitcoinCash,
                     BlockchainType.ECash,
                     BlockchainType.Litecoin,
+                    BlockchainType.Dogecoin,
+                    BlockchainType.Cosanta,
                     BlockchainType.Dash -> {
                         val factory = SendBitcoinModule.Factory(wallet, predefinedAddress)
                         val sendBitcoinViewModel by navGraphViewModels<SendBitcoinViewModel>(R.id.sendXFragment) {
@@ -145,6 +147,7 @@ class SendFragment : BaseFragment() {
                     BlockchainType.Avalanche,
                     BlockchainType.Optimism,
                     BlockchainType.Base,
+                    BlockchainType.ZkSync,
                     BlockchainType.Gnosis,
                     BlockchainType.Fantom,
                     BlockchainType.ArbitrumOne -> {

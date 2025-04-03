@@ -22,6 +22,8 @@ object AddressInputModule {
                 BlockchainType.BitcoinCash,
                 BlockchainType.ECash,
                 BlockchainType.Litecoin,
+                BlockchainType.Dogecoin,
+                BlockchainType.Cosanta,
                 BlockchainType.Dash,
                 BlockchainType.Zcash,
                 BlockchainType.BinanceChain -> {
@@ -33,6 +35,7 @@ object AddressInputModule {
                 BlockchainType.Avalanche,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom,
                 BlockchainType.ArbitrumOne -> {
@@ -74,6 +77,8 @@ object AddressInputModule {
                 BlockchainType.BitcoinCash,
                 BlockchainType.ECash,
                 BlockchainType.Litecoin,
+                BlockchainType.Dogecoin,
+                BlockchainType.Cosanta,
                 BlockchainType.Dash,
                 BlockchainType.Zcash,
                 BlockchainType.BinanceChain -> {
@@ -85,6 +90,7 @@ object AddressInputModule {
                 BlockchainType.Avalanche,
                 BlockchainType.Optimism,
                 BlockchainType.Base,
+                BlockchainType.ZkSync,
                 BlockchainType.Gnosis,
                 BlockchainType.Fantom,
                 BlockchainType.ArbitrumOne -> {
