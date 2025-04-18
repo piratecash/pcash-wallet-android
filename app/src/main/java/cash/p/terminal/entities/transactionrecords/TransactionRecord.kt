@@ -1,6 +1,6 @@
 package cash.p.terminal.entities.transactionrecords
 
-import cash.p.terminal.core.adapters.TonTransactionRecord
+import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftUid
@@ -8,7 +8,7 @@ import cash.p.terminal.entities.transactionrecords.binancechain.BinanceChainTran
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
 import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecord
-import cash.p.terminal.entities.transactionrecords.tron.TronOutgoingTransactionRecord
+import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.entities.BlockchainType
@@ -133,18 +133,22 @@ fun TransactionRecord.getShortOutgoingTransactionRecord(): ShortOutgoingTransact
             }
         }
 
-        is TronOutgoingTransactionRecord ->
-            ShortOutgoingTransactionRecord(
-                amountOut = mainValue.decimalValue?.abs(),
-                token = baseToken,
-                timestamp = timestamp * 1000
-            )
+        is TronTransactionRecord ->
+            if (transactionRecordType == TransactionRecordType.TRON_OUTGOING) {
+                ShortOutgoingTransactionRecord(
+                    amountOut = mainValue?.decimalValue?.abs(),
+                    token = token,
+                    timestamp = timestamp * 1000
+                )
+            } else {
+                null
+            }
 
         is TonTransactionRecord ->
             if (actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Send) {
                 ShortOutgoingTransactionRecord(
                     amountOut = this.mainValue?.decimalValue?.abs(),
-                    token = baseToken,
+                    token = token,
                     timestamp = timestamp * 1000
                 )
             } else {
@@ -155,7 +159,7 @@ fun TransactionRecord.getShortOutgoingTransactionRecord(): ShortOutgoingTransact
             if (transactionRecordType == TransactionRecordType.SOLANA_INCOMING) {
                 ShortOutgoingTransactionRecord(
                     amountOut = mainValue?.decimalValue?.abs(),
-                    token = baseToken,
+                    token = token,
                     timestamp = timestamp * 1000
                 )
 
