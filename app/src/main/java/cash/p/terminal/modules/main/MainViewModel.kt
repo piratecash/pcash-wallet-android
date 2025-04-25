@@ -10,8 +10,6 @@ import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
-import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.modules.main.MainModule.MainNavigation
 import cash.p.terminal.modules.market.topplatforms.Platform
@@ -47,10 +45,6 @@ class MainViewModel(
     wcSessionManager: WCSessionManager,
     private val wcManager: WCManager,
 ) : ViewModelUiState<MainModule.UiState>() {
-
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
-        CheckGooglePlayUpdateUseCase::class.java
-    )
 
     private var wcPendingRequestsCount = 0
     private var marketsTabEnabled = localStorage.marketsTabEnabledFlow.value
@@ -96,13 +90,6 @@ class MainViewModel(
     private var activeWallet = accountManager.activeAccount
     private var wcSupportState: WCManager.SupportState? = null
     private var torEnabled = localStorage.torEnabled
-    private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
-        .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
 
     val wallets: List<Account>
         get() = accountManager.accounts.filter { !it.isWatchAccount }
@@ -164,12 +151,6 @@ class MainViewModel(
             (it as? ActiveAccountState.ActiveAccount)?.let { state ->
                 activeWallet = state.account
                 emitState()
-            }
-        }
-
-        updateAvailable.collectWith(viewModelScope) {
-            if (it) {
-                updateSettingsBadge()
             }
         }
 
@@ -370,8 +351,7 @@ class MainViewModel(
 
     private fun updateSettingsBadge() {
         val showDotBadge =
-            !(backupManager.allBackedUp && termsManager.allTermsAccepted && pinComponent.isPinSet) || accountManager.hasNonStandardAccount ||
-                    updateAvailable.value
+            !(backupManager.allBackedUp && termsManager.allTermsAccepted && pinComponent.isPinSet) || accountManager.hasNonStandardAccount
 
         settingsBadge = if (wcPendingRequestsCount > 0) {
             MainModule.BadgeType.BadgeNumber(wcPendingRequestsCount)
