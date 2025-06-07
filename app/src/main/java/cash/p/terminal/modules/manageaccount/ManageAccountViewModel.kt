@@ -75,14 +75,21 @@ class ManageAccountViewModel(
         }
 
         val items = mutableListOf<BackupItem>()
-        if (!account.isBackedUp && !account.isFileBackedUp) {
-            items.add(BackupItem.ManualBackup(true))
-            items.add(BackupItem.LocalBackup(true))
-            items.add(BackupItem.InfoText(R.string.BackupRecoveryPhrase_BackupRequiredText))
-        } else {
-            items.add(BackupItem.ManualBackup(showAttention = !account.isBackedUp, completed = account.isBackedUp))
-            items.add(BackupItem.LocalBackup(false))
-            items.add(BackupItem.InfoText(R.string.BackupRecoveryPhrase_BackupRecomendedText))
+        if(account.accountSupportsBackup) {
+            if (!account.isBackedUp && !account.isFileBackedUp) {
+                items.add(BackupItem.ManualBackup(true))
+                items.add(BackupItem.LocalBackup(true))
+                items.add(BackupItem.InfoText(R.string.BackupRecoveryPhrase_BackupRequiredText))
+            } else {
+                items.add(
+                    BackupItem.ManualBackup(
+                        showAttention = !account.isBackedUp,
+                        completed = account.isBackedUp
+                    )
+                )
+                items.add(BackupItem.LocalBackup(false))
+                items.add(BackupItem.InfoText(R.string.BackupRecoveryPhrase_BackupRecomendedText))
+            }
         }
 
         return items
@@ -103,12 +110,15 @@ class ManageAccountViewModel(
                 KeyAction.PrivateKeys,
                 KeyAction.PublicKeys,
             )
+
+            is AccountType.HardwareCard,
             is AccountType.ZCashUfvKey,
             is AccountType.EvmAddress,
             is AccountType.SolanaAddress,
             is AccountType.TronAddress,
             is AccountType.TonAddress,
             is AccountType.BitcoinAddress -> listOf()
+
             is AccountType.HdExtendedKey -> {
                 if ((account.type as AccountType.HdExtendedKey).hdExtendedKey.isPublic) {
                     listOf(KeyAction.PublicKeys)
