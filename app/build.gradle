@@ -321,12 +321,14 @@ dependencies {
 
     // Wallet kits
     implementation(libs.ton.kit)
+    implementation(libs.ton.kotlin.contract)
     implementation libs.bitcoin.kit
     implementation libs.ethereum.kit
     implementation libs.solana.kit
+    implementation libs.solanakt
     implementation 'com.github.horizontalsystems:blockchain-fee-rate-kit-android:1d3bd49'
-    implementation 'com.github.horizontalsystems:binance-chain-kit-android:c1509a2'
-    implementation 'com.github.horizontalsystems:tron-kit-android:dc3dca7'
+    implementation libs.binance.kit
+    implementation libs.tron.kit
     // Zcash SDK
     coreLibraryDesugaring libs.desugar.jdk.libs
     implementation libs.zcash.android.sdk
@@ -348,7 +350,6 @@ dependencies {
 
     implementation 'com.twitter.twittertext:twitter-text:3.1.0'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.8.1'
 
     // UI modules
@@ -362,6 +363,7 @@ dependencies {
     implementation project(':components:icons')
     implementation project(':components:chartview')
     implementation project(':feature-stacking')
+    implementation project(':feature-tangem')
 
     // Integration with activities
     implementation libs.androidx.activity.compose
@@ -416,6 +418,8 @@ dependencies {
 
     implementation libs.google.play.app.update
     implementation libs.google.play.app.update.ktx
+
+    implementation libs.tangem.sdk
 }
 
 configurations.all {

@@ -33,14 +33,16 @@ room = "2.6.1"
 javax-inject = "1"
 appcompat = "1.7.0"
 
-horizontalsystems-ton = "58321df"
-piratecash-bitcoin = "f165e0c"
-horizontalsystems-ethereum = "f17004c"
+tonKotlin = "0.2.15" # same version like in ton-kit
+piratecash-ton = "acae5a0"
+piratecash-bitcoin = "85e36e8"
+piratecash-ethereum = "6c880df"
 horizontalsystems-blockchain-fee = "1d3bd49"
-horizontalsystems-binance = "c1509a2"
+piratecash-binance = "7faf429"
 piratecash-solana = "a009bcf"
-horizontalsystems-tron = "bdd7602"
-
+solanakt = "0f6072a"
+piratecash-tron = "c138eab"
+tangem-sdk = "415ede7"
 gson = "2.13.0"
 retrofit = "2.11.0"
 okhttp-logging-interceptor = "4.12.0"
@@ -78,7 +80,6 @@ compose-material = { module = "androidx.compose.material:material" }
 compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-compose" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
-kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel-compose" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
@@ -102,13 +103,16 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
-ton-kit = { group = "com.github.horizontalsystems", name = "ton-kit-android", version.ref = "horizontalsystems-ton" }
+ton-kotlin-contract = { module = "org.ton:ton-kotlin-contract", version.ref = "tonKotlin" }
+ton-kit = { group = "com.github.piratecash", name = "ton-kit-android", version.ref = "piratecash-ton" }
 bitcoin-kit = { group = "com.github.piratecash", name = "bitcoin-kit-android", version.ref = "piratecash-bitcoin" }
 solana-kit = { group = "com.github.piratecash", name = "solana-kit-android", version.ref = "piratecash-solana" }
-ethereum-kit = { group = "com.github.horizontalsystems", name = "ethereum-kit-android", version.ref = "horizontalsystems-ethereum" }
+solanakt = { module = "com.github.piratecash:SolanaKT", version.ref = "solanakt" }
+ethereum-kit = { group = "com.github.piratecash", name = "ethereum-kit-android", version.ref = "piratecash-ethereum" }
 blockchain-fee-kit = { group = "com.github.horizontalsystems", name = "blockchain-fee-rate-kit-android", version.ref = "horizontalsystems-blockchain-fee" }
-binance-kit = { group = "com.github.horizontalsystems", name = "binance-chain-kit-android", version.ref = "horizontalsystems-binance" }
-tron-kit = { group = "com.github.horizontalsystems", name = "tron-kit-android", version.ref = "horizontalsystems-tron" }
+binance-kit = { group = "com.github.piratecash", name = "binance-chain-kit-android", version.ref = "piratecash-binance" }
+tron-kit = { group = "com.github.piratecash", name = "tron-kit-android", version.ref = "piratecash-tron" }
+tangem-sdk = { group = "com.github.piratecash", name = "tangem-sdk-android", version.ref = "tangem-sdk" }
 
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 

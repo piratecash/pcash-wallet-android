@@ -2,25 +2,29 @@ package cash.p.terminal.core.managers
 
 import android.util.Log
 import cash.p.terminal.R
-import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
+import cash.p.terminal.core.UnsupportedException
+import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
-import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.Status
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.Value
 import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper
 import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper.getSwapEventSectionItems
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.tangem.signer.TonPrivateKeyEd25519
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.entities.HardwarePublicKeyType
+import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.entities.CurrencyValue
 import io.horizontalsystems.hdwalletkit.Curve
 import io.horizontalsystems.hdwalletkit.HDWallet
-import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.tonkit.core.TonKit
 import io.horizontalsystems.tonkit.core.TonWallet
 import io.horizontalsystems.tonkit.models.Jetton
@@ -34,9 +38,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class TonKitManager(
     private val backgroundManager: BackgroundManager,
+    private val hardwarePublicKeyStorage: HardwarePublicKeyStorage
 ) {
     private val scope = CoroutineScope(Dispatchers.Default)
     private var job: Job? = null
@@ -58,7 +64,11 @@ class TonKitManager(
         get() = tonKitWrapper?.tonKit?.statusInfo()
 
     @Synchronized
-    fun getTonKitWrapper(account: Account): TonKitWrapper {
+    fun getTonKitWrapper(
+        account: Account,
+        blockchainType: BlockchainType?,
+        tokenType: TokenType?
+    ): TonKitWrapper {
         if (this.tonKitWrapper != null && currentAccount != account) {
             stop()
         }
@@ -66,12 +76,10 @@ class TonKitManager(
         if (this.tonKitWrapper == null) {
             val accountType = account.type
             this.tonKitWrapper = when (accountType) {
+                is AccountType.TonAddress,
+                is AccountType.HardwareCard,
                 is AccountType.Mnemonic -> {
-                    createKitInstance(accountType, account)
-                }
-
-                is AccountType.TonAddress -> {
-                    createKitInstance(accountType, account)
+                    createKitInstance(getTonWallet(account, blockchainType, tokenType), account)
                 }
 
                 else -> throw UnsupportedAccountException()
@@ -88,32 +96,58 @@ class TonKitManager(
     }
 
     fun getNonActiveTonKitWrapper(account: Account) =
-        when (val accountType = account.type) {
+        when (account.type) {
+            is AccountType.HardwareCard,
+            is AccountType.TonAddress,
             is AccountType.Mnemonic -> {
-                createKitInstance(accountType, account)
-            }
-
-            is AccountType.TonAddress -> {
-                createKitInstance(accountType, account)
+                createKitInstance(getTonWallet(account, null, null), account)
             }
 
             else -> throw UnsupportedAccountException()
         }
 
-    private fun createKitInstance(
-        accountType: AccountType.Mnemonic,
+    private fun getTonWallet(
         account: Account,
-    ): TonKitWrapper {
-        val kit = TonKit.getInstance(accountType.toTonWallet(), Network.MainNet, App.instance, account.id)
+        blockchainType: BlockchainType?,
+        tokenType: TokenType?
+    ): TonWallet {
+        return when (val accountType = account.type) {
+            is AccountType.TonAddress,
+            is AccountType.Mnemonic -> {
+                accountType.toTonWallet()
+            }
 
-        return TonKitWrapper(kit)
+            is AccountType.HardwareCard -> {
+                runBlocking {
+                    val hardwarePublicKey =
+                        hardwarePublicKeyStorage.getKey(
+                            accountId = account.id,
+                            blockchainType = blockchainType
+                                ?: throw IllegalArgumentException("Blockchain type is null"),
+                            tokenType = tokenType
+                                ?: throw IllegalArgumentException("Token type is null")
+                        )
+                    if (hardwarePublicKey == null || hardwarePublicKey.type != HardwarePublicKeyType.ADDRESS) {
+                        throw UnsupportedException("Hardware card does not have a public key for TON")
+                    }
+                    TonWallet.FullAccess(
+                        TonPrivateKeyEd25519(
+                            accountType.cardId,
+                            hardwarePublicKey
+                        )
+                    )
+                }
+            }
+
+            else -> throw UnsupportedAccountException()
+        }
     }
 
     private fun createKitInstance(
-        accountType: AccountType.TonAddress,
+        tonWallet: TonWallet,
         account: Account,
     ): TonKitWrapper {
-        val kit = TonKit.getInstance(accountType.toTonWallet(), Network.MainNet, App.instance, account.id)
+        val kit = TonKit.getInstance(tonWallet, Network.MainNet, App.instance, account.id)
 
         return TonKitWrapper(kit)
     }
@@ -309,10 +343,11 @@ fun AccountType.toTonWallet() = when (this) {
             privateKeyBytes = privateKeyBytes.copyOfRange(1, privateKeyBytes.size)
         }
         TonWallet.Seed(privateKeyBytes)
-
     }
+
     is AccountType.TonAddress -> {
         TonWallet.WatchOnly(address)
     }
+
     else -> throw IllegalArgumentException("Account type ${this.javaClass.simpleName} can not be converted to TonKit.WalletType")
 }
