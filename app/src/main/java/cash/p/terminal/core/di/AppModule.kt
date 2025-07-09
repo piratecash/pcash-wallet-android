@@ -25,7 +25,6 @@ val appModule = module {
         swapProvidersModule,
         contractValidatorModule,
         useCaseModule,
-        appUpdateModule,
         featurePremiumModule
     )
 }
