@@ -7,8 +7,6 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
-import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
@@ -39,10 +37,6 @@ class MainSettingsViewModel(
     private val languageManager: LanguageManager,
     private val currencyManager: CurrencyManager,
 ) : ViewModelUiState<MainSettingUiState>() {
-
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
-        CheckGooglePlayUpdateUseCase::class.java
-    )
 
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
 
@@ -131,18 +125,12 @@ class MainSettingsViewModel(
                 emitState()
             }
         }
-        updateAvailable.collectWith(viewModelScope) {
-            if (it) {
-                emitState()
-            }
-        }
 
         syncCounter()
     }
 
     override fun createState(): MainSettingUiState {
         return MainSettingUiState(
-            isUpdateAvailable = updateAvailable.value,
             currentLanguage = currentLanguageDisplayName,
             baseCurrencyCode = baseCurrencyCode,
             appWebPageLink = appWebPageLink,
@@ -170,7 +158,6 @@ class MainSettingsViewModel(
 }
 
 data class MainSettingUiState(
-    val isUpdateAvailable: Boolean,
     val currentLanguage: String,
     val baseCurrencyCode: String,
     val appWebPageLink: String,
