@@ -2,6 +2,7 @@ package cash.p.terminal.core.providers
 
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
+import cash.p.terminal.network.data.EncodedSecrets
 import io.horizontalsystems.core.entities.Currency
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.entities.BlockchainType
@@ -93,7 +94,7 @@ class AppConfigProvider {
     }
 
     val openSeaApiKey by lazy {
-        Translator.getString(R.string.openSeaApiKey)
+        EncodedSecrets.OPEN_SEA_API_KEY
     }
 
     val solscanApiKey by lazy {
