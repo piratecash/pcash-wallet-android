@@ -5,52 +5,36 @@ import java.util.Base64
 import kotlin.experimental.xor
 
 /**
- * How to use this tool:
- * 1) Put Api keys in local.properties file in the root of the project:
- * *    api.app_key=your_app_key
- * 2) Run kotlin ./tools/encode_secrets.kts
+ * Usage:
+ * 1) Add API keys to local.properties:
+ *      api.key_name=RELEASE_OR_COMMON_KEY
+ *      api.debug.key_name=DEBUG_KEY
+ * 2) Run:
+ *      kotlin ./tools/encode_secrets.kts
  */
 
-val dot = "."
-val z = File(dot)
+val p = "pcash-public-password"
+val z = File(".")
 val x = File(z, "local.properties")
 val y = File(z, "app/build.gradle")
 val w = File(z, "./core/network/src/commonMain/kotlin/cash/p/terminal/network/data/EncodedSecrets.kt")
 
-val p = "pcash-public-password"
-
-val a = readSecrets(x)
 val b = grabId(y)
 val c = twist(b)
+val a = readSecrets(x)
 
 if (a.isEmpty()) {
     println("⚠️  No secrets!")
     kotlin.system.exitProcess(0)
 }
 
-println("→ ID: $b")
-println("→ Keys: ${a.keys.joinToString()}")
-
-val d = a.mapValues { (k, v) -> scramble(v, p, c) }
+val d = a.mapValues { (_, values) -> values.map { scramble(it, p, c) } }
 
 writeOut(d, w)
 
 println("✅ Done: ${w.absolutePath}")
 d.forEach { (k, v) ->
-    println("  » $k: ${v.take(16)}...")
-}
-
-fun readSecrets(f: File): Map<String, String> {
-    if (!f.exists()) {
-        println("✘ No local.properties found")
-        return emptyMap()
-    }
-
-    return f.readLines()
-        .asSequence()
-        .filter { it.startsWith("api.") && it.contains("=") }
-        .map { it.split("=", limit = 2) }
-        .associate { it[0].removePrefix("api.").trim() to it[1].trim() }
+    println("  » $k: ${v.joinToString { it.take(16) + "..." }}")
 }
 
 fun grabId(f: File): String {
@@ -74,18 +58,53 @@ fun scramble(secret: String, key: String, salt: String): String {
     return Base64.getEncoder().encodeToString(encrypted)
 }
 
-fun writeOut(data: Map<String, String>, target: File) {
+fun readSecrets(f: File): Map<String, List<String>> {
+    if (!f.exists()) {
+        println("✘ No local.properties found")
+        return emptyMap()
+    }
+
+    val raw = f.readLines()
+        .filter { it.startsWith("api.") && "=" in it }
+        .map { it.split("=", limit = 2).let { (k, v) -> k.trim() to v.trim() } }
+        .toMap()
+
+    val keys = raw.keys
+        .filter { !it.startsWith("api.debug.") }
+        .map { it.removePrefix("api.") }
+
+    return keys.associateWith { k ->
+        val releaseValue = raw["api.$k"]
+        val debugValue = raw["api.debug.$k"]
+        val allValues = listOfNotNull(debugValue, releaseValue)
+        allValues
+    }.filterValues { it.isNotEmpty() }
+}
+
+fun writeOut(data: Map<String, List<String>>, target: File) {
     target.parentFile?.mkdirs()
 
     val result = buildString {
         appendLine("package cash.p.terminal.network.data")
         appendLine()
+        appendLine("import org.koin.core.component.KoinComponent")
+        appendLine("import org.koin.core.component.get")
+        appendLine()
         appendLine("// generated file — do not edit manually")
-        appendLine("object EncodedSecrets {")
-        data.forEach { (k, v) ->
-            val constName = k.uppercase()
-            appendLine("    val $constName = \"$v\".decode()")
+        appendLine("object EncodedSecrets : KoinComponent {")
+        appendLine("    private val decoder by lazy { get<Decoder>() }")
+        appendLine()
+
+        data.forEach { (k, values) ->
+            val name = if (k.matches(Regex("^[a-zA-Z_][a-zA-Z0-9_]*$"))) k.uppercase() else "`$k`"
+            appendLine("    val $name = decoder.decode(listOf(")
+            values.forEachIndexed { i, v ->
+                val comma = if (i != values.lastIndex) "," else ""
+                appendLine("        \"$v\"$comma")
+            }
+            appendLine("    ))")
         }
+
         appendLine("}")
     }
 

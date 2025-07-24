@@ -87,18 +87,7 @@ android {
             debuggable true
             minifyEnabled false
             applicationIdSuffix ".dev"
-            resValue "string", "twitterBearerToken", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB"
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
-            resValue "string", "etherscanKey", "GKNHXT22ED7PRVCKZATFZQD1YI7FK9AAYE"
-            resValue "string", "bscscanKey", "IIFNE97JSZFI8P6NSBEQWI7WZJYR1Q8YZA"
-            resValue "string", "polygonscanKey", "TNQ44BCF1MS3S75Y6A2B6SN88I8UYFJFRM"
-            resValue "string", "snowtraceApiKey", "DD8VX77TQ73KSNDFGBQQ31J7K5B51CXXPH"
-            resValue "string", "optimisticEtherscanApiKey", "A4E6DAX46FFFW4CGZP6IMZ64ADI3TIRBTS"
-            resValue "string", "arbiscanApiKey", "Z43JN5434XVNA5D73UGPWKF26G5D9MGDPZ"
-            resValue "string", "gnosisscanApiKey", "V2J8YU15ZX9S1W3GTUV2HXM11TP2TUBRW4"
-            resValue "string", "ftmscanApiKey", "57YQ2GIRAZNV6M5HIJYYG3XQGGNIPVV8MF"
-            resValue "string", "basescanApiKey", "AKEWS351FN9P9E2CFPWRWQVGHYUP7W8SUF"
-            resValue "string", "eraZkSyncApiKey", "HG24J44ABUGMYM7P7SD4SNX1BFVN38SI4N"
             resValue "string", "is_release", "false"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
             resValue "string", "faqUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/master/src/faq.json"
@@ -106,11 +95,6 @@ android {
             resValue "string", "providerCoinsJsonUrl", "https://raw.githubusercontent.com/horizontalsystems/cryptocurrencies/master/provider.coins.json"
 //            resValue "string", "marketApiBaseUrl", "https://api-dev.blocksdecoded.com"
 //            resValue "string", "marketApiKey", "IQf1uAjkthZp1i2pYzkXFDom"
-            resValue "string", "walletConnectV2Key", "8b4f41c60880a3e3ad57d82fddb30568"
-            resValue "string", "solscanApiKey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE2Nzk0NjQyMTQ4NDAsImVtYWlsIjoiaHJ6c3lzdGVtczEwMUBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJpYXQiOjE2Nzk0NjQyMTR9.BRM7J9RbDpHgd2oMAus00XfWOxTJgV2Tn2_chXZOdtk"
-            resValue "string", "trongridApiKeys", "33374494-8060-447e-8367-90c5efd4ed95"
-            resValue "string", "udnApiKey", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz"
-            resValue "string", "oneInchApiKey", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq"
             resValue "string", "blocksDecodedEthereumRpc", "https://api-dev.blocksdecoded.com/v1/ethereum-rpc/mainnet"
         }
 
@@ -126,18 +110,7 @@ android {
             debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            resValue "string", "twitterBearerToken", "AAAAAAAAAAAAAAAAAAAAAJgeNwEAAAAA6xVpR6xLKTrxIA3kkSyRA92LDpA%3Da6auybDwcymUyh2BcS6zZwicUdxGtrzJC0qvOSdRwKLeqBGhwB"
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
-            resValue "string", "etherscanKey", "IEXTB9RE7MUV2UQ9X238RP146IEJB1J5HS,27S4V3GYJGMCPWQZ2T4SF9355QBQYQ3FI7,YK4KEA3TANM8KZ5J6E2Q1ZIM6YDM8TEABM"
-            resValue "string", "bscscanKey", "5Q8QI88UE84N5P656FY2MMIDQY9HUPZ6PU,HRV1ET55UFXJQMQ3HUBC1JT8XT3ZT2QU6M,IE9KAXM6Q8KKK1VAZQCPP2H8Q9DSCXH4NM,ITVTJ6PB99DMHIQWSM4TKPWNYGVGVIIDHS"
-            resValue "string", "polygonscanKey", "P9QEQHXSYFKM9KHR2TH8BGRAQU6T3M7UA4,DMGHPTPSZCE4V4SYMWTIK29CC1RIDTN7U9"
-            resValue "string", "snowtraceApiKey", "47IXTRAAFT1E1J4RNSPZPNB5EWUIQR16FG"
-            resValue "string", "optimisticEtherscanApiKey", "745EUI4781T147M9QJRNS5G3Q5NFF2SJXP"
-            resValue "string", "arbiscanApiKey", "4QWW522BV13BJCZMXH1JIB2ESJ7MZTSJYI"
-            resValue "string", "gnosisscanApiKey", "KEXFAQKDUENZ5U9CW3ZKYJEJ84ZIHH9QTY"
-            resValue "string", "ftmscanApiKey", "JAWRPW27KEMVXMJJ9UKY63CVPH3X5V9SMP"
-            resValue "string", "basescanApiKey", "QU4RJVJXQCW812J3234EW9EV815TA6XC55"
-            resValue "string", "eraZkSyncApiKey", "HG24J44ABUGMYM7P7SD4SNX1BFVN38SI4N"
             resValue "string", "is_release", "true"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
             resValue "string", "faqUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/v1.3/src/faq.json"
@@ -145,11 +118,6 @@ android {
             resValue "string", "providerCoinsJsonUrl", "https://raw.githubusercontent.com/horizontalsystems/cryptocurrencies/v0.21/provider.coins.json"
 //            resValue "string", "marketApiBaseUrl", "https://api.blocksdecoded.com"
 //            resValue "string", "marketApiKey", "IQf1uAjkthZp1i2pYzkXFDom"
-            resValue "string", "walletConnectV2Key", "0c5ca155c2f165a7d0c88686f2113a72"
-            resValue "string", "solscanApiKey", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE2Nzk0NjQxMTQ0ODUsImVtYWlsIjoiaHNkYW84ODg4QGdtYWlsLmNvbSIsImFjdGlvbiI6InRva2VuLWFwaSIsImlhdCI6MTY3OTQ2NDExNH0.91DUjjjYu86f1ZMMJ5cyJxIKTTw_srhI-vNgYaTCPUU"
-            resValue "string", "trongridApiKeys", "8f5ae2c8-8012-42a8-b0ca-ffc2741f6a29,578aa64f-a79f-4ee8-86e9-e9860e2d050a,1e92f1fc-41f8-401f-a7f6-5b719b6f1280"
-            resValue "string", "udnApiKey", "r2phzgatt_zt9-hd_wyvdjrdsrimnxgokm7knyag1malzgcz"
-            resValue "string", "oneInchApiKey", "3EttyCzgWb2GLFIRoPIUYM0M4uKAVEcq"
             resValue "string", "blocksDecodedEthereumRpc", "https://api.blocksdecoded.com/v1/ethereum-rpc/mainnet"
         }
 
