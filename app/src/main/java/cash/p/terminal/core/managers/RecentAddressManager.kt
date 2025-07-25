@@ -10,7 +10,6 @@ import io.horizontalsystems.core.entities.BlockchainType
 class RecentAddressManager(
     private val accountManager: IAccountManager,
     private val dao: RecentAddressDao,
-    private val actionCompletedDelegate: ActionCompletedDelegate
 ) {
     private val actionCompletedDelegate = ActionCompletedDelegate
     fun setRecentAddress(address: Address, blockchainType: BlockchainType) {

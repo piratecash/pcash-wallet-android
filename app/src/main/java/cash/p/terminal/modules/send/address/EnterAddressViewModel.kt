@@ -17,7 +17,6 @@ import cash.p.terminal.modules.address.AddressParserChain
 import cash.p.terminal.modules.address.EnsResolverHolder
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.ui_compose.entities.DataState
-import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
 import io.horizontalsystems.core.ViewModelUiState
@@ -26,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
@@ -34,8 +34,6 @@ class EnterAddressViewModel(
     addressUriParser: AddressUriParser,
     initialAddress: String?,
     contactsRepository: ContactsRepository,
-    localStorage: ILocalStorage,
-    addressCheckerSkippable: Boolean,
     localStorage: ILocalStorage,
     addressCheckerSkippable: Boolean,
     private val domainParser: AddressParserChain,
