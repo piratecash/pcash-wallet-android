@@ -57,7 +57,7 @@ fun ReleaseNotesScreen(
     onCloseClick: () -> Unit,
     viewModel: ReleaseNotesViewModel
 ) {
-    BackHandler() {
+    BackHandler {
         viewModel.whatsNewShown()
         onCloseClick.invoke()
     }
@@ -87,7 +87,7 @@ fun ReleaseNotesScreen(
             }
         }
     ) {
-        Column(Modifier.padding(it)) {
+        Column(Modifier.padding(top = it.calculateTopPadding())) {
             MarkdownContent(
                 modifier = Modifier.weight(1f),
                 viewState = viewModel.viewState,
@@ -104,6 +104,7 @@ fun ReleaseNotesScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(ComposeAppTheme.colors.tyler)
+                    .padding(bottom = it.calculateBottomPadding())
                     .height(62.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
