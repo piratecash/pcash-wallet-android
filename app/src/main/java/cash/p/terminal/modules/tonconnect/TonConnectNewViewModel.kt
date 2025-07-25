@@ -6,6 +6,8 @@ import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
 import cash.p.terminal.core.App
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.toTonWalletFullAccess
+import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -15,7 +17,7 @@ class TonConnectNewViewModel(
     private val tonConnectKit = App.tonConnectManager.kit
 
     private var manifest: DAppManifestEntity? = null
-    private var accounts: List<cash.p.terminal.wallet.Account> = listOf()
+    private var accounts: List<Account> = listOf()
     private var account = App.accountManager.activeAccount
     private var finish = false
     private var error: Throwable? = null
@@ -42,7 +44,7 @@ class TonConnectNewViewModel(
         }
 
         accounts = App.accountManager.accounts.filter {
-            it.type is cash.p.terminal.wallet.AccountType.Mnemonic
+            it.type is AccountType.Mnemonic
         }
 
         if (accounts.isEmpty()) {
@@ -51,7 +53,7 @@ class TonConnectNewViewModel(
         }
     }
 
-    fun onSelectAccount(account: cash.p.terminal.wallet.Account) {
+    fun onSelectAccount(account: Account) {
         this.account = account
         emitState()
     }
@@ -62,12 +64,13 @@ class TonConnectNewViewModel(
                 val manifest = manifest ?: throw NoManifestError()
                 val account = account ?: throw IllegalArgumentException("Empty account")
 
-                tonConnectKit.connect(
+                val res = tonConnectKit.connect(
                     requestEntity,
                     manifest,
                     account.id,
                     account.type.toTonWalletFullAccess()
                 )
+                println("TonConnect connect result: $res")
                 finish = true
             } catch (e: Throwable) {
                 toast = e.message?.nullIfBlank() ?: e.javaClass.simpleName
@@ -94,8 +97,8 @@ class NoTonAccountError : TonConnectError()
 
 data class TonConnectNewUiState(
     val manifest: DAppManifestEntity?,
-    val accounts: List<cash.p.terminal.wallet.Account>,
-    val account: cash.p.terminal.wallet.Account?,
+    val accounts: List<Account>,
+    val account: Account?,
     val finish: Boolean,
     val error: Throwable?,
     val toast: String?

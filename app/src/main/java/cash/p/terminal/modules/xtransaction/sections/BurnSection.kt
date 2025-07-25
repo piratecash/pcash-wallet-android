@@ -1,0 +1,31 @@
+package cash.p.terminal.modules.xtransaction.sections
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavController
+import cash.p.terminal.R
+import cash.p.terminal.entities.TransactionValue
+import cash.p.terminal.modules.xtransaction.cells.AmountCellTV
+import cash.p.terminal.modules.xtransaction.cells.AmountColor
+import cash.p.terminal.modules.xtransaction.cells.AmountSign
+import cash.p.terminal.modules.xtransaction.helpers.TransactionInfoHelper
+import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+
+@Composable
+fun BurnSection(
+    transactionValue: TransactionValue,
+    transactionInfoHelper: TransactionInfoHelper,
+    navController: NavController,
+) {
+    SectionUniversalLawrence {
+        AmountCellTV(
+            title = stringResource(R.string.Send_Confirmation_Burn),
+            transactionValue = transactionValue,
+            coinAmountColor = AmountColor.Negative,
+            coinAmountSign = AmountSign.Minus,
+            transactionInfoHelper = transactionInfoHelper,
+            navController = navController,
+            borderTop = false,
+        )
+    }
+}
