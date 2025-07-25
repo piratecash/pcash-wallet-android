@@ -17,6 +17,7 @@ import cash.p.terminal.modules.address.AddressParserChain
 import cash.p.terminal.modules.address.EnsResolverHolder
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.ui_compose.entities.DataState
+import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
 import io.horizontalsystems.core.ViewModelUiState
@@ -33,6 +34,8 @@ class EnterAddressViewModel(
     addressUriParser: AddressUriParser,
     initialAddress: String?,
     contactsRepository: ContactsRepository,
+    localStorage: ILocalStorage,
+    addressCheckerSkippable: Boolean,
     localStorage: ILocalStorage,
     addressCheckerSkippable: Boolean,
     private val domainParser: AddressParserChain,
