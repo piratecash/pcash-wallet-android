@@ -423,7 +423,9 @@
     <dialog
         android:id="@+id/configuredTokenInfo"
         android:name="cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoDialog" />
-
+    <dialog
+        android:id="@+id/addressRiskyBottomSheetAlert"
+        android:name="cash.p.terminal.modules.send.AddressRiskyBottomSheetAlert" />
     <!--Wallet Connect-->
     <fragment
         android:id="@+id/wcSessionFragment"
@@ -455,4 +457,10 @@
     <dialog
         android:id="@+id/wcAccountTypeNotSupportedDialog"
         android:name="cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog" />
+    <fragment
+        android:id="@+id/addressCheckerFragment"
+        android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckerFragment"/>
+    <fragment
+        android:id="@+id/addressCheckFragment"
+        android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment"/>
 </navigation>

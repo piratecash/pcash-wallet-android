@@ -12,22 +12,22 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.R
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
 import cash.p.terminal.modules.address.HSAddressCell
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
-import cash.p.terminal.modules.send.SendScreen
-import cash.p.terminal.ui_compose.components.VSpacer
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.R
 import cash.p.terminal.modules.availablebalance.AvailableBalance
 import cash.p.terminal.modules.fee.HSFee
 import cash.p.terminal.modules.memo.HSMemoInput
 import cash.p.terminal.modules.send.SendConfirmationFragment
+import cash.p.terminal.modules.send.SendScreen
+import cash.p.terminal.modules.send.openConfirm
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import java.math.BigDecimal
 
 @Composable
@@ -38,6 +38,7 @@ fun SendStellarScreen(
     amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int,
     amount: BigDecimal?,
+    riskyAddress: Boolean
 ) {
     val wallet = viewModel.wallet
     val uiState = viewModel.uiState
@@ -47,9 +48,11 @@ fun SendStellarScreen(
     val proceedEnabled = uiState.canBeSend
     val fee = uiState.fee
     val amountInputType = amountInputModeViewModel.inputType
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
-        factory = AddressParserModule.Factory(wallet.token,
+        factory = AddressParserModule.Factory(
+            wallet.token,
             PrefilledData(uiState.address.hex, amount)
         )
     )
@@ -71,6 +74,7 @@ fun SendStellarScreen(
                 HSAddressCell(
                     title = stringResource(R.string.Send_Confirmation_To),
                     value = uiState.address.hex,
+                    riskyAddress = riskyAddress
                 ) {
                     navController.popBackStack()
                 }
@@ -127,23 +131,15 @@ fun SendStellarScreen(
                     .padding(horizontal = 16.dp, vertical = 16.dp),
                 title = stringResource(R.string.Button_Next),
                 onClick = {
-                    openConfirm(navController, sendEntryPointDestId)
+                    navController.openConfirm(
+                        type = SendConfirmationFragment.Type.Stellar,
+                        riskyAddress = riskyAddress,
+                        keyboardController = keyboardController,
+                        sendEntryPointDestId = sendEntryPointDestId
+                    )
                 },
                 enabled = proceedEnabled
             )
         }
     }
-}
-
-private fun openConfirm(
-    navController: NavController,
-    sendEntryPointDestId: Int
-) {
-    navController.slideFromRight(
-        R.id.sendConfirmation,
-        SendConfirmationFragment.Input(
-            SendConfirmationFragment.Type.Stellar,
-            sendEntryPointDestId
-        )
-    )
 }

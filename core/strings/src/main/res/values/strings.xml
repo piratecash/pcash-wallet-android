@@ -71,6 +71,7 @@
     <string name="Button_Share">Share</string>
     <string name="Button_Apply">Apply</string>
     <string name="Button_SetAmount">Set Amount</string>
+    <string name="Button_ContinueAnyway">Continue Anyway</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="Error_AssetNotEnabled">The recipient hasn\'t enabled %s, therefore they are unable to receive it.</string>
 
@@ -78,6 +79,7 @@
     <string name="Error_NotInteger">Wrong integer number</string>
     <string name="Error">Error</string>
     <string name="NotAvailable">n/a</string>
+    <string name="Idle" translatable="false">-</string>
     <string name="Any">Any</string>
     <string name="SyncError">Sync error. Try Again</string>
     <string name="unknown_send_error">Unknown send error</string>
@@ -506,6 +508,7 @@
     <string name="Send_Processing">Processing!</string>
     <string name="Send_Processing_Description">Transaction sent successfully. Check its status for details.</string>
 
+    <string name="checking_address">Checking address...</string>
     <string name="Send_Address_Recent">Recent</string>
     <string name="Send_Address_Error_CheckLocked">Locked</string>
     <string name="Send_Address_Error_Incorrect">Invalid</string>

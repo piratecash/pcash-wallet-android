@@ -644,4 +644,9 @@ class LocalStorageManager(
         default = true,
         commit = true
     )
+
+    override var recipientAddressCheckEnabled by preferences.delegate(
+        key = "recipientAddressCheckEnabled",
+        default = true
+    )
 }

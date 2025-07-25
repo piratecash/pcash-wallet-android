@@ -275,6 +275,19 @@ private fun SettingSections(
         )
     )
 
+    VSpacer(32.dp)
+    CellUniversalLawrenceSection(
+        listOf({
+            HsSettingCell(
+                title = R.string.SettingsAddressChecker_Title,
+                icon = R.drawable.ic_radar_24,
+                iconTint = ComposeAppTheme.colors.jacob,
+                onClick = {
+                    navController.slideFromRight(R.id.addressCheckerFragment)
+                }
+            )
+        })
+    )
     VSpacer(24.dp)
 
     Row(
@@ -339,6 +352,7 @@ private fun SettingSections(
 
         VSpacer(32.dp)
     */
+
     CellUniversalLawrenceSection(
         listOf({
             HsSettingCell(

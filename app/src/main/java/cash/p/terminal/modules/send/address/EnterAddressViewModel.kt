@@ -4,15 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.address.AddressCheckManager
+import cash.p.terminal.core.address.AddressCheckType
 import cash.p.terminal.core.factories.AddressValidatorFactory
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.Address
-import cash.p.terminal.modules.address.AddressHandlerFactory
+import cash.p.terminal.modules.address.AddressHandlerEns
+import cash.p.terminal.modules.address.AddressHandlerUdn
 import cash.p.terminal.modules.address.AddressParserChain
+import cash.p.terminal.modules.address.EnsResolverHolder
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.ui_compose.entities.DataState
+import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.entities.TokenQuery
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -26,8 +33,11 @@ class EnterAddressViewModel(
     initialAddress: String?,
     contactsRepository: ContactsRepository,
     recentAddressManager: RecentAddressManager,
+    localStorage: ILocalStorage,
+    addressCheckerSkippable: Boolean,
     private val domainParser: AddressParserChain,
     private val addressValidator: EnterAddressValidator,
+    private val addressCheckManager: AddressCheckManager,
 ) : ViewModelUiState<EnterAddressUiState>() {
     private var address: Address? = null
     private val canBeSendToAddress: Boolean
@@ -37,11 +47,18 @@ class EnterAddressViewModel(
         contactsRepository.getContactAddressesByBlockchain(token.blockchainType)
     private var addressValidationInProgress: Boolean = false
     private var addressValidationError: Throwable? = null
+    private val availableCheckTypes = addressCheckManager.availableCheckTypes(token)
+    private var checkResults: Map<AddressCheckType, AddressCheckData> = mapOf()
     private var value = ""
     private var inputState: DataState<Address>? = null
     private var parseAddressJob: Job? = null
 
     private val addressExtractor = AddressExtractor(token.blockchainType, addressUriParser)
+    private val addressCheckEnabled = if (addressCheckerSkippable) {
+        localStorage.recipientAddressCheckEnabled
+    } else {
+        true
+    }
 
     init {
         initialAddress?.let {
@@ -62,6 +79,8 @@ class EnterAddressViewModel(
         address = address,
         addressValidationInProgress = addressValidationInProgress,
         addressValidationError = addressValidationError,
+        checkResults = checkResults,
+        addressCheckEnabled = addressCheckEnabled,
     )
 
     fun onEnterAddress(value: String) {
@@ -71,6 +90,7 @@ class EnterAddressViewModel(
         inputState = null
         addressValidationInProgress = true
         addressValidationError = null
+        checkResults = mapOf()
 
         if (value.isBlank()) {
             this.value = ""
@@ -100,6 +120,7 @@ class EnterAddressViewModel(
                     this@EnterAddressViewModel.address = address
                     addressValidationInProgress = false
                     addressValidationError = null
+
                     emitState()
                 } catch (cancellation: CancellationException) {
                     throw cancellation
@@ -114,11 +135,32 @@ class EnterAddressViewModel(
                 }
 
                 if (addressValidationError != null) {
+                    checkResults = mapOf()
                     emitState()
+                } else if (addressCheckEnabled) {
+                    checkResults = availableCheckTypes.associateWith { AddressCheckData(true) }
+                    emitState()
+
+                    availableCheckTypes.forEach { type ->
+                        val checkResult = try {
+                            if (addressCheckManager.isClear(type, address, token)) {
+                                AddressCheckResult.Clear
+                            } else {
+                                AddressCheckResult.Detected
+                            }
+                        } catch (e: Throwable) {
+                            AddressCheckResult.NotAvailable
+                        }
+
+                        checkResults += mapOf(type to AddressCheckData(false, checkResult))
+                        ensureActive()
+                        emitState()
+                    }
                 }
 
                 inputState = if (
-                    addressValidationError == null
+                    addressValidationError == null &&
+                    checkResults.none { it.value.checkResult == AddressCheckResult.Detected }
                 )
                     DataState.Success(address)
                 else
@@ -144,27 +186,43 @@ class EnterAddressViewModel(
     class Factory(
         private val token: Token,
         private val address: String?,
+        private val addressCheckerSkippable: Boolean
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val blockchainType = token.blockchainType
-            val addressHandlerFactory = AddressHandlerFactory(App.appConfigProvider.udnApiKey)
-            val addressParserChain = addressHandlerFactory.parserChain(blockchainType, withEns = true)
+            val coinCode = token.coin.code
+            val tokenQuery = TokenQuery(blockchainType, token.type)
+            val ensHandler = AddressHandlerEns(blockchainType, EnsResolverHolder.resolver)
+            val udnHandler =
+                AddressHandlerUdn(tokenQuery, coinCode, App.appConfigProvider.udnApiKey)
+            val addressParserChain =
+                AddressParserChain(domainHandlers = listOf(ensHandler, udnHandler))
             val addressUriParser = AddressUriParser(token.blockchainType, token.type)
             val recentAddressManager =
                 RecentAddressManager(
                     App.accountManager,
                     App.appDatabase.recentAddressDao(),
+                    ActionCompletedDelegate
                 )
             val addressValidator = AddressValidatorFactory.get(token)
+            val addressCheckManager = AddressCheckManager(
+                App.spamManager,
+                App.appConfigProvider,
+                App.evmBlockchainManager,
+                App.evmSyncSourceManager
+            )
             return EnterAddressViewModel(
-                token = token,
-                addressUriParser = addressUriParser,
-                initialAddress = address,
-                contactsRepository = App.contactsRepository,
-                recentAddressManager = recentAddressManager,
-                domainParser = addressParserChain,
-                addressValidator = addressValidator,
+                token,
+                addressUriParser,
+                address,
+                App.contactsRepository,
+                recentAddressManager,
+                App.localStorage,
+                addressCheckerSkippable,
+                addressParserChain,
+                addressValidator,
+                addressCheckManager,
             ) as T
         }
     }
@@ -179,5 +237,12 @@ data class EnterAddressUiState(
     val inputState: DataState<Address>?,
     val address: Address?,
     val addressValidationInProgress: Boolean,
-    val addressValidationError: Throwable?
+    val addressValidationError: Throwable?,
+    val checkResults: Map<AddressCheckType, AddressCheckData>,
+    val addressCheckEnabled: Boolean,
+)
+
+data class AddressCheckData(
+    val inProgress: Boolean,
+    val checkResult: AddressCheckResult = AddressCheckResult.NotAvailable
 )

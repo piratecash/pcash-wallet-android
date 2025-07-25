@@ -113,6 +113,22 @@ class AppConfigProvider {
         EncodedSecrets.ONE_INCH_API_KEY
     }
 
+    val chainalysisBaseUrl by lazy {
+        Translator.getString(R.string.chainalysisBaseUrl)
+    }
+
+    val chainalysisApiKey by lazy {
+        EncodedSecrets.CHAINALYSIS_API_KEY
+    }
+
+    val hashDitBaseUrl by lazy {
+        Translator.getString(R.string.hashDitBaseUrl)
+    }
+
+    val hashDitApiKey by lazy {
+        EncodedSecrets.HASH_DIT_API_KEY
+    }
+
     val fiatDecimal: Int = 2
 
     val currencies: List<Currency> = listOf(

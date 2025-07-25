@@ -70,4 +70,11 @@ object EncodedSecrets : KoinComponent {
     val ONE_INCH_API_KEY = decoder.decode(listOf(
         "QyYVBxFuChI1DlskYTYoIRwnJic9LF4kWQcuNXg1TRk="
     ))
+    val CHAINALYSIS_API_KEY = decoder.decode(listOf(
+        "RFICF1kbSUZQWFoAGkRRFUYWWEdXVlxQCUNVREsSHQlHV0ICV0MKTERNAw5fVRsUBEFGQgwRAlMKDAhEXBUbEg=="
+    ))
+    val HASH_DIT_API_KEY = decoder.decode(listOf(
+        "OxYYCzJLBj86KhsTbBMbBwAfBysVBDkIPwcWDFc3fCw3CTY6ChYhWg==",
+        "ESQsGA9iNCwLOS8XeSkTICEUKigXKAg5JRckJ2EcaTErIhwpOz0/aw=="
+    ))
 }

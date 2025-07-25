@@ -9,13 +9,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -23,16 +23,19 @@ import cash.p.terminal.modules.address.HSAddressCell
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
-import cash.p.terminal.modules.pin.ConfirmPinFragment
-import cash.p.terminal.modules.pin.PinType
+import cash.p.terminal.modules.send.AddressRiskyBottomSheetAlert
 import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.evm.confirmation.SendEvmConfirmationFragment
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.HudHelper
+import io.horizontalsystems.core.slideFromBottomForResult
 import java.math.BigDecimal
 
 @Composable
@@ -44,6 +47,7 @@ fun SendEvmScreen(
     wallet: Wallet,
     amount: BigDecimal?,
     hideAddress: Boolean,
+    riskyAddress: Boolean,
     sendEntryPointDestId: Int,
 ) {
     val viewModel =
@@ -56,14 +60,16 @@ fun SendEvmScreen(
     val amountInputType = amountInputModeViewModel.inputType
 
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
-        factory = AddressParserModule.Factory(wallet.token,
+        factory = AddressParserModule.Factory(
+            wallet.token,
             PrefilledData(uiState.address.hex, amount)
         )
     )
     val amountUnique = paymentAddressViewModel.amountUnique
     val view = LocalView.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         val focusRequester = remember { FocusRequester() }
 
         LaunchedEffect(Unit) {
@@ -77,7 +83,8 @@ fun SendEvmScreen(
             if (uiState.showAddressInput) {
                 HSAddressCell(
                     title = stringResource(R.string.Send_Confirmation_To),
-                    value = uiState.address.hex
+                    value = uiState.address.hex,
+                    riskyAddress = riskyAddress
                 ) {
                     navController.popBackStack()
                 }
@@ -121,30 +128,50 @@ fun SendEvmScreen(
                 title = stringResource(R.string.Send_DialogProceed),
                 onClick = {
                     val sendData = viewModel.getSendData() ?: return@ButtonPrimaryYellow
-
-                    if (viewModel.hasConnection()) {
-                        navController.authorizedAction(
-                            ConfirmPinFragment.InputConfirm(
-                                descriptionResId = R.string.Unlock_EnterPasscode,
-                                pinType = PinType.TRANSFER
+                    if (!viewModel.hasConnection()) {
+                        HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
+                    } else if (riskyAddress) {
+                        keyboardController?.hide()
+                        navController.slideFromBottomForResult<AddressRiskyBottomSheetAlert.Result>(
+                            R.id.addressRiskyBottomSheetAlert,
+                            AddressRiskyBottomSheetAlert.Input(
+                                alertText = Translator.getString(R.string.Send_RiskyAddress_AlertText)
                             )
                         ) {
-                            navController.slideFromRight(
-                                R.id.sendEvmConfirmationFragment,
-                                SendEvmConfirmationFragment.Input(
-                                    sendData = sendData,
-                                    blockchainType = viewModel.wallet.token.blockchainType,
-                                    sendEntryPointDestId = sendEntryPointDestId
-
-                                )
+                            openSendConfirm(
+                                sendData,
+                                viewModel.wallet.token.blockchainType,
+                                navController,
+                                sendEntryPointDestId
                             )
                         }
                     } else {
-                        HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
+                        openSendConfirm(
+                            sendData,
+                            viewModel.wallet.token.blockchainType,
+                            navController,
+                            sendEntryPointDestId
+                        )
                     }
                 },
                 enabled = proceedEnabled
             )
         }
     }
+}
+
+private fun openSendConfirm(
+    sendEvmData: SendEvmData,
+    blockchainType: BlockchainType,
+    navController: NavController,
+    sendEntryPointDestId: Int
+) {
+    navController.slideFromRight(
+        R.id.sendEvmConfirmationFragment,
+        SendEvmConfirmationFragment.Input(
+            sendData = sendEvmData,
+            blockchainType = blockchainType,
+            sendEntryPointDestId = sendEntryPointDestId
+        )
+    )
 }

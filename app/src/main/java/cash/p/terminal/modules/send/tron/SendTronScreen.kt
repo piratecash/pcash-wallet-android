@@ -9,24 +9,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.authorizedAction
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
 import cash.p.terminal.modules.address.HSAddressCell
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
-import cash.p.terminal.modules.pin.ConfirmPinFragment
-import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendScreen
+import cash.p.terminal.modules.send.openConfirm
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -40,6 +38,7 @@ fun SendTronScreen(
     amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int,
     prefilledData: PrefilledData?,
+    riskyAddress: Boolean
 ) {
     val view = LocalView.current
     val wallet = viewModel.wallet
@@ -49,6 +48,7 @@ fun SendTronScreen(
     val amountCaution = uiState.amountCaution
     val proceedEnabled = uiState.proceedEnabled
     val amountInputType = amountInputModeViewModel.inputType
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
         factory = AddressParserModule.Factory(wallet.token, prefilledData)
@@ -72,6 +72,7 @@ fun SendTronScreen(
                 HSAddressCell(
                     title = stringResource(R.string.Send_Confirmation_To),
                     value = uiState.address.hex,
+                    riskyAddress = riskyAddress
                 ) {
                     navController.popBackStack()
                 }
@@ -115,22 +116,12 @@ fun SendTronScreen(
                 title = stringResource(R.string.Send_DialogProceed),
                 onClick = {
                     if (viewModel.hasConnection()) {
-                        navController.authorizedAction(
-                            ConfirmPinFragment.InputConfirm(
-                                descriptionResId = R.string.Unlock_EnterPasscode,
-                                pinType = PinType.TRANSFER
-                            )
-                        ) {
-                            viewModel.onNavigateToConfirmation()
-
-                            navController.slideFromRight(
-                                R.id.sendConfirmation,
-                                SendConfirmationFragment.Input(
-                                    SendConfirmationFragment.Type.Tron,
-                                    sendEntryPointDestId
-                                )
-                            )
-                        }
+                        navController.openConfirm(
+                            type = SendConfirmationFragment.Type.Tron,
+                            riskyAddress = riskyAddress,
+                            keyboardController = keyboardController,
+                            sendEntryPointDestId = sendEntryPointDestId
+                        )
                     } else {
                         HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
                     }
