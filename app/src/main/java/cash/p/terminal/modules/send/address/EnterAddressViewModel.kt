@@ -17,7 +17,6 @@ import cash.p.terminal.modules.address.AddressParserChain
 import cash.p.terminal.modules.address.EnsResolverHolder
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.ui_compose.entities.DataState
-import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
 import io.horizontalsystems.core.ViewModelUiState
@@ -26,19 +25,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 
 class EnterAddressViewModel(
     private val token: Token,
     addressUriParser: AddressUriParser,
     initialAddress: String?,
     contactsRepository: ContactsRepository,
-    recentAddressManager: RecentAddressManager,
     localStorage: ILocalStorage,
     addressCheckerSkippable: Boolean,
     private val domainParser: AddressParserChain,
     private val addressValidator: EnterAddressValidator,
     private val addressCheckManager: AddressCheckManager,
 ) : ViewModelUiState<EnterAddressUiState>() {
+    private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+
     private var address: Address? = null
     private val canBeSendToAddress: Boolean
         get() = address != null && !addressValidationInProgress && addressValidationError == null
@@ -199,12 +200,6 @@ class EnterAddressViewModel(
             val addressParserChain =
                 AddressParserChain(domainHandlers = listOf(ensHandler, udnHandler))
             val addressUriParser = AddressUriParser(token.blockchainType, token.type)
-            val recentAddressManager =
-                RecentAddressManager(
-                    App.accountManager,
-                    App.appDatabase.recentAddressDao(),
-                    ActionCompletedDelegate
-                )
             val addressValidator = AddressValidatorFactory.get(token)
             val addressCheckManager = AddressCheckManager(
                 App.spamManager,
@@ -217,7 +212,6 @@ class EnterAddressViewModel(
                 addressUriParser,
                 address,
                 App.contactsRepository,
-                recentAddressManager,
                 App.localStorage,
                 addressCheckerSkippable,
                 addressParserChain,

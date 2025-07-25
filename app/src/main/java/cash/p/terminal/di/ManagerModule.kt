@@ -28,6 +28,7 @@ import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
+import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.managers.ITransactionHiddenManager
