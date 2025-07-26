@@ -79,18 +79,27 @@ class KeyStoreViewModel(
         closeApp = false
     }
 
-    fun onShowTermsDialog() {
-        showTermsDialog = true
+    fun changeSystemPinRequired(required: Boolean) {
+        setSystemPinRequiredInner(required)
+
+        if (!required) {
+            showTermsDialog = true
+        }
     }
 
     fun onCloseTermsDialog() {
         showTermsDialog = false
+        changeSystemPinRequired(true)
     }
 
     fun onTermsAccepted() {
         showTermsDialog = false
 
-        isSystemPinRequired = false
-        localStorage.isSystemPinRequired = false
+        setSystemPinRequiredInner(false)
+    }
+
+    private fun setSystemPinRequiredInner(required: Boolean) {
+        isSystemPinRequired = required
+        localStorage.isSystemPinRequired = isSystemPinRequired
     }
 }
