@@ -1,4 +1,4 @@
-## Version 0.44.1 Highlights
+## Version 0.44.2 Highlights
 
 - 🐞 Fixed an issue where, in some cases, the **"Next"** button couldn't be pressed after entering an address.
 - ✏️ Corrected a wording in the settings description as reported in issue #56.
