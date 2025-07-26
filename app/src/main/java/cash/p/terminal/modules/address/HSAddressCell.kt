@@ -22,9 +22,14 @@ import io.horizontalsystems.chartview.cell.CellUniversal
 fun HSAddressCell(
     title: String,
     value: String,
+    riskyAddress: Boolean,
     onClick: () -> Unit
 ) {
-    val borderColor = ComposeAppTheme.colors.transparent
+    val borderColor = if (riskyAddress) {
+        ComposeAppTheme.colors.red50
+    } else {
+        ComposeAppTheme.colors.transparent
+    }
 
     Column(
         modifier = Modifier
@@ -44,6 +49,14 @@ fun HSAddressCell(
                     modifier = Modifier.weight(1f),
                     text = value
                 )
+                if (riskyAddress) {
+                    HSpacer(16.dp)
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_attention_20),
+                        contentDescription = null,
+                        tint = ComposeAppTheme.colors.lucian
+                    )
+                }
 
                 HSpacer(16.dp)
                 Icon(

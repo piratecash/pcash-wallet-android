@@ -12,13 +12,19 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
 import cash.p.terminal.core.BaseFragment
+import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountInputModeModule
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
+import cash.p.terminal.modules.pin.ConfirmPinFragment
+import cash.p.terminal.modules.pin.PinType
+import cash.p.terminal.modules.send.SendConfirmationFragment.Type
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinNavHost
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinViewModel
@@ -42,10 +48,13 @@ import cash.p.terminal.modules.send.zcash.SendZCashModule
 import cash.p.terminal.modules.send.zcash.SendZCashScreen
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
+import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.slideFromBottomForResult
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
@@ -67,6 +76,7 @@ class SendFragment : BaseFragment() {
                 val title = input.title
                 val sendEntryPointDestId = input.sendEntryPointDestId
                 val address = input.address
+                val riskyAddress = input.riskyAddress
                 val prefilledData = PrefilledData(address.hex, input.amount)
                 val hideAddress = input.hideAddress
                 val amount = input.amount
@@ -101,6 +111,7 @@ class SendFragment : BaseFragment() {
                                     amountInputModeViewModel = amountInputModeViewModel,
                                     sendEntryPointDestId = sendEntryPointDestId,
                                     prefilledData = prefilledData,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -118,12 +129,13 @@ class SendFragment : BaseFragment() {
                                     .systemBarsPadding()
                             ) {
                                 SendZCashScreen(
-                                    title,
-                                    findNavController(),
-                                    sendZCashViewModel,
-                                    amountInputModeViewModel,
-                                    sendEntryPointDestId,
-                                    prefilledData,
+                                    title = title,
+                                    navController = findNavController(),
+                                    viewModel = sendZCashViewModel,
+                                    amountInputModeViewModel = amountInputModeViewModel,
+                                    sendEntryPointDestId = sendEntryPointDestId,
+                                    prefilledData = prefilledData,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -153,7 +165,8 @@ class SendFragment : BaseFragment() {
                                     wallet = wallet,
                                     amount = amount,
                                     hideAddress = hideAddress,
-                                    sendEntryPointDestId = sendEntryPointDestId
+                                    sendEntryPointDestId = sendEntryPointDestId,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -169,12 +182,13 @@ class SendFragment : BaseFragment() {
                                     .systemBarsPadding()
                             ) {
                                 SendSolanaScreen(
-                                    title,
-                                    findNavController(),
-                                    sendSolanaViewModel,
-                                    amountInputModeViewModel,
-                                    sendEntryPointDestId,
-                                    prefilledData,
+                                    title = title,
+                                    navController = findNavController(),
+                                    viewModel = sendSolanaViewModel,
+                                    amountInputModeViewModel = amountInputModeViewModel,
+                                    sendEntryPointDestId = sendEntryPointDestId,
+                                    prefilledData = prefilledData,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -190,12 +204,13 @@ class SendFragment : BaseFragment() {
                                     .systemBarsPadding()
                             ) {
                                 SendTonScreen(
-                                    title,
-                                    findNavController(),
-                                    sendTonViewModel,
-                                    amountInputModeViewModel,
-                                    sendEntryPointDestId,
-                                    prefilledData,
+                                    title = title,
+                                    navController = findNavController(),
+                                    viewModel = sendTonViewModel,
+                                    amountInputModeViewModel = amountInputModeViewModel,
+                                    sendEntryPointDestId = sendEntryPointDestId,
+                                    prefilledData = prefilledData,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -211,12 +226,13 @@ class SendFragment : BaseFragment() {
                                     .systemBarsPadding()
                             ) {
                                 SendTronScreen(
-                                    title,
-                                    findNavController(),
-                                    sendTronViewModel,
-                                    amountInputModeViewModel,
-                                    sendEntryPointDestId,
-                                    prefilledData,
+                                    title = title,
+                                    navController = findNavController(),
+                                    viewModel = sendTronViewModel,
+                                    amountInputModeViewModel = amountInputModeViewModel,
+                                    sendEntryPointDestId = sendEntryPointDestId,
+                                    prefilledData = prefilledData,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -238,6 +254,7 @@ class SendFragment : BaseFragment() {
                                     amountInputModeViewModel = amountInputModeViewModel,
                                     sendEntryPointDestId = sendEntryPointDestId,
                                     prefilledData = prefilledData,
+                                    riskyAddress = riskyAddress
                                 )
                             }
                         }
@@ -248,12 +265,13 @@ class SendFragment : BaseFragment() {
                         val sendStellarViewModel by navGraphViewModels<SendStellarViewModel>(R.id.sendXFragment) { factory }
                         setContent {
                             SendStellarScreen(
-                                title,
-                                findNavController(),
-                                sendStellarViewModel,
-                                amountInputModeViewModel,
-                                sendEntryPointDestId,
-                                amount,
+                                title = title,
+                                navController = findNavController(),
+                                viewModel = sendStellarViewModel,
+                                amountInputModeViewModel = amountInputModeViewModel,
+                                sendEntryPointDestId = sendEntryPointDestId,
+                                amount = amount,
+                                riskyAddress = riskyAddress
                             )
                         }
                     }
@@ -285,7 +303,50 @@ class SendFragment : BaseFragment() {
         val title: String,
         val sendEntryPointDestId: Int = 0,
         val address: Address,
+        val riskyAddress: Boolean = false,
         val amount: BigDecimal? = null,
         val hideAddress: Boolean = false
     ) : Parcelable
 }
+
+internal fun NavController.openConfirm(
+    type: Type,
+    riskyAddress: Boolean,
+    keyboardController: SoftwareKeyboardController?,
+    sendEntryPointDestId: Int
+) {
+    if (riskyAddress) {
+        keyboardController?.hide()
+        slideFromBottomForResult<AddressRiskyBottomSheetAlert.Result>(
+            R.id.addressRiskyBottomSheetAlert,
+            AddressRiskyBottomSheetAlert.Input(
+                alertText = Translator.getString(R.string.Send_RiskyAddress_AlertText)
+            )
+        ) {
+            openConfirm(type, sendEntryPointDestId)
+        }
+    } else {
+        openConfirm(type, sendEntryPointDestId)
+    }
+}
+
+private fun NavController.openConfirm(
+    type: Type,
+    sendEntryPointDestId: Int
+) {
+    authorizedAction(
+        ConfirmPinFragment.InputConfirm(
+            descriptionResId = R.string.Unlock_EnterPasscode,
+            pinType = PinType.TRANSFER
+        )
+    ) {
+        slideFromRight(
+            R.id.sendConfirmation,
+            SendConfirmationFragment.Input(
+                type,
+                sendEntryPointDestId
+            )
+        )
+    }
+}
+

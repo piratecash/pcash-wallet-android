@@ -9,25 +9,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
 import cash.p.terminal.modules.address.HSAddressCell
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
-import cash.p.terminal.modules.pin.ConfirmPinFragment
-import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendScreen
+import cash.p.terminal.modules.send.openConfirm
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -41,6 +39,7 @@ fun SendSolanaScreen(
     amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int,
     prefilledData: PrefilledData?,
+    riskyAddress: Boolean
 ) {
     val view = LocalView.current
     val wallet = viewModel.wallet
@@ -55,6 +54,7 @@ fun SendSolanaScreen(
         factory = AddressParserModule.Factory(wallet.token, prefilledData)
     )
     val amountUnique = paymentAddressViewModel.amountUnique
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     ComposeAppTheme {
         val focusRequester = remember { FocusRequester() }
@@ -72,6 +72,7 @@ fun SendSolanaScreen(
                 HSAddressCell(
                     title = stringResource(R.string.Send_Confirmation_To),
                     value = uiState.address.hex,
+                    riskyAddress = riskyAddress
                 ) {
                     navController.popBackStack()
                 }
@@ -114,20 +115,12 @@ fun SendSolanaScreen(
                 title = stringResource(R.string.Send_DialogProceed),
                 onClick = {
                     if (viewModel.hasConnection()) {
-                        navController.authorizedAction(
-                            ConfirmPinFragment.InputConfirm(
-                                descriptionResId = R.string.Unlock_EnterPasscode,
-                                pinType = PinType.TRANSFER
-                            )
-                        ) {
-                            navController.slideFromRight(
-                                R.id.sendConfirmation,
-                                SendConfirmationFragment.Input(
-                                    SendConfirmationFragment.Type.Solana,
-                                    sendEntryPointDestId
-                                )
-                            )
-                        }
+                        navController.openConfirm(
+                            type = SendConfirmationFragment.Type.Solana,
+                            riskyAddress = riskyAddress,
+                            keyboardController = keyboardController,
+                            sendEntryPointDestId = sendEntryPointDestId
+                        )
                     } else {
                         HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
                     }

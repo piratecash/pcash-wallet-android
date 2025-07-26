@@ -173,9 +173,10 @@ private fun KeyStoreScreen(
                         .fillMaxSize(),
                     verticalArrangement = Arrangement.Center
                 ) {
-                    NoSystemLockWarning(viewModel.isSystemPinRequired) {
-                        viewModel.onShowTermsDialog()
-                    }
+                    NoSystemLockWarning(
+                        isSystemPinRequired = viewModel.isSystemPinRequired,
+                        onPinRequiredChange = viewModel::changeSystemPinRequired
+                    )
                 }
             }
         }
@@ -200,7 +201,7 @@ private fun KeyStoreScreen(
 @Composable
 private fun NoSystemLockWarning(
     isSystemPinRequired: Boolean,
-    onShowTerms: () -> Unit
+    onPinRequiredChange: (Boolean) -> Unit,
 ) {
     Column {
         Spacer(Modifier.weight(1f))
@@ -221,10 +222,9 @@ private fun NoSystemLockWarning(
         SystemPinBlock(
             isPinRequired = isSystemPinRequired,
             showInfoBlock = false,
-            enabled = true
-        ) {
-            onShowTerms()
-        }
+            enabled = true,
+            onPinRequiredChange = onPinRequiredChange
+        )
         Spacer(Modifier.height(12.dp))
     }
 }

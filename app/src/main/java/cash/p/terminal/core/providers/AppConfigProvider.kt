@@ -2,6 +2,7 @@ package cash.p.terminal.core.providers
 
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
+import cash.p.terminal.network.data.EncodedSecrets
 import io.horizontalsystems.core.entities.Currency
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.entities.BlockchainType
@@ -20,7 +21,7 @@ class AppConfigProvider {
     val reportEmail by lazy { Translator.getString(R.string.reportEmail) }
     val mempoolSpaceUrl: String = "https://mempool.space"
     val walletConnectUrl = "relay.walletconnect.com"
-    val walletConnectProjectId by lazy { Translator.getString(R.string.walletConnectV2Key) }
+    val walletConnectProjectId by lazy { EncodedSecrets.WALLET_CONNECT_V2_KEY }
     val walletConnectAppMetaDataName by lazy { Translator.getString(R.string.walletConnectAppMetaDataName) }
     val walletConnectAppMetaDataUrl by lazy { Translator.getString(R.string.walletConnectAppMetaDataUrl) }
     val walletConnectAppMetaDataIcon by lazy { Translator.getString(R.string.walletConnectAppMetaDataIcon) }
@@ -39,37 +40,37 @@ class AppConfigProvider {
         Translator.getString(R.string.blocksDecodedEthereumRpc)
     }
     val twitterBearerToken by lazy {
-        Translator.getString(R.string.twitterBearerToken)
+        EncodedSecrets.TWITTER_BEARER_TOKEN
     }
     val etherscanApiKey by lazy {
-        Translator.getString(R.string.etherscanKey).split(",")
+        EncodedSecrets.ETHERSCAN_KEY.split(",")
     }
     val bscscanApiKey by lazy {
-        Translator.getString(R.string.bscscanKey).split(",")
+        EncodedSecrets.BSCSCAN_KEY.split(",")
     }
     val polygonscanApiKey by lazy {
-        Translator.getString(R.string.polygonscanKey).split(",")
+        EncodedSecrets.POLYGONSCAN_KEY.split(",")
     }
     val snowtraceApiKey by lazy {
-        Translator.getString(R.string.snowtraceApiKey).split(",")
+        EncodedSecrets.SNOWTRACE_API_KEY.split(",")
     }
     val optimisticEtherscanApiKey by lazy {
-        Translator.getString(R.string.optimisticEtherscanApiKey).split(",")
+        EncodedSecrets.OPTIMISTIC_ETHERSCAN_API_KEY.split(",")
     }
     val arbiscanApiKey by lazy {
-        Translator.getString(R.string.arbiscanApiKey).split(",")
+        EncodedSecrets.ARBISCAN_API_KEY.split(",")
     }
     val gnosisscanApiKey by lazy {
-        Translator.getString(R.string.gnosisscanApiKey).split(",")
+        EncodedSecrets.GNOSISSCAN_API_KEY.split(",")
     }
     val ftmscanApiKey by lazy {
-        Translator.getString(R.string.ftmscanApiKey).split(",")
+        EncodedSecrets.FTMSCAN_API_KEY.split(",")
     }
     val basescanApiKey by lazy {
-        Translator.getString(R.string.basescanApiKey).split(",")
+        EncodedSecrets.BASESCAN_API_KEY.split(",")
     }
     val eraZkSyncApiKey by lazy {
-        Translator.getString(R.string.eraZkSyncApiKey).split(",")
+        EncodedSecrets.ERA_ZK_SYNC_API_KEY.split(",")
     }
     val guidesUrl by lazy {
         Translator.getString(R.string.guidesUrl)
@@ -93,23 +94,39 @@ class AppConfigProvider {
     }
 
     val openSeaApiKey by lazy {
-        Translator.getString(R.string.openSeaApiKey)
+        EncodedSecrets.OPEN_SEA_API_KEY
     }
 
     val solscanApiKey by lazy {
-        Translator.getString(R.string.solscanApiKey)
+        EncodedSecrets.SOLSCAN_API_KEY
     }
 
     val trongridApiKeys: List<String> by lazy {
-        Translator.getString(R.string.trongridApiKeys).split(",")
+        EncodedSecrets.TRONGRID_API_KEYS.split(",")
     }
 
     val udnApiKey by lazy {
-        Translator.getString(R.string.udnApiKey)
+        EncodedSecrets.UDN_API_KEY
     }
 
     val oneInchApiKey by lazy {
-        Translator.getString(R.string.oneInchApiKey)
+        EncodedSecrets.ONE_INCH_API_KEY
+    }
+
+    val chainalysisBaseUrl by lazy {
+        Translator.getString(R.string.chainalysisBaseUrl)
+    }
+
+    val chainalysisApiKey by lazy {
+        EncodedSecrets.CHAINALYSIS_API_KEY
+    }
+
+    val hashDitBaseUrl by lazy {
+        Translator.getString(R.string.hashDitBaseUrl)
+    }
+
+    val hashDitApiKey by lazy {
+        EncodedSecrets.HASH_DIT_API_KEY
     }
 
     val fiatDecimal: Int = 2

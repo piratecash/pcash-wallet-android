@@ -12,6 +12,7 @@ val networkModule = module {
         networkPirateModule,
         networkChangeNowModule,
         networkPirateNewsModule,
-        databaseModule
+        databaseModule,
+        decoderModule
     )
 }

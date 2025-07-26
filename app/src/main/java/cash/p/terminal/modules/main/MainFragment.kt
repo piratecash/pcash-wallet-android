@@ -52,6 +52,7 @@ import cash.p.terminal.modules.releasenotes.ReleaseNotesFragment
 import cash.p.terminal.modules.rooteddevice.RootedDeviceModule
 import cash.p.terminal.modules.rooteddevice.RootedDeviceScreen
 import cash.p.terminal.modules.rooteddevice.RootedDeviceViewModel
+import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
 import cash.p.terminal.modules.settings.main.SettingsScreen
 import cash.p.terminal.modules.tor.TorStatusView
 import cash.p.terminal.modules.transactions.TransactionsModule
@@ -346,6 +347,20 @@ private fun MainScreen(
             viewModel.deeplinkPageHandled()
         }
     }
+
+    uiState.openSend?.let { openSend ->
+        fragmentNavController.slideFromRight(
+            R.id.sendTokenSelectFragment,
+            SendTokenSelectFragment.Input(
+                openSend.blockchainTypes,
+                openSend.tokenTypes,
+                openSend.address,
+                openSend.amount
+            )
+        )
+        viewModel.onSendOpened()
+    }
+
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         viewModel.onResume()

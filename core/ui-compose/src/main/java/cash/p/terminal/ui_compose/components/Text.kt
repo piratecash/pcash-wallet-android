@@ -3,9 +3,14 @@ package cash.p.terminal.ui_compose.components
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
@@ -3393,4 +3398,42 @@ fun title3_red50(
         maxLines = maxLines,
         onTextLayout = onTextLayout,
     )
+}
+
+@Composable
+fun highlightText(
+    text: String,
+    textColor: Color,
+    highlightPart: String,
+    highlightColor: Color
+): AnnotatedString {
+
+    return buildAnnotatedString {
+        withStyle(SpanStyle(color = textColor)) {
+            val highlightIndex = text
+                .lowercase()
+                .indexOf(highlightPart.lowercase())
+
+            if (highlightIndex != -1) {
+                append(text.substring(0, highlightIndex))
+
+                withStyle(
+                    SpanStyle(color = highlightColor)
+                ) {
+                    append(
+                        text.substring(
+                            highlightIndex,
+                            highlightIndex + highlightPart.length
+                        )
+                    )
+                }
+
+                append(
+                    text.substring(highlightIndex + highlightPart.length)
+                )
+            } else {
+                append(text)
+            }
+        }
+    }
 }
