@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.modules.walletconnect.WCManager
 import kotlinx.parcelize.Parcelize
@@ -87,7 +88,8 @@ object MainModule {
         val showWhatsNew: Boolean,
         val activeWallet: Account?,
         val torEnabled: Boolean,
-        val wcSupportState: WCManager.SupportState?
+        val wcSupportState: WCManager.SupportState?,
+        val openSend: OpenSendTokenSelect?,
     )
 }
 

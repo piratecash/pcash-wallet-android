@@ -12,7 +12,9 @@ import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.core.utils.AddressUriParser
+import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.entities.LaunchPage
+import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.modules.main.MainModule.MainNavigation
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.nft.collection.NftCollectionFragment
@@ -23,6 +25,7 @@ import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.entities.TokenType
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
@@ -95,6 +98,7 @@ class MainViewModel(
     private var activeWallet = accountManager.activeAccount
     private var wcSupportState: WCManager.SupportState? = null
     private var torEnabled = localStorage.torEnabled
+    private var openSendTokenSelect: OpenSendTokenSelect? = null
     private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
         .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
         .stateIn(
@@ -185,7 +189,8 @@ class MainViewModel(
         showWhatsNew = showWhatsNew,
         activeWallet = activeWallet,
         wcSupportState = wcSupportState,
-        torEnabled = torEnabled
+        torEnabled = torEnabled,
+        openSend = openSendTokenSelect,
     )
 
     private fun isTransactionsTabEnabled(): Boolean =
@@ -432,4 +437,8 @@ class MainViewModel(
         syncNavigation()
     }
 
+    fun onSendOpened() {
+        openSendTokenSelect = null
+        emitState()
+    }
 }
