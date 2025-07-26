@@ -14,7 +14,7 @@ class VersionTest : TestCase(){
     fun testVersionCompare() {
         compare("1.0.0", "0.21.1", 1)
         compare("0.33.0", "1.2.1", -1)
-        compare("0.21.0", "0.21.1", 0)
+        compare("0.21.0", "0.21.1", -1)
         compare("0.22.0", "1.21.1", -1)
         compare("0.22.0", "0.21.1", 1)
         compare("0.22", "0.21.1", 1)
