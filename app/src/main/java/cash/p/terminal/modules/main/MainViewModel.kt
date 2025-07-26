@@ -11,6 +11,7 @@ import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.UpdateResult
+import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.modules.main.MainModule.MainNavigation
 import cash.p.terminal.modules.market.topplatforms.Platform
@@ -397,6 +398,31 @@ class MainViewModel(
                 App.tonConnectManager.handle(uri.toString(), closeApp)
             }
             return
+        }
+
+        if (
+            deeplinkString.startsWith("bitcoin:")
+            || deeplinkString.startsWith("ethereum:")
+            || deeplinkString.startsWith("toncoin:")
+        ) {
+            AddressUriParser.addressUri(deeplinkString)?.let { addressUri ->
+                val allowedBlockchainTypes = addressUri.allowedBlockchainTypes
+                var allowedTokenTypes: List<TokenType>? = null
+                addressUri.value<String>(AddressUri.Field.TokenUid)?.let { uid ->
+                    TokenType.fromId(uid)?.let { tokenType ->
+                        allowedTokenTypes = listOf(tokenType)
+                    }
+                }
+
+                openSendTokenSelect = OpenSendTokenSelect(
+                    blockchainTypes = allowedBlockchainTypes,
+                    tokenTypes = allowedTokenTypes,
+                    address = addressUri.address,
+                    amount = addressUri.amount
+                )
+                emitState()
+                return
+            }
         }
 
         val (tab, deeplinkPageData) = getNavigationDataForDeeplink(uri)
