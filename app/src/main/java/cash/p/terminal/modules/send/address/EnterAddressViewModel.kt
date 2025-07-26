@@ -146,20 +146,22 @@ class EnterAddressViewModel(
                     checkResults = availableCheckTypes.associateWith { AddressCheckData(true) }
                     emitState()
 
-                    availableCheckTypes.forEach { type ->
-                        val checkResult = try {
-                            if (addressCheckManager.isClear(type, address, token)) {
-                                AddressCheckResult.Clear
-                            } else {
-                                AddressCheckResult.Detected
+                    withContext(Dispatchers.IO) {
+                        availableCheckTypes.forEach { type ->
+                            val checkResult = try {
+                                if (addressCheckManager.isClear(type, address, token)) {
+                                    AddressCheckResult.Clear
+                                } else {
+                                    AddressCheckResult.Detected
+                                }
+                            } catch (e: Throwable) {
+                                AddressCheckResult.NotAvailable
                             }
-                        } catch (e: Throwable) {
-                            AddressCheckResult.NotAvailable
-                        }
 
-                        checkResults += mapOf(type to AddressCheckData(false, checkResult))
-                        ensureActive()
-                        emitState()
+                            checkResults += mapOf(type to AddressCheckData(false, checkResult))
+                            ensureActive()
+                            emitState()
+                        }
                     }
                 }
 
