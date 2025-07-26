@@ -1,5 +1,12 @@
 ## Version 0.44.1 Highlights
 
+- 🐞 Fixed an issue where, in some cases, the **"Next"** button couldn't be pressed after entering an address.
+- ✏️ Corrected a wording in the settings description as reported in issue #56.
+
+
+## Version 0.44.1 Highlights
+
+
 
 ### 💰 **Exchange Interface Improvements**
 - The **available balance is now always visible during amount input**, not just before it 🧮
