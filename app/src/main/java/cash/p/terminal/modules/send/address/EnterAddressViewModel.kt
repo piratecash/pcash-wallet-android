@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 class EnterAddressViewModel(
@@ -111,12 +112,14 @@ class EnterAddressViewModel(
     }
 
     private fun processAddress(addressText: String) {
-        parseAddressJob = viewModelScope.launch(Dispatchers.Default) {
+        parseAddressJob = viewModelScope.launch {
             try {
                 val address = parseDomain(addressText)
                 try {
-                    addressValidator.validate(address)
-                    ensureActive()
+                    withContext(Dispatchers.IO) {
+                        addressValidator.validate(address)
+                        ensureActive()
+                    }
 
                     this@EnterAddressViewModel.address = address
                     addressValidationInProgress = false
