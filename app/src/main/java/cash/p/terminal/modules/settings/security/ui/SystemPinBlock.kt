@@ -53,8 +53,6 @@ fun SystemPinBlock(
                         text = stringResource(R.string.SettingsSecurity_system_pin),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .background(Color.LightGray)
                         )
                     } else {
                         body_grey(
