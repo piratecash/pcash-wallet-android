@@ -25,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.inject
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
