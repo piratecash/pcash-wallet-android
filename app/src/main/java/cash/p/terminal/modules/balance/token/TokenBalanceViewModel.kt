@@ -75,10 +75,10 @@ class TokenBalanceViewModel(
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
-    var secondaryValue by mutableStateOf<DeemedValue<String>>(DeemedValue<String>(""))
+    var secondaryValue by mutableStateOf(DeemedValue(""))
         private set
 
-    var refreshing by mutableStateOf<Boolean>(false)
+    var refreshing by mutableStateOf(false)
         private set
 
     private var showCurrencyAsSecondary = true

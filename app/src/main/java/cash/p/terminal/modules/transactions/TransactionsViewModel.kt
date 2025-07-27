@@ -56,6 +56,9 @@ class TransactionsViewModel(
     private var syncing = false
     private var hasHiddenTransactions: Boolean = false
 
+    val balanceHidden: Boolean
+        get() = balanceHiddenManager.balanceHidden
+
     private var refreshViewItemsJob: Job? = null
 
     init {

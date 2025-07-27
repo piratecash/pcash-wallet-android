@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -160,6 +161,7 @@ fun TokenBalanceScreen(
                 }
             }
         } else {
+            val itemsBalanceHidden = remember(transactionsViewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
             HSSwipeRefresh(
                 refreshing = refreshing,
                 modifier = Modifier.padding(paddingValues),
@@ -189,7 +191,11 @@ fun TokenBalanceScreen(
                                 navController
                             )
                         },
-                        onBottomReached = { viewModel.onBottomReached() }
+                        isItemBalanceHidden = { itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden },
+                        onValueClick = {
+                            itemsBalanceHidden[it.uid] = !(itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden)
+                        },
+                        onBottomReached = viewModel::onBottomReached
                     )
                     if (uiState.hasHiddenTransactions) {
                         transactionsHiddenBlock(

@@ -1,7 +1,7 @@
 package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.core.ITransactionsAdapter
-import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
+import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
@@ -13,6 +13,7 @@ import cash.p.terminal.entities.transactionrecords.monero.MoneroTransactionRecor
 import cash.p.terminal.entities.transactionrecords.nftUids
 import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecord
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
+import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.NftMetadataService
@@ -28,8 +29,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
+import kotlin.getValue
 
 class TransactionInfoService(
     val transactionRecord: TransactionRecord,
@@ -39,9 +44,11 @@ class TransactionInfoService(
     private val currencyManager: CurrencyManager,
     private val nftMetadataService: NftMetadataService,
     private val updateChangeNowStatusesUseCase: UpdateChangeNowStatusesUseCase,
-    balanceHidden: Boolean,
     transactionStatusUrl: Pair<String, String>?
 ) {
+    private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
+
+    private val mutex = Mutex()
 
     val transactionHash: String get() = transactionRecord.transactionHash
     val source: TransactionSource get() = transactionRecord.source
@@ -59,7 +66,7 @@ class TransactionInfoService(
         ),
         rates = mapOf(),
         nftMetadata = mapOf(),
-        hideAmount = balanceHidden,
+        hideAmount = balanceHiddenManager.balanceHidden,
         transactionStatusUrl = transactionStatusUrl
     )
         private set(value) {
@@ -269,6 +276,14 @@ class TransactionInfoService(
             }
         }
 
+        launch {
+            balanceHiddenManager.balanceHiddenFlow.collect {
+                mutex.withLock {
+                    transactionInfoItem = transactionInfoItem.copy(hideAmount = it)
+                }
+            }
+        }
+
         fetchRates()
         fetchNftMetadata()
     }
@@ -312,27 +327,31 @@ class TransactionInfoService(
         handleRates(rates)
     }
 
-    @Synchronized
-    private fun handleLastBlockUpdate(externalStatus: TransactionStatus?) {
-        transactionInfoItem = transactionInfoItem.copy(
-            lastBlockInfo = adapter.lastBlockInfo,
-            externalStatus = externalStatus
-        )
+    private suspend fun handleLastBlockUpdate(externalStatus: TransactionStatus?) {
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(
+                lastBlockInfo = adapter.lastBlockInfo,
+                externalStatus = externalStatus
+            )
+        }
     }
 
-    @Synchronized
-    private fun handleRecordUpdate(transactionRecord: TransactionRecord) {
-        transactionInfoItem = transactionInfoItem.copy(record = transactionRecord)
+    private suspend fun handleRecordUpdate(transactionRecord: TransactionRecord) {
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(record = transactionRecord)
+        }
     }
 
-    @Synchronized
-    private fun handleRates(rates: Map<String, CurrencyValue>) {
-        transactionInfoItem = transactionInfoItem.copy(rates = rates)
+    private suspend fun handleRates(rates: Map<String, CurrencyValue>) {
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(rates = rates)
+        }
     }
 
-    @Synchronized
-    private fun handleNftMetadata(nftMetadata: Map<NftUid, NftAssetBriefMetadata>) {
-        transactionInfoItem = transactionInfoItem.copy(nftMetadata = nftMetadata)
+    private suspend fun handleNftMetadata(nftMetadata: Map<NftUid, NftAssetBriefMetadata>) {
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(nftMetadata = nftMetadata)
+        }
     }
 
     fun getRawTransaction(): String? {

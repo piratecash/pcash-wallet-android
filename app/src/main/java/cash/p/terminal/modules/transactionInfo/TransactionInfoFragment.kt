@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -17,8 +18,6 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromRight
-
-
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
@@ -45,6 +44,7 @@ import cash.p.terminal.ui.compose.components.TransactionInfoTransactionHashCell
 import cash.p.terminal.ui.compose.components.TransactionNftAmountCell
 import cash.p.terminal.ui.compose.components.WarningMessageCell
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.helpers.HudHelper
 
 class TransactionInfoFragment : BaseComposeFragment() {
 
@@ -102,7 +102,12 @@ fun TransactionInfo(
 ) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)) {
         items(viewModel.viewItems) { section ->
-            TransactionInfoSection(section, navController, viewModel::getRawTransaction)
+            TransactionInfoSection(
+                section = section,
+                navController = navController,
+                onValueClick = viewModel::toggleBalanceVisibility,
+                getRawTransaction = viewModel::getRawTransaction
+            )
         }
     }
 }
@@ -111,6 +116,7 @@ fun TransactionInfo(
 fun TransactionInfoSection(
     section: List<TransactionInfoViewItem>,
     navController: NavController,
+    onValueClick: () -> Unit,
     getRawTransaction: () -> String?
 ) {
     //items without background
@@ -130,6 +136,7 @@ fun TransactionInfoSection(
         }
     }
 
+    val context = LocalContext.current
     CellUniversalLawrenceSection(
         buildList {
             for (viewItem in section) {
@@ -150,6 +157,10 @@ fun TransactionInfoSection(
                                 alternativeCoinIconUrl = viewItem.alternativeCoinIconUrl,
                                 badge = viewItem.badge,
                                 coinIconPlaceholder = viewItem.coinIconPlaceholder,
+                                onValueClick = {
+                                    HudHelper.vibrate(context)
+                                    onValueClick()
+                                },
                                 onClick = viewItem.coinUid?.let {
                                     {
                                         navController.slideFromRight(R.id.coinFragment, CoinFragmentInput(it))

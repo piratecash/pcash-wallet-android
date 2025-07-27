@@ -31,7 +31,6 @@ object TransactionInfoModule {
                 marketKit = App.marketKit,
                 currencyManager = App.currencyManager,
                 nftMetadataService = NftMetadataService(App.nftMetadataManager),
-                balanceHidden = App.balanceHiddenManager.balanceHidden,
                 transactionStatusUrl = transactionItem.transactionStatusUrl,
                 updateChangeNowStatusesUseCase = getKoinInstance()
             )

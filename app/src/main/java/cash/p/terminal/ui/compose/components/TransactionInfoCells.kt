@@ -2,6 +2,8 @@ package cash.p.terminal.ui.compose.components
 
 import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -31,30 +33,30 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.slideFromBottom
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.modules.contacts.ContactsFragment
 import cash.p.terminal.modules.contacts.ContactsModule
 import cash.p.terminal.modules.contacts.Mode
 import cash.p.terminal.modules.info.TransactionDoubleSpendInfoFragment
 import cash.p.terminal.modules.info.TransactionLockTimeInfoFragment
 import cash.p.terminal.modules.transactionInfo.AmountType
-import cash.p.terminal.ui_compose.ColorName
-import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem
 import cash.p.terminal.modules.transactionInfo.options.SpeedUpCancelType
 import cash.p.terminal.modules.transactionInfo.options.TransactionSpeedUpCancelFragment
 import cash.p.terminal.modules.transactionInfo.resendbitcoin.ResendBitcoinFragment
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui.helpers.TextHelper
+import cash.p.terminal.ui_compose.ColorName
+import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HsImage
+import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_jacob
@@ -71,9 +73,9 @@ import cash.p.terminal.ui_compose.components.subhead2_lucian
 import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.ui_compose.components.RowUniversal
 import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.helpers.HudHelper
+import io.horizontalsystems.core.slideFromBottom
 
 @Composable
 fun SectionTitleCell(
@@ -177,6 +179,7 @@ fun TransactionAmountCell(
     alternativeCoinIconUrl: String?,
     badge: String?,
     coinIconPlaceholder: Int?,
+    onValueClick: () -> Unit,
     onClick: (() -> Unit)? = null
 ) {
     val title = when (amountType) {
@@ -204,10 +207,24 @@ fun TransactionAmountCell(
         }
         HFillSpacer(minWidth = 8.dp)
         Column(horizontalAlignment = Alignment.End) {
-            SubHead1ColoredValue(value = coinAmount)
+            SubHead1ColoredValue(
+                value = coinAmount,
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onValueClick,
+                )
+            )
             fiatAmount?.let {
                 VSpacer(height = 1.dp)
-                SubHead2ColoredValue(value = it)
+                SubHead2ColoredValue(
+                    value = it,
+                    modifier = Modifier.clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onValueClick,
+                    )
+                )
             }
         }
     }
@@ -308,12 +325,22 @@ fun TransactionInfoAddressCell(
                     val args = when (action) {
                         ContactsModule.AddAddressAction.AddToNewContact -> {
                             onAddToNew?.invoke()
-                            ContactsFragment.Input(Mode.AddAddressToNewContact(blockchainType, value))
+                            ContactsFragment.Input(
+                                Mode.AddAddressToNewContact(
+                                    blockchainType,
+                                    value
+                                )
+                            )
                         }
 
                         ContactsModule.AddAddressAction.AddToExistingContact -> {
                             onAddToExisting?.invoke()
-                            ContactsFragment.Input(Mode.AddAddressToExistingContact(blockchainType, value))
+                            ContactsFragment.Input(
+                                Mode.AddAddressToExistingContact(
+                                    blockchainType,
+                                    value
+                                )
+                            )
                         }
                     }
                     navController?.slideFromRight(R.id.contactsFragment, args)
@@ -731,44 +758,44 @@ private fun statusTitle(status: TransactionStatus) = when (status) {
 }
 
 @Composable
-private fun SubHead2ColoredValue(value: ColoredValue) {
+private fun SubHead2ColoredValue(value: ColoredValue, modifier: Modifier = Modifier) {
     when (value.color) {
         ColorName.Remus -> {
-            subhead2_remus(text = value.value)
+            subhead2_remus(text = value.value, modifier = modifier)
         }
 
         ColorName.Lucian -> {
-            subhead2_lucian(text = value.value)
+            subhead2_lucian(text = value.value, modifier = modifier)
         }
 
         ColorName.Grey -> {
-            subhead2_grey(text = value.value)
+            subhead2_grey(text = value.value, modifier = modifier)
         }
 
         ColorName.Leah -> {
-            subhead2_leah(text = value.value)
+            subhead2_leah(text = value.value, modifier = modifier)
         }
     }
 }
 
 
 @Composable
-private fun SubHead1ColoredValue(value: ColoredValue) {
+private fun SubHead1ColoredValue(value: ColoredValue, modifier: Modifier = Modifier) {
     when (value.color) {
         ColorName.Remus -> {
-            subhead1_remus(text = value.value)
+            subhead1_remus(text = value.value, modifier = modifier)
         }
 
         ColorName.Lucian -> {
-            subhead1_lucian(text = value.value)
+            subhead1_lucian(text = value.value, modifier = modifier)
         }
 
         ColorName.Grey -> {
-            subhead1_grey(text = value.value)
+            subhead1_grey(text = value.value, modifier = modifier)
         }
 
         ColorName.Leah -> {
-            subhead2_leah(text = value.value)
+            subhead2_leah(text = value.value, modifier = modifier)
         }
     }
 }

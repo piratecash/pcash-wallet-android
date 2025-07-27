@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -44,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.core.App
 import cash.p.terminal.modules.balance.BalanceAccountsViewModel
 import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceScreenState
@@ -64,9 +66,12 @@ import cash.p.terminal.ui_compose.components.TabItem
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.entities.SectionItemPosition
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.entities.ViewState
+import io.horizontalsystems.core.helpers.HudHelper
+import io.horizontalsystems.core.slideFromBottom
+import kotlin.collections.set
 
 @Composable
 fun TransactionsScreen(
@@ -144,12 +149,17 @@ fun TransactionsScreen(
                                 }
                             }
 
+                            val itemsBalanceHidden = remember(viewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
                             LazyColumn(state = listState) {
                                 transactionList(
                                     transactionsMap = transactionItems,
-                                    willShow = { viewModel.willShow(it) },
+                                    willShow = viewModel::willShow,
+                                    isItemBalanceHidden = { itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden },
+                                    onValueClick = {
+                                        itemsBalanceHidden[it.uid] = !(itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden)
+                                    },
                                     onClick = onClick,
-                                    onBottomReached = { viewModel.onBottomReached() }
+                                    onBottomReached = viewModel::onBottomReached
                                 )
                                 if (uiState.hasHiddenTransactions) {
                                     transactionsHiddenBlock(
@@ -235,6 +245,8 @@ fun LazyListScope.transactionsHiddenBlock(
 fun LazyListScope.transactionList(
     transactionsMap: Map<String, List<TransactionViewItem>>,
     willShow: (TransactionViewItem) -> Unit,
+    isItemBalanceHidden: (TransactionViewItem) -> Boolean,
+    onValueClick: (TransactionViewItem) -> Unit,
     onClick: (TransactionViewItem) -> Unit,
     onBottomReached: () -> Unit
 ) {
@@ -261,8 +273,21 @@ fun LazyListScope.transactionList(
                 else -> SectionItemPosition.Middle
             }
 
+            val shouldShowAmount = !isItemBalanceHidden(item)
+
             Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                TransactionCell(item, position) { onClick.invoke(item) }
+                TransactionCell(
+                    item = item,
+                    position = position,
+                    showAmount = shouldShowAmount,
+                    onValueClick = {
+                        HudHelper.vibrate(App.instance)
+                        onValueClick(item)
+                    },
+                    onClick = {
+                        onClick(item)
+                    }
+                )
             }
 
             willShow.invoke(item)
@@ -291,7 +316,13 @@ private fun getBottomReachedUid(transactionsMap: Map<String, List<TransactionVie
 }
 
 @Composable
-fun TransactionCell(item: TransactionViewItem, position: SectionItemPosition, onClick: () -> Unit) {
+fun TransactionCell(
+    item: TransactionViewItem,
+    position: SectionItemPosition,
+    showAmount: Boolean = item.showAmount,
+    onValueClick: () -> Unit,
+    onClick: () -> Unit
+) {
     val divider = position == SectionItemPosition.Middle || position == SectionItemPosition.Last
     SectionUniversalItem(
         borderTop = divider,
@@ -421,11 +452,16 @@ fun TransactionCell(item: TransactionViewItem, position: SectionItemPosition, on
                     Spacer(Modifier.weight(1f))
                     item.primaryValue?.let { coloredValue ->
                         Text(
-                            text = if (item.showAmount) coloredValue.value else "*****",
+                            text = if (showAmount) coloredValue.value else "*****",
                             style = ComposeAppTheme.typography.body,
                             color = coloredValue.color.compose(),
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onValueClick,
+                            )
                         )
                     }
 
@@ -462,10 +498,15 @@ fun TransactionCell(item: TransactionViewItem, position: SectionItemPosition, on
                     )
                     item.secondaryValue?.let { coloredValue ->
                         Text(
-                            text = if (item.showAmount) coloredValue.value else "*****",
+                            text = if (showAmount) coloredValue.value else "*****",
                             style = ComposeAppTheme.typography.subhead2,
                             color = coloredValue.color.compose(),
                             maxLines = 1,
+                            modifier = Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onValueClick,
+                            )
                         )
                     }
                 }
