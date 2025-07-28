@@ -85,6 +85,7 @@ interface ILocalStorage {
     var rbfEnabled: Boolean
     var statsLastSyncTime: Long
     var shareCrashDataEnabled: Boolean
+    var showChangelogAfterUpdate: Boolean
 
     var customDashPeers: String
 

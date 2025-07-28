@@ -21,6 +21,7 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import io.horizontalsystems.core.slideFromBottom
 import cash.p.terminal.modules.releasenotes.ReleaseNotesScreen
+import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
 import cash.p.terminal.modules.settings.appstatus.AppStatusScreen
 import cash.p.terminal.modules.settings.main.HsSettingCell
 import cash.p.terminal.modules.settings.privacy.PrivacyScreen
@@ -65,7 +66,15 @@ private fun AboutNavHost(fragmentNavController: NavController) {
             )
         }
         composablePage(ReleaseNotesPage) {
-            ReleaseNotesScreen(false, navController::popBackStack, koinViewModel())
+            val viewModel = koinViewModel<ReleaseNotesViewModel>()
+            ReleaseNotesScreen(
+                closeablePopup = false,
+                uiState = viewModel.uiState,
+                onCloseClick = navController::popBackStack,
+                onRetryClick = { viewModel.retry() },
+                onWhatsNewShown = { viewModel.whatsNewShown() },
+                onShowChangelogToggle = viewModel::setShowChangeLogAfterUpdate
+            )
         }
         composablePage(AppStatusPage) { AppStatusScreen(navController) }
         composablePage(PrivacyPage) {

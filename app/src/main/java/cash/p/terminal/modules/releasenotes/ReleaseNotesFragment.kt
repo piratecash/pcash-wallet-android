@@ -18,18 +18,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.markdown.MarkdownContent
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.MenuItem
+import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.caption_jacob
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.parcelize.Parcelize
@@ -42,8 +48,11 @@ class ReleaseNotesFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         ReleaseNotesScreen(
             closeablePopup = navController.getInput<Input>()?.showAsClosablePopup ?: false,
-            onCloseClick = { navController.popBackStack() },
-            viewModel = viewModel
+            uiState = viewModel.uiState,
+            onCloseClick = navController::popBackStack,
+            onRetryClick = { viewModel.retry() },
+            onWhatsNewShown = { viewModel.whatsNewShown() },
+            onShowChangelogToggle = viewModel::setShowChangeLogAfterUpdate
         )
     }
 
@@ -54,12 +63,16 @@ class ReleaseNotesFragment : BaseComposeFragment() {
 @Composable
 fun ReleaseNotesScreen(
     closeablePopup: Boolean,
+    uiState: ReleaseNotesUiState,
     onCloseClick: () -> Unit,
-    viewModel: ReleaseNotesViewModel
+    onRetryClick: () -> Unit,
+    onWhatsNewShown: () -> Unit,
+    onShowChangelogToggle: () -> Unit,
+    onUrlClick: (String) -> Unit = {}
 ) {
     BackHandler {
-        viewModel.whatsNewShown()
-        onCloseClick.invoke()
+        onWhatsNewShown()
+        onCloseClick()
     }
 
     Scaffold(
@@ -72,8 +85,8 @@ fun ReleaseNotesScreen(
                             title = TranslatableString.ResString(R.string.Button_Close),
                             icon = R.drawable.ic_close,
                             onClick = {
-                                viewModel.whatsNewShown()
-                                onCloseClick.invoke()
+                                onWhatsNewShown()
+                                onCloseClick()
                             }
                         )
                     )
@@ -86,42 +99,67 @@ fun ReleaseNotesScreen(
                 )
             }
         }
-    ) {
-        Column(Modifier.padding(top = it.calculateTopPadding())) {
+    ) { paddingValues ->
+        Column(Modifier.padding(top = paddingValues.calculateTopPadding())) {
             MarkdownContent(
                 modifier = Modifier.weight(1f),
-                viewState = viewModel.viewState,
-                markdownBlocks = viewModel.markdownBlocks,
-                onRetryClick = { viewModel.retry() },
-                onUrlClick = {}
+                viewState = uiState.viewState,
+                markdownBlocks = uiState.markdownBlocks,
+                onRetryClick = onRetryClick,
+                onUrlClick = onUrlClick
             )
 
             Divider(
                 thickness = 1.dp,
                 color = ComposeAppTheme.colors.steel10,
             )
+
+            RowUniversal(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(ComposeAppTheme.colors.tyler)
+                    .padding(horizontal = 16.dp),
+                onClick = onShowChangelogToggle,
+            ) {
+                body_leah(
+                    text = stringResource(R.string.show_changelog_after_update),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp, end = 8.dp)
+                )
+                HsSwitch(
+                    checked = uiState.showChangelogAfterUpdate,
+                    onCheckedChange = { onShowChangelogToggle() }
+                )
+            }
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(ComposeAppTheme.colors.tyler)
-                    .padding(bottom = it.calculateBottomPadding())
-                    .height(62.dp),
+                    .padding(bottom = paddingValues.calculateBottomPadding())
+                    .height(40.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(Modifier.padding(start = 16.dp))
+
                 IconButton(
                     R.drawable.ic_twitter_filled_24,
-                    viewModel.twitterUrl,
+                    uiState.twitterUrl,
                     stringResource(R.string.CoinPage_Twitter)
                 )
+
                 IconButton(
                     R.drawable.ic_telegram_filled_24,
-                    viewModel.telegramUrl,
+                    uiState.telegramUrl,
                     stringResource(R.string.CoinPage_Telegram)
                 )
+
                 IconButton(
                     R.drawable.ic_reddit_filled_24,
-                    viewModel.redditUrl,
+                    uiState.redditUrl,
                     stringResource(R.string.CoinPage_Reddit)
                 )
 
@@ -144,6 +182,29 @@ private fun IconButton(icon: Int, url: String, description: String) {
             painter = painterResource(id = icon),
             contentDescription = description,
             tint = ComposeAppTheme.colors.jacob
+        )
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun ReleaseNotesScreenPreview() {
+    ComposeAppTheme {
+        ReleaseNotesScreen(
+            closeablePopup = true,
+            uiState = ReleaseNotesUiState(
+                viewState = ViewState.Success,
+                markdownBlocks = emptyList(),
+                twitterUrl = "https://twitter.com/example",
+                telegramUrl = "https://t.me/example",
+                redditUrl = "https://reddit.com/r/example",
+                showChangelogAfterUpdate = true
+            ),
+            onCloseClick = {},
+            onRetryClick = {},
+            onWhatsNewShown = {},
+            onShowChangelogToggle = {}
         )
     }
 }

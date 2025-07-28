@@ -2183,6 +2183,7 @@
 
     <!--Release notes-->
 
+    <string name="show_changelog_after_update">Show changelog after update</string>
     <string name="ReleaseNotes_JoinUnstoppables" translatable="false">JOIN P.CASH</string>
     <string name="ReleaseNotes_FollowUs">Follow Us</string>
     <string name="CoinPage_Chart_Locked">Locked</string>

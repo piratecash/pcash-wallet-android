@@ -15,7 +15,7 @@ class ReleaseNotesManager(
     fun shouldShowChangeLog(): Boolean {
         val shownForVersion = localStorage.changelogShownForAppVersion
 
-        if (shownForVersion != null) {
+        if (shownForVersion != null && localStorage.showChangelogAfterUpdate) {
             return Version(currentAppVersion) > Version(shownForVersion)
         }
 

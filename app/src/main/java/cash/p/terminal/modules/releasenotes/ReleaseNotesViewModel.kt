@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -20,20 +21,21 @@ import org.commonmark.parser.Parser
 
 class ReleaseNotesViewModel(
     private val getReleaseNotesUseCase: GetReleaseNotesUseCase,
+    private val localStorage: ILocalStorage
 ) : ViewModel() {
 
     private val connectivityManager: ConnectivityManager = App.connectivityManager
     private val appConfigProvider: AppConfigProvider = App.appConfigProvider
     private val releaseNotesManager: ReleaseNotesManager = App.releaseNotesManager
 
-    val twitterUrl = appConfigProvider.appTwitterLink
-    val telegramUrl = appConfigProvider.appTelegramLink
-    val redditUrl = appConfigProvider.appRedditLink
-
-    var markdownBlocks by mutableStateOf<List<MarkdownBlock>>(listOf())
-        private set
-
-    var viewState by mutableStateOf<ViewState>(ViewState.Loading)
+    var uiState by mutableStateOf(
+        ReleaseNotesUiState(
+            twitterUrl = appConfigProvider.appTwitterLink,
+            telegramUrl = appConfigProvider.appTelegramLink,
+            redditUrl = appConfigProvider.appRedditLink,
+            showChangelogAfterUpdate = localStorage.showChangelogAfterUpdate,
+        )
+    )
         private set
 
     init {
@@ -41,7 +43,7 @@ class ReleaseNotesViewModel(
 
         connectivityManager.networkAvailabilityFlow
             .onEach {
-                if (connectivityManager.isConnected && viewState is ViewState.Error) {
+                if (connectivityManager.isConnected && uiState.viewState is ViewState.Error) {
                     retry()
                 }
             }
@@ -49,7 +51,7 @@ class ReleaseNotesViewModel(
     }
 
     fun retry() {
-        viewState = ViewState.Loading
+        uiState = uiState.copy(viewState = ViewState.Loading)
         loadContent()
     }
 
@@ -61,10 +63,13 @@ class ReleaseNotesViewModel(
         viewModelScope.launch {
             try {
                 val content = getReleaseNotesUseCase()
-                markdownBlocks = getMarkdownBlocks(content)
-                viewState = ViewState.Success
+                val markdownBlocks = getMarkdownBlocks(content)
+                uiState = uiState.copy(
+                    viewState = ViewState.Success,
+                    markdownBlocks = markdownBlocks
+                )
             } catch (e: Exception) {
-                viewState = ViewState.Error(e)
+                uiState = uiState.copy(viewState = ViewState.Error(e))
             }
         }
     }
@@ -79,4 +84,18 @@ class ReleaseNotesViewModel(
 
         return markdownVisitor.blocks + MarkdownBlock.Footer()
     }
+
+    fun setShowChangeLogAfterUpdate() {
+        localStorage.showChangelogAfterUpdate = !localStorage.showChangelogAfterUpdate
+        uiState = uiState.copy(showChangelogAfterUpdate = localStorage.showChangelogAfterUpdate)
+    }
 }
+
+data class ReleaseNotesUiState(
+    val viewState: ViewState = ViewState.Loading,
+    val markdownBlocks: List<MarkdownBlock> = emptyList(),
+    val twitterUrl: String,
+    val telegramUrl: String,
+    val redditUrl: String,
+    val showChangelogAfterUpdate: Boolean
+)
