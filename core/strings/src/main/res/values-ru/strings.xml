@@ -660,6 +660,7 @@
     <string name="Swap_YouGet">Вы получите</string>
     <string name="Swap_Confirm_Title">Подтвердить</string>
     <string name="SwapConfirm_QuoteExpired">Котировка истекла</string>
+    <string name="SwapConfirm_QuoteIsInvalid">Котировка недействительна</string>
     <string name="SwapConfirm_FetchingFinalQuote">Получение котировки</string>
     <string name="SwapWarning_SlippageNotApplicable_Description">Минимальное допустимое проскальзывание для этой котировки составляет %s%%.</string>
     <string name="unsupported_refund_address">Адрес для возврата не поддерживается.</string>
@@ -1696,6 +1697,7 @@
     <string name="BalanceSyncError_ButtonReport">Пожаловаться</string>
     <string name="BalanceSyncError_ReportButtonExplanation">Сообщение об ошибке будет скопировано в ваш буфер обмена данными на случай, если вы решите о ней сообщить.</string>
     <!--Release notes-->
+    <string name="show_changelog_after_update">Открывать changelog после обновления</string>
     <string name="ReleaseNotes_FollowUs">Мы в соцсетях</string>
     <string name="CoinPage_Chart_Locked">Заблокировано</string>
     <string name="ProUsersInfo_Title">Pro-пользователь</string>

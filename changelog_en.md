@@ -1,3 +1,25 @@
+## Version 0.45.0 Highlights
+
+# 📝 Changelog
+
+## 🆕 New
+
+- 🛡 **Address Checker (Sanctions, Blacklist)**
+
+  A new section allows you to check any address against sanctions and blacklists on demand. Especially useful when handling large transfers from third parties.
+
+## 🔧 Improvements
+
+- ⚙️ Improved **auto-hide** mechanism — now it works properly with transactions and their details.  
+- 📴 Added an option to **disable the changelog popup** after the app update.
+
+## 🐞 Fixes
+
+- 📊 Fixed staking chart display — now it correctly shows **coins** instead of **currency**.  
+- 💸 Fixed incorrect **network fee** display during ChangeNow swaps.
+
+
+
 ## Version 0.44.2 Highlights
 
 - 🐞 Fixed an issue where, in some cases, the **"Next"** button couldn't be pressed after entering an address.
