@@ -101,7 +101,7 @@ internal class SendTransactionServiceEvm(
     }
     private val coinServiceFactory by lazy {
         EvmCoinServiceFactory(
-            token,
+            App.evmBlockchainManager.getBaseToken(token.blockchainType)!!,
             App.marketKit,
             App.currencyManager,
             App.coinManager
