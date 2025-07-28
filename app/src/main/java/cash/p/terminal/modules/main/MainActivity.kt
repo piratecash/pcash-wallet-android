@@ -38,6 +38,12 @@ class MainActivity : BaseActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        // If the intent is a deep link, pop back to the start destination
+        if (intent.data != null && intent.action == Intent.ACTION_VIEW) {
+            val navHost = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+            val navController = navHost.navController
+            navController.popBackStack(navController.graph.startDestinationId, false)
+        }
         viewModel.setIntent(intent)
     }
 

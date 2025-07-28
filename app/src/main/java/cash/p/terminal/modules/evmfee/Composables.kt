@@ -310,7 +310,7 @@ private fun NumberInputWithButtons(
 @Composable
 fun ButtonsGroupWithShade(
     modifier: Modifier = Modifier,
-    ButtonsContent: @Composable (() -> Unit)
+    buttonsContent: @Composable (() -> Unit)
 ) {
     Column(
         modifier = modifier.offset(y = -(24.dp))
@@ -330,7 +330,7 @@ fun ButtonsGroupWithShade(
                 .background(ComposeAppTheme.colors.tyler)
                 .padding(bottom = 8.dp) // With 24dp offset actual padding will be 32dp
         ) {
-            ButtonsContent()
+            buttonsContent()
         }
     }
 }
@@ -441,7 +441,7 @@ fun FeeInfoCell(
         Row(
             modifier = Modifier.clickable(
                 onClick = { navController.slideFromBottom(R.id.feeSettingsInfoDialog, FeeSettingsInfoDialog.Input(title, info)) },
-                interactionSource = MutableInteractionSource(),
+                interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
             verticalAlignment = Alignment.CenterVertically

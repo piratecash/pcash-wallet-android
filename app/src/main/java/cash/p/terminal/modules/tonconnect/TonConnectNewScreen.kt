@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,25 +27,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.walletconnect.session.ui.DropDownCell
 import cash.p.terminal.modules.walletconnect.session.ui.TitleValueCell
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui.compose.components.SelectorDialogCompose
+import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui.compose.components.SelectorDialogCompose
-import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import coil.compose.rememberAsyncImagePainter
+import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
 
 @Composable
 fun TonConnectNewScreen(
@@ -86,32 +86,6 @@ fun TonConnectNewScreen(
                     )
                 )
             )
-        },
-        bottomBar = {
-            ButtonsGroupWithShade {
-                Column(Modifier.padding(horizontal = 24.dp)) {
-                    ButtonPrimaryYellow(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.Button_Connect),
-                        onClick = {
-                            navController.authorizedAction {
-                                viewModel.connect()
-                                onResult.invoke(true)
-                            }
-                        },
-                        enabled = uiState.connectEnabled
-                    )
-                    VSpacer(16.dp)
-                    ButtonPrimaryDefault(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.Button_Cancel),
-                        onClick = {
-                            viewModel.reject()
-                            onResult.invoke(false)
-                        }
-                    )
-                }
-            }
         }
     ) {
         Column(modifier = Modifier.padding(it)) {
@@ -170,7 +144,8 @@ fun TonConnectNewScreen(
                     add {
                         DropDownCell(
                             stringResource(R.string.TonConnect_Wallet),
-                            uiState.account?.name ?: stringResource(R.string.TonConnect_ChooseWallet),
+                            uiState.account?.name
+                                ?: stringResource(R.string.TonConnect_ChooseWallet),
                             enabled = true,
                             onSelect = {
                                 showSortTypeSelectorDialog = true
@@ -185,7 +160,8 @@ fun TonConnectNewScreen(
             if (uiState.error != null) {
                 TextImportantError(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = uiState.error.message?.nullIfBlank() ?: uiState.error.javaClass.simpleName
+                    text = uiState.error.message?.nullIfBlank()
+                        ?: uiState.error.javaClass.simpleName
                 )
             } else {
                 TextImportantWarning(
@@ -194,7 +170,31 @@ fun TonConnectNewScreen(
                 )
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.weight(1f))
+            ButtonsGroupWithShade {
+                Column(Modifier.padding(horizontal = 24.dp)) {
+                    ButtonPrimaryYellow(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.Button_Connect),
+                        onClick = {
+                            navController.authorizedAction {
+                                viewModel.connect()
+                                onResult.invoke(true)
+                            }
+                        },
+                        enabled = uiState.connectEnabled
+                    )
+                    VSpacer(16.dp)
+                    ButtonPrimaryDefault(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.Button_Cancel),
+                        onClick = {
+                            viewModel.reject()
+                            onResult.invoke(false)
+                        }
+                    )
+                }
+            }
         }
     }
 }
