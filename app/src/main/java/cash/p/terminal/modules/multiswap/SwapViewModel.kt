@@ -227,6 +227,7 @@ class SwapViewModel(
 
     fun createMissingTokens(tokens: Set<Token>) = viewModelScope.launch {
         walletUseCase.createWallets(tokens)
+        reQuote()
     }
 
     fun onUpdateSettings(settings: Map<String, Any?>) = quoteService.setSwapSettings(settings)
