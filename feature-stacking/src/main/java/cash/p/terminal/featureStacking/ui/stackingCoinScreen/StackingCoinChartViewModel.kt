@@ -13,7 +13,7 @@ abstract class StackingCoinChartViewModel(
     private val service: PirateInvestmentChartService,
 ) : ChartViewModel(
     service = service,
-    valueFormatter = ChartCurrencyValueFormatterSignificant(),
+    valueFormatter = ChartValueShortFormatterSignificant(),
     considerAlwaysPositive = true
 ) {
     private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
