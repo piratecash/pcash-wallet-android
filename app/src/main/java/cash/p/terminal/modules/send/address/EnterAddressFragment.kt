@@ -46,9 +46,11 @@ import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.FormsInputAddress
+import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsDivider
@@ -63,6 +65,8 @@ import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
 import com.tonapps.tonkeeper.api.shortAddress
+import io.horizontalsystems.chartview.cell.CellUniversal
+import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
@@ -127,6 +131,16 @@ fun EnterAddressScreen(navController: NavController, input: EnterAddressFragment
                     .weight(1f)
                     .verticalScroll(rememberScrollState()),
             ) {
+                SectionUniversalLawrence {
+                    CellUniversal {
+                        body_leah(text = stringResource(R.string.SettingsAddressChecker_RecipientCheck))
+                        HFillSpacer(minWidth = 8.dp)
+                        HsSwitch(
+                            checked = uiState.addressCheckEnabled,
+                            onCheckedChange = viewModel::onCheckAddressClick
+                        )
+                    }
+                }
                 FormsInputAddress(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     value = uiState.value,
