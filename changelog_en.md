@@ -1,3 +1,17 @@
+## Version 0.45.1 Highlights
+
+## 🔐 Privacy Improvements
+
+- 🕵️‍♂️ Enhanced anonymity when sending transactions
+
+  Users can now choose whether to check addresses against sanctions and blacklists.
+
+  The app performs no background checks or tracking without explicit user consent.
+
+  We stay focused on security without compromising user privacy.
+
+
+
 ## Version 0.45.0 Highlights
 
 # 📝 Changelog
