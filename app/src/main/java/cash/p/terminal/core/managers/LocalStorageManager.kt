@@ -647,7 +647,7 @@ class LocalStorageManager(
 
     override var recipientAddressCheckEnabled by preferences.delegate(
         key = "recipientAddressCheckEnabled",
-        default = true
+        default = false
     )
 
     override var showChangelogAfterUpdate by preferences.delegate(

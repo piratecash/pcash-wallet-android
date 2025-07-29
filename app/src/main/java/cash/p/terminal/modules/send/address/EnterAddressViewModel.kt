@@ -33,8 +33,8 @@ class EnterAddressViewModel(
     addressUriParser: AddressUriParser,
     initialAddress: String?,
     contactsRepository: ContactsRepository,
-    localStorage: ILocalStorage,
-    addressCheckerSkippable: Boolean,
+    private val localStorage: ILocalStorage,
+    private val addressCheckerSkippable: Boolean,
     private val domainParser: AddressParserChain,
     private val addressValidator: EnterAddressValidator,
     private val addressCheckManager: AddressCheckManager,
@@ -56,11 +56,12 @@ class EnterAddressViewModel(
     private var parseAddressJob: Job? = null
 
     private val addressExtractor = AddressExtractor(token.blockchainType, addressUriParser)
-    private val addressCheckEnabled = if (addressCheckerSkippable) {
-        localStorage.recipientAddressCheckEnabled
-    } else {
-        true
-    }
+    private val addressCheckEnabled: Boolean
+        get() = if (addressCheckerSkippable) {
+            localStorage.recipientAddressCheckEnabled
+        } else {
+            true
+        }
 
     init {
         initialAddress?.let {
@@ -84,6 +85,17 @@ class EnterAddressViewModel(
         checkResults = checkResults,
         addressCheckEnabled = addressCheckEnabled,
     )
+
+    fun onCheckAddressClick(enabled: Boolean) {
+        localStorage.recipientAddressCheckEnabled = enabled
+        emitState()
+
+        if(enabled && checkResults.isEmpty()) {
+            if (value.isNotBlank()) {
+                processAddress(value)
+            }
+        }
+    }
 
     fun onEnterAddress(value: String) {
         parseAddressJob?.cancel()
