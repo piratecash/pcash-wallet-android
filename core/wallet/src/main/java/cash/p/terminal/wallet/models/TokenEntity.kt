@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.Index
+import cash.p.terminal.wallet.entities.Coin
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
@@ -13,7 +14,7 @@ import kotlinx.parcelize.Parcelize
     primaryKeys = ["coinUid", "blockchainUid", "type", "reference"],
     foreignKeys = [
         ForeignKey(
-            entity = cash.p.terminal.wallet.entities.Coin::class,
+            entity = Coin::class,
             parentColumns = arrayOf("uid"),
             childColumns = arrayOf("coinUid"),
             onDelete = CASCADE

@@ -148,7 +148,8 @@ fun Blockchain.assetUrl(code: String, issuer: String) = "https://stellarchain.io
 
 val BlockchainType.restoreSettingTypes: List<RestoreSettingType>
     get() = when (this) {
-        BlockchainType.Zcash -> listOf(RestoreSettingType.BirthdayHeight)
+        BlockchainType.Zcash,
+        BlockchainType.Monero -> listOf(RestoreSettingType.BirthdayHeight)
         else -> listOf()
     }
 

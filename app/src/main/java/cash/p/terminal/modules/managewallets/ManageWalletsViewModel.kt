@@ -22,6 +22,7 @@ import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
+import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.imageUrl
@@ -167,7 +168,7 @@ class ManageWalletsViewModel(
 
     fun enable(token: Token) {
         if (!isHardwareCard() || tangemBlockchainTypeExistUseCase(token)) {
-            if (isMonero(token)) {
+            if (isMonero(token) && !isAccountSupportsMonero()) {
                 showError(App.instance.getString(R.string.monero_not_supported_for_wallet))
                 return
             }
@@ -188,6 +189,9 @@ class ManageWalletsViewModel(
     private fun isMonero(token: Token) =
         (token.tokenQuery.blockchainType == BlockchainType.Monero &&
                 token.tokenQuery.tokenType == TokenType.Native)
+
+    private fun isAccountSupportsMonero() =
+        (accountManager.activeAccount?.type as? AccountType.Mnemonic)?.kind == MnemonicKind.Mnemonic12
 
     fun disable(token: Token) {
         service.disable(token)

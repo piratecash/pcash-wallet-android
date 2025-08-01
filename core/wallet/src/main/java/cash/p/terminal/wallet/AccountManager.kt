@@ -1,5 +1,6 @@
 package cash.p.terminal.wallet
 
+import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import io.horizontalsystems.core.logger.AppLogger
 import io.reactivex.BackpressureStrategy
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
 class AccountManager(
     private val storage: IAccountsStorage,
     private val accountCleaner: IAccountCleaner,
+    private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase,
     private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase
 ) : IAccountManager {
     private val logger: AppLogger = AppLogger("AccountManager")
@@ -150,8 +152,10 @@ class AccountManager(
 
     override suspend fun delete(id: String) = withContext(Dispatchers.IO) {
         val accountToDelete = storage.loadAccount(id)
-        if (accountToDelete?.type is AccountType.MnemonicMonero) {
-            removeMoneroWalletFilesUseCase(accountToDelete.type.walletInnerName)
+        accountToDelete?.let { account ->
+            getMoneroWalletFilesNameUseCase(account)
+        }?.also { walletFiles ->
+            removeMoneroWalletFilesUseCase(walletFiles)
         }
 
         accountsCache.remove(id)

@@ -272,6 +272,9 @@
         android:id="@+id/zcashConfigure"
         android:name="cash.p.terminal.modules.zcashconfigure.ZcashConfigure"/>
     <fragment
+        android:id="@+id/moneroConfigure"
+        android:name="cash.p.terminal.modules.moneroconfigure.MoneroConfigureFragment"/>
+    <fragment
         android:id="@+id/receiveFragment"
         android:name="cash.p.terminal.modules.receive.ReceiveFragment" />
     <fragment

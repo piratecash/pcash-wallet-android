@@ -75,5 +75,6 @@ val storageModule = module {
     factory { get<AppDatabase>().syncerStateDao() }
     factory { get<AppDatabase>().recentAddressDao() }
     factory { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
+    factory { get<AppDatabase>().moneroFileDao() }
     single { get<AppDatabase>().spamAddressDao() }
 }

@@ -3,8 +3,8 @@ package cash.p.terminal.core.usecase
 import android.content.Context
 import cash.p.terminal.core.managers.MoneroKitManager
 import cash.p.terminal.core.utils.MoneroConfig
+import cash.p.terminal.core.utils.MoneroWalletSeedConverter
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.AccountType.MnemonicMonero
 import com.m2049r.xmrwallet.model.Wallet
 import com.m2049r.xmrwallet.model.WalletManager
 import com.m2049r.xmrwallet.util.Helper
@@ -64,7 +64,7 @@ class MoneroWalletUseCase(
         newWallet.close()
 
         return@withContext if (walletStatus.isOk) {
-            MnemonicMonero(
+            AccountType.MnemonicMonero(
                 words = words,
                 password = crazyPass,
                 height = height,
@@ -75,7 +75,10 @@ class MoneroWalletUseCase(
         }
     }
 
-    suspend fun restore(words: List<String>, height: Long): AccountType? =
+    suspend fun restoreFrom12Words(words: List<String>, passphrase: String, height: Long): AccountType.MnemonicMonero? =
+        restore(MoneroWalletSeedConverter.getLegacySeedFromBip39(words, passphrase), height)
+
+    suspend fun restore(words: List<String>, height: Long): AccountType.MnemonicMonero? =
         withContext(Dispatchers.IO) {
             if (words.size != MoneroConfig.WORD_COUNT) {
                 Timber.d("Wrong words count")
@@ -100,7 +103,7 @@ class MoneroWalletUseCase(
                 Timber.e(walletStatus.errorString)
             }
             return@withContext if (walletStatus.isOk) {
-                MnemonicMonero(
+                AccountType.MnemonicMonero(
                     words = words,
                     password = crazyPass,
                     height = height,

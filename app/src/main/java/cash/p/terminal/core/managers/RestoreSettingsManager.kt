@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import cash.p.terminal.R
 import cash.p.terminal.core.IRestoreSettingsStorage
 import cash.p.terminal.entities.RestoreSettingRecord
+import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.BlockchainType
 
@@ -11,7 +12,7 @@ class RestoreSettingsManager(
         private val storage: IRestoreSettingsStorage,
         private val zcashBirthdayProvider: ZcashBirthdayProvider
 ) {
-    fun settings(account: cash.p.terminal.wallet.Account, blockchainType: BlockchainType): RestoreSettings {
+    fun settings(account: Account, blockchainType: BlockchainType): RestoreSettings {
         val records = storage.restoreSettings(account.id, blockchainType.uid)
 
         val settings = RestoreSettings()
@@ -24,7 +25,7 @@ class RestoreSettingsManager(
         return settings
     }
 
-    fun accountSettingsInfo(account: cash.p.terminal.wallet.Account): List<Triple<BlockchainType, RestoreSettingType, String>> {
+    fun accountSettingsInfo(account: Account): List<Triple<BlockchainType, RestoreSettingType, String>> {
         return storage.restoreSettings(account.id).mapNotNull { record ->
             RestoreSettingType.fromString(record.key)?.let { settingType ->
                 val blockchainType = BlockchainType.fromUid(record.blockchainTypeUid)
@@ -33,7 +34,7 @@ class RestoreSettingsManager(
         }
     }
 
-    fun save(settings: RestoreSettings, account: cash.p.terminal.wallet.Account, blockchainType: BlockchainType) {
+    fun save(settings: RestoreSettings, account: Account, blockchainType: BlockchainType) {
         val records = settings.values.map { (type, value) ->
             RestoreSettingRecord(account.id, blockchainType.uid, type.name, value)
         }
