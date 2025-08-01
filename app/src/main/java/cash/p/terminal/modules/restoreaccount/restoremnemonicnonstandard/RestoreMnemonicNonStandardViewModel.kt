@@ -6,6 +6,7 @@ import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicModule
 import cash.p.terminal.modules.restoreaccount.restoremnemonicnonstandard.RestoreMnemonicNonStandardModule.UiState
+import cash.p.terminal.wallet.AccountType
 import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.IThirdKeyboard
 import io.horizontalsystems.hdwalletkit.Language
@@ -27,7 +28,7 @@ class RestoreMnemonicNonStandardViewModel(
     private var invalidWordItems: List<RestoreMnemonicModule.WordItem> = listOf()
     private var invalidWordRanges: List<IntRange> = listOf()
     private var error: String? = null
-    private var accountType: cash.p.terminal.wallet.AccountType? = null
+    private var accountType: AccountType? = null
     private var wordSuggestions: RestoreMnemonicModule.WordSuggestions? = null
     private var language = Language.English
     private var text = ""
@@ -127,7 +128,7 @@ class RestoreMnemonicNonStandardViewModel(
                     val words = wordItems.map { it.word }
                     wordsManager.validateChecksum(words)
 
-                    accountType = cash.p.terminal.wallet.AccountType.Mnemonic(words, passphrase)
+                    accountType = AccountType.Mnemonic(words, passphrase)
                     error = null
                 } catch (checksumException: Exception) {
                     error = cash.p.terminal.strings.helpers.Translator.getString(R.string.Restore_InvalidChecksum)

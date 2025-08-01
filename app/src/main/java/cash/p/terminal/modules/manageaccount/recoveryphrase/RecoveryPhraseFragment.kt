@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.manageaccount.recoveryphrase
 
+import android.os.Parcelable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -22,8 +23,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
-
-
 import cash.p.terminal.modules.manageaccount.ui.ActionButton
 import cash.p.terminal.modules.manageaccount.ui.ConfirmCopyBottomSheet
 import cash.p.terminal.modules.manageaccount.ui.PassphraseCell
@@ -41,17 +40,30 @@ import cash.p.terminal.wallet.Account
 import io.horizontalsystems.core.helpers.HudHelper
 import cash.p.terminal.ui_compose.requireInput
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
 
 class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
 
     @Composable
     override fun GetContent(navController: NavController) {
+        val input:Input = navController.requireInput()
         RecoveryPhraseScreen(
             navController = navController,
-            account = navController.requireInput()
+            account = input.account,
+            recoveryPhraseType = input.recoveryPhraseType
         )
     }
 
+    @Parcelize
+    class Input(
+        val account: Account,
+        val recoveryPhraseType: RecoveryPhraseType
+    ): Parcelable
+
+    enum class RecoveryPhraseType {
+        Mnemonic,
+        Monero // Regular mnemonic with conversion to Monero WORDS
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,9 +71,10 @@ class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
 private fun RecoveryPhraseScreen(
     navController: NavController,
     account: Account,
+    recoveryPhraseType: RecoveryPhraseFragment.RecoveryPhraseType
 ) {
     val viewModel =
-        viewModel<RecoveryPhraseViewModel>(factory = RecoveryPhraseModule.Factory(account))
+        viewModel<RecoveryPhraseViewModel>(factory = RecoveryPhraseModule.Factory(account, recoveryPhraseType))
 
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()

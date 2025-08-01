@@ -61,8 +61,8 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
         return try {
             val accountType = when (record.type) {
                 MNEMONIC -> AccountType.Mnemonic(
-                    record.words!!.list,
-                    record.passphrase?.value ?: ""
+                    words = record.words!!.list,
+                    passphrase = record.passphrase?.value ?: ""
                 )
 
                 MNEMONIC_MONERO -> {

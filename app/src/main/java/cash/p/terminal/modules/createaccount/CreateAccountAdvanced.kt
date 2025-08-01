@@ -47,6 +47,7 @@ import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.data.MnemonicKind
 import io.horizontalsystems.core.helpers.HudHelper
 import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.delay
@@ -62,7 +63,7 @@ fun CreateAccountAdvancedScreen(
 
     LaunchedEffect(Unit) {
         if(preselectMonero) {
-            viewModel.setMnemonicKind(CreateAccountModule.Kind.Mnemonic25)
+            viewModel.setMnemonicKind(MnemonicKind.Mnemonic25)
         }
     }
     val view = LocalView.current
@@ -201,7 +202,7 @@ fun CreateAccountAdvancedScreen(
 
 @Composable
 private fun MnemonicNumberCell(
-    kind: CreateAccountModule.Kind,
+    kind: MnemonicKind,
     showMnemonicSizeSelectorDialog: () -> Unit
 ) {
     RowUniversal(

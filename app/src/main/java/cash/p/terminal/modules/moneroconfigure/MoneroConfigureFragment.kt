@@ -1,12 +1,10 @@
-package cash.p.terminal.modules.zcashconfigure
+package cash.p.terminal.modules.moneroconfigure
 
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.View
 import androidx.activity.addCallback
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,72 +20,57 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.setNavigationResultX
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui_compose.components.InfoText
-import cash.p.terminal.ui.compose.components.TextPreprocessor
-import cash.p.terminal.ui.compose.components.TextPreprocessorImpl
-import cash.p.terminal.ui_compose.BottomSheetHeader
+import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellMultilineLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui_compose.components.TextImportantWarning
-import cash.p.terminal.ui_compose.components.body_grey50
 import cash.p.terminal.ui_compose.components.body_leah
+import cash.p.terminal.ui_compose.components.caption_lucian
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.findNavController
-import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.imageUrl
-import kotlinx.coroutines.launch
+import io.horizontalsystems.core.setNavigationResultX
 import kotlinx.parcelize.Parcelize
+import org.koin.compose.viewmodel.koinViewModel
 
-class ZcashConfigure : BaseComposeFragment() {
+class MoneroConfigureFragment : BaseComposeFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         activity?.onBackPressedDispatcher?.addCallback(this) {
@@ -97,9 +80,14 @@ class ZcashConfigure : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        ZcashConfigureScreen(
+        val viewModel: MoneroConfigureViewModel = koinViewModel()
+        MoneroConfigureScreen(
             onCloseWithResult = { closeWithConfigt(it, navController) },
-            onCloseClick = { close(navController) }
+            onCloseClick = { close(navController) },
+            onRestoreNew = viewModel::onRestoreNew,
+            onSetBirthdayHeight = viewModel::setBirthdayHeight,
+            onDoneClick = viewModel::onDoneClick,
+            uiState = viewModel.uiState,
         )
     }
 
@@ -119,59 +107,30 @@ class ZcashConfigure : BaseComposeFragment() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ZcashConfigureScreen(
+private fun MoneroConfigureScreen(
     onCloseClick: () -> Unit,
     onCloseWithResult: (TokenConfig) -> Unit,
-    viewModel: ZcashConfigureViewModel = viewModel(),
+    onRestoreNew: (Boolean) -> Unit,
+    onSetBirthdayHeight: (String) -> Unit,
+    onDoneClick: () -> Unit,
+    uiState: MoneroConfigUIState,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets
 ) {
-    var showSlowSyncWarning by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    viewModel.uiState.closeWithResult?.let {
-        viewModel.onClosed()
-        keyboardController?.hide()
-        onCloseWithResult.invoke(it)
+    LaunchedEffect(uiState.closeWithResult) {
+        uiState.closeWithResult?.let {
+            keyboardController?.hide()
+            onCloseWithResult(it)
+        }
     }
 
     var textState by rememberSaveable("", stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
     }
 
-    if (showSlowSyncWarning) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            dragHandle = null,
-            containerColor = ComposeAppTheme.colors.transparent,
-            onDismissRequest = {
-                showSlowSyncWarning = false
-            }
-        ) {
-            SlowSyncWarningBottomSheet(
-                text = stringResource(R.string.Restore_ZCash_SlowSyncWarningText),
-                onContinueClick = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showSlowSyncWarning = false
-                        }
-                    }
-                    viewModel.restoreAsOld()
-                },
-                onCloseClick = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showSlowSyncWarning = false
-                        }
-                    }
-                },
-            )
-        }
-    }
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = { ZcashAppBar(onCloseClick = onCloseClick) }
@@ -191,9 +150,9 @@ fun ZcashConfigureScreen(
                             OptionCell(
                                 title = stringResource(R.string.Restore_ZCash_NewWallet),
                                 subtitle = stringResource(R.string.Restore_ZCash_NewWallet_Description),
-                                checked = viewModel.uiState.restoreAsNew,
+                                checked = uiState.restoreAsNew,
                                 onClick = {
-                                    viewModel.restoreAsNew()
+                                    onRestoreNew(true)
                                     textState =
                                         textState.copy(text = "", selection = TextRange(0))
                                     focusManager.clearFocus()
@@ -204,9 +163,9 @@ fun ZcashConfigureScreen(
                             OptionCell(
                                 title = stringResource(R.string.Restore_ZCash_OldWallet),
                                 subtitle = stringResource(R.string.Restore_ZCash_OldWallet_Description),
-                                checked = viewModel.uiState.restoreAsOld,
+                                checked = !uiState.restoreAsNew,
                                 onClick = {
-                                    showSlowSyncWarning = true
+                                    onRestoreNew(false)
                                     textState =
                                         textState.copy(text = "", selection = TextRange(0))
                                     focusManager.clearFocus()
@@ -215,29 +174,30 @@ fun ZcashConfigureScreen(
                         },
                     )
                 )
-
-                Spacer(Modifier.height(24.dp))
-                HeaderText(text = stringResource(R.string.Restore_BirthdayHeight))
-
-                BirthdayHeightInput(
-                    textState = textState,
-                    focusRequester = focusRequester,
-                    textPreprocessor = object : TextPreprocessor {
-                        override fun process(text: String): String {
-                            return text.replace("[^0-9]".toRegex(), "")
-                        }
-                    },
-                    onValueChange = { textFieldValue ->
-                        textState = textFieldValue
-                        viewModel.setBirthdayHeight(textFieldValue.text)
+                if (!uiState.restoreAsNew) {
+                    Spacer(Modifier.height(16.dp))
+                    HeaderText(stringResource(id = R.string.restoreheight_title))
+                    FormsInput(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        initial = uiState.birthdayHeight,
+                        pasteEnabled = false,
+                        singleLine = true,
+                        hint = stringResource(R.string.restoreheight_hint),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Ascii,
+                            imeAction = ImeAction.Done
+                        ),
+                        onValueChange = onSetBirthdayHeight
+                    )
+                    uiState.errorHeight?.let { errorText ->
+                        Spacer(Modifier.height(8.dp))
+                        caption_lucian(
+                            modifier = Modifier.padding(horizontal = 32.dp),
+                            text = errorText
+                        )
                     }
-                )
-
-                InfoText(
-                    text = stringResource(R.string.Restore_ZCash_BirthdayHeight_Hint),
-                )
-
-                Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(24.dp))
+                }
             }
 
             ButtonsGroupWithShade {
@@ -246,8 +206,7 @@ fun ZcashConfigureScreen(
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp),
                     title = stringResource(R.string.Button_Done),
-                    onClick = { viewModel.onDoneClick() },
-                    enabled = viewModel.uiState.doneButtonEnabled
+                    onClick = onDoneClick
                 )
             }
         }
@@ -313,13 +272,13 @@ fun ZcashAppBar(
                         .padding(end = 16.dp)
                         .size(24.dp),
                     painter = rememberAsyncImagePainterWithFallback(
-                        model = BlockchainType.Zcash.imageUrl,
+                        model = BlockchainType.Monero.imageUrl,
                         error = painterResource(R.drawable.ic_platform_placeholder_32)
                     ),
                     contentDescription = null
                 )
                 title3_leah(
-                    text = stringResource(R.string.Restore_ZCash),
+                    text = stringResource(R.string.restore_monero),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -335,96 +294,22 @@ fun ZcashAppBar(
     )
 }
 
-@Composable
-private fun SlowSyncWarningBottomSheet(
-    text: String,
-    onContinueClick: () -> Unit,
-    onCloseClick: () -> Unit,
-) {
-    BottomSheetHeader(
-        iconPainter = painterResource(R.drawable.ic_attention_24),
-        title = stringResource(R.string.Alert_TitleWarning),
-        iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
-        onCloseClick = onCloseClick
-    ) {
-        TextImportantWarning(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            text = text
-        )
-
-        ButtonPrimaryYellow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 20.dp),
-            title = stringResource(id = R.string.Button_Continue),
-            onClick = onContinueClick
-        )
-
-        ButtonPrimaryTransparent(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            title = stringResource(id = R.string.Button_Cancel),
-            onClick = onCloseClick
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}
-
-@Composable
-private fun BirthdayHeightInput(
-    textState: TextFieldValue,
-    textPreprocessor: TextPreprocessor = TextPreprocessorImpl,
-    onValueChange: (TextFieldValue) -> Unit,
-    focusRequester: FocusRequester,
-) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, ComposeAppTheme.colors.steel20, RoundedCornerShape(12.dp))
-            .background(ComposeAppTheme.colors.lawrence)
-            .height(44.dp)
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        BasicTextField(
-            modifier = Modifier
-                .padding(vertical = 12.dp)
-                .weight(1f),
-            value = textState,
-            onValueChange = { textFieldValue ->
-                val textFieldValueProcessed =
-                    textFieldValue.copy(text = textPreprocessor.process(textFieldValue.text))
-                onValueChange.invoke(textFieldValueProcessed)
-            },
-            textStyle = ColoredTextStyle(
-                color = ComposeAppTheme.colors.leah,
-                textStyle = ComposeAppTheme.typography.body
-            ),
-            maxLines = 1,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            decorationBox = { innerTextField ->
-                if (textState.text.isEmpty()) {
-                    body_grey50(
-                        modifier = Modifier.focusRequester(focusRequester),
-                        text = "000000000",
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                    )
-                }
-                innerTextField()
-            },
-        )
-    }
-}
-
 @Preview
 @Composable
-private fun Preview_ZcashConfigure() {
+private fun Preview_MoneroConfigure() {
     ComposeAppTheme(darkTheme = false) {
-        ZcashConfigureScreen({}, {})
+        MoneroConfigureScreen(
+            onCloseClick = {},
+            onCloseWithResult = {},
+            onRestoreNew = {},
+            onSetBirthdayHeight = {},
+            onDoneClick = {},
+            uiState = MoneroConfigUIState(
+                birthdayHeight = "",
+                restoreAsNew = true,
+                closeWithResult = null,
+                errorHeight = null
+            ),
+        )
     }
 }

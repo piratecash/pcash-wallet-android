@@ -37,6 +37,7 @@ import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeaderMultiline
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.findNavController
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.helpers.HudHelper
@@ -65,7 +66,7 @@ private fun ConfiguredTokenInfo(navController: NavController, token: Token) {
     val viewModel = viewModel<ConfiguredTokenInfoViewModel>(factory = ConfiguredTokenInfoViewModel.Factory(token))
     val uiState = viewModel.uiState
 
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         BottomSheetHeaderMultiline(
             iconPainter = uiState.iconSource.painter(),
             title = uiState.title,

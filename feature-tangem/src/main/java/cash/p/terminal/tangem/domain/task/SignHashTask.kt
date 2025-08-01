@@ -4,7 +4,6 @@ import cash.p.terminal.tangem.domain.isExcluded
 import cash.p.terminal.tangem.domain.isTangemTwins
 import cash.p.terminal.tangem.domain.model.ScanResponse
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import com.tangem.common.CompletionResult
 import com.tangem.common.card.Card
 import com.tangem.common.card.FirmwareVersion

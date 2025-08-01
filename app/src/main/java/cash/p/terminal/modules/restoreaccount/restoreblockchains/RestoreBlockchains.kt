@@ -88,7 +88,7 @@ fun ManageWalletsScreen(
     val doneButtonEnabled by viewModel.restoreEnabledLiveData.observeAsState(false)
     val restored = viewModel.restored
 
-    mainViewModel.zCashConfig?.let { config ->
+    mainViewModel.tokenConfig?.let { config ->
         restoreSettingsViewModel.onEnter(config)
         mainViewModel.setZCashConfig(null)
     }
@@ -98,9 +98,9 @@ fun ManageWalletsScreen(
         mainViewModel.cancelZCashConfig = false
     }
 
-    if (restoreSettingsViewModel.openZcashConfigure != null) {
-        restoreSettingsViewModel.zcashConfigureOpened()
-        openZCashConfigure.invoke()
+    if (restoreSettingsViewModel.openTokenConfigure != null) {
+        restoreSettingsViewModel.tokenConfigureOpened()
+        openZCashConfigure()
     }
 
     LaunchedEffect(restored) {

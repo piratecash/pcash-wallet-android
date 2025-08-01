@@ -1,8 +1,6 @@
 package cash.p.terminal.core.adapters.zcash
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.util.Log
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter

@@ -13,9 +13,15 @@ import cash.p.terminal.tangem.domain.sdk.TangemSdkManager
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.MarketKitWrapper
+import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.tangem.common.card.Card
 import com.tangem.common.doOnSuccess
+import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -29,6 +35,7 @@ class ManageAccountViewModel(
 
     val account: Account = accountManager.account(accountId)!!
     private val tangemSdkManager: TangemSdkManager by inject(TangemSdkManager::class.java)
+    private val walletManager: IWalletManager by inject(IWalletManager::class.java)
 
     var viewState by mutableStateOf(
         ManageAccountModule.ViewState(
@@ -80,6 +87,7 @@ class ManageAccountViewModel(
             KeyAction.ForgotAccessCode -> forgotAccessCode()
 
             KeyAction.RecoveryPhrase,
+            KeyAction.RecoveryPhraseMonero,
             KeyAction.PublicKeys,
             KeyAction.ViewKey,
             KeyAction.SpendKey,
@@ -143,16 +151,26 @@ class ManageAccountViewModel(
         return items
     }
 
+    private fun hasMoneroTokenEnabled(account: Account): Boolean {
+        return walletManager.getWallets(account)
+            .find {
+                it.token.blockchainType == BlockchainType.Monero && it.token.type == TokenType.Native
+            } != null
+    }
+
     private fun getKeyActions(account: Account): List<KeyAction> {
         if (!account.isBackedUp && !account.isFileBackedUp && account.accountSupportsBackup) {
             return emptyList()
         }
         return when (account.type) {
-            is AccountType.Mnemonic -> listOf(
-                KeyAction.RecoveryPhrase,
-                KeyAction.PrivateKeys,
-                KeyAction.PublicKeys,
-            )
+            is AccountType.Mnemonic -> buildList {
+                add(KeyAction.RecoveryPhrase)
+                if (hasMoneroTokenEnabled(account)) {
+                    add(KeyAction.RecoveryPhraseMonero)
+                }
+                add(KeyAction.PrivateKeys)
+                add(KeyAction.PublicKeys)
+            }
 
             is AccountType.MnemonicMonero -> listOf(
                 KeyAction.RecoveryPhrase,

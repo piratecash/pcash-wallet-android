@@ -27,6 +27,7 @@ import cash.p.terminal.modules.balance.ui.NoteError
 import cash.p.terminal.modules.balance.ui.NoteWarning
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.BackupItem
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.KeyAction
+import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment.Input
 import cash.p.terminal.modules.settings.main.HsSettingCell
@@ -203,7 +204,29 @@ private fun KeyActions(
                         navController.authorizedAction {
                             navController.slideFromRight(
                                 R.id.recoveryPhraseFragment,
-                                account
+                                RecoveryPhraseFragment.Input(
+                                    account = account,
+                                    recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Mnemonic
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            KeyAction.RecoveryPhraseMonero -> {
+                actionItems.add {
+                    AccountActionItem(
+                        title = stringResource(id = R.string.RecoveryPhrase_monero_Title),
+                        icon = painterResource(id = R.drawable.icon_paper_contract_20)
+                    ) {
+                        navController.authorizedAction {
+                            navController.slideFromRight(
+                                R.id.recoveryPhraseFragment,
+                                RecoveryPhraseFragment.Input(
+                                    account = account,
+                                    recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                )
                             )
                         }
                     }

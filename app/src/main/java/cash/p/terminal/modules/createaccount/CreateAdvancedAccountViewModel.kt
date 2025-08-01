@@ -11,7 +11,6 @@ import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
-import cash.p.terminal.modules.createaccount.CreateAccountModule.Kind.Mnemonic12
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.Account
@@ -20,6 +19,7 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.BuildConfig
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.PassphraseValidator
+import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.normalizeNFKD
@@ -42,7 +42,7 @@ class CreateAdvancedAccountViewModel(
     var loading by mutableStateOf(false)
         private set
 
-    val mnemonicKinds = CreateAccountModule.Kind.entries
+    val mnemonicKinds = MnemonicKind.entries
 
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(
         MoneroWalletUseCase::class.java
@@ -53,7 +53,7 @@ class CreateAdvancedAccountViewModel(
         get() = field.ifBlank { defaultAccountName }
         private set
 
-    var selectedKind: CreateAccountModule.Kind = Mnemonic12
+    var selectedKind: MnemonicKind = MnemonicKind.Mnemonic12
         private set
 
     var showPassphraseBlock by mutableStateOf(true)
@@ -79,7 +79,7 @@ class CreateAdvancedAccountViewModel(
         loading = true
 
         val accountType =
-            if (selectedKind.wordsCount == CreateAccountModule.Kind.Mnemonic25.wordsCount) {
+            if (selectedKind.wordsCount == MnemonicKind.Mnemonic25.wordsCount) {
                 moneroWalletUseCase.createNew()
             } else {
                 mnemonicAccountType(selectedKind.wordsCount)
@@ -133,9 +133,9 @@ class CreateAdvancedAccountViewModel(
         passphraseConfirmation = v
     }
 
-    fun setMnemonicKind(kind: CreateAccountModule.Kind) {
+    fun setMnemonicKind(kind: MnemonicKind) {
         selectedKind = kind
-        showPassphraseBlock = kind != CreateAccountModule.Kind.Mnemonic25
+        showPassphraseBlock = kind != MnemonicKind.Mnemonic25
     }
 
     fun setPassphraseEnabledState(enabled: Boolean) {
