@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.Color
 
 val Dark = Color(0xFF13151A)
 val Carbon = Color(0xFF232323)
+val Smoke = Color(0xFF4B4B4B)
+val Steel = Color(0xFFB3B3B3)
 val Light = Color(0xFFF0F0F0)
 val LightGrey = Color(0xFFC8C7CC)
 val SteelLight = Color(0xFFE1E1E5)
