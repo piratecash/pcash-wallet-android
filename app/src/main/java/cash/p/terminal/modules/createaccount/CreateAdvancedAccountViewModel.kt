@@ -42,7 +42,7 @@ class CreateAdvancedAccountViewModel(
     var loading by mutableStateOf(false)
         private set
 
-    val mnemonicKinds = MnemonicKind.entries
+    val mnemonicKinds = MnemonicKind.entries.filter { it != MnemonicKind.Unknown }
 
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(
         MoneroWalletUseCase::class.java
