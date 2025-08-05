@@ -14,23 +14,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.core.iconPlaceholder
-import cash.p.terminal.wallet.imageUrl
 import cash.p.terminal.ui.compose.components.Badge
-import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui.compose.components.MultitextM1
-import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui.compose.components.SearchBar
-import cash.p.terminal.ui_compose.components.SectionUniversalItem
 import cash.p.terminal.ui_compose.components.B2
 import cash.p.terminal.ui_compose.components.D1
+import cash.p.terminal.ui_compose.components.HsImage
+import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SectionUniversalItem
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
+import cash.p.terminal.wallet.imageUrl
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -76,9 +77,15 @@ fun SelectSwapCoinDialogScreen(
                                     }
                                 }
                             },
-                            subtitle = { D1(text = coinItem.token.coin.name) }
+                            subtitle = {
+                                D1(
+                                    text = coinItem.token.coin.name,
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
                         )
-                        Spacer(modifier = Modifier.weight(1f))
                         MultitextM1(
                             title = {
                                 coinItem.balance?.let {
