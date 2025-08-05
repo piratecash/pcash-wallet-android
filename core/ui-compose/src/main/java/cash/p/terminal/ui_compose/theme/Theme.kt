@@ -26,7 +26,7 @@ val lightPalette = Colors(
     laguna = LagunaL,
     purple = PurpleL,
     raina = White50,
-    andy = Steel20,
+    andy = Steel,
     blade = Light,
 )
 
@@ -43,7 +43,7 @@ val darkPalette = Colors(
     laguna = LagunaD,
     purple = PurpleD,
     raina = Steel10,
-    andy = Black50,
+    andy = Smoke,
     blade = Carbon,
 )
 
