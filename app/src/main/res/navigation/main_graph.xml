@@ -461,6 +461,9 @@
         android:id="@+id/wcAccountTypeNotSupportedDialog"
         android:name="cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog" />
     <fragment
+        android:id="@+id/aboutPremiumFragment"
+        android:name="cash.p.terminal.modules.premium.AboutPremiumFragment"/>
+    <fragment
         android:id="@+id/addressCheckerFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckerFragment"/>
     <fragment

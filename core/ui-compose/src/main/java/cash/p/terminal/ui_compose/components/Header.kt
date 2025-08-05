@@ -132,10 +132,34 @@ fun HeaderSorting(
     }
 }
 
+@Composable
+fun PremiumHeader() {
+    Row(
+        modifier = Modifier
+            .padding(horizontal = 32.dp)
+            .height(32.dp)
+            .padding(top = 1.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .size(16.dp),
+            painter = painterResource(R.drawable.star_filled_yellow_16),
+            tint = ComposeAppTheme.colors.jacob,
+            contentDescription = null,
+        )
+        subhead1_jacob(
+            text = stringResource(R.string.premium_title),
+            maxLines = 1
+        )
+    }
+}
+
 @Preview
 @Composable
 fun Preview_HeaderText(){
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         HeaderText(
             text = "Sample Header",
             { }

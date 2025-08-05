@@ -36,6 +36,7 @@ import androidx.core.text.toSpanned
 import cash.p.terminal.featureStacking.R
 import cash.p.terminal.featureStacking.data.toAnnotatedString
 import cash.p.terminal.featureStacking.ui.staking.StackingType
+import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellowWithIcon
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -46,6 +47,7 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.TitleAndTwoValuesCell
 import cash.p.terminal.ui_compose.components.TitleAndValueCell
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ColorDivider
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
@@ -58,7 +60,6 @@ import io.horizontalsystems.chartview.chart.ChartModule
 import io.horizontalsystems.chartview.chart.ChartUiState
 import io.horizontalsystems.chartview.chart.SelectedItem
 import io.horizontalsystems.chartview.ui.Chart
-import cash.p.terminal.ui_compose.entities.ViewState
 import io.horizontalsystems.core.helpers.HudHelper
 import io.horizontalsystems.core.models.HsTimePeriod
 import java.math.BigDecimal
@@ -84,6 +85,7 @@ internal fun StackingCoinScreen(
     ) {
         PirateCoinScreenContent(
             uiState = viewModel.uiState.value,
+            isPremium = viewModel.isPremium,
             onBuyClicked = onBuyClicked,
             onCalculatorClicked = onCalculatorClicked,
             onChartClicked = onChartClicked,
@@ -98,6 +100,7 @@ internal fun StackingCoinScreen(
 @Composable
 internal fun PirateCoinScreenContent(
     uiState: StackingCoinUIState,
+    isPremium: Boolean,
     onBuyClicked: (Token) -> Unit,
     onCalculatorClicked: () -> Unit,
     onChartClicked: (String) -> Unit,
@@ -113,6 +116,7 @@ internal fun PirateCoinScreenContent(
             if (uiState.balance == BigDecimal.ZERO && uiState.payoutItems.isEmpty()) {
                 NoCoins(
                     uiState = uiState,
+                    isPremium = isPremium,
                     onBuyClicked = {
                         uiState.token?.let { onBuyClicked(it) }
                     }
@@ -120,6 +124,7 @@ internal fun PirateCoinScreenContent(
             } else {
                 PirateCoinScreenWithGraph(
                     uiState = uiState,
+                    isPremium = isPremium,
                     onBuyClicked = {
                         uiState.token?.let { onBuyClicked(it) }
                     },
@@ -149,7 +154,7 @@ private fun LoadingScreen() {
 }
 
 @Composable
-private fun NoCoins(uiState: StackingCoinUIState, onBuyClicked: () -> Unit) {
+private fun NoCoins(uiState: StackingCoinUIState, isPremium: Boolean, onBuyClicked: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -184,6 +189,25 @@ private fun NoCoins(uiState: StackingCoinUIState, onBuyClicked: () -> Unit) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp)
         )
+        if (!isPremium) {
+            val buyPremiumStringResId = stringResource(
+                id = R.string.buy_to_activate_premium,
+                formatArgs = arrayOf(
+                    if (uiState.stackingType == StackingType.PCASH) {
+                        "${PremiumConfig.MIN_PREMIUM_AMOUNT_PIRATE} ${StackingType.PCASH.value}"
+                    } else {
+                        "${PremiumConfig.MIN_PREMIUM_AMOUNT_COSANTA} ${StackingType.COSANTA.value}"
+                    }
+                )
+            )
+            Text(
+                style = ComposeAppTheme.typography.subhead2,
+                color = ComposeAppTheme.colors.bran.copy(alpha = 0.6f),
+                text = buyPremiumStringResId,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
         ButtonPrimaryYellowWithIcon(
             title = stringResource(
                 id = if (uiState.stackingType == StackingType.PCASH) {
@@ -206,6 +230,7 @@ private fun NoCoins(uiState: StackingCoinUIState, onBuyClicked: () -> Unit) {
 @Composable
 private fun PirateCoinScreenWithGraph(
     uiState: StackingCoinUIState,
+    isPremium: Boolean,
     onBuyClicked: () -> Unit,
     onCalculatorClicked: () -> Unit,
     onChartClicked: () -> Unit,
@@ -255,7 +280,7 @@ private fun PirateCoinScreenWithGraph(
                     onClick = onChartClicked
                 )
             }
-            TotalSection(uiState, Modifier.padding(vertical = 24.dp))
+            TotalSection(uiState, isPremium, Modifier.padding(vertical = 24.dp))
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -290,7 +315,7 @@ private fun PirateCoinScreenWithGraph(
 }
 
 @Composable
-private fun TotalSection(uiState: StackingCoinUIState, modifier: Modifier) {
+private fun TotalSection(uiState: StackingCoinUIState, isPremium: Boolean, modifier: Modifier) {
     val waitingForStackingPlaceholder = if (uiState.isWaitingForStacking()) "-" else null
     CellUniversalLawrenceSection(
         composableItems = buildList {
@@ -326,6 +351,15 @@ private fun TotalSection(uiState: StackingCoinUIState, modifier: Modifier) {
                     value = uiState.annualInterest,
                     modifier = Modifier.height(48.dp)
                 )
+            }
+            if (!uiState.balanceHidden && isPremium) {
+                add {
+                    TitleAndValueCell(
+                        title = stringResource(R.string.premium_available),
+                        value = "",
+                        modifier = Modifier.height(48.dp)
+                    )
+                }
             }
         },
         modifier = modifier
@@ -435,6 +469,7 @@ private fun PirateCoinScreenContentPreview() {
                 loading = false,
                 balanceHidden = false
             ),
+            isPremium = false,
             onBuyClicked = {},
             onChartClicked = {},
             graphUIState = ChartUiState(

@@ -7,6 +7,7 @@ import cash.p.terminal.di.swapProvidersModule
 import cash.p.terminal.di.viewModelModule
 import cash.p.terminal.featureStacking.di.featureStackingModule
 import cash.p.terminal.network.di.networkModule
+import cash.p.terminal.premium.di.featurePremiumModule
 import cash.p.terminal.tangem.di.featureTangemModule
 import cash.p.terminal.wallet.di.walletFeatureModule
 import org.koin.dsl.module
@@ -22,6 +23,7 @@ val appModule = module {
         featureTangemModule,
         networkModule,
         swapProvidersModule,
-        useCaseModule
+        useCaseModule,
+        featurePremiumModule
     )
 }
