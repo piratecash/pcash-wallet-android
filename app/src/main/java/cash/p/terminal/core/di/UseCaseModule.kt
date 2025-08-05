@@ -8,7 +8,7 @@ import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
-import cash.p.terminal.domain.usecase.GetReleaseNotesUseCase
+import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.manager.ITorConnectionStatusUseCase
 import cash.p.terminal.modules.tor.TorConnectionStatusUseCase
 import cash.p.terminal.tangem.domain.usecase.ICreateHardwareWalletUseCase
@@ -23,7 +23,7 @@ val useCaseModule = module {
     factoryOf(::UpdateChangeNowStatusesUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
     factoryOf(::ValidateMoneroHeightUseCase)
-    factoryOf(::GetReleaseNotesUseCase)
+    factoryOf(::GetLocalizedAssetUseCase)
     factoryOf(::CheckGooglePlayUpdateUseCase)
     factoryOf(::MoneroWalletUseCase)
     factoryOf(::GenerateMoneroWalletUseCase)

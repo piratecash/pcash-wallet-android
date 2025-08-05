@@ -60,6 +60,9 @@ zcashAndroidSdk = "2.2.12"
 junitJupiter = "5.8.1"
 google-play-core = "2.1.0"
 bitcoinj = "0.16.2"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.7.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
@@ -145,6 +148,9 @@ zcash-android-sdk = { module = "cash.z.ecc.android:zcash-android-sdk", version.r
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 google-play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "google-play-core" }
 google-play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "google-play-core" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
