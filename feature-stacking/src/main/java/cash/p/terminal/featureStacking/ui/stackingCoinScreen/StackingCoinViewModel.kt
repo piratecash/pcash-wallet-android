@@ -58,6 +58,11 @@ internal abstract class StackingCoinViewModel(
     private val checkPremiumUseCase: CheckPremiumUseCase
 ) : ViewModel() {
 
+    private companion object {
+        const val COSANTA_DEFAULT_ANNUAL_INTEREST = "25%"
+        const val PIRATE_DEFAULT_ANNUAL_INTEREST = "8%"
+    }
+
     abstract val minStackingAmount: Int
     abstract val stackingType: StackingType
 
@@ -140,6 +145,13 @@ internal abstract class StackingCoinViewModel(
             }
         } catch (e: Exception) {
             Log.e("StackingCoinViewModel", "Error loading annual interest", e)
+            _uiState.value = uiState.value.copy(
+                annualInterest = if (stackingType == StackingType.PCASH) {
+                    PIRATE_DEFAULT_ANNUAL_INTEREST
+                } else {
+                    COSANTA_DEFAULT_ANNUAL_INTEREST
+                }
+            )
         }
     }
 

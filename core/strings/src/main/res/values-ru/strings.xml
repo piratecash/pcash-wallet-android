@@ -1822,10 +1822,10 @@
     <!-- Stacking screen -->
     <string name="stacking">Стэкинг</string>
     <string name="no_active_stacking">Нет активных стейкинг-транзакций.</string>
-    <string name="no_active_stacking_pirate_description">Стейкинг PIRATE: Для активации стейкинга необходимо еще 100 токенов и будете получать 13% годовых!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Стейкинг: Внесите 1 токен и начните зарабатывать через 24 часа.</string>
-    <string name="no_active_stacking_pirate_buy_more_descritpion">Для активации стейкинга вам нужно ещё %1$s токен(ов) и вы будете получать 13%% годовых!</string>
-    <string name="no_active_stacking_cosanta_buy_more_descrition">Внесите %1$s токен(ов) и начните зарабатывать через 24 часа.</string>
+    <string name="no_active_stacking_pirate_description">Стейкинг PIRATE: Для активации стейкинга необходимо еще 100 токенов и будете получать _annual_interest_ годовых!</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA Стейкинг: Внесите 1 токен и будете получать _annual_interest_ годовых!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">Для активации стейкинга вам нужно ещё %1$s токен(ов) и вы будете получать _annual_interest_ годовых!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Внесите %1$s токен(ов) и начните зарабатывать через 24 часа.</string>
     <string name="tokens">токены</string>
     <string name="buy_pirate">Купить PirateCash</string>
     <string name="staking_details">Детали стэкинга</string>

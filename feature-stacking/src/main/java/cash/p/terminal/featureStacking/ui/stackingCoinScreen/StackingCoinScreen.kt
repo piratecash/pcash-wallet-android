@@ -184,7 +184,9 @@ private fun NoCoins(uiState: StackingCoinUIState, isPremium: Boolean, onBuyClick
         Text(
             style = ComposeAppTheme.typography.subhead2,
             color = ComposeAppTheme.colors.bran.copy(alpha = 0.6f),
-            text = stringResource(id = stringResId).toSpanned()
+            text = stringResource(id = stringResId)
+                .replace("_annual_interest_", uiState.annualInterest)
+                .toSpanned()
                 .toAnnotatedString(),
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 4.dp)
@@ -374,11 +376,11 @@ private fun LazyListScope.warningCard(uiState: StackingCoinUIState) {
         val stringDescription = if (notEnoughCoins) {
             stringResource(
                 if (uiState.stackingType == StackingType.PCASH) {
-                    R.string.no_active_stacking_pirate_buy_more_descritpion
+                    R.string.no_active_stacking_pirate_buy_more_description
                 } else {
-                    R.string.no_active_stacking_cosanta_buy_more_descrition
+                    R.string.no_active_stacking_cosanta_buy_more_description
                 }, (uiState.minStackingAmount - uiState.balance).toPlainString()
-            )
+            ).replace("_annual_interest_", uiState.annualInterest)
         } else {
             val hours = if (uiState.stackingType == StackingType.PCASH) 8 else 24
             stringResource(R.string.waiting_for_stacking, hours)
