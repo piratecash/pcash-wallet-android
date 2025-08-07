@@ -1,3 +1,16 @@
+## Version 0.45.2 Highlights
+
+## 🪙 Fixes for TRON
+
+- 🚀 Fixed an issue with sending TRC-20 tokens and TRX coin.
+
+## 🌙 Interface improvements
+
+- 🌗 Fixed a dark mode display issue when checking addresses
+  All interface elements are now readable in both light and dark themes.
+
+
+
 ## Version 0.45.1 Highlights
 
 ## 🔐 Privacy Improvements
