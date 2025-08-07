@@ -19,13 +19,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,8 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
-import  cash.p.terminal.R
+import cash.p.terminal.R
 import cash.p.terminal.core.adapters.stellar.StellarAssetAdapter
 import cash.p.terminal.modules.send.address.ui.CheckAddressInput
 import cash.p.terminal.modules.settings.addresschecker.CheckState
@@ -65,6 +64,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.imageUrl
+import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -255,7 +255,7 @@ fun SecurityCheckCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         backgroundColor = ComposeAppTheme.colors.tyler,
-        border = BorderStroke(0.5.dp, ComposeAppTheme.colors.blade),
+        border = BorderStroke(0.5.dp, ComposeAppTheme.colors.andy),
         shape = RoundedCornerShape(12.dp),
         elevation = 0.dp
     ) {
@@ -283,7 +283,7 @@ fun SecurityCheckCard(
                     Column {
                         Text(
                             text = title,
-                            color = Color.Black,
+                            color = ComposeAppTheme.colors.leah,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -304,7 +304,10 @@ fun SecurityCheckCard(
                 )
             }
 
-            HsDivider(modifier = Modifier.fillMaxWidth())
+            HsDivider(
+                color = ComposeAppTheme.colors.andy,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             results()
         }
@@ -326,7 +329,7 @@ fun NetworkItem(
     ) {
         Text(
             text = title,
-            color = Color.Black,
+            color = ComposeAppTheme.colors.bran,
             fontSize = 14.sp
         )
 

@@ -13,9 +13,10 @@ import androidx.compose.ui.unit.dp
 fun MultitextM1(
     title: @Composable ColumnScope.() -> Unit,
     subtitle: @Composable ColumnScope.() -> Unit,
+    modifier: Modifier = Modifier,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start
 ) {
-    Column(horizontalAlignment = horizontalAlignment) {
+    Column(horizontalAlignment = horizontalAlignment, modifier = modifier) {
         title.invoke(this)
         Spacer(modifier = Modifier.height(1.dp))
         subtitle.invoke(this)
