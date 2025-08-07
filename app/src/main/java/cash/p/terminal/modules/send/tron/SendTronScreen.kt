@@ -116,6 +116,8 @@ fun SendTronScreen(
                 title = stringResource(R.string.Send_DialogProceed),
                 onClick = {
                     if (viewModel.hasConnection()) {
+                        viewModel.onNavigateToConfirmation()
+
                         navController.openConfirm(
                             type = SendConfirmationFragment.Type.Tron,
                             riskyAddress = riskyAddress,
