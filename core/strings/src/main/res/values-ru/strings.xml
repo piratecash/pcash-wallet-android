@@ -1905,7 +1905,6 @@
     <string name="app_settings_saved_access_codes_footer">Вместо кода доступа для взаимодействия с вашим аппаратным кошельком будет запрашиваться биометрическая аутентификация.</string>
     <string name="signed">Подписано</string>
     <string name="error_no_active_account">Активный аккаунт не найден</string>
-    <string name="monero_not_supported_for_wallet">Monero не поддерживается для этого кошелька. Пожалуйста, создайте новый с сид-фразой из 25 слов.</string>
     <string name="error_hardware_wallet_not_supported">Пока не поддерживается аппаратной картой</string>
     <string name="need_to_sign_times">Для создания транзакции вам потребуется подписать её %d раз(а)</string>
     <string name="scan_card">Сканируйте карту</string>

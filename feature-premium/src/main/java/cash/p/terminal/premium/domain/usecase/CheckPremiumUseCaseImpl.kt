@@ -9,6 +9,13 @@ import cash.p.terminal.premium.domain.repository.TokenBalanceRepository
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -22,6 +29,9 @@ internal class CheckPremiumUseCaseImpl(
 
     private val mutex = Mutex()
 
+    private val _premiumCache = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
     private val coinConfigs = mapOf(
         PremiumConfig.COIN_TYPE_PIRATE to CoinConfig(
             contractAddress = PremiumConfig.PIRATE_CONTRACT_ADDRESS,
@@ -33,15 +43,42 @@ internal class CheckPremiumUseCaseImpl(
         )
     )
 
-    override suspend operator fun invoke(): Boolean = mutex.withLock {
+    override fun startAccountMonitorUpdate() {
+        accountManager.accountsFlow
+            .onEach {
+                _premiumCache.value = emptyMap()
+                update()
+            }
+            .catch { error ->
+                println("Error in auto update: $error")
+            }
+            .launchIn(scope)
+    }
+
+    override fun isPremium(): Boolean {
+        val currentLevel = accountManager.activeAccount?.level ?: return false
+        return _premiumCache.value[currentLevel] ?: false
+    }
+
+    override suspend fun update(): Boolean = mutex.withLock {
         val currentLevel = accountManager.activeAccount?.level ?: return false
         val firstAccountToCheck = premiumUserRepository.getByLevel(currentLevel)
 
         val cachedResult = checkCachedPremiumStatus(firstAccountToCheck)
-        if (cachedResult != null) return cachedResult
+        if (cachedResult != null) {
+            updateCache(currentLevel, cachedResult)
+            return cachedResult
+        }
 
         val premiumStatus = checkPremiumStatusByBalance(firstAccountToCheck, currentLevel)
-        return premiumStatus ?: firstAccountToCheck?.isPremium ?: false
+        val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: false
+
+        updateCache(currentLevel, result)
+        return result
+    }
+
+    private fun updateCache(level: Int, isPremium: Boolean) {
+        _premiumCache.value = _premiumCache.value + (level to isPremium)
     }
 
     private suspend fun checkCachedPremiumStatus(firstAccountToCheck: PremiumUser?): Boolean? {

@@ -8,6 +8,7 @@ import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCaseImpl
 import cash.p.terminal.premium.domain.usecase.SeedToEvmAddressUseCase
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -24,6 +25,6 @@ val featurePremiumModule = module {
     factoryOf(::PremiumUserRepository)
 
     // Use Cases
-    factoryOf(::CheckPremiumUseCaseImpl) bind CheckPremiumUseCase::class
+    singleOf(::CheckPremiumUseCaseImpl) bind CheckPremiumUseCase::class
     factoryOf(::SeedToEvmAddressUseCase)
 }

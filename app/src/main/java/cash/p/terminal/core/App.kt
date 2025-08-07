@@ -152,7 +152,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val walletActivator: WalletActivator by inject(WalletActivator::class.java)
         val tokenAutoEnableManager: TokenAutoEnableManager by inject(TokenAutoEnableManager::class.java)
         val accountManager: IAccountManager by inject(IAccountManager::class.java)
-        lateinit var userManager: UserManager
+        val userManager: UserManager  by inject(UserManager::class.java)
         lateinit var accountFactory: IAccountFactory
         lateinit var backupManager: IBackupManager
         lateinit var proFeatureAuthorizationManager: ProFeaturesAuthorizationManager
@@ -247,8 +247,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         backgroundManager = get()
 
         AppLog.logsDao = appDatabase.logsDao()
-
-        userManager = UserManager(accountManager)
 
         val proFeaturesStorage = ProFeaturesStorage(appDatabase)
         proFeatureAuthorizationManager =

@@ -3,7 +3,6 @@ package cash.p.terminal.modules.main
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.fragment.NavHostFragment
 import cash.p.terminal.R
@@ -17,15 +16,15 @@ import com.walletconnect.web3.wallet.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
 import io.horizontalsystems.core.slideFromBottom
 import io.horizontalsystems.core.slideFromBottomForResult
+import org.koin.android.ext.android.inject
 
 class MainActivity : BaseActivity() {
 
-    val viewModel by viewModels<MainActivityViewModel> {
-        MainActivityViewModel.Factory()
-    }
+    val viewModel: MainActivityViewModel by inject()
 
     override fun onResume() {
         super.onResume()
+        viewModel.updatePremium()
         viewModel.startLockScreenMonitoring()
         validate()
     }
@@ -112,6 +111,8 @@ class MainActivity : BaseActivity() {
                 viewModel.onTcDappRequestHandled()
             }
         }
+
+        viewModel.startMonitoringAccountsForPremium()
     }
 
     private fun closeAfterDelay() {

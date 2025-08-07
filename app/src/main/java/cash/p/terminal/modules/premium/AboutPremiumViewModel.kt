@@ -51,7 +51,7 @@ class AboutPremiumViewModel(
                     getLocalizedAssetUseCase(GetLocalizedAssetUseCase.ABOUT_PREMIUM_PREFIX)
                 }
                 val premiumDeferred = async {
-                    checkPremiumUseCase()
+                    checkPremiumUseCase.update()
                 }
                 val roiPirateValueDeferred = async {
                     calculateRoi(

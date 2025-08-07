@@ -4,6 +4,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
@@ -12,6 +13,7 @@ import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceService
 import cash.p.terminal.wallet.balance.BalanceXRateRepository
 import cash.p.terminal.wallet.models.CoinPrice
+import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
+import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
 class DefaultBalanceService private constructor(
@@ -32,6 +36,13 @@ class DefaultBalanceService private constructor(
     private val balanceSorter: BalanceSorter,
     private val accountManager: IAccountManager
 ) : BalanceService {
+
+    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase by inject(
+        RemoveMoneroWalletFilesUseCase::class.java
+    )
+    private val moneroFileDao: MoneroFileDao by inject(
+        MoneroFileDao::class.java
+    )
 
     override val networkAvailable by connectivityManager::isConnected
     override val baseCurrency by xRateRepository::baseCurrency
@@ -192,9 +203,19 @@ class DefaultBalanceService private constructor(
 
     override val disabledWalletSubject = PublishSubject.create<Wallet>()
 
-    override fun disable(wallet: Wallet) {
+    override suspend fun disable(wallet: Wallet) {
         activeWalletRepository.disable(wallet)
+        deleteMoneroRecords(wallet)
         disabledWalletSubject.onNext(wallet)
+    }
+
+    /**
+     * Deletes Monero wallet files if the wallet is a Monero wallet and removes the associated record from the database.
+     */
+    private suspend fun deleteMoneroRecords(wallet: Wallet) = withContext(Dispatchers.IO) {
+        if (removeMoneroWalletFilesUseCase(wallet.account)) {
+            moneroFileDao.deleteAssociatedRecord(wallet.account.id)
+        }
     }
 
     override fun enable(wallet: Wallet) {

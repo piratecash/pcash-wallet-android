@@ -3,4 +3,5 @@
     <item name="coinFragment" type="id"/>
     <item name="addAccessCodeDialog" type="id"/>
     <item name="resetBackupDialog" type="id"/>
+    <item name="aboutPremiumFragment" type="id"/>
 </resources>

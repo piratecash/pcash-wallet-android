@@ -39,12 +39,16 @@ android {
 dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:wallet"))
+    implementation(project(":core:wallet"))
+    implementation(project(":core:ui-compose"))
+    implementation(project(":core:navigation"))
     implementation(libs.bitcoinj)
     implementation(libs.bitcoin.kit)
 
     implementation(libs.android.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation(libs.androidx.navigation.runtime.ktx)
 
     // Network dependencies
     implementation(libs.ktor.client.core)
