@@ -6,6 +6,10 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.entities.ZCashCoinType
 import io.horizontalsystems.core.entities.BlockchainType
 
+fun Token.isMonero() =
+    (tokenQuery.blockchainType == BlockchainType.Monero &&
+            tokenQuery.tokenType == TokenType.Native)
+
 val Token.badge: String?
     get() = when (val tokenType = type) {
         is TokenType.Derived -> {

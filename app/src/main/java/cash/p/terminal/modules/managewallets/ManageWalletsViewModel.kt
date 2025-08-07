@@ -11,6 +11,8 @@ import cash.p.terminal.core.R
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
+import cash.p.terminal.premium.domain.PremiumResult
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.tangem.domain.TangemConfig
 import cash.p.terminal.tangem.domain.usecase.BuildHardwarePublicKeyUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
@@ -22,15 +24,13 @@ import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
-import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.imageUrl
+import cash.p.terminal.wallet.isMonero
 import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
 import cash.p.terminal.ui_compose.components.SnackbarDuration
-import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -39,7 +39,9 @@ class ManageWalletsViewModel(
     private val service: ManageWalletsService,
     private val clearables: List<Clearable>
 ) : ViewModel() {
+
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
+    private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
     private val tangemBlockchainTypeExistUseCase: TangemBlockchainTypeExistUseCase by inject<TangemBlockchainTypeExistUseCase>(
         TangemBlockchainTypeExistUseCase::class.java
     )
@@ -166,17 +168,16 @@ class ManageWalletsViewModel(
         label = item.token.badge
     )
 
-    fun enable(token: Token) {
+    fun enable(token: Token): PremiumResult {
         if (!isHardwareCard() || tangemBlockchainTypeExistUseCase(token)) {
-            if (isMonero(token) && !isAccountSupportsMonero()) {
-                showError(App.instance.getString(R.string.monero_not_supported_for_wallet))
-                return
+            if (needOpenPremiumScreen(token)) {
+                return PremiumResult.NeedPremium
             }
             service.enable(token)
         } else {
             if (TangemConfig.isExcludedForHardwareCard(token)) {
                 showError(App.instance.getString(R.string.error_hardware_wallet_not_supported))
-                return
+                return PremiumResult.Success
             }
             awaitingEnabledTokens.add(token)
             updateNeedToShowScanToAddButton()
@@ -184,14 +185,12 @@ class ManageWalletsViewModel(
             // Update switch indicator based on `awaitingEnabledTokens` values
             sync(service.itemsFlow.value)
         }
+        return PremiumResult.Success
     }
 
-    private fun isMonero(token: Token) =
-        (token.tokenQuery.blockchainType == BlockchainType.Monero &&
-                token.tokenQuery.tokenType == TokenType.Native)
-
-    private fun isAccountSupportsMonero() =
-        (accountManager.activeAccount?.type as? AccountType.Mnemonic)?.kind == MnemonicKind.Mnemonic12
+    private fun needOpenPremiumScreen(token: Token) = token.isMonero() &&
+            accountManager.activeAccount?.type?.isPremium(token) == true &&
+            !checkPremiumUseCase.isPremium()
 
     fun disable(token: Token) {
         service.disable(token)

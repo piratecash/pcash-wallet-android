@@ -53,7 +53,7 @@ interface IMarketStorage {
 
 interface IBackupManager {
     val allBackedUp: Boolean
-    val allBackedUpFlowable: Flowable<Boolean>
+    val allBackedUpFlow: Flow<Boolean>
 }
 
 interface IAccountFactory {

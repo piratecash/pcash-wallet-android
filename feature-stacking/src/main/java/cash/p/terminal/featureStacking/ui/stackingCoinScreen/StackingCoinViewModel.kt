@@ -89,7 +89,7 @@ internal abstract class StackingCoinViewModel(
             }
         }
         viewModelScope.launch {
-            isPremium = checkPremiumUseCase()
+            isPremium = checkPremiumUseCase.update()
         }
     }
 

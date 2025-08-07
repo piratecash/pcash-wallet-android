@@ -151,8 +151,10 @@ private fun RecoveryPhraseScreen(
                 SeedPhraseList(viewModel.wordsNumbered, hidden) {
                     hidden = !hidden
                 }
-                VSpacer(24.dp)
-                PassphraseCell(viewModel.passphrase, hidden)
+                viewModel.passphrase?.let { passphrase ->
+                    VSpacer(24.dp)
+                    PassphraseCell(passphrase, hidden)
+                }
             }
             ActionButton(R.string.Alert_Copy) {
                 showBottomSheet = true

@@ -1,5 +1,7 @@
 package cash.p.terminal.premium.domain.usecase
 
 interface CheckPremiumUseCase {
-    suspend operator fun invoke(): Boolean
-} 
+    fun isPremium(): Boolean
+    fun startAccountMonitorUpdate()
+    suspend fun update(): Boolean
+}

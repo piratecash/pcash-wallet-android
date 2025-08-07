@@ -1466,7 +1466,6 @@
     <string name="ManageCoins_title">Coin Manager</string>
     <string name="ManageCoins_Search">Name, code or contract address</string>
     <string name="error_no_active_account">No active account found</string>
-    <string name="monero_not_supported_for_wallet">Monero is not supported for this wallet. Please create a new one with a 25-word seed.</string>
     <string name="error_hardware_wallet_not_supported">Not supported by hardware card yet</string>
     <string name="need_to_sign_times">To create transaction you will need to sign it %d times</string>
     <string name="initial_message_create_wallet_body">To create the wallet tap the card as shown above and do not remove until the end of the operation</string>
