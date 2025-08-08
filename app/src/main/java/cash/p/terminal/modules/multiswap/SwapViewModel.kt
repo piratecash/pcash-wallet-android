@@ -7,7 +7,11 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.premium.domain.PremiumResult
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.isMonero
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.CurrencyManager
@@ -31,6 +35,9 @@ class SwapViewModel(
     tokenIn: Token?,
     tokenOut: Token?
 ) : ViewModelUiState<SwapUiState>() {
+
+    private val accountManager: IAccountManager by inject(IAccountManager::class.java)
+    private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
 
     private val quoteLifetime = 20
 
@@ -225,10 +232,22 @@ class SwapViewModel(
         emitState()
     }
 
-    fun createMissingTokens(tokens: Set<Token>) = viewModelScope.launch {
-        walletUseCase.createWallets(tokens)
-        reQuote()
+    fun createMissingTokens(tokens: Set<Token>): PremiumResult {
+        if(tokens.any { needOpenPremiumScreen(it) }) {
+            return PremiumResult.NeedPremium
+        }
+
+        viewModelScope.launch {
+            walletUseCase.createWallets(tokens)
+            reQuote()
+        }
+
+        return PremiumResult.Success
     }
+
+    private fun needOpenPremiumScreen(token: Token) = token.isMonero() &&
+            accountManager.activeAccount?.type?.isPremium(token) == true &&
+            !checkPremiumUseCase.isPremium()
 
     fun onUpdateSettings(settings: Map<String, Any?>) = quoteService.setSwapSettings(settings)
     fun onEnterFiatAmount(v: BigDecimal?) = fiatServiceIn.setFiatAmount(v)

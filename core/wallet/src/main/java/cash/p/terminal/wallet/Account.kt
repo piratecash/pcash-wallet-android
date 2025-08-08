@@ -2,6 +2,7 @@ package cash.p.terminal.wallet
 
 import android.os.Parcelable
 import cash.p.terminal.strings.helpers.shorten
+import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.signer.Signer
@@ -91,6 +92,18 @@ data class Account(
 
 @Parcelize
 sealed class AccountType : Parcelable {
+
+    fun isPremium(token: Token): Boolean {
+        if (!token.isMonero() || this !is Mnemonic) {
+            return false
+        }
+
+        return this.kind == MnemonicKind.Mnemonic15 ||
+                this.kind == MnemonicKind.Mnemonic18 ||
+                this.kind == MnemonicKind.Mnemonic21 ||
+                this.kind == MnemonicKind.Mnemonic24
+    }
+
     @Parcelize
     data class EvmAddress(val address: String) : AccountType()
 
@@ -132,6 +145,9 @@ sealed class AccountType : Parcelable {
     data class Mnemonic(val words: List<String>, val passphrase: String) : AccountType() {
         @IgnoredOnParcel
         val seed by lazy { Mnemonic().toSeed(words, passphrase) }
+
+        @IgnoredOnParcel
+        val kind by lazy { MnemonicKind.getKind(words) }
 
         override fun equals(other: Any?): Boolean {
             return other is Mnemonic

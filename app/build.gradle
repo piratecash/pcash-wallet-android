@@ -218,6 +218,7 @@ dependencies {
     implementation libs.androidx.fragment.ktx
     implementation "androidx.preference:preference-ktx:1.2.1"
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+    implementation libs.bitcoinj
 
     //Splash screen
     implementation "androidx.core:core-splashscreen:1.0.1"
@@ -342,6 +343,7 @@ dependencies {
     implementation project(':components:chartview')
     implementation project(':feature-stacking')
     implementation project(':feature-tangem')
+    implementation project(':feature-premium')
 
     // Integration with activities
     implementation libs.androidx.activity.compose

@@ -181,6 +181,7 @@
     <string name="SelectContacts_All">All</string>
 
     <string name="Restore_BirthdayHeight">Birthday Height</string>
+    <string name="restore_monero">Monero</string>
     <string name="Restore_ZCash">ZCash</string>
     <string name="Restore_ZCash_BirthdayHeight">Zcash Birthday Height</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Enter wallet\'s birthday height for faster synchronization.</string>
@@ -1465,7 +1466,6 @@
     <string name="ManageCoins_title">Coin Manager</string>
     <string name="ManageCoins_Search">Name, code or contract address</string>
     <string name="error_no_active_account">No active account found</string>
-    <string name="monero_not_supported_for_wallet">Monero is not supported for this wallet. Please create a new one with a 25-word seed.</string>
     <string name="error_hardware_wallet_not_supported">Not supported by hardware card yet</string>
     <string name="need_to_sign_times">To create transaction you will need to sign it %d times</string>
     <string name="initial_message_create_wallet_body">To create the wallet tap the card as shown above and do not remove until the end of the operation</string>
@@ -1606,6 +1606,7 @@
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
 
     <!-- Recovery Phrase -->
+    <string name="RecoveryPhrase_monero_Title">Recovery Phrase Monero</string>
     <string name="RecoveryPhrase_Title">Recovery Phrase</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
@@ -2327,10 +2328,11 @@
     <string name="pirate_cash" translatable="false">PirateCash</string>
     <string name="cosanta" translatable="false">Cosanta</string>
     <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn 13% annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and start earning in 24 hours.</string>
-    <string name="no_active_stacking_pirate_buy_more_descritpion">To activate staking you need %1$s token(s) more and you will receive 13%% per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_descrition">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="buy_to_activate_premium">⭐ Buy %s tokens to activate additional features!</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Buy PirateCash</string>
     <string name="staking_details">Staking Details</string>
@@ -2356,4 +2358,12 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!--Premium Screens-->
+    <string name="premium_title">Premium</string>
+    <string name="about_premium">About Premium</string>
+    <string name="Premium_TryForFree">Try for FREE</string>
+    <string name="Premium_Upgrade">Upgrade</string>
+    <string name="Premium_UpgradeText">Upgrade your experience with Premium features!</string>
+    <string name="premium_available">⭐️ Premium is available</string>
 </resources>

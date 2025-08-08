@@ -259,11 +259,14 @@ class BalanceViewModel(
                 )
             )
             marketKit.token(tokenQuery)?.let { token ->
-                Log.d("BalanceViewModel", "Replacing old ZCash with new one")
-                service.disable(oldZCashViewItem.wallet)
-                Log.d("BalanceViewModel", "Activating new ZCash")
-                val hardwarePublicKey = runBlocking { getHardwarePublicKeyForWalletUseCase(account, token) }
-                service.enable(Wallet(token, account, hardwarePublicKey))
+                viewModelScope.launch {
+                    Log.d("BalanceViewModel", "Replacing old ZCash with new one")
+                    service.disable(oldZCashViewItem.wallet)
+                    Log.d("BalanceViewModel", "Activating new ZCash")
+                    val hardwarePublicKey =
+                        runBlocking { getHardwarePublicKeyForWalletUseCase(account, token) }
+                    service.enable(Wallet(token, account, hardwarePublicKey))
+                }
             }
         }
     }
@@ -327,7 +330,9 @@ class BalanceViewModel(
     }
 
     fun disable(viewItem: BalanceViewItem2) {
-        service.disable(viewItem.wallet)
+        viewModelScope.launch {
+            service.disable(viewItem.wallet)
+        }
     }
 
     fun getSyncErrorDetails(viewItem: BalanceViewItem2): SyncError = when {

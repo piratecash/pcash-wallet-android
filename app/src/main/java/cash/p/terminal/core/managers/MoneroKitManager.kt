@@ -5,11 +5,15 @@ import androidx.room.concurrent.AtomicInt
 import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.adapters.MoneroAdapter
+import cash.p.terminal.core.storage.MoneroFileDao
+import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.utils.MoneroConfig
 import cash.p.terminal.entities.LastBlockInfo
+import cash.p.terminal.entities.MoneroFileRecord
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.entities.SecretString
 import com.m2049r.xmrwallet.data.TxData
 import com.m2049r.xmrwallet.data.UserNotes
 import com.m2049r.xmrwallet.model.PendingTransaction
@@ -21,6 +25,7 @@ import com.m2049r.xmrwallet.service.MoneroWalletService
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.SafeSuspendedCall
+import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -33,12 +38,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 
 class MoneroKitManager(
     private val moneroWalletService: MoneroWalletService,
-    private val backgroundManager: BackgroundManager
+    private val backgroundManager: BackgroundManager,
+    private val restoreSettingsManager: RestoreSettingsManager
 ) {
     private val connectivityManager = App.connectivityManager
     private val coroutineScope =
@@ -63,10 +70,10 @@ class MoneroKitManager(
 
         if (this.moneroKitWrapper == null) {
             val accountType = account.type
-            this.moneroKitWrapper = when (accountType) {
-                is AccountType.MnemonicMonero -> {
-                    createKitInstance(accountType)
-                }
+            this.moneroKitWrapper = when {
+                accountType is AccountType.MnemonicMonero ||
+                        accountType is AccountType.Mnemonic
+                    -> createKitInstance(account)
 
                 else -> throw UnsupportedAccountException()
             }
@@ -81,11 +88,12 @@ class MoneroKitManager(
     }
 
     private fun createKitInstance(
-        accountType: AccountType.MnemonicMonero,
+        account: Account,
     ): MoneroKitWrapper {
         return MoneroKitWrapper(
             moneroWalletService = moneroWalletService,
-            accountType = accountType
+            restoreSettingsManager = restoreSettingsManager,
+            account = account
         )
     }
 
@@ -135,12 +143,16 @@ class MoneroKitManager(
 
 class MoneroKitWrapper(
     private val moneroWalletService: MoneroWalletService,
-    private val accountType: AccountType.MnemonicMonero
+    private val restoreSettingsManager: RestoreSettingsManager,
+    private val account: Account
 ) : MoneroWalletService.Observer {
 
     companion object {
         private const val TAG = "MoneroKitWrapper"
     }
+
+    private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
+    private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
 
     private var isStarted = false
 
@@ -156,16 +168,68 @@ class MoneroKitWrapper(
     )
     val transactionsStateUpdatedFlow = _transactionsStateUpdatedFlow.asSharedFlow()
 
+    private suspend fun restoreFromBip39(
+        account: Account,
+        height: Long
+    ) {
+        val accountType = account.type as? AccountType.Mnemonic
+            ?: throw UnsupportedAccountException()
+        val restoredAccount = moneroWalletUseCase.restoreFromBip39(
+            accountType.words,
+            accountType.passphrase,
+            height
+        ) ?: throw IllegalStateException("Failed to restore account from 12 words")
+        moneroFileDao.insert(
+            MoneroFileRecord(
+                fileName = SecretString(restoredAccount.walletInnerName),
+                password = SecretString(restoredAccount.password),
+                accountId = account.id
+            )
+        )
+    }
+
     suspend fun start() = withContext(Dispatchers.IO) {
         if (!isStarted) {
             try {
+                val walletFileName: String
+                val walletPassword: String
+                val accountType = account.type
+                when (accountType) {
+                    is AccountType.MnemonicMonero -> {
+                        walletFileName = accountType.walletInnerName
+                        walletPassword = accountType.password
+                    }
+
+                    is AccountType.Mnemonic -> {
+                        // Enable first time
+                        if (moneroFileDao.getAssociatedRecord(account.id) == null) {
+                            val restoreSettings =
+                                restoreSettingsManager.settings(account, BlockchainType.Monero)
+                            restoreFromBip39(
+                                account = account,
+                                height = restoreSettings.birthdayHeight ?: -1
+                            )
+                        }
+
+                        requireNotNull(
+                            moneroFileDao.getAssociatedRecord(accountId = account.id),
+                            { "Account does not have a valid Monero file association" }
+                        ).run {
+                            walletFileName = this.fileName.value
+                            walletPassword = this.password.value
+                        }
+                    }
+
+                    else -> throw UnsupportedAccountException()
+                }
+
                 MoneroConfig.autoSelectNode()?.let {
                     WalletManager.getInstance()
                         .setDaemon(it)
                 } ?: throw IllegalStateException("No nodes available")
 
                 moneroWalletService.setObserver(this@MoneroKitWrapper)
-                moneroWalletService.start(accountType.walletInnerName, accountType.password)
+                moneroWalletService.start(walletFileName, walletPassword)
                 isStarted = true
             } catch (e: Exception) {
                 _syncState.value = AdapterState.NotSynced(e)
@@ -233,7 +297,8 @@ class MoneroKitWrapper(
             "connectionStatus" to moneroWalletService.connectionStatus,
             "walletStatus" to moneroWalletService.wallet?.status?.toString().orEmpty(),
             "isStarted" to isStarted,
-            "Birthday Height" to accountType.height,
+            "Birthday Height" to (moneroWalletService.wallet?.restoreHeight?.toString()
+                ?: "Not set"),
         )
     }
 

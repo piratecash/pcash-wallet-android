@@ -39,6 +39,8 @@ import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.premium.domain.paidAction
+import cash.p.terminal.premium.domain.paidAction
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.ListErrorView
 import cash.p.terminal.ui.helpers.LinkHelper
@@ -102,8 +104,8 @@ fun CoinOverviewScreen(
     val manageWalletsViewModel = viewModel<ManageWalletsViewModel>(factory = vmFactory1)
     val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel>(factory = vmFactory1)
 
-    if (restoreSettingsViewModel.openZcashConfigure != null) {
-        restoreSettingsViewModel.zcashConfigureOpened()
+    if (restoreSettingsViewModel.openTokenConfigure != null) {
+        restoreSettingsViewModel.tokenConfigureOpened()
 
         navController.slideFromBottomForResult<ZcashConfigure.Result>(R.id.zcashConfigure) {
             if (it.config != null) {
@@ -198,7 +200,9 @@ fun CoinOverviewScreen(
                                     TokenVariants(
                                         tokenVariants = tokenVariants,
                                         onClickAddToWallet = {
-                                            manageWalletsViewModel.enable(it)
+                                            navController.paidAction {
+                                                manageWalletsViewModel.enable(it)
+                                            }
                                         },
                                         onClickRemoveWallet = {
                                             manageWalletsViewModel.disable(it)

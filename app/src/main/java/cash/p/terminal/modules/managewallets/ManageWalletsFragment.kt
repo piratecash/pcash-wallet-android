@@ -45,12 +45,12 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureFragment
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.premium.domain.paidAction
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui.compose.components.ListEmptyView
@@ -67,7 +67,10 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.ui_compose.components.HudHelper
+import io.horizontalsystems.core.slideFromBottom
+import io.horizontalsystems.core.slideFromBottomForResult
 
 class ManageWalletsFragment : BaseComposeFragment() {
 
@@ -137,14 +140,29 @@ private fun ManageWalletsScreen(
     val coinItems by viewModel.viewItemsLiveData.observeAsState()
     val context = LocalView.current
 
-    if (restoreSettingsViewModel.openZcashConfigure != null) {
-        restoreSettingsViewModel.zcashConfigureOpened()
+    val blockchainType = restoreSettingsViewModel.openTokenConfigure?.blockchainType
+    if (blockchainType != null) {
+        restoreSettingsViewModel.tokenConfigureOpened()
 
-        navController.slideFromBottomForResult<ZcashConfigure.Result>(R.id.zcashConfigure) {
-            if (it.config != null) {
-                restoreSettingsViewModel.onEnter(it.config)
-            } else {
-                restoreSettingsViewModel.onCancelEnterBirthdayHeight()
+        if (blockchainType == BlockchainType.Zcash) {
+            navController.slideFromBottomForResult<ZcashConfigure.Result>(
+                R.id.zcashConfigure
+            ) {
+                if (it.config != null) {
+                    restoreSettingsViewModel.onEnter(it.config)
+                } else {
+                    restoreSettingsViewModel.onCancelEnterBirthdayHeight()
+                }
+            }
+        } else if (blockchainType == BlockchainType.Monero) {
+            navController.slideFromBottomForResult<MoneroConfigureFragment.Result>(
+                resId = R.id.moneroConfigure
+            ) {
+                if (it.config != null) {
+                    restoreSettingsViewModel.onEnter(it.config)
+                } else {
+                    restoreSettingsViewModel.onCancelEnterBirthdayHeight()
+                }
             }
         }
     }
@@ -196,7 +214,9 @@ private fun ManageWalletsScreen(
                                     if (viewItem.enabled) {
                                         viewModel.disable(viewItem.item)
                                     } else {
-                                        viewModel.enable(viewItem.item)
+                                        navController.paidAction {
+                                            viewModel.enable(viewItem.item)
+                                        }
                                     }
                                 },
                                 onInfoClick = {

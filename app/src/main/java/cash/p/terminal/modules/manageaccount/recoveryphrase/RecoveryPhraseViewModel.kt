@@ -4,14 +4,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import cash.p.terminal.core.utils.MoneroWalletSeedConverter
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 
-class RecoveryPhraseViewModel(account: Account) : ViewModel() {
+class RecoveryPhraseViewModel(
+    account: Account,
+    recoveryPhraseType: RecoveryPhraseFragment.RecoveryPhraseType
+) : ViewModel() {
     val words: List<String>
     private val seed: ByteArray?
 
-    var passphrase by mutableStateOf("")
+    var passphrase by mutableStateOf<String?>("")
         private set
 
     var wordsNumbered by mutableStateOf<List<RecoveryPhraseModule.WordNumbered>>(listOf())
@@ -20,12 +24,21 @@ class RecoveryPhraseViewModel(account: Account) : ViewModel() {
     init {
         when (account.type) {
             is AccountType.Mnemonic -> {
-                words = (account.type as AccountType.Mnemonic).words
+                if (recoveryPhraseType == RecoveryPhraseFragment.RecoveryPhraseType.Monero) {
+                    words = MoneroWalletSeedConverter.getLegacySeedFromBip39(
+                        words = (account.type as AccountType.Mnemonic).words,
+                        passphrase = (account.type as AccountType.Mnemonic).passphrase
+                    )
+                    seed = null
+                    passphrase = null
+                } else {
+                    words = (account.type as AccountType.Mnemonic).words
+                    seed = (account.type as AccountType.Mnemonic).seed
+                    passphrase = (account.type as AccountType.Mnemonic).passphrase
+                }
                 wordsNumbered = words.mapIndexed { index, word ->
                     RecoveryPhraseModule.WordNumbered(word, index + 1)
                 }
-                passphrase = (account.type as AccountType.Mnemonic).passphrase
-                seed = (account.type as AccountType.Mnemonic).seed
             }
 
             is AccountType.MnemonicMonero -> {
@@ -34,6 +47,7 @@ class RecoveryPhraseViewModel(account: Account) : ViewModel() {
                     RecoveryPhraseModule.WordNumbered(word, index + 1)
                 }
                 seed = null
+                passphrase = null
             }
 
             else -> {
@@ -42,5 +56,4 @@ class RecoveryPhraseViewModel(account: Account) : ViewModel() {
             }
         }
     }
-
 }

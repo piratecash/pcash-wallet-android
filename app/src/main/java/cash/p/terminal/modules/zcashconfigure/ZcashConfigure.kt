@@ -59,7 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import io.horizontalsystems.core.setNavigationResultX
-import cash.p.terminal.modules.enablecoin.restoresettings.ZCashConfig
+import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.InfoText
@@ -103,7 +103,7 @@ class ZcashConfigure : BaseComposeFragment() {
         )
     }
 
-    private fun closeWithConfigt(config: ZCashConfig, navController: NavController) {
+    private fun closeWithConfigt(config: TokenConfig, navController: NavController) {
         navController.setNavigationResultX(Result(config))
         navController.popBackStack()
     }
@@ -114,14 +114,14 @@ class ZcashConfigure : BaseComposeFragment() {
     }
 
     @Parcelize
-    data class Result(val config: ZCashConfig?) : Parcelable
+    data class Result(val config: TokenConfig?) : Parcelable
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZcashConfigureScreen(
     onCloseClick: () -> Unit,
-    onCloseWithResult: (ZCashConfig) -> Unit,
+    onCloseWithResult: (TokenConfig) -> Unit,
     viewModel: ZcashConfigureViewModel = viewModel(),
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets
 ) {

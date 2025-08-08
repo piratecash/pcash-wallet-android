@@ -37,6 +37,7 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:navigation"))
     implementation(project(":components:chartview"))
+    implementation(project(":feature-premium"))
 
     implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.core)

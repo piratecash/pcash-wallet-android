@@ -1,5 +1,6 @@
 package cash.p.terminal.wallet
 
+import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import io.horizontalsystems.core.logger.AppLogger
 import io.reactivex.BackpressureStrategy
@@ -8,7 +9,10 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,13 +21,13 @@ import kotlinx.coroutines.withContext
 class AccountManager(
     private val storage: IAccountsStorage,
     private val accountCleaner: IAccountCleaner,
+    private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase,
     private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase
 ) : IAccountManager {
     private val logger: AppLogger = AppLogger("AccountManager")
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var accountsCache = mutableMapOf<String, Account>()
-    private val accountsSubject = PublishSubject.create<List<Account>>()
     private val accountsDeletedSubject = PublishSubject.create<Unit>()
     private val _activeAccountStateFlow =
         MutableStateFlow<ActiveAccountState>(ActiveAccountState.NotLoaded)
@@ -42,8 +46,13 @@ class AccountManager(
     override val accounts: List<Account>
         get() = accountsCache.map { it.value }
 
-    override val accountsFlowable: Flowable<List<Account>>
-        get() = accountsSubject.toFlowable(BackpressureStrategy.BUFFER)
+    private val _accountsSharedFlow = MutableSharedFlow<List<Account>>(
+        replay = 0,
+        extraBufferCapacity = 64
+    )
+
+    override val accountsFlow: Flow<List<Account>>
+        get() = _accountsSharedFlow.asSharedFlow()
 
     override val accountsDeletedFlowable: Flowable<Unit>
         get() = accountsDeletedSubject.toFlowable(BackpressureStrategy.BUFFER)
@@ -94,7 +103,7 @@ class AccountManager(
         storage.save(account)
 
         updateCache(account)
-        accountsSubject.onNext(accounts)
+        _accountsSharedFlow.tryEmit(accounts)
 
         if (updateActive) {
             setActiveAccountId(account.id)
@@ -112,7 +121,7 @@ class AccountManager(
             updateCache(account)
         }
 
-        accountsSubject.onNext(accounts)
+        _accountsSharedFlow.tryEmit(accounts)
 
         if (activeAccount == null) {
             accounts.minByOrNull { it.name.lowercase() }?.let { account ->
@@ -138,7 +147,7 @@ class AccountManager(
         storage.update(account)
 
         updateCache(account)
-        accountsSubject.onNext(accounts)
+        _accountsSharedFlow.tryEmit(accounts)
 
         activeAccount?.id?.let {
             if (account.id == it) {
@@ -150,14 +159,16 @@ class AccountManager(
 
     override suspend fun delete(id: String) = withContext(Dispatchers.IO) {
         val accountToDelete = storage.loadAccount(id)
-        if (accountToDelete?.type is AccountType.MnemonicMonero) {
-            removeMoneroWalletFilesUseCase(accountToDelete.type.walletInnerName)
+        accountToDelete?.let { account ->
+            getMoneroWalletFilesNameUseCase(account)
+        }?.also { walletFiles ->
+            removeMoneroWalletFilesUseCase(walletFiles)
         }
 
         accountsCache.remove(id)
         storage.delete(id)
 
-        accountsSubject.onNext(accounts)
+        _accountsSharedFlow.tryEmit(accounts)
         accountsDeletedSubject.onNext(Unit)
 
         if (id == activeAccount?.id) {
@@ -168,7 +179,7 @@ class AccountManager(
     override fun clear() {
         storage.clear()
         accountsCache.clear()
-        accountsSubject.onNext(listOf())
+        _accountsSharedFlow.tryEmit(listOf())
         accountsDeletedSubject.onNext(Unit)
         setActiveAccountId(null)
     }
@@ -190,7 +201,7 @@ class AccountManager(
             }
         }
 //        logger.info("setLevel: $level, activeAccount: ${activeAccount?.id}, activeAccountIdForLevel: $activeAccountIdForLevel, accounts: ${accounts.size}, accountsCache: ${accountsCache.size}")
-        accountsSubject.onNext(accounts)
+        _accountsSharedFlow.tryEmit(accounts)
     }
 
     override fun clearAccounts() {

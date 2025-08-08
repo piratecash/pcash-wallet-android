@@ -17,7 +17,7 @@ class RestoreSettingsViewModel(
     private val clearables: List<Clearable>
 ) : ViewModel() {
 
-    var openZcashConfigure by mutableStateOf<Token?>(null)
+    var openTokenConfigure by mutableStateOf<Token?>(null)
         private set
 
     private var currentRequest: RestoreSettingsService.Request? = null
@@ -35,17 +35,17 @@ class RestoreSettingsViewModel(
 
         when (request.requestType) {
             RestoreSettingsService.RequestType.BirthdayHeight -> {
-                openZcashConfigure = request.token
+                openTokenConfigure = request.token
             }
         }
     }
 
-    fun onEnter(zcashConfig: ZCashConfig) {
+    fun onEnter(tokenConfig: TokenConfig) {
         val request = currentRequest ?: return
 
         when (request.requestType) {
             RestoreSettingsService.RequestType.BirthdayHeight -> {
-                service.enter(zcashConfig, request.token)
+                service.enter(tokenConfig, request.token)
             }
         }
     }
@@ -60,10 +60,10 @@ class RestoreSettingsViewModel(
         clearables.forEach(Clearable::clear)
     }
 
-    fun zcashConfigureOpened() {
-        openZcashConfigure = null
+    fun tokenConfigureOpened() {
+        openTokenConfigure = null
     }
 }
 
 @Parcelize
-data class ZCashConfig(val birthdayHeight: String?, val restoreAsNew: Boolean) : Parcelable
+data class TokenConfig(val birthdayHeight: String?, val restoreAsNew: Boolean) : Parcelable

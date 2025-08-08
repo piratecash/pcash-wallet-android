@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.enablecoin.restoresettings
 
-import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.core.managers.RestoreSettingType
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.RestoreSettingsManager
@@ -8,6 +7,7 @@ import cash.p.terminal.core.managers.ZcashBirthdayProvider
 import cash.p.terminal.core.restoreSettingTypes
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
+import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.subjects.PublishSubject
@@ -15,7 +15,7 @@ import io.reactivex.subjects.PublishSubject
 class RestoreSettingsService(
     private val manager: RestoreSettingsManager,
     private val zcashBirthdayProvider: ZcashBirthdayProvider
-    ) : Clearable {
+) : Clearable {
 
     val approveSettingsObservable = PublishSubject.create<TokenWithSettings>()
     val rejectApproveSettingsObservable = PublishSubject.create<Token>()
@@ -35,7 +35,8 @@ class RestoreSettingsService(
             return
         }
 
-        val existingSettings = account?.let { manager.settings(it, blockchainType) } ?: RestoreSettings()
+        val existingSettings =
+            account?.let { manager.settings(it, blockchainType) } ?: RestoreSettings()
 
         if (blockchainType.restoreSettingTypes.contains(RestoreSettingType.BirthdayHeight)
             && existingSettings.birthdayHeight == null
@@ -51,13 +52,27 @@ class RestoreSettingsService(
         manager.save(settings, account, blockchainType)
     }
 
-    fun enter(zcashConfig: ZCashConfig, token: Token) {
+    fun enter(tokenConfig: TokenConfig, token: Token) {
         val settings = RestoreSettings()
-        settings.birthdayHeight =
-            if (zcashConfig.restoreAsNew)
-                zcashBirthdayProvider.getLatestCheckpointBlockHeight()
-            else
-                zcashConfig.birthdayHeight?.toLongOrNull()
+        settings.birthdayHeight = when (token.blockchainType) {
+            BlockchainType.Zcash, BlockchainType.Zcash -> {
+                if (tokenConfig.restoreAsNew)
+                    zcashBirthdayProvider.getLatestCheckpointBlockHeight()
+                else
+                    tokenConfig.birthdayHeight?.toLongOrNull()
+            }
+
+            BlockchainType.Monero -> {
+                if (tokenConfig.restoreAsNew) {
+                    -1
+                } else {
+                    tokenConfig.birthdayHeight?.toLongOrNull()
+                }
+            }
+
+            else -> null
+        }
+
 
         val tokenWithSettings = TokenWithSettings(token, settings)
         approveSettingsObservable.onNext(tokenWithSettings)

@@ -95,7 +95,7 @@ class MainSettingsViewModel(
 
     init {
         viewModelScope.launch {
-            backupManager.allBackedUpFlowable.asFlow().collect {
+            backupManager.allBackedUpFlow.collect {
                 emitState()
             }
         }
