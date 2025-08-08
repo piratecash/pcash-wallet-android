@@ -24,6 +24,7 @@ val appModule = module {
         networkModule,
         swapProvidersModule,
         useCaseModule,
+        appUpdateModule,
         featurePremiumModule
     )
 }
