@@ -102,8 +102,8 @@ fun CoinOverviewScreen(
     val manageWalletsViewModel = viewModel<ManageWalletsViewModel>(factory = vmFactory1)
     val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel>(factory = vmFactory1)
 
-    if (restoreSettingsViewModel.openZcashConfigure != null) {
-        restoreSettingsViewModel.zcashConfigureOpened()
+    if (restoreSettingsViewModel.openTokenConfigure != null) {
+        restoreSettingsViewModel.tokenConfigureOpened()
 
         navController.slideFromBottomForResult<ZcashConfigure.Result>(R.id.zcashConfigure) {
             if (it.config != null) {

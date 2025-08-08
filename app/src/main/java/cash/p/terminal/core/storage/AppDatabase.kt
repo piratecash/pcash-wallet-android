@@ -49,6 +49,7 @@ import cash.p.terminal.core.storage.migrations.Migration_71_72
 import cash.p.terminal.core.storage.migrations.Migration_72_73
 import cash.p.terminal.core.storage.migrations.Migration_73_74
 import cash.p.terminal.core.storage.migrations.Migration_74_75
+import cash.p.terminal.core.storage.migrations.Migration_75_76
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
@@ -57,6 +58,7 @@ import cash.p.terminal.entities.EnabledWalletCache
 import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.EvmSyncSourceRecord
+import cash.p.terminal.entities.MoneroFileRecord
 import cash.p.terminal.entities.RecentAddress
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.entities.SpamAddress
@@ -82,7 +84,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 75,
+    version = 76,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -111,6 +113,7 @@ import io.horizontalsystems.core.storage.LogsDao
         RecentAddress::class,
         SpamAddress::class,
         SpamScanState::class,
+        MoneroFileRecord::class
     ]
 )
 @TypeConverters(DatabaseConverters::class)
@@ -137,6 +140,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun changeNowTransactionsDao(): ChangeNowTransactionsDao
     abstract fun hardwarePublicKeyDao(): HardwarePublicKeyDao
     abstract fun recentAddressDao(): RecentAddressDao
+    abstract fun moneroFileDao(): MoneroFileDao
 
     companion object {
 
@@ -198,6 +202,7 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_72_73,
                     Migration_73_74,
                     Migration_74_75,
+                    Migration_75_76,
                 )
                 .build()
         }

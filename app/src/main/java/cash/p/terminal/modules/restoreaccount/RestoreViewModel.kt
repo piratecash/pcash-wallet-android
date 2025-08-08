@@ -2,7 +2,7 @@ package cash.p.terminal.modules.restoreaccount
 
 import androidx.lifecycle.ViewModel
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.modules.enablecoin.restoresettings.ZCashConfig
+import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 
 class RestoreViewModel: ViewModel() {
 
@@ -18,7 +18,7 @@ class RestoreViewModel: ViewModel() {
     var fileBackup: Boolean = false
         private set
 
-    var zCashConfig: ZCashConfig? = null
+    var tokenConfig: TokenConfig? = null
         private set
 
     var cancelZCashConfig: Boolean = false
@@ -30,8 +30,8 @@ class RestoreViewModel: ViewModel() {
         this.fileBackup = fileBackup
     }
 
-    fun setZCashConfig(config: ZCashConfig?) {
-        zCashConfig = config
+    fun setZCashConfig(config: TokenConfig?) {
+        tokenConfig = config
     }
 
 }

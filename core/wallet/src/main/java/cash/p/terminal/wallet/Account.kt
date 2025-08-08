@@ -2,6 +2,7 @@ package cash.p.terminal.wallet
 
 import android.os.Parcelable
 import cash.p.terminal.strings.helpers.shorten
+import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.signer.Signer
@@ -132,6 +133,9 @@ sealed class AccountType : Parcelable {
     data class Mnemonic(val words: List<String>, val passphrase: String) : AccountType() {
         @IgnoredOnParcel
         val seed by lazy { Mnemonic().toSeed(words, passphrase) }
+
+        @IgnoredOnParcel
+        val kind by lazy { MnemonicKind.getKind(words) }
 
         override fun equals(other: Any?): Boolean {
             return other is Mnemonic

@@ -26,6 +26,7 @@ object ManageAccountModule {
 
     enum class KeyAction {
         RecoveryPhrase,
+        RecoveryPhraseMonero,
         PublicKeys,
         PrivateKeys,
         ResetToFactorySettings,

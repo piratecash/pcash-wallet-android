@@ -1,6 +1,7 @@
 package cash.p.terminal.di
 
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicViewModel
@@ -20,4 +21,5 @@ val viewModelModule = module {
     viewModelOf(::ReleaseNotesViewModel)
     viewModelOf(::RestoreMnemonicViewModel)
     viewModelOf(::AppStatusViewModel)
+    viewModelOf(::MoneroConfigureViewModel)
 }
