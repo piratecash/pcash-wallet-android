@@ -1,7 +1,7 @@
 package cash.p.terminal.modules.coin.coinmarkets
 
 import cash.p.terminal.ui_compose.entities.DataState
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.entities.FullCoin

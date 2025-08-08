@@ -39,7 +39,7 @@ import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.ListErrorView
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui.helpers.TextHelper
@@ -58,7 +58,7 @@ import cash.p.terminal.wallet.imageUrl
 import cash.p.terminal.wallet.models.LinkType
 import io.horizontalsystems.chartview.chart.ChartViewModel
 import io.horizontalsystems.chartview.ui.Chart
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.slideFromBottomForResult
 
 @Composable

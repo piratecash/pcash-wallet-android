@@ -48,7 +48,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun BalanceCardSwipable(

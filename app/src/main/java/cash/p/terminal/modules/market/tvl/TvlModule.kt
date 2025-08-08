@@ -8,7 +8,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.modules.chart.ChartCurrencyValueFormatterShortened
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
 import cash.p.terminal.wallet.entities.FullCoin

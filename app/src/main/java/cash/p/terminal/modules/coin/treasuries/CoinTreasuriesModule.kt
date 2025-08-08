@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
 import cash.p.terminal.wallet.entities.Coin

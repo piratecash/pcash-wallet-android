@@ -9,7 +9,7 @@ import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.tvl.TvlModule.SelectorDialogState
 import cash.p.terminal.modules.market.tvl.TvlModule.TvlDiffType
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import io.horizontalsystems.core.models.HsTimePeriod
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

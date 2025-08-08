@@ -33,7 +33,7 @@ import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui.compose.components.ListErrorView
@@ -51,7 +51,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.Blockchain
 import kotlinx.parcelize.Parcelize
 

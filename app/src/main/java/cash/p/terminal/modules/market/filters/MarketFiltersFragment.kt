@@ -59,7 +59,7 @@ import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.launch
 import cash.p.terminal.modules.market.filters.PriceChange as FilterPriceChange
 

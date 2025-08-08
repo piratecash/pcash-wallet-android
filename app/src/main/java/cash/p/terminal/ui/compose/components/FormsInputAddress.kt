@@ -44,6 +44,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.contacts.ChooseContactFragment
 import cash.p.terminal.modules.qrscanner.QRScannerActivity
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.entities.FormsInputStateWarning
@@ -221,7 +222,7 @@ fun FormsInputAddress(
                         clipboardManager.getText()?.text?.let { textInClipboard ->
                             val textProcessed = textPreprocessor.process(textInClipboard)
                             (textPreprocessor as? AddressParserViewModel)?.amountUnique?.amount?.let {
-                                    onAmountChange(it)
+                                onAmountChange(it)
                             }
                             onValueChange.invoke(textProcessed)
                         }

@@ -51,6 +51,7 @@ import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSpacer
@@ -74,7 +75,7 @@ import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.slideFromBottom
 
 @Composable

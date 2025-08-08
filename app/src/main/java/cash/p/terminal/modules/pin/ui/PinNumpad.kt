@@ -27,11 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.pin.unlock.PinUnlockModule.InputState
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
-import cash.p.terminal.ui.compose.components.ButtonSecondaryYellow
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 
 @Composable

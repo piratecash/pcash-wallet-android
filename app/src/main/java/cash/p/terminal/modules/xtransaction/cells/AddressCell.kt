@@ -25,7 +25,7 @@ import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import io.horizontalsystems.chartview.cell.CellUniversal
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun AddressCell(

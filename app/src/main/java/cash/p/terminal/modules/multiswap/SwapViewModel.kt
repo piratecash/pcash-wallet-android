@@ -13,7 +13,7 @@ import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal

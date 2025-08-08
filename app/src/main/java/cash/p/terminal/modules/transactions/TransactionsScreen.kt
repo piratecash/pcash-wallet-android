@@ -69,7 +69,7 @@ import cash.p.terminal.ui_compose.entities.SectionItemPosition
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.slideFromBottom
 import kotlin.collections.set
 

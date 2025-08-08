@@ -49,11 +49,11 @@ import io.horizontalsystems.chartview.chart.GraphicLine
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui.compose.components.ButtonSecondaryWithIcon
+import cash.p.terminal.ui_compose.components.ButtonSecondaryWithIcon
 import cash.p.terminal.ui.compose.components.DescriptionCard
 import io.horizontalsystems.chartview.GraphicBarsWithNegative
 import cash.p.terminal.ui_compose.components.HFillSpacer
@@ -74,7 +74,7 @@ import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui.compose.hsRememberLazyListState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.helpers.DateHelper
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.models.EtfPoint
 import java.math.BigDecimal
 import kotlin.math.abs

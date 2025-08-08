@@ -19,7 +19,7 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.isPirateCash
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class TokenBalanceFragment : BaseComposeFragment() {
     private var viewModel: TokenBalanceViewModel? = null

@@ -32,7 +32,7 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun SendMoneroScreen(

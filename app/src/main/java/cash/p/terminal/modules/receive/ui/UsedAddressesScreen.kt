@@ -41,7 +41,7 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

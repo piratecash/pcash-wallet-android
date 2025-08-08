@@ -2,9 +2,11 @@ package cash.p.terminal.di
 
 import androidx.preference.PreferenceManager
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.DefaultCurrencyManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.EvmLabelManager
@@ -22,11 +24,13 @@ import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.core.managers.SystemInfoManager
 import cash.p.terminal.core.managers.TokenAutoEnableManager
 import cash.p.terminal.core.managers.TonKitManager
+import cash.p.terminal.core.managers.TorManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
+import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.IAdapterManager
@@ -56,6 +60,7 @@ val managerModule = module {
     }
     single { PreferenceManager.getDefaultSharedPreferences(get()) }
     singleOf(::BackgroundManager)
+    singleOf(::ConnectivityManager) bind IConnectivityManager::class
     singleOf(::EvmSyncSourceManager)
     singleOf(::TokenAutoEnableManager)
     singleOf(::EvmBlockchainManager)
@@ -82,4 +87,5 @@ val managerModule = module {
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class
+    singleOf(::TorManager) bind ITorManager::class
 }

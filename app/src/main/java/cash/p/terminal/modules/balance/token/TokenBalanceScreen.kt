@@ -75,8 +75,8 @@ import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isCosanta
 import cash.p.terminal.wallet.isPirateCash
 import cash.p.terminal.modules.send.address.EnterAddressFragment
-import io.horizontalsystems.core.SnackbarDuration
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun TokenBalanceScreen(

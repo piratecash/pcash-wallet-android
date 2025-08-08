@@ -38,7 +38,7 @@ import cash.p.terminal.modules.hodler.HSHodlerInput
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinViewModel
 import cash.p.terminal.modules.send.bitcoin.TransactionInputsSortInfoPage
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui.compose.components.ButtonSecondaryWithIcon
+import cash.p.terminal.ui_compose.components.ButtonSecondaryWithIcon
 import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.TextImportantError

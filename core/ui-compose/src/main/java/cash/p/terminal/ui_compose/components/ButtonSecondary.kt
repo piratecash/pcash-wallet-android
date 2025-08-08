@@ -1,4 +1,4 @@
-package cash.p.terminal.ui.compose.components
+package cash.p.terminal.ui_compose.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
@@ -33,13 +33,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import cash.p.terminal.ui.compose.Select
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
-import cash.p.terminal.ui.compose.components.SecondaryButtonDefaults.buttonColors
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults
-import cash.p.terminal.ui_compose.components.HsButtonColors
-import cash.p.terminal.ui_compose.components.captionSB_grey50
-import cash.p.terminal.ui_compose.components.captionSB_leah
+import cash.p.terminal.ui_compose.Select
+import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults.buttonColors
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable

@@ -42,8 +42,8 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.SnackbarDuration
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.Blockchain
 import kotlinx.coroutines.delay
 

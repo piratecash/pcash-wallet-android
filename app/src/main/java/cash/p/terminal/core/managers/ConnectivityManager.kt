@@ -6,6 +6,8 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.manager.IConnectivityManager
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.reactivex.subjects.PublishSubject
@@ -13,22 +15,35 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 
-class ConnectivityManager(backgroundManager: BackgroundManager) {
+class ConnectivityManager(
+    backgroundManager: BackgroundManager,
+    private val localStorage: ILocalStorage
+) : IConnectivityManager {
 
     private val connectivityManager: ConnectivityManager by lazy {
         App.instance.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     }
     private val scope = CoroutineScope(Dispatchers.Default)
     private val _networkAvailabilityFlow =
-        MutableSharedFlow<Boolean>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+        MutableSharedFlow<Boolean>(
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
 
     val networkAvailabilityFlow = _networkAvailabilityFlow.asSharedFlow()
 
-    var isConnected = getInitialConnectionStatus()
+    private val _isConnected = MutableStateFlow(getInitialConnectionStatus())
+    override val isConnected = _isConnected.asStateFlow()
+
+    override val torEnabled: Boolean
+        get() = localStorage.torEnabled
+
     val networkAvailabilitySignal = PublishSubject.create<Unit>()
 
     private var callback = ConnectionStatusCallback()
@@ -42,9 +57,11 @@ class ConnectivityManager(backgroundManager: BackgroundManager) {
                     BackgroundManagerState.EnterForeground -> {
                         willEnterForeground()
                     }
+
                     BackgroundManagerState.EnterBackground -> {
                         didEnterBackground()
                     }
+
                     BackgroundManagerState.Unknown,
                     BackgroundManagerState.AllActivitiesDestroyed -> {
                         //do nothing
@@ -75,9 +92,10 @@ class ConnectivityManager(backgroundManager: BackgroundManager) {
     private fun setInitialValues() {
         hasConnection = false
         hasValidInternet = false
-        isConnected = getInitialConnectionStatus()
+        val initialStatus = getInitialConnectionStatus()
+        _isConnected.value = initialStatus
         networkAvailabilitySignal.onNext(Unit)
-        _networkAvailabilityFlow.tryEmit(isConnected)
+        _networkAvailabilityFlow.tryEmit(initialStatus)
     }
 
     private fun getInitialConnectionStatus(): Boolean {
@@ -86,7 +104,9 @@ class ConnectivityManager(backgroundManager: BackgroundManager) {
         hasConnection = true
         val capabilities = connectivityManager.getNetworkCapabilities(network)
         hasValidInternet = capabilities?.let {
-            it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && it.hasCapability(
+                NetworkCapabilities.NET_CAPABILITY_VALIDATED
+            )
         } ?: false
 
         return hasValidInternet
@@ -103,10 +123,14 @@ class ConnectivityManager(backgroundManager: BackgroundManager) {
             updatedConnectionState()
         }
 
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
             super.onCapabilitiesChanged(network, networkCapabilities)
-            hasValidInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+            hasValidInternet =
+                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             updatedConnectionState()
         }
 
@@ -118,15 +142,15 @@ class ConnectivityManager(backgroundManager: BackgroundManager) {
             hasConnection = activeNetworks.isNotEmpty()
             updatedConnectionState()
         }
-
     }
 
     private fun updatedConnectionState() {
-        val oldValue = isConnected
-        isConnected = hasConnection && hasValidInternet
-        if (oldValue != isConnected) {
+        val oldValue = _isConnected.value
+        val newValue = hasConnection && hasValidInternet
+        if (oldValue != newValue) {
+            _isConnected.value = newValue
             networkAvailabilitySignal.onNext(Unit)
-            _networkAvailabilityFlow.tryEmit(isConnected)
+            _networkAvailabilityFlow.tryEmit(newValue)
         }
     }
 

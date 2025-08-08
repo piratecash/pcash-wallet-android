@@ -78,8 +78,8 @@ import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.BoxTyler44
-import cash.p.terminal.ui.compose.components.ButtonSecondary
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondary
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.CustomKeyboardWarningDialog
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui.compose.components.HsSwitch
@@ -104,7 +104,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.AccountType
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

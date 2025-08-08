@@ -89,6 +89,6 @@ internal class SendEvmViewModel(
     }
 
     fun hasConnection(): Boolean {
-        return connectivityManager.isConnected
+        return connectivityManager.isConnected.value
     }
 }

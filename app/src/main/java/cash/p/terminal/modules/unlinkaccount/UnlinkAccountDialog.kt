@@ -34,7 +34,7 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.delay
 
 internal class UnlinkAccountDialog : BaseComposableBottomSheetFragment() {

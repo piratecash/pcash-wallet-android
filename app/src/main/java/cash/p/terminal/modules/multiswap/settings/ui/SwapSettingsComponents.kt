@@ -31,7 +31,7 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.entities.FormsInputStateWarning
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.InfoText

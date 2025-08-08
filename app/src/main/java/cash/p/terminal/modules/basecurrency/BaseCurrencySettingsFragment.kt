@@ -4,22 +4,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
-import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -45,7 +43,6 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
-import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.launch
 
@@ -63,8 +60,7 @@ private fun BaseCurrencyScreen(
     navController: NavController,
     viewModel: BaseCurrencySettingsViewModel = viewModel(
         factory = BaseCurrencySettingsModule.Factory()
-    ),
-    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets
+    )
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(
@@ -118,34 +114,34 @@ private fun BaseCurrencyScreen(
                 )
             }
         ) { paddingValues ->
-            Column(
-                Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(paddingValues)
-                    .windowInsetsPadding(windowInsets)
-            ) {
-                VSpacer(12.dp)
-                CellUniversalLawrenceSection(viewModel.popularItems) { item ->
-                    CurrencyCell(
-                        item.currency.code,
-                        item.currency.symbol,
-                        item.currency.flag,
-                        item.selected
-                    ) { viewModel.onSelectBaseCurrency(item.currency) }
+            Box(modifier = Modifier.padding(paddingValues)) {
+                Column(
+                    Modifier
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    VSpacer(12.dp)
+                    CellUniversalLawrenceSection(viewModel.popularItems) { item ->
+                        CurrencyCell(
+                            item.currency.code,
+                            item.currency.symbol,
+                            item.currency.flag,
+                            item.selected
+                        ) { viewModel.onSelectBaseCurrency(item.currency) }
+                    }
+                    VSpacer(24.dp)
+                    HeaderText(
+                        stringResource(R.string.SettingsCurrency_Other)
+                    )
+                    CellUniversalLawrenceSection(viewModel.otherItems) { item ->
+                        CurrencyCell(
+                            item.currency.code,
+                            item.currency.symbol,
+                            item.currency.flag,
+                            item.selected
+                        ) { viewModel.onSelectBaseCurrency(item.currency) }
+                    }
+                    VSpacer(24.dp)
                 }
-                VSpacer(24.dp)
-                HeaderText(
-                    stringResource(R.string.SettingsCurrency_Other)
-                )
-                CellUniversalLawrenceSection(viewModel.otherItems) { item ->
-                    CurrencyCell(
-                        item.currency.code,
-                        item.currency.symbol,
-                        item.currency.flag,
-                        item.selected
-                    ) { viewModel.onSelectBaseCurrency(item.currency) }
-                }
-                VSpacer(24.dp)
             }
         }
     }

@@ -12,7 +12,7 @@ import cash.p.terminal.modules.coin.ranks.CoinRankModule.RankAnyValue
 import cash.p.terminal.modules.coin.ranks.CoinRankModule.UiState
 import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.TimeDuration
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.models.RankMultiValue
 import cash.p.terminal.wallet.models.RankValue

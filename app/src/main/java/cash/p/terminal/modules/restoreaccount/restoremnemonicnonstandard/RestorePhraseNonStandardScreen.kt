@@ -69,7 +69,7 @@ import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.CellSingleLineLawrenceSection
 import cash.p.terminal.ui.compose.components.CustomKeyboardWarningDialog
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -88,7 +88,7 @@ import cash.p.terminal.ui_compose.components.caption_lucian
 import cash.p.terminal.ui.compose.observeKeyboardState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

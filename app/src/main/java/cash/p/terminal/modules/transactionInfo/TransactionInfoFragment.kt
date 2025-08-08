@@ -3,11 +3,14 @@ package cash.p.terminal.modules.transactionInfo
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -22,6 +25,7 @@ import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui.compose.components.DescriptionCell
@@ -44,7 +48,7 @@ import cash.p.terminal.ui.compose.components.TransactionInfoTransactionHashCell
 import cash.p.terminal.ui.compose.components.TransactionNftAmountCell
 import cash.p.terminal.ui.compose.components.WarningMessageCell
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class TransactionInfoFragment : BaseComposeFragment() {
 
@@ -91,7 +95,14 @@ fun TransactionInfoScreen(
                 )
             )
         )
-        TransactionInfo(viewModel, navController)
+        Box(modifier = Modifier.weight(1f)) {
+            TransactionInfo(viewModel, navController)
+            ConnectionStatusView(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+            )
+        }
     }
 }
 

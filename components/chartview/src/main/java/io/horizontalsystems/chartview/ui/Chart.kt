@@ -79,7 +79,7 @@ import io.horizontalsystems.chartview.entity.ChartInfoData
 import io.horizontalsystems.core.IAppNumberFormatter
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.entities.ViewState
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.models.HsTimePeriod
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject

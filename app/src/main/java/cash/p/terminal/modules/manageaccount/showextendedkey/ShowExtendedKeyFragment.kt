@@ -56,7 +56,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.hdwalletkit.HDExtendedKey
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize

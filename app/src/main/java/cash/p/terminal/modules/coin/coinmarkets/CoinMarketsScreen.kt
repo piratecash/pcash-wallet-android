@@ -34,9 +34,9 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.coin.MarketTickerViewItem
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.market.MarketDataValue
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui.compose.components.ButtonSecondaryToggle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryToggle
 import cash.p.terminal.ui_compose.components.HeaderSorting
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui.compose.components.ListErrorView

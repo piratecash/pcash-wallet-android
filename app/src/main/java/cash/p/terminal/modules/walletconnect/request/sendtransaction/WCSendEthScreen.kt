@@ -21,8 +21,8 @@ import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
-import io.horizontalsystems.core.SnackbarDuration
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

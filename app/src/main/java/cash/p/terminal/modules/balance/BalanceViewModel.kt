@@ -43,7 +43,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.useCases.WalletUseCase
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

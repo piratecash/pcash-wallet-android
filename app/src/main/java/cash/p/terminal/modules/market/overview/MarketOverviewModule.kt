@@ -13,7 +13,7 @@ import cash.p.terminal.modules.market.topcoins.MarketTopMoversRepository
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionViewItem
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsViewItemFactory
 import cash.p.terminal.modules.market.topplatforms.TopPlatformViewItem
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui.extensions.MetricData
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.models.TopPair

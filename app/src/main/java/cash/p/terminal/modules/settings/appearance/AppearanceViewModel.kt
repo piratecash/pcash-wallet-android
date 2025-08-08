@@ -9,7 +9,7 @@ import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.modules.balance.BalanceViewTypeManager
 import cash.p.terminal.modules.theme.ThemeService
 import cash.p.terminal.modules.theme.ThemeType
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import kotlinx.coroutines.launch
 
 class AppearanceViewModel(

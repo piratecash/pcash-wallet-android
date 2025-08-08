@@ -42,12 +42,12 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.modules.coin.analytics.CoinAnalyticsModule.RankType
 import cash.p.terminal.modules.coin.overview.ui.Loading
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
-import cash.p.terminal.ui.compose.components.ButtonSecondaryToggle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryToggle
 import cash.p.terminal.ui.compose.components.DescriptionCard
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderSorting

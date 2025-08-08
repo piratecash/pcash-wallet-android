@@ -43,7 +43,7 @@ class ReleaseNotesViewModel(
 
         connectivityManager.networkAvailabilityFlow
             .onEach {
-                if (connectivityManager.isConnected && uiState.viewState is ViewState.Error) {
+                if (connectivityManager.isConnected.value && uiState.viewState is ViewState.Error) {
                     retry()
                 }
             }

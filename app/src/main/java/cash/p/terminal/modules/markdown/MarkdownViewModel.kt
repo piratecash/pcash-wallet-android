@@ -31,7 +31,7 @@ class MarkdownViewModel(
 
         connectivityManager.networkAvailabilityFlow
             .onEach {
-                if (connectivityManager.isConnected && viewState is ViewState.Error) {
+                if (connectivityManager.isConnected.value && viewState is ViewState.Error) {
                     retry()
                 }
             }

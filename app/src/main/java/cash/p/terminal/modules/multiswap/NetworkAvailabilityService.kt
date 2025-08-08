@@ -10,7 +10,7 @@ class NetworkAvailabilityService(
     private val connectivityManager: ConnectivityManager
 ) : ServiceState<NetworkAvailabilityService.State>() {
 
-    private var networkAvailable = connectivityManager.isConnected
+    private var networkAvailable = connectivityManager.isConnected.value
     private var error: UnknownHostException? = null
 
     override fun createState() = State(

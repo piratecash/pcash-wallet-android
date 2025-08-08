@@ -10,7 +10,7 @@ import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.modules.pin.ui.PinSet
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.parcelize.Parcelize
 
 class SetDuressPinFragment : BaseComposeFragment(screenshotEnabled = false) {

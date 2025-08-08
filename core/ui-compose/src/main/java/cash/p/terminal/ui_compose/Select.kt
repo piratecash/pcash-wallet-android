@@ -1,4 +1,4 @@
-package cash.p.terminal.ui.compose
+package cash.p.terminal.ui_compose
 
 data class Select<T>(
     val selected: T,

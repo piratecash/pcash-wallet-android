@@ -34,7 +34,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.slideFromBottomForResult
 import java.math.BigDecimal
 

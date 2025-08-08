@@ -51,8 +51,8 @@ import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
-import io.horizontalsystems.core.SnackbarDuration
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.launch
 
 enum class ContactsScreenBottomSheetType {

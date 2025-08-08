@@ -50,7 +50,7 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.findNavController
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class WCSessionFragment : BaseComposeFragment() {
 

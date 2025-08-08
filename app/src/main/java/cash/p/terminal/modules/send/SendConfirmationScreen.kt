@@ -52,12 +52,12 @@ import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.SnackbarDuration
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.hodler.LockTimeInterval
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.Coin
-import io.horizontalsystems.core.CustomSnackbar
+import cash.p.terminal.ui_compose.components.CustomSnackbar
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
 

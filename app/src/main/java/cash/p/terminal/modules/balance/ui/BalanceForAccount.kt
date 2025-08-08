@@ -55,7 +55,7 @@ import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.entities.ViewState
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

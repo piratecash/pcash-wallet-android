@@ -26,7 +26,7 @@ import cash.p.terminal.modules.receive.viewmodels.ReceiveSharedViewModel
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.wallet.Wallet
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class ReceiveChooseCoinFragment : BaseComposeFragment() {
     @Composable

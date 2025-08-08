@@ -20,11 +20,11 @@ import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.market.topcoins.OptionController
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
-import cash.p.terminal.ui.compose.components.ButtonSecondaryYellow
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryYellow
 import cash.p.terminal.ui.compose.components.CoinListOrderable
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderSorting

@@ -25,9 +25,9 @@ import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.MarketViewItem
 import cash.p.terminal.modules.market.TopMarket
 import cash.p.terminal.modules.market.overview.MarketOverviewModule
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
-import cash.p.terminal.ui.compose.components.ButtonSecondaryToggle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryToggle
 import cash.p.terminal.ui.compose.components.MarketCoinClear
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 

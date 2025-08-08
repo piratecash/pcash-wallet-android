@@ -33,7 +33,6 @@ import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.balance.DeemedValue
-import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -279,7 +278,7 @@ class TokenBalanceViewModel(
     }
 
     fun getSyncErrorDetails(viewItem: BalanceViewItem): BalanceViewModel.SyncError = when {
-        connectivityManager.isConnected -> BalanceViewModel.SyncError.Dialog(
+        connectivityManager.isConnected.value -> BalanceViewModel.SyncError.Dialog(
             viewItem.wallet,
             viewItem.errorMessage
         )

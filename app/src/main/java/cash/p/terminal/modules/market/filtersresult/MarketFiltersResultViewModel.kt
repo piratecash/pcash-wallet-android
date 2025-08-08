@@ -6,7 +6,7 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.market.MarketViewItem
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.category.MarketItemWrapper
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 

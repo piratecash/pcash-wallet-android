@@ -35,7 +35,7 @@ import cash.p.terminal.ui_compose.components.TitleAndValueCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.BlockchainType
 
 class ActivateSubscriptionFragment : BaseComposeFragment() {

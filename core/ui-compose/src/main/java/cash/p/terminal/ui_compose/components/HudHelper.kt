@@ -1,4 +1,4 @@
-package io.horizontalsystems.core.helpers
+package cash.p.terminal.ui_compose.components
 
 import android.content.Context
 import android.os.Build
@@ -7,10 +7,7 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.View
 import androidx.annotation.DrawableRes
-import cash.p.terminal.core.R
-import io.horizontalsystems.core.CustomSnackbar
-import io.horizontalsystems.core.SnackbarDuration
-import io.horizontalsystems.core.SnackbarGravity
+import cash.p.terminal.ui_compose.R
 
 object HudHelper {
 

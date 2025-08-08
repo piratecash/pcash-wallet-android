@@ -36,7 +36,7 @@ import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.parcelize.Parcelize
 
 class SyncErrorDialog : BaseComposableBottomSheetFragment() {

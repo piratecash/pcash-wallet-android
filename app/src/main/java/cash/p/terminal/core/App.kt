@@ -135,7 +135,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         lateinit var feeRateProvider: FeeRateProvider
         lateinit var localStorage: ILocalStorage
         lateinit var marketStorage: IMarketStorage
-        lateinit var torKitManager: ITorManager
+        val torKitManager: ITorManager by inject(ITorManager::class.java)
         val currencyManager: CurrencyManager by inject(CurrencyManager::class.java)
         val languageManager: LanguageManager by inject(LanguageManager::class.java)
 
@@ -158,7 +158,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         lateinit var proFeatureAuthorizationManager: ProFeaturesAuthorizationManager
         val zcashBirthdayProvider: ZcashBirthdayProvider by inject(ZcashBirthdayProvider::class.java)
 
-        lateinit var connectivityManager: ConnectivityManager
+        val connectivityManager: ConnectivityManager by inject(ConnectivityManager::class.java)
         val appDatabase: AppDatabase by inject(AppDatabase::class.java)
         val enabledWalletsStorage: IEnabledWalletStorage by inject(IEnabledWalletStorage::class.java)
         val solanaKitManager: SolanaKitManager by inject(SolanaKitManager::class.java)
@@ -238,8 +238,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             marketStorage = this
         }
 
-        torKitManager = TorManager(instance, localStorage)
-
         priceManager = PriceManager(localStorage)
 
         feeRateProvider = FeeRateProvider(appConfigProvider)
@@ -291,7 +289,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         stellarAccountManager.start()
 
         systemInfoManager = get()
-        connectivityManager = ConnectivityManager(backgroundManager)
         val adapterFactory: AdapterFactory = get()
 
         pinComponent = PinComponent(

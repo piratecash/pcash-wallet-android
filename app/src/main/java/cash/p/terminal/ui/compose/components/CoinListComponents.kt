@@ -66,6 +66,7 @@ import cash.p.terminal.modules.market.search.MarketSearchModule.DiscoveryItem
 import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui_compose.components.ButtonSecondaryTransparent
 import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead1_leah

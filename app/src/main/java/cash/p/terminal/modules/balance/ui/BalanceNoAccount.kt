@@ -30,14 +30,12 @@ import cash.p.terminal.core.hasNFC
 import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
-import cash.p.terminal.ui.compose.components.SnackbarError
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun BalanceNoAccount(

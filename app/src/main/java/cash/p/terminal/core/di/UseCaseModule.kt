@@ -8,9 +8,12 @@ import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
 import cash.p.terminal.domain.usecase.GetReleaseNotesUseCase
+import cash.p.terminal.manager.ITorConnectionStatusUseCase
+import cash.p.terminal.modules.tor.TorConnectionStatusUseCase
 import cash.p.terminal.tangem.domain.usecase.ICreateHardwareWalletUseCase
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -23,6 +26,7 @@ val useCaseModule = module {
     factoryOf(::MoneroWalletUseCase)
     factoryOf(::GenerateMoneroWalletUseCase)
     factoryOf(::CreateHardwareWalletUseCase) bind ICreateHardwareWalletUseCase::class
+    singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
 
     factory { AppUpdateManagerFactory.create(get()) }
 }

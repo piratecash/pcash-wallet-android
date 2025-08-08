@@ -38,9 +38,9 @@ import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.nft.asset.NftAssetModule
 import cash.p.terminal.modules.nft.ui.NftAssetPreview
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui.compose.components.ButtonSecondaryToggle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryToggle
 import cash.p.terminal.ui_compose.components.CellBorderedRowUniversal
 import cash.p.terminal.ui_compose.components.CellSingleLineClear
 import cash.p.terminal.ui.compose.components.DoubleText
@@ -53,7 +53,7 @@ import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class NftHoldingsFragment : BaseComposeFragment() {
 
