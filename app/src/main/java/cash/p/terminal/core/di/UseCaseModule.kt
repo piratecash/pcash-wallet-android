@@ -30,7 +30,6 @@ val useCaseModule = module {
     factoryOf(::CreateHardwareWalletUseCase) bind ICreateHardwareWalletUseCase::class
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
-    factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
 
     factory { AppUpdateManagerFactory.create(get()) }
 }
