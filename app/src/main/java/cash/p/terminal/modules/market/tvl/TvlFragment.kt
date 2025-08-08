@@ -38,12 +38,12 @@ import io.horizontalsystems.core.entities.Value
 import cash.p.terminal.modules.market.tvl.TvlModule.SelectorDialogState
 import cash.p.terminal.modules.market.tvl.TvlModule.TvlDiffType
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
-import cash.p.terminal.ui.compose.components.ButtonSecondaryWithIcon
+import cash.p.terminal.ui_compose.components.ButtonSecondaryWithIcon
 import cash.p.terminal.ui.compose.components.DescriptionCard
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderSorting
@@ -55,7 +55,7 @@ import cash.p.terminal.ui_compose.components.SectionItemBorderedRowUniversalClea
 import cash.p.terminal.ui.compose.hsRememberLazyListState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class TvlFragment : BaseComposeFragment() {
 

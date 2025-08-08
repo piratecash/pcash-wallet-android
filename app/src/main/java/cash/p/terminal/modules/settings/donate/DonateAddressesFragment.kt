@@ -31,7 +31,7 @@ import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.title
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.imageUrl
 
 class DonateAddressesFragment : BaseComposeFragment() {

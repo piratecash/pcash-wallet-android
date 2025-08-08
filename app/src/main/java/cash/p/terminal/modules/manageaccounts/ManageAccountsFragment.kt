@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Icon
@@ -69,7 +70,11 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
         navController.popBackStack()
     }
 
-    Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
+    Column(
+        modifier = Modifier
+            .background(color = ComposeAppTheme.colors.tyler)
+            .navigationBarsPadding()
+    ) {
         AppBar(
             title = stringResource(R.string.ManageAccounts_Title),
             navigationIcon = { HsBackButton(onClick = { navController.popBackStack() }) }
@@ -113,11 +118,13 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
                             R.string.ManageAccounts_CreateNewWallet
                         ) {
                             navController.navigateWithTermsAccepted {
-                                navController.slideFromRight(R.id.createAccountFragment,
+                                navController.slideFromRight(
+                                    R.id.createAccountFragment,
                                     CreateAccountFragment.Input(
                                         popOffOnSuccess = args.popOffOnSuccess,
                                         popOffInclusive = args.popOffInclusive
-                                    ))
+                                    )
+                                )
                             }
                         })
                     add(
@@ -126,12 +133,14 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
                             R.string.new_monero_wallet
                         ) {
                             navController.navigateWithTermsAccepted {
-                                navController.slideFromRight(R.id.createAccountFragment,
+                                navController.slideFromRight(
+                                    R.id.createAccountFragment,
                                     CreateAccountFragment.Input(
                                         popOffOnSuccess = args.popOffOnSuccess,
                                         popOffInclusive = args.popOffInclusive,
                                         preselectMonero = true
-                                    ))
+                                    )
+                                )
                             }
                         })
                     add(

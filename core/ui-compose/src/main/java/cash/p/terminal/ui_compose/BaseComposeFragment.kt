@@ -9,18 +9,29 @@ import android.view.WindowManager
 import androidx.annotation.LayoutRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
+import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+
+val LocalConnectionPanelState = compositionLocalOf {
+    mutableStateOf(true)
+}
 
 abstract class BaseComposeFragment(
     @LayoutRes layoutResId: Int = 0,
     private val screenshotEnabled: Boolean = true
 ) : Fragment(layoutResId) {
+
+    open val showConnectionPanel: Boolean = true
 
     final override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,6 +50,13 @@ abstract class BaseComposeFragment(
                             .fillMaxSize()
                     ) {
                         GetContent(findNavController())
+                        if (showConnectionPanel && LocalConnectionPanelState.current.value) {
+                            ConnectionStatusView(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .navigationBarsPadding()
+                            )
+                        }
                     }
                 }
             }

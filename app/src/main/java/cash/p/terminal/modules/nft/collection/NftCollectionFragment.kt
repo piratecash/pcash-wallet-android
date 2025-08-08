@@ -29,7 +29,7 @@ import cash.p.terminal.ui_compose.components.Tabs
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize

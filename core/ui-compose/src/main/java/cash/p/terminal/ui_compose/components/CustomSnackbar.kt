@@ -1,4 +1,4 @@
-package io.horizontalsystems.core
+package cash.p.terminal.ui_compose.components
 
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
@@ -12,7 +12,7 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
-import cash.p.terminal.core.R
+import cash.p.terminal.ui_compose.R
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 
@@ -42,7 +42,7 @@ class CustomSnackbar(
         getView().setBackgroundColor(
             ContextCompat.getColor(
                 view.context,
-                android.R.color.transparent
+                R.color.transparent
             )
         )
         getView().setPadding(0, 0, 0, 0)

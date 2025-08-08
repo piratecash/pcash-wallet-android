@@ -28,7 +28,7 @@ import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun BottomSheetSelectorMultiple(

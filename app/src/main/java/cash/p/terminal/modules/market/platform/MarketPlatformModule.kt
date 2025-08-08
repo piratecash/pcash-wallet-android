@@ -9,7 +9,7 @@ import io.horizontalsystems.chartview.chart.ChartViewModel
 import cash.p.terminal.modules.market.MarketField
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.topplatforms.Platform
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 
 object MarketPlatformModule {
 

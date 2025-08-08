@@ -40,6 +40,11 @@ android {
 }
 
 dependencies {
+    implementation(project.dependencies.platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
+
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.material)
     implementation(libs.compose.tooling)

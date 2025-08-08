@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import kotlin.getValue
 
 //  Fragment
 
@@ -33,6 +36,12 @@ inline fun <reified T : Parcelable> NavController.getInput(): T? {
 
 inline fun <reified T: Parcelable> NavController.requireInput() : T {
     return getInput()!!
+}
+
+internal  inline fun <reified T> getKoinInstance(): T {
+    return object : KoinComponent {
+        val value: T by inject()
+    }.value
 }
 
 @Composable

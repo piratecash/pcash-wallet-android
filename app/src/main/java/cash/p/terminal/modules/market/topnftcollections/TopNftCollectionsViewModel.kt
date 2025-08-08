@@ -13,7 +13,7 @@ import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.TimeDuration
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

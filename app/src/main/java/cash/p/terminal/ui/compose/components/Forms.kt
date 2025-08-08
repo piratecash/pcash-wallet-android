@@ -49,6 +49,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.qrscanner.QRScannerActivity
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.entities.DataState

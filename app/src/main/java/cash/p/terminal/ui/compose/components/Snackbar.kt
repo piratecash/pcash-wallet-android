@@ -2,7 +2,7 @@ package cash.p.terminal.ui.compose.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalView
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun SnackbarError(errorMessage: String) {

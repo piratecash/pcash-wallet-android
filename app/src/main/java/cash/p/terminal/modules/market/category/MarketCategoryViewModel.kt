@@ -11,7 +11,7 @@ import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.MarketViewItem
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.topcoins.SelectorDialogState
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow

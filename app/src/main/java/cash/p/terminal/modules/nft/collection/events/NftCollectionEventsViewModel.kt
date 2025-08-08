@@ -14,8 +14,8 @@ import cash.p.terminal.entities.nft.NftEventMetadata.EventType
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.modules.coin.ContractInfo
 import cash.p.terminal.modules.market.overview.coinValue
-import cash.p.terminal.ui.compose.Select
-import cash.p.terminal.ui.compose.SelectOptional
+import cash.p.terminal.ui_compose.Select
+import cash.p.terminal.ui_compose.SelectOptional
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
 import kotlinx.coroutines.delay

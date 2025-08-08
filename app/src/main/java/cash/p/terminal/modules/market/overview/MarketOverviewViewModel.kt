@@ -27,7 +27,7 @@ import cash.p.terminal.modules.market.topplatforms.TopPlatformsRepository
 import cash.p.terminal.modules.metricchart.MetricsType
 import cash.p.terminal.modules.nft.NftCollectionItem
 import cash.p.terminal.modules.nft.nftCollectionItem
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui.extensions.MetricData
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.chartview.ChartData

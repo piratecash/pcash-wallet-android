@@ -32,7 +32,7 @@ import cash.p.terminal.tangem.ui.resetBackupDialog.ResetBackupDialog
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.setNavigationResultX
 import io.horizontalsystems.core.slideFromBottomForResult
 

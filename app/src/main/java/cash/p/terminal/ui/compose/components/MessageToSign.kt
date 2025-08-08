@@ -15,7 +15,7 @@ import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.caption_leah
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun MessageToSign(message: String) {

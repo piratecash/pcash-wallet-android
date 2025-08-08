@@ -21,9 +21,9 @@ import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.TopMarket
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui.compose.components.AlertGroup
-import cash.p.terminal.ui.compose.components.ButtonSecondaryWithIcon
+import cash.p.terminal.ui_compose.components.ButtonSecondaryWithIcon
 import cash.p.terminal.ui.compose.components.CoinList
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderSorting

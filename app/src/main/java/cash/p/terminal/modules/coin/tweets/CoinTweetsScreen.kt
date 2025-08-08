@@ -19,6 +19,7 @@ import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui.compose.components.*
 import cash.p.terminal.ui.helpers.LinkHelper
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.wallet.entities.FullCoin
 
@@ -71,7 +72,10 @@ fun CoinTweetsScreen(
                                     ButtonSecondaryDefault(
                                         title = stringResource(id = R.string.CoinPage_Twitter_SeeOnTwitter),
                                         onClick = {
-                                            LinkHelper.openLinkInAppBrowser(context, viewModel.twitterPageUrl)
+                                            LinkHelper.openLinkInAppBrowser(
+                                                context,
+                                                viewModel.twitterPageUrl
+                                            )
                                         }
                                     )
                                 }

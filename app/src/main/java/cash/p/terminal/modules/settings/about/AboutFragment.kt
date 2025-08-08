@@ -29,6 +29,7 @@ import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.terms.TermsScreen
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.ScreenWithoutConnectionPanel
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HsBackButton
@@ -66,15 +67,17 @@ private fun AboutNavHost(fragmentNavController: NavController) {
             )
         }
         composablePage(ReleaseNotesPage) {
-            val viewModel = koinViewModel<ReleaseNotesViewModel>()
-            ReleaseNotesScreen(
-                closeablePopup = false,
-                uiState = viewModel.uiState,
-                onCloseClick = navController::popBackStack,
-                onRetryClick = { viewModel.retry() },
-                onWhatsNewShown = { viewModel.whatsNewShown() },
-                onShowChangelogToggle = viewModel::setShowChangeLogAfterUpdate
-            )
+            ScreenWithoutConnectionPanel {
+                val viewModel = koinViewModel<ReleaseNotesViewModel>()
+                ReleaseNotesScreen(
+                    closeablePopup = false,
+                    uiState = viewModel.uiState,
+                    onCloseClick = navController::popBackStack,
+                    onRetryClick = { viewModel.retry() },
+                    onWhatsNewShown = { viewModel.whatsNewShown() },
+                    onShowChangelogToggle = viewModel::setShowChangeLogAfterUpdate
+                )
+            }
         }
         composablePage(AppStatusPage) { AppStatusScreen(navController) }
         composablePage(PrivacyPage) {

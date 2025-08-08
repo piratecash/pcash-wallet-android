@@ -29,7 +29,7 @@ import cash.p.terminal.wallet.imageUrl
 import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
-import io.horizontalsystems.core.SnackbarDuration
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

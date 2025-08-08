@@ -279,7 +279,7 @@ class WCSessionViewModel(
     fun rejectProposal() {
         val proposal = proposal ?: return
 
-        if (!connectivityManager.isConnected) {
+        if (!connectivityManager.isConnected.value) {
             showNoInternetErrorLiveEvent.postValue(Unit)
             return
         }
@@ -294,7 +294,7 @@ class WCSessionViewModel(
     fun connect() {
         val proposal = proposal ?: return
 
-        if (!connectivityManager.isConnected) {
+        if (!connectivityManager.isConnected.value) {
             showNoInternetErrorLiveEvent.postValue(Unit)
             return
         }
@@ -315,7 +315,7 @@ class WCSessionViewModel(
     }
 
     fun disconnect() {
-        if (!connectivityManager.isConnected) {
+        if (!connectivityManager.isConnected.value) {
             showNoInternetErrorLiveEvent.postValue(Unit)
             return
         }

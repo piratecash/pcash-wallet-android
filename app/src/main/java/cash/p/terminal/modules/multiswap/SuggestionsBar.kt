@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import cash.p.terminal.R
 import cash.p.terminal.ui.compose.components.BoxTyler44
-import cash.p.terminal.ui.compose.components.ButtonSecondary
+import cash.p.terminal.ui_compose.components.ButtonSecondary
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 

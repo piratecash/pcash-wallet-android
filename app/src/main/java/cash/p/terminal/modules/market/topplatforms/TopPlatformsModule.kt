@@ -11,7 +11,7 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.market.MarketField
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.TimeDuration
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 

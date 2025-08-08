@@ -33,7 +33,8 @@ class DefaultBalanceService private constructor(
     private val accountManager: IAccountManager
 ) : BalanceService {
 
-    override val networkAvailable by connectivityManager::isConnected
+    override val networkAvailable: Boolean
+        get() = connectivityManager.isConnected.value
     override val baseCurrency by xRateRepository::baseCurrency
 
     override var sortType: BalanceSortType

@@ -11,7 +11,7 @@ import cash.p.terminal.modules.coin.treasuries.CoinTreasuriesModule.CoinTreasuri
 import cash.p.terminal.modules.coin.treasuries.CoinTreasuriesModule.CoinTreasuryItem
 import cash.p.terminal.modules.coin.treasuries.CoinTreasuriesModule.SelectorDialogState
 import cash.p.terminal.modules.coin.treasuries.CoinTreasuriesModule.TreasuryTypeFilter
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.wallet.models.CoinTreasury
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch

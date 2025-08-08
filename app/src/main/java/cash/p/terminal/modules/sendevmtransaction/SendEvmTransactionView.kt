@@ -26,7 +26,7 @@ import cash.p.terminal.modules.multiswap.ui.DataFieldFee
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.evm.settings.SendEvmNonceViewModel
 import cash.p.terminal.strings.helpers.shorten
-import cash.p.terminal.ui.compose.components.ButtonSecondaryDefault
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.CoinImage
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
@@ -49,7 +49,7 @@ import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun SendEvmTransactionView(

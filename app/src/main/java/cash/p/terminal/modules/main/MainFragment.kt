@@ -54,13 +54,13 @@ import cash.p.terminal.modules.rooteddevice.RootedDeviceScreen
 import cash.p.terminal.modules.rooteddevice.RootedDeviceViewModel
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
 import cash.p.terminal.modules.settings.main.SettingsScreen
-import cash.p.terminal.modules.tor.TorStatusView
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsScreen
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager.SupportState
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui.compose.components.BadgeText
 import cash.p.terminal.ui.compose.components.HsBottomNavigation
 import cash.p.terminal.ui.compose.components.HsBottomNavigationItem
@@ -76,6 +76,8 @@ import java.lang.ref.WeakReference
 class MainFragment : BaseComposeFragment() {
 
     private var transactionsViewModelRef: WeakReference<TransactionsViewModel>? = null
+
+    override val showConnectionPanel = false
 
     @Composable
     override fun GetContent(navController: NavController) {
@@ -199,9 +201,7 @@ private fun MainScreen(
             containerColor = ComposeAppTheme.colors.tyler,
             bottomBar = {
                 Column {
-                    if (uiState.torEnabled) {
-                        TorStatusView()
-                    }
+                    ConnectionStatusView()
                     HsBottomNavigation(
                         backgroundColor = ComposeAppTheme.colors.tyler,
                         elevation = 10.dp

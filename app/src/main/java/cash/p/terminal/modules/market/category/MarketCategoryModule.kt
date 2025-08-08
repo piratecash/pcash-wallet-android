@@ -10,7 +10,7 @@ import cash.p.terminal.modules.market.MarketField
 import cash.p.terminal.modules.market.MarketItem
 import cash.p.terminal.modules.market.SortingField
 import cash.p.terminal.modules.market.TopMarket
-import cash.p.terminal.ui.compose.Select
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.wallet.models.Analytics
 import cash.p.terminal.wallet.models.CoinCategory
 

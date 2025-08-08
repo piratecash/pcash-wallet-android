@@ -38,7 +38,7 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
-import io.horizontalsystems.core.helpers.HudHelper
+import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.setNavigationResultX
 import kotlinx.coroutines.delay
 import kotlinx.parcelize.Parcelize

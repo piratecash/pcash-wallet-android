@@ -29,6 +29,7 @@ import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.MenuItem
@@ -43,6 +44,8 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReleaseNotesFragment : BaseComposeFragment() {
     private val viewModel: ReleaseNotesViewModel by viewModel()
+
+    override val showConnectionPanel = false
 
     @Composable
     override fun GetContent(navController: NavController) {
@@ -114,6 +117,7 @@ fun ReleaseNotesScreen(
                 color = ComposeAppTheme.colors.steel10,
             )
 
+            ConnectionStatusView()
             RowUniversal(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,7 +138,6 @@ fun ReleaseNotesScreen(
                     onCheckedChange = { onShowChangelogToggle() }
                 )
             }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

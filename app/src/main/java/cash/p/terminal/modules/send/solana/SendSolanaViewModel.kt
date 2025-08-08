@@ -126,7 +126,7 @@ class SendSolanaViewModel(
     }
 
     fun hasConnection(): Boolean {
-        return connectivityManager.isConnected
+        return connectivityManager.isConnected.value
     }
 
     private suspend fun send() = withContext(Dispatchers.IO) {
