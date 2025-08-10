@@ -272,6 +272,7 @@ fun BalanceCardInner(
                     subhead2_grey(
                         text = stringResource(R.string.staking_unpaid),
                         maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
                     subhead2_grey(
