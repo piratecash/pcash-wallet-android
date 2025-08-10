@@ -18,6 +18,7 @@ import cash.p.terminal.tangem.domain.usecase.BuildHardwarePublicKeyUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemScanUseCase
 import cash.p.terminal.ui_compose.components.ImageSource
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.IAccountManager
@@ -30,7 +31,6 @@ import cash.p.terminal.wallet.isMonero
 import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject

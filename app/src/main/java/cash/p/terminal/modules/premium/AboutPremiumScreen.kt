@@ -15,10 +15,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -26,11 +28,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.markdown.MarkdownContent
+import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.ui.compose.components.ButtonPrimaryCustomColor
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.RadialBackground
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TitleCenteredTopBar
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.highlightText
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,8 +45,43 @@ fun AboutPremiumScreen(
     uiState: AboutPremiumUiState,
     onRetryClick: () -> Unit,
     onCloseClick: () -> Unit,
-    onUrlClick: (String) -> Unit
+    onUrlClick: (String) -> Unit,
+    onTryForFreeClick: () -> Unit
 ) {
+    val view = LocalView.current
+
+    LaunchedEffect(uiState.activationResult) {
+        when (uiState.activationResult) {
+            is TrialPremiumResult.DemoActive -> {
+                HudHelper.showSuccessMessage(
+                    view,
+                    R.string.premium_demo_activated,
+                    SnackbarDuration.SHORT
+                )
+            }
+            is TrialPremiumResult.DemoExpired -> {
+                HudHelper.showErrorMessage(
+                    view,
+                    R.string.premium_demo_expired
+                )
+            }
+            is TrialPremiumResult.DemoError -> {
+                if(uiState.activationResult.errorStringResId != null) {
+                    HudHelper.showErrorMessage(
+                        view,
+                        uiState.activationResult.errorStringResId!!
+                    )
+                } else {
+                    HudHelper.showErrorMessage(
+                        view,
+                        R.string.premium_demo_activation_failed
+                    )
+                }
+            }
+            else -> {}
+        }
+    }
+
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
@@ -52,8 +93,8 @@ fun AboutPremiumScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .padding(paddingValues)
                 .fillMaxSize()
+                .padding(paddingValues)
         ) {
             RadialBackground()
 
@@ -61,7 +102,7 @@ fun AboutPremiumScreen(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxSize()
-                    .padding(bottom = if (!uiState.hasPremium) 70.dp else 0.dp)
+                    .padding(bottom = if (!uiState.hasPremium && uiState.hasEligibleWallets) 70.dp else 0.dp)
                     .verticalScroll(rememberScrollState())
             ) {
                 VSpacer(24.dp)
@@ -76,6 +117,11 @@ fun AboutPremiumScreen(
                 ActionText()
                 VSpacer(24.dp)
 
+                // Demo days display
+                if (uiState.demoDaysLeft != null && uiState.demoDaysLeft > 0) {
+                    DemoDaysDisplay(daysLeft = uiState.demoDaysLeft)
+                    VSpacer(24.dp)
+                }
 
                 MarkdownContent(
                     modifier = Modifier.wrapContentHeight(),
@@ -86,7 +132,7 @@ fun AboutPremiumScreen(
                 )
             }
 
-            if (!uiState.hasPremium) {
+            if (!uiState.hasPremium && uiState.hasEligibleWallets) {
                 Column(
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
@@ -111,11 +157,10 @@ fun AboutPremiumScreen(
                     ) {
                         ButtonPrimaryCustomColor(
                             modifier = Modifier.fillMaxWidth(),
-                            title = stringResource(R.string.Premium_Upgrade),
+                            title = stringResource(R.string.Premium_TryForFree),
                             brush = yellowGradient,
-                            onClick = {
-
-                            },
+                            onClick = onTryForFreeClick,
+                            isLoading = uiState.activationViewState == ViewState.Loading
                         )
                         VSpacer(16.dp)
                     }
@@ -123,6 +168,19 @@ fun AboutPremiumScreen(
             }
         }
     }
+}
+
+@Composable
+private fun DemoDaysDisplay(daysLeft: Int) {
+    Text(
+        text = stringResource(R.string.premium_demo_days_left, daysLeft),
+        style = ComposeAppTheme.typography.subhead1,
+        color = ComposeAppTheme.colors.jacob,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
+    )
 }
 
 @Composable
@@ -159,7 +217,8 @@ private fun SelectSubscriptionScreenPreview() {
             uiState = AboutPremiumUiState(),
             onCloseClick = {},
             onRetryClick = {},
-            onUrlClick = {}
+            onUrlClick = {},
+            onTryForFreeClick = {}
         )
     }
 }

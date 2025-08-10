@@ -7,6 +7,8 @@ import cash.p.terminal.premium.domain.repository.TokenBalanceRepository
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCaseImpl
 import cash.p.terminal.premium.domain.usecase.SeedToEvmAddressUseCase
+import cash.p.terminal.premium.domain.usecase.CheckTrialPremiumUseCase
+import cash.p.terminal.premium.domain.usecase.ActivateTrialPremiumUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -16,6 +18,7 @@ val featurePremiumModule = module {
     // Database
     single { PremiumDatabase.create(get()) }
     single { get<PremiumDatabase>().premiumUserDao() }
+    single { get<PremiumDatabase>().demoPremiumUserDao() }
 
     // API
     factoryOf(::EthereumRpcApi)
@@ -27,4 +30,6 @@ val featurePremiumModule = module {
     // Use Cases
     singleOf(::CheckPremiumUseCaseImpl) bind CheckPremiumUseCase::class
     factoryOf(::SeedToEvmAddressUseCase)
+    factoryOf(::CheckTrialPremiumUseCase)
+    factoryOf(::ActivateTrialPremiumUseCase) bind ActivateTrialPremiumUseCase::class
 }

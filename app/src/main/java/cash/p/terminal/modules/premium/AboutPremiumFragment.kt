@@ -6,13 +6,13 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
-import org.koin.compose.viewmodel.koinViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AboutPremiumFragment : BaseComposeFragment() {
+    private val viewModel: AboutPremiumViewModel by viewModel()
+
     @Composable
     override fun GetContent(navController: NavController) {
-        val viewModel: AboutPremiumViewModel = koinViewModel()
-
         AboutPremiumScreen(
             uiState = viewModel.uiState,
             onRetryClick = viewModel::retry,
@@ -21,7 +21,8 @@ class AboutPremiumFragment : BaseComposeFragment() {
                 navController.slideFromRight(
                     R.id.markdownFragment, MarkdownFragment.Input(url)
                 )
-            }
+            },
+            onTryForFreeClick = viewModel::activateDemoPremium
         )
     }
 }

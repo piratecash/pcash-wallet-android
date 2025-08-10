@@ -457,12 +457,15 @@
     <dialog
         android:id="@+id/wcErrorNoAccountFragment"
         android:name="cash.p.terminal.modules.walletconnect.WCErrorNoAccountFragment" />
-    <dialog
+    <fragment
         android:id="@+id/wcAccountTypeNotSupportedDialog"
         android:name="cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog" />
     <fragment
         android:id="@id/aboutPremiumFragment"
         android:name="cash.p.terminal.modules.premium.AboutPremiumFragment"/>
+    <fragment
+        android:id="@+id/demoPremiumSelectWalletFragment"
+        android:name="cash.p.terminal.modules.premium.DemoPremiumSelectWalletFragment"/>
     <fragment
         android:id="@+id/addressCheckerFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckerFragment"/>

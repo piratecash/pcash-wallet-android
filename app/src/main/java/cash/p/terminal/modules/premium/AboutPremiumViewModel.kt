@@ -5,15 +5,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.R
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.markdown.MarkdownBlock
 import cash.p.terminal.modules.markdown.MarkdownVisitorBlock
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
+import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.entities.ViewState
+import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.eligibleForPremium
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import kotlinx.coroutines.async
@@ -24,6 +30,7 @@ import org.commonmark.parser.Parser
 class AboutPremiumViewModel(
     private val getLocalizedAssetUseCase: GetLocalizedAssetUseCase,
     private val checkPremiumUseCase: CheckPremiumUseCase,
+    private val accountManager: IAccountManager,
     private val piratePlaceRepository: PiratePlaceRepository,
     private val currencyManager: CurrencyManager,
     private val numberFormatter: IAppNumberFormatter
@@ -39,6 +46,36 @@ class AboutPremiumViewModel(
         loadContent()
     }
 
+    fun activateDemoPremium() {
+        viewModelScope.launch {
+            uiState = uiState.copy(activationViewState = ViewState.Loading)
+
+            val currentAccount = accountManager.activeAccount
+            if(currentAccount?.eligibleForPremium() == true) {
+                try {
+                    val result = checkPremiumUseCase.activateTrialPremium(currentAccount.id)
+
+                    uiState = uiState.copy(
+                        activationResult = result,
+                        hasPremium = checkPremiumUseCase.isPremium(),
+                        demoDaysLeft = (result as? TrialPremiumResult.DemoActive)?.daysLeft,
+                        activationViewState = ViewState.Success
+                    )
+                } catch (e: Exception) {
+                    uiState = uiState.copy(
+                        activationResult = TrialPremiumResult.DemoError(),
+                        activationViewState = ViewState.Success
+                    )
+                }
+            } else {
+                uiState = uiState.copy(
+                    activationResult = TrialPremiumResult.DemoError(R.string.wallet_is_not_eligile),
+                    activationViewState = ViewState.Success
+                )
+            }
+        }
+    }
+
     fun retry() {
         uiState = uiState.copy(viewState = ViewState.Loading)
         loadContent()
@@ -52,6 +89,9 @@ class AboutPremiumViewModel(
                 }
                 val premiumDeferred = async {
                     checkPremiumUseCase.update()
+                }
+                val demoDaysDeferred = async {
+                    getDemoDaysLeft()
                 }
                 val roiPirateValueDeferred = async {
                     calculateRoi(
@@ -69,30 +109,55 @@ class AboutPremiumViewModel(
                 val results = awaitAll(
                     contentDeferred,
                     premiumDeferred,
+                    demoDaysDeferred,
                     roiPirateValueDeferred,
                     roiCosaValueDeferred
                 )
 
                 val content = results[0] as String
                 val hasPremium = results[1] as Boolean
-                val roiPirateValue = results[2] as String
-                val roiCosaValue = results[3] as String
+                val demoDaysLeft = results[2] as Int?
+                val roiPirateValue = results[3] as String
+                val roiCosaValue = results[4] as String
 
                 val processedContent = content
                     .replace("ROI_PIRATE", roiPirateValue)
                     .replace("ROI_COSA", roiCosaValue)
 
                 val markdownBlocks = getMarkdownBlocks(processedContent)
+                val hasEligibleWallets = hasEligibleWallets()
 
                 uiState = uiState.copy(
                     viewState = ViewState.Success,
                     markdownBlocks = markdownBlocks,
-                    hasPremium = hasPremium
+                    hasPremium = hasPremium,
+                    demoDaysLeft = demoDaysLeft,
+                    hasEligibleWallets = hasEligibleWallets
                 )
             } catch (e: Exception) {
                 uiState = uiState.copy(viewState = ViewState.Error(e))
             }
         }
+    }
+
+    private fun hasEligibleWallets(): Boolean {
+        return accountManager.accounts.any { account ->
+            account.eligibleForPremium()
+        }
+    }
+
+    private fun isPremiumCandidateAccount(account: Account): Boolean {
+        return account.type is AccountType.Mnemonic && !account.isWatchAccount && account.hasAnyBackup
+    }
+
+    private suspend fun getDemoDaysLeft(): Int? {
+        val activeAccount = accountManager.activeAccount ?: return null
+        
+        if (!isPremiumCandidateAccount(activeAccount)) {
+            return null
+        }
+
+        return  (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft
     }
 
     private fun getMarkdownBlocks(content: String): List<MarkdownBlock> {
@@ -146,4 +211,8 @@ data class AboutPremiumUiState(
     val viewState: ViewState = ViewState.Loading,
     val markdownBlocks: List<MarkdownBlock> = emptyList(),
     val hasPremium: Boolean = true,
+    val demoDaysLeft: Int? = null,
+    val hasEligibleWallets: Boolean = false,
+    val activationResult: TrialPremiumResult? = null,
+    val activationViewState: ViewState = ViewState.Success,
 )

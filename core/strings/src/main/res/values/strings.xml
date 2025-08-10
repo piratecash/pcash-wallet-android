@@ -2363,7 +2363,14 @@
     <string name="premium_title">Premium</string>
     <string name="about_premium">About Premium</string>
     <string name="Premium_TryForFree">Try for FREE</string>
-    <string name="Premium_Upgrade">Upgrade</string>
     <string name="Premium_UpgradeText">Upgrade your experience with Premium features!</string>
     <string name="premium_available">⭐️ Premium is available</string>
+    <string name="premium_demo_days_left">Demo Premium: %d days left</string>
+    <string name="premium_select_wallet_title">Select Wallet for Demo</string>
+    <string name="premium_select_wallet_description">Choose a wallet to activate demo premium features. Only one wallet can have demo premium at a time.</string>
+    <string name="premium_select_wallet_section_title">WALLETS</string>
+    <string name="premium_demo_activated">Demo Premium activated successfully!</string>
+    <string name="premium_demo_activation_failed">Failed to activate demo premium</string>
+    <string name="premium_demo_expired">Demo Premium for this wallet has expired</string>
+    <string name="wallet_is_not_eligile">This wallet is not eligible for Premium</string>
 </resources>

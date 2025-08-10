@@ -11,8 +11,10 @@ import cash.p.terminal.network.pirate.data.entity.PiratePlaceCoinDto
 import cash.p.terminal.network.pirate.data.entity.StakeDataDto
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.parameter
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import java.util.Locale
 
 internal class PlaceApi(
@@ -79,5 +81,18 @@ internal class PlaceApi(
             url(PIRATE_BASE_PLACE_URL + "invest/$coin/calculator")
             parameter("amount", formattedAmount)
         }.parseResponse()
+    }
+
+    // Premium API methods
+    suspend fun checkTrialPremiumStatus(address: String): HttpResponse {
+        return httpClient.get {
+            url(PIRATE_BASE_PLACE_URL + "mobile/premium/$address")
+        }
+    }
+
+    suspend fun activateTrialPremium(address: String): HttpResponse {
+        return httpClient.post {
+            url(PIRATE_BASE_PLACE_URL + "mobile/premium/$address")
+        }
     }
 }

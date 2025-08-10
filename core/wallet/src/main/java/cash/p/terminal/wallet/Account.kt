@@ -90,6 +90,12 @@ data class Account(
     }
 }
 
+fun Account.eligibleForPremium(): Boolean {
+    return type is AccountType.Mnemonic &&
+            !isWatchAccount &&
+            hasAnyBackup
+}
+
 @Parcelize
 sealed class AccountType : Parcelable {
 

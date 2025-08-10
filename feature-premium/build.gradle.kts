@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":core:navigation"))
     implementation(libs.bitcoinj)
     implementation(libs.bitcoin.kit)
+    implementation(libs.timber)
 
     implementation(libs.android.core.ktx)
     implementation(libs.appcompat)

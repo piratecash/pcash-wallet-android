@@ -4,10 +4,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,6 +34,7 @@ fun ButtonPrimaryCustomColor(
     brush: Brush,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    isLoading: Boolean = false,
     contentPadding: PaddingValues = ButtonPrimaryDefaults.ContentPadding,
 ) {
     Surface(
@@ -40,7 +45,7 @@ fun ButtonPrimaryCustomColor(
         color = Color.Transparent,
         contentColor = ComposeAppTheme.colors.dark,
         onClick = onClick,
-        enabled = enabled,
+        enabled = enabled && !isLoading,
     ) {
         ProvideTextStyle(
             value = ComposeAppTheme.typography.headline2
@@ -55,11 +60,20 @@ fun ButtonPrimaryCustomColor(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        color = ComposeAppTheme.colors.dark,
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                } else {
+                    Text(
+                        title,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

@@ -32,6 +32,7 @@ kotlinx-coroutines-android = "1.10.2"
 room = "2.7.2"
 javax-inject = "1"
 appcompat = "1.7.0"
+timber = "5.0.1"
 
 tonKotlin = "0.2.15" # same version like in ton-kit
 piratecash-ton = "acae5a0"
@@ -151,6 +152,7 @@ google-play-app-update-ktx = { group = "com.google.android.play", name = "app-up
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }

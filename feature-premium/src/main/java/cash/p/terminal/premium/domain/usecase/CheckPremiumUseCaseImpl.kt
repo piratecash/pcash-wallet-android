@@ -4,6 +4,7 @@ import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.premium.data.model.PremiumUser
 import cash.p.terminal.premium.data.repository.PremiumUserRepository
+import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.premium.domain.model.TokenBalance
 import cash.p.terminal.premium.domain.repository.TokenBalanceRepository
 import cash.p.terminal.wallet.Account
@@ -18,18 +19,22 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 internal class CheckPremiumUseCaseImpl(
     private val premiumUserRepository: PremiumUserRepository,
     private val tokenBalanceRepository: TokenBalanceRepository,
     private val piratePlaceRepository: PiratePlaceRepository,
     private val accountManager: IAccountManager,
-    private val seedToEvmAddressUseCase: SeedToEvmAddressUseCase
+    private val seedToEvmAddressUseCase: SeedToEvmAddressUseCase,
+    private val checkTrialPremiumUseCase: CheckTrialPremiumUseCase,
+    private val activateTrialPremiumUseCase: ActivateTrialPremiumUseCase,
 ) : CheckPremiumUseCase {
 
     private val mutex = Mutex()
 
     private val _premiumCache = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
+    private val _trialPremiumCache = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private val coinConfigs = mapOf(
@@ -56,8 +61,11 @@ internal class CheckPremiumUseCaseImpl(
     }
 
     override fun isPremium(): Boolean {
-        val currentLevel = accountManager.activeAccount?.level ?: return false
-        return _premiumCache.value[currentLevel] ?: false
+        val currentAccount = accountManager.activeAccount ?: return false
+        if (_trialPremiumCache.value[currentAccount.id] == true) {
+            return true
+        }
+        return _premiumCache.value[currentAccount.level] ?: false
     }
 
     override suspend fun update(): Boolean = mutex.withLock {
@@ -67,14 +75,19 @@ internal class CheckPremiumUseCaseImpl(
         val cachedResult = checkCachedPremiumStatus(firstAccountToCheck)
         if (cachedResult != null) {
             updateCache(currentLevel, cachedResult)
-            return cachedResult
         }
 
-        val premiumStatus = checkPremiumStatusByBalance(firstAccountToCheck, currentLevel)
-        val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: false
+        if (cachedResult == null || !cachedResult) {
+            updateTrialPremium()
+        }
 
-        updateCache(currentLevel, result)
-        return result
+        if (cachedResult == null) {
+            val premiumStatus = checkPremiumStatusByBalance(firstAccountToCheck, currentLevel)
+            val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: false
+            updateCache(currentLevel, result)
+        }
+
+        return isPremium()
     }
 
     private fun updateCache(level: Int, isPremium: Boolean) {
@@ -103,6 +116,7 @@ internal class CheckPremiumUseCaseImpl(
         var lastCheckedAddress: String? = null
         var lastCheckedAccount: Account? = null
 
+        var balanceReceived = false // false means no internet connection or no balance received
         for (account in accountsToCheck) {
             if (account.isWatchAccount || account.type !is AccountType.Mnemonic || !account.hasAnyBackup) continue
 
@@ -112,14 +126,22 @@ internal class CheckPremiumUseCaseImpl(
             lastCheckedAccount = account
 
             for (coinType in coinConfigs.keys) {
-                if (isPremiumByBalance(coinType, address) == true) {
+                val result = isPremiumByBalance(coinType, address)
+                balanceReceived = balanceReceived || result != null
+                if (result == true) {
                     updatePremiumData(address, currentLevel, coinType, account, isPremium = true)
                     return true
                 }
             }
         }
 
+        if (!balanceReceived) {
+            // No need to update cache if no balance was received
+            return null
+        }
+
         if (lastCheckedAddress != null && lastCheckedAccount != null) {
+            // means no premium found for any account
             val coinType = coinConfigs.keys.first()
             updatePremiumData(
                 address = lastCheckedAddress,
@@ -159,6 +181,12 @@ internal class CheckPremiumUseCaseImpl(
             accountManager.accounts.sortedBy { if (it.id == primaryAccountId) 0 else 1 }
         }
 
+    /**
+     * Checks if the user is premium based on their token balance.
+     * @param coinType The type of the coin (e.g., "PIRATE", "COSANTA").
+     * @param address The wallet address to check.
+     * @return Boolean? Returns true if the user is premium, false if not, or null if the balance could not be retrieved.
+     */
     private suspend fun isPremiumByBalance(coinType: String, address: String): Boolean? {
         val config = coinConfigs[coinType] ?: return false
 
@@ -181,6 +209,37 @@ internal class CheckPremiumUseCaseImpl(
                     .balance.toBigDecimal()
             )
         }.getOrNull()
+    }
+
+    // Trial Premium
+
+    override suspend fun checkTrialPremiumStatus() = withContext(Dispatchers.IO) {
+        accountManager.activeAccount?.let {
+            checkTrialPremiumUseCase.checkTrialPremiumStatus(it)
+        } ?: run {
+            TrialPremiumResult.DemoNotFound
+        }
+    }
+
+    override suspend fun activateTrialPremium(accountId: String): TrialPremiumResult =
+        activateTrialPremiumUseCase.activateTrialPremium(accountId).also {
+            if (it is TrialPremiumResult.DemoActive) {
+                updateTrialPremiumCache(accountId)
+            }
+        }
+
+    private suspend fun updateTrialPremium() {
+        _trialPremiumCache.value = emptyMap()
+
+        accountManager.accounts.forEach { account ->
+            if (checkTrialPremiumUseCase.checkTrialPremiumStatus(account) is TrialPremiumResult.DemoActive) {
+                updateTrialPremiumCache(account.id)
+            }
+        }
+    }
+
+    private fun updateTrialPremiumCache(address: String) {
+        _trialPremiumCache.value = _trialPremiumCache.value + (address to true)
     }
 }
 
