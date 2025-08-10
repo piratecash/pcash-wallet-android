@@ -115,7 +115,9 @@ class SendZCashViewModel(
     private fun handleUpdatedAddressState(addressState: SendZCashAddressService.State) {
         this.addressState = addressState
 
-        memoService.setAddressType(addressState.addressType)
+        addressState.address?.hex?.let {
+            memoService.setAddress(it)
+        }
 
         emitState()
     }
