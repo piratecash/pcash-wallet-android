@@ -203,7 +203,8 @@ class ZcashAdapter(
             birthday = birthday,
             walletInitMode = walletInitMode,
             setup = setup,
-            isTorEnabled = localStorage.torEnabled
+            isTorEnabled = localStorage.torEnabled,
+            isExchangeRateEnabled = false
         )
 
         if (isWatchOnlyAccount()) {
@@ -330,7 +331,8 @@ class ZcashAdapter(
                 birthday = birthday,
                 walletInitMode = walletInitMode,
                 setup = setup,
-                isTorEnabled = localStorage.torEnabled
+                isTorEnabled = localStorage.torEnabled,
+                isExchangeRateEnabled = false
             )
 
             if (isWatchOnlyAccount()) {

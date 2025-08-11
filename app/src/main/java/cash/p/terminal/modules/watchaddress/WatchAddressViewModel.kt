@@ -147,7 +147,8 @@ class WatchAddressViewModel(
                 birthday = null,
                 walletInitMode = WalletInitMode.ExistingWallet,
                 setup = null,
-                isTorEnabled = localStorage.torEnabled
+                isTorEnabled = localStorage.torEnabled,
+                isExchangeRateEnabled = false
             )
             (synchronizer as Synchronizer).getAccounts().forEach {
                 println("Account: ${it.ufvk}")
