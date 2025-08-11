@@ -54,7 +54,7 @@ class AdapterManager(
 
     override fun startAdapterManager() {
         coroutineScope.launch {
-            walletManager.activeWalletsUpdatedObservable.asFlow().collect { wallets ->
+            walletManager.activeWalletsFlow.collect { wallets ->
                 initAdapters(wallets)
             }
         }
