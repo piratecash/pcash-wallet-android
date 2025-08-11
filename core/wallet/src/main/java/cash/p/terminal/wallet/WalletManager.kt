@@ -53,10 +53,8 @@ class WalletManager(
 
     suspend fun handleSuspended(newWallets: List<Wallet>, deletedWallets: List<Wallet>) {
         mutex.withLock {
-            withContext(Dispatchers.IO) {
-                if (newWallets.isNotEmpty()) storage.save(newWallets)
-                if (deletedWallets.isNotEmpty()) storage.delete(deletedWallets)
-            }
+            if (newWallets.isNotEmpty()) storage.save(newWallets)
+            if (deletedWallets.isNotEmpty()) storage.delete(deletedWallets)
 
             val activeAccount = accountManager.activeAccount
             walletsSet.addAll(newWallets.filter { it.account == activeAccount })
