@@ -1,12 +1,12 @@
 package cash.p.terminal.premium.domain.usecase
 
+import cash.p.terminal.network.binance.api.BinanceApi
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.premium.data.model.PremiumUser
 import cash.p.terminal.premium.data.repository.PremiumUserRepository
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
-import cash.p.terminal.premium.domain.model.TokenBalance
-import cash.p.terminal.premium.domain.repository.TokenBalanceRepository
+import cash.p.terminal.network.binance.data.TokenBalance
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 
 internal class CheckPremiumUseCaseImpl(
     private val premiumUserRepository: PremiumUserRepository,
-    private val tokenBalanceRepository: TokenBalanceRepository,
+    private val binanceApi: BinanceApi,
     private val piratePlaceRepository: PiratePlaceRepository,
     private val accountManager: IAccountManager,
     private val seedToEvmAddressUseCase: SeedToEvmAddressUseCase,
@@ -199,8 +199,7 @@ internal class CheckPremiumUseCaseImpl(
         address: String,
         coinType: String
     ): TokenBalance? {
-        return tokenBalanceRepository.getTokenBalance(
-            rpcUrl = PremiumConfig.BSC_RPC_URL,
+        return binanceApi.getTokenBalance(
             contractAddress = contractAddress,
             walletAddress = address
         ) ?: runCatching {

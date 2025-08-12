@@ -1,20 +1,22 @@
-package cash.p.terminal.premium.domain.repository
+package cash.p.terminal.network.binance.api
 
-import cash.p.terminal.premium.data.api.EthereumRpcApi
-import cash.p.terminal.premium.domain.model.TokenBalance
+import cash.p.terminal.network.binance.data.TokenBalance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-internal class TokenBalanceRepository(
+internal class BinanceApiImpl(
     private val ethereumRpcApi: EthereumRpcApi
-) {
-    suspend fun getTokenBalance(
-        rpcUrl: String,
+): BinanceApi {
+    private companion object Companion {
+        const val BINANCE_BSC_URL = "https://bsc-dataseed.binance.org/"
+    }
+
+    override suspend fun getTokenBalance(
         contractAddress: String,
         walletAddress: String
     ): TokenBalance? = withContext(Dispatchers.IO) {
         return@withContext runCatching {
-            val balanceHex = ethereumRpcApi.getTokenBalance(rpcUrl, contractAddress, walletAddress)
+            val balanceHex = ethereumRpcApi.getTokenBalance(BINANCE_BSC_URL, contractAddress, walletAddress)
 
             balanceHex?.let { hex ->
                 val decimals = TokenBalance.PIRATE_DECIMALS

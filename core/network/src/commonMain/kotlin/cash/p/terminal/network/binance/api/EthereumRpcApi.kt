@@ -1,6 +1,6 @@
-package cash.p.terminal.premium.data.api
+package cash.p.terminal.network.binance.api
 
-import cash.p.terminal.premium.data.model.JsonRpcResponse
+import cash.p.terminal.network.binance.data.JsonRpcResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.post
@@ -50,4 +50,4 @@ internal class EthereumRpcApi(
             null
         }
     }
-} 
+}

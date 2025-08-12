@@ -1,10 +1,10 @@
-package cash.p.terminal.premium.domain.model
+package cash.p.terminal.network.binance.data
 
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 
-internal data class TokenBalance(
+data class TokenBalance(
     val balance: BigDecimal
 ) {
     companion object {
@@ -23,9 +23,9 @@ internal data class TokenBalance(
                 balance = humanReadableBalance,
             )
         }
-        
+
         private fun hexToBigInteger(hex: String): BigInteger {
             return BigInteger(hex.removePrefix("0x"), 16)
         }
     }
-} 
+}

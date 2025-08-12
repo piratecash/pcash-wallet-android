@@ -1,4 +1,4 @@
-package cash.p.terminal.premium.data.model
+package cash.p.terminal.network.binance.data
 
 import kotlinx.serialization.Serializable
 
