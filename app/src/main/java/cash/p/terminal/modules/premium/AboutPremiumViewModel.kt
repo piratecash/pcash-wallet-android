@@ -39,6 +39,7 @@ class AboutPremiumViewModel(
         private const val DEFAULT_PIRATE_ROI = "(~$200, ROI ~8%)"
         private const val DEFAULT_COSA_ROI = "(~$400, ROI ~30%)"
     }
+
     var uiState by mutableStateOf(AboutPremiumUiState())
         private set
 
@@ -51,13 +52,13 @@ class AboutPremiumViewModel(
             uiState = uiState.copy(activationViewState = ViewState.Loading)
 
             val currentAccount = accountManager.activeAccount
-            if(currentAccount?.eligibleForPremium() == true) {
+            if (currentAccount?.eligibleForPremium() == true) {
                 try {
                     val result = checkPremiumUseCase.activateTrialPremium(currentAccount.id)
 
                     uiState = uiState.copy(
                         activationResult = result,
-                        hasPremium = checkPremiumUseCase.isPremium(),
+                        hasPremium = checkPremiumUseCase.isAnyPremium(),
                         demoDaysLeft = (result as? TrialPremiumResult.DemoActive)?.daysLeft,
                         activationViewState = ViewState.Success
                     )
@@ -84,12 +85,20 @@ class AboutPremiumViewModel(
     private fun loadContent() {
         viewModelScope.launch {
             try {
+                checkPremiumUseCase.update()
+                val isPremium = checkPremiumUseCase.isAnyPremium()
+                val isTrialPremium = checkPremiumUseCase.isTrialPremium()
+
+                val infoToLoad = if (isTrialPremium) {
+                    GetLocalizedAssetUseCase.ABOUT_PREMIUM_PREFIX
+                } else {
+                    GetLocalizedAssetUseCase.ABOUT_PREMIUM_FULL_PREFIX
+                }
+
                 val contentDeferred = async {
-                    getLocalizedAssetUseCase(GetLocalizedAssetUseCase.ABOUT_PREMIUM_PREFIX)
+                    getLocalizedAssetUseCase(infoToLoad)
                 }
-                val premiumDeferred = async {
-                    checkPremiumUseCase.update()
-                }
+
                 val demoDaysDeferred = async {
                     getDemoDaysLeft()
                 }
@@ -108,21 +117,26 @@ class AboutPremiumViewModel(
 
                 val results = awaitAll(
                     contentDeferred,
-                    premiumDeferred,
                     demoDaysDeferred,
                     roiPirateValueDeferred,
                     roiCosaValueDeferred
                 )
 
                 val content = results[0] as String
-                val hasPremium = results[1] as Boolean
-                val demoDaysLeft = results[2] as Int?
-                val roiPirateValue = results[3] as String
-                val roiCosaValue = results[4] as String
+                val demoDaysLeft = results[1] as Int?
+                val roiPirateValue = results[2] as String
+                val roiCosaValue = results[3] as String
 
                 val processedContent = content
                     .replace("ROI_PIRATE", roiPirateValue)
                     .replace("ROI_COSA", roiCosaValue)
+                    .run {
+                        if (isTrialPremium) {
+                            replace("WALLETNAME",  accountManager.activeAccount?.name.orEmpty())
+                        } else {
+                            this
+                        }
+                    }
 
                 val markdownBlocks = getMarkdownBlocks(processedContent)
                 val hasEligibleWallets = hasEligibleWallets()
@@ -130,7 +144,7 @@ class AboutPremiumViewModel(
                 uiState = uiState.copy(
                     viewState = ViewState.Success,
                     markdownBlocks = markdownBlocks,
-                    hasPremium = hasPremium,
+                    hasPremium = isPremium,
                     demoDaysLeft = demoDaysLeft,
                     hasEligibleWallets = hasEligibleWallets
                 )
@@ -152,12 +166,12 @@ class AboutPremiumViewModel(
 
     private suspend fun getDemoDaysLeft(): Int? {
         val activeAccount = accountManager.activeAccount ?: return null
-        
+
         if (!isPremiumCandidateAccount(activeAccount)) {
             return null
         }
 
-        return  (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft
+        return (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft
     }
 
     private fun getMarkdownBlocks(content: String): List<MarkdownBlock> {
@@ -186,7 +200,7 @@ class AboutPremiumViewModel(
                 baseCurrencySymbol = "$"
                 earnInYear = itemData.price["usd"]
             }
-            if(earnInYear == null) return null
+            if (earnInYear == null) return null
 
             val premiumValueInCurrency = ((earnInYear / itemData.amount) * amount).toBigDecimal()
             val formatted = numberFormatter.formatFiatShort(

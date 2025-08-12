@@ -60,12 +60,17 @@ internal class CheckPremiumUseCaseImpl(
             .launchIn(scope)
     }
 
-    override fun isPremium(): Boolean {
+    override fun isAnyPremium(): Boolean {
         val currentAccount = accountManager.activeAccount ?: return false
         if (_trialPremiumCache.value[currentAccount.id] == true) {
             return true
         }
         return _premiumCache.value[currentAccount.level] ?: false
+    }
+
+    override fun isTrialPremium(): Boolean {
+        val currentAccount = accountManager.activeAccount ?: return false
+        return _trialPremiumCache.value[currentAccount.id] == true
     }
 
     override suspend fun update(): Boolean = mutex.withLock {
@@ -87,7 +92,7 @@ internal class CheckPremiumUseCaseImpl(
             updateCache(currentLevel, result)
         }
 
-        return isPremium()
+        return isAnyPremium()
     }
 
     private fun updateCache(level: Int, isPremium: Boolean) {

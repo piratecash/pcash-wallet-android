@@ -3,7 +3,8 @@ package cash.p.terminal.premium.domain.usecase
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 
 interface CheckPremiumUseCase {
-    fun isPremium(): Boolean
+    fun isAnyPremium(): Boolean
+    fun isTrialPremium(): Boolean
     fun startAccountMonitorUpdate()
     suspend fun update(): Boolean
 
