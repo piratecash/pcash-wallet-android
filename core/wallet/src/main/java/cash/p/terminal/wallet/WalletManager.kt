@@ -134,4 +134,7 @@ class WalletManager(
         _activeWalletsState.value = snapshot
     }
 
+    override fun getWallets(account: Account): List<Wallet> {
+        return storage.wallets(account)
+    }
 }
