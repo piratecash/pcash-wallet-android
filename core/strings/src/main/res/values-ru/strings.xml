@@ -64,6 +64,7 @@
     <string name="Button_Share">Поделиться</string>
     <string name="Button_Apply">Применить</string>
     <string name="Button_SetAmount">Установить сумму</string>
+    <string name="Button_ContinueAnyway">Всё равно продолжить</string>
     <string name="not_enough_ton_for_fee">Недостаточно TON для оплаты комиссии</string>
     <string name="Error_AssetNotEnabled">Получатель не включил %s, поэтому не может получить.</string>
     <string name="Error_OutOfRange">Не может быть меньше %1$s или более чем %2$s</string>
@@ -418,6 +419,7 @@
     <string name="Send_Confirmation_Title">Подтвердить</string>
     <string name="Send_Confirmation_Domain">Домен</string>
     <string name="Send_Confirmation_YouSend">Вы отправляете</string>
+    <string name="Send_Confirmation_Burn">Сжечь</string>
     <string name="Send_Confirmation_Amount">Сумма</string>
     <string name="Send_Confirmation_To">Кому</string>
     <string name="Send_Confirmation_Own">Свой</string>
@@ -1225,6 +1227,7 @@
     <string name="LocalBackup_TermsWarningText">Устройства хранения, такие как жесткие диски, USB-накопители, накопители на смартфоне и т.д., все они подвержены потерям вследствие физических повреждений, кражи или других непредвиденных обстоятельств.</string>
     <string name="LocalBackup_Term1">Я понимаю, что кража или повреждение устройства резервного копирования приведет к потере резервной копии в соответствующем кошельке.</string>
     <!-- Recovery Phrase -->
+    <string name="RecoveryPhrase_monero_Title">Фраза восстановления Monero</string>
     <string name="RecoveryPhrase_Title">Фраза восстановления</string>
     <string name="RecoveryPhrase_Description">Напишите эти слова в правильном порядке и храните их в безопасном месте</string>
     <string name="RecoveryPhrase_ShowPhrase">Нажмите, чтобы показать фразу восстановления</string>
@@ -1919,6 +1922,7 @@
     <string name="Balance_Reserved_Title">Зарезервировано</string>
     <string name="Send_Processing">Обработка!</string>
     <string name="Send_Processing_Description">Транзакция успешно отправлена. Проверьте её статус для получения деталей.</string>
+    <string name="checking_address">Проверка адреса…</string>
     <string name="Send_Address_Recent">Недавние</string>
     <string name="Send_Address_Error_CheckLocked">Заблокировано</string>
     <string name="Send_Address_Error_Incorrect">Недопустимо</string>
@@ -1986,4 +1990,6 @@
     <string name="StellarSecretKey_Title">Секретный ключ Stellar</string>
     <string name="PrivateKeys_StellarSecretKey">Секретный ключ Stellar</string>
     <string name="PrivateKeys_StellarSecretKeyDescription">Предоставляет полный контроль над аккаунтом Stellar в соответствующем кошельке.</string>
+    <string name="Send_Confirmation_YouReceive">Вы получаете</string>
+    <string name="Send_Confirmation_Mint">Выпустить</string>
 </resources>
