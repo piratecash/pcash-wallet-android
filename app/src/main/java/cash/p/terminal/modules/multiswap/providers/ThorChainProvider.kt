@@ -5,6 +5,7 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.adapters.BitcoinAdapter
 import cash.p.terminal.core.adapters.BitcoinCashAdapter
 import cash.p.terminal.core.adapters.LitecoinAdapter
+import cash.p.terminal.core.derivation
 import cash.p.terminal.core.managers.APIClient
 import cash.p.terminal.core.nativeTokenQueries
 import cash.p.terminal.entities.CoinValue
@@ -110,7 +111,15 @@ object ThorChainProvider : IMultiSwapProvider {
                 BlockchainType.Bitcoin,
                 BlockchainType.Litecoin,
                     -> {
-                    val tokens = App.marketKit.tokens(blockchainType.nativeTokenQueries)
+                    var nativeTokenQueries = blockchainType.nativeTokenQueries
+                    // filter out taproot for ltc
+                    if (blockchainType == BlockchainType.Litecoin) {
+                        nativeTokenQueries = nativeTokenQueries.filterNot {
+                            it.tokenType.derivation == TokenType.Derivation.Bip86
+                        }
+                    }
+
+                    val tokens = App.marketKit.tokens(nativeTokenQueries)
                     assets.addAll(tokens.map { Asset(pool.asset, it) })
                 }
 

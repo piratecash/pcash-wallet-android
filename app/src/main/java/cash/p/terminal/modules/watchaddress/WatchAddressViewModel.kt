@@ -3,6 +3,7 @@ package cash.p.terminal.modules.watchaddress
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.BitcoinAddress
 import cash.p.terminal.ui_compose.entities.DataState
@@ -26,11 +27,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 
 class WatchAddressViewModel(
     private val watchAddressService: WatchAddressService,
     private val addressParserChain: AddressParserChain
 ) : ViewModelUiState<WatchAddressUiState>() {
+
+    private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
 
     private var accountCreated = false
     private var submitButtonType: SubmitButtonType = SubmitButtonType.Next(false)
@@ -142,7 +146,9 @@ class WatchAddressViewModel(
                 ),
                 birthday = null,
                 walletInitMode = WalletInitMode.ExistingWallet,
-                setup = null
+                setup = null,
+                isTorEnabled = localStorage.torEnabled,
+                isExchangeRateEnabled = false
             )
             (synchronizer as Synchronizer).getAccounts().forEach {
                 println("Account: ${it.ufvk}")

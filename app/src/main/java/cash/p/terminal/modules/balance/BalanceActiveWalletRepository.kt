@@ -4,6 +4,7 @@ import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Wallet
 import io.reactivex.Observable
+import kotlinx.coroutines.rx2.asObservable
 
 class BalanceActiveWalletRepository(
     private val walletManager: IWalletManager,
@@ -14,7 +15,7 @@ class BalanceActiveWalletRepository(
         Observable
             .merge(
                 Observable.just(Unit),
-                walletManager.activeWalletsUpdatedObservable,
+                walletManager.activeWalletsFlow.asObservable(),
                 evmSyncSourceManager.syncSourceObservable
             )
             .map {

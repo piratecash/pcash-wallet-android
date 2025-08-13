@@ -20,9 +20,9 @@ import cash.p.terminal.modules.sendevmtransaction.ViewItem
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.modules.walletconnect.request.WCChainData
 import cash.p.terminal.strings.helpers.Translator
-import io.horizontalsystems.core.toHexString
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.toHexStringWithLeadingZero
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -105,7 +105,7 @@ internal class WCSendEthereumTransactionRequestViewModel(
         val transactionHash = sendResult.fullTransaction.transaction.hash
 
         WCDelegate.sessionRequestEvent?.let { sessionRequest ->
-            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, transactionHash.toHexString())
+            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, transactionHash.toHexStringWithLeadingZero())
         }
     }
 

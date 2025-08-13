@@ -16,6 +16,8 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.entities.TokenQuery
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 internal class CreateHardwareWalletUseCase(
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
@@ -50,15 +52,17 @@ internal class CreateHardwareWalletUseCase(
         val blockchainTypes = defaultTokens.distinct()
         val publicKeys =
             BuildHardwarePublicKeyUseCase().invoke(scanResponse, account.id, blockchainTypes)
-        appDatabase.withTransaction {
-            hardwarePublicKeyStorage.save(publicKeys)
-            activateDefaultWallets(
-                account = account,
-                tokenQueries = defaultTokens.filter { defaultToken ->
-                    publicKeys.find { it.blockchainType == defaultToken.blockchainType.uid } != null
-                }
-            )
-            accountManager.save(account = account, updateActive = false)
+        withContext(Dispatchers.IO) {
+            appDatabase.withTransaction {
+                hardwarePublicKeyStorage.save(publicKeys)
+                activateDefaultWallets(
+                    account = account,
+                    tokenQueries = defaultTokens.filter { defaultToken ->
+                        publicKeys.find { it.blockchainType == defaultToken.blockchainType.uid } != null
+                    }
+                )
+                accountManager.save(account = account, updateActive = false)
+            }
         }
 
         accountManager.setActiveAccountId(account.id)

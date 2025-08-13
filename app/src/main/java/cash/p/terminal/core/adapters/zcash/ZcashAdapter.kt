@@ -200,7 +200,9 @@ class ZcashAdapter(
             lightWalletEndpoint = lightWalletEndpoint,
             birthday = birthday,
             walletInitMode = walletInitMode,
-            setup = setup
+            setup = setup,
+            isTorEnabled = localStorage.torEnabled,
+            isExchangeRateEnabled = false
         )
 
         if (isWatchOnlyAccount()) {
@@ -326,7 +328,9 @@ class ZcashAdapter(
                 lightWalletEndpoint = lightWalletEndpoint,
                 birthday = birthday,
                 walletInitMode = walletInitMode,
-                setup = setup
+                setup = setup,
+                isTorEnabled = localStorage.torEnabled,
+                isExchangeRateEnabled = false
             )
 
             if (isWatchOnlyAccount()) {

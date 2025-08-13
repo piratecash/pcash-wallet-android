@@ -1,108 +1,137 @@
 package cash.p.terminal.wallet
 
 import cash.p.terminal.wallet.entities.EnabledWallet
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 class WalletManager(
     private val accountManager: IAccountManager,
     private val storage: IWalletStorage
 ) : IWalletManager {
 
-    override val activeWallets get() = walletsSet.toList()
-    override val activeWalletsUpdatedObservable =
-        PublishSubject.create<List<Wallet>>()
+    private val _activeWalletsState = MutableStateFlow<List<Wallet>>(emptyList())
+    override val activeWalletsFlow: StateFlow<List<Wallet>> get() = _activeWalletsState.asStateFlow()
 
     private val walletsSet = mutableSetOf<Wallet>()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val mutexUpdateWallets = Mutex()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+    private val mutex = Mutex()
 
     init {
         coroutineScope.launch {
-            accountManager.activeAccountStateFlow.collect { activeAccountState ->
+            accountManager.activeAccountStateFlow.collectLatest { activeAccountState ->
                 if (activeAccountState is ActiveAccountState.ActiveAccount) {
-                    handleUpdated(activeAccountState.account)
+                    handleUpdatedSuspended(activeAccountState.account)
+                } else {
+                    handleUpdatedSuspended(null)
                 }
             }
         }
     }
 
-    override fun save(wallets: List<Wallet>) {
-        handle(wallets, listOf())
-    }
+    override val activeWallets: List<Wallet>
+        get() = synchronized(walletsSet) { walletsSet.toList() }
 
     override suspend fun saveSuspended(wallets: List<Wallet>) {
-        handleSuspended(wallets, listOf())
+        handleSuspended(wallets, emptyList())
     }
 
-    override fun delete(wallets: List<Wallet>) {
-        handle(listOf(), wallets)
+    suspend fun deleteSuspended(wallets: List<Wallet>) {
+        handleSuspended(emptyList(), wallets)
     }
 
-    @Deprecated(
-        "Use suspend function instead",
-        ReplaceWith("handleSuspended(newWallets, deletedWallets)")
-    )
-    @Synchronized
-    override fun handle(newWallets: List<Wallet>, deletedWallets: List<Wallet>) {
-        storage.save(newWallets)
-        storage.delete(deletedWallets)
-
-        val activeAccount = accountManager.activeAccount
-        walletsSet.addAll(newWallets.filter { it.account == activeAccount })
-        walletsSet.removeAll(deletedWallets)
-        notifyActiveWallets()
-    }
-
-    suspend fun handleSuspended(newWallets: List<Wallet>, deletedWallets: List<Wallet>) =
-        mutexUpdateWallets.withLock {
-            storage.save(newWallets)
-            storage.delete(deletedWallets)
+    suspend fun handleSuspended(newWallets: List<Wallet>, deletedWallets: List<Wallet>) {
+        mutex.withLock {
+            if (newWallets.isNotEmpty()) storage.save(newWallets)
+            if (deletedWallets.isNotEmpty()) storage.delete(deletedWallets)
 
             val activeAccount = accountManager.activeAccount
             walletsSet.addAll(newWallets.filter { it.account == activeAccount })
             walletsSet.removeAll(deletedWallets)
-            notifyActiveWallets()
-        }
 
-    override fun getWallets(account: Account): List<Wallet> {
-        return storage.wallets(account)
+            notifyActiveWalletsLocked()
+        }
+    }
+
+    private suspend fun handleUpdatedSuspended(activeAccount: Account?) {
+        mutex.withLock {
+            val activeWallets =
+                activeAccount?.let { withContext(Dispatchers.IO) { storage.wallets(it) } }
+                    ?: listOf()
+            walletsSet.clear()
+            walletsSet.addAll(activeWallets)
+            notifyActiveWalletsLocked()
+        }
+    }
+
+    override fun save(wallets: List<Wallet>) {
+        coroutineScope.launch {
+            try {
+                handleSuspended(wallets, emptyList())
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    override fun delete(wallets: List<Wallet>) {
+        coroutineScope.launch {
+            try {
+                handleSuspended(emptyList(), wallets)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    @Deprecated("Use suspend functions instead")
+    override fun handle(newWallets: List<Wallet>, deletedWallets: List<Wallet>) {
+        coroutineScope.launch {
+            handleSuspended(newWallets, deletedWallets)
+        }
     }
 
     override fun clear() {
-        storage.clear()
-        walletsSet.clear()
-        notifyActiveWallets()
-        coroutineScope.cancel()
-    }
-
-    private fun notifyActiveWallets() {
-        activeWalletsUpdatedObservable.onNext(walletsSet.toList())
-    }
-
-    @Synchronized
-    private fun handleUpdated(activeAccount: Account?) {
-        val activeWallets = activeAccount?.let { storage.wallets(it) } ?: listOf()
-
-        setWallets(activeWallets)
-        notifyActiveWallets()
-    }
-
-    @Synchronized
-    private fun setWallets(activeWallets: List<Wallet>) {
-        walletsSet.clear()
-        walletsSet.addAll(activeWallets)
+        coroutineScope.launch {
+            mutex.withLock {
+                withContext(Dispatchers.IO) { storage.clear() }
+                walletsSet.clear()
+                notifyActiveWalletsLocked()
+            }
+            coroutineScope.cancel()
+        }
     }
 
     override fun saveEnabledWallets(enabledWallets: List<EnabledWallet>) {
-        storage.handle(enabledWallets)
-        handleUpdated(accountManager.activeAccount)
+        coroutineScope.launch {
+            mutex.withLock {
+                withContext(Dispatchers.IO) {
+                    storage.handle(enabledWallets)
+                }
+                val active = accountManager.activeAccount
+                val activeWallets =
+                    active?.let { withContext(Dispatchers.IO) { storage.wallets(it) } } ?: listOf()
+                walletsSet.clear()
+                walletsSet.addAll(activeWallets)
+                notifyActiveWalletsLocked()
+            }
+        }
+    }
+
+    private fun notifyActiveWalletsLocked() {
+        val snapshot = walletsSet.toList()
+        _activeWalletsState.value = snapshot
     }
 
 }

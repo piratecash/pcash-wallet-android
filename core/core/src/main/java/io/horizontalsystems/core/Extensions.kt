@@ -53,10 +53,18 @@ fun String.hexToByteArray(): ByteArray {
 
 //  ByteArray
 
-fun ByteArray.toHexString(): String {
+@Deprecated("Use toRawHexString() instead", ReplaceWith("toRawHexString()"))
+fun ByteArray.toHexString() = this.toRawHexString()
+
+fun ByteArray.toRawHexString(): String {
     return this.joinToString(separator = "") {
         it.toInt().and(0xff).toString(16).padStart(2, '0')
     }
+}
+
+fun ByteArray.toHexStringWithLeadingZero(): String {
+    val rawHex = this.toRawHexString()
+    return "0x$rawHex"
 }
 
 fun ByteArray.toHexReversed(): String {

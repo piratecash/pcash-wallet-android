@@ -26,7 +26,7 @@ class NftAdapterManager(
 
     init {
         coroutineScope.launch {
-            walletManager.activeWalletsUpdatedObservable.asFlow()
+            walletManager.activeWalletsFlow
                 .collect {
                     //disable NFT adapters for now
                     //initAdapters(it)
