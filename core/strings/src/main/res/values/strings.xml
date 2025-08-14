@@ -181,7 +181,7 @@
     <string name="SelectContacts_All">All</string>
 
     <string name="Restore_BirthdayHeight">Birthday Height</string>
-    <string name="restore_monero">Monero</string>
+    <string name="restore_monero" translatable="false">Monero</string>
     <string name="Restore_ZCash">ZCash</string>
     <string name="Restore_ZCash_BirthdayHeight">Zcash Birthday Height</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Enter wallet\'s birthday height for faster synchronization.</string>
@@ -2342,7 +2342,7 @@
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">Unpaid</string>
-    <string name="stacking_unpaid">Stacking unpaid:</string>
+    <string name="staking_unpaid">Staking unpaid:</string>
     <string name="estimated_annual_interest">Estimated Annual Interest</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

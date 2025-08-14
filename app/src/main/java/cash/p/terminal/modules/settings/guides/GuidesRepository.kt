@@ -34,7 +34,7 @@ class GuidesRepository(
         fetch()
 
         coroutineScope.launch {
-            connectivityManager.networkAvailabilitySignal.asFlow().collect {
+            connectivityManager.networkAvailabilityFlow.collect {
                 if (connectivityManager.isConnected.value && guideCategoriesSubject.value is DataState.Error) {
                     fetch()
                 }

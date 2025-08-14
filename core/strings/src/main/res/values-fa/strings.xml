@@ -1805,7 +1805,7 @@
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">Unpaid</string>
-    <string name="stacking_unpaid">Stacking unpaid:</string>
+    <string name="staking_unpaid">Staking unpaid:</string>
     <string name="estimated_annual_interest">Estimated Annual Interest</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

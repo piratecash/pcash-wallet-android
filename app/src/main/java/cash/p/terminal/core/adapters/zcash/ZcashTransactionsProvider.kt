@@ -40,11 +40,8 @@ class ZcashTransactionsProvider(private val synchronizer: SdkSynchronizer) {
                     } else {
                         null
                     }
-
-                    // sdk throws error when fetching memos
-                    // val memo = synchronizer.getMemos(it).firstOrNull()
-
-                    ZcashTransaction(it, recipient, null)
+                    val memo = synchronizer.getMemos(it).firstOrNull()
+                    ZcashTransaction(confirmedTransaction = it, recipient = recipient, memo = memo)
                 }
                 transactions = (transactions + newZcashTransactions).sortedDescending()
                 newTransactionsFlow.emit(newZcashTransactions)
@@ -109,6 +106,6 @@ class ZcashTransactionsProvider(private val synchronizer: SdkSynchronizer) {
 
         filtered.subList(fromIndex, min(filtered.size, fromIndex + limit))
     } catch (error: Throwable) {
-        emptyList<ZcashTransaction>()
+        emptyList()
     }
 }

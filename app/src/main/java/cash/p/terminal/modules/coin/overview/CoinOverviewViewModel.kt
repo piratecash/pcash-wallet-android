@@ -84,7 +84,7 @@ class CoinOverviewViewModel(
         service.start()
 
         viewModelScope.launch {
-            walletManager.activeWalletsUpdatedObservable.asFlow().collect { wallets ->
+            walletManager.activeWalletsFlow.collect { wallets ->
                 if (wallets.size > activeWallets.size) {
                     hudMessage = HudMessage(
                         R.string.Hud_Added_To_Wallet,

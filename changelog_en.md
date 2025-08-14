@@ -1,3 +1,23 @@
+## Version 0.45.3 Highlights
+
+### ✨ New Features
+
+- Added support for **Monero** with 12-word seed phrases
+
+### 🛠 Important Fixes
+
+- Fixed app crash: android.net.ConnectivityManager$TooManyRequestsException
+- Fixed issue with **WalletConnect** confirmation
+- Fixed cutting of the *staking* word in the description
+- Fixed button padding on the send screen
+
+### 🔧 Technical Improvements
+
+- Added filter for unsupported **LTC BIP86** in **Thorchain** (disabled Taproot support for LTC)
+- Updated **zcashAndroidSdk** to version 2.3.0
+
+
+
 ## Version 0.45.2 Highlights
 
 ## 🪙 Fixes for TRON

@@ -33,7 +33,7 @@ class FaqRepository(
         fetch()
 
         coroutineScope.launch {
-            connectivityManager.networkAvailabilitySignal.asFlow().collect {
+            connectivityManager.networkAvailabilityFlow.collect {
                 if (connectivityManager.isConnected.value && faqListSubject.value is DataState.Error) {
                     fetch()
                 }
