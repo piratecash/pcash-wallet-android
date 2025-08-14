@@ -1,4 +1,4 @@
-package cash.p.terminal.modules.premium
+package cash.p.terminal.modules.premium.about
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

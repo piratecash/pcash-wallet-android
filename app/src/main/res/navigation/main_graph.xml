@@ -462,10 +462,10 @@
         android:name="cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog" />
     <fragment
         android:id="@id/aboutPremiumFragment"
-        android:name="cash.p.terminal.modules.premium.AboutPremiumFragment"/>
+        android:name="cash.p.terminal.modules.premium.about.AboutPremiumFragment"/>
     <fragment
-        android:id="@+id/demoPremiumSelectWalletFragment"
-        android:name="cash.p.terminal.modules.premium.DemoPremiumSelectWalletFragment"/>
+        android:id="@+id/premiumSettingsFragment"
+        android:name="cash.p.terminal.modules.premium.settings.PremiumSettingsFragment"/>
     <fragment
         android:id="@+id/addressCheckerFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckerFragment"/>
