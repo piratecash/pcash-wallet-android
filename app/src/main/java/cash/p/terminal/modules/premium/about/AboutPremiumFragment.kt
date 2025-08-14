@@ -1,4 +1,4 @@
-package cash.p.terminal.modules.premium
+package cash.p.terminal.modules.premium.about
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
