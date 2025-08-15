@@ -339,6 +339,14 @@ private fun SettingSections(
                 navController.slideFromBottom(R.id.aboutPremiumFragment)
             }
         )
+        HsSettingCell(
+            title = R.string.premium_settings,
+            icon = R.drawable.ic_settings,
+            iconTint = ComposeAppTheme.colors.jacob,
+            onClick = {
+                navController.slideFromRight(R.id.premiumSettingsFragment)
+            }
+        )
     }
 
     VSpacer(32.dp)

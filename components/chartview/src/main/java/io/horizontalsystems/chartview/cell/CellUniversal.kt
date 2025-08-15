@@ -124,10 +124,12 @@ private fun SectionPremiumUniversal(
 
 @Composable
 fun SectionUniversalLawrence(
+    modifier: Modifier = Modifier,
     content: @Composable() (ColumnScope.() -> Unit),
 ) {
     SectionUniversal(
         backgroundColor = ComposeAppTheme.colors.lawrence,
+        modifier = modifier,
         content = content
     )
 }
@@ -135,10 +137,11 @@ fun SectionUniversalLawrence(
 @Composable
 private fun SectionUniversal(
     backgroundColor: Color,
+    modifier: Modifier = Modifier,
     content: @Composable() (ColumnScope.() -> Unit),
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(backgroundColor),

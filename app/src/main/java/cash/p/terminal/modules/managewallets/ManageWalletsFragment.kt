@@ -50,7 +50,7 @@ import cash.p.terminal.modules.moneroconfigure.MoneroConfigureFragment
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.premium.domain.paidAction
+import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui.compose.components.ListEmptyView
@@ -214,7 +214,7 @@ private fun ManageWalletsScreen(
                                     if (viewItem.enabled) {
                                         viewModel.disable(viewItem.item)
                                     } else {
-                                        navController.paidAction {
+                                        navController.premiumAction {
                                             viewModel.enable(viewItem.item)
                                         }
                                     }

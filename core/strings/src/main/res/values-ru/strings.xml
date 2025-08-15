@@ -1930,11 +1930,15 @@
     <string name="Send_Address_Error_Detected">Обнаружен</string>
     <string name="Send_Address_Error_Clear">Чистый</string>
     <string name="Send_Address_AddressCheck">Проверка адреса</string>
+    <string name="Send_Address_NotSmartContractCheck">Проверка на смарт конракт</string>
     <string name="Send_Address_PhishingCheck">Проверка на фишинг</string>
     <string name="Send_Address_PhishingCheck_Info1">Анализирует указанный адрес назначения на потенциальные фишинговые риски.</string>
     <string name="Send_Address_PhishingCheck_Info2">Чисто: подозрительная активность не обнаружена.</string>
     <string name="Send_Address_PhishingCheck_Info3">Обнаружено: Похоже, кто-то пытается обманом заставить вас отправить средства на неверный адрес. Не продолжайте, если вы не полностью уверены в правильности адреса. Рекомендуется сначала отправить небольшую тестовую транзакцию.</string>
     <string name="Send_Address_BlacklistCheck">Проверка по чёрному списку</string>
+    <string name="Send_Address_NotSmartContractCheck_Info1">Проверяет, что адрес назначения не является смарт-контрактом.</string>
+    <string name="Send_Address_NotSmartContractCheck_Info2">Чисто: адрес не является смарт-контрактом.</string>
+    <string name="Send_Address_NotSmartContractCheck_Info3">Обнаружено: адрес является смарт-контрактом. Убедитесь, что вы действительно хотите отправить средства на этот адрес. В некоторых случаях такие переводы могут быть необратимыми или привести к потере средств. Продолжайте только если уверены.</string>
     <string name="Send_Address_BlacklistCheck_Info1">Проверяет, указан ли адрес назначения в официальных или неофициальных чёрных списках.</string>
     <string name="Send_Address_BlacklistCheck_Info2">Чисто: адрес не найден в чёрных списках.</string>
     <string name="Send_Address_BlacklistCheck_Info3">Обнаружено: Адрес находится в чёрном списке и может быть связан с юридическими или безопасностными рисками. Действуйте с осторожностью. Многие криптовалютные биржи ограничивают пользователей, которые переводят средства с кошельков, взаимодействовавших с адресами из чёрных списков. Имейте это в виду.</string>
@@ -1942,9 +1946,12 @@
     <string name="Send_Address_SanctionCheck_Info1">Проверяет, подпадает ли адрес получателя под международные санкции, используя данные с Chainalysis.com.</string>
     <string name="Send_Address_SanctionCheck_Info2">Чисто: санкции не обнаружены.</string>
     <string name="Send_Address_SanctionCheck_Info3">Обнаружено: Возможный юридический риск. Транзакции с этим адресом могут быть ограничены или незаконны в некоторых юрисдикциях.</string>
+    <string name="Send_Address_ErrorMessage_SmartContractDetected">Адрес получателя смарт контракт!</string>
     <string name="Send_Address_ErrorMessage_PhishingDetected">Обнаружен фишинговый адрес!</string>
     <string name="Send_Address_ErrorMessage_BlacklistDetected">Обнаружен адрес из чёрного списка!</string>
     <string name="Send_Address_ErrorMessage_SanctionDetected">Обнаружен санкционный адрес!</string>
+    <string name="Send_Address_ErrorMessage_SmartContractDetected_Description">Убедитесь, что вы действительно намерены отправить средства на этот адрес. В некоторых случаях такие переводы могут быть необратимыми или привести к потере средств.
+Продолжайте только если уверены.</string>
     <string name="Send_Address_ErrorMessage_PhishingDetected_Description">Введённый адрес может быть мошенническим. Мошенники часто подменяют первые и последние символы. Тщательно проверьте весь адрес перед продолжением, чтобы избежать потери средств.</string>
     <string name="Send_Address_ErrorMessage_BlacklistDetected_Description">Введённый вами адрес помечен как находящийся в чёрном списке. Транзакции на этот адрес могут привести к потере средств или другим рискам. Пожалуйста, проверьте данные получателя перед продолжением.</string>
     <string name="Send_Address_ErrorMessage_SanctionDetected_Description">Введённый вами адрес помечен как подпадающий под санкции. Транзакции на этот адрес могут привести к потере средств или другим рискам. Пожалуйста, проверьте данные получателя перед продолжением.</string>
@@ -1965,11 +1972,15 @@
     <string name="SettingsAddressChecker_Title">Проверка адреса</string>
     <string name="SettingsAddressChecker_RecipientCheck">Проверка получателя</string>
     <string name="SettingsAddressChecker_CheckTheRecipientInfo">Проверяет адрес получателя на риски перед отправкой.</string>
+    <string name="settings_smart_contract_check">Проверка получателя на смарт контракт</string>
+    <string name="settings_smart_contract_check_description">Проверяет, что адрес получателя не смарт контракт.</string>
     <string name="SettingsAddressChecker_CheckAddress">Проверить адрес</string>
     <string name="SettingsAddressChecker_SelectBlockchain">Выберите блокчейн</string>
     <string name="SettingsAddressChecker_SelectCoin">Выберите монету</string>
     <string name="SettingsAddressChecker_OnSubject">для %s</string>
     <string name="SettingsAddressChecker_SanctionsCheck">Проверка на санкции</string>
+    <string name="smart_contract_check">Проверка на смарт контракт</string>
+    <string name="smart_contract_check_desription">Позволяет проверить, что адрес не является смарт контрактом</string>
     <string name="SettingsAddressChecker_TokenBlacklistCheck">Проверка %s по чёрному списку</string>
     <string name="SettingsAddressChecker_ChainalysisCheckDescription">Chainalysis - это платформа для анализа блокчейнов, которая предоставляет инструменты для отслеживания, расследования и оценки рисков криптовалютных адресов. Она помогает выявлять адреса, связанные с санкциями, мошенничеством и другой незаконной деятельностью.</string>
     <string name="SettingsAddressChecker_HashditCheckDescription">HashDit - это платформа безопасности, которая позволяет пользователям проверять адреса кошельков на наличие рисков, таких как санкции и статус в чёрных списках. Она помогает избегать взаимодействия с потенциально вредоносными или заблокированными адресами.</string>
@@ -1989,6 +2000,21 @@
     <string name="StellarSecretKey_Title">Секретный ключ Stellar</string>
     <string name="PrivateKeys_StellarSecretKey">Секретный ключ Stellar</string>
     <string name="PrivateKeys_StellarSecretKeyDescription">Предоставляет полный контроль над аккаунтом Stellar в соответствующем кошельке.</string>
+
+    <!--Premium Screens-->
+    <string name="premium_title">Премиум</string>
+    <string name="about_premium">О Премиуме</string>
+    <string name="premium_settings">Настройки Премиум</string>
+    <string name="Premium_TryForFree">Попробовать БЕСПЛАТНО</string>
+    <string name="Premium_UpgradeText">Улучшите свой опыт с функциями Премиум!</string>
+    <string name="premium_available">⭐️ Доступен Премиум</string>
+    <string name="premium_demo_days_left">Демо Премиум: осталось %d дней</string>
+    <string name="premium_select_wallet_title">Выберите кошелёк для демо</string>
+    <string name="premium_select_wallet_description">Выберите кошелёк для активации функций демо Премиум. Одновременно демо Премиум может быть только у одного кошелька.</string>
+    <string name="premium_demo_activated">Демо Премиум успешно активирован!</string>
+    <string name="premium_demo_activation_failed">Не удалось активировать демо Премиум</string>
+    <string name="premium_demo_expired">Срок действия демо Премиум для этого кошелька истёк</string>
+    <string name="wallet_is_not_eligile">Этот кошелёк не подходит для Премиум</string>
     <string name="Send_Confirmation_YouReceive">Вы получаете</string>
     <string name="Send_Confirmation_Mint">Выпустить</string>
 </resources>

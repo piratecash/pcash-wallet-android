@@ -23,6 +23,7 @@ val appModule = module {
         featureTangemModule,
         networkModule,
         swapProvidersModule,
+        contractValidatorModule,
         useCaseModule,
         appUpdateModule,
         featurePremiumModule

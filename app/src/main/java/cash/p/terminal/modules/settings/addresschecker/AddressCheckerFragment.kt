@@ -127,14 +127,14 @@ fun Preview_AddressChecker() {
 class AddressCheckerViewModel(
     private val localStorage: ILocalStorage,
 ) : ViewModelUiState<AddressCheckerUiState>() {
-    private var checkEnabled = localStorage.recipientAddressCheckEnabled
+    private var checkEnabled = localStorage.recipientAddressBaseCheckEnabled
 
     override fun createState() = AddressCheckerUiState(
         checkEnabled = checkEnabled
     )
 
     fun toggleAddressChecking(enabled: Boolean) {
-        localStorage.recipientAddressCheckEnabled = enabled
+        localStorage.recipientAddressBaseCheckEnabled = enabled
         checkEnabled = enabled
         emitState()
     }

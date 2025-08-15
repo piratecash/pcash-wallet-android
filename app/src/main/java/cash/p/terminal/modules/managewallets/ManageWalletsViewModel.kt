@@ -190,7 +190,7 @@ class ManageWalletsViewModel(
 
     private fun needOpenPremiumScreen(token: Token) = token.isMonero() &&
             accountManager.activeAccount?.type?.isPremium(token) == true &&
-            !checkPremiumUseCase.isPremium()
+            !checkPremiumUseCase.isAnyPremium()
 
     fun disable(token: Token) {
         service.disable(token)

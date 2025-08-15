@@ -3,7 +3,8 @@ package cash.p.terminal.di
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
-import cash.p.terminal.modules.premium.AboutPremiumViewModel
+import cash.p.terminal.modules.premium.about.AboutPremiumViewModel
+import cash.p.terminal.modules.premium.settings.PremiumSettingsViewModel
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicViewModel
@@ -26,4 +27,5 @@ val viewModelModule = module {
     viewModelOf(::AppStatusViewModel)
     viewModelOf(::MoneroConfigureViewModel)
     viewModelOf(::AboutPremiumViewModel)
+    viewModelOf(::PremiumSettingsViewModel)
 }

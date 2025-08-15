@@ -128,7 +128,7 @@ fun ByteArray.toRawHexString(): String {
     }
 }
 
-fun ByteArray?.toHexString(): String {
+fun ByteArray?.to0xHexString(): String {
     val rawHex = this?.toRawHexString() ?: return ""
     return "0x$rawHex"
 }

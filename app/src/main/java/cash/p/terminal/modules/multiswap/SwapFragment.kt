@@ -56,7 +56,7 @@ import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.premium.domain.paidAction
+import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.CardsSwapInfo
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -160,7 +160,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             }
         },
         onCreateMissingTokens = { tokens ->
-            navController.paidAction {
+            navController.premiumAction {
                 viewModel.createMissingTokens(tokens)
             }
         },

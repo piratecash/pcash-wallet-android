@@ -7,7 +7,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import kotlin.getValue
 
-fun NavController.paidAction(block: () -> PremiumResult) {
+fun NavController.premiumAction(block: () -> PremiumResult) {
     if (block() != PremiumResult.Success) {
         slideFromBottom(R.id.aboutPremiumFragment)
     }

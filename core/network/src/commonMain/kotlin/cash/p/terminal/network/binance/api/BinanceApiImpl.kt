@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal class BinanceApiImpl(
-    private val ethereumRpcApi: EthereumRpcApi
+    private val ethereumRpcApi: EthereumRpcApiImpl
 ): BinanceApi {
     private companion object Companion {
         const val BINANCE_BSC_URL = "https://bsc-dataseed.binance.org/"

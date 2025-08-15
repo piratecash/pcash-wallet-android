@@ -12,6 +12,7 @@ class GetLocalizedAssetUseCase {
     companion object {
         const val CHANGELOG_PREFIX = "changelog_"
         const val ABOUT_PREMIUM_PREFIX = "about_premium_"
+        const val ABOUT_PREMIUM_FULL_PREFIX = "about_premium_full_"
 
         const val RESOURCE_FOLDER = "common"
         const val FILE_SUFFIX = ".md"
