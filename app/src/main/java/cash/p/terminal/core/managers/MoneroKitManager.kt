@@ -13,7 +13,6 @@ import cash.p.terminal.entities.MoneroFileRecord
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
-import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.SecretString
 import com.m2049r.xmrwallet.data.TxData
 import com.m2049r.xmrwallet.data.UserNotes
@@ -73,7 +72,7 @@ class MoneroKitManager(
             val accountType = account.type
             this.moneroKitWrapper = when {
                 accountType is AccountType.MnemonicMonero ||
-                        (accountType as? AccountType.Mnemonic)?.kind == MnemonicKind.Mnemonic12
+                        accountType is AccountType.Mnemonic
                     -> createKitInstance(account)
 
                 else -> throw UnsupportedAccountException()
@@ -169,13 +168,13 @@ class MoneroKitWrapper(
     )
     val transactionsStateUpdatedFlow = _transactionsStateUpdatedFlow.asSharedFlow()
 
-    private suspend fun restoreFrom12Words(
+    private suspend fun restoreFromBip39(
         account: Account,
         height: Long
     ) {
         val accountType = account.type as? AccountType.Mnemonic
             ?: throw UnsupportedAccountException()
-        val restoredAccount = moneroWalletUseCase.restoreFrom12Words(
+        val restoredAccount = moneroWalletUseCase.restoreFromBip39(
             accountType.words,
             accountType.passphrase,
             height
@@ -202,14 +201,11 @@ class MoneroKitWrapper(
                     }
 
                     is AccountType.Mnemonic -> {
-                        if (accountType.kind != MnemonicKind.Mnemonic12) {
-                            throw UnsupportedAccountException()
-                        }
-
                         // Enable first time
                         if (moneroFileDao.getAssociatedRecord(account.id) == null) {
-                            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
-                            restoreFrom12Words(
+                            val restoreSettings =
+                                restoreSettingsManager.settings(account, BlockchainType.Monero)
+                            restoreFromBip39(
                                 account = account,
                                 height = restoreSettings.birthdayHeight ?: -1
                             )
@@ -217,7 +213,8 @@ class MoneroKitWrapper(
 
                         requireNotNull(
                             moneroFileDao.getAssociatedRecord(accountId = account.id),
-                            { "Account does not have a valid Monero file association" }).run {
+                            { "Account does not have a valid Monero file association" }
+                        ).run {
                             walletFileName = this.fileName.value
                             walletPassword = this.password.value
                         }

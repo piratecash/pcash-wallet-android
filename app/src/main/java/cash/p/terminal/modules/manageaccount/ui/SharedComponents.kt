@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseModule
+import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.B2
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
@@ -48,7 +49,6 @@ import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
-import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable

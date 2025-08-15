@@ -43,7 +43,7 @@ class WCAccountTypeNotSupportedDialog : BaseComposableBottomSheetFragment() {
             setContent {
                 val navController = findNavController()
 
-                cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+                ComposeAppTheme {
                     WCAccountTypeNotSupportedScreen(
                         accountTypeDescription = navController.getInput<Input>()?.accountTypeDescription
                             ?: "",

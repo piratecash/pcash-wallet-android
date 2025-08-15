@@ -71,6 +71,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun UnifiedAddressCheckScreen(
     onClose: () -> Unit,
+    onPremiumClick: () -> Unit,
 ) {
     val viewModel =
         viewModel<UnifiedAddressCheckerViewModel>(factory = UnifiedAddressCheckerViewModel.Factory())
@@ -122,6 +123,29 @@ fun UnifiedAddressCheckScreen(
                 if (uiState.inputState is DataState.Error) {
                     ValidationError(uiState.inputState.error)
                 } else {
+                    SecurityCheckCard(
+                        title = stringResource(R.string.smart_contract_check),
+                        icon = painterResource(R.drawable.ic_star_filled_20),
+                        description = stringResource(R.string.smart_contract_check_desription),
+                        onInfoClick = { info ->
+                            bottomCheckInfo = info
+                            coroutineScope.launch {
+                                infoModalBottomSheetState.show()
+                            }
+                        }
+                    ) {
+                        NetworkItem(
+                            title = stringResource(R.string.smart_contract_check),
+                            status = uiState.checkResults[IssueType.SmartContract],
+                            onClick = if (uiState.checkResults[IssueType.SmartContract] == CheckState.Locked) {
+                                { onPremiumClick() }
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                    VSpacer(16.dp)
+
                     SecurityCheckCard(
                         title = stringResource(R.string.SettingsAddressChecker_ChainalysisCheck),
                         icon = painterResource(R.drawable.ic_chainalysis),
@@ -317,11 +341,15 @@ fun SecurityCheckCard(
 @Composable
 fun NetworkItem(
     title: String,
-    status: CheckState?
+    status: CheckState?,
+    onClick: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .let { base ->
+                if (onClick != null) base.clickable(onClick = onClick) else base
+            }
             .height(40.dp)
             .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -334,23 +362,36 @@ fun NetworkItem(
         )
 
         status?.let {
-            if (status == CheckState.Checking) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = ComposeAppTheme.colors.grey
-                )
-            } else {
-                val color = when (status) {
-                    CheckState.Clear -> ComposeAppTheme.colors.remus
-                    CheckState.Detected -> ComposeAppTheme.colors.lucian
-                    else -> ComposeAppTheme.colors.grey
+            when (status) {
+                CheckState.Checking -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = ComposeAppTheme.colors.grey
+                    )
                 }
-                Text(
-                    text = stringResource(status.title),
-                    color = color,
-                    fontSize = 14.sp
-                )
+
+                CheckState.Locked -> {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_lock_20),
+                        contentDescription = null,
+                        tint = ComposeAppTheme.colors.andy,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+
+                else -> {
+                    val color = when (status) {
+                        CheckState.Clear -> ComposeAppTheme.colors.remus
+                        CheckState.Detected -> ComposeAppTheme.colors.lucian
+                        else -> ComposeAppTheme.colors.grey
+                    }
+                    Text(
+                        text = stringResource(status.title),
+                        color = color,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }
@@ -402,7 +443,10 @@ fun CheckInfoBottomSheet(
 @Composable
 fun SecurityCheckScreenPreview() {
     ComposeAppTheme {
-        UnifiedAddressCheckScreen() {}
+        UnifiedAddressCheckScreen(
+            onClose = {},
+            onPremiumClick = {}
+        )
     }
 }
 

@@ -3,6 +3,7 @@ package cash.p.terminal.featureStacking.ui.pirateCoinScreen
 import cash.p.terminal.featureStacking.ui.stackingCoinScreen.StackingCoinViewModel
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
@@ -19,7 +20,8 @@ internal class PirateCoinViewModel(
     accountManager: IAccountManager,
     marketKitWrapper: MarketKitWrapper,
     balanceHiddenManager: IBalanceHiddenManager,
-    backgroundManager: BackgroundManager
+    backgroundManager: BackgroundManager,
+    checkPremiumUseCase: CheckPremiumUseCase
 ) : StackingCoinViewModel(
     walletManager = walletManager,
     adapterManager = adapterManager,
@@ -28,7 +30,8 @@ internal class PirateCoinViewModel(
     accountManager = accountManager,
     marketKitWrapper = marketKitWrapper,
     balanceHiddenManager = balanceHiddenManager,
-    backgroundManager = backgroundManager
+    backgroundManager = backgroundManager,
+    checkPremiumUseCase = checkPremiumUseCase
 ) {
     override val minStackingAmount = 100
     override val stackingType: StackingType = StackingType.PCASH

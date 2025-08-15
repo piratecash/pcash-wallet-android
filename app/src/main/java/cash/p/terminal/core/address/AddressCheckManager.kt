@@ -14,6 +14,7 @@ class AddressCheckManager(
     evmSyncSourceManager: EvmSyncSourceManager
 ) {
     private val checkers = mapOf(
+        AddressCheckType.SmartContract to ContractAddressChecker(),
         AddressCheckType.Phishing to PhishingAddressChecker(spamManager),
         AddressCheckType.Blacklist to BlacklistAddressChecker(
             HashDitAddressValidator(
@@ -31,11 +32,25 @@ class AddressCheckManager(
         )
     )
 
+    private val cache = mutableMapOf<CacheKey, Boolean>()
+
     fun availableCheckTypes(token: Token): List<AddressCheckType> {
         return checkers.mapNotNull { (type, checker) -> if (checker.supports(token)) type else null }
     }
 
     suspend fun isClear(type: AddressCheckType, address: Address, token: Token): Boolean {
-        return checkers[type]?.isClear(address, token) ?: true
+        val key = CacheKey(type, address.hex, token)
+
+        return cache[key] ?: run {
+            checkers[type]?.isClear(address, token)?.also {
+                cache[key] = it
+            } ?: true
+        }
     }
+
+    private data class CacheKey(
+        val type: AddressCheckType,
+        val address: String,
+        val token: Token
+    )
 }

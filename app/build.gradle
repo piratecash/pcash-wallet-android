@@ -343,6 +343,7 @@ dependencies {
     implementation project(':components:chartview')
     implementation project(':feature-stacking')
     implementation project(':feature-tangem')
+    implementation project(':feature-premium')
 
     // Integration with activities
     implementation libs.androidx.activity.compose

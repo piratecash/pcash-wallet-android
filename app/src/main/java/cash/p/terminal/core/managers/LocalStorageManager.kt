@@ -645,9 +645,14 @@ class LocalStorageManager(
         commit = true
     )
 
-    override var recipientAddressCheckEnabled by preferences.delegate(
-        key = "recipientAddressCheckEnabled",
+    override var recipientAddressBaseCheckEnabled by preferences.delegate(
+        key = "recipientAddressBaseCheckEnabled",
         default = false
+    )
+
+    override var recipientAddressContractCheckEnabled by preferences.delegate(
+        key = "recipientAddressContractCheckEnabled",
+        default = true
     )
 
     override var showChangelogAfterUpdate by preferences.delegate(

@@ -9,7 +9,7 @@ import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.EvmCoinService
 import cash.p.terminal.core.ethereum.EvmCoinServiceFactory
 import cash.p.terminal.core.managers.EvmKitWrapper
-import cash.p.terminal.core.toHexString
+import cash.p.terminal.core.to0xHexString
 import cash.p.terminal.modules.evmfee.GasData
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.multiswap.ui.DataFieldNonce
@@ -111,7 +111,7 @@ class WCSignEthereumTransactionRequestViewModel(
         )
 
         WCDelegate.sessionRequestEvent?.let { sessionRequest ->
-            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, signature.toHexString())
+            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, signature.to0xHexString())
         }
     }
 

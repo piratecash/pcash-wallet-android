@@ -34,7 +34,7 @@ internal fun buildNetworkClient() = HttpClient(OkHttp) {
     }
 }
 
-internal inline fun <reified T> HttpRequestBuilder.setJsonBody(body: T) {
+inline fun <reified T> HttpRequestBuilder.setJsonBody(body: T) {
     header(HttpHeaders.ContentType, ContentType.Application.Json)
     setBody(body)
 }

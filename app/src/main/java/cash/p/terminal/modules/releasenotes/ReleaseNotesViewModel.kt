@@ -10,7 +10,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.domain.usecase.GetReleaseNotesUseCase
+import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.markdown.MarkdownBlock
 import cash.p.terminal.modules.markdown.MarkdownVisitorBlock
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import org.commonmark.parser.Parser
 
 class ReleaseNotesViewModel(
-    private val getReleaseNotesUseCase: GetReleaseNotesUseCase,
+    private val getLocalizedAssetUseCase: GetLocalizedAssetUseCase,
     private val localStorage: ILocalStorage
 ) : ViewModel() {
 
@@ -62,7 +62,7 @@ class ReleaseNotesViewModel(
     private fun loadContent() {
         viewModelScope.launch {
             try {
-                val content = getReleaseNotesUseCase()
+                val content = getLocalizedAssetUseCase(GetLocalizedAssetUseCase.CHANGELOG_PREFIX)
                 val markdownBlocks = getMarkdownBlocks(content)
                 uiState = uiState.copy(
                     viewState = ViewState.Success,

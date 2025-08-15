@@ -139,7 +139,7 @@ class MainViewModel(
         }
 
         viewModelScope.launch {
-            backupManager.allBackedUpFlowable.asFlow().collect {
+            backupManager.allBackedUpFlow.collect {
                 updateSettingsBadge()
             }
         }
@@ -149,7 +149,7 @@ class MainViewModel(
             }
         }
         viewModelScope.launch {
-            accountManager.accountsFlowable.asFlow().collect {
+            accountManager.accountsFlow.collect {
                 updateTransactionsTabEnabled()
                 updateSettingsBadge()
             }

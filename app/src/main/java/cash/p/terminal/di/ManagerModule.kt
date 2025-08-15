@@ -28,11 +28,11 @@ import cash.p.terminal.core.managers.TorManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
+import cash.p.terminal.core.managers.UserManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
-import cash.p.terminal.wallet.ActionCompletedDelegate
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.managers.ITransactionHiddenManager
@@ -75,6 +75,7 @@ val managerModule = module {
     singleOf(::EvmLabelManager)
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)
+    singleOf(::UserManager)
     factoryOf(::WalletActivator)
 
     singleOf(::Mnemonic)

@@ -5,7 +5,7 @@ import cash.p.terminal.core.providers.EvmLabelProvider
 import cash.p.terminal.core.storage.EvmAddressLabelDao
 import cash.p.terminal.core.storage.EvmMethodLabelDao
 import cash.p.terminal.core.storage.SyncerStateDao
-import cash.p.terminal.core.toHexString
+import cash.p.terminal.core.to0xHexString
 import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.SyncerState
@@ -40,7 +40,7 @@ class EvmLabelManager(
     }
 
     fun methodLabel(input: ByteArray): String? {
-        val methodId = input.take(4).toByteArray().toHexString()
+        val methodId = input.take(4).toByteArray().to0xHexString()
         return methodLabelDao.get(methodId.lowercase())?.label
     }
 

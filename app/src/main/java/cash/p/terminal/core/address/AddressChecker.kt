@@ -1,13 +1,28 @@
 package cash.p.terminal.core.address
 
+import cash.p.terminal.core.factories.ContractValidatorFactory
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.wallet.Token
 
 interface AddressChecker {
-    suspend fun isClear(address: Address, token: Token): Boolean
+    suspend fun isClear(address: Address, token: Token): Boolean?
     fun supports(token: Token): Boolean
+}
+
+class ContractAddressChecker : AddressChecker {
+
+    override suspend fun isClear(address: Address, token: Token): Boolean? {
+        return checkNotNull(
+            ContractValidatorFactory.get(token.blockchainType)
+                ?.isContract(address.hex, token.blockchainType)
+                ?.not()
+        ) { "No internet connection" }
+    }
+
+    override fun supports(token: Token) =
+        ContractValidatorFactory.get(token.blockchainType) != null
 }
 
 class PhishingAddressChecker(

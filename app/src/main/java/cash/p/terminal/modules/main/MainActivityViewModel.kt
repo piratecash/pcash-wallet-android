@@ -3,7 +3,6 @@ package cash.p.terminal.modules.main
 import android.content.Intent
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
@@ -12,6 +11,7 @@ import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.UserManager
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.IAccountManager
 import com.walletconnect.web3.wallet.client.Wallet
 import io.horizontalsystems.core.BackgroundManager
@@ -28,12 +28,14 @@ import org.koin.java.KoinJavaComponent.inject
 class MainActivityViewModel(
     private val userManager: UserManager,
     private val accountManager: IAccountManager,
-    private val pinComponent: IPinComponent,
     private val systemInfoManager: ISystemInfoManager,
-    private val keyStoreManager: IKeyStoreManager,
     private val localStorage: ILocalStorage,
-    private val tonConnectManager: TonConnectManager
+    private val checkPremiumUseCase: CheckPremiumUseCase
 ) : ViewModel() {
+
+    private val pinComponent: IPinComponent = App.pinComponent
+    private val keyStoreManager: IKeyStoreManager = App.keyStoreManager
+    private val tonConnectManager: TonConnectManager = App.tonConnectManager
 
     val navigateToMainLiveData = MutableLiveData(false)
     val wcEvent = MutableLiveData<Wallet.Model?>()
@@ -65,6 +67,16 @@ class MainActivityViewModel(
                 tcDappRequest.postValue(it)
             }
         }
+    }
+
+    fun updatePremium() {
+        viewModelScope.launch {
+            checkPremiumUseCase.update()
+        }
+    }
+
+    fun startMonitoringAccountsForPremium() {
+        checkPremiumUseCase.startAccountMonitorUpdate()
     }
 
     fun startLockScreenMonitoring() {
@@ -126,21 +138,6 @@ class MainActivityViewModel(
 
     fun onNavigatedToMain() {
         navigateToMainLiveData.postValue(false)
-    }
-
-    class Factory : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MainActivityViewModel(
-                App.userManager,
-                App.accountManager,
-                App.pinComponent,
-                App.systemInfoManager,
-                App.keyStoreManager,
-                App.localStorage,
-                App.tonConnectManager,
-            ) as T
-        }
     }
 }
 

@@ -16,6 +16,8 @@ import cash.p.terminal.modules.address.AddressHandlerUdn
 import cash.p.terminal.modules.address.AddressParserChain
 import cash.p.terminal.modules.address.EnsResolverHolder
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.premium.domain.PremiumResult
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -40,6 +42,7 @@ class EnterAddressViewModel(
     private val addressCheckManager: AddressCheckManager,
 ) : ViewModelUiState<EnterAddressUiState>() {
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
 
     private var address: Address? = null
     private val canBeSendToAddress: Boolean
@@ -49,19 +52,28 @@ class EnterAddressViewModel(
         contactsRepository.getContactAddressesByBlockchain(token.blockchainType)
     private var addressValidationInProgress: Boolean = false
     private var addressValidationError: Throwable? = null
-    private val availableCheckTypes = addressCheckManager.availableCheckTypes(token)
+
     private var checkResults: Map<AddressCheckType, AddressCheckData> = mapOf()
     private var value = ""
     private var inputState: DataState<Address>? = null
     private var parseAddressJob: Job? = null
 
     private val addressExtractor = AddressExtractor(token.blockchainType, addressUriParser)
-    private val addressCheckEnabled: Boolean
+    private val addressCheckByBaseEnabled: Boolean
         get() = if (addressCheckerSkippable) {
-            localStorage.recipientAddressCheckEnabled
+            localStorage.recipientAddressBaseCheckEnabled
         } else {
             true
         }
+    private val addressCheckByContractEnabled: Boolean
+        get() = if (addressCheckerSkippable) {
+            localStorage.recipientAddressContractCheckEnabled && checkPremiumUseCase.isAnyPremium()
+        } else {
+            true
+        }
+
+    // To speed up address parsing, we cache parsed addresses
+    private val parsedAddressCache = mutableMapOf<String, Address>()
 
     init {
         initialAddress?.let {
@@ -83,18 +95,31 @@ class EnterAddressViewModel(
         addressValidationInProgress = addressValidationInProgress,
         addressValidationError = addressValidationError,
         checkResults = checkResults,
-        addressCheckEnabled = addressCheckEnabled,
+        addressCheckByBaseEnabled = addressCheckByBaseEnabled,
+        addressCheckSmartContractEnabled = addressCheckByContractEnabled
     )
 
-    fun onCheckAddressClick(enabled: Boolean) {
-        localStorage.recipientAddressCheckEnabled = enabled
+    fun onCheckBaseAddressClick(enabled: Boolean) {
+        localStorage.recipientAddressBaseCheckEnabled = enabled
         emitState()
 
-        if(enabled && checkResults.isEmpty()) {
-            if (value.isNotBlank()) {
-                processAddress(value)
-            }
+        if (value.isNotBlank()) {
+            processAddress(value)
         }
+    }
+
+    fun onCheckSmartContractAddressClick(enabled: Boolean): PremiumResult {
+        if (!checkPremiumUseCase.isAnyPremium()) {
+            return PremiumResult.NeedPremium
+        }
+
+        localStorage.recipientAddressContractCheckEnabled = enabled
+        emitState()
+
+        if (value.isNotBlank()) {
+            processAddress(value)
+        }
+        return PremiumResult.Success
     }
 
     fun onEnterAddress(value: String) {
@@ -123,10 +148,20 @@ class EnterAddressViewModel(
         }
     }
 
+    private fun getAvailableCheckTypes(): List<AddressCheckType> {
+        if (!addressCheckByBaseEnabled && !addressCheckByContractEnabled) return emptyList()
+
+        return addressCheckManager.availableCheckTypes(token).filter {
+            (addressCheckByContractEnabled && it == AddressCheckType.SmartContract) ||
+                    (addressCheckByBaseEnabled && it != AddressCheckType.SmartContract) ||
+                    (it.isPremiumRequired() && !checkPremiumUseCase.isAnyPremium())// To promote in list
+        }
+    }
+
     private fun processAddress(addressText: String) {
         parseAddressJob = viewModelScope.launch {
             try {
-                val address = parseDomain(addressText)
+                val address = parsedAddressCache.getOrPut(addressText) { parseDomain(addressText) }
                 try {
                     withContext(Dispatchers.IO) {
                         addressValidator.validate(address)
@@ -153,14 +188,17 @@ class EnterAddressViewModel(
                 if (addressValidationError != null) {
                     checkResults = mapOf()
                     emitState()
-                } else if (addressCheckEnabled) {
+                } else {
+                    val availableCheckTypes = getAvailableCheckTypes()
                     checkResults = availableCheckTypes.associateWith { AddressCheckData(true) }
                     emitState()
 
                     withContext(Dispatchers.IO) {
                         availableCheckTypes.forEach { type ->
                             val checkResult = try {
-                                if (addressCheckManager.isClear(type, address, token)) {
+                                if (type.isPremiumRequired() && !checkPremiumUseCase.isAnyPremium()) {
+                                    AddressCheckResult.NotAllowed
+                                } else if (addressCheckManager.isClear(type, address, token)) {
                                     AddressCheckResult.Clear
                                 } else {
                                     AddressCheckResult.Detected
@@ -225,15 +263,15 @@ class EnterAddressViewModel(
                 App.evmSyncSourceManager
             )
             return EnterAddressViewModel(
-                token,
-                addressUriParser,
-                address,
-                App.contactsRepository,
-                App.localStorage,
-                addressCheckerSkippable,
-                addressParserChain,
-                addressValidator,
-                addressCheckManager,
+                token = token,
+                addressUriParser = addressUriParser,
+                initialAddress = address,
+                contactsRepository = App.contactsRepository,
+                localStorage = App.localStorage,
+                addressCheckerSkippable = addressCheckerSkippable,
+                domainParser = addressParserChain,
+                addressValidator = addressValidator,
+                addressCheckManager = addressCheckManager,
             ) as T
         }
     }
@@ -250,7 +288,8 @@ data class EnterAddressUiState(
     val addressValidationInProgress: Boolean,
     val addressValidationError: Throwable?,
     val checkResults: Map<AddressCheckType, AddressCheckData>,
-    val addressCheckEnabled: Boolean,
+    val addressCheckByBaseEnabled: Boolean,
+    val addressCheckSmartContractEnabled: Boolean,
 )
 
 data class AddressCheckData(
