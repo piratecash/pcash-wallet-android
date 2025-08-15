@@ -8,7 +8,7 @@ import com.walletconnect.web3.wallet.client.Wallet
 import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.EvmKitWrapper
-import cash.p.terminal.core.toHexString
+import cash.p.terminal.core.to0xHexString
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.WCUtils
@@ -160,7 +160,7 @@ class WCNewRequestViewModel(
                 WCDelegate.respondPendingRequest(
                     sessionRequest.requestId,
                     sessionRequest.topic,
-                    result.toHexString(),
+                    result.to0xHexString(),
                     onSuccessResult = {
                         continuation.resume(Unit)
                         clearSessionRequest()
