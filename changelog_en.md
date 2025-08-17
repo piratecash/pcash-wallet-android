@@ -1,3 +1,17 @@
+## Version 0.45.4 Highlights
+
+- Fixed an issue with displaying transactions when using **12-word Monero wallets**.
+  This bug did not affect 25-word wallets.
+
+## User recommendations
+
+- If you have a 12-word Monero wallet and **your transactions are not visible**, you need to:
+  1. Delete the wallet.
+  2. Re-import it.
+- If you are using a **25-word wallet** or **have never used a 12-word Monero wallet**, no action is required.
+
+
+
 ## Version 0.45.3 Highlights
 
 ### ✨ New Features
