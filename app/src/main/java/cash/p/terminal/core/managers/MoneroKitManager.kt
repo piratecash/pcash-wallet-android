@@ -7,6 +7,7 @@ import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.adapters.MoneroAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
+import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.utils.MoneroConfig
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.MoneroFileRecord
@@ -15,6 +16,8 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.SecretString
+import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
+import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import com.m2049r.xmrwallet.data.TxData
 import com.m2049r.xmrwallet.data.UserNotes
 import com.m2049r.xmrwallet.model.PendingTransaction
@@ -154,6 +157,9 @@ class MoneroKitWrapper(
 
     private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
+    private val validateMoneroHeightUseCase: ValidateMoneroHeightUseCase by inject(ValidateMoneroHeightUseCase::class.java)
+    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase by inject(RemoveMoneroWalletFilesUseCase::class.java)
+    private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase by inject(IGetMoneroWalletFilesNameUseCase::class.java)
 
     private var isStarted = false
 
@@ -209,9 +215,13 @@ class MoneroKitWrapper(
                         // Enable first time
                         if (moneroFileDao.getAssociatedRecord(account.id) == null) {
                             val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+                            val height = restoreSettings.birthdayHeight ?: validateMoneroHeightUseCase.getTodayHeight()
+                            if(height == -1L) {
+                                throw IllegalStateException("Monero restore height can't be -1")
+                            }
                             restoreFrom12Words(
                                 account = account,
-                                height = restoreSettings.birthdayHeight ?: -1
+                                height = height
                             )
                         }
 
@@ -234,18 +244,39 @@ class MoneroKitWrapper(
                 moneroWalletService.setObserver(this@MoneroKitWrapper)
                 moneroWalletService.start(walletFileName, walletPassword)
                 isStarted = true
+
+                fixWalletHeight()
             } catch (e: Exception) {
                 _syncState.value = AdapterState.NotSynced(e)
-                Log.e("MoneroKitWrapper", "Failed to start Monero wallet", e)
+                Timber.e(e, "Failed to start Monero wallet")
             }
         }
     }
 
-    suspend fun stop() = SafeSuspendedCall.executeSuspendable {
+    private suspend fun fixWalletHeight() {
+        if(moneroWalletService.wallet?.restoreHeight != -1L ||
+            (account.type as? AccountType.Mnemonic)?.kind != MnemonicKind.Mnemonic12) return
+
+        stop(false)
+        getMoneroWalletFilesNameUseCase(account)?.also {
+            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+            // Use day of publishing this changes on google play as height
+            // to fix possible first day of using this feature by users
+            restoreSettings.birthdayHeight = validateMoneroHeightUseCase("2025-08-13")
+
+            removeMoneroWalletFilesUseCase(it)
+            moneroFileDao.deleteAssociatedRecord(account.id)
+
+            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+        }
+        start()
+    }
+
+    suspend fun stop(saveWallet: Boolean = true) = SafeSuspendedCall.executeSuspendable {
         withContext(Dispatchers.IO) {
             if (isStarted) {
                 isStarted = false
-                moneroWalletService.stop()
+                moneroWalletService.stop(saveWallet)
             }
         }
     }
@@ -372,8 +403,8 @@ class MoneroKitWrapper(
 
                 AdapterState.Syncing(progressPercent.toInt())
             }
-        Timber.tag(TAG)
-            .d("onRefreshed, isSynchronized = ${wallet?.isSynchronized}, connectionStatus = ${wallet?.connectionStatus}, full = $full")
+        Timber
+            .d("onRefreshed, isSynchronized = ${wallet?.isSynchronized}, connectionStatus = ${wallet?.connectionStatus}, full = $full, restoreHeight = ${moneroWalletService.wallet?.restoreHeight?.toString()}")
         return true
     }
 
