@@ -53,7 +53,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.slideFromBottom
 import io.horizontalsystems.core.slideFromBottomForResult
 
 @Composable
@@ -221,13 +221,17 @@ private fun KeyActions(
                         icon = painterResource(id = R.drawable.icon_paper_contract_20)
                     ) {
                         navController.authorizedAction {
-                            navController.slideFromRight(
-                                R.id.recoveryPhraseFragment,
-                                RecoveryPhraseFragment.Input(
-                                    account = account,
-                                    recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                            if(viewState.isPremium) {
+                                navController.slideFromRight(
+                                    R.id.recoveryPhraseFragment,
+                                    RecoveryPhraseFragment.Input(
+                                        account = account,
+                                        recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                    )
                                 )
-                            )
+                            } else {
+                                navController.slideFromBottom(R.id.aboutPremiumFragment)
+                            }
                         }
                     }
                 }
@@ -568,7 +572,8 @@ private fun ManageAccountScreenPreview() {
                     KeyAction.ForgotAccessCode,
                 ),
                 backupActions = emptyList(),
-                signedHashes = 2
+                signedHashes = 2,
+                isPremium = false
             ),
             account = Account(
                 id = "id",

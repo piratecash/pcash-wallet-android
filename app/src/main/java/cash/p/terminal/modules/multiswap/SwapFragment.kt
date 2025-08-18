@@ -88,7 +88,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
 import io.horizontalsystems.core.entities.Currency
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.slideFromBottom
 import io.horizontalsystems.core.slideFromBottomForResult
 import io.horizontalsystems.core.slideFromRightForResult
 import io.horizontalsystems.core.toBigDecimalOrNullExt
@@ -160,9 +160,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             }
         },
         onCreateMissingTokens = { tokens ->
-            navController.premiumAction {
-                viewModel.createMissingTokens(tokens)
-            }
+            viewModel.createMissingTokens(tokens)
         },
         onActionStarted = {
             viewModel.onActionStarted()

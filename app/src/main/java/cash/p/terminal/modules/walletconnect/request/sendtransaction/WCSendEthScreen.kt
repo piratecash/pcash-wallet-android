@@ -15,7 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import io.horizontalsystems.core.logger.AppLogger
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.slideFromBottom
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault

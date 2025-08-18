@@ -9,20 +9,6 @@ import androidx.navigation.NavOptions
 import cash.p.terminal.core.R
 import java.util.UUID
 
-fun NavController.slideFromBottom(@IdRes resId: Int, input: Parcelable? = null) {
-    val navOptions = NavOptions.Builder()
-        .setEnterAnim(R.anim.slide_from_bottom)
-        .setExitAnim(android.R.anim.fade_out)
-        .setPopEnterAnim(android.R.anim.fade_in)
-        .setPopExitAnim(R.anim.slide_to_bottom)
-        .build()
-
-    val args = input?.let {
-        bundleOf("input" to it)
-    }
-    navigate(resId, args, navOptions)
-}
-
 fun <T : Parcelable> NavController.slideFromBottomForResult(
     @IdRes resId: Int,
     input: Parcelable? = null,

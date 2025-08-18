@@ -21,7 +21,8 @@ object ManageAccountModule {
         val headerNote: HeaderNote,
         val keyActions: List<KeyAction>,
         val backupActions: List<BackupItem>,
-        val signedHashes: Int?
+        val signedHashes: Int?,
+        val isPremium: Boolean
     )
 
     enum class KeyAction {

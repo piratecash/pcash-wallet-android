@@ -37,7 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.isCustom
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.slideFromBottom
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewModel

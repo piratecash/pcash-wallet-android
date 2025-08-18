@@ -10,11 +10,11 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import io.horizontalsystems.core.slideFromBottom
 import cash.p.terminal.entities.Faq
 import cash.p.terminal.entities.FaqMap
 import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.markdown.localreader.MarkdownLocalFragment
+import cash.p.terminal.ui_compose.slideFromBottom
 import io.reactivex.Single
 import okhttp3.OkHttpClient
 import okhttp3.Request

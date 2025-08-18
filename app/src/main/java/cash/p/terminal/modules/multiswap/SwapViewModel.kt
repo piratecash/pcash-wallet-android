@@ -232,22 +232,12 @@ class SwapViewModel(
         emitState()
     }
 
-    fun createMissingTokens(tokens: Set<Token>): PremiumResult {
-        if (tokens.any { needOpenPremiumScreen(it) }) {
-            return PremiumResult.NeedPremium
-        }
-
+    fun createMissingTokens(tokens: Set<Token>) {
         viewModelScope.launch {
             walletUseCase.createWallets(tokens)
             reQuote()
         }
-
-        return PremiumResult.Success
     }
-
-    private fun needOpenPremiumScreen(token: Token) = token.isMonero() &&
-            accountManager.activeAccount?.type?.isPremium(token) == true &&
-            !checkPremiumUseCase.isAnyPremium()
 
     fun onUpdateSettings(settings: Map<String, Any?>) = quoteService.setSwapSettings(settings)
     fun onEnterFiatAmount(v: BigDecimal?) = fiatServiceIn.setFiatAmount(v)

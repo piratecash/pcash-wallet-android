@@ -9,6 +9,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.balance.headerNote
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.BackupItem
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.KeyAction
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.tangem.domain.sdk.TangemSdkManager
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -32,6 +33,7 @@ class ManageAccountViewModel(
     val account: Account = accountManager.account(accountId)!!
     private val tangemSdkManager: TangemSdkManager by inject(TangemSdkManager::class.java)
     private val walletManager: IWalletManager by inject(IWalletManager::class.java)
+    private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
 
     var viewState by mutableStateOf(
         ManageAccountModule.ViewState(
@@ -42,7 +44,8 @@ class ManageAccountViewModel(
             headerNote = account.headerNote(false),
             keyActions = getKeyActions(account),
             backupActions = getBackupItems(account),
-            signedHashes = (account.type as? AccountType.HardwareCard)?.signedHashes
+            signedHashes = (account.type as? AccountType.HardwareCard)?.signedHashes,
+            isPremium = checkPremiumUseCase.isAnyPremium()
         )
     )
         private set

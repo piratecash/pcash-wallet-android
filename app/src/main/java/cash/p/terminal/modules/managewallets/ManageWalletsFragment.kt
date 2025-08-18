@@ -69,7 +69,7 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.slideFromBottom
 import io.horizontalsystems.core.slideFromBottomForResult
 
 class ManageWalletsFragment : BaseComposeFragment() {
@@ -214,9 +214,7 @@ private fun ManageWalletsScreen(
                                     if (viewItem.enabled) {
                                         viewModel.disable(viewItem.item)
                                     } else {
-                                        navController.premiumAction {
-                                            viewModel.enable(viewItem.item)
-                                        }
+                                        viewModel.enable(viewItem.item)
                                     }
                                 },
                                 onInfoClick = {

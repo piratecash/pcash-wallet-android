@@ -18,7 +18,7 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.requireInput
 import io.horizontalsystems.core.setNavigationResultX
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.slideFromBottom
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow

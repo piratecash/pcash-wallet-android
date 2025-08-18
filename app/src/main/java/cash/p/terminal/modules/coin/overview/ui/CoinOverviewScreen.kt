@@ -39,7 +39,6 @@ import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.ListErrorView
 import cash.p.terminal.ui.helpers.LinkHelper
@@ -198,11 +197,7 @@ fun CoinOverviewScreen(
                                     Spacer(modifier = Modifier.height(24.dp))
                                     TokenVariants(
                                         tokenVariants = tokenVariants,
-                                        onClickAddToWallet = {
-                                            navController.premiumAction {
-                                                manageWalletsViewModel.enable(it)
-                                            }
-                                        },
+                                        onClickAddToWallet = manageWalletsViewModel::enable,
                                         onClickRemoveWallet = {
                                             manageWalletsViewModel.disable(it)
                                         },

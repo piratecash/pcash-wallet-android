@@ -11,8 +11,6 @@ import cash.p.terminal.core.R
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
-import cash.p.terminal.premium.domain.PremiumResult
-import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.tangem.domain.TangemConfig
 import cash.p.terminal.tangem.domain.usecase.BuildHardwarePublicKeyUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
@@ -27,7 +25,6 @@ import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.imageUrl
-import cash.p.terminal.wallet.isMonero
 import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
@@ -41,7 +38,6 @@ class ManageWalletsViewModel(
 ) : ViewModel() {
 
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
-    private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
     private val tangemBlockchainTypeExistUseCase: TangemBlockchainTypeExistUseCase by inject<TangemBlockchainTypeExistUseCase>(
         TangemBlockchainTypeExistUseCase::class.java
     )
@@ -168,16 +164,13 @@ class ManageWalletsViewModel(
         label = item.token.badge
     )
 
-    fun enable(token: Token): PremiumResult {
+    fun enable(token: Token) {
         if (!isHardwareCard() || tangemBlockchainTypeExistUseCase(token)) {
-            if (needOpenPremiumScreen(token)) {
-                return PremiumResult.NeedPremium
-            }
             service.enable(token)
         } else {
             if (TangemConfig.isExcludedForHardwareCard(token)) {
                 showError(App.instance.getString(R.string.error_hardware_wallet_not_supported))
-                return PremiumResult.Success
+                return
             }
             awaitingEnabledTokens.add(token)
             updateNeedToShowScanToAddButton()
@@ -185,12 +178,7 @@ class ManageWalletsViewModel(
             // Update switch indicator based on `awaitingEnabledTokens` values
             sync(service.itemsFlow.value)
         }
-        return PremiumResult.Success
     }
-
-    private fun needOpenPremiumScreen(token: Token) = token.isMonero() &&
-            accountManager.activeAccount?.type?.isPremium(token) == true &&
-            !checkPremiumUseCase.isAnyPremium()
 
     fun disable(token: Token) {
         service.disable(token)
