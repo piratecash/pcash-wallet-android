@@ -6,12 +6,10 @@ import cash.p.terminal.tangem.domain.getDerivationStyle
 import cash.p.terminal.tangem.domain.getPurpose
 import cash.p.terminal.tangem.domain.model.BlockchainToDerive
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import com.tangem.common.card.Card
 import com.tangem.common.extensions.ByteArrayKey
 import com.tangem.common.extensions.toMapKey
 import com.tangem.crypto.hdWallet.DerivationPath
-import io.horizontalsystems.core.entities.BlockchainType
 
 class CollectDerivationsUseCase {
 
@@ -50,7 +48,12 @@ class CollectDerivationsUseCase {
         derivationConfig: DerivationConfig,
         blockchainsToDerive: List<TokenQuery>
     ) = blockchainsToDerive.mapNotNull { (blockchainType, tokenType) ->
-        val derivationPath = derivationConfig.derivations(blockchainType, tokenType.getPurpose()).values.firstOrNull()
+        val derivationPath = runCatching {
+            derivationConfig.derivations(
+                blockchainType,
+                tokenType.getPurpose()
+            ).values.firstOrNull()
+        }.getOrNull()
             ?: return@mapNotNull null
         BlockchainToDerive(blockchainType, derivationPath)
     }

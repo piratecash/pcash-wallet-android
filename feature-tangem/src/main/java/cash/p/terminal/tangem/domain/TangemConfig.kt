@@ -33,7 +33,8 @@ object TangemConfig {
     private val excludedBlockChainTypeForHardwareWallet by lazy {
         setOf(
             BlockchainType.Zcash,
-            BlockchainType.ECash
+            BlockchainType.ECash,
+            BlockchainType.Monero
         )
     }
 
