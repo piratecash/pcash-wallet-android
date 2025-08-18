@@ -4,6 +4,7 @@ import com.m2049r.xmrwallet.util.RestoreHeight
 import timber.log.Timber
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.Date
 
 class ValidateMoneroHeightUseCase {
 
@@ -33,5 +34,14 @@ class ValidateMoneroHeightUseCase {
         }
         Timber.d("Using Restore Height = %d", height)
         return height
+    }
+
+    fun getTodayHeight(): Long {
+        return try {
+            RestoreHeight.getInstance().getHeight(Date())
+        } catch (e: Exception) {
+            Timber.e(e, "Error while getting today's restore height")
+            -1
+        }
     }
 }

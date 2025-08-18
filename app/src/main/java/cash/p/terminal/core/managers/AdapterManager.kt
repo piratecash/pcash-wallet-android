@@ -16,8 +16,11 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
@@ -42,20 +45,32 @@ class AdapterManager(
     private val adaptersReadySubject = PublishSubject.create<Map<Wallet, IAdapter>>()
     private val adaptersMap = ConcurrentHashMap<Wallet, IAdapter>()
 
-    private val _initializationInProgressFlow = MutableStateFlow<Boolean>(true)
+    private val _initializationInProgressFlow = MutableStateFlow(true)
     override val initializationInProgressFlow = _initializationInProgressFlow.asStateFlow()
 
     override val adaptersReadyObservable: Flowable<Map<Wallet, IAdapter>> =
         adaptersReadySubject.toFlowable(BackpressureStrategy.BUFFER)
 
+    private val initRequests = MutableSharedFlow<List<Wallet>>(extraBufferCapacity = 1)
+
     init {
         start()
+
+        coroutineScope.launch {
+            initRequests
+                .conflate()
+                .collectLatest { wallets ->
+                    mutex.withLock {
+                        initAdaptersInternal(wallets)
+                    }
+                }
+        }
     }
 
     override fun startAdapterManager() {
         coroutineScope.launch {
             walletManager.activeWalletsFlow.collect { wallets ->
-                initAdapters(wallets)
+                requestInitAdapters(wallets)
             }
         }
         coroutineScope.launch {
@@ -84,7 +99,7 @@ class AdapterManager(
     }
 
     private fun handleUpdatedKit(blockchainType: BlockchainType) {
-        val wallets = adaptersMap.keys().toList().filter {
+        val wallets = adaptersMap.keys.toList().filter {
             it.token.blockchain.type == blockchainType
         }
 
@@ -95,11 +110,11 @@ class AdapterManager(
             adaptersMap.remove(it)
         }
 
-        initAdapters(walletManager.activeWallets)
+        requestInitAdapters(walletManager.activeWallets)
     }
 
     private fun handleUpdatedRestoreMode(blockchainType: BlockchainType) {
-        val wallets = adaptersMap.keys().toList().filter {
+        val wallets = adaptersMap.keys.toList().filter {
             it.token.blockchainType == blockchainType
         }
 
@@ -110,7 +125,7 @@ class AdapterManager(
             adaptersMap.remove(it)
         }
 
-        initAdapters(walletManager.activeWallets)
+        requestInitAdapters(walletManager.activeWallets)
     }
 
     override suspend fun refresh() {
@@ -129,37 +144,36 @@ class AdapterManager(
         stellarKitManager.stellarKitWrapper?.stellarKit?.refresh()
     }
 
-    private fun initAdapters(wallets: List<Wallet>) = coroutineScope.launch {
-        mutex.withLock {
-            val currentAdapters = adaptersMap.toMutableMap()
-            adaptersMap.clear()
-            _initializationInProgressFlow.value = true
+    private fun requestInitAdapters(wallets: List<Wallet>) {
+        initRequests.tryEmit(wallets)
+    }
 
-            wallets.forEach { wallet ->
-                var adapter = currentAdapters.remove(wallet)
-                if (adapter == null) {
-                    adapterFactory.getAdapterOrNull(wallet)?.let {
-                        it.start()
+    private suspend fun initAdaptersInternal(wallets: List<Wallet>) {
+        val currentAdapters = adaptersMap.toMutableMap()
+        adaptersMap.clear()
+        _initializationInProgressFlow.value = true
 
-                        adapter = it
-                    }
-                }
-
-                adapter?.let {
-                    adaptersMap[wallet] = it
+        wallets.forEach { wallet ->
+            var adapter = currentAdapters.remove(wallet)
+            if (adapter == null) {
+                adapterFactory.getAdapterOrNull(wallet)?.let {
+                    it.start()
+                    adapter = it
                 }
             }
 
-            adaptersReadySubject.onNext(adaptersMap)
-
-            currentAdapters.forEach { (wallet, adapter) ->
-                adapter.stop()
-                coroutineScope.launch {
-                    adapterFactory.unlinkAdapter(wallet)
-                }
-            }
-            _initializationInProgressFlow.value = false
+            adapter?.let { adaptersMap[wallet] = it }
         }
+
+        adaptersReadySubject.onNext(adaptersMap)
+
+        currentAdapters.forEach { (wallet, adapter) ->
+            adapter.stop()
+            coroutineScope.launch {
+                adapterFactory.unlinkAdapter(wallet)
+            }
+        }
+        _initializationInProgressFlow.value = false
     }
 
     /**
@@ -174,7 +188,7 @@ class AdapterManager(
             mutex.withLock {
                 val walletsToRefresh = wallets.filter { adaptersMap.containsKey(it) }
 
-                //remove and stop adapters
+                // remove and stop adapters
                 walletsToRefresh.forEach { wallet ->
                     adaptersMap.remove(wallet)?.let { previousAdapter ->
                         previousAdapter.stop()
@@ -184,7 +198,7 @@ class AdapterManager(
                     }
                 }
 
-                //add and start new adapters
+                // add and start new adapters
                 walletsToRefresh.forEach { wallet ->
                     adapterFactory.getAdapterOrNull(wallet)?.let { adapter ->
                         adaptersMap[wallet] = adapter
@@ -231,5 +245,4 @@ class AdapterManager(
     override fun getReceiveAdapterForWallet(wallet: Wallet): IReceiveAdapter? {
         return adaptersMap[wallet]?.let { it as? IReceiveAdapter }
     }
-
 }
