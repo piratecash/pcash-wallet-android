@@ -1227,7 +1227,7 @@
     <string name="LocalBackup_TermsWarningText">Устройства хранения, такие как жесткие диски, USB-накопители, накопители на смартфоне и т.д., все они подвержены потерям вследствие физических повреждений, кражи или других непредвиденных обстоятельств.</string>
     <string name="LocalBackup_Term1">Я понимаю, что кража или повреждение устройства резервного копирования приведет к потере резервной копии в соответствующем кошельке.</string>
     <!-- Recovery Phrase -->
-    <string name="RecoveryPhrase_monero_Title">Фраза восстановления Monero</string>
+    <string name="RecoveryPhrase_monero_Title">Фраза из 25 слов восстановления Monero</string>
     <string name="RecoveryPhrase_Title">Фраза восстановления</string>
     <string name="RecoveryPhrase_Description">Напишите эти слова в правильном порядке и храните их в безопасном месте</string>
     <string name="RecoveryPhrase_ShowPhrase">Нажмите, чтобы показать фразу восстановления</string>
@@ -1252,6 +1252,14 @@
     <string name="PrivateKeys_AccountExtendedPrivateKey">Расширенный приватный ключ аккаунта</string>
     <string name="PrivateKeys_AccountExtendedPrivateKeyDescription">Предоставляет полный контроль над Bitcoin и другими криптовалютами на базе UTXO, такими как Litecoin, Bitcoin Cash, Dash и т.д. в пределах соответствующего кошелька.</string>
     <string name="PrivateKeys_NeverShareWarning">Никогда ни с кем не делитесь вашей фразой восстановления. Команда P.CASH никогда не запросит вашу фразу восстановления.</string>
+    <string name="private_key_conversion_monero_description">
+        <![CDATA[
+        <p><b>Мы преобразовали вашу сид-фразу из %d слов в стандарт Monero — 25 слов.</b></p>
+        <p>Для восстановления кошелька в нашем приложении используйте исходную фразу из <b>%d слов.</b></p>
+        </p>Если же вы хотите восстановить этот же кошелёк в другом приложении или сервисе, который не поддерживает нестандартное количество слов, используйте <b>25-словную фразу в формате Monero</b>, которая указана ниже.
+        ]]>
+    </string>
+
     <!-- Public Keys -->
     <string name="PublicKeys_Title">Публичные ключи</string>
     <string name="PublicKeys_EvmAddress">EVM адрес</string>

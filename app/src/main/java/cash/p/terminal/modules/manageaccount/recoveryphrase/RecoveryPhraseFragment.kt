@@ -29,16 +29,18 @@ import cash.p.terminal.modules.manageaccount.ui.PassphraseCell
 import cash.p.terminal.modules.manageaccount.ui.SeedPhraseList
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.helpers.TextHelper
+import cash.p.terminal.ui_compose.AnnotatedResourceString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.ui_compose.requireInput
+import cash.p.terminal.wallet.AccountType
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -46,7 +48,7 @@ class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val input:Input = navController.requireInput()
+        val input: Input = navController.requireInput()
         RecoveryPhraseScreen(
             navController = navController,
             account = input.account,
@@ -58,7 +60,7 @@ class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
     class Input(
         val account: Account,
         val recoveryPhraseType: RecoveryPhraseType
-    ): Parcelable
+    ) : Parcelable
 
     enum class RecoveryPhraseType {
         Mnemonic,
@@ -74,13 +76,23 @@ private fun RecoveryPhraseScreen(
     recoveryPhraseType: RecoveryPhraseFragment.RecoveryPhraseType
 ) {
     val viewModel =
-        viewModel<RecoveryPhraseViewModel>(factory = RecoveryPhraseModule.Factory(account, recoveryPhraseType))
+        viewModel<RecoveryPhraseViewModel>(
+            factory = RecoveryPhraseModule.Factory(
+                account,
+                recoveryPhraseType
+            )
+        )
 
     val view = LocalView.current
     val coroutineScope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
+    val titleResId = if (recoveryPhraseType == RecoveryPhraseFragment.RecoveryPhraseType.Monero) {
+        R.string.RecoveryPhrase_monero_Title
+    } else {
+        R.string.RecoveryPhrase_Title
+    }
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -117,7 +129,7 @@ private fun RecoveryPhraseScreen(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
             AppBar(
-                title = stringResource(R.string.RecoveryPhrase_Title),
+                title = stringResource(titleResId),
                 navigationIcon = {
                     HsBackButton(onClick = navController::popBackStack)
                 },
@@ -146,6 +158,18 @@ private fun RecoveryPhraseScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.PrivateKeys_NeverShareWarning)
                 )
+                (account.type as? AccountType.Mnemonic)?.words?.size?.let {
+                    TextImportantWarning(
+                        modifier = Modifier.padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = 16.dp
+                        ),
+                        text = AnnotatedResourceString.htmlToAnnotatedString(
+                            stringResource(R.string.private_key_conversion_monero_description, it, it)
+                        )
+                    )
+                }
                 VSpacer(24.dp)
                 var hidden by remember { mutableStateOf(true) }
                 SeedPhraseList(viewModel.wordsNumbered, hidden) {

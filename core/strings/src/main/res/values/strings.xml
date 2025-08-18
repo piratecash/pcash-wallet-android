@@ -1618,7 +1618,7 @@ Proceed only if you\'re sure.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
 
     <!-- Recovery Phrase -->
-    <string name="RecoveryPhrase_monero_Title">Recovery Phrase Monero</string>
+    <string name="RecoveryPhrase_monero_Title">Monero 25-word Export</string>
     <string name="RecoveryPhrase_Title">Recovery Phrase</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
@@ -1664,6 +1664,13 @@ Proceed only if you\'re sure.</string>
     <string name="PrivateKeys_AccountExtendedPrivateKey">Account Extended Private Key</string>
     <string name="PrivateKeys_AccountExtendedPrivateKeyDescription">Grants full control over Bitcoin and other UTXO based crypto i.e. Litecoin, Bitcoin Cash, Dash etc. within respective wallet.</string>
     <string name="PrivateKeys_NeverShareWarning">Never share this key with anyone. P.CASH Wallet support team will never ask for it.</string>
+    <string name="private_key_conversion_monero_description">
+        <![CDATA[
+        <p><b>We have converted your seed phrase from %d words to the Monero standard — 25 words.</b></p>
+        <p>To restore your wallet in our app, use the original <b>%d-word</b> phrase.</p>
+        </p>If you want to restore the same wallet in another app or service that does not support a non-standard number of words, use the <b>25-word Monero format phrase</b> provided below.
+        ]]>
+    </string>
 
     <!-- Public Keys -->
     <string name="PublicKeys_Title">Public Keys</string>
