@@ -25,7 +25,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.requireInput
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.market.MarketDataValue

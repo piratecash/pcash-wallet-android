@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.R
@@ -33,7 +34,6 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.setNavigationResultX
 import kotlinx.parcelize.Parcelize
 
 class ChecklistConfirmationDialog : BaseComposableBottomSheetFragment() {

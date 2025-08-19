@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.setNavigationResultX
-import io.horizontalsystems.core.slideFromRightForResult
+import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromRightForResult
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.HsCheckbox

@@ -14,8 +14,8 @@ import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import com.walletconnect.web3.wallet.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
-import cash.p.terminal.ui_compose.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 import org.koin.android.ext.android.inject
 
 class MainActivity : BaseActivity() {

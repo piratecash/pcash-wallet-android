@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade

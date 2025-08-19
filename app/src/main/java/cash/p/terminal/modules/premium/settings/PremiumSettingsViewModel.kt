@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.premium.settings
 
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.premium.domain.PremiumResult
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import io.horizontalsystems.core.ViewModelUiState
 
@@ -15,15 +14,11 @@ internal class PremiumSettingsViewModel(
         checkEnabled = checkEnabled && checkPremiumUseCase.isAnyPremium()
     )
 
-    fun setAddressContractChecking(enabled: Boolean): PremiumResult {
-        if(!checkPremiumUseCase.isAnyPremium()) {
-            return PremiumResult.NeedPremium
-        }
+    fun setAddressContractChecking(enabled: Boolean) {
         localStorage.recipientAddressContractCheckEnabled = enabled
         checkEnabled = enabled
 
         emitState()
-        return PremiumResult.Success
     }
 }
 

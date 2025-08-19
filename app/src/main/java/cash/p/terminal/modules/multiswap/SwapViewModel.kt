@@ -7,7 +7,6 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
-import cash.p.terminal.premium.domain.PremiumResult
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.IAccountManager

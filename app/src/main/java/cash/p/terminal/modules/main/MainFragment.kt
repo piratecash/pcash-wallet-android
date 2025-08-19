@@ -68,7 +68,7 @@ import cash.p.terminal.ui.extensions.WalletSwitchBottomSheet
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference

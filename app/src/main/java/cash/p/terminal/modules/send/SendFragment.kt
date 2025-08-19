@@ -54,7 +54,7 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottomForResult
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 

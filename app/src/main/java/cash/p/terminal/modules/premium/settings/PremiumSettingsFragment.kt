@@ -10,21 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import cash.p.terminal.premium.domain.premiumAction
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.strings.R
-import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.InfoText
-import cash.p.terminal.ui_compose.components.body_leah
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PremiumSettingsFragment : BaseComposeFragment() {

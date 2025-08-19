@@ -16,7 +16,6 @@ import cash.p.terminal.modules.address.AddressHandlerUdn
 import cash.p.terminal.modules.address.AddressParserChain
 import cash.p.terminal.modules.address.EnsResolverHolder
 import cash.p.terminal.modules.contacts.ContactsRepository
-import cash.p.terminal.premium.domain.PremiumResult
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.Token
@@ -108,18 +107,13 @@ class EnterAddressViewModel(
         }
     }
 
-    fun onCheckSmartContractAddressClick(enabled: Boolean): PremiumResult {
-        if (!checkPremiumUseCase.isAnyPremium()) {
-            return PremiumResult.NeedPremium
-        }
-
+    fun onCheckSmartContractAddressClick(enabled: Boolean) {
         localStorage.recipientAddressContractCheckEnabled = enabled
         emitState()
 
         if (value.isNotBlank()) {
             processAddress(value)
         }
-        return PremiumResult.Success
     }
 
     fun onEnterAddress(value: String) {

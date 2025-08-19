@@ -19,7 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.releasenotes.ReleaseNotesScreen
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
 import cash.p.terminal.modules.settings.appstatus.AppStatusScreen

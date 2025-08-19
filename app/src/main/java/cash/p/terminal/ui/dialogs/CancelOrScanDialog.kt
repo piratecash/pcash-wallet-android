@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.components.InfoTextBody
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader

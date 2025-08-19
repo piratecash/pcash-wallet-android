@@ -70,7 +70,7 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import kotlin.collections.set
 
 @Composable

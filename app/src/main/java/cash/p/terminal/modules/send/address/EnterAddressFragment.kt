@@ -39,13 +39,13 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.adapters.stellar.StellarAssetAdapter
 import cash.p.terminal.core.address.AddressCheckType
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.ui.compose.components.FormsInputAddress
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -63,7 +63,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_lucian
 import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.requireInput
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
 import com.tonapps.tonkeeper.api.shortAddress

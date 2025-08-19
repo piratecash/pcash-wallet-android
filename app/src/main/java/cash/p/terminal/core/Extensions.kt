@@ -13,10 +13,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import cash.p.terminal.R
 import cash.p.terminal.modules.market.topplatforms.Platform
+import cash.p.terminal.modules.premium.about.AboutPremiumFragment
+import cash.p.terminal.navigation.slideFromBottomForResult
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.models.CoinCategory
@@ -29,6 +33,7 @@ import io.horizontalsystems.hodler.LockTimeInterval
 import kotlinx.coroutines.delay
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.util.Locale
 import java.util.Optional
@@ -258,4 +263,18 @@ inline fun <T> tryOrNull(block: () -> T): T? {
 fun Context.hasNFC(): Boolean {
     val pm = getSystemService(Context.NFC_SERVICE) as android.nfc.NfcManager
     return pm.defaultAdapter?.isEnabled == true
+}
+
+fun NavController.premiumAction(block: () -> Unit) {
+    val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
+    if (checkPremiumUseCase.isAnyPremium()) {
+        block.invoke()
+    } else {
+        slideFromBottomForResult<AboutPremiumFragment.Result>(
+            R.id.aboutPremiumFragment,
+            AboutPremiumFragment.CloseOnPremiumInput()
+        ) {
+            block.invoke()
+        }
+    }
 }

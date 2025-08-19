@@ -52,17 +52,3 @@ fun Modifier.blockClicksBehind() = this.clickable(
     indication = null,
     interactionSource = remember { MutableInteractionSource() }
 ) { /* Do nothing */ }
-
-fun NavController.slideFromBottom(@IdRes resId: Int, input: Parcelable? = null) {
-    val navOptions = NavOptions.Builder()
-        .setEnterAnim(R.anim.slide_from_bottom)
-        .setExitAnim(android.R.anim.fade_out)
-        .setPopEnterAnim(android.R.anim.fade_in)
-        .setPopExitAnim(R.anim.slide_to_bottom)
-        .build()
-
-    val args = input?.let {
-        bundleOf("input" to it)
-    }
-    navigate(resId, args, navOptions)
-}

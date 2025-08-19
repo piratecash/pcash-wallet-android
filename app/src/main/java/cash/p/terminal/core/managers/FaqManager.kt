@@ -14,7 +14,7 @@ import cash.p.terminal.entities.Faq
 import cash.p.terminal.entities.FaqMap
 import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.markdown.localreader.MarkdownLocalFragment
-import cash.p.terminal.ui_compose.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import io.reactivex.Single
 import okhttp3.OkHttpClient
 import okhttp3.Request

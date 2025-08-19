@@ -68,8 +68,8 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.ui_compose.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 
 class ManageWalletsFragment : BaseComposeFragment() {
 

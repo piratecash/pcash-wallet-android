@@ -59,7 +59,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottomForResult
 import io.horizontalsystems.core.ui.dialogs.ChecklistConfirmationDialog
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.system.exitProcess

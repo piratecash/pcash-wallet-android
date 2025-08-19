@@ -51,7 +51,7 @@ import cash.p.terminal.ui_compose.components.SnackbarDuration
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize

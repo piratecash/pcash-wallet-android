@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.FaqManager
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.HeaderNote
 import cash.p.terminal.modules.balance.ui.NoteError
 import cash.p.terminal.modules.balance.ui.NoteWarning
@@ -53,8 +54,8 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.ui_compose.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 
 @Composable
 internal fun ManageAccountScreen(
@@ -221,7 +222,7 @@ private fun KeyActions(
                         icon = painterResource(id = R.drawable.icon_paper_contract_20)
                     ) {
                         navController.authorizedAction {
-                            if(viewState.isPremium) {
+                            navController.premiumAction {
                                 navController.slideFromRight(
                                     R.id.recoveryPhraseFragment,
                                     RecoveryPhraseFragment.Input(
@@ -229,8 +230,6 @@ private fun KeyActions(
                                         recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
                                     )
                                 )
-                            } else {
-                                navController.slideFromBottom(R.id.aboutPremiumFragment)
                             }
                         }
                     }
@@ -572,8 +571,7 @@ private fun ManageAccountScreenPreview() {
                     KeyAction.ForgotAccessCode,
                 ),
                 backupActions = emptyList(),
-                signedHashes = 2,
-                isPremium = false
+                signedHashes = 2
             ),
             account = Account(
                 id = "id",

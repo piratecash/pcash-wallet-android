@@ -224,7 +224,7 @@ class AboutPremiumViewModel(
 data class AboutPremiumUiState(
     val viewState: ViewState = ViewState.Loading,
     val markdownBlocks: List<MarkdownBlock> = emptyList(),
-    val hasPremium: Boolean = true,
+    val hasPremium: Boolean = false,
     val demoDaysLeft: Int? = null,
     val hasEligibleWallets: Boolean = false,
     val activationResult: TrialPremiumResult? = null,

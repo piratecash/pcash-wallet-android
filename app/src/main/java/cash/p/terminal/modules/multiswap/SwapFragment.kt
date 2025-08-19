@@ -56,7 +56,6 @@ import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.CardsSwapInfo
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -88,9 +87,9 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
 import io.horizontalsystems.core.entities.Currency
-import cash.p.terminal.ui_compose.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
-import io.horizontalsystems.core.slideFromRightForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromRightForResult
 import io.horizontalsystems.core.toBigDecimalOrNullExt
 import java.math.BigDecimal
 import java.net.UnknownHostException

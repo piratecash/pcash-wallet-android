@@ -14,7 +14,7 @@ import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.tangem.ui.accesscoderecovery.AccessCodeRecoveryDialog
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.requireInput
-import io.horizontalsystems.core.slideFromRightForResult
+import cash.p.terminal.navigation.slideFromRightForResult
 import kotlinx.parcelize.Parcelize
 
 class ManageAccountFragment : BaseComposeFragment() {
