@@ -28,7 +28,7 @@ import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.cell.CellUniversal
+import cash.p.terminal.ui_compose.components.CellUniversal
 
 @Composable
 fun AmountCell(

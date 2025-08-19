@@ -47,14 +47,14 @@ import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.ui.compose.components.FormsInputAddress
-import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsDivider
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
@@ -67,8 +67,6 @@ import cash.p.terminal.ui_compose.slideFromBottom
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
 import com.tonapps.tonkeeper.api.shortAddress
-import io.horizontalsystems.chartview.cell.CellUniversal
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
@@ -135,28 +133,22 @@ fun EnterAddressScreen(navController: NavController, input: EnterAddressFragment
                     .verticalScroll(rememberScrollState()),
             ) {
                 SectionUniversalLawrence {
-                    CellUniversal {
-                        body_leah(text = stringResource(R.string.SettingsAddressChecker_RecipientCheck))
-                        HFillSpacer(minWidth = 8.dp)
-                        HsSwitch(
-                            checked = uiState.addressCheckByBaseEnabled,
-                            onCheckedChange = viewModel::onCheckBaseAddressClick
-                        )
-                    }
+                    SwitchWithText(
+                        text = stringResource(R.string.SettingsAddressChecker_RecipientCheck),
+                        checkEnabled = uiState.addressCheckByBaseEnabled,
+                        onCheckedChange = viewModel::onCheckBaseAddressClick
+                    )
                 }
                 SectionUniversalLawrence(modifier = Modifier.padding(top = 8.dp)) {
-                    CellUniversal {
-                        body_leah(text = stringResource(R.string.settings_smart_contract_check))
-                        HFillSpacer(minWidth = 8.dp)
-                        HsSwitch(
-                            checked = uiState.addressCheckSmartContractEnabled,
-                            onCheckedChange = {
-                                navController.premiumAction {
-                                    viewModel.onCheckSmartContractAddressClick(it)
-                                }
+                    SwitchWithText(
+                        text = stringResource(R.string.settings_smart_contract_check),
+                        checkEnabled = uiState.addressCheckSmartContractEnabled,
+                        onCheckedChange = {
+                            navController.premiumAction {
+                                viewModel.onCheckSmartContractAddressClick(it)
                             }
-                        )
-                    }
+                        }
+                    )
                 }
                 FormsInputAddress(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -341,7 +333,7 @@ private fun CheckCell(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if(checkType == AddressCheckType.SmartContract) {
+        if (checkType == AddressCheckType.SmartContract) {
             Icon(
                 painter = painterResource(R.drawable.ic_star_filled_20),
                 contentDescription = null,

@@ -45,8 +45,8 @@ import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.imageUrl
 import io.horizontalsystems.bitcoincore.managers.SendValueErrors
-import io.horizontalsystems.chartview.cell.CellUniversal
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.CellUniversal
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.entities.CurrencyValue

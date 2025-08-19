@@ -30,7 +30,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.IWalletManager
-import io.horizontalsystems.chartview.cell.CellUniversal
+import cash.p.terminal.ui_compose.components.CellUniversal
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.imageUrl

@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.cell.CellUniversal
+import cash.p.terminal.ui_compose.components.CellUniversal
 
 @Composable
 fun HeaderCell(

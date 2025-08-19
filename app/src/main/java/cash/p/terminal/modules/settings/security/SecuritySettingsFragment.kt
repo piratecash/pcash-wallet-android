@@ -46,7 +46,7 @@ import cash.p.terminal.modules.settings.security.ui.TorBlock
 import cash.p.terminal.modules.settings.security.ui.TransactionAutoHideBlock
 import cash.p.terminal.modules.settings.security.ui.TransferPasscodeBlock
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.extensions.ConfirmationDialog
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar

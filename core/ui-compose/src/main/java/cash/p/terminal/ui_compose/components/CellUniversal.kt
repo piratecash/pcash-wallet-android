@@ -1,4 +1,4 @@
-package io.horizontalsystems.chartview.cell
+package cash.p.terminal.ui_compose.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

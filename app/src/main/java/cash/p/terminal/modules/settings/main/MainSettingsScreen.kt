@@ -57,7 +57,7 @@ import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.cell.SectionPremiumUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionPremiumUniversalLawrence
 import cash.p.terminal.ui_compose.slideFromBottom
 
 @Composable

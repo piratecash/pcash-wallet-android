@@ -1,4 +1,4 @@
-package cash.p.terminal.ui.compose.components
+package cash.p.terminal.ui_compose.components
 
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.LocalMinimumInteractiveComponentEnforcement
@@ -7,6 +7,7 @@ import androidx.compose.material.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -22,10 +23,10 @@ fun HsSwitch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.white,
-                uncheckedThumbColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lightGrey,
-                checkedTrackColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.yellowD,
-                uncheckedTrackColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.elenaD,
+                checkedThumbColor = ComposeAppTheme.colors.white,
+                uncheckedThumbColor = ComposeAppTheme.colors.lightGrey,
+                checkedTrackColor = ComposeAppTheme.colors.yellowD,
+                uncheckedTrackColor = ComposeAppTheme.colors.elenaD,
                 checkedTrackAlpha = 1f,
                 uncheckedTrackAlpha = 0.2f,
             ),

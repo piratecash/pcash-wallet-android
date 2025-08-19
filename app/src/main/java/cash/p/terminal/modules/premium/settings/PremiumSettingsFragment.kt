@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.premium.domain.premiumAction
 import cash.p.terminal.strings.R
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HFillSpacer
@@ -22,8 +22,9 @@ import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.cell.CellUniversal
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.CellUniversal
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SwitchWithText
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class PremiumSettingsFragment : BaseComposeFragment() {
@@ -69,14 +70,11 @@ internal fun PremiumSettingsScreen(
                 .fillMaxSize()
         ) {
             SectionUniversalLawrence {
-                CellUniversal {
-                    body_leah(text = stringResource(R.string.settings_smart_contract_check))
-                    HFillSpacer(minWidth = 8.dp)
-                    HsSwitch(
-                        checked = uiState.checkEnabled,
-                        onCheckedChange = onCheckAddressContractClick
-                    )
-                }
+                SwitchWithText(
+                    text = stringResource(R.string.settings_smart_contract_check),
+                    checkEnabled = uiState.checkEnabled,
+                    onCheckedChange = onCheckAddressContractClick
+                )
             }
             InfoText(
                 text = stringResource(R.string.settings_smart_contract_check_description),

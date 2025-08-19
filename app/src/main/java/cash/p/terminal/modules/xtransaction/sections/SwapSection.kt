@@ -9,7 +9,7 @@ import cash.p.terminal.modules.xtransaction.cells.AmountCellTV
 import cash.p.terminal.modules.xtransaction.cells.AmountColor
 import cash.p.terminal.modules.xtransaction.cells.AmountSign
 import cash.p.terminal.modules.xtransaction.helpers.TransactionInfoHelper
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 
 @Composable
 fun SwapSection(

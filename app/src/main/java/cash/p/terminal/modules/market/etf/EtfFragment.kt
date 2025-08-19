@@ -63,7 +63,7 @@ import cash.p.terminal.ui.compose.components.ListErrorView
 import cash.p.terminal.ui.compose.components.MarketCoinClear
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.VSpacer
-import io.horizontalsystems.chartview.cell.CellUniversalFixedHeight
+import cash.p.terminal.ui_compose.components.CellUniversalFixedHeight
 import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.components.micro_grey
 import cash.p.terminal.ui_compose.components.subhead1_leah
