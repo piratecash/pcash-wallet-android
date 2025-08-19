@@ -24,6 +24,8 @@ import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.commonmark.parser.Parser
 
@@ -43,6 +45,9 @@ class AboutPremiumViewModel(
     var uiState by mutableStateOf(AboutPremiumUiState())
         private set
 
+    private val _uiEvents = Channel<TrialPremiumResult>(Channel.UNLIMITED)
+    val uiEvents = _uiEvents.receiveAsFlow()
+
     init {
         loadContent()
     }
@@ -57,22 +62,30 @@ class AboutPremiumViewModel(
                     val result = checkPremiumUseCase.activateTrialPremium(currentAccount.id)
 
                     uiState = uiState.copy(
-                        activationResult = result,
                         hasPremium = checkPremiumUseCase.isAnyPremium(),
                         demoDaysLeft = (result as? TrialPremiumResult.DemoActive)?.daysLeft,
                         activationViewState = ViewState.Success
                     )
+
+                    _uiEvents.trySend(result)
+
                 } catch (e: Exception) {
+                    val errorResult = TrialPremiumResult.DemoError()
+
                     uiState = uiState.copy(
-                        activationResult = TrialPremiumResult.DemoError(),
                         activationViewState = ViewState.Success
                     )
+
+                    _uiEvents.trySend(errorResult)
                 }
             } else {
+                val errorResult = TrialPremiumResult.DemoError(R.string.wallet_is_not_eligile)
+
                 uiState = uiState.copy(
-                    activationResult = TrialPremiumResult.DemoError(R.string.wallet_is_not_eligile),
                     activationViewState = ViewState.Success
                 )
+
+                _uiEvents.trySend(errorResult)
             }
         }
     }
@@ -227,6 +240,5 @@ data class AboutPremiumUiState(
     val hasPremium: Boolean = false,
     val demoDaysLeft: Int? = null,
     val hasEligibleWallets: Boolean = false,
-    val activationResult: TrialPremiumResult? = null,
     val activationViewState: ViewState = ViewState.Success,
 )

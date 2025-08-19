@@ -38,11 +38,14 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.highlightText
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutPremiumScreen(
     uiState: AboutPremiumUiState,
+    uiEvents: Flow<TrialPremiumResult>,
     onRetryClick: () -> Unit,
     onCloseClick: () -> Unit,
     onUrlClick: (String) -> Unit,
@@ -50,35 +53,37 @@ fun AboutPremiumScreen(
 ) {
     val view = LocalView.current
 
-    LaunchedEffect(uiState.activationResult) {
-        when (uiState.activationResult) {
-            is TrialPremiumResult.DemoActive -> {
-                HudHelper.showSuccessMessage(
-                    view,
-                    R.string.premium_demo_activated,
-                    SnackbarDuration.SHORT
-                )
-            }
-            is TrialPremiumResult.DemoExpired -> {
-                HudHelper.showErrorMessage(
-                    view,
-                    R.string.premium_demo_expired
-                )
-            }
-            is TrialPremiumResult.DemoError -> {
-                if(uiState.activationResult.errorStringResId != null) {
-                    HudHelper.showErrorMessage(
+    LaunchedEffect(Unit) {
+        uiEvents.collect { result ->
+            when (result) {
+                is TrialPremiumResult.DemoActive -> {
+                    HudHelper.showSuccessMessage(
                         view,
-                        uiState.activationResult.errorStringResId!!
-                    )
-                } else {
-                    HudHelper.showErrorMessage(
-                        view,
-                        R.string.premium_demo_activation_failed
+                        R.string.premium_demo_activated,
+                        SnackbarDuration.SHORT
                     )
                 }
+                is TrialPremiumResult.DemoExpired -> {
+                    HudHelper.showErrorMessage(
+                        view,
+                        R.string.premium_demo_expired
+                    )
+                }
+                is TrialPremiumResult.DemoError -> {
+                    if(result.errorStringResId != null) {
+                        HudHelper.showErrorMessage(
+                            view,
+                            result.errorStringResId!!
+                        )
+                    } else {
+                        HudHelper.showErrorMessage(
+                            view,
+                            R.string.premium_demo_activation_failed
+                        )
+                    }
+                }
+                else -> {}
             }
-            else -> {}
         }
     }
 
@@ -215,6 +220,7 @@ private fun SelectSubscriptionScreenPreview() {
     ComposeAppTheme {
         AboutPremiumScreen(
             uiState = AboutPremiumUiState(),
+            uiEvents = emptyFlow(),
             onCloseClick = {},
             onRetryClick = {},
             onUrlClick = {},

@@ -28,6 +28,7 @@ class AboutPremiumFragment : BaseComposeFragment() {
         }
         AboutPremiumScreen(
             uiState = viewModel.uiState,
+            uiEvents = viewModel.uiEvents,
             onRetryClick = viewModel::retry,
             onCloseClick = navController::popBackStack,
             onUrlClick = { url ->
