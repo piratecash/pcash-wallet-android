@@ -5,14 +5,13 @@ import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.dao.DemoPremiumUserDao
 import cash.p.terminal.premium.data.model.DemoPremiumUser
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.eligibleForPremium
 import timber.log.Timber
 
 internal class CheckTrialPremiumUseCase(
     private val piratePlaceRepository: PiratePlaceRepository,
     private val demoPremiumUserDao: DemoPremiumUserDao,
-    private val seedToEvmAddressUseCase: SeedToEvmAddressUseCase
+    private val getBnbAddressUseCase: GetBnbAddressUseCaseImpl
 ) {
 
     suspend fun checkTrialPremiumStatus(account: Account): TrialPremiumResult {
@@ -22,8 +21,9 @@ internal class CheckTrialPremiumUseCase(
 
         var cachedUser: DemoPremiumUser? = null
         return try {
-            val mnemonicType = account.type as AccountType.Mnemonic
-            val walletAddress = seedToEvmAddressUseCase(mnemonicType.words, mnemonicType.passphrase)
+            val walletAddress = getBnbAddressUseCase.getAddress(account)
+                ?: throw IllegalStateException("Wallet address not found")
+
             cachedUser = findCachedUser(walletAddress) ?: return TrialPremiumResult.NeedPremium
 
             val currentTime = System.currentTimeMillis()

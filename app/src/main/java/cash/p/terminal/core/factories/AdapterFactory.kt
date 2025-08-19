@@ -49,10 +49,15 @@ import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.network.pirate.domain.repository.MasterNodesRepository
+import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCase
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAdapter
+import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.isCosanta
+import cash.p.terminal.wallet.isPirateCash
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
@@ -74,7 +79,8 @@ class AdapterFactory(
     private val coinManager: ICoinManager,
     private val evmLabelManager: EvmLabelManager,
     private val localStorage: ILocalStorage,
-    private val masterNodesRepository: MasterNodesRepository
+    private val masterNodesRepository: MasterNodesRepository,
+    private val getBnbAddressUseCase: GetBnbAddressUseCase
 ) {
     private fun getEvmAdapter(wallet: Wallet): IAdapter? {
         val blockchainType = evmBlockchainManager.getBlockchain(wallet.token)?.type ?: return null
@@ -150,10 +156,26 @@ class AdapterFactory(
     }
 
     suspend fun getAdapterOrNull(wallet: Wallet) = try {
-        getAdapter(wallet)
+        getAdapter(wallet)?.also {
+            storeBnbAddresses(it, wallet)
+        }
     } catch (e: Throwable) {
         Log.e("AAA", "get adapter error", e)
         null
+    }
+
+    /***
+     * Store bnb addresses for hardware wallets only
+     * to detect premium by addresses
+     */
+    private suspend fun storeBnbAddresses(adapter: IAdapter, wallet: Wallet) {
+        if (wallet.account.type !is AccountType.HardwareCard ||
+            (!wallet.isPirateCash() && !wallet.isCosanta())
+        ) return
+
+        (adapter as? IReceiveAdapter)?.receiveAddress?.let {
+            getBnbAddressUseCase.saveAddress(it, wallet.account.id)
+        }
     }
 
     private suspend fun getAdapter(wallet: Wallet) =

@@ -37,14 +37,18 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:core"))
     implementation(project(":core:network"))
     implementation(project(":core:wallet"))
     implementation(project(":core:wallet"))
     implementation(project(":core:ui-compose"))
     implementation(project(":core:navigation"))
+    implementation(project(":feature-tangem"))
+
     implementation(libs.bitcoinj)
     implementation(libs.bitcoin.kit)
     implementation(libs.timber)
+    implementation(libs.tangem.sdk)
 
     implementation(libs.android.core.ktx)
     implementation(libs.appcompat)

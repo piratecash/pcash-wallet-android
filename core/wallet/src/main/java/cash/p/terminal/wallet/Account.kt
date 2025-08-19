@@ -91,9 +91,10 @@ data class Account(
 }
 
 fun Account.eligibleForPremium(): Boolean {
-    return type is AccountType.Mnemonic &&
+    return (type is AccountType.Mnemonic &&
             !isWatchAccount &&
-            hasAnyBackup
+            hasAnyBackup) ||
+            (type is AccountType.HardwareCard)
 }
 
 @Parcelize

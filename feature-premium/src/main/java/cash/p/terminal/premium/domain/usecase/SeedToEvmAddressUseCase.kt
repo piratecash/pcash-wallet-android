@@ -21,7 +21,7 @@ class SeedToEvmAddressUseCase {
         return generateEvmAddress(publicKey)
     }
 
-    private fun generateEvmAddress(publicKey: ByteArray): String {
+    fun generateEvmAddress(publicKey: ByteArray): String {
         val pubKeyForHash = if (publicKey.size == 65 && publicKey[0] == 0x04.toByte()) {
             publicKey.sliceArray(1..64)
         } else if (publicKey.size == 64) {

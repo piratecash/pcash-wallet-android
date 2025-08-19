@@ -4,7 +4,6 @@ import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.dao.DemoPremiumUserDao
 import cash.p.terminal.premium.data.model.DemoPremiumUser
-import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import timber.log.Timber
 
@@ -12,7 +11,7 @@ internal class ActivateTrialPremiumUseCase(
     private val demoPremiumUserDao: DemoPremiumUserDao,
     private val piratePlaceRepository: PiratePlaceRepository,
     private val accountManager: IAccountManager,
-    private val seedToEvmAddressUseCase: SeedToEvmAddressUseCase
+    private val getBnbAddressUseCase: GetBnbAddressUseCase
 ) {
 
     suspend fun activateTrialPremium(accountId: String): TrialPremiumResult {
@@ -20,8 +19,8 @@ internal class ActivateTrialPremiumUseCase(
 
         var walletAddressLog: String? = null
         return try {
-            val mnemonicType = account.type as AccountType.Mnemonic
-            val walletAddress = seedToEvmAddressUseCase(mnemonicType.words, mnemonicType.passphrase)
+            val walletAddress = getBnbAddressUseCase.getAddress(account, true)
+                ?: throw IllegalStateException("Wallet address not found")
             walletAddressLog = walletAddress
             val premiumStatus = piratePlaceRepository.activateTrialPremium(walletAddress)
 
