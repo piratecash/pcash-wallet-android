@@ -158,17 +158,23 @@ private fun RecoveryPhraseScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = stringResource(R.string.PrivateKeys_NeverShareWarning)
                 )
-                (account.type as? AccountType.Mnemonic)?.words?.size?.let {
-                    TextImportantWarning(
-                        modifier = Modifier.padding(
-                            start = 16.dp,
-                            end = 16.dp,
-                            top = 16.dp
-                        ),
-                        text = AnnotatedResourceString.htmlToAnnotatedString(
-                            stringResource(R.string.private_key_conversion_monero_description, it, it)
+                if (recoveryPhraseType == RecoveryPhraseFragment.RecoveryPhraseType.Monero) {
+                    (account.type as? AccountType.Mnemonic)?.words?.size?.let {
+                        TextImportantWarning(
+                            modifier = Modifier.padding(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 16.dp
+                            ),
+                            text = AnnotatedResourceString.htmlToAnnotatedString(
+                                stringResource(
+                                    R.string.private_key_conversion_monero_description,
+                                    it,
+                                    it
+                                )
+                            )
                         )
-                    )
+                    }
                 }
                 VSpacer(24.dp)
                 var hidden by remember { mutableStateOf(true) }
