@@ -56,8 +56,6 @@ import cash.p.terminal.modules.balance.HeaderNote
 import cash.p.terminal.modules.balance.ReceiveAllowedState
 import cash.p.terminal.modules.balance.TotalUIState
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
-import cash.p.terminal.modules.rateapp.RateAppModule
-import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonSecondaryTransparent
@@ -184,14 +182,6 @@ fun BalanceItems(
     uiState: BalanceUiState,
     totalState: TotalUIState
 ) {
-    val rateAppViewModel = viewModel<RateAppViewModel>(factory = RateAppModule.Factory())
-    DisposableEffect(true) {
-        rateAppViewModel.onBalancePageActive()
-        onDispose {
-            rateAppViewModel.onBalancePageInactive()
-        }
-    }
-
     val context = LocalContext.current
     val view = LocalView.current
     var revealedCardId by remember { mutableStateOf<Int?>(null) }
