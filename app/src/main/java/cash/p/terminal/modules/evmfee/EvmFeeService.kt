@@ -11,6 +11,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -28,7 +29,7 @@ class EvmFeeService(
 
     private var gasLimit: Long? = null
     private var gasPriceInfoState: DataState<GasPriceInfo> = DataState.Loading
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var gasPriceInfoJob: Job? = null
 
     private val evmBalance: BigInteger
@@ -60,9 +61,11 @@ class EvmFeeService(
             is DataState.Error -> {
                 _transactionStatusFlow.tryEmit(gasPriceInfoState)
             }
+
             DataState.Loading -> {
                 _transactionStatusFlow.tryEmit(DataState.Loading)
             }
+
             is DataState.Success -> {
                 sync(gasPriceInfoState.data)
             }
@@ -76,7 +79,7 @@ class EvmFeeService(
         if (transactionData != null) {
             gasPriceInfoJob = coroutineScope.launch {
                 try {
-                    val transaction = feeDataSingle(gasPriceInfo, transactionData).await()
+                    val transaction = feeDataSingle(gasPriceInfo, transactionData)
                     sync(transaction)
                 } catch (e: CancellationException) {
                     // do nothing
@@ -89,10 +92,10 @@ class EvmFeeService(
         }
     }
 
-    private fun feeDataSingle(
+    private suspend fun feeDataSingle(
         gasPriceInfo: GasPriceInfo,
         transactionData: TransactionData
-    ): Single<Transaction> {
+    ): Transaction {
         val gasPrice = gasPriceInfo.gasPrice
         val gasPriceDefault = gasPriceInfo.gasPriceDefault
         val default = gasPriceInfo.default
@@ -100,47 +103,52 @@ class EvmFeeService(
         val errors = gasPriceInfo.errors
 
         return if (transactionData.input.isEmpty() && transactionData.value == evmBalance) {
-            gasDataSingle(gasPrice, gasPriceDefault, BigInteger.ONE, transactionData).map { gasData ->
-                val adjustedValue = transactionData.value - gasData.fee
-                if (adjustedValue <= BigInteger.ZERO) {
-                    throw FeeSettingsError.InsufficientBalance
-                } else {
-                    val transactionDataAdjusted = TransactionData(transactionData.to, adjustedValue, byteArrayOf())
-                    Transaction(transactionDataAdjusted, gasData, default, warnings, errors)
-                }
+            val gasData = gasDataSingle(gasPrice, gasPriceDefault, BigInteger.ONE, transactionData)
+            val adjustedValue = transactionData.value - gasData.fee
+            if (adjustedValue <= BigInteger.ZERO) {
+                throw FeeSettingsError.InsufficientBalance
+            } else {
+                val transactionDataAdjusted =
+                    TransactionData(transactionData.to, adjustedValue, byteArrayOf())
+                Transaction(transactionDataAdjusted, gasData, default, warnings, errors)
             }
         } else {
-            gasDataSingle(gasPrice, gasPriceDefault, null, transactionData)
-                .map { gasData ->
-                    Transaction(transactionData, gasData, default, warnings, errors)
-                }
+            val gasData = gasDataSingle(gasPrice, gasPriceDefault, null, transactionData)
+            Transaction(transactionData, gasData, default, warnings, errors)
         }
     }
 
-    private fun gasDataSingle(
+    private suspend fun gasDataSingle(
         gasPrice: GasPrice,
         gasPriceDefault: GasPrice,
         stubAmount: BigInteger? = null,
         transactionData: TransactionData
-    ): Single<GasData> {
+    ): GasData {
         val gasLimit = gasLimit
 
         if (gasLimit != null) {
-            return Single.just(GasData(gasLimit = gasLimit, gasPrice = gasPrice))
+            return GasData(gasLimit = gasLimit, gasPrice = gasPrice)
         }
 
-        return gasDataService.estimatedGasDataAsync(gasPrice, transactionData, stubAmount)
-            .onErrorResumeNext { error ->
-                if (error.convertedError == EvmError.LowerThanBaseGasLimit) {
-                    gasDataService.estimatedGasDataAsync(gasPriceDefault, transactionData, stubAmount)
-                        .map {
-                            it.gasPrice = gasPrice
-                            it
-                        }
-                } else {
-                    Single.error(error)
-                }
+        return try {
+            gasDataService.estimatedGasDataAsync(
+                gasPrice,
+                transactionData,
+                stubAmount
+            ).await()
+        } catch (error: Throwable) {
+            if (error.convertedError == EvmError.LowerThanBaseGasLimit) {
+                val gasData = gasDataService.estimatedGasDataAsync(
+                    gasPriceDefault,
+                    transactionData,
+                    stubAmount
+                ).await()
+                gasData.gasPrice = gasPrice
+                gasData
+            } else {
+                throw error
             }
+        }
     }
 
     private fun sync(transaction: Transaction) {
