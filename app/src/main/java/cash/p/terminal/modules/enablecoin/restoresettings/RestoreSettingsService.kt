@@ -63,11 +63,7 @@ class RestoreSettingsService(
             }
 
             BlockchainType.Monero -> {
-                if (tokenConfig.restoreAsNew) {
-                    -1
-                } else {
-                    tokenConfig.birthdayHeight?.toLongOrNull()
-                }
+                tokenConfig.birthdayHeight?.toLongOrNull() ?: -1
             }
 
             else -> null

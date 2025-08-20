@@ -12,8 +12,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,20 +38,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.ui_compose.requireInput
-
 import cash.p.terminal.modules.backuplocal.fullbackup.OtherBackupItems
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.main.MainModule
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureScreen
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.ManageWalletsScreen
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureScreen
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellowWithSpinner
@@ -59,6 +59,7 @@ import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.FormsInputPassword
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
@@ -66,11 +67,13 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_lucian
+import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.HudHelper
+import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import org.koin.compose.viewmodel.koinViewModel
 
 class RestoreLocalFragment : BaseComposeFragment() {
 
@@ -106,7 +109,12 @@ private fun RestoreLocalNavHost(
 ) {
     val navController = rememberNavController()
     val mainViewModel: RestoreViewModel = viewModel()
-    val viewModel = viewModel<RestoreLocalViewModel>(factory = RestoreLocalModule.Factory(backupJsonString, fileName))
+    val viewModel = viewModel<RestoreLocalViewModel>(
+        factory = RestoreLocalModule.Factory(
+            backupJsonString,
+            fileName
+        )
+    )
     NavHost(
         navController = navController,
         startDestination = "restore_local",
@@ -132,7 +140,13 @@ private fun RestoreLocalNavHost(
         composablePage("restore_select_coins") {
             ManageWalletsScreen(
                 mainViewModel = mainViewModel,
-                openZCashConfigure = { navController.navigate("zcash_configure") },
+                openConfigure = {
+                    if (it.blockchainType == BlockchainType.Zcash) {
+                        navController.navigate("zcash_configure")
+                    } else if (it.blockchainType == BlockchainType.Monero) {
+                        navController.navigate("monero_configure")
+                    }
+                },
                 onBackClick = { navController.popBackStack() }
             ) { fragmentNavController.popBackStack(popUpToInclusiveId, popUpInclusive) }
         }
@@ -146,6 +160,23 @@ private fun RestoreLocalNavHost(
                     mainViewModel.cancelZCashConfig = true
                     navController.popBackStack()
                 }
+            )
+        }
+        composablePopup("monero_configure") {
+            val viewModel: MoneroConfigureViewModel = koinViewModel()
+            MoneroConfigureScreen(
+                onCloseWithResult = {
+                    mainViewModel.setMoneroConfig(it)
+                    navController.popBackStack()
+                },
+                onCloseClick = {
+                    mainViewModel.cancelMoneroConfig = true
+                    navController.popBackStack()
+                },
+                onRestoreNew = viewModel::onRestoreNew,
+                onSetBirthdayHeight = viewModel::setBirthdayHeight,
+                onDoneClick = viewModel::onDoneClick,
+                uiState = viewModel.uiState,
             )
         }
     }
@@ -181,14 +212,23 @@ private fun RestoreLocalScreen(
 
     LaunchedEffect(uiState.parseError) {
         uiState.parseError?.let { error ->
-            Toast.makeText(App.instance, error.message ?: error.javaClass.simpleName, Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                App.instance,
+                error.message ?: error.javaClass.simpleName,
+                Toast.LENGTH_LONG
+            ).show()
             onBackClick.invoke()
         }
     }
 
     LaunchedEffect(uiState.showSelectCoins) {
         uiState.showSelectCoins?.let { accountType ->
-            mainViewModel.setAccountData(accountType, viewModel.accountName, uiState.manualBackup, true)
+            mainViewModel.setAccountData(
+                accountType,
+                viewModel.accountName,
+                uiState.manualBackup,
+                true
+            )
             keyboardController?.hide()
             delay(300)
             openSelectCoins.invoke()
@@ -291,7 +331,11 @@ private fun BackupFileItems(
 
     LaunchedEffect(uiState.parseError) {
         uiState.parseError?.let { error ->
-            Toast.makeText(App.instance, error.message ?: error.javaClass.simpleName, Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                App.instance,
+                error.message ?: error.javaClass.simpleName,
+                Toast.LENGTH_LONG
+            ).show()
             onBackClick.invoke()
         }
     }
@@ -351,13 +395,19 @@ private fun BackupFileItems(
         ) {
             LazyColumn(modifier = Modifier.padding(it)) {
                 item {
-                    InfoText(text = stringResource(R.string.BackupManager_BackupFileContents), paddingBottom = 32.dp)
+                    InfoText(
+                        text = stringResource(R.string.BackupManager_BackupFileContents),
+                        paddingBottom = 32.dp
+                    )
                 }
 
                 if (walletBackupViewItems.isNotEmpty()) {
                     item {
                         HeaderText(text = stringResource(id = R.string.BackupManager_Wallets))
-                        CellUniversalLawrenceSection(items = walletBackupViewItems, showFrame = true) { walletBackupViewItem ->
+                        CellUniversalLawrenceSection(
+                            items = walletBackupViewItems,
+                            showFrame = true
+                        ) { walletBackupViewItem ->
                             RowUniversal(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                             ) {

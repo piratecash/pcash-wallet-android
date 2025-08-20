@@ -9,6 +9,7 @@ import cash.p.terminal.core.order
 import cash.p.terminal.core.restoreSettingTypes
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.supports
+import cash.p.terminal.core.title
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.wallet.AccountOrigin
@@ -19,6 +20,8 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -153,7 +156,7 @@ class RestoreBlockchainsService(
 
     private fun syncState() {
         val blockchains = tokens.map { it.blockchain }.toSet()
-        items = blockchains.sortedBy { it.type.order }.map { item(it) }
+        items = blockchains.sortedBy { it.type.title }.map { item(it) }
     }
 
     private fun syncCanRestore() {

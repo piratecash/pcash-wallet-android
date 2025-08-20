@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -103,13 +104,17 @@ class WalletManager(
     }
 
     override fun clear() {
-        coroutineScope.launch {
+        val clearJob = coroutineScope.launch {
             mutex.withLock {
                 withContext(Dispatchers.IO) { storage.clear() }
                 walletsSet.clear()
                 notifyActiveWalletsLocked()
             }
-            coroutineScope.cancel()
+        }
+
+        coroutineScope.launch {
+            clearJob.join()
+            coroutineScope.coroutineContext.cancelChildren()
         }
     }
 

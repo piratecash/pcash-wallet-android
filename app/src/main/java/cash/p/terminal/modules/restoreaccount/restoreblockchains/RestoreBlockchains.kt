@@ -52,6 +52,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.Blockchain
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.wallet.Token
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -59,7 +60,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ManageWalletsScreen(
     mainViewModel: RestoreViewModel,
-    openZCashConfigure: () -> Unit,
+    openConfigure: (Token) -> Unit,
     onBackClick: () -> Unit,
     onFinish: () -> Unit
 ) {
@@ -88,9 +89,14 @@ fun ManageWalletsScreen(
     val doneButtonEnabled by viewModel.restoreEnabledLiveData.observeAsState(false)
     val restored = viewModel.restored
 
-    mainViewModel.tokenConfig?.let { config ->
+    mainViewModel.tokenZCashConfig?.let { config ->
         restoreSettingsViewModel.onEnter(config)
         mainViewModel.setZCashConfig(null)
+    }
+
+    mainViewModel.tokenMoneroConfig?.let { config ->
+        restoreSettingsViewModel.onEnter(config)
+        mainViewModel.setMoneroConfig(null)
     }
 
     if (mainViewModel.cancelZCashConfig) {
@@ -98,9 +104,14 @@ fun ManageWalletsScreen(
         mainViewModel.cancelZCashConfig = false
     }
 
-    if (restoreSettingsViewModel.openTokenConfigure != null) {
+    if(mainViewModel.cancelMoneroConfig) {
+        restoreSettingsViewModel.onCancelEnterBirthdayHeight()
+        mainViewModel.cancelMoneroConfig = false
+    }
+
+    restoreSettingsViewModel.openTokenConfigure?.let {
         restoreSettingsViewModel.tokenConfigureOpened()
-        openZCashConfigure()
+        openConfigure(it)
     }
 
     LaunchedEffect(restored) {

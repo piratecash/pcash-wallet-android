@@ -138,7 +138,11 @@ val Blockchain.description: String
         BlockchainType.Tron -> "TRX, TRC20 tokens"
         BlockchainType.Ton -> "TON"
         BlockchainType.Stellar -> "XLM, Stellar assets"
-        else -> ""
+        BlockchainType.Cosanta -> "COSA"
+        BlockchainType.Dogecoin -> "DOGE"
+        BlockchainType.Monero -> "XMR"
+        BlockchainType.PirateCash -> "PirateCash"
+        is BlockchainType.Unsupported -> ""
     }
 
 fun Blockchain.eip20TokenUrl(address: String) = eip3091url?.replace("\$ref", address)
@@ -326,7 +330,7 @@ val TokenType.bitcoinCashCoinType: TokenType.AddressType?
     }
 
 val TopPlatform.imageUrl
-    get() = "https://cdn.blocksdecoded.com/blockchain-icons/32px/${blockchain.uid}@3x.png"
+    get() = "https://p.cash/storage/blockchains/${blockchain.uid}.png"
 
 val FullCoin.typeLabel: String?
     get() = tokens.singleOrNull()?.protocolType
@@ -431,19 +435,19 @@ val BlockchainType.nativeTokenQueries: List<TokenQuery>
     get() = when (this) {
         BlockchainType.Bitcoin,
         BlockchainType.Litecoin -> {
-            TokenType.Derivation.values().map {
+            TokenType.Derivation.entries.map {
                 TokenQuery(this, TokenType.Derived(it))
             }
         }
 
         BlockchainType.BitcoinCash -> {
-            TokenType.AddressType.values().map {
+            TokenType.AddressType.entries.map {
                 TokenQuery(this, TokenType.AddressTyped(it))
             }
         }
 
         BlockchainType.Zcash -> {
-            TokenType.AddressSpecType.values().map {
+            TokenType.AddressSpecType.entries.map {
                 TokenQuery(this, TokenType.AddressSpecTyped(it))
             }
         }
@@ -503,6 +507,8 @@ val BlockchainType.Companion.supported: List<BlockchainType>
         BlockchainType.Bitcoin,
         BlockchainType.Ethereum,
         BlockchainType.BinanceSmartChain,
+        BlockchainType.PirateCash,
+        BlockchainType.Cosanta,
         BlockchainType.Polygon,
         BlockchainType.Avalanche,
         BlockchainType.Optimism,
@@ -520,6 +526,8 @@ val BlockchainType.Companion.supported: List<BlockchainType>
         BlockchainType.Tron,
         BlockchainType.Ton,
         BlockchainType.Stellar,
+        BlockchainType.Monero,
+        BlockchainType.Dogecoin,
     )
 
 val CoinPrice.diff: BigDecimal?

@@ -35,26 +35,23 @@ class MoneroConfigureViewModel(
     }
 
     fun onDoneClick() {
-        uiState = if (uiState.restoreAsNew) {
-            uiState.copy(
-                closeWithResult = TokenConfig("-1", uiState.restoreAsNew),
-            )
+        val heightDetected =  if (uiState.restoreAsNew) {
+            validateMoneroHeightUseCase.getTodayHeight()
         } else {
-            val heightDelected = validateMoneroHeightUseCase(uiState.birthdayHeight)
-
-            uiState.copy(
-                closeWithResult = if (heightDelected != -1L) {
-                    TokenConfig(heightDelected.toString(), uiState.restoreAsNew)
-                } else {
-                    null
-                },
-                errorHeight = if (heightDelected == -1L) {
-                    Translator.getString(R.string.inavlid_height)
-                } else {
-                    null
-                }
-            )
+            validateMoneroHeightUseCase(uiState.birthdayHeight)
         }
+        uiState = uiState.copy(
+            closeWithResult = if (heightDetected != -1L) {
+                TokenConfig(heightDetected.toString(), uiState.restoreAsNew)
+            } else {
+                null
+            },
+            errorHeight = if (heightDetected == -1L) {
+                Translator.getString(R.string.inavlid_height)
+            } else {
+                null
+            }
+        )
     }
 }
 

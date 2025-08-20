@@ -36,5 +36,10 @@ data class TokenQuery(
             BlockchainType.BinanceSmartChain,
             TokenType.Eip20(BuildConfig.PIRATE_CONTRACT)
         )
+
+        val CosantaBnb = TokenQuery(
+            BlockchainType.BinanceSmartChain,
+            TokenType.Eip20(BuildConfig.COSANTA_CONTRACT)
+        )
     }
 }
