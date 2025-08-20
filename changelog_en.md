@@ -5,8 +5,8 @@
 - Introduced the new **Premium** mode
   - Free 30-day trial available for each wallet
   - After the trial ends, Premium access remains without a subscription if a single wallet holds:
-    • ≥ 10,000 **PIRATE** or
-    • ≥ 100 **COSA**
+    ≥ 10,000 **PIRATE** or
+    ≥ 100 **COSA**
   - Tokens remain in your wallet, continue to generate passive income, and unlock access to all Premium features
   - 🔒 All PIRATE tokens in the liquidity pool are locked for 10 years — preventing rug pulls and ensuring fairness
 
@@ -21,7 +21,7 @@
 
 ### 🔧 Technical Improvements
 
-- **Monero**: added built-in converter for non-standard seed phrases to the 25-word format
+- **Monero**: the wallet now supports non-standard seed phrases by transparently using a built-in converter into the 25-word format (available without Premium)
 
 
 
