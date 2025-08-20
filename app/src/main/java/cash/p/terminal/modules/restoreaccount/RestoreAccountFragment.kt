@@ -11,14 +11,17 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import cash.p.terminal.ui_compose.getInput
-
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureScreen
+import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.ManageWalletsScreen
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuModule
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestorePhrase
 import cash.p.terminal.modules.restoreaccount.restoremnemonicnonstandard.RestorePhraseNonStandard
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureScreen
+import io.horizontalsystems.core.entities.BlockchainType
+import org.koin.compose.viewmodel.koinViewModel
 
 class RestoreAccountFragment : BaseComposeFragment(screenshotEnabled = false) {
 
@@ -77,7 +80,13 @@ private fun RestoreAccountNavHost(
         composablePage("restore_select_coins") {
             ManageWalletsScreen(
                 mainViewModel = mainViewModel,
-                openZCashConfigure = { navController.navigate("zcash_configure") },
+                openConfigure = {
+                    if (it.blockchainType == BlockchainType.Zcash) {
+                        navController.navigate("zcash_configure")
+                    } else if (it.blockchainType == BlockchainType.Monero) {
+                        navController.navigate("monero_configure")
+                    }
+                },
                 onBackClick = { navController.popBackStack() }
             ) { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
         }
@@ -98,6 +107,23 @@ private fun RestoreAccountNavHost(
                     mainViewModel.cancelZCashConfig = true
                     navController.popBackStack()
                 }
+            )
+        }
+        composablePopup("monero_configure") {
+            val viewModel: MoneroConfigureViewModel = koinViewModel()
+            MoneroConfigureScreen(
+                onCloseWithResult = {
+                    mainViewModel.setMoneroConfig(it)
+                    navController.popBackStack()
+                },
+                onCloseClick = {
+                    mainViewModel.cancelMoneroConfig = true
+                    navController.popBackStack()
+                },
+                onRestoreNew = viewModel::onRestoreNew,
+                onSetBirthdayHeight = viewModel::setBirthdayHeight,
+                onDoneClick = viewModel::onDoneClick,
+                uiState = viewModel.uiState,
             )
         }
     }

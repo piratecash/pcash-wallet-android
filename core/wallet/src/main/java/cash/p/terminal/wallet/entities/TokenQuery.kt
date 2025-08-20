@@ -1,5 +1,6 @@
 package cash.p.terminal.wallet.entities
 
+import cash.p.terminal.wallet.BuildConfig
 import io.horizontalsystems.core.entities.BlockchainType
 import java.util.Objects
 
@@ -30,5 +31,15 @@ data class TokenQuery(
                 tokenType
             )
         }
+
+        val PirateCashBnb = TokenQuery(
+            BlockchainType.BinanceSmartChain,
+            TokenType.Eip20(BuildConfig.PIRATE_CONTRACT)
+        )
+
+        val CosantaBnb = TokenQuery(
+            BlockchainType.BinanceSmartChain,
+            TokenType.Eip20(BuildConfig.COSANTA_CONTRACT)
+        )
     }
 }

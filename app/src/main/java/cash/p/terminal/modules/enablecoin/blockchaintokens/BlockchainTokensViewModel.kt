@@ -12,6 +12,7 @@ import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.ui.extensions.BottomSheetSelectorMultipleDialog
 import cash.p.terminal.ui.extensions.BottomSheetSelectorViewItem
+import cash.p.terminal.wallet.title
 import io.horizontalsystems.core.imageUrl
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
@@ -48,8 +49,8 @@ class BlockchainTokensViewModel(
             allowEmpty = request.allowEmpty,
             viewItems = request.tokens.map { token ->
                 BottomSheetSelectorViewItem(
-                    title = token.type.title,
-                    subtitle = token.type.description,
+                    title = token.type.title.ifEmpty { token.coin.name },
+                    subtitle = token.type.description.ifEmpty { token.blockchainType.title },
                 )
             }
         )

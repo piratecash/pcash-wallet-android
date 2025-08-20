@@ -107,7 +107,7 @@ class MoneroConfigureFragment : BaseComposeFragment() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MoneroConfigureScreen(
+fun MoneroConfigureScreen(
     onCloseClick: () -> Unit,
     onCloseWithResult: (TokenConfig) -> Unit,
     onRestoreNew: (Boolean) -> Unit,

@@ -19,6 +19,7 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -97,7 +98,7 @@ class RestoreBlockchainsService(
         val allowedBlockchainTypes = BlockchainType.supported.filter { it.supports(accountType) }
         val tokenQueries = allowedBlockchainTypes
             .map { it.nativeTokenQueries }
-            .flatten()
+            .flatten() + TokenQuery.PirateCashBnb + TokenQuery.CosantaBnb
 
         tokens = marketKit.tokens(tokenQueries)
             .filter { it.supports(accountType) }

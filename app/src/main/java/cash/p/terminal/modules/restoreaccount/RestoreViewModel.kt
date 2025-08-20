@@ -18,10 +18,13 @@ class RestoreViewModel: ViewModel() {
     var fileBackup: Boolean = false
         private set
 
-    var tokenConfig: TokenConfig? = null
+    var tokenZCashConfig: TokenConfig? = null
+        private set
+    var tokenMoneroConfig: TokenConfig? = null
         private set
 
     var cancelZCashConfig: Boolean = false
+    var cancelMoneroConfig: Boolean = false
 
     fun setAccountData(accountType: AccountType, accountName: String, manualBackup: Boolean, fileBackup: Boolean) {
         this.accountType = accountType
@@ -31,7 +34,11 @@ class RestoreViewModel: ViewModel() {
     }
 
     fun setZCashConfig(config: TokenConfig?) {
-        tokenConfig = config
+        tokenZCashConfig = config
+    }
+
+    fun setMoneroConfig(config: TokenConfig?) {
+        tokenMoneroConfig = config
     }
 
 }
