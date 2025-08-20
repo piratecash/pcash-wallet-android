@@ -330,7 +330,7 @@ val TokenType.bitcoinCashCoinType: TokenType.AddressType?
     }
 
 val TopPlatform.imageUrl
-    get() = "https://cdn.blocksdecoded.com/blockchain-icons/32px/${blockchain.uid}@3x.png"
+    get() = "https://p.cash/storage/blockchains/${blockchain.uid}.png"
 
 val FullCoin.typeLabel: String?
     get() = tokens.singleOrNull()?.protocolType
