@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalView
@@ -219,7 +220,8 @@ private fun KeyActions(
                 actionItems.add {
                     AccountActionItem(
                         title = stringResource(id = R.string.RecoveryPhrase_monero_Title),
-                        icon = painterResource(id = R.drawable.icon_paper_contract_20)
+                        icon = painterResource(id = R.drawable.icon_paper_contract_20),
+                        iconTint = ComposeAppTheme.colors.jacob
                     ) {
                         navController.authorizedAction {
                             navController.premiumAction {
@@ -434,6 +436,7 @@ private fun RedActionItem(
 private fun AccountActionItem(
     title: String,
     icon: Painter? = null,
+    iconTint: Color? = null,
     coinIconUrl: String? = null,
     coinIconPlaceholder: Int? = null,
     attention: Boolean = false,
@@ -450,7 +453,7 @@ private fun AccountActionItem(
                     .size(24.dp),
                 painter = icon,
                 contentDescription = null,
-                tint = ComposeAppTheme.colors.grey
+                tint = iconTint ?: ComposeAppTheme.colors.grey
             )
         }
 

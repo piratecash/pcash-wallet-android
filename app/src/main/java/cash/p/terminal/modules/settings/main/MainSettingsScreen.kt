@@ -283,7 +283,6 @@ private fun SettingSections(
             HsSettingCell(
                 title = R.string.SettingsAddressChecker_Title,
                 icon = R.drawable.ic_radar_24,
-                iconTint = ComposeAppTheme.colors.jacob,
                 onClick = {
                     navController.slideFromRight(R.id.addressCheckerFragment)
                 }
