@@ -100,7 +100,7 @@ class RestoreBlockchainsService(
         val allowedBlockchainTypes = BlockchainType.supported.filter { it.supports(accountType) }
         val tokenQueries = allowedBlockchainTypes
             .map { it.nativeTokenQueries }
-            .flatten() + TokenQuery.PirateCashBnb + TokenQuery.CosantaBnb
+            .flatten()
 
         tokens = marketKit.tokens(tokenQueries)
             .filter { it.supports(accountType) }
