@@ -17,7 +17,7 @@ import java.util.Locale
 import kotlin.math.absoluteValue
 
 val BlockchainType.imageUrl: String
-    get() = "https://p.cash/storage/blockchain/$uid.png"
+    get() = "https://p.cash/storage/blockchains/$uid.png"
 
 fun View.hideKeyboard(context: Context) {
     val imm = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
