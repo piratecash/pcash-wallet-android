@@ -8,6 +8,7 @@ import cash.p.terminal.network.pirate.domain.enity.InvestmentData
 import cash.p.terminal.network.pirate.domain.enity.InvestmentGraphData
 import cash.p.terminal.network.pirate.domain.enity.MarketTicker
 import cash.p.terminal.network.pirate.domain.enity.PiratePlaceCoin
+import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.enity.StakeData
 
 interface PiratePlaceRepository {
@@ -19,4 +20,8 @@ interface PiratePlaceRepository {
     suspend fun getCalculatorData(coin: String, amount: Double): CalculatorData
     suspend fun getCoinPriceChart(coin: String, periodType: ChartPeriod): List<CoinPriceChart>
     suspend fun getMarketTickers(coin: String): List<MarketTicker>
+    
+    // Premium API methods
+    suspend fun checkTrialPremiumStatus(address: String): TrialPremiumResult?
+    suspend fun activateTrialPremium(address: String): TrialPremiumResult?
 }

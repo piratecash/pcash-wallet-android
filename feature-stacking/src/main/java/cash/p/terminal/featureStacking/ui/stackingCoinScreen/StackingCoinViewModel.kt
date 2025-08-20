@@ -2,7 +2,9 @@ package cash.p.terminal.featureStacking.ui.stackingCoinScreen
 
 import android.util.Log
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.featureStacking.R
@@ -10,6 +12,7 @@ import cash.p.terminal.featureStacking.ui.entities.PayoutViewItem
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BuildConfig
@@ -51,8 +54,14 @@ internal abstract class StackingCoinViewModel(
     private val marketKitWrapper: MarketKitWrapper,
     private val balanceService: BalanceService,
     private val balanceHiddenManager: IBalanceHiddenManager,
-    private val backgroundManager: BackgroundManager
+    private val backgroundManager: BackgroundManager,
+    private val checkPremiumUseCase: CheckPremiumUseCase
 ) : ViewModel() {
+
+    private companion object {
+        const val COSANTA_DEFAULT_ANNUAL_INTEREST = "25%"
+        const val PIRATE_DEFAULT_ANNUAL_INTEREST = "8%"
+    }
 
     abstract val minStackingAmount: Int
     abstract val stackingType: StackingType
@@ -70,11 +79,17 @@ internal abstract class StackingCoinViewModel(
     val uiState: State<StackingCoinUIState> get() = _uiState
     private var wallet: Wallet? = null
 
+    var isPremium: Boolean by mutableStateOf(false)
+        private set
+
     init {
         viewModelScope.launch {
             balanceHiddenManager.balanceHiddenFlow.collectLatest {
                 _uiState.value = uiState.value.copy(balanceHidden = it)
             }
+        }
+        viewModelScope.launch {
+            isPremium = checkPremiumUseCase.update()
         }
     }
 
@@ -130,6 +145,13 @@ internal abstract class StackingCoinViewModel(
             }
         } catch (e: Exception) {
             Log.e("StackingCoinViewModel", "Error loading annual interest", e)
+            _uiState.value = uiState.value.copy(
+                annualInterest = if (stackingType == StackingType.PCASH) {
+                    PIRATE_DEFAULT_ANNUAL_INTEREST
+                } else {
+                    COSANTA_DEFAULT_ANNUAL_INTEREST
+                }
+            )
         }
     }
 

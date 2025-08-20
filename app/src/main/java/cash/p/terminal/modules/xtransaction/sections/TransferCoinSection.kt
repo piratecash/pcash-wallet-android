@@ -11,7 +11,7 @@ import cash.p.terminal.modules.xtransaction.cells.AmountColor
 import cash.p.terminal.modules.xtransaction.cells.AmountSign
 import cash.p.terminal.modules.xtransaction.cells.TitleAndValueCell
 import cash.p.terminal.modules.xtransaction.helpers.TransactionInfoHelper
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import io.horizontalsystems.core.entities.BlockchainType
 
 @Composable

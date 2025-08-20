@@ -14,10 +14,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
-import cash.p.terminal.wallet.MarketKitWrapper
-import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
-import cash.p.terminal.wallet.useCases.WalletUseCase
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.tangem.common.card.Card
 import com.tangem.common.doOnSuccess
@@ -25,7 +22,6 @@ import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 import org.koin.java.KoinJavaComponent.inject
 
 class ManageAccountViewModel(
@@ -58,7 +54,7 @@ class ManageAccountViewModel(
 
     init {
         viewModelScope.launch {
-            accountManager.accountsFlowable.asFlow()
+            accountManager.accountsFlow
                 .collect { handleUpdatedAccounts(it) }
         }
     }

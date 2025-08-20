@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.getInput
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaultWithIcon
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent

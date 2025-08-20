@@ -7,7 +7,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.SubscriptionManager
-import cash.p.terminal.core.toHexString
+import cash.p.terminal.core.to0xHexString
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
@@ -108,7 +108,7 @@ class ActivateSubscriptionViewModel(
                         message = subscriptionInfo.messageToSign.toByteArray(),
                         getChain = { App.evmBlockchainManager.getChain(it) }
                     ) ?: throw IllegalStateException()
-                val token = marketKit.authenticate(signature.toHexString(), address).await()
+                val token = marketKit.authenticate(signature.to0xHexString(), address).await()
                 subscriptionManager.authToken = token
                 fetchingTokenSuccess = true
             } catch (t: Throwable) {

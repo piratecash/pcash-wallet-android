@@ -10,7 +10,7 @@ interface IAccountManager {
     val activeAccountStateFlow: Flow<ActiveAccountState>
     val isAccountsEmpty: Boolean
     val accounts: List<Account>
-    val accountsFlowable: Flowable<List<Account>>
+    val accountsFlow: Flow<List<Account>>
     val accountsDeletedFlowable: Flowable<Unit>
     val newAccountBackupRequiredFlow: StateFlow<Account?>
 

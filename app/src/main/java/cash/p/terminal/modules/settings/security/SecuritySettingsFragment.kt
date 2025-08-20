@@ -46,7 +46,7 @@ import cash.p.terminal.modules.settings.security.ui.TorBlock
 import cash.p.terminal.modules.settings.security.ui.TransactionAutoHideBlock
 import cash.p.terminal.modules.settings.security.ui.TransferPasscodeBlock
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.extensions.ConfirmationDialog
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -59,7 +59,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottomForResult
 import io.horizontalsystems.core.ui.dialogs.ChecklistConfirmationDialog
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.system.exitProcess

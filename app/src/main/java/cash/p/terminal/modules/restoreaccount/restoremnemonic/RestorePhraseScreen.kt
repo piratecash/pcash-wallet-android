@@ -82,7 +82,7 @@ import cash.p.terminal.ui_compose.components.ButtonSecondary
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.CustomKeyboardWarningDialog
 import cash.p.terminal.ui.compose.components.FormsInput
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.compose.components.SelectorDialogCompose
 import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui.compose.observeKeyboardState

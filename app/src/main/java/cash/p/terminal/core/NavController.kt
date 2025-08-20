@@ -7,8 +7,8 @@ import cash.p.terminal.modules.pin.ConfirmPinFragment
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.pin.SetPinFragment
 import cash.p.terminal.modules.settings.terms.TermsFragment
-import io.horizontalsystems.core.slideFromBottomForResult
-import io.horizontalsystems.core.slideFromRightForResult
+import cash.p.terminal.navigation.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromRightForResult
 
 fun NavController.authorizedAction(
     input: ConfirmPinFragment.InputConfirm? = null,

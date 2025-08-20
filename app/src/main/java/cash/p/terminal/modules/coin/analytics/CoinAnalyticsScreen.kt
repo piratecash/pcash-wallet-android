@@ -19,7 +19,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.coin.analytics.CoinAnalyticsModule.AnalyticsViewItem

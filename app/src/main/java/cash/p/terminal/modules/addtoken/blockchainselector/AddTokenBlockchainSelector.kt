@@ -16,7 +16,7 @@ import cash.p.terminal.R
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import io.horizontalsystems.chartview.cell.CellBlockchainChecked
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import io.horizontalsystems.core.entities.Blockchain
 
 const val BlockchainSelectorResult = "blockchain_selector_result_key"

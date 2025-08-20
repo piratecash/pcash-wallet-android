@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.adapters.stellar.StellarAssetAdapter
 import cash.p.terminal.core.address.AddressCheckType
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -46,14 +47,14 @@ import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.FormsInputAddress
-import cash.p.terminal.ui.compose.components.HsSwitch
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsDivider
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
@@ -62,11 +63,10 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_lucian
 import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.requireInput
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
 import com.tonapps.tonkeeper.api.shortAddress
-import io.horizontalsystems.chartview.cell.CellUniversal
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
@@ -101,7 +101,8 @@ fun EnterAddressScreen(navController: NavController, input: EnterAddressFragment
     val wallet = input.wallet
     var amount by remember { mutableStateOf<BigDecimal?>(null) }
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
-        factory = AddressParserModule.Factory(wallet.token,
+        factory = AddressParserModule.Factory(
+            wallet.token,
             PrefilledData(input.address.orEmpty(), amount)
         )
     )
@@ -132,14 +133,22 @@ fun EnterAddressScreen(navController: NavController, input: EnterAddressFragment
                     .verticalScroll(rememberScrollState()),
             ) {
                 SectionUniversalLawrence {
-                    CellUniversal {
-                        body_leah(text = stringResource(R.string.SettingsAddressChecker_RecipientCheck))
-                        HFillSpacer(minWidth = 8.dp)
-                        HsSwitch(
-                            checked = uiState.addressCheckEnabled,
-                            onCheckedChange = viewModel::onCheckAddressClick
-                        )
-                    }
+                    SwitchWithText(
+                        text = stringResource(R.string.SettingsAddressChecker_RecipientCheck),
+                        checkEnabled = uiState.addressCheckByBaseEnabled,
+                        onCheckedChange = viewModel::onCheckBaseAddressClick
+                    )
+                }
+                SectionUniversalLawrence(modifier = Modifier.padding(top = 8.dp)) {
+                    SwitchWithText(
+                        text = stringResource(R.string.settings_smart_contract_check),
+                        checkEnabled = uiState.addressCheckSmartContractEnabled,
+                        onCheckedChange = {
+                            navController.premiumAction {
+                                viewModel.onCheckSmartContractAddressClick(it)
+                            }
+                        }
+                    )
                 }
                 FormsInputAddress(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -167,14 +176,17 @@ fun EnterAddressScreen(navController: NavController, input: EnterAddressFragment
                     ) {
                         viewModel.onEnterAddress(it)
                     }
-                } else if (uiState.addressCheckEnabled || uiState.addressValidationError != null) {
+                } else if (
+                    uiState.checkResults.isNotEmpty() ||
+                    uiState.addressValidationError != null
+                ) {
                     AddressCheck(
                         uiState.addressValidationInProgress,
                         uiState.addressValidationError,
                         uiState.checkResults,
                     ) { checkType ->
                         if (uiState.checkResults.any { it.value.checkResult == AddressCheckResult.NotAllowed }) {
-                            viewModel.onEnterAddress(uiState.value)
+                            navController.slideFromBottom(R.id.aboutPremiumFragment)
                         } else {
                             checkTypeInfoBottomSheet = checkType
                             coroutineScope.launch {
@@ -237,8 +249,10 @@ fun AddressCheck(
     onClick: (type: AddressCheckType) -> Unit
 ) {
     if (addressValidationInProgress) {
-        AddressCheckInProgress(Modifier
-            .padding(horizontal = 16.dp))
+        AddressCheckInProgress(
+            Modifier
+                .padding(horizontal = 16.dp)
+        )
     } else if (addressValidationError != null) {
         val errorMessage = addressValidationError.getErrorMessage()
         if (errorMessage != null) {
@@ -261,7 +275,7 @@ fun AddressCheck(
                 .clip(RoundedCornerShape(12.dp))
                 .border(
                     0.5.dp,
-                    ComposeAppTheme.colors.blade,
+                    ComposeAppTheme.colors.steel20,
                     RoundedCornerShape(12.dp)
                 )
         ) {
@@ -319,14 +333,16 @@ private fun CheckCell(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_star_filled_20),
-            contentDescription = null,
-            tint = ComposeAppTheme.colors.jacob,
-            modifier = Modifier
-                .padding(end = 8.dp)
-                .size(20.dp)
-        )
+        if (checkType == AddressCheckType.SmartContract) {
+            Icon(
+                painter = painterResource(R.drawable.ic_star_filled_20),
+                contentDescription = null,
+                tint = ComposeAppTheme.colors.jacob,
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(20.dp)
+            )
+        }
         subhead2_grey(text = title)
         Spacer(Modifier.weight(1f))
         if (checkResult == AddressCheckResult.NotAllowed) {

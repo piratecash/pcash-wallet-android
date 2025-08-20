@@ -51,7 +51,7 @@ import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui.compose.components.SearchBar
 import cash.p.terminal.ui.dialogs.CancelOrScanDialog
@@ -68,8 +68,8 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 
 class ManageWalletsFragment : BaseComposeFragment() {
 

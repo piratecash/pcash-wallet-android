@@ -30,8 +30,7 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.core.navigateWithTermsAccepted
-import io.horizontalsystems.core.slideFromBottom
-
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupFileValidator
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule

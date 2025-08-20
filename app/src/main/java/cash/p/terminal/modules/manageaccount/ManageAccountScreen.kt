@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalView
@@ -22,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.FaqManager
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.HeaderNote
 import cash.p.terminal.modules.balance.ui.NoteError
 import cash.p.terminal.modules.balance.ui.NoteWarning
@@ -53,8 +55,8 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 
 @Composable
 internal fun ManageAccountScreen(
@@ -218,16 +220,19 @@ private fun KeyActions(
                 actionItems.add {
                     AccountActionItem(
                         title = stringResource(id = R.string.RecoveryPhrase_monero_Title),
-                        icon = painterResource(id = R.drawable.icon_paper_contract_20)
+                        icon = painterResource(id = R.drawable.icon_paper_contract_20),
+                        iconTint = ComposeAppTheme.colors.jacob
                     ) {
                         navController.authorizedAction {
-                            navController.slideFromRight(
-                                R.id.recoveryPhraseFragment,
-                                RecoveryPhraseFragment.Input(
-                                    account = account,
-                                    recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                            navController.premiumAction {
+                                navController.slideFromRight(
+                                    R.id.recoveryPhraseFragment,
+                                    RecoveryPhraseFragment.Input(
+                                        account = account,
+                                        recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
@@ -431,6 +436,7 @@ private fun RedActionItem(
 private fun AccountActionItem(
     title: String,
     icon: Painter? = null,
+    iconTint: Color? = null,
     coinIconUrl: String? = null,
     coinIconPlaceholder: Int? = null,
     attention: Boolean = false,
@@ -447,7 +453,7 @@ private fun AccountActionItem(
                     .size(24.dp),
                 painter = icon,
                 contentDescription = null,
-                tint = ComposeAppTheme.colors.grey
+                tint = iconTint ?: ComposeAppTheme.colors.grey
             )
         }
 

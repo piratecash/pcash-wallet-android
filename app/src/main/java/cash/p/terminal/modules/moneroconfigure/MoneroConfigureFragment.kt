@@ -66,7 +66,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.imageUrl
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
 

@@ -36,7 +36,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottomForResult
 import kotlinx.coroutines.launch
 
 @Composable

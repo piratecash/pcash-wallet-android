@@ -33,7 +33,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.parcelize.Parcelize
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

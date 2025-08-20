@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HsImage
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SectionUniversalItem
 import cash.p.terminal.ui_compose.components.TextImportantWarning

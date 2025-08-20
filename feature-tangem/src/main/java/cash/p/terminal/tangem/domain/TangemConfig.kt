@@ -16,10 +16,7 @@ object TangemConfig {
             TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)),
             TokenQuery(BlockchainType.Ethereum, TokenType.Native),
             TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Native),
-            TokenQuery(
-                BlockchainType.BinanceSmartChain,
-                TokenType.Eip20(BuildConfig.PIRATE_CONTRACT)
-            ),
+            TokenQuery.PirateCashBnb,
             TokenQuery(
                 BlockchainType.BinanceSmartChain,
                 TokenType.Eip20(BuildConfig.COSANTA_CONTRACT)

@@ -29,7 +29,7 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.parcelize.Parcelize
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

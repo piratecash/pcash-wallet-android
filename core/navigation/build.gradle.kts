@@ -29,6 +29,8 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:resources"))
+    
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.navigation.runtime.ktx)
 }

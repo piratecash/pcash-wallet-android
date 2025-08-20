@@ -34,7 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.backupalert.BackupAlert
 import cash.p.terminal.modules.balance.AccountViewItem

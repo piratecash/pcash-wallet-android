@@ -27,7 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.getInput
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent

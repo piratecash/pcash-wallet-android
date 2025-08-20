@@ -90,8 +90,27 @@ data class Account(
     }
 }
 
+fun Account.eligibleForPremium(): Boolean {
+    return (type is AccountType.Mnemonic &&
+            !isWatchAccount &&
+            hasAnyBackup) ||
+            (type is AccountType.HardwareCard)
+}
+
 @Parcelize
 sealed class AccountType : Parcelable {
+
+    fun isPremium(token: Token): Boolean {
+        if (!token.isMonero() || this !is Mnemonic) {
+            return false
+        }
+
+        return this.kind == MnemonicKind.Mnemonic15 ||
+                this.kind == MnemonicKind.Mnemonic18 ||
+                this.kind == MnemonicKind.Mnemonic21 ||
+                this.kind == MnemonicKind.Mnemonic24
+    }
+
     @Parcelize
     data class EvmAddress(val address: String) : AccountType()
 

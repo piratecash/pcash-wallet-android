@@ -20,7 +20,7 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.cell.CellBlockchainChecked
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import io.horizontalsystems.core.entities.Blockchain
 
 @Composable

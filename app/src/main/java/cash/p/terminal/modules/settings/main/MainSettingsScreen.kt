@@ -48,6 +48,7 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellSingleLineLawrenceSection
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.InfoText
+import cash.p.terminal.ui_compose.components.PremiumHeader
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
@@ -55,7 +56,8 @@ import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.ui_compose.components.SectionPremiumUniversalLawrence
+import cash.p.terminal.navigation.slideFromBottom
 
 @Composable
 fun SettingsScreen(
@@ -262,7 +264,6 @@ private fun SettingSections(
             HsSettingCell(
                 title = R.string.SettingsAddressChecker_Title,
                 icon = R.drawable.ic_radar_24,
-                iconTint = ComposeAppTheme.colors.jacob,
                 onClick = {
                     navController.slideFromRight(R.id.addressCheckerFragment)
                 }
@@ -304,6 +305,29 @@ private fun SettingSections(
     InfoText(
         text = stringResource(R.string.Settings_JoinUs_Description),
     )
+
+//    VSpacer(24.dp)
+
+    PremiumHeader()
+
+    SectionPremiumUniversalLawrence {
+        HsSettingCell(
+            title = R.string.about_premium,
+            icon = R.drawable.ic_info_20,
+            iconTint = ComposeAppTheme.colors.jacob,
+            onClick = {
+                navController.slideFromBottom(R.id.aboutPremiumFragment)
+            }
+        )
+        HsSettingCell(
+            title = R.string.premium_settings,
+            icon = R.drawable.ic_settings,
+            iconTint = ComposeAppTheme.colors.jacob,
+            onClick = {
+                navController.slideFromRight(R.id.premiumSettingsFragment)
+            }
+        )
+    }
 
     VSpacer(32.dp)
     /*

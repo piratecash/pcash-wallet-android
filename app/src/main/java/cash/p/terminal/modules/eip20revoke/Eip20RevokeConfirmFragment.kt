@@ -17,7 +17,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.requireInput
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
@@ -30,7 +30,7 @@ import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.cell.BoxBorderedTop
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.Token

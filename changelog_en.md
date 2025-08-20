@@ -1,3 +1,30 @@
+## Version 0.46.0 Highlights
+
+### ✨ New Features
+
+- Introduced the new **Premium** mode
+  - Free 30-day trial available for each wallet
+  - After the trial ends, Premium access remains without a subscription if a single wallet holds:
+    ≥ 10,000 **PIRATE** or
+    ≥ 100 **COSA**
+  - Tokens remain in your wallet, continue to generate passive income, and unlock access to all Premium features
+  - 🔒 All PIRATE tokens in the liquidity pool are locked for 10 years — preventing rug pulls and ensuring fairness
+
+- New Premium features:
+  - Outgoing address contract check — get a warning if the destination is a contract, protecting your funds
+  - Export of non-standard **Monero** seed phrases into the classic 25-word format
+
+### 🛠 Important Fixes
+
+- Fixed issues with **LTC (BIP-86)** addresses when using the Blockchair API
+- Fixed app crash during **POL / Tangem (fdroid)** swaps
+
+### 🔧 Technical Improvements
+
+- **Monero**: the wallet now supports non-standard seed phrases by transparently using a built-in converter into the 25-word format (available without Premium)
+
+
+
 ## Version 0.45.4 Highlights
 
 - Fixed an issue with displaying transactions when using **12-word Monero wallets**.

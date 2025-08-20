@@ -3,6 +3,7 @@ package cash.p.terminal.modules.walletconnect.request
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,13 +11,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.gson.Gson
+import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.logger.AppLogger
-import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.sendevmtransaction.TitleValue
 import cash.p.terminal.modules.sendevmtransaction.ValueType
@@ -26,16 +26,19 @@ import cash.p.terminal.modules.walletconnect.request.sendtransaction.WCSendEthRe
 import cash.p.terminal.modules.walletconnect.request.signtransaction.WCSignEthereumTransactionRequestScreen
 import cash.p.terminal.modules.walletconnect.session.ui.BlockchainCell
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui.compose.components.MessageToSign
+import cash.p.terminal.ui.compose.components.ScreenMessageWithAction
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui.compose.components.MessageToSign
-import cash.p.terminal.ui.compose.components.ScreenMessageWithAction
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
-import cash.p.terminal.ui_compose.components.HudHelper
+import com.google.gson.Gson
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.launch
 
 class WCRequestFragment : BaseComposeFragment() {
@@ -43,7 +46,8 @@ class WCRequestFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val wcRequestViewModel = viewModel<WCNewRequestViewModel>(factory = WCNewRequestViewModel.Factory())
+        val wcRequestViewModel =
+            viewModel<WCNewRequestViewModel>(factory = WCNewRequestViewModel.Factory())
         val composableScope = rememberCoroutineScope()
         when (val sessionRequestUI = wcRequestViewModel.sessionRequest) {
             is SessionRequestUI.Content -> {
@@ -185,9 +189,32 @@ fun WCNewSignRequestScreen(
             onDecline = onDecline,
             onAllow = onAllow
         )
-
     }
+}
 
+@Composable
+@Preview(showBackground = false)
+private fun WCNewSignRequestScreenPreview() {
+    ComposeAppTheme {
+        WCNewSignRequestScreen(
+            sessionRequestUI = SessionRequestUI.Content(
+                method = "eth_sign",
+                topic = "topic",
+                requestId = 1,
+                param = "0x1234567890abcdef",
+                peerUI = PeerUI(
+                    peerIcon = "https://example.com/icon.png",
+                    peerName = "DApp Name",
+                    peerUri = "https://example.com",
+                    peerDescription = "DApp Description"
+                ),
+                chainData = null
+            ),
+            navController = rememberNavController(),
+            onAllow = {},
+            onDecline = {}
+        )
+    }
 }
 
 @Composable
@@ -196,7 +223,11 @@ private fun ActionButtons(
     onAllow: () -> Unit = {}
 ) {
     ButtonsGroupWithShade {
-        Column(Modifier.padding(horizontal = 24.dp)) {
+        Column(
+            Modifier
+                .padding(horizontal = 24.dp)
+                .navigationBarsPadding()
+        ) {
             ButtonPrimaryYellow(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.WalletConnect_SignMessageRequest_ButtonSign),

@@ -76,7 +76,7 @@ import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.components.FormsInputPassword
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui.compose.components.SelectorDialogCompose

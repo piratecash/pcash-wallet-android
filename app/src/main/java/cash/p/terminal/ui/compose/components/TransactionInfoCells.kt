@@ -76,7 +76,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 
 @Composable
 fun SectionTitleCell(

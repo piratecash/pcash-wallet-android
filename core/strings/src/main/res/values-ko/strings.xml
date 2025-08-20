@@ -1786,10 +1786,10 @@
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
     <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn 13% annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and start earning in 24 hours.</string>
-    <string name="no_active_stacking_pirate_buy_more_descritpion">To activate staking you need %1$s token(s) more and you will receive 13%% per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_descrition">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Buy PirateCash</string>
     <string name="staking_details">Staking Details</string>

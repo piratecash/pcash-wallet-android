@@ -15,7 +15,7 @@ class RecoveryPhraseViewModel(
     val words: List<String>
     private val seed: ByteArray?
 
-    var passphrase by mutableStateOf("")
+    var passphrase by mutableStateOf<String?>("")
         private set
 
     var wordsNumbered by mutableStateOf<List<RecoveryPhraseModule.WordNumbered>>(listOf())
@@ -30,14 +30,15 @@ class RecoveryPhraseViewModel(
                         passphrase = (account.type as AccountType.Mnemonic).passphrase
                     )
                     seed = null
+                    passphrase = null
                 } else {
                     words = (account.type as AccountType.Mnemonic).words
                     seed = (account.type as AccountType.Mnemonic).seed
+                    passphrase = (account.type as AccountType.Mnemonic).passphrase
                 }
                 wordsNumbered = words.mapIndexed { index, word ->
                     RecoveryPhraseModule.WordNumbered(word, index + 1)
                 }
-                passphrase = (account.type as AccountType.Mnemonic).passphrase
             }
 
             is AccountType.MnemonicMonero -> {
@@ -46,6 +47,7 @@ class RecoveryPhraseViewModel(
                     RecoveryPhraseModule.WordNumbered(word, index + 1)
                 }
                 seed = null
+                passphrase = null
             }
 
             else -> {

@@ -87,9 +87,9 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
 import io.horizontalsystems.core.entities.Currency
-import io.horizontalsystems.core.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
-import io.horizontalsystems.core.slideFromRightForResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromRightForResult
 import io.horizontalsystems.core.toBigDecimalOrNullExt
 import java.math.BigDecimal
 import java.net.UnknownHostException

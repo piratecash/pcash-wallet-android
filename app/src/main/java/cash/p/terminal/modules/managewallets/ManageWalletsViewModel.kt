@@ -16,21 +16,18 @@ import cash.p.terminal.tangem.domain.usecase.BuildHardwarePublicKeyUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemScanUseCase
 import cash.p.terminal.ui_compose.components.ImageSource
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
-import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.imageUrl
 import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
-import cash.p.terminal.ui_compose.components.SnackbarDuration
-import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -39,6 +36,7 @@ class ManageWalletsViewModel(
     private val service: ManageWalletsService,
     private val clearables: List<Clearable>
 ) : ViewModel() {
+
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val tangemBlockchainTypeExistUseCase: TangemBlockchainTypeExistUseCase by inject<TangemBlockchainTypeExistUseCase>(
         TangemBlockchainTypeExistUseCase::class.java
@@ -168,10 +166,6 @@ class ManageWalletsViewModel(
 
     fun enable(token: Token) {
         if (!isHardwareCard() || tangemBlockchainTypeExistUseCase(token)) {
-            if (isMonero(token) && !isAccountSupportsMonero()) {
-                showError(App.instance.getString(R.string.monero_not_supported_for_wallet))
-                return
-            }
             service.enable(token)
         } else {
             if (TangemConfig.isExcludedForHardwareCard(token)) {
@@ -185,13 +179,6 @@ class ManageWalletsViewModel(
             sync(service.itemsFlow.value)
         }
     }
-
-    private fun isMonero(token: Token) =
-        (token.tokenQuery.blockchainType == BlockchainType.Monero &&
-                token.tokenQuery.tokenType == TokenType.Native)
-
-    private fun isAccountSupportsMonero() =
-        (accountManager.activeAccount?.type as? AccountType.Mnemonic)?.kind == MnemonicKind.Mnemonic12
 
     fun disable(token: Token) {
         service.disable(token)

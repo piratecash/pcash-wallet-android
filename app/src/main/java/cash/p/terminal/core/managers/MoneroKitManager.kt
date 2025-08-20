@@ -76,7 +76,7 @@ class MoneroKitManager(
             val accountType = account.type
             this.moneroKitWrapper = when {
                 accountType is AccountType.MnemonicMonero ||
-                        (accountType as? AccountType.Mnemonic)?.kind == MnemonicKind.Mnemonic12
+                        accountType is AccountType.Mnemonic
                     -> createKitInstance(account)
 
                 else -> throw UnsupportedAccountException()
@@ -175,13 +175,13 @@ class MoneroKitWrapper(
     )
     val transactionsStateUpdatedFlow = _transactionsStateUpdatedFlow.asSharedFlow()
 
-    private suspend fun restoreFrom12Words(
+    private suspend fun restoreFromBip39(
         account: Account,
         height: Long
     ) {
         val accountType = account.type as? AccountType.Mnemonic
             ?: throw UnsupportedAccountException()
-        val restoredAccount = moneroWalletUseCase.restoreFrom12Words(
+        val restoredAccount = moneroWalletUseCase.restoreFromBip39(
             accountType.words,
             accountType.passphrase,
             height
@@ -208,18 +208,15 @@ class MoneroKitWrapper(
                     }
 
                     is AccountType.Mnemonic -> {
-                        if (accountType.kind != MnemonicKind.Mnemonic12) {
-                            throw UnsupportedAccountException()
-                        }
-
                         // Enable first time
                         if (moneroFileDao.getAssociatedRecord(account.id) == null) {
-                            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+                            val restoreSettings =
+                                restoreSettingsManager.settings(account, BlockchainType.Monero)
                             val height = restoreSettings.birthdayHeight ?: validateMoneroHeightUseCase.getTodayHeight()
                             if(height == -1L) {
                                 throw IllegalStateException("Monero restore height can't be -1")
                             }
-                            restoreFrom12Words(
+                            restoreFromBip39(
                                 account = account,
                                 height = height
                             )
@@ -227,7 +224,8 @@ class MoneroKitWrapper(
 
                         requireNotNull(
                             moneroFileDao.getAssociatedRecord(accountId = account.id),
-                            { "Account does not have a valid Monero file association" }).run {
+                            { "Account does not have a valid Monero file association" }
+                        ).run {
                             walletFileName = this.fileName.value
                             walletPassword = this.password.value
                         }

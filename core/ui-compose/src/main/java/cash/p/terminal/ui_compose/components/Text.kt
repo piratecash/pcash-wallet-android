@@ -1384,9 +1384,50 @@ fun D2(
         color = ComposeAppTheme.colors.leah,
     )
 }
+
+@Composable
+fun D2(
+    text: AnnotatedString,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {}
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        textAlign = textAlign,
+        overflow = overflow,
+        maxLines = maxLines,
+        onTextLayout = onTextLayout,
+        style = ComposeAppTheme.typography.subhead2,
+        color = ComposeAppTheme.colors.leah,
+    )
+}
+
 @Composable
 fun subhead2_leah(
     text: String,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {}
+) {
+    D2(
+        text = text,
+        modifier = modifier,
+        textAlign = textAlign,
+        overflow = overflow,
+        maxLines = maxLines,
+        onTextLayout = onTextLayout,
+    )
+}
+
+@Composable
+fun subhead2_leah(
+    text: AnnotatedString,
     modifier: Modifier = Modifier,
     textAlign: TextAlign? = null,
     overflow: TextOverflow = TextOverflow.Clip,

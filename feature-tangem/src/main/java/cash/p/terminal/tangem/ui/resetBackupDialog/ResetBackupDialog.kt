@@ -25,7 +25,7 @@ import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.parcelize.Parcelize
 
 class ResetBackupDialog : BaseComposableBottomSheetFragment() {

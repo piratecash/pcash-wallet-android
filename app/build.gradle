@@ -21,8 +21,8 @@ android {
         compileSdk compile_sdk_version
         minSdkVersion min_sdk_version
         targetSdkVersion compile_sdk_version
-        versionCode 164
-        versionName "0.45.4"
+        versionCode 165
+        versionName "0.46.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {
@@ -339,6 +339,7 @@ dependencies {
     implementation project(':components:chartview')
     implementation project(':feature-stacking')
     implementation project(':feature-tangem')
+    implementation project(':feature-premium')
 
     // Integration with activities
     implementation libs.androidx.activity.compose

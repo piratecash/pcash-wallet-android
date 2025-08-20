@@ -25,7 +25,7 @@ import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.parcelize.Parcelize
 
 class AddressRiskyBottomSheetAlert : BaseComposableBottomSheetFragment() {

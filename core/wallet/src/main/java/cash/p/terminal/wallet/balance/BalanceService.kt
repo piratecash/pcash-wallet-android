@@ -20,7 +20,7 @@ interface BalanceService : Clearable {
     suspend fun refresh()
 
     override fun clear()
-    fun disable(wallet: Wallet)
+    suspend fun disable(wallet: Wallet)
     fun enable(wallet: Wallet)
     val balanceItemsFlow: StateFlow<List<BalanceItem>?>
 }

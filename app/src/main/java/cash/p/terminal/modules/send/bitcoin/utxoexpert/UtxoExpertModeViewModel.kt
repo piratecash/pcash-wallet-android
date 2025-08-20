@@ -7,7 +7,7 @@ import cash.z.ecc.android.sdk.ext.collectWith
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendBitcoinAdapter
 import io.horizontalsystems.core.ViewModelUiState
-import cash.p.terminal.core.toHexString
+import cash.p.terminal.core.to0xHexString
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
@@ -52,7 +52,7 @@ class UtxoExpertModeViewModel(
         unselectAllIsEnabled = selectedUnspentOutputs.isNotEmpty(),
     )
 
-    private fun getUnspentId(unspentOutputInfo: UnspentOutputInfo) = "${unspentOutputInfo.transactionHash.toHexString()}-${unspentOutputInfo.outputIndex}"
+    private fun getUnspentId(unspentOutputInfo: UnspentOutputInfo) = "${unspentOutputInfo.transactionHash.to0xHexString()}-${unspentOutputInfo.outputIndex}"
 
     private fun setAvailableBalanceInfo() {
         var totalCoinValue = BigDecimal.ZERO

@@ -30,6 +30,7 @@ fun AddressEnterInfoBottomSheet(
     bottomSheetState: SheetState
 ) {
     val title = when (checkType) {
+        AddressCheckType.SmartContract -> R.string.Send_Address_NotSmartContractCheck
         AddressCheckType.Phishing -> R.string.Send_Address_PhishingCheck
         AddressCheckType.Blacklist -> R.string.Send_Address_BlacklistCheck
         AddressCheckType.Sanction -> R.string.Send_Address_SanctionCheck
@@ -68,6 +69,8 @@ fun AddressEnterInfoBottomSheet(
 @Composable
 fun InfoBlock(checkType: AddressCheckType) {
     val info1 = when (checkType) {
+        AddressCheckType.SmartContract -> AnnotatedString(stringResource(R.string.Send_Address_NotSmartContractCheck_Info1))
+
         AddressCheckType.Phishing -> AnnotatedString(stringResource(R.string.Send_Address_PhishingCheck_Info1))
 
         AddressCheckType.Blacklist -> highlightText(
@@ -86,6 +89,13 @@ fun InfoBlock(checkType: AddressCheckType) {
     }
 
     val info2 = when (checkType) {
+        AddressCheckType.SmartContract -> highlightText(
+            text = stringResource(R.string.Send_Address_NotSmartContractCheck_Info2),
+            textColor = ComposeAppTheme.colors.leah,
+            highlightPart = stringResource(R.string.Send_Address_Error_Clear),
+            highlightColor = ComposeAppTheme.colors.remus
+        )
+
         AddressCheckType.Phishing -> highlightText(
             text = stringResource(R.string.Send_Address_PhishingCheck_Info2),
             textColor = ComposeAppTheme.colors.leah,
@@ -109,6 +119,13 @@ fun InfoBlock(checkType: AddressCheckType) {
     }
 
     val info3 = when (checkType) {
+        AddressCheckType.SmartContract -> highlightText(
+            text = stringResource(R.string.Send_Address_NotSmartContractCheck_Info3),
+            textColor = ComposeAppTheme.colors.leah,
+            highlightPart = stringResource(R.string.Send_Address_Error_Detected),
+            highlightColor = ComposeAppTheme.colors.lucian
+        )
+
         AddressCheckType.Phishing -> highlightText(
             text = stringResource(R.string.Send_Address_PhishingCheck_Info3),
             textColor = ComposeAppTheme.colors.leah,

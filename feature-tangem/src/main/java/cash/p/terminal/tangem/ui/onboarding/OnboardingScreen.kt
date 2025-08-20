@@ -33,8 +33,8 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.setNavigationResultX
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromBottomForResult
 
 @Composable
 internal fun OnboardingScreen(

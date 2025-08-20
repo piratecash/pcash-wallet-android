@@ -31,7 +31,7 @@ import cash.p.terminal.ui.compose.components.ScreenMessageWithAction
 import cash.p.terminal.ui_compose.components.ScrollableTabs
 import cash.p.terminal.ui_compose.components.TabItem
 import cash.p.terminal.ui_compose.components.body_leah
-import io.horizontalsystems.chartview.cell.CellUniversal
+import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import java.net.UnknownHostException

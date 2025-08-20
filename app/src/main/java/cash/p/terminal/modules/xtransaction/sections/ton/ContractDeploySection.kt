@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import cash.p.terminal.R
 import cash.p.terminal.modules.xtransaction.cells.HeaderCell
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 
 @Composable
 fun ContractDeploySection(

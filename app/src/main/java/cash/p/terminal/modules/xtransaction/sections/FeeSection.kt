@@ -6,7 +6,7 @@ import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.modules.amount.AmountInputType
 import cash.p.terminal.modules.fee.HSFeeRaw
 import cash.p.terminal.modules.xtransaction.helpers.TransactionInfoHelper
-import io.horizontalsystems.chartview.cell.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import io.horizontalsystems.core.entities.CurrencyValue
 
 @Composable

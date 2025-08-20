@@ -3,13 +3,16 @@ package cash.p.terminal.ui_compose
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Parcelable
+import androidx.annotation.IdRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -49,4 +52,3 @@ fun Modifier.blockClicksBehind() = this.clickable(
     indication = null,
     interactionSource = remember { MutableInteractionSource() }
 ) { /* Do nothing */ }
-

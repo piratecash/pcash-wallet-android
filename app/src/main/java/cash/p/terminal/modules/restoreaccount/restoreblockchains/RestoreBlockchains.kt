@@ -39,7 +39,7 @@ import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensViewM
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.extensions.BottomSheetSelectorMultiple
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellMultilineClear

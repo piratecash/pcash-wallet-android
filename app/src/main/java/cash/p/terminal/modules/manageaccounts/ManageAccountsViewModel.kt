@@ -11,7 +11,6 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.wallet.IAccountManager
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.reactive.asFlow
 
 class ManageAccountsViewModel(
     private val accountManager: IAccountManager,
@@ -26,7 +25,7 @@ class ManageAccountsViewModel(
 
     init {
         viewModelScope.launch {
-            accountManager.accountsFlowable.asFlow()
+            accountManager.accountsFlow
                 .collect {
                     updateViewItems(accountManager.activeAccount, it)
                 }

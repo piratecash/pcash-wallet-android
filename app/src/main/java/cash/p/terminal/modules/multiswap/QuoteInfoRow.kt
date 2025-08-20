@@ -11,7 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.components.HSpacer
-import io.horizontalsystems.chartview.cell.CellUniversal
+import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 

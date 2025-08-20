@@ -3,29 +3,28 @@ package cash.p.terminal.modules.main
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.fragment.NavHostFragment
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BaseActivity
-import io.horizontalsystems.core.slideFromBottom
-import io.horizontalsystems.core.slideFromBottomForResult
 import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import com.walletconnect.web3.wallet.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
+import org.koin.android.ext.android.inject
 
 class MainActivity : BaseActivity() {
 
-    val viewModel by viewModels<MainActivityViewModel> {
-        MainActivityViewModel.Factory()
-    }
+    val viewModel: MainActivityViewModel by inject()
 
     override fun onResume() {
         super.onResume()
+        viewModel.updatePremium()
         viewModel.startLockScreenMonitoring()
         validate()
     }
@@ -40,7 +39,8 @@ class MainActivity : BaseActivity() {
         setIntent(intent)
         // If the intent is a deep link, pop back to the start destination
         if (intent.data != null && intent.action == Intent.ACTION_VIEW) {
-            val navHost = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+            val navHost =
+                supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
             val navController = navHost.navController
             navController.popBackStack(navController.graph.startDestinationId, false)
         }
@@ -111,6 +111,8 @@ class MainActivity : BaseActivity() {
                 viewModel.onTcDappRequestHandled()
             }
         }
+
+        viewModel.startMonitoringAccountsForPremium()
     }
 
     private fun closeAfterDelay() {

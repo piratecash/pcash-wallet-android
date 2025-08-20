@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.ui_compose.BaseComposeFragment
-import io.horizontalsystems.core.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.balance.TotalUIState
 import cash.p.terminal.modules.coin.overview.ui.Loading

@@ -39,7 +39,7 @@ import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.setNavigationResultX
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.coroutines.delay
 import kotlinx.parcelize.Parcelize
 import org.koin.androidx.viewmodel.ext.android.viewModel

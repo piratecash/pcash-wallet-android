@@ -31,7 +31,7 @@ import cash.p.terminal.core.displayNameStringRes
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.compose.components.SelectorDialogCompose
 import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui_compose.blockClicksBehind

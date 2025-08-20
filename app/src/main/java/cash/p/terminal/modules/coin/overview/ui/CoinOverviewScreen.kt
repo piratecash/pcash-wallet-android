@@ -59,7 +59,7 @@ import cash.p.terminal.wallet.models.LinkType
 import io.horizontalsystems.chartview.chart.ChartViewModel
 import io.horizontalsystems.chartview.ui.Chart
 import cash.p.terminal.ui_compose.components.HudHelper
-import io.horizontalsystems.core.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromBottomForResult
 
 @Composable
 fun CoinOverviewScreen(
@@ -197,9 +197,7 @@ fun CoinOverviewScreen(
                                     Spacer(modifier = Modifier.height(24.dp))
                                     TokenVariants(
                                         tokenVariants = tokenVariants,
-                                        onClickAddToWallet = {
-                                            manageWalletsViewModel.enable(it)
-                                        },
+                                        onClickAddToWallet = manageWalletsViewModel::enable,
                                         onClickRemoveWallet = {
                                             manageWalletsViewModel.disable(it)
                                         },

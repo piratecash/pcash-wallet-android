@@ -20,7 +20,7 @@ import cash.p.terminal.modules.settings.main.HsSettingCell
 import cash.p.terminal.modules.settings.security.SecurityCenterCell
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
-import cash.p.terminal.ui.compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_jacob
 import cash.p.terminal.ui_compose.components.body_leah
