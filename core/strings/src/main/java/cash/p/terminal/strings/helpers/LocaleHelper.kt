@@ -111,6 +111,7 @@ enum class LocaleType(val tag: String) {
     fr("fr"),
     ko("ko"),
     ru("ru"),
+    uk("uk"),
     tr("tr"),
     zh("zh");
 }
