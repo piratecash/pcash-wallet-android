@@ -859,8 +859,8 @@
     <string name="Settings_Contact_ViaEmail">vía E-mail</string>
     <string name="Settings_AutoLock">Bloqueo automático</string>
     <string name="telegram_link">https://t.me/PirateCash_ENG</string>
-    <string name="Settings_JoinUs">Be Unstoppable</string>
-    <string name="Settings_JoinUs_Description">Learn and master crypto via exclusive videos. Get to know us informally. Be the first to see things we work on.</string>
+    <string name="Settings_JoinUs">Síguenos</string>
+    <string name="Settings_JoinUs_Description">Síguenos en las redes sociales y sé el primero en enterarte de las últimas noticias, actualizaciones y nuevas funciones del proyecto.</string>
     <string name="Settings_PersonalSupport">Soporte personal</string>
     <string name="Settings_PersonalSupport_EnterTelegramAccountDescription">Introduzca su nombre de cuenta de Telegram para iniciar un chat de asistencia personal con nuestro equipo. Nos pondremos en contacto contigo y comenzaremos a trabajar en tu problema tan pronto como lo veamos.</string>
     <string name="Settings_PersonalSupport_YouAlreadyRequestedSupportDescription">Ya has solicitado un chat privado, encuentra en Telegram</string>

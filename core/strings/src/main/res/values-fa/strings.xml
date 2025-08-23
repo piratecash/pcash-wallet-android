@@ -863,8 +863,8 @@
     <string name="Settings_Contact_ViaEmail">via E-mail</string>
     <string name="Settings_AutoLock">Auto-Lock</string>
     <string name="telegram_link">https://t.me/PirateCash_ENG</string>
-    <string name="Settings_JoinUs">Follow us</string>
-    <string name="Settings_JoinUs_Description">Learn and master crypto via exclusive videos. Get to know us informally. Be the first to see things we work on.</string>
+    <string name="Settings_JoinUs">ما را دنبال کنید</string>
+    <string name="Settings_JoinUs_Description">ما را در شبکه‌های اجتماعی دنبال کنید تا اولین نفری باشید که از آخرین اخبار، به‌روزرسانی‌ها و ویژگی‌های جدید پروژه باخبر می‌شوید!</string>
     <string name="Settings_PersonalSupport">Personal Support</string>
     <string name="Settings_PersonalSupport_EnterTelegramAccountDescription">Enter your Telegram account name to start a personal support chat with our team. We\'ll get back to you and start working on your problem as soon as we see it.</string>
     <string name="Settings_PersonalSupport_YouAlreadyRequestedSupportDescription">You\'ve already requested a private chat, find it on Telegram</string>

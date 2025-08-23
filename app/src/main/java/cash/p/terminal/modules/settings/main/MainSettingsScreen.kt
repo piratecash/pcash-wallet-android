@@ -291,42 +291,6 @@ private fun SettingSections(
     )
     VSpacer(24.dp)
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp)
-            .height(32.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        subhead1_jacob(text = stringResource(id = R.string.Settings_JoinUs).uppercase())
-    }
-    CellUniversalLawrenceSection(
-        listOf({
-            HsSettingCell(
-                R.string.Settings_Telegram,
-                R.drawable.ic_telegram_filled_24,
-                ComposeAppTheme.colors.jacob,
-                onClick = {
-                    LinkHelper.openLinkInAppBrowser(context, App.appConfigProvider.appTelegramLink)
-                }
-            )
-        }, {
-            HsSettingCell(
-                R.string.Settings_Twitter,
-                R.drawable.ic_twitter_filled_24,
-                ComposeAppTheme.colors.jacob,
-                onClick = {
-                    LinkHelper.openLinkInAppBrowser(context, App.appConfigProvider.appTwitterLink)
-                }
-            )
-        })
-    )
-    InfoText(
-        text = stringResource(R.string.Settings_JoinUs_Description),
-    )
-
-//    VSpacer(24.dp)
-
     PremiumHeader()
 
     SectionPremiumUniversalLawrence {
