@@ -23,6 +23,7 @@ val cash.p.terminal.strings.helpers.LocaleType.icon: Int
             cash.p.terminal.strings.helpers.LocaleType.en -> R.drawable.icon_32_flag_england
             cash.p.terminal.strings.helpers.LocaleType.es -> R.drawable.icon_32_flag_spain
             cash.p.terminal.strings.helpers.LocaleType.pt_br -> R.drawable.icon_32_flag_brazil
+            cash.p.terminal.strings.helpers.LocaleType.pt -> R.drawable.icon_32_flag_portugal
             cash.p.terminal.strings.helpers.LocaleType.fa -> R.drawable.icon_32_flag_iran
             cash.p.terminal.strings.helpers.LocaleType.fr -> R.drawable.icon_32_flag_france
             cash.p.terminal.strings.helpers.LocaleType.ko -> R.drawable.icon_32_flag_korea

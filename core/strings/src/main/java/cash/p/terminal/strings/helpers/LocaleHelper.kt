@@ -107,6 +107,7 @@ enum class LocaleType(val tag: String) {
     en("en"),
     es("es"),
     pt_br("pt-BR"),
+    pt("pt"),
     fa("fa"),
     fr("fr"),
     ko("ko"),

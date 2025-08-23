@@ -279,7 +279,6 @@ class CoinViewFactory(
             LinkType.Telegram -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Telegram)
             LinkType.Reddit -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Reddit)
             LinkType.Github -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Github)
-//            LinkType.YOUTUBE -> Translator.getString(R.string.CoinPage_Youtube)
         }
     }
 

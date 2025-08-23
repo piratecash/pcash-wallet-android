@@ -5,40 +5,31 @@
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">Скасувати</string>
     <string name="Alert_Copy">Скопіювати</string>
-    <string name="Alert_Close">Закрити</string>
     <string name="Alert_Loading">Завантаження...</string>
-    <string name="Alert_Restart">Перезапустити</string>
-    <string name="Suspended">ПРИЗУПИНЕНО</string>
-    <string name="Action_Undo">Скасувати</string>
     <string name="Button_Show">Показати</string>
     <string name="Button_Hide">Сховати</string>
     <string name="Button_Cancel">Скасувати</string>
     <string name="Button_Next">Далі</string>
     <string name="Button_Enable">Активувати</string>
     <string name="Button_Disable">Вимк.</string>
-    <string name="Button_ScanQr">Сканувати QR-код</string>
     <string name="Button_Close">Закрити</string>
     <string name="Button_Ok">ОК</string>
     <string name="Button_Done">Готово</string>
     <string name="Button_Retry">Повторити</string>
     <string name="Button_Change">Змінити</string>
     <string name="Button_Add">Додати</string>
-    <string name="Button_Approve">Дозволити</string>
     <string name="Button_Confirm">Підтвердити</string>
     <string name="Button_Refresh">Оновити</string>
     <string name="Button_Connect">Підключитися</string>
     <string name="Button_Reject">Відхилити</string>
     <string name="Button_Disconnect">Від’єднати</string>
-    <string name="Button_Start">Почати</string>
     <string name="Button_Create">Створити</string>
     <string name="Button_Advanced">Дод. налаштування</string>
     <string name="hardware_wallet">Апаратний гаманець</string>
     <string name="hardware_wallet_not_detected">Апаратний гаманець (NFC не виявлено)</string>
     <string name="hardware_wallet_not_detected_error">NFC-зчитувач не виявлено, увімкніть для використання апаратного гаманця</string>
     <string name="Button_Restore">Імпорт</string>
-    <string name="Button_WatchAddress">Перегляд гаманця</string>
     <string name="Button_Reset">Скинути</string>
-    <string name="Button_Reconnect">Повторне підключення</string>
     <string name="Button_Understand">Я розумію</string>
     <string name="Button_Switch">Перемк.</string>
     <string name="Button_Remove">Видалити</string>
@@ -55,11 +46,6 @@
     <string name="Button_Activate">Активувати</string>
     <string name="Button_Later">Пізніше</string>
     <string name="Button_Sign">Підписати</string>
-    <string name="Button_Activating">Активація</string>
-    <string name="Button_GetApiKeys">Отримати API ключ</string>
-    <string name="Button_Login">Увійти</string>
-    <string name="Button_SignUp">Реєстрація</string>
-    <string name="Button_Submit">Підтвердити</string>
     <string name="Button_TryAgain">Спробувати ще раз</string>
     <string name="Button_Share">Поділитися</string>
     <string name="Button_Apply">Застосувати</string>
@@ -73,13 +59,11 @@
     <string name="NotAvailable">Немає даних</string>
     <string name="Any">Будь-які</string>
     <string name="SyncError">Помилка синхронізації. Спробуйте ще раз</string>
-    <string name="PercentTitle">Відсоток</string>
     <string name="Keyboard">Клавіатура</string>
     <string name="AccountRecovery_Note">Примітка</string>
     <string name="AccountRecovery_MigrationRecommended">Схоже, цей гаманець використовує нестандартний символ у списку мнемонічних слів та/або парольній фразі. Якщо ви не бачите баланс або транзакції, будь ласка, прочитайте подробиці нижче.\n\nНАТИСНІТЬ, ЩОБ ОТРИМАТИ БІЛЬШЕ ІНФОРМАЦІЇ</string>
     <string name="AccountRecovery_MigrationRequired">Це нестандартний гаманець.\n\nНАТИСНІТЬ, ЩОБ ОТРИМАТИ БІЛЬШЕ ІНФОРМАЦІЇ</string>
     <!--Intro-->
-    <string name="Intro_Wallet_Screen1Description">Продовжити</string>
     <string name="Intro_Wallet_Screen2Title">Месенджер</string>
     <string name="Intro_Wallet_Screen2Description">Спілкуйтесь вільно та без обмежень (буде доступно в наступних оновленнях).</string>
     <string name="Intro_Wallet_Screen3Title">Позбудьтеся Кордонів</string>
@@ -88,8 +72,7 @@
     <string name="Intro_Wallet_Screen4Description">Не допускайте витоку особистих та фінансових даних.</string>
     <!--Rooted Device-->
     <string name="RootedDevice_Button_Understand">Я розумію</string>
-    <!--Welcome-->
-    <string name="Welcome_PrivacySettings">Налаштування приватності</string>
+
     <!--Create Wallet-->
     <string name="CreateWallet_Advanced_Title">Дод. налаштування</string>
     <string name="CreateWallet_Mnemonic">Фраза відновлення</string>
@@ -100,7 +83,6 @@
     <string name="CreateWallet_N_WordsRecommended">%s слів (рекомендовано)</string>
     <string name="CreateWallet_N_Words">%s слів</string>
     <string name="CreateWallet_N_Words_monero">%s слів (тільки Monero)</string>
-    <string name="CreateWallet_PassphraseConfirm">Підтвердити</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Поле для кодової фрази не може бути порожнім</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Будь ласка, використовуйте лише підтримувані символи: A-Z a-z 0-9 \' " ` &amp; / ? ! : ; . , ~ * $ = + - [ ](){} &lt;&gt; \ _ # @ | % </string>
     <string name="CreateWallet_Error_InvalidConfirmation">Підтверджена кодова фраза не збігається</string>
@@ -123,15 +105,12 @@
     <string name="RateApp_Button_NotNow">Не зараз</string>
     <!--Restore-->
     <string name="Restore_Advanced_Title">Дод. налаштування</string>
-    <string name="Restore_Mnemonic_Description">Введіть фразу для відновлення (мнемонічна фраза), яка складається з 12, 15, 18, 21 або 24 слів і може містити додатковий буквено-цифровий пароль.</string>
-    <string name="Restore_ValidationFailed">Невірний ключ</string>
     <string name="Restore_Error_MnemonicWordCount">Неправильна кількість слів. Має бути 12-24 слова. Ви ввели: %d</string>
     <string name="monero_restore_error">Помилка відновлення Monero</string>
     <string name="Restore_Error_EmptyPassphrase">Поле для кодової фрази не може бути порожнім</string>
     <string name="Restore_InvalidChecksum">Невірна контрольна сума</string>
     <string name="Restore_PassphraseDescription">Введіть свою кодову фразу, яку ви використовували при створенні цієї мнемонічної фрази.</string>
     <string name="Restore_Title">Блокчейни</string>
-    <string name="Restore_Key">Ключ</string>
     <string name="Restore_By">Через</string>
     <string name="Restore_RestoreBy">Через</string>
     <string name="Restore_RecoveryPhrase">Фраза відновлення</string>
@@ -143,11 +122,9 @@
     <string name="Restore_NonStandard_Description">На цій сторінці представлено спеціальний механізм відновлення гаманця для користувачів P.CASH з нестандартним гаманцем. Як правило, такі гаманці могли бути створені у версіях P.CASH 0.27–0.28 з використанням неангломовного списку мнемонічних слів та/або спеціального символу в парольній фразі гаманця (наприклад, діакритичного знака).\n\nЯкщо ви є таким користувачем, то баланс вашого гаманця буде відображатися як 0 після відновлення такого гаманця у версії 0.29 або вище. Ця сторінка дозволить вам відновити доступ до вашого нестандартного гаманця. Після відновлення рекомендується створити новий гаманець (який буде відповідати стандарту) та перевести туди кошти.</string>
     <string name="Restore_Bip_Recommended">(рекомендовано)</string>
     <string name="Restore_PrivateKey_InvalidKey">Невірний ключ</string>
-    <string name="Select_Coins">Виберіть токени</string>
     <string name="SelectContacts_All">Всі</string>
     <string name="Restore_BirthdayHeight">Блок створення</string>
     <string name="Restore_ZCash">Zcash</string>
-    <string name="Restore_ZCash_BirthdayHeight">Блок створення Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Введіть блок створення гаманця для прискорення синхронізації.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (необов’язково)</string>
     <string name="Restore_ZCash_RestoreAsNew">Відновити як новий</string>
@@ -156,8 +133,7 @@
     <string name="Restore_ZCash_OldWallet">Існуючий гаманець</string>
     <string name="Restore_ZCash_OldWallet_Description">Є транзакції</string>
     <string name="Restore_ZCash_SlowSyncWarningText">Початкова синхронізація з блокчейном може споживати багато інтернет-трафіку.</string>
-    <!--Backup-->
-    <string name="Backup_Confirmation_CheckTitle">Перевірка…</string>
+
     <!--Market-->
     <string name="Market_Field_MarketCap">Ринк. кап.</string>
     <string name="Market_Field_Volume">Обсяг</string>
@@ -174,19 +150,11 @@
     <string name="Market_Field_LowestCap">Найменша кап.</string>
     <string name="Market_Field_HighestVolume">Найвищий обсяг</string>
     <string name="Market_Field_LowestVolume">Найменший обсяг</string>
-    <string name="Market_Field_HighestPrice">Найвища ціна</string>
-    <string name="Market_Field_LowestPrice">Найнижча ціна</string>
     <string name="Market_Sort_PopupTitle">Сортувати за</string>
-    <string name="Market_TotalMarketCap">Загальна капіталізація</string>
     <string name="Market_BtcDominance">Домінування BTC</string>
     <string name="Market_Volume24h">Обсяг торгів (24г)</string>
-    <string name="Market_TvlDeFi">TVL в DeFi</string>
-    <string name="Market_DeFiCap">Капіталізація DeFi</string>
     <string name="Market_SeeAll">Переглянути все</string>
     <string name="Market_PoweredByApi">Працює на CoinGecko API</string>
-    <string name="Market_PoweredByHorizontalApi">Працює на Horizontal API</string>
-    <string name="Market_PoweredByDefiLlamaApi">Працює на DefiLlama API</string>
-    <string name="Market_Tab_Overview">Огляд</string>
     <string name="Market_Tab_Posts">Новини</string>
     <string name="Market_Tab_Coins">Монети</string>
     <string name="Market_Tab_Platform">Платформи</string>
@@ -195,7 +163,6 @@
     <string name="Market_Tab_Watchlist">Обране</string>
     <string name="Market_Tab_Watchlist_EmptyList">Список обраного порожній.</string>
     <string name="Market_Category_TopCoins">Топ токени</string>
-    <string name="Market_Category_TopCoins_Description">Топ токенів за ринковою капіталізацією</string>
     <string name="Market_Signals">Сигнали</string>
     <string name="Market_Volume">Обсяг торгів</string>
     <string name="Market_MarketCap">Ринк. капіталізація</string>
@@ -213,36 +180,24 @@
     <string name="Market_Top_200">Топ 200</string>
     <string name="Market_Top_300">Топ 300</string>
     <string name="Market_Top_500">Топ 500</string>
-    <string name="TopPairs_Title">Найкращі ринкові пари</string>
-    <string name="TopPairs_Description">Найкращі торгові пари за обсягом на кожній біржі</string>
     <!--Market Overview-->
     <string name="Market_Overview_TopPairs">Найкращі ринкові пари</string>
-    <string name="Market_Overview_TopSectors">Найкращі сектори</string>
     <string name="Market_Overview_Sectors">Сектори</string>
     <!--Market Top Platforms-->
     <string name="MarketTopPlatforms_Title">Найкращі платформи</string>
-    <string name="MarketTopPlatforms_PlatofrmsRank">Найкращі блокчейн-платформи</string>
-    <string name="MarketTopPlatforms_Description">Найкращі провідні блокчейн-платформи кумулятивного ринку проектів.</string>
     <string name="MarketTopPlatforms_Protocols">Протокол: %s</string>
     <string name="MarketPlatformCoins_PlatformEcosystem">%s Екосистема</string>
     <string name="MarketPlatformCoins_PlatformEcosystemDescription">Капіталізація ринку всіх протоколів на блокчейні %s</string>
     <!--Market Global Metrics-->
-    <string name="MarketGlobalMetrics_Chart">Графік</string>
     <string name="MarketGlobalMetrics_TotalMarketCap">Загальна капіталізація</string>
-    <string name="MarketGlobalMetrics_BtcDominance">Домінування BTC</string>
     <string name="MarketGlobalMetrics_Volume">24г обсяг.</string>
-    <string name="MarketGlobalMetrics_DefiCap">Капіталізація DeFi</string>
     <string name="MarketGlobalMetrics_TvlInDefi">TVL в DeFi</string>
     <string name="MarketGlobalMetrics_EtfInflow">ETF</string>
     <string name="MarketGlobalMetrics_TotalMarketCapDescription">Загальна ринкова вартість усіх криптовалют.</string>
-    <string name="MarketGlobalMetrics_BtcDominanceDescription">Історична зміна співвідношення ринкової капіталізації біткойнів до решти криптовалютних ринків. \n\nЗазвичай, у цьому випадку біткойни домінують над іншими тенденціями криптовалютного ринку навпаки.</string>
     <string name="MarketGlobalMetrics_VolumeDescription">24-годинний обсяг крипторинку.</string>
-    <string name="MarketGlobalMetrics_VolumeDescriptionCoin">Історична зміна усередненого щоденного обсягу торгівлі для %s</string>
-    <string name="MarketGlobalMetrics_DefiCapDescription">Загальна ринкова вартість проектів DeFi.</string>
     <string name="MarketGlobalMetrics_TvlInDefiDescription">Всього заблоковано (TVL) в DeFi.</string>
     <string name="MarketGlobalMetrics_ChainSelectorTitle">Сортувати за блокчейном</string>
     <string name="MarketGlobalMetrics_ChainSelectorAll">Всі</string>
-    <string name="MarketGlobalMetrics_CoinNotSupported">Цей токен ще не підтримується</string>
     <string name="MarketGlobalMetrics_NoCoin">У цього проекту немає токена</string>
     <!-- ETF-->
     <string name="MarketEtf_Title">Загальний чистий приплив</string>
@@ -251,14 +206,12 @@
     <string name="MarketEtf_LowestAssets">Найменші активи</string>
     <string name="MarketEtf_Inflow">Приплив</string>
     <string name="MarketEtf_Outflow">Відтік</string>
-    <string name="MarketEtf_Period_All">Всі</string>
     <string name="MarketEtf_TotalNetAssets">Загальний чистий актив</string>
     <!--Market Search-->
     <string name="EmptyResults">Нічого не знайдено</string>
     <string name="Market_Filters">Фільтри</string>
     <string name="Market_AdvancedSearch_Results">Результат</string>
     <string name="Market_Search_Hint">Пошук</string>
-    <string name="Market_Search_BrowseCategories">Огляд категорій</string>
     <string name="Market_Filter_ChooseSet">Вибір набору</string>
     <string name="Market_Filter_MarketCap">Ринк. капіталізація</string>
     <string name="Market_Filter_Volume">Обсяг торгівлі</string>
@@ -287,7 +240,6 @@
     <string name="Market_Filter_StrongSell">Активно продавати</string>
     <string name="Market_Filter_Sell">Продавати</string>
     <string name="Market_Filter_RiskToTrade">Ризики</string>
-    <string name="Market_Filter_Gainers">Лідери зростання</string>
     <string name="Market_Filter_Top_100">Топ 100</string>
     <string name="Market_Filter_Top_250">Топ 250</string>
     <string name="Market_Filter_Top_500">Топ 500</string>
@@ -330,17 +282,13 @@
     <string name="Market_Sorting_Losers">Лідери падіння</string>
     <string name="Market_Sorting_HighestCap">Найвища кап.</string>
     <string name="Market_Sorting_LowestCap">Найменша кап.</string>
-    <!--Coin Markets-->
-    <string name="CoinMarket_Title">%s Ринки</string>
+
     <!--TVL Rank-->
     <string name="TvlRank_MultiChain">Мультичейн</string>
     <!--Balance-->
-    <string name="Balance_Withdraw">Виведення коштів</string>
     <string name="Balance_Title">Баланс</string>
     <string name="Balance_Send">Надіслати</string>
     <string name="shield_funds">Перемістити на захищену адресу</string>
-    <string name="Balance_Swap">Обміняти</string>
-    <string name="Balance_Deposit">Отримати</string>
     <string name="Balance_Receive">Отримати</string>
     <string name="Balance_Address">Адреса</string>
     <string name="Balance_RatePerCoin">%1$s за %2$s</string>
@@ -349,24 +297,15 @@
     <string name="Balance_SearchingTransactions">Пошук транзакцій...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Синхронізація… %s%%</string>
-    <string name="Balance_CoinDisabled">Вимкнена монета %s</string>
     <string name="Balance_Sort_Balance">За балансом</string>
     <string name="Balance_Sort_PopupTitle">Сортувати</string>
     <string name="Balance_Sort_Az">За назвою</string>
     <string name="Balance_Sort_24hPriceChange">За зміною ціни (%)</string>
-    <string name="Balance_Hidden">приховане</string>
-    <string name="Balance_DownloadingBlocks">Завантаження блоків</string>
-    <string name="Balance_ScanningBlocks">Сканування блоків</string>
-    <string name="Balance_NoWalletAlert">У вас ще немає встановлених гаманців.\nСтворіть новий гаманець або відновіть існуючий гаманець</string>
     <string name="Balance_NoCoinsAlert">Ви ще не додали токени до цього гаманця.</string>
-    <string name="Balance_WatchAccount_NoBalance">У гаманця з цією адресою немає балансу</string>
     <string name="Balance_NoAssetsToSend">У вас немає активів для надсилання.</string>
-    <string name="Balance_NoAssetsToSwap">У вас немає активів для обміну.</string>
     <string name="Balance_Network">Мережа</string>
     <string name="Balance_Format">Формат</string>
     <string name="Balance_NetworkSelectDescription">Виберіть мережу для отримання адреси.</string>
-    <string name="Balance_ReceiveAddressHint">Ваша адреса для депозиту %s</string>
-    <string name="Balance_ReceiveWatchAddressHint">Відстежувана адреса %s</string>
     <string name="Balance_Receive_AddressFormatDescription">Виберіть формат для надання адреси для отримання.</string>
     <string name="Balance_Receive_AddressFormat">Формат адреси</string>
     <string name="Balance_Receive_AddressFormat_RecommendedAddressType">Формат Cash Address є кращим для отримання Bitcoin Cash (BCH) через покращений користувацький досвід та сумісність. Однак, обидва формати адрес можуть використовуватися взаємозамінно для отримання BCH, незалежно від формату адреси відправника.</string>
@@ -375,14 +314,12 @@
     <string name="Balance_Receive_NotActive">Не активний</string>
     <string name="Balance_Receive_Amount">Сума</string>
     <string name="Balance_Receive_SetAmount">Встановити суму</string>
-    <string name="Balance_Receive_AddressType">Тип адреси</string>
     <string name="Balance_LockedAmount_Title">Заблоковано</string>
     <string name="Balance_ProcessingBalance_Title">Обробка</string>
     <string name="Balance_NotRelayedAmount_Title">Трансляція</string>
     <string name="Balance_Receive_Memo">Memo(Tag)</string>
     <string name="Balance_Error_InvalidQrCode">Не вдалося розпізнати</string>
     <string name="Balance_Receive_WatchAddressAlert">Ця адреса є адресою спостережуваного акаунта</string>
-    <string name="Balance_Receive_AddressMemoAlert">Вкажіть необхідне мемо (тег) та надсилайте тільки токени, сумісні з мережею. Інші токени будуть втрачені.</string>
     <string name="Balance_Receive_UsedAddresses">Використані адреси</string>
     <string name="Balance_Receive_UsedAddressesDescriptoin">%s адреси змінюються для підвищення конфіденційності та безпеки. Нижче наведено список використаних адрес у цьому гаманці.</string>
     <string name="Balance_Receive_ReceiveAddresses">Адреси для отримання</string>
@@ -405,8 +342,6 @@
     <string name="Send_Hodler_Description">TimeLock працює тільки для надсилання на адреси BIP44 (починаються з 1)</string>
     <string name="Send_UtxoExpertMode">Режим експерта UTXO</string>
     <string name="Send_Utxo_Description">Вручну вибрати UTXO для витрачання коштів</string>
-    <string name="Send_Utxo_SendTo">Надіслати</string>
-    <string name="Send_Utxo_Change">Змінити</string>
     <string name="Send_Rbf">Змінити комісію</string>
     <string name="Send_Rbf_Description">Ця опція дозволяє повторно надіслати застряглу транзакцію, збільшуючи суму комісії.</string>
     <string name="Send_RbfEnabled">Увімк.</string>
@@ -415,15 +350,11 @@
     <string name="Send_Utxo_UnselectAll">Зняти виділення з усіх</string>
     <string name="Send_Utxo_SelectAll">Вибрати все</string>
     <string name="Send_Confirmation_Title">Підтвердити</string>
-    <string name="Send_Confirmation_Domain">Домен</string>
     <string name="Send_Confirmation_YouSend">Ви надсилаєте</string>
     <string name="Send_Confirmation_Burn">Спалити</string>
-    <string name="Send_Confirmation_Amount">Сума</string>
     <string name="Send_Confirmation_To">Кому</string>
     <string name="Send_Confirmation_Own">Свій</string>
     <string name="Send_Confirmation_Method">Метод</string>
-    <string name="Send_Confirmation_Receiver">Отримувач</string>
-    <string name="Send_Confirmation_EstimateTime">Тривалість</string>
     <string name="Send_Confirmation_Send_Button">Надіслати</string>
     <string name="Send_Confirmation_Action">Дія</string>
     <string name="Send_RiskyAddress_AlertText">Ви збираєтеся надіслати кошти на адресу з високим рівнем ризику. Продовження може призвести до втрати коштів або інших загроз безпеці. Продовжуючи, ви приймаєте можливі ризики. Ви впевнені, що хочете продовжити?</string>
@@ -433,17 +364,12 @@
     <string name="ScanQr_NoCameraPermission">Немає дозволу для камери</string>
     <string name="ScanQr_CameraPermissionDeniedText">Доступ до камери для цього застосунку заборонено, ви можете перейти в налаштування та дозволити доступ</string>
     <string name="ScanQr_GoToSettings">Перейти в налаштування</string>
-    <string name="Send_Error_IncorrectAddress">Невірна адреса</string>
     <string name="Send_Error_UnsupportedAddress">TimeLock працює тільки при надсиланні на платіжні адреси, що починаються з 1... (також відомих як BIP44 адреси)</string>
-    <string name="Send_Error_BalanceAmount">Баланс %s</string>
     <string name="Send_Error_MinimumAmount">Мін. сума %s</string>
     <string name="Send_Error_MaximumAmount">Макс. сума %s</string>
-    <string name="Send_Error_MinRequiredBalance">Мін. обов\'язковий залишок %s</string>
-    <string name="Send_Error_TransparentAddress">P.CASH не підтримує платежі на публічну адресу</string>
     <string name="Send_Error_SendToSelf">Надсилання самому собі неможливе</string>
     <string name="Send_DialogAvailableBalance">Доступний баланс</string>
     <string name="Send_DialogSpeed">Швидкість транзакції</string>
-    <string name="Send_DialogFee">Комісія</string>
     <string name="Send_DialogProceed">Далі</string>
     <string name="Send_LockTime_Off">Вимк.</string>
     <string name="Send_LockTime_Hour">1 година</string>
@@ -451,8 +377,6 @@
     <string name="Send_LockTime_HalfYear">6 місяців</string>
     <string name="Send_LockTime_Year">1 рік</string>
     <string name="Send_Sending">Надсилання</string>
-    <string name="Send_FeeRate">Комісія</string>
-    <string name="Send_Token_InsufficientFeeAlert">Комісії за транзакцію %1$s (%2$s) стягуються в %3$s. Вам потрібно %4$s.</string>
     <string name="Send_Warning_LowFee">Увага! Транзакція може застрягти в мережі</string>
     <string name="Send_Error_LowFee">Помилка комісії</string>
     <string name="Send_Error_LowFee_Description">Ставка комісії занадто низька.</string>
@@ -466,12 +390,6 @@
     <string name="SendEvmSettings_Error_NonceUsed_Title">Використаний Nonce</string>
     <string name="SendEvmSettings_Error_NonceUsed">Виконана транзакція з таким nonce вже існує.</string>
     <!-- Fee Settings -->
-    <string name="FeeSettings_Title">Налаштування комісії</string>
-    <string name="FeeSettings_Reset">Скинути</string>
-    <string name="FeeSettings_FeeLegacy">Макс. комісія</string>
-    <string name="FeeSettings_FeeLegacy_Info">Максимальна очікувана загальна комісія за дану транзакцію. Зазвичай, фактична комісія буде меншою.</string>
-    <string name="FeeSettings_Fee">Макс. комісія</string>
-    <string name="FeeSettings_Fee_Info">Максимальна передбачувана комісія за транзакцію, яка буде сплачена за дану транзакцію, розрахована на основі значень ліміту газу, максимальної ставки комісії та максимальної пріоритетної комісії, зазначених нижче. Фактичний розмір комісії зазвичай нижчий.</string>
     <string name="FeeSettings_NetworkFee">Комісія мережі</string>
     <string name="FeeSettings_NetworkFee_Info">Орієнтовна вартість надсилання даної транзакції по мережі.</string>
     <string name="FeeSettings_GasLimit_Info">Одиниця складності транзакцій - газ, вона варіюється залежно від виконуваного смарт-контракту. Ліміт газу - це передбачуваний максимальний розмір газу, необхідний для виконання смарт-контракту. Зазвичай використовується менша кількість газу.</string>
@@ -488,7 +406,6 @@
     <string name="FeeSettings_RiskOfGettingStuck">Для забезпечення швидкого виконання транзакції максимальна ставка винагороди (віднімаються максимальні чайові для майнера) повинна бути вищою за поточну базову ставку винагороди. В іншому випадку транзакція може залишатися на розгляді до тих пір, поки не буде виконана умова.</string>
     <string name="FeeSettings_Overpricing_Title">Занадто висока комісія</string>
     <string name="FeeSettings_Overpricing">Встановлена комісія за транзакцію більша, ніж потрібно для обробки цієї транзакції.</string>
-    <string name="FeeSettings_Info_IUnderstand">Я розумію</string>
     <string name="FeeSettings_FeeRate">Ставка комісії (SAT/BYTE)</string>
     <string name="FeeSettings_FeeRate_RecommendedInfo">Це рекомендоване значення для потрапляння в наступні 2 блоки</string>
     <string name="FeeSettings_FeeRate_Info">Блокчейн вимагає від користувачів оплати мережевих зборів при надсиланні транзакцій. Комісія вища, коли в мережі проходить багато транзакцій.\n\nГаманець P.CASH оцінює комісію на основі поточної активності блокчейну та рекомендує оптимальне значення для того, щоб транзакція була оброблена в розумні терміни.\n\nРекомендована ставка комісії показана як кількість сатоші, яку користувач повинен заплатити за один байт транзакції. Таким чином, загальна сума комісії залежить від загального розміру транзакції, який вимірюється в байтах.\n\n\nКористувачі можуть використовувати передбачені елементи управління, щоб збільшити або зменшити значення ставки комісії. Зміна ставки комісії змінює загальну плату за транзакцію, яку заплатить користувач.\n\n\nВстановлення комісії нижче рекомендованого значення може призвести до того, що транзакція буде перебувати в очікуванні протягом кількох годин або буде відхилена. Чим нижче значення, тим більше часу знадобиться для підтвердження транзакції. Для транзакцій, де важливий пріоритет, ми рекомендуємо встановити вищу ставку комісії.</string>
@@ -509,7 +426,6 @@
     <string name="FeeInfo_TronResourcesConsumed_Description">Bandwidth - це одиниця, яка вимірює розмір байт транзакції, що зберігаються в базі даних блокчейну. Чим більша транзакція, тим більше bandwidth буде споживатися.\n\nEnergy — це одиниця, що вимірює кількість обчислень, необхідних віртуальній машині TRON для виконання конкретних операцій у мережі TRON.\n\nОскільки транзакції смарт-контракту вимагають виконання обчислювальних ресурсів, кожна угода за контрактом вимагає оплати energy комісії.</string>
     <!--Tron-->
     <string name="Tron_AddressNotActive_Warning">Ця адреса не активна</string>
-    <string name="Tron_AddressNotActive_Warning_Short">(не активна)</string>
     <string name="Tron_AddressNotActive_Title">Неактивна адреса</string>
     <string name="Tron_AddressNotActive_Info">Нещодавно створені облікові записи в блокчейні TRON неактивні і не можуть бути запитані або вивчені. Вони повинні бути активовані.\n\nАктивація нового облікового запису в ланцюжку Tron вимагає комісію в розмірі 1 TRX. Для активації достатньо просто перевести токени TRX або TRC-10 на неактивну адресу акаунта</string>
     <string name="Tron_SelfSendTrxNotAllowed">Неможливо надіслати TRX самому собі</string>
@@ -523,37 +439,22 @@
     <string name="TonConnect_Wallet">Гаманець</string>
     <string name="TonConnect_ChooseWallet">Виберіть гаманець</string>
     <!--WalletConnect-->
-    <string name="WalletConnect_Request">Запит</string>
-    <string name="WalletConnect_SendRequest_Title">Надіслати</string>
-    <string name="WalletConnect_ApproveRequest_Title">Дозволити</string>
-    <string name="WalletConnect_SwapRequest_Title">Обміняти</string>
-    <string name="WalletConnect_UnknownRequest_Title">Виклик контракту</string>
     <string name="WalletConnect_Status">Статус</string>
-    <string name="WalletConnect_SignedTransactions">Підписані транзакції</string>
     <string name="WalletConnect_Approve_Hint">Натиснувши на з\'єднання, ви дозволяєте цьому додатку переглядати вашу публічну адресу. Це важливий крок безпеки, щоб захистити ваші дані від потенційних ризиків, пов\'язаних з фішингом.</string>
-    <string name="WalletConnect_Ready_Hint">Ви можете перейти в браузер. Не закривайте цю сторінку під час використання браузера.</string>
     <string name="WalletConnect_Reconnect_Hint">Не вдалося встановити з\'єднання. Спробуйте перепідключитися знову.</string>
     <string name="WalletConnect_Error_InvalidUrl">Невірна URL-адреса</string>
-    <string name="WalletConnect_NotSupportedV2">Підключення до Wallet Connect v2 не підтримується</string>
-    <string name="WalletConnect_Requirement">Вимоги</string>
-    <string name="WalletConnect_Alert">Попередження</string>
     <string name="WalletConnect_Status_Offline">Не доступний</string>
     <string name="WalletConnect_Status_Online">Доступний</string>
     <string name="WalletConnect_Status_Connecting">Підключення…</string>
     <string name="WalletConnect_NewConnect">Нове з\'єднання</string>
-    <string name="WalletConnect_Disconnecting">Відключення</string>
     <string name="WalletConnect_SignMessageRequest_Title">Запит на підпис</string>
-    <string name="WalletConnect_SignMessageRequest_Domain">Домен</string>
     <string name="WalletConnect_SignMessageRequest_ShowMessageTitle">Повідомлення для підпису</string>
-    <string name="WalletConnect_SignMessageRequest_SignMessageHint">Будь ласка, підпишіть повідомлення для автентифікації</string>
     <string name="WalletConnect_SignMessageRequest_ButtonSign">Підписати</string>
     <string name="WalletConnect_Error_NoWallet">Вам потрібно створити або імпортувати гаманець перед використанням WalletConnect</string>
     <string name="WalletConnect_Error_NeedBackup">Зробіть резервну копію цього гаманця, створивши копію його фрази відновлення. Це буде необхідно для доступу до гаманця, якщо ваш телефон загублений, вкрадений, пошкоджений і т.д.</string>
-    <string name="WalletConnect_Error_WatchAccount">Ця функція не доступна для гаманців для перегляду, вам потрібно вибрати відновлений або створений гаманець</string>
     <string name="WalletConnect_Error_UnsupportedChainId">Непідтримуваний блокчейн</string>
     <string name="WalletConnect_Error_NoSuitableAccount">Немає відповідного облікового запису</string>
     <string name="WalletConnect_Error_NoSuitableEvmKit">Немає відповідного evm kit</string>
-    <string name="WalletConnect_Error_DataParsingError">Помилка розбору даних</string>
     <string name="WalletConnect_Error_UnsupportedChains">Непідтримувані мережі: %s</string>
     <string name="WalletConnect_Error_UnsupportedMethods">Непідтримувані методи: %s</string>
     <string name="WalletConnect_Error_UnsupportedEvents">Непідтримувані події: %s</string>
@@ -561,32 +462,19 @@
     <string name="WalletConnect_NoConnection">У вас немає підключених dapps</string>
     <string name="WalletConnect_PendingRequests">Очікуючі запити</string>
     <string name="WalletConnect_ActiveWallet">Активний гаманець</string>
-    <string name="WalletConnect_Address">Адреса</string>
-    <string name="WalletConnect_Network">Мережа</string>
-    <string name="WalletConnect_Input">Введення</string>
-    <string name="WalletConnect_Version1">Версія 1.0</string>
-    <string name="WalletConnect_Version2">Версія 2.0</string>
-    <string name="WalletConnect_I_Trust">Я вірю</string>
-    <string name="WalletConnect_Note">Примітка</string>
-    <string name="WalletConnect_LegacySignWarning">Підписання цього повідомлення може бути небезпечним. Цей підпис потенційно може виконати будь-яку операцію від імені вашого облікового запису, включаючи повне управління вашим рахунком та всіма його активами на запитуваний сайт. Підпишіть це повідомлення тільки якщо ви знаєте, що ви робите або повністю довіряєте запитуваному сайту.</string>
     <string name="WalletConnect_NotSupportedDescription">Ваш поточний тип гаманця %s не підтримує WalletConnect</string>
     <string name="WalletConnect_Unnamed">Без назви</string>
-    <string name="WalletConnect_DAppUnknown">Невідомий dApp</string>
     <string name="WalletConnect_Pairings">З\'єднання</string>
     <string name="WalletConnect_PairedDApps">З\'єднані dApp</string>
     <string name="WalletConnect_Pairings_DeleteAll">Видалити все</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Ви хочете видалити всі з\'єднані dApps?</string>
     <string name="WalletConnect_Pairings_Delete">Видалити</string>
     <string name="WalletConnect_DeleteAllPairs">Видалити всі пари</string>
-    <string name="WalletConnect_UnsupportedRequest_Title">Непідтримуваний запит</string>
-    <string name="WalletConnect_UnsupportedRequest_WarningTitle">Не підтримується</string>
-    <string name="WalletConnect_UnsupportedRequest_WarningDescription">Формат запиту не підтримується гаманцем</string>
     <!--EthereumTransaction-->
     <string name="save">Зберегти</string>
     <string name="EthereumTransaction_Warning_Title">Увага</string>
     <string name="EthereumTransaction_Error_Title">Помилка</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Недостатній баланс</string>
-    <string name="EthereumTransaction_Error_InsufficientBalance">Для надсилання транзакції потрібно %s</string>
     <string name="EthereumTransaction_Error_InsufficientBalanceForFee">Поточний баланс %s нижчий за суму, необхідну для обробки цієї транзакції, включаючи комісію за транзакцію.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Низька комісія</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">Встановлена сума комісії недостатня для обробки цієї транзакції.</string>
@@ -598,33 +486,22 @@
     <string name="EthereumTransaction_Error_ExecutionReverted">Непередбачена помилка: %s</string>
     <!--Swap-->
     <string name="Swap">Обміняти</string>
-    <string name="Swap_BestPrice">Найкраща ціна</string>
     <string name="Swap_FromAmountTitle">Ви платите</string>
     <string name="Swap_ToAmountTitle">Ви отримаєте</string>
-    <string name="Swap_Estimated">ПРИБЛИЗНО</string>
     <string name="Swap_TokenSelectorTitle">Вибрати</string>
-    <string name="Swap_Balance">Доступний баланс</string>
     <string name="Swap_Allowance">Дозвіл</string>
     <string name="Swap_Price">Ціна</string>
     <string name="Swap_AvailableBalance">Доступний баланс</string>
-    <string name="Swap_SellPrice">Ціна продажу</string>
-    <string name="Swap_BuyPrice">Ціна купівлі</string>
     <string name="Swap_PriceImpact">Відхилення від рин. ціни</string>
     <string name="Swap_PriceImpactTooHigh">Різниця між ринковою ціною та очікуваною розрахунковою ціною занадто висока.</string>
     <string name="Swap_PriceImpactWarning">Важливо! Ви отримуєте надзвичайно несприятливу ціну. Це пов\'язано з вкрай низькою ліквідністю.</string>
     <string name="Swap_MinimumReceived">Гарантована сума</string>
-    <string name="Swap_EstimatedFee">Передбачувана комісія</string>
-    <string name="Swap_MaxFee">Макс. комісія</string>
-    <string name="Swap_Fee">Комісія</string>
     <string name="Swap_Slippage">Відхилення від курсу</string>
     <string name="Swap_Recipient">Отримувач</string>
     <string name="Swap_ErrorNoProviders">Немає провайдерів</string>
     <string name="Swap_ErrorNoQuote">Немає пропозицій</string>
     <string name="Swap_ErrorInsufficientBalance">Недостатній баланс</string>
     <string name="swap_out_of_min_amount">Менше мін. суми %s</string>
-    <string name="Swap_ErrorBalanceNotAvailable">Баланс Н/Д</string>
-    <string name="Swap_ErrorNoLiquidity">Неможливо обміняти ці токени</string>
-    <string name="Swap_ErrorWrapUnwrapNotAllowed">Ця служба не дозволяє wrapping/unwrapping. Замість цього використовуйте 1inch.</string>
     <string name="Swap_ErrorHighPriceImpact">Високе відхилення ціни</string>
     <string name="Swap_ErrorTokenNotEnabled">Токен не увімкнено</string>
     <string name="Swap_ErrorWalletSyncing">Синхронізація гаманця</string>
@@ -645,17 +522,10 @@
     <string name="Swap_Approving">Надання дозволу</string>
     <string name="Swap_Swapping">Обмін</string>
     <string name="Swap_Quoting">Котирування</string>
-    <string name="Swap_MaximumPaid">Макс. сума</string>
-    <string name="Swap_MinimumGot">Гарантована сума</string>
-    <string name="Swap_PoweredBy">За підтримки</string>
-    <string name="Swap_Provider">Провайдер</string>
     <string name="Swap_Providers">Провайдери</string>
     <string name="Swap_SelectSwapProvider_Title">Зміна провайдера</string>
-    <string name="Swap_AmountEstimated">(прибл.)</string>
     <string name="Swap_AmountMin">(мін)</string>
     <string name="Swap_AmountMax">(макс)</string>
-    <string name="Swap_AmountTypeCoin">Монета</string>
-    <string name="Swap_SwapRouteNotFound">Маршрут не знайдено</string>
     <string name="Swap_YouPay">Ви платите</string>
     <string name="Swap_YouGet">Ви отримаєте</string>
     <string name="Swap_Confirm_Title">Підтвердити</string>
@@ -670,7 +540,6 @@
     <!-- Swap Settings -->
     <string name="Fee_LiquidityFee">Комісія за ліквідність</string>
     <string name="SwapSettings_Title">Налаштування обміну</string>
-    <string name="SwapSettings_Service">Сервіс</string>
     <string name="SwapSettings_SlippageTitle">Допустимість відхилень</string>
     <string name="SwapSettings_SlippageDescription">Ваша транзакція буде скасована, якщо ціна зміниться в несприятливу сторону більш ніж на цей відсоток</string>
     <string name="SwapSettings_DeadlineTitle">Термін транзакції</string>
@@ -679,30 +548,17 @@
     <string name="SwapSettings_RecipientAddressDescription">Після операції обміну сума буде переведена на зазначену адресу</string>
     <string name="SwapSettings_Apply">Застосувати</string>
     <string name="SwapSettings_DeadlineMinute">%s хв</string>
-    <string name="SwapSettings_RecipientPlaceholder">Адреса або домен</string>
     <string name="SwapSettings_Error_DeadlineZero">Нульовий термін</string>
     <string name="SwapSettings_Error_SlippageZero">Нульове відхилення</string>
     <string name="SwapSettings_Error_SlippageTooLow">Ваша транзакція, швидше за все, не вдасться.</string>
     <string name="SwapSettings_Error_SlippageTooHigh">Опір ковзанню не може перевищувати %s%%</string>
     <string name="SwapSettings_Error_InvalidAddress">Невірна адреса</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Невірна %s адреса</string>
-    <string name="SwapSettings_Error_InvalidSlippage">Невірне відхилення</string>
-    <string name="SwapSettings_Error_InvalidDeadline">Неприпустимий термін</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Ваша транзакція може бути авансованою</string>
     <!-- Swap Confirmation -->
     <string name="Activate_InsufficientBalance_Description">У вас недостатньо балансу XLM для активації цього токена.</string>
-    <string name="Swap_Confirmation">Підтвердження</string>
-    <string name="Swap_Confirmation_Guaranteed">Гарантовано</string>
-    <string name="Swap_Confirmation_Maximum">Максимум</string>
-    <string name="Swap_Confirmation_Estimated">Орієнтовно</string>
     <!--Approve-->
-    <string name="Approve_Title">Дозволити обмін</string>
     <string name="Approve_RevokeAndApproveInfo">Ви можете обміняти %s, або ви повинні скасувати і схвалити нову суму</string>
-    <string name="Approve_ButtonRevoke">Відкликати</string>
-    <string name="Approve_ButtonRevoking">Відкликання</string>
-    <string name="Approve_ButtonApprove">Дозволити</string>
-    <string name="Approve_Info">Ви повинні надати дозвіл на смарт-контракт, щоб обміняти цей токен від свого імені. За допомогою цього дозволу задається сума, яка може бути використана в рамках смарт-контракту. Це не вплине на ваш баланс, але вам доведеться заплатити невеликий збір за виконання транзакції.\n\nДозвіл може бути запитаний перед кожною угодою, але дешевше заздалегідь задати більшу суму для майбутніх угод.</string>
-    <string name="Approve_Error_AlreadyApproved">У вас вже є дозвіл на цю суму</string>
     <string name="Approve_Spender">Покупець</string>
     <string name="Approve_YouApprove">Ви дозволяєте</string>
     <string name="Approve_YouRevoke">Ви скасовуєте</string>
@@ -716,16 +572,10 @@
     <string name="SwapInfo_AllowanceDescription">Сума, яку exchange може витратити від імені користувача при виконанні обміну токенів. Чинна транзакція, що встановлює достатній рівень допустимості, необхідна для того, щоб транзакція обміну була здійснена.</string>
     <string name="SwapInfo_PriceImpactTitle">Відхилення від рин. ціни</string>
     <string name="SwapInfo_PriceImpactDescription">Очікуване відхилення ціни від зазначеної ціни, зазвичай збільшується при збільшенні суми обміну.</string>
-    <string name="SwapInfo_GuaranteedAmountTitle">Гарантована сума</string>
-    <string name="SwapInfo_MaxSpendTitle">Максимальна витрата</string>
     <!--Deposit-->
     <string name="Deposit_Title">Отримати %s</string>
-    <string name="Deposit_Share">Поділитися</string>
-    <string name="Deposit_Your_Address">Ваша адреса</string>
-    <string name="Deposit_Address">Адреса</string>
     <!--Transactions-->
     <string name="Transactions_Title">Транзакції</string>
-    <string name="Transactions_FilterAll">ВСІ</string>
     <string name="Transactions_Hide">Приховування транзакцій</string>
     <string name="Transactions_EmptyList">У вас ще немає незавершених або минулих транзакцій</string>
     <string name="Transactions_WaitForSync">Будь ласка, дочекайтеся завершення синхронізації.</string>
@@ -781,11 +631,8 @@
     <string name="Transactions_Filter_ChooseContact_Hint">Фільтрація за контактами працює на блокчейнах: Ethereum, BNB Smart Chain, Polygon, Avalanche, Gnosis, Fantom, Arbitrum, Optimism, Tron, Ton та ZCash. Нижче наведено відповідні контакти</string>
     <string name="Transactions_Filter_ChooseContact_NoSuitableContact">У вас немає відповідних контактів </string>
     <!--Transaction Info-->
-    <string name="TransactionInfo_Transaction">Транзакція</string>
     <string name="TransactionInfo_Title">Деталі транзакції</string>
-    <string name="TransactionInfo_Approval">Дозвіл обміну</string>
     <string name="TransactionInfo_Status">Статус</string>
-    <string name="TransactionInfo_Status_Confirmed">Підтверджено</string>
     <string name="TransactionInfo_Date">Дата</string>
     <string name="TransactionInfo_Id">ID Транзакції</string>
     <string name="TransactionInfo_Service">Сервіс</string>
@@ -804,19 +651,13 @@
     <string name="TransactionInfo_DoubleSpendNote">Ризик подвійної витрати!</string>
     <string name="TransactionInfo_ButtonViewOnExplorerName">Подивитися на %s</string>
     <string name="TransactionInfo_Price">Ціна</string>
-    <string name="TransactionInfo_YouPay">Ви платите</string>
-    <string name="TransactionInfo_YouPaid">Ви заплатили</string>
-    <string name="TransactionInfo_YouGet">Ви отримаєте</string>
     <string name="TransactionInfo_YouGot">Ви отримали</string>
     <string name="TransactionInfo_YouSent">Ви надіслали</string>
     <string name="TransactionInfo_Received">Отримано</string>
     <string name="TransactionInfo_Sent">Надіслано</string>
     <string name="TransactionInfo_Approved">Дозволено</string>
     <string name="TransactionInfo_Resend">Надіслати повторно</string>
-    <string name="TransactionInfo_RevokeApproval">Відкликати підтвердження</string>
-    <string name="TransactionInfo_Options">Параметри</string>
     <string name="TransactionInfo_SpeedUp">Прискорення</string>
-    <string name="TransactionInfo_Cancel">Скасувати</string>
     <string name="TransactionInfo_SpamWarning">Ця транзакція підозріла і може бути шахрайством. \nБудь ласка, не копіюйте жодні адреси з цієї транзакції.</string>
     <string name="TransactionInfo_SpeedUpDescription">Ця дія спробує анулювати попередню транзакцію, переславши її з вищою комісією.</string>
     <string name="StatusInfo_Pending">В очікуванні</string>
@@ -840,7 +681,6 @@
     <string name="TransactionInfoOptions_Rbf_UnableToReplace">Не вдається замінити</string>
     <!-- Info -->
     <string name="Info_LockTime_Description">Ці кошти були надіслані з тимчасовим блокуванням, яке закінчується %s.\n\nНе хвилюйтеся, отримані біткойни вже ваші, але до закінчення періоду блокування, ви не зможете їх витратити.</string>
-    <string name="Info_LockTime_Description_Static">Ці кошти були надіслані з тимчасовим блокуванням, яке закінчується в зазначену дату.\n\nНе хвилюйтеся, отримані біткойни вже ваші, але до закінчення періоду блокування, ви не зможете їх витратити в мережі Bitcoin.</string>
     <string name="Info_Reserved_WalletAction">Активація гаманця</string>
     <string name="Info_NotRelayed_Title">Передача</string>
     <string name="Info_NotRelayed_Description">Транзакція, що містить цю суму, трансльована, але ще не прийнята мережею.</string>
@@ -859,12 +699,9 @@
     <string name="SettingsCurrency_Other">ІНШІ</string>
     <string name="SettingsCurrency_DisclaimerTitle">Відмова від відповідальності</string>
     <string name="SettingsCurrency_DisclaimerText">Дані про обмінний курс надані третьою стороною Coingecko.сom\n\n Додаток P.CASH Wallet не гарантує, що ці дані завжди вірні та відповідають ринковим. Шанс на невідповідність підвищується при виборі базової валюти, що відрізняється від %s.</string>
-    <string name="SettingsCurrency_Understand">Я розумію</string>
     <!--Settings-->
     <string name="Settings_Title">Налаштування</string>
     <string name="Settings_SecurityCenter">Безпека</string>
-    <string name="Settings_Notifications">Сповіщення</string>
-    <string name="Settings_ExperimentalFeatures">Функції</string>
     <string name="Settings_BaseCurrency">Базова валюта</string>
     <string name="Settings_Language">Мова</string>
     <string name="settings_display_transactions">Відображення транзакцій</string>
@@ -911,18 +748,13 @@
     <string name="SettingsSecurity_AutoLock_After30Min">30 хвилин</string>
     <string name="SettingsSecurity_AutoLock_After1Hour">1 година</string>
     <string name="SettingsAddressChecker_InvalidAddress">Введена вами адреса недійсна. Будь ласка, перевірте її на наявність помилок або помилок у форматі та спробуйте знову.</string>
-    <string name="Appearance_Theme">ТЕМА</string>
-    <string name="Appearance_Tab">НАЛАШТУВАННЯ ВКЛАДКИ</string>
     <string name="Appearance_MarketsTab">ВКЛАДКА РИНКІВ</string>
     <string name="Appearance_BalanceTab">ВКЛАДКА БАЛАНСУ</string>
-    <string name="Appearance_LaunchScreen">ЕКРАН ЗАПУСКУ</string>
     <string name="Appearance_AppIcon">ІКОНКА ПРОГРАМИ</string>
-    <string name="Appearance_BalanceConversion">Конвертація балансу</string>
     <string name="Appearance_BalanceValue">Значення балансу</string>
     <string name="Appearance_Warning_CloseApplication">Зміна іконки закриє програму</string>
     <string name="Appearance_HideMarketsTab">Приховати ринки</string>
     <string name="Appearance_HideBalanceTabButtons">Приховати кнопки</string>
-    <string name="Appearance_HideBalanceTabButtonsDescription">Ця конфігурація приховує кнопки «Надіслати», «Отримати» та «Обміняти» на вкладці «Баланс».</string>
     <string name="Appearance_BalanceAutoHide">Автоприховування балансу</string>
     <string name="show_all_transactions">Показати всі транзакції</string>
     <string name="Appearance_TransactionAutoHide">Автоприховування транзакцій</string>
@@ -940,7 +772,6 @@
     <string name="BalanceViewType_FiatValue">Фіатне значення</string>
     <string name="SettingsAboutApp_Title">Про програму</string>
     <string name="SettingsAboutApp_Site">Веб-сайт</string>
-    <string name="SettingsAboutApp_WhatsNew">Що нового</string>
     <string name="SettingsAboutApp_AppVersion">Версія програми</string>
     <!-- Blockchain Settings  -->
     <string name="BlockchainSettings_Title">Налаштування блокчейну</string>
@@ -968,16 +799,13 @@
     <string name="Privacy_BulletedText2">Немає облікових записів користувачів або баз даних, що зберігають дані користувачів.</string>
     <string name="Privacy_BulletedText3">Якщо ви дозволите, гаманець ділитиметься інформацією про використання програми з командою P.CASH. Це необхідно, щоб зрозуміти, які функції використовуються (або ні) нашими користувачами. Будучи програмою, орієнтованою на конфіденційність, нам важливо оцінювати свої зусилля, і без цих даних ми не зможемо дізнатися, чи затребувані створені нами функції.</string>
     <string name="ShareCrashData">Ділитися даними збоїв</string>
-    <!-- Security Center -->
-    <string name="SecurityCenter_Internet">ІНТЕРНЕТ</string>
+
     <!--Evm Network-->
     <string name="EvmNetwork_AddNew">Додати новий</string>
     <string name="EvmNetwork_Added">Додано</string>
-    <string name="EvmNetwork_SyncMode">Режим синхронізації</string>
     <!--Add RPC Source-->
     <string name="AddEvmSyncSource_RpcUrl">URL-адреса RPC</string>
     <string name="AddEvmSyncSource_AddRPCSource">Додати джерело RPC</string>
-    <string name="AddEvmSyncSource_Name">За назвою</string>
     <string name="AddEvmSyncSource_BasicAuthentication">Базова автентифікація (необов\'язково)</string>
     <string name="AddEvmSyncSource_Warning_UrlExists">Джерело RPC з такою URL-адресою вже існує</string>
     <string name="AddEvmSyncSource_Error_InvalidUrl">Введена URL-адреса невірна. Допустима URL-адреса повинна мати одну з наступних схем: http, https, ws, wss</string>
@@ -993,9 +821,7 @@
     <!--Info screen-->
     <string name="Info_Title">Інформація</string>
     <!--Setting_Security-->
-    <string name="SettingsSecurity_Privacy">Приватність</string>
     <string name="SettingsSecurity_Biometric_Authentication">Біометрична автентифікація</string>
-    <string name="SettingsSecurity_Info_Biometric_Authentication">Активація біометричної автентифікації може потенційно послабити безпеку вашого пристрою порівняно з простим PIN-кодом.</string>
     <string name="set_separate_passcode">Встановити окремий пароль</string>
     <string name="SettingsSecurity_EnablePin">Код доступу</string>
     <string name="SettingsSecurity_DisablePin">Вимкнути код доступу</string>
@@ -1008,7 +834,6 @@
     <string name="SettingsSecurity_ManageKeys">Управління гаманцями</string>
     <string name="SettingsSecurity_AppRestartWarning">Ця дія перезапустить P.CASH Гаманець.</string>
     <string name="SettingsSecurity_TorConnectionDescription">Під час використання цієї програми повністю анонімізувати ваш інтернет. Зверніть увагу, що в деяких випадках функція WalletConnect для DeFi програм може бути дуже повільною або взагалі не працювати.</string>
-    <string name="SettingsSecurity_NotificationsDisabledWarning">Сповіщення для програми P.CASH Wallet вимкнено. Щоб отримувати сповіщення про зміну цін, вам потрібно увімкнути сповіщення та дозволити запуск програми у фоновому режимі.</string>
     <string name="SettingsSecurity_SortingShuffle">Перемішати</string>
     <string name="SettingsSecurity_SortingShuffleDescription">Випадкове індексування</string>
     <string name="SettingsSecurity_SortingBip69Short">Детермінований</string>
@@ -1047,13 +872,6 @@
     <string name="DuressPinSelectAccounts_SectionWallets_Title">ГАМАНЦІ</string>
     <string name="DuressPinSelectAccounts_SectionWatchWallets_Title">ПЕРЕГЛЯД ГАМАНЦЯ</string>
     <!--Setting_Terms-->
-    <string name="SettingsTerms_Text">Термінал P.CASH призначений для доступу до сервісів PirateCash та Cosanta Network.
-\nФункції терміналу:
-\n- Зберігати криптовалюти PirateCash та Cosantа приватним та незалежним чином. Це некастодіальний децентралізований гаманець, в якому лише користувач може контролювати свої кошти.
-\n- Децентралізований месенджер (у розробці);
-\n\n Програма не збирає жодних даних та дозволяє користувачеві зберігати незалежність, не прив\'язуючи обліковий запис до однієї програми-гаманця.
-\n\nТермінал P.CASH має відкритий вихідний програмний код, і будь-хто може переконатися в тому, що програма працює належним чином.
-\n\nМи створили термінал P.CASH для себе, оскільки доступні в мережі рішення не пропонують необхідний функціонал на належному рівні. З точки зору інженерії та простоти використання, ми вважаємо, що ця програма значно випереджає альтернативні продукти.</string>
     <string name="SettingsTerms_Backup">Безпечне резервне копіювання фраз для кожного гаманця. Це єдиний спосіб відновити доступ до коштів, якщо програма не працює.</string>
     <string name="SettingsTerms_PrivateKeys">Фрази відновлення гаманця генеруються випадковим чином на пристрої під час встановлення та не зберігаються в іншому місці.</string>
     <string name="SettingsTerms_DisablingPin">Вимкнення PIN-коду розблокування на смартфоні видаляє всі гаманці з програми. Для відновлення доступу до коштів знадобиться відновлення фраз.</string>
@@ -1064,37 +882,17 @@
     <string name="SettingsShare_Text">Продовжити</string>
     <!--Setting_Contact-->
     <string name="SettingsContact_Title">Зв\'яжіться з нами</string>
-    <!--Setting_Notifications-->
-    <string name="SettingsNotifications_Description">Встановіть сповіщення про зміну курсу монет, які ви відстежуєте.\n\nВи отримаєте сповіщення, коли зміна курсу за останні 24 години перевищить вибраний поріг.\n\n Сповіщення про тенденцію цін попереджає про зміни в русі цін у короткостроковій перспективі (1 тиждень) та довгостроковій перспективі (6 місяців).</string>
-    <string name="SettingsNotifications_NotificationsDisabledWarning">Сповіщення для програми P.CASH Гаманець вимкнено. Вам потрібно увімкнути сповіщення та дозволити фонове оновлення для програми, щоб мати можливість отримувати сповіщення про зміну цін.</string>
-    <string name="SettingsNotifications_TurnOn">Увімкнути в налаштуваннях</string>
-    <string name="SettingsNotifications_Off">Вимк.</string>
-    <string name="SettingsNotifications_DeactivateAll">Скинути все</string>
-    <string name="SettingsNotifications_PushNotification">Push-сповіщення</string>
-    <string name="Notification_Title">Сповіщення</string>
-    <string name="Notification_PriceUp">%1$s ціна: підвищилася на %2$s%% ⬆️</string>
-    <string name="Notification_PriceDown">%1$s ціна: знизилася на %2$s%% ⬇️</string>
-    <string name="Notification_TrendUp">%s тренд: Вгору 📈</string>
-    <string name="Notification_TrendDown">%s тренд: Вниз 📉</string>
-    <string name="NotificationBottomMenu_Change24h">Зміна ціни 24 год</string>
-    <string name="NotificationBottomMenu_PriceTrendChange">Зміна тренду</string>
-    <string name="NotificationBottomMenu_ShortTerm">Короткостроковий 7Д</string>
-    <string name="NotificationBottomMenu_Short">Коротка позиція</string>
-    <string name="NotificationBottomMenu_LongTerm">Довгостроковий 6М</string>
-    <string name="NotificationBottomMenu_Long">Довга позиція</string>
+
     <!-- Settings Launch Screen -->
     <string name="SettingsLaunchScreen_Auto">За замовчуванням</string>
     <string name="SettingsLaunchScreen_Balance">Баланс</string>
     <string name="SettingsLaunchScreen_MarketOverview">Огляд ринку</string>
     <string name="SettingsLaunchScreen_Watchlist">Обране</string>
     <!--Settings-->
-    <string name="SettingsTheme_Title">Тема</string>
     <string name="SettingsTheme_Dark">Темна</string>
     <string name="SettingsTheme_Light">Світла</string>
     <string name="SettingsTheme_System">Системна</string>
     <!--Errors-->
-    <string name="Binance_Backend_Error_MemoRequired">При надсиланні транзакції одержувачу необхідно заповнити поле мемо</string>
-    <string name="Binance_Backend_Error_RequiresDigits">Поле мемо повинно містити лише цифри</string>
     <string name="transaction_error_need_to_check">Транзакція, можливо, не була завершена через непередбачені проблеми. Рекомендуємо перевірити статус перед повторним надсиланням, щоб уникнути подвійної оплати.</string>
     <!--Hud texts-->
     <string name="Hud_Text_NoInternet">Немає інтернету</string>
@@ -1108,7 +906,6 @@
     <string name="Hud_Added_To_Watchlist">Додано в обране</string>
     <string name="Hud_Added_To_Wallet">Додано до гаманця</string>
     <string name="Hud_Removed_From_Wallet">Видалено з гаманця</string>
-    <string name="Hud_Already_In_Wallet">Вже додано до гаманця</string>
     <string name="Hud_Removed_from_Watchlist">Видалити з обраного</string>
     <string name="Hud_Removed">Видалено</string>
     <string name="Hud_WaitForSynchronization">Дочекайтеся синхронізації</string>
@@ -1128,13 +925,7 @@
 \nХоча гаманець P.CASH підтримує всі три формати, рекомендується використовувати %2$s гаманець, що працює у форматі BIP84. Гаманці, що працюють у цьому форматі, сплачують найменшу комісію при надсиланні %3$s транзакцій.</string>
     <string name="ManageCoins_BchTypeDescription">Існує 2 формати адрес, які гаманці Bitcoin Cash можуть використовувати для прийому вхідних платежів:\n\n- TYPE 0 (старіший)\n- TYPE 145 (новіший)\n\nХоча гаманець P.CASH підтримує обидва формати, рекомендується використовувати гаманець Bitcoin Cash, що працює у форматі TYPE 145.</string>
     <string name="ManageCoins_ContractAddress">АДРЕСА КОНТРАКТУ</string>
-    <!-- Experimental Feature -->
-    <string name="ExperimentalFeatures_Title">Експериментальні функції</string>
-    <string name="ExperimentalFeatures_Description">Наведені нижче функції є експериментальними. Незважаючи на те, що ми детально їх протестували, використовуючи наші власні криптокошти, ми не можемо гарантувати, що вони завжди працюватимуть так, як передбачено.</string>
-    <!-- Bitcoin Hodling -->
-    <string name="BitcoinHodling_Description">Дозволяє надсилати біткойни, які можна витратити лише після зазначеної дати.\n\nОдержувач такої транзакції повинен використовувати версію 0.10 програми P.CASH Wallet або новішу версію з форматом адреси BIP44 для Bitcoin.\n\nЛише гаманець P.CASH може правильно розпізнати та обробити такі транзакції в мережі Bitcoin і дозволити одержувачу витрачати ці біткойни після закінчення періоду блокування.\n\nЯкщо ви HODLer (довгостроковий інвестор), то ви можете використовувати цю функцію для утримання своїх біткойнів, надіславши їх собі. \n\nОскільки це експериментальна функція, максимальна сума транзакції обмежена 0,5 BTC.</string>
-    <!-- Testnet Settings -->
-    <string name="TestnetSettings_Description">Ця опція активує тестову мережу Goerli Ethereum лише для токена GoerliETH і додасть його в менеджер монет.\n\nЦя дія впливає лише на токен GoerliETH, тоді як усі інші токени EVM та Ethereum працюють в основній мережі. Іншими словами, лише транзакції в GoerliETH проходять через тестову мережу Goerli, тоді як усі інші передачі токенів EVM, включаючи ETH, проходять через основну мережу.</string>
+
     <!--Manage Accounts-->
     <string name="ManageAccounts_Title">Гаманці</string>
     <string name="ManageAccounts_CreateNewWallet">Створити гаманець</string>
@@ -1148,7 +939,6 @@
     <string name="ImportWallet_RecoveryPhrase">Фраза відновлення</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Імпорт за допомогою фрази відновлення або приватного ключа.</string>
     <string name="ImportWallet_WatchAddress">Перегляд гаманця</string>
-    <string name="ImportWallet_WatchAddress_Description">Режим спостереження EVM-ланцюга та BTC, LTC, DASH адрес</string>
     <string name="ImportWallet_WarningInvalidJson">Неприпустимий Json файл</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">Цей файл не є дійсною резервною копією гаманця, або ж він був пошкоджений і не може бути відновлений.</string>
     <string name="ImportWallet_SelectAnotherFile">Виберіть інший файл</string>
@@ -1167,8 +957,6 @@
     <string name="ManageAccount_Save">Зберегти</string>
     <string name="ManageAccount_RecoveryPhraseBackup">Ручне резервне \nкопіювання</string>
     <string name="ManageAccount_LocalBackup">Локальне резервне \nкопіювання</string>
-    <string name="ManageAccount_RecoveryPhraseShow">Показати фразу</string>
-    <string name="ManageAccount_NetworkSettings">Налаштування мережі</string>
     <string name="ManageAccount_Unlink">Видалити гаманець</string>
     <string name="ManageAccount_BackupRequired_Title">Необхідна резервна копія</string>
     <string name="ManageAccount_BackupRequired_Description">Вам потрібно зробити резервну копію %1$s перед отриманням %2$s.</string>
@@ -1181,34 +969,19 @@
     <string name="ManageAccount_SwitchWallet_Title">Переключити гаманець</string>
     <string name="ManageAccount_Wallets">Гаманці</string>
     <string name="ManageAccount_WatchAddresses">Перегляд гаманця</string>
-    <string name="ManageAccount_SwitchWallet_Subtitle">Виберіть гаманець для швидкого переключення</string>
     <string name="ManageAccount_DeleteWarning">Ви хочете призупинити перегляд цієї адреси гаманця?</string>
     <string name="ManageAccount_Delete_hardware_wallet_warning">Ви хочете видалити цей апаратний гаманець?</string>
     <string name="Balance_Receive_BackupRequired_Description">Вам потрібно зробити резервну копію %1$s</string>
     <!--Network Settings-->
-    <string name="NetworkSettings_Title">Налаштування мережі</string>
     <string name="NetworkSettings_SwithesAutomatically">переходить автоматично</string>
-    <string name="NetworkSettings_SwithesAutomatically_Description">MainNet HTTP мережа використовує перераховані нижче посилання та перемикає їх автоматично.</string>
-    <string name="NetworkSettings_TestNetDisclaimer">Будь ласка, не вибирайте опції Testnet, якщо ви не розумієте, що це таке і як це працює.\n\nTestnet є паралельним блокчейном для тестування цілей у своїй власній валюті. Якщо хтось надсилає регулярний платіж на вашу Testnet адресу, він буде втрачений.</string>
     <!-- Show Key -->
-    <string name="ShowKey_Title">Ключ</string>
-    <string name="ShowKey_Description">Показані далі фрази для відновлення є єдиним способом відновлення ваших коштів у разі втрати, крадіжки або поломки вашого телефону.\n\nПереконайтеся, що ніхто не дивиться на ваш екран.</string>
-    <string name="ShowKey_ButtonShow">Показати</string>
     <string name="ShowKey_Passphrase">Кодова фраза</string>
-    <string name="ShowKey_ButtonClose">Закрити</string>
-    <string name="ShowKey_TabMnemonicPhrase">Фраза для відновлення</string>
-    <string name="ShowKey_TabPrivateKey">Приватний ключ</string>
-    <string name="ShowKey_TabPublicKeys">Публічні ключі</string>
-    <string name="ShowKey_PrivateKeyCopyWarning_Title">Увага</string>
-    <string name="ShowKey_PrivateKeyCopyWarning_Subtitle">Ризик копіювання приватного ключа</string>
     <string name="ShowKey_PrivateKeyCopyWarning_Text">З метою безпеки ми не рекомендуємо копіювати секретний ключ.</string>
     <string name="ShowKey_PrivateKeyCopyWarning_Proceed">Я ризикну</string>
     <string name="ShowKey_PrivateKeyCopyWarning_Cancel">Не копіювати</string>
-    <string name="ShowKey_PrivateKey_Warning">Цей ключ для всіх EVM-сумісних блокчейнів.\n\nВ якості міри безпеки ми не рекомендуємо використовувати дію копіювання на закритому ключі.</string>
     <!-- Backup Recovery Phrase -->
     <string name="BackupRecoveryPhrase_Title">Резервна копія</string>
     <string name="BackupRecoveryPhrase_Description">Зробіть резервну копію цього гаманця, створивши копію його фрази відновлення. Це буде необхідно для доступу до гаманця, якщо ваш телефон загублений, вкрадений, пошкоджений і т.д.</string>
-    <string name="BackupRecoveryPhrase_Backup">Резервна копія</string>
     <string name="BackupRecoveryPhrase_ManualBackup">Ручне резервне копіювання</string>
     <string name="BackupRecoveryPhrase_LocalBackup">Локальна резервна копія</string>
     <string name="BackupRecoveryPhrase_Later">Пізніше</string>
@@ -1219,7 +992,6 @@
     <string name="LocalBackup_SaveAndBackup">Зберегти та створити резервну копію</string>
     <string name="LocalBackup_SetPassword">Встановити пароль</string>
     <string name="LocalBackup_BackupSaved">Резервну копію збережено</string>
-    <string name="LocalBackup_PasswordInvalid">Не менше 8 символів, включаючи одну велику літеру, одну малу літеру, одну цифру та один символ.</string>
     <string name="LocalBackup_DontForgetPasswordWarning">Цей пароль використовується для шифрування файлу резервної копії вашого гаманця. Якщо він загублений або забутий, його не можна буде відновити або скинути.</string>
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">Для забезпечення безпеки даних рекомендуємо використовувати надійний пароль для резервної копії — із поєднанням літер, цифр та спеціальних символів.\nДодаток дозволяє створити резервну копію з простим паролем для вашої зручності, але ви погоджуєтесь з тим, що резервна копія може бути скомпрометована при використанні простого пароля.</string>
     <string name="LocalBackup_TermsWarningText">Пристрої зберігання, такі як жорсткі диски, USB-накопичувачі, накопичувачі на смартфоні тощо, всі вони схильні до втрат внаслідок фізичних пошкоджень, крадіжки або інших непередбачених обставин.</string>
@@ -1234,7 +1006,6 @@
     <!-- Evm Private Key -->
     <string name="spend_key">Ключ перегляду витрат</string>
     <string name="EvmPrivateKey_Title">Приватний ключ EVM</string>
-    <string name="EvmPrivateKey_Warning">Цей ключ призначений для всіх EVM-сумісних блокчейнів. Не передавайте його нікому.</string>
     <string name="EvmPrivateKey_ShowPrivateKey">Натисніть, щоб показати приватний ключ</string>
     <!-- Bip32 Root Key -->
     <string name="StellarSecretKey_ShowSecretKey">Натисніть, щоб показати секретний ключ</string>
@@ -1268,82 +1039,39 @@
     <string name="RecoveryPhraseVerify_Title">Підтвердити</string>
     <string name="RecoveryPhraseVerify_Description">Виберіть запитані слова з вашої фрази відновлення</string>
     <!-- Backup Key -->
-    <string name="BackupKey_Title">Резервна копія</string>
-    <string name="BackupKey_Description">Показані далі фрази для відновлення є єдиним способом відновлення ваших коштів у разі втрати, крадіжки або поломки вашого телефону.\n\nПереконайтеся, що ніхто не дивиться на ваш екран.</string>
-    <string name="BackupKey_ButtonBackup">Резервна копія</string>
-    <string name="BackupConfirmKey_Description">Введіть фрази для відновлення в правильному порядку, щоб підтвердити</string>
-    <string name="BackupConfirmKey_EmptyOrInvalidWords">Введені слова порожні або неприпустимі</string>
-    <string name="BackupConfirmKey_Error_EmptyWord">Відсутнє слово</string>
     <string name="BackupConfirmKey_Error_InvalidWord">Невірне слово</string>
-    <string name="BackupConfirmKey_Error_EmptyPassphrase">Відсутня кодова фраза</string>
-    <string name="BackupConfirmKey_Error_InvalidPassphrase">Невірна кодова фраза</string>
     <!--Manage Keys Delete Alert-->
     <string name="ManageKeys_Delete_Title">Видалити гаманець</string>
-    <string name="ManageKeys_Delete_ConfirmationRemove">Ця дія видалить ваш %s гаманець з цього пристрою.</string>
     <string name="ManageKeys_Delete_FromPhone">Видалити з телефону</string>
     <string name="ManageKeys_StopWatching">Зупинити перегляд</string>
-    <!-- Manage Keys Alert -->
-    <string name="AddCoin_Description">Вам потрібно налаштувати гаманець %1$s, щоб мати можливість надсилати або отримувати %2$s.\n\nВикористовуйте кнопку \'Створити\', щоб налаштувати новий гаманець %3$s або \'Відновити\', щоб імпортувати існуючий.\n\nВи зможете використовувати цей гаманець для: %4$s.</string>
-    <string name="AddCoin_CreateKey">Створити</string>
-    <string name="AddCoin_RestoreKey">Відновити</string>
-    <!-- Add Token Dialog-->
-    <string name="AddTokenDialog_Title">Вибрати блокчейн</string>
-    <string name="AddTokenDialog_Subtitle">Додати Токен</string>
-    <string name="AddTokenDialog_Erc20Tokens">Токен ERC20</string>
-    <string name="AddTokenDialog_Bep20Tokens">Токен BEP20</string>
-    <string name="AddTokenDialog_BinanceTokens">Токен BEP2</string>
-    <!-- Enable Token -->
-    <string name="EnalbeToken_Title">Активувати Токен</string>
-    <string name="EnalbeToken_Description">Активувати всі %s монети з будь-яким балансом</string>
-    <string name="EnalbeToken_Enabling">Триває активація</string>
-    <string name="EnalbeToken_EnabledCoins">Активовано %d монет</string>
-    <string name="EnalbeToken_NoCoins">На балансі немає монет</string>
-    <string name="EnalbeToken_EnableKey">Активувати</string>
+
     <!-- Add Token -->
     <string name="AddToken_Title">Додати токен</string>
     <string name="AddToken_CoinName">Назва токена</string>
-    <string name="AddToken_Symbol">Символ</string>
     <string name="AddToken_CoinCode">Код токена</string>
     <string name="AddToken_Decimals">Десяткові знаки</string>
-    <string name="AddToken_CoinTypes">ТИПИ ТОКЕНІВ</string>
-    <string name="AddToken_AlreadyAdded">ВЖЕ ДОДАНО</string>
     <string name="AddToken_AddressOrSymbol">Адреса контракту</string>
-    <string name="AddToken_ChooseToken">Виберіть токен</string>
     <string name="AddToken_Blockchain">Фільтр за блокчейном</string>
     <string name="AddToken_CoinAlreadyInListWarning">Цей токен вже є у списку</string>
     <string name="AddToken_InvalidContractAddress">Невірна адреса контракту</string>
-    <string name="AddToken_InvalidBep2Symbol">Невірний символ BEP2</string>
-    <string name="AddEvmToken_Bep2NotFound">Символ BEP2 не знайдено</string>
     <string name="AddEvmToken_ContractAddressNotFoundInBlockchain">Адреса контракту не знайдена в %s блокчейні </string>
     <!-- Address Format Settings List -->
-    <string name="AddressFormatSettings_Title">Формат адреси</string>
     <string name="AddressFormatSettings_Description">Виберіть формат адреси для отримання коштів. Правильний формат повинен бути обраний при відновленні існуючого гаманця.</string>
     <!-- Coin Platforms -->
     <string name="CoinPlatforms_Native">Нативний</string>
-    <string name="CoinPlatformsSelector_Title">Тип токена</string>
-    <string name="CoinPlatformsSelector_Description">Цей токен існує на декількох блокчейнах.</string>
     <!-- Blockchain Settings -->
-    <string name="BlockchainSettings_SyncModeChangeAlert_Title">Джерело відновлення</string>
-    <string name="BlockchainSettings_SyncModeChangeAlert_Content">Після набуття чинності цієї зміни гаманець повинен буде повторно синхронізуватися з блокчейном %s.</string>
-    <string name="BlockchainSettings_CommunicationModeChangeAlert_Title">Зв\'язок</string>
     <string name="CoinSettings_BitcoinCashCoinType_Type0_Description">до 2018 року</string>
     <string name="CoinSettings_BitcoinCashCoinType_Type145_Description">після 2018 року</string>
     <string name="zcash_transparent_description">Повністю відстежувані транзакції</string>
     <string name="zcash_shielded_description">Приватні захищені транзакції</string>
     <string name="zcash_unified_description">Комбіновані прозорі та приватні транзакції</string>
     <!-- Tor -->
-    <string name="Tor_Connection_Title">З\'єднання</string>
     <string name="Tor_Connection_Enable">Увімкнути Tor</string>
     <string name="Tor_Connection_Disable">Вимкнути Tor</string>
     <string name="Tor_Alert_Title">Доступ до Інтернету</string>
-    <string name="Tor_Status_Starting">Запуск Tor ...</string>
-    <string name="Tor_Status_Error">Помилка запуску Tor !</string>
     <string name="TorPage_Connecting">Підключення Tor…</string>
-    <string name="TorPage_Connected">Підключено</string>
     <string name="TorPage_Failed">Не вдалося підключитися до Tor</string>
-    <string name="TorPage_ConnectionClosed">Від\'єднано</string>
     <string name="Tor_TorIsActive">Tor активний</string>
-    <string name="Tor_PrerequisitesAlert_Content">Активація TOR поверне з\'єднання блокчейна Ethereum до Infura.</string>
     <!--Coin Page-->
     <string name="Coin_Info">Інформація про токен</string>
     <string name="Coin_Tab_Overview">Ціна</string>
@@ -1351,46 +1079,20 @@
     <string name="Coin_Tab_Details">Аналітика</string>
     <string name="Coin_Tab_Tweets">Твіти</string>
     <string name="typical_fee">Типова комісія &lt; 0.001 ZEC</string>
-    <string name="CoinPage_TimeDuration_Today">СГД</string>
     <string name="CoinPage_TimeDuration_Hour">1Г</string>
     <string name="CoinPage_TimeDuration_Day">1Д</string>
     <string name="CoinPage_TimeDuration_Week">7Д</string>
     <string name="CoinPage_TimeDuration_Month">1М</string>
-    <string name="CoinPage_TimeDuration_TwoWeeks">2Т</string>
-    <string name="CoinPage_TimeDuration_Month3">3М</string>
-    <string name="CoinPage_TimeDuration_HalfYear">6М</string>
     <string name="CoinPage_TimeDuration_Year">1Р</string>
-    <string name="CoinPage_TimeDuration_Year2">2Р</string>
-    <string name="CoinPage_TimeDuration_Year5">5Р</string>
     <string name="CoinPage_TimeDuration_All">Все</string>
-    <string name="CoinPage_Markets">Ринки</string>
     <string name="CoinPage_TradingVolume">Обсяг торгівлі</string>
-    <string name="CoinPage_MajorHolders">Основні власники</string>
-    <string name="CoinPage_MajorHolders_InfoDescription">Кількість токенів у топ-10 гаманців. Якісні проекти зазвичай використовують широко розповсюджений токен.</string>
-    <string name="CoinPage_Audits">Аудити</string>
-    <string name="CoinPage_Audits_Empty">Немає аудиторських звітів</string>
     <string name="CoinPage_Audits_PoweredBy">За підтримки Defiyield.app</string>
     <string name="CoinPage_Audits_Issues">Запити: %d</string>
-    <string name="CoinPage_InvestorData">Дані інвестора</string>
     <string name="CoinPage_Treasuries_FilterTitle">Фільтри</string>
     <string name="CoinPage_Treasuries_PoweredBy">Працює на Bitcointreasuries.net</string>
     <string name="CoinPage_Reports">Звіти</string>
     <string name="CoinPage_FundsInvested">Вкладені кошти</string>
-    <string name="CoinPage_SecurityParams_Privacy">Приватність</string>
-    <string name="CoinPage_SecurityParams_Low">Низька</string>
-    <string name="CoinPage_SecurityParams_Medium">Середня</string>
-    <string name="CoinPage_SecurityParams_High">Висока</string>
-    <string name="CoinPage_SecurityParams_Issuance">Випуск</string>
-    <string name="CoinPage_SecurityParams_Centralized">Централізовано</string>
-    <string name="CoinPage_SecurityParams_Decentralized">Децентралізовано</string>
-    <string name="CoinPage_SecurityParams_ConfiscationResistance">Стійкість до конфіскації</string>
-    <string name="CoinPage_SecurityParams_CensorshipResistance">Стійкість до цензури</string>
-    <string name="CoinPage_SecurityParams_Audits">Аудити</string>
-    <string name="CoinPage_Range24">Діапазон за 24 год</string>
-    <string name="CoinPage_About">Про проект</string>
     <string name="CoinPage_Overview">Огляд</string>
-    <string name="CoinPage_Category">Категорія</string>
-    <string name="CoinPage_Categories">Категорії</string>
     <string name="CoinPage_Contracts">Контракти</string>
     <string name="CoinPage_Blockchains">Блокчейни</string>
     <string name="CoinPage_Bips">BIPи</string>
@@ -1414,8 +1116,6 @@
     <string name="CoinPage_MarketCap_Billion">млрд</string>
     <string name="CoinPage_MarketCap_Trillion">трлн</string>
     <string name="CoinPage_MarketCap_Quadrillion">квадрлн</string>
-    <string name="CoinPage_MarketCap_TvlRation">Рин.кап / Співвідношення TVL </string>
-    <string name="CoinPage_MarketCap_TvlRation_Description">Співвідношення ринкової капіталізації токена проекту та його значення TVL.</string>
     <string name="CoinPage_Volume">Обсяг</string>
     <string name="CoinPage_NoData">Немає даних</string>
     <string name="CoinPage_NoDataAvailable">Дані відсутні</string>
@@ -1425,25 +1125,13 @@
     <string name="CoinPage_Unfavorite">Видалити з обраного</string>
     <string name="CoinPage_Performance_Week">1 Тиждень</string>
     <string name="CoinPage_Performance_Month">1 Місяць</string>
-    <string name="CoinPage_ReadMore">Детальніше</string>
-    <string name="CoinPage_ReadLess">Згорнути</string>
     <string name="CoinPage_ShowMore">Показати більше</string>
     <string name="CoinPage_ShowLess">Згорнути</string>
     <string name="CoinPage_LaunchDate">Дата старту</string>
     <string name="CoinPage_Tvl">Всього заблокованих активів</string>
-    <string name="CoinPage_TvlRank">Рейтинг TVL</string>
-    <string name="CoinPage_TvlRank_Description">Рейтинг по відношенню до інших протоколів заснований на значенні TVL в доларах США.</string>
-    <string name="CoinPage_TvlMCapRatio">Рин.кап / Співвідношення TVL</string>
-    <string name="CoinPage_TvlMCapRatio_Description">Співвідношення ринкової капіталізації токена проекту та його значення TVL.</string>
-    <string name="CoinPage_TvlDescription">Капітал, внесений в платформу у вигляді кредитного забезпечення або пулу ліквідності.</string>
-    <string name="CoinPage_Contract">%s Контракт</string>
-    <string name="CoinPage_Bep2Symbol">Символ BEP2</string>
-    <string name="CoinPage_MajorHolders_TopWallets">Топ Гаманці</string>
-    <string name="CoinPage_MajorHolders_Description">На наведеній вище діаграмі показано \%% всіх токенів, що перебувають в обігу, які належать 10 провідним гаманцям. Чим менший \%%, тим більше розподілена монета.</string>
     <string name="CoinPage_MajorHolders_InTopWallets">у топ-10 власників</string>
     <string name="CoinPage_MajorHolders_HoldersNumber">Всього власників: %s</string>
     <string name="CoinPage_CoinInvestments_Lead">Лід</string>
-    <string name="CoinPage_NftBannerDescription">Отримайте доступ до розширених функцій P.CASH Гаманця.</string>
     <string name="CoinPage_CoinNotFound">[%s]\nне знайдено</string>
     <string name="CoinPage_Indicators">Індикатори</string>
     <string name="CoinPage_MovingAverages">Ковзні середні</string>
@@ -1451,8 +1139,6 @@
     <string name="CoinPage_EmaSettingsDescription">У EMA, SMA та WMA використовуються середні значення для технічного аналізу:\n\nEMA підкреслює останні ціни для швидших реакцій.\nСередні ціни SMA для загального уявлення тренду.\nЧутливість та шумове зниження ВМА шляхом лінійного зважування останніх даних.</string>
     <string name="CoinPage_RsiSettingsDescription">Індекс відносної сили (RSI) - це осцилятор імпульсу, який вимірює швидкість та зміни цін, визначаючи перекуплені (понад 70) або перепродані (менше 30) ринкові умови. Він також може виявляти зміни цін через розбіжності.</string>
     <string name="CoinPage_MacdSettingsDescription">Дивергенція Ковзної Середньої Конвергенції (MACD) — індикатор динаміки, який відстежує відношення між двома ЕМА ціни безпеки. Це сигналізує про можливість купівлі або продажу, коли лінія MACD (12-ти періодна EMA мінус 26-ти періодів EMA) перетинає дев\'ять періодів EMA, відому як сигнальна лінія.</string>
-    <string name="CoinPage_InsufficientData">Недостатньо даних</string>
-    <string name="CoinPage_InsufficientDataError">Недостатньо точок даних для відображення індикатора EMA 1. Будь ласка, змініть період часу, щоб згенерувати вигляд лінії ковзного середнього значення. Недостатньо точок для відображення EMA 1.</string>
     <string name="CoinPage_Type">Тип</string>
     <string name="CoinPage_Period">Період</string>
     <string name="CoinPage_RsiLength">Довжина RSI</string>
@@ -1495,12 +1181,6 @@
     <string name="CoinAnalytics_ProjectTVL_Info3">Рейтинг токена за поточним TVL.</string>
     <string name="CoinAnalytics_ProjectTVL_Info4">Список всіх токенів, ранжованих за поточним TVL.</string>
     <string name="CoinAnalytics_ProjectTVL_Info5">Співвідношення ринкової капіталізації/TVL в рамках проекту.</string>
-    <string name="CoinAnalytics_ProjectRevenue_Info1">Загальний прибуток, отриманий власниками токенів за 30-денний період. Як правило, плата стягується стейкерами токенів або за допомогою спалювання токенів.</string>
-    <string name="CoinAnalytics_ProjectRevenue_Info2">Рейтинг токена заснований на доході, отриманому стейкерами токенів за 30-денний період.</string>
-    <string name="CoinAnalytics_ProjectRevenue_Info3">Список всіх токенів, ранжованих на основі пасивного доходу стейкерів токенів з інтервалом 24год / 7 дн / 1 міс.</string>
-    <string name="CoinAnalytics_TechIndicators_Info1">Загальна оцінка: Це загальний огляд технічних засобів активу з урахуванням різних технічних показників та часових рамок. Він забезпечує консенсусну точку зору (купити, продати або нейтрально) на основі цих показників.</string>
-    <string name="CoinAnalytics_TechIndicators_Info2">Ковзні середні (MA): Це зазвичай використовувані технічні індикатори, що дозволяють згладити дані про ціни для створення індикатора наступного тренду. Вони показують середню ціну за певний період часу. Існує кілька типів MA:\n\nПросте Ковзне Середнє значення (SMA): Це обчислює середнє значення обраного діапазону цін, зазвичай закривають ціни, за кількістю періодів у цьому діапазоні.\n\nЕкспоненційне Ковзне Середнє (EMA): Це надає більше ваги останнім цінам, тим самим реагуючи швидше на останні зміни цін.</string>
-    <string name="CoinAnalytics_TechIndicators_Info3">Осцилятори: Це технічні індикатори, які коливаються з часом у діапазоні (вище і нижче центральної лінії або між заданими рівнями). Вони призначені для ідентифікації перекуплених та перепроданих умов на ринку. Ось кілька поширених осциляторів:\n\nІндекс відносної сили (RSI): Це вимірює швидкість та зміну рухів цін. Зазвичай він використовується для ідентифікації перекуплених або перепроданих умов.\n\nРух середнього зближення (MACD): Використовується для виявлення потенційних сигналів на купівлю та продаж. Вона запускає технічні сигнали, коли вона перетинає лінії сигналу вище (купувати) або нижче (продавати).</string>
     <string name="CoinAnalytics_ProjectNoAnalyticData">Цей проект не має аналітичних даних</string>
     <string name="CoinAnalytics_CexVolume">Обсяг CEX</string>
     <string name="CoinAnalytics_CexVolumeRank">Рейтинг обсягу CEX</string>
@@ -1516,7 +1196,6 @@
     <string name="CoinAnalytics_ActiveAddressesRank_Description">Список токенів, ранжованих за кількістю унікальних адрес транзакцій з токеном.</string>
     <string name="CoinAnalytics_TransactionCount">Кількість транзакцій</string>
     <string name="CoinAnalytics_TransactionCountRank">Рейтинг кількості транзакцій</string>
-    <string name="CoinAnalytics_TransactionCountRank_Description">Токени ранжуються за кількістю транзакцій у блокчейні.</string>
     <string name="CoinAnalytics_Holders">Власники</string>
     <string name="CoinAnalytics_ProjectTvl">Проект TVL</string>
     <string name="CoinAnalytics_ProjectTvl_FullTitle">Проект TVL (сукупна сума коштів заблокована)</string>
@@ -1551,9 +1230,6 @@
     <string name="Coin_Analytics_OverallScore_ProjectTvl">Загальний бал заснований на загальній закритій вартості (активи, що перебувають під управлінням) на проекті, представленому даним токеном.</string>
     <string name="Coin_Analytics_OverallScore_TransactionCount">Загальний рахунок заснований на середньому підрахунку щоденних транзакцій за останні 7 днів.</string>
     <string name="Coin_Analytics_OverallScore_Holders">Загальний бал заснований на загальній кількості адрес, що містять відповідний токен.</string>
-    <string name="Coin_Analytics_TechnicalIndicators">Технічні індикатори</string>
-    <string name="Coin_Analytics_Details">Деталі</string>
-    <string name="Coin_Analytics_SelectPeriod">Виберіть період</string>
     <string name="Coin_Analytics_Period_30m">30 хвилин</string>
     <string name="Coin_Analytics_Period_1h">1 година</string>
     <string name="Coin_Analytics_Period_4h">4 години</string>
@@ -1561,13 +1237,11 @@
     <string name="Coin_Analytics_Period_1d">1 день</string>
     <string name="Coin_Analytics_Period_1w">1 тиждень</string>
     <string name="Coin_Analytics_Period_1m">1 місяць</string>
-    <string name="Coin_Analytics_Period_1y">1 рік</string>
     <string name="Coin_Analytics_Indicators_StrongBuy">Активно купувати</string>
     <string name="Coin_Analytics_Indicators_StrongSell">Активно продавати</string>
     <string name="Coin_Analytics_Indicators_Sell">Продавати</string>
     <string name="Coin_Analytics_Indicators_Buy">Купувати</string>
     <string name="Coin_Analytics_Indicators_Neutral">Нейтрально</string>
-    <string name="Coin_Analytics_Indicators_NoData">Немає даних</string>
     <string name="CoinAnalytics_SmartContractAnalysis">Аналіз смарт-контрактів</string>
     <string name="CoinAnalytics_HighRiskItems">Предмети високого ризику</string>
     <string name="CoinAnalytics_MediumRiskItems">Елементи середнього ризику</string>
@@ -1590,8 +1264,6 @@
     <string name="TechnicalAdvice_StrongRsi">При цьому RSI = %1$s, що все ще свідчить про те, що він %2$s.</string>
     <string name="TechnicalAdvice_StrongAdvice">Це може бути дуже сильним сигналом для входу на ринок. Враховуйте, що можливі кілька спроб руху %s після повернення в канал, тому не забувайте про ризик-менеджмент.</string>
     <string name="TechnicalAdvice_StableRsi">При цьому RSI = %s, що теж свідчить про розворот тренду (RSI перетнув межу в 70\%%).</string>
-    <string name="TechnicalAdvice_StableAdvice">Ціна повертається до нейтральних показників, однак є ще потенціал руху вгору. Враховуйте, що RSI = 50 та середина Bollinger Bands є досить сильними опорами та можливими точками розвороту тренду. Не забувайте про ризик-менеджмент.</string>
-    <string name="TechnicalAdvice_NeutralRsi">RSI = $s також підтверджує відсутність сильного тренду.</string>
     <string name="TechnicalAdvice_NeutralIndicators">актив перебував у зоні перекупленості/перепроданості, однак на даний момент ціна повернулася в канал Bollinger Band у нейтральну зону. RSI = %s також підтверджує відсутність сильного тренду, тому загалом ціна активу прагне до усереднення, і подальший рух можливий у будь-який бік.</string>
     <string name="TechnicalAdvice_NeutralAdvice">Загалом ціна активу прагне до усереднення, і подальший рух можливий у будь-який бік.</string>
     <string name="TechnicalAdvice_OtherTitle">Будь ласка, зверніть увагу:</string>
@@ -1619,8 +1291,6 @@
     <string name="ActivateSubscription_Title">Активувати</string>
     <string name="ActivateSubscription_Wallet">Гаманець</string>
     <string name="ActivateSubscription_Address">Адреса</string>
-    <string name="ActivateSubscription_MessageToSign">Повідомлення для підпису</string>
-    <string name="ActivateSubscription_SignMessageDescription">Вам потрібно підписати це повідомлення, щоб активувати вашу підписку.</string>
     <string name="ActivateSubscription_NoSubscriptionError">Адреса вашого гаманця не має підписки на преміум-функції. Вам потрібно її придбати, щоб активувати підписку.</string>
     <string name="SubscriptionInfo_Title">Преміум-функції</string>
     <string name="SubscriptionInfo_Analytics_Title">Аналіз криптовалют</string>
@@ -1643,13 +1313,11 @@
     <string name="NftAsset_Activity">Активність</string>
     <string name="NftAsset_Action_Share">Поділитися</string>
     <string name="NftAsset_Action_Save">Зберегти</string>
-    <string name="NftAsset_OwnedCount">Власний рахунок</string>
     <string name="NftAsset_Price_Purchase">Ціна покупки</string>
     <string name="NftAsset_Price_Average7d">Сер. 7Д</string>
     <string name="NftAsset_Price_Average30d">Сер. 30Д</string>
     <string name="NftAsset_Price_Floor">Мінімальна ціна</string>
     <string name="NftAsset_Price_BuyNow">Купити зараз</string>
-    <string name="NftAsset_Price_TopBid">Макс. ставка</string>
     <string name="NftAsset_Price_MinimumBid">Мін. ставка</string>
     <string name="NftAsset_Price_BestOffer">Найкраща пропозиція</string>
     <string name="NftAsset_Properties">Параметри</string>
@@ -1669,11 +1337,8 @@
     <string name="NftCollection_Items">Елементи</string>
     <string name="NftCollection_Activity">Активність</string>
     <string name="NftCollection_Owners">Власники</string>
-    <string name="NftCollection_AveragePrice">Середня ціна за весь час</string>
-    <string name="NftCollection_ItemsCount">%d елементів</string>
     <string name="NftCollection_TodaysSales">Сьогоднішні продажі</string>
     <string name="NftCollection_TodaysSalesCount">%s NFT</string>
-    <string name="NftCollection_AveragePriceDescription">~%s за NFT</string>
     <string name="NftCollection_Royalty">Роялті</string>
     <string name="NftCollection_InceptionDate">Дата створення</string>
     <!-- NFT Collection Events -->
@@ -1695,7 +1360,6 @@
     <!--Rate list-->
     <string name="RateList_TopGainers">Зростаючі активи</string>
     <string name="RateList_TopLosers">Падаючі активи</string>
-    <string name="RateList_Posts">Новини</string>
     <string name="Market_DaysAgo">%dд тому</string>
     <string name="Market_HoursAgo">%dгод тому</string>
     <string name="Market_MinutesAgo">%dхв тому</string>
@@ -1704,21 +1368,15 @@
     <string name="BalanceSyncError_ButtonRetry">Повторити</string>
     <string name="BalanceSyncError_ButtonChangeSource">Змінити джерело</string>
     <string name="BalanceSyncError_ButtonReport">Поскаржитися</string>
-    <string name="BalanceSyncError_ReportButtonExplanation">Повідомлення про помилку буде скопійовано у ваш буфер обміну даними на випадок, якщо ви вирішите про неї повідомити.</string>
     <!--Release notes-->
     <string name="show_changelog_after_update">Відкривати список змін після оновлення</string>
-    <string name="ReleaseNotes_FollowUs">Ми в соцмережах</string>
-    <string name="CoinPage_Chart_Locked">Заблоковано</string>
-    <string name="ProUsersInfo_Title">Pro-користувач</string>
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
-    <string name="ProUsersInfo_SubTitle">Додаткова інформація про токен</string>
     <string name="ProUsersInfo_Description">Щоб увімкнути ці дані, ви повинні отримати бронзовий рівень UW NFTs “Coin Info+”\n\nТакож ви отримаєте доступ до даних нижче:</string>
     <string name="ProUsersInfo_Features_DexVolume">DEX обсяг та рейтинг</string>
     <string name="ProUsersInfo_Features_DesLiquidity">DEX ліквідність та рейтинг</string>
     <string name="ProUsersInfo_Features_ActiveAddresses">Активні адреси</string>
     <string name="ProUsersInfo_Features_TxCount">Кількість транзакцій</string>
     <string name="ProUsersInfo_Features_TxVolume">Обсяг транзакцій</string>
-    <string name="ProUsersInfo_Features_Authenticating">Ідентифікація...</string>
     <string name="Hud_Text_LearnMore">Незабаром</string>
     <string name="Hud_Text_Activate">Активувати</string>
     <string name="ProUsersActivate_Title">Активувати кодову фразу</string>
@@ -1743,13 +1401,11 @@
     <string name="Unlock_EnterPasscode">Введіть код доступу</string>
     <string name="Unlock_EnterPasscode_Transactions_Hide">Введіть пароль для режиму "Автоприховування транзакцій"</string>
     <string name="Unlock_EnterPasscode_Transfer">Введіть пароль, щоб вимкнути "Пароль для переказу"</string>
-    <string name="Unlock_Incorrect">Неправильно</string>
     <string name="Unlock_BiometricScanner">Біометричний сканер</string>
     <string name="Unlock_BiometricScannerDisabled_Description">Введіть код доступу або повторіть спробу пізніше</string>
     <string name="Unlock_BiometricScannerDisabled_Info">Біометричну автентифікацію вимкнено</string>
     <string name="Unlock_WalletDisabledUntil">Вимкнено до: %s</string>
     <string name="Unlock_AttemptsLeft">Залишилося спроб: %s</string>
-    <string name="Unlock_Regular">Стандартний</string>
     <string name="Unlock_Random">Випадковий</string>
     <!--Set Pin-->
     <string name="PinSet_Title">Встановити код доступу</string>
@@ -1763,7 +1419,6 @@
     <string name="PinSet_ErrorPinInUse">Цей пароль вже використовується.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Змінити код</string>
-    <string name="EditPin_UnlockInfo">Поточний код</string>
     <string name="EditPin_NewPinInfo">Новий код</string>
     <!--Biometric Auth texts-->
     <string name="BiometricAuth_DialogTitle">Біометричний сканер</string>
@@ -1793,41 +1448,7 @@
     <string name="Contacts_ActionMore">Ще</string>
     <string name="Contacts_Error_DefinedAddress">Ця адреса вже використовується для %s</string>
     <string name="Contacts_Error_DefinedName">Таке ім\'я вже існує</string>
-    <string name="Hud_Text_Connected">Підключено</string>
-    <!--Cex Deposit Module-->
-    <string name="Cex_ChooseCoin">Виберіть токен</string>
-    <string name="Cex_ChooseNetwork">Виберіть мережу</string>
-    <string name="Cex_ChooseNetwork_Description">Виберіть мережу та отримайте адресу для поповнення.</string>
-    <string name="Cex_SelectCoin_Search">Назва або код</string>
-    <string name="CexDeposit_Title">Депозит %s</string>
-    <string name="CexDeposit_CopyAddress">Копіювати адресу</string>
-    <string name="CexDeposit_ShareAddress">Поділитися адресою</string>
-    <string name="CexDeposit_Network">Мережа</string>
-    <string name="CexDeposit_AddressDescription">Ваша адреса для депозиту %s</string>
-    <string name="CexDeposit_DepositWarning">Надсилання лише %s на цю адресу. Надсилання інших типів токенів на цю адресу призведе до їх остаточної втрати.</string>
-    <string name="CexDeposit_MemoWarning">Memo(tag) обов\'язковий, інакше ви втратите свої кошти.\n\nНадсилайте лише %s на цю адресу. Надсилання інших типів токенів на цю адресу призведе до їх остаточної втрати.</string>
-    <string name="CexDeposit_Important">Важливо</string>
-    <string name="CexDeposit_MemoAlertText">Для отримання активів необхідні memo(tag) та адреса. В іншому випадку Ваші кошти будуть втрачені.</string>
-    <string name="Cex_Error_FailedToConnectApiKey">Не вдалося підключитися до твого API ключа</string>
-    <!--Cex Withdraw Module-->
-    <string name="CexWithdraw_Title">Надіслати %s</string>
-    <string name="CexWithdraw_Network">Мережа</string>
-    <string name="CexWithdraw_FeeFromAmount">Комісія від суми</string>
-    <string name="CexWithdraw_Fee">Комісія</string>
-    <string name="CexWithdraw_NetworkDescription">Переконайтеся, що мережа збігається з адресою зняття, а платформа депозиту підтримує його, або активи можуть бути втрачені.</string>
-    <string name="CexWithdraw_SecurityVerification">Перевірка безпеки</string>
-    <string name="CexWithdraw_EmailVerificationCode">Код верифікації</string>
-    <string name="CexWithdraw_GoogleAuthenticationCode">Код Google Authenticator</string>
-    <string name="CexWithdraw_GetCode">Надіслати повторно</string>
-    <string name="CexWithdraw_GetCodeSeconds">%s сек</string>
-    <string name="CexWithdraw_EmailVerificationInfo">Введіть код підтвердження, надісланий на вашу ел. пошту.</string>
-    <string name="CexWithdraw_GoogleAuthenticationInfo">Введіть код з програми Google Authenticator.</string>
-    <string name="CexWithdraw_Withdraw">Виведення коштів</string>
-    <string name="CexWithdraw_WithdrawSuccess">Успішно</string>
-    <string name="CexWithdraw_Error_NotEnoughBalance">Недостатньо доступних коштів</string>
-    <string name="CexWithdraw_Error_MinimumAmount">Мін. сума, яку ви можете вивести - %s</string>
-    <string name="CexWithdraw_Error_MaximumAmount">Макс.сума виведення: %s</string>
-    <string name="CexWithdraw_Error_WithdrawTitle">Виведення коштів не виконано</string>
+
     <!-- Stacking screen -->
     <string name="stacking">Стекінг</string>
     <string name="no_active_stacking">Немає активних стейкінг-транзакцій.</string>
@@ -1922,20 +1543,13 @@
     <string name="Restore_Error_MnemonicWordCount_monero">Невірна кількість слів. Має бути 25. Ви ввели: %d</string>
     <string name="inavlid_height">Невірне значення висоти</string>
     <string name="view_key">Ключ перегляду</string>
-    <string name="Balance_Receive_ActivationRequired">Щоб отримати адресу, необхідно активувати токен. Це вимога мережі Stellar.</string>
     <string name="Balance_Receive_Trustline">Довірча лінія</string>
     <string name="Balance_Reserved_Title">Зарезервовано</string>
-    <string name="Send_Processing">Обробка!</string>
-    <string name="Send_Processing_Description">Транзакцію успішно надіслано. Перевірте її статус для отримання деталей.</string>
     <string name="checking_address">Перевірка адреси…</string>
     <string name="Send_Address_Recent">Нещодавні</string>
-    <string name="Send_Address_Error_CheckLocked">Заблоковано</string>
-    <string name="Send_Address_Error_Incorrect">Неприпустимо</string>
     <string name="Send_Address_Error_InvalidAddress">Неприпустима адреса</string>
-    <string name="Send_Address_Error_Correct">Правильний</string>
     <string name="Send_Address_Error_Detected">Виявлено</string>
     <string name="Send_Address_Error_Clear">Чистий</string>
-    <string name="Send_Address_AddressCheck">Перевірка адреси</string>
     <string name="Send_Address_NotSmartContractCheck">Перевірка на смарт контракт</string>
     <string name="Send_Address_PhishingCheck">Перевірка на фішинг</string>
     <string name="Send_Address_PhishingCheck_Info1">Аналізує вказану адресу призначення на потенційні фішингові ризики.</string>
