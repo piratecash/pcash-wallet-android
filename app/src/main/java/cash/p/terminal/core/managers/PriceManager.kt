@@ -1,6 +1,7 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,9 @@ class PriceManager(
 
     var priceChangeInterval: PriceChangeInterval = storage.priceChangeInterval
         private set
+
+    val displayPricePeriod: DisplayPricePeriod
+        get() = storage.displayDiffPricePeriod
 
     val priceChangeIntervalFlow: StateFlow<PriceChangeInterval>
         get() = storage.priceChangeIntervalFlow

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.managewallets
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -35,7 +36,7 @@ import org.koin.java.KoinJavaComponent.inject
 class ManageWalletsViewModel(
     private val service: ManageWalletsService,
     private val clearables: List<Clearable>
-) : ViewModel() {
+) : ViewModel(), ManageWalletsCallback {
 
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val tangemBlockchainTypeExistUseCase: TangemBlockchainTypeExistUseCase by inject<TangemBlockchainTypeExistUseCase>(
@@ -46,16 +47,16 @@ class ManageWalletsViewModel(
         HardwarePublicKeyStorage::class.java
     )
 
-    val viewItemsLiveData = MutableLiveData<List<CoinViewItem<Token>>>()
+    override val viewItemsLiveData = MutableLiveData<List<CoinViewItem<Token>>>()
 
     private val awaitingEnabledTokens = mutableSetOf<Token>()
-    var showScanToAddButton by mutableStateOf(false)
+    override var showScanToAddButton by mutableStateOf(false)
         private set
 
-    var errorMsg by mutableStateOf<String?>(null)
+    override var errorMsg by mutableStateOf<String?>(null)
         private set
 
-    var closeScreen by mutableStateOf(false)
+    override var closeScreen by mutableStateOf(false)
         private set
 
     init {
@@ -144,6 +145,10 @@ class ManageWalletsViewModel(
     }
 
     private fun sync(items: List<ManageWalletsService.Item>) {
+        println("--------------------test_item")
+        items.forEach {
+            println("test_item: $it")
+        }
         val viewItems = items.map { viewItem(it) }
         viewItemsLiveData.postValue(viewItems)
     }
@@ -164,7 +169,7 @@ class ManageWalletsViewModel(
         label = item.token.badge
     )
 
-    fun enable(token: Token) {
+    override fun enable(token: Token) {
         if (!isHardwareCard() || tangemBlockchainTypeExistUseCase(token)) {
             service.enable(token)
         } else {
@@ -180,7 +185,7 @@ class ManageWalletsViewModel(
         }
     }
 
-    fun disable(token: Token) {
+    override fun disable(token: Token) {
         service.disable(token)
         if (isHardwareCard()) {
             if (awaitingEnabledTokens.remove(token)) {
@@ -191,7 +196,7 @@ class ManageWalletsViewModel(
         }
     }
 
-    fun updateFilter(filter: String) {
+    override fun updateFilter(filter: String) {
         service.setFilter(filter)
     }
 
@@ -199,7 +204,7 @@ class ManageWalletsViewModel(
         showScanToAddButton = isHardwareCard() && awaitingEnabledTokens.isNotEmpty()
     }
 
-    val addTokenEnabled: Boolean
+    override val addTokenEnabled: Boolean
         get() = service.accountType?.canAddTokens == true
 
     override fun onCleared() {
@@ -207,4 +212,16 @@ class ManageWalletsViewModel(
     }
 
     private fun isHardwareCard() = accountManager.activeAccount?.type is AccountType.HardwareCard
+}
+
+interface ManageWalletsCallback {
+    val viewItemsLiveData: LiveData<List<CoinViewItem<Token>>>
+    val addTokenEnabled: Boolean
+    val showScanToAddButton: Boolean
+    val errorMsg: String?
+    val closeScreen: Boolean
+
+    fun updateFilter(text: String)
+    fun enable(token: Token)
+    fun disable(token: Token)
 }

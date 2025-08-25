@@ -3,11 +3,11 @@ package cash.p.terminal.modules.pin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
-import cash.p.terminal.core.managers.UserManager
+import cash.p.terminal.core.managers.DefaultUserManager
 
 class SetDuressPinViewModel(
     private val input: SetDuressPinFragment.Input?,
-    private val userManager: UserManager,
+    private val userManager: DefaultUserManager,
 ) : ViewModel() {
 
     fun onDuressPinSet() {

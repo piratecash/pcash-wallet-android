@@ -2,17 +2,20 @@ package cash.p.terminal.network.pirate.api
 
 import cash.p.terminal.network.api.parseResponse
 import cash.p.terminal.network.data.entity.ChartPeriod
+import cash.p.terminal.network.data.setJsonBody
 import cash.p.terminal.network.pirate.data.entity.CalculatorDataDto
 import cash.p.terminal.network.pirate.data.entity.ChangeNowAssociatedCoinDto
+import cash.p.terminal.network.pirate.data.entity.CoinsPriceChangeRequest
 import cash.p.terminal.network.pirate.data.entity.InvestmentDataDto
 import cash.p.terminal.network.pirate.data.entity.InvestmentGraphDataDto
 import cash.p.terminal.network.pirate.data.entity.MarketTickerDto
 import cash.p.terminal.network.pirate.data.entity.PiratePlaceCoinDto
+import cash.p.terminal.network.pirate.data.entity.PriceChangeCoinInfoDto
 import cash.p.terminal.network.pirate.data.entity.StakeDataDto
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.client.request.post
 import io.ktor.client.request.parameter
+import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import java.util.Locale
@@ -27,6 +30,19 @@ internal class PlaceApi(
     suspend fun getCoinInfo(coin: String): PiratePlaceCoinDto {
         return httpClient.get {
             url(PIRATE_BASE_PLACE_URL + "coins/$coin")
+        }.parseResponse()
+    }
+
+    suspend fun getCoinsPriceChange(
+        coins: List<String>,
+        currencyCode: String
+    ): List<PriceChangeCoinInfoDto> {
+        return httpClient.post {
+            url(PIRATE_BASE_PLACE_URL + "mobile/coins")
+            setJsonBody(CoinsPriceChangeRequest(
+                uids = coins,
+                currency = currencyCode
+            ))
         }.parseResponse()
     }
 

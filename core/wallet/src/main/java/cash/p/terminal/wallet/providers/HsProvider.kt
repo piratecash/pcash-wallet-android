@@ -1,7 +1,7 @@
 package cash.p.terminal.wallet.providers
 
-import android.util.Log
 import cash.p.terminal.network.data.entity.ChartPeriod
+import cash.p.terminal.network.pirate.domain.enity.PriceChangeCoinInfo
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.wallet.models.Analytics
 import cash.p.terminal.wallet.models.AnalyticsPreview
@@ -11,7 +11,6 @@ import cash.p.terminal.wallet.models.CoinCategory
 import cash.p.terminal.wallet.models.CoinCategoryMarketPoint
 import cash.p.terminal.wallet.models.CoinInvestment
 import cash.p.terminal.wallet.models.CoinPrice
-import cash.p.terminal.wallet.models.CoinPriceResponse
 import cash.p.terminal.wallet.models.CoinReport
 import cash.p.terminal.wallet.models.CoinResponse
 import cash.p.terminal.wallet.models.CoinTreasury
@@ -29,7 +28,6 @@ import cash.p.terminal.wallet.models.MarketInfoRaw
 import cash.p.terminal.wallet.models.MarketInfoTvlResponse
 import cash.p.terminal.wallet.models.MarketOverviewResponse
 import cash.p.terminal.wallet.models.MarketTicker
-import cash.p.terminal.wallet.models.PiratePlaceCoinRaw
 import cash.p.terminal.wallet.models.RankMultiValue
 import cash.p.terminal.wallet.models.RankValue
 import cash.p.terminal.wallet.models.SubscriptionResponse
@@ -43,13 +41,7 @@ import cash.p.terminal.wallet.providers.mapper.PirateCoinInfoMapper
 import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.core.models.HsTimePeriod
 import io.reactivex.Single
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.rx2.await
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.koin.java.KoinJavaComponent.inject
 import retrofit2.Response
@@ -62,25 +54,16 @@ import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-import retrofit2.http.QueryMap
 import java.math.BigDecimal
-import java.time.Instant
 
 class HsProvider(baseUrl: String, apiKey: String) {
 
     private val piratePlaceRepository: PiratePlaceRepository by inject(PiratePlaceRepository::class.java)
     private val pirateCoinInfoMapper: PirateCoinInfoMapper by inject(PirateCoinInfoMapper::class.java)
 
-    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     // TODO Remove old base URL https://api-dev.blocksdecoded.com/v1 and switch it to new servers
     private val pirateService by lazy {
         RetrofitUtils.build("https://pirate.cash/s1/", mapOf("apikey" to apiKey))
-            .create(MarketService::class.java)
-    }
-
-    private val piratePlaceService by lazy {
-        RetrofitUtils.build("https://p.cash/api/")
             .create(MarketService::class.java)
     }
 
@@ -153,52 +136,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return service.coinCategoryMarketPoints(categoryUid, timePeriod.value, currencyCode)
     }
 
-    private suspend fun fetchPlaceCoinPrices(
-        requestUid: Set<String>,
-        currencyCode: String,
-    ): List<CoinPriceResponse> {
-        val currency = currencyCode.lowercase()
-        return requestUid.map { coroutineScope.async { runCatching { fetchPiratePlaceCoinInfo(it) }.getOrNull() } }
-            .awaitAll()
-            .filterNotNull().mapNotNull {
-                val price = when (currency) {
-                    "usd" -> it.price.usd
-                    "btc" -> it.price.btc
-                    "eur" -> it.price.eur
-                    "gbp" -> it.price.gbp
-                    "jpy" -> it.price.jpy
-                    "aud" -> it.price.aud
-                    "ars" -> it.price.aud
-                    "brl" -> it.price.brl
-                    "cad" -> it.price.cad
-                    "chf" -> it.price.chf
-                    "cny" -> it.price.cny
-                    "hkd" -> it.price.hkd
-                    "huf" -> it.price.hkd
-                    "ils" -> it.price.ils
-                    "inr" -> it.price.inr
-                    "nok" -> it.price.inr
-                    "php" -> it.price.inr
-                    "rub" -> it.price.rub
-                    "sgd" -> it.price.sgd
-                    "zar" -> it.price.zar
-                    else -> null
-                }
-                val priceChange = it.changes.price.percentage24h[currency]
-                if (price != null && priceChange != null) {
-                    CoinPriceResponse(
-                        uid = it.id,
-                        price = price,
-                        priceChange24h = priceChange,
-                        priceChange1d = priceChange,
-                        lastUpdated = Instant.now().epochSecond
-                    )
-                } else {
-                    null
-                }
-            }
-    }
-
     suspend fun getCoinPrices(
         coinUids: List<String>,
         walletCoinUids: List<String>,
@@ -208,40 +145,25 @@ class HsProvider(baseUrl: String, apiKey: String) {
         if (walletCoinUids.isNotEmpty()) {
             additionalParams["enabled_uids"] = walletCoinUids.joinToString(separator = ",")
         }
-        val fetchedPrices = service.getCoinPrices(
-            uids = coinUids.joinToString(separator = ","),
+        return piratePlaceRepository.getCoinsPriceChange(coinUids, currencyCode)
+            ?.map {
+                it.toCoinPrice(currencyCode)
+            }.orEmpty()
+    }
+
+    private fun PriceChangeCoinInfo.toCoinPrice(currencyCode: String) =
+        CoinPrice(
+            coinUid = uid,
             currencyCode = currencyCode,
-            additionalParams = additionalParams
-        ).await()
-
-        return if (fetchedPrices.size != coinUids.size) {
-            val pricesNotFound =
-                coinUids.toMutableSet().apply {
-                    removeAll(fetchedPrices.map { it.uid }.toSet())
-                }
-            Log.d("HsProvider", "Prices not found: $pricesNotFound, requesting on p.cash")
-            fetchedPrices + fetchPlaceCoinPrices(
-                requestUid = pricesNotFound,
-                currencyCode = currencyCode
-            ).also { coinPrices ->
-                if (coinPrices.size != pricesNotFound.size) {
-                    val pricesNotFound2 =
-                        pricesNotFound.toMutableSet().apply {
-                            removeAll(coinPrices.map { it.uid }.toSet())
-                        }
-                    Log.d("HsProvider", "Prices NOT FOUND on p.cash: $pricesNotFound2")
-                }
-            }
-        } else {
-            fetchedPrices
-        }.mapNotNull { coinPriceResponse -> coinPriceResponse.coinPrice(currencyCode = currencyCode)}
-    }
-
-    private suspend fun fetchPiratePlaceCoinInfo(
-        uid: String
-    ): PiratePlaceCoinRaw = withContext(Dispatchers.IO) {
-        piratePlaceService.getPlaceCoinInfo(coin = uid).await()
-    }
+            value = price,
+            diff1h = priceChange1h,
+            diff24h = priceChange24h,
+            diff7d = priceChange7d,
+            diff30d = priceChange30d,
+            diff1y = priceChange1y,
+            diffAll = priceChangeMax,
+            timestamp = lastUpdated
+        )
 
     suspend fun historicalCoinPriceSingle(
         coinUid: String,
@@ -597,9 +519,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
     }
 
     private interface MarketService {
-        @GET("coins/{coin}")
-        fun getPlaceCoinInfo(@Path("coin") coin: String): Single<PiratePlaceCoinRaw>
-
         @GET("coins")
         fun getMarketInfos(
             @Query("limit") top: Int,
@@ -649,14 +568,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
             @Query("interval") interval: String,
             @Query("currency") currencyCode: String,
         ): Single<List<CoinCategoryMarketPoint>>
-
-        @GET("coins")
-        fun getCoinPrices(
-            @Query("uids") uids: String,
-            @Query("currency") currencyCode: String,
-            @Query("fields") fields: String = coinPriceFields,
-            @QueryMap additionalParams: Map<String, String>,
-        ): Single<List<CoinPriceResponse>>
 
         @GET("coins/{coinUid}/price_history")
         fun getHistoricalCoinPrice(

@@ -2,6 +2,7 @@ package cash.p.terminal.core.utils
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import java.lang.Enum.*
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -20,10 +21,18 @@ inline fun <reified T : Any> SharedPreferences.delegate(
             Long::class -> getLong(key, default as Long) as T
             String::class -> getString(key, default as String) as T
             Set::class -> getStringSet(key, default as Set<String>) as T
-            else -> throw IllegalArgumentException("Unsupported type ${T::class}")
+            else -> {
+                if (T::class.java.isEnum) {
+                    val enumName = getString(key, (default as Enum<*>).name)
+                    enumName?.let { name ->
+                        valueOf(T::class.java as Class<out Enum<*>>, name) as T
+                    } ?: default
+                } else {
+                    throw IllegalArgumentException("Unsupported type ${T::class}")
+                }
+            }
         }
     }
-
 
     @Suppress("UNCHECKED_CAST")
     override fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
@@ -35,7 +44,13 @@ inline fun <reified T : Any> SharedPreferences.delegate(
                 Long::class -> putLong(key, value as Long)
                 String::class -> putString(key, value as String)
                 Set::class -> putStringSet(key, value as Set<String>)
-                else -> throw IllegalArgumentException("Unsupported type ${T::class}")
+                else -> {
+                    if (T::class.java.isEnum) {
+                        putString(key, (value as Enum<*>).name)
+                    } else {
+                        throw IllegalArgumentException("Unsupported type ${T::class}")
+                    }
+                }
             }
         }
     }

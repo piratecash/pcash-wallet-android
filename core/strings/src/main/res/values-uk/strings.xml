@@ -1591,6 +1591,11 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Для активації преміум потрібно створити резервну копію гаманця</string>
+    <string name="premium_demo_activation_error_watch_account">Гаманець для перегляду не може бути використаний для активації преміум</string>
+    <string name="premium_demo_activation_error_wrong_type">Використовуйте мнемонічний або апаратний тип гаманця для активації преміум</string>
     <string name="Nfts_PriceType_Days_7">7D avg.</string>
     <string name="Nfts_PriceType_Days_30">30D avg.</string>
     <string name="Nfts_PriceType_LastSale">Last Sale</string>
@@ -1819,4 +1824,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Параметри відображення</string>
+    <string name="display_options_price_period">Період ціни</string>
+    <string name="display_options_percent_change">% Зміна</string>
+    <string name="display_options_price_change">Зміна ціни</string>
+    <string name="display_options_period_1h">1 Година</string>
+    <string name="display_options_period_1d">1 День</string>
+    <string name="display_options_period_1w">1 Тиждень</string>
+    <string name="display_options_period_1m">1 Місяць</string>
+    <string name="display_options_period_1y">1 Рік</string>
+    <string name="display_options_period_all">Всі</string>
 </resources>

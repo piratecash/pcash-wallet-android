@@ -39,7 +39,7 @@ fun <T : WithTranslatableTitle> AlertGroup(
                 ) {
                     Text(
                         option.title.getString(),
-                        color = if (option == select.selected) cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.jacob else cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.leah,
+                        color = if (option == select.selected) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.leah,
                         style = ComposeAppTheme.typography.body,
                     )
                 }

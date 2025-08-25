@@ -4,10 +4,13 @@ import androidx.compose.runtime.Immutable
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
-import cash.p.terminal.core.diff
+import cash.p.terminal.core.diffPercentage
 import cash.p.terminal.modules.balance.BalanceModule.warningText
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui.compose.components.diffSign
+import cash.p.terminal.ui.compose.components.diffText
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
@@ -17,12 +20,13 @@ import cash.p.terminal.wallet.balance.BalanceViewHelper.coinValue
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.helpers.DateHelper
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
-import kotlin.collections.forEach
-import kotlin.toString
+import java.math.RoundingMode
 
 @Immutable
 data class BalanceViewItem(
@@ -65,6 +69,7 @@ data class BalanceViewItem2(
     val primaryValue: DeemedValue<String>,
     val exchangeValue: DeemedValue<String>,
     val diff: BigDecimal?,
+    val fullDiff: String,
     val secondaryValue: DeemedValue<String>,
     val sendEnabled: Boolean = false,
     val syncingProgress: SyncingProgress,
@@ -76,6 +81,7 @@ data class BalanceViewItem2(
     val errorMessage: String?,
     val isWatchAccount: Boolean,
     val isSwipeToDeleteEnabled: Boolean,
+    val displayDiffOptionType: DisplayDiffOptionType,
     val stackingUnpaid: DeemedValue<String>?
 )
 
@@ -289,11 +295,14 @@ class BalanceViewItemFactory {
                 wallet.decimal,
                 wallet.token
             )?.let {
-                var info = TranslatableString.ResString(R.string.Info_Reserved_Description).toString()
+                var info =
+                    TranslatableString.ResString(R.string.Info_Reserved_Description).toString()
                 info += "\n\n"
-                info += TranslatableString.ResString(R.string.Info_Reserved_CurrentlyLocked).toString()
+                info += TranslatableString.ResString(R.string.Info_Reserved_CurrentlyLocked)
+                    .toString()
 
-                info += "\n1 XLM - " + TranslatableString.ResString(R.string.Info_Reserved_WalletAction).toString()
+                info += "\n1 XLM - " + TranslatableString.ResString(R.string.Info_Reserved_WalletAction)
+                    .toString()
                 item.balanceData.stellarAssets.forEach {
                     info += "\n0.5 XLM - ${it.code}"
                 }
@@ -346,7 +355,8 @@ class BalanceViewItemFactory {
         isSwipeToDeleteEnabled: Boolean,
         balanceViewType: BalanceViewType,
         networkAvailable: Boolean,
-        showStackingUnpaid: Boolean
+        showStackingUnpaid: Boolean,
+        displayDiffOptionType: DisplayDiffOptionType
     ): BalanceViewItem2 {
         val wallet = item.wallet
         val state = item.state
@@ -365,21 +375,22 @@ class BalanceViewItemFactory {
             balanceViewType = balanceViewType
         )
 
-        val stackingUnpaid = if (showStackingUnpaid && item.balanceData.stackingUnpaid != BigDecimal.ZERO) {
-            coinValue(
-                balance = item.balanceData.stackingUnpaid,
-                visible = balanceTotalVisibility,
-                fullFormat = false,
-                coinDecimals = wallet.decimal,
-                dimmed = state !is AdapterState.Synced
-            ).run {
-                copy(
-                    value = this.value + " " + wallet.token.coin.code.uppercase()
-                )
+        val stackingUnpaid =
+            if (showStackingUnpaid && item.balanceData.stackingUnpaid != BigDecimal.ZERO) {
+                coinValue(
+                    balance = item.balanceData.stackingUnpaid,
+                    visible = balanceTotalVisibility,
+                    fullFormat = false,
+                    coinDecimals = wallet.decimal,
+                    dimmed = state !is AdapterState.Synced
+                ).run {
+                    copy(
+                        value = this.value + " " + wallet.token.coin.code.uppercase()
+                    )
+                }
+            } else {
+                null
             }
-        } else {
-            null
-        }
 
         val errorMessage = if (networkAvailable) {
             (state as? AdapterState.NotSynced)?.error?.message
@@ -392,7 +403,8 @@ class BalanceViewItemFactory {
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
             exchangeValue = BalanceViewHelper.rateValue(latestRate, currency, true),
-            diff = item.coinPrice?.diff,
+            diff = item.coinPrice?.diffPercentage,
+            fullDiff = getFullDiff(item, displayDiffOptionType, currency),
             sendEnabled = item.sendAllowed,
             syncingProgress = getSyncingProgress(state, wallet.token.blockchainType),
             syncingTextValue = getSyncingText(state),
@@ -403,7 +415,47 @@ class BalanceViewItemFactory {
             errorMessage = errorMessage,
             isWatchAccount = watchAccount,
             isSwipeToDeleteEnabled = isSwipeToDeleteEnabled,
-            stackingUnpaid = stackingUnpaid
+            stackingUnpaid = stackingUnpaid,
+            displayDiffOptionType = displayDiffOptionType
         )
+    }
+
+    private fun getFullDiff(
+        item: BalanceItem,
+        displayDiffOptionType: DisplayDiffOptionType,
+        currency: Currency,
+    ): String {
+        val latestRate = item.coinPrice
+        val diffPercentage = item.coinPrice?.diffPercentage
+        val currentPrice = latestRate?.value ?: BigDecimal.ZERO
+
+        val sign = diffPercentage?.diffSign() ?: ""
+
+        val diffPercentageText = if (displayDiffOptionType.hasPercentChange) {
+            diffText(diffPercentage)
+        } else {
+            ""
+        }
+
+        val diffCurrencyText = if (displayDiffOptionType.hasPriceChange && diffPercentage != null) {
+
+            val percentDecimal = diffPercentage.divide(BigDecimal(100))
+            val previousPrice = currentPrice.divide(BigDecimal.ONE + percentDecimal, 10, RoundingMode.HALF_UP)
+            val priceChange = currentPrice - previousPrice
+
+            val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
+            val formattedPriceChange = numberFormatter.formatFiatFull(priceChange.abs(), currency.symbol)
+            val signedFormattedPrice = "$sign$formattedPriceChange"
+
+            if (displayDiffOptionType == DisplayDiffOptionType.BOTH) {
+                "($signedFormattedPrice)"
+            } else {
+                signedFormattedPrice
+            }
+        } else {
+            ""
+        }
+
+        return "$diffPercentageText$diffCurrencyText"
     }
 }

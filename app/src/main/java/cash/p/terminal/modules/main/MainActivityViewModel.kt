@@ -8,7 +8,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.DAppRequestEntityWrapper
 import cash.p.terminal.core.managers.TonConnectManager
-import cash.p.terminal.core.managers.UserManager
+import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
 class MainActivityViewModel(
-    private val userManager: UserManager,
+    private val userManager: DefaultUserManager,
     private val accountManager: IAccountManager,
     private val systemInfoManager: ISystemInfoManager,
     private val localStorage: ILocalStorage,
@@ -67,16 +67,6 @@ class MainActivityViewModel(
                 tcDappRequest.postValue(it)
             }
         }
-    }
-
-    fun updatePremium() {
-        viewModelScope.launch {
-            checkPremiumUseCase.update()
-        }
-    }
-
-    fun startMonitoringAccountsForPremium() {
-        checkPremiumUseCase.startAccountMonitorUpdate()
     }
 
     fun startLockScreenMonitoring() {

@@ -34,21 +34,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
 import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.CoinImage
-import cash.p.terminal.ui.compose.components.diffText
 import cash.p.terminal.ui.extensions.RotatingCircleProgressView
 import cash.p.terminal.ui_compose.components.CellMultilineClear
 import cash.p.terminal.ui_compose.components.HsIconButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.oneLineHeight
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun BalanceCardSwipable(
@@ -138,11 +139,23 @@ fun BalanceCardInner(
     onClickSyncError: (() -> Unit)? = null,
     onBalanceClick: (() -> Unit)? = null,
 ) {
-    CellMultilineClear(height = if (viewItem.stackingUnpaid == null) 64.dp else 112.dp, onBalanceClick = onBalanceClick) {
+    val verticalPadding = if (viewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
+        12.dp
+    } else {
+        16.dp
+    }
+    val mainBlockHeight = if (viewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
+        61.dp
+    } else {
+        40.dp
+    }
+    val stackingBlockHeight = if (viewItem.stackingUnpaid == null) 0.dp else 46.dp
+    val cardHeight = mainBlockHeight + stackingBlockHeight + verticalPadding + verticalPadding
+    CellMultilineClear(height = cardHeight, onBalanceClick = onBalanceClick) {
         Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.height(64.dp)
+                modifier = Modifier.height(cardHeight - stackingBlockHeight)
             ) {
                 WalletIcon(viewItem, onClickSyncError)
                 Column(
@@ -173,9 +186,8 @@ fun BalanceCardInner(
                                 ) {
                                     Text(
                                         modifier = Modifier.padding(
-                                            start = 4.dp,
-                                            end = 4.dp,
-                                            bottom = 1.dp
+                                            horizontal = 4.dp,
+                                            vertical = 2.dp
                                         ),
                                         text = viewItem.badge,
                                         color = ComposeAppTheme.colors.bran,
@@ -211,20 +223,27 @@ fun BalanceCardInner(
                                 when (type) {
                                     BalanceCardSubtitleType.Rate -> {
                                         if (viewItem.exchangeValue.visible) {
-                                            Row {
+                                            Column {
                                                 Text(
                                                     text = viewItem.exchangeValue.value,
                                                     color = if (viewItem.exchangeValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
                                                     style = ComposeAppTheme.typography.subhead2,
+                                                    modifier = Modifier.oneLineHeight(
+                                                        ComposeAppTheme.typography.subhead2
+                                                    ),
                                                     maxLines = 1,
                                                 )
-                                                Text(
-                                                    modifier = Modifier.padding(start = 4.dp),
-                                                    text = diffText(viewItem.diff),
-                                                    color = diffColor(viewItem.diff),
-                                                    style = ComposeAppTheme.typography.subhead2,
-                                                    maxLines = 1,
-                                                )
+                                                if (viewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
+                                                    Text(
+                                                        text = viewItem.fullDiff,
+                                                        color = diffColor(viewItem.diff),
+                                                        style = ComposeAppTheme.typography.subhead2,
+                                                        modifier = Modifier.oneLineHeight(
+                                                            ComposeAppTheme.typography.subhead2
+                                                        ),
+                                                        maxLines = 1,
+                                                    )
+                                                }
                                             }
                                         }
                                     }
@@ -276,7 +295,7 @@ fun BalanceCardInner(
                         modifier = Modifier.weight(1f)
                     )
                     subhead2_grey(
-                        text = if(viewItem.stackingUnpaid.visible) viewItem.stackingUnpaid.value else "*****",
+                        text = if (viewItem.stackingUnpaid.visible) viewItem.stackingUnpaid.value else "*****",
                         maxLines = 1,
                     )
                 }

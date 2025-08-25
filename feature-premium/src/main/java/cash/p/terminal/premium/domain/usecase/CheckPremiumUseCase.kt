@@ -5,7 +5,6 @@ import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 interface CheckPremiumUseCase {
     fun isAnyPremium(): Boolean
     fun isTrialPremium(): Boolean
-    fun startAccountMonitorUpdate()
     suspend fun update(): Boolean
 
     suspend fun checkTrialPremiumStatus(): TrialPremiumResult

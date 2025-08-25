@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.RestoreSettingType
 import cash.p.terminal.entities.FeePriceScale
-import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Derivation
@@ -530,8 +530,12 @@ val BlockchainType.Companion.supported: List<BlockchainType>
         BlockchainType.Dogecoin,
     )
 
-val CoinPrice.diff: BigDecimal?
-    get() = when (App.priceManager.priceChangeInterval) {
-        PriceChangeInterval.LAST_24H -> diff24h
-        PriceChangeInterval.FROM_UTC_MIDNIGHT -> diff1d
+val CoinPrice.diffPercentage: BigDecimal?
+    get() = when (App.priceManager.displayPricePeriod) {
+        DisplayPricePeriod.ONE_HOUR -> diff1h
+        DisplayPricePeriod.ONE_DAY -> diff24h
+        DisplayPricePeriod.ONE_WEEK -> diff7d
+        DisplayPricePeriod.ONE_MONTH -> diff30d
+        DisplayPricePeriod.ONE_YEAR -> diff1y
+        DisplayPricePeriod.ALL -> diffAll
     }

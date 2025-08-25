@@ -28,7 +28,7 @@ import cash.p.terminal.core.managers.TorManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
-import cash.p.terminal.core.managers.UserManager
+import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.manager.IConnectivityManager
@@ -36,6 +36,7 @@ import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.managers.ITransactionHiddenManager
+import cash.p.terminal.wallet.managers.UserManager
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.CurrencyManager
@@ -75,7 +76,7 @@ val managerModule = module {
     singleOf(::EvmLabelManager)
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)
-    singleOf(::UserManager)
+    singleOf(::DefaultUserManager) bind UserManager::class
     factoryOf(::WalletActivator)
 
     singleOf(::Mnemonic)

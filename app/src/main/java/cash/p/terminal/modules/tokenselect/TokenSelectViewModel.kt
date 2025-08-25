@@ -18,6 +18,7 @@ import cash.p.terminal.modules.balance.BalanceViewTypeManager
 import cash.p.terminal.modules.balance.ITotalBalance
 import cash.p.terminal.modules.balance.TotalBalance
 import cash.p.terminal.modules.balance.TotalService
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenType
@@ -114,7 +115,8 @@ class TokenSelectViewModel(
                         isSwipeToDeleteEnabled = true,
                         balanceViewType = balanceViewTypeManager.balanceViewTypeFlow.value,
                         networkAvailable = service.networkAvailable,
-                        showStackingUnpaid = false
+                        showStackingUnpaid = false,
+                        displayDiffOptionType = DisplayDiffOptionType.NONE
                     )
                 }
             } else {

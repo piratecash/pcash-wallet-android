@@ -40,7 +40,6 @@ dependencies {
     implementation(project(":core:core"))
     implementation(project(":core:network"))
     implementation(project(":core:wallet"))
-    implementation(project(":core:wallet"))
     implementation(project(":core:ui-compose"))
     implementation(project(":core:navigation"))
     implementation(project(":feature-tangem"))

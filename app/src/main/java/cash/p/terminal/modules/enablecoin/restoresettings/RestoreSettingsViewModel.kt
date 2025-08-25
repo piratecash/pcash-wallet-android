@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.enablecoin.restoresettings
 
 import android.os.Parcelable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,9 +16,9 @@ import kotlinx.parcelize.Parcelize
 class RestoreSettingsViewModel(
     private val service: RestoreSettingsService,
     private val clearables: List<Clearable>
-) : ViewModel() {
+) : ViewModel(), IRestoreSettingsUi {
 
-    var openTokenConfigure by mutableStateOf<Token?>(null)
+    override var openTokenConfigure by mutableStateOf<Token?>(null)
         private set
 
     private var currentRequest: RestoreSettingsService.Request? = null
@@ -40,7 +41,7 @@ class RestoreSettingsViewModel(
         }
     }
 
-    fun onEnter(tokenConfig: TokenConfig) {
+    override fun onEnter(tokenConfig: TokenConfig) {
         val request = currentRequest ?: return
 
         when (request.requestType) {
@@ -50,7 +51,7 @@ class RestoreSettingsViewModel(
         }
     }
 
-    fun onCancelEnterBirthdayHeight() {
+    override fun onCancelEnterBirthdayHeight() {
         val request = currentRequest ?: return
 
         service.cancel(request.token)
@@ -60,10 +61,18 @@ class RestoreSettingsViewModel(
         clearables.forEach(Clearable::clear)
     }
 
-    fun tokenConfigureOpened() {
+    override fun tokenConfigureOpened() {
         openTokenConfigure = null
     }
 }
 
 @Parcelize
 data class TokenConfig(val birthdayHeight: String?, val restoreAsNew: Boolean) : Parcelable
+
+interface IRestoreSettingsUi {
+    val openTokenConfigure: Token?
+
+    fun tokenConfigureOpened()
+    fun onEnter(config: TokenConfig)
+    fun onCancelEnterBirthdayHeight()
+}

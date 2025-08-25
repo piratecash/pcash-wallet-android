@@ -1,18 +1,17 @@
 package cash.p.terminal.modules.coin.overview
 
 import android.util.Log
-
-import io.horizontalsystems.chartview.chart.AbstractChartService
 import cash.p.terminal.modules.chart.ChartIndicatorManager
-import io.horizontalsystems.chartview.chart.ChartPointsWrapper
-import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.models.CoinPrice
+import io.horizontalsystems.chartview.ChartViewType
+import io.horizontalsystems.chartview.chart.AbstractChartService
+import io.horizontalsystems.chartview.chart.ChartPointsWrapper
+import io.horizontalsystems.chartview.models.ChartPoint
+import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.models.HsPeriodType
 import io.horizontalsystems.core.models.HsTimePeriod
-import io.horizontalsystems.chartview.ChartViewType
-import io.horizontalsystems.chartview.models.ChartPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
@@ -136,7 +135,8 @@ class CoinOverviewChartService(
     private fun subscribeForUpdates(currency: Currency) {
         updatesJob?.cancel()
         updatesJob = coroutineScope.launch {
-            marketKit.coinPriceObservable("coin-overview-chart-service", coinUid, currency.code).asFlow().collect {
+            marketKit.coinPriceObservable("coin-overview-chart-service", coinUid, currency.code)
+                .asFlow().collect {
                 dataInvalidated()
             }
         }
@@ -148,7 +148,18 @@ class CoinOverviewChartService(
         chartInterval: HsTimePeriod?
     ): ChartPointsWrapper {
         if (points.isEmpty()) return ChartPointsWrapper(listOf())
-        val latestCoinPrice = marketKit.coinPrice(coinUid, currency.code) ?: CoinPrice(coinUid, currency.code, points.last().value, BigDecimal.ZERO, BigDecimal.ZERO, points.last().timestamp)
+        val latestCoinPrice = marketKit.coinPrice(coinUid, currency.code) ?: CoinPrice(
+            coinUid = coinUid,
+            currencyCode = currency.code,
+            value = points.last().value,
+            diff1h = BigDecimal.ZERO,
+            diff24h = BigDecimal.ZERO,
+            diff7d = BigDecimal.ZERO,
+            diff30d = BigDecimal.ZERO,
+            diff1y = BigDecimal.ZERO,
+            diffAll = BigDecimal.ZERO,
+            timestamp = points.last().timestamp
+        )
 
         val pointsAdjusted = points.toMutableList()
         var startTimestampAdjusted = startTimestamp
@@ -173,14 +184,15 @@ class CoinOverviewChartService(
         }
 
         val indicators = if (indicatorsEnabled) {
-            val pointsForIndicators = LinkedHashMap(pointsAdjusted.associate { it.timestamp to it.value.toFloat() })
+            val pointsForIndicators =
+                LinkedHashMap(pointsAdjusted.associate { it.timestamp to it.value.toFloat() })
             chartIndicatorManager.calculateIndicators(pointsForIndicators, startTimestampAdjusted)
         } else {
             mapOf()
         }
 
         val items = pointsAdjusted
-            .filter { it.timestamp >= startTimestampAdjusted}
+            .filter { it.timestamp >= startTimestampAdjusted }
             .map { chartPoint ->
                 ChartPoint(
                     value = chartPoint.value.toFloat(),

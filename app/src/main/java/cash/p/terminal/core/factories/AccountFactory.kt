@@ -1,7 +1,7 @@
 package cash.p.terminal.core.factories
 
 import cash.p.terminal.core.IAccountFactory
-import cash.p.terminal.core.managers.UserManager
+import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -10,7 +10,7 @@ import java.util.UUID
 
 class AccountFactory(
     private val accountManager: IAccountManager,
-    private val userManager: UserManager
+    private val userManager: DefaultUserManager
 ) : IAccountFactory {
 
     override fun account(

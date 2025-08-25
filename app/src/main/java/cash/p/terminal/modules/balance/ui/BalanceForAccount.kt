@@ -34,7 +34,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.backupalert.BackupAlert
 import cash.p.terminal.modules.balance.AccountViewItem
@@ -42,20 +41,23 @@ import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
+import cash.p.terminal.modules.displayoptions.DisplayOptionsFragment
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.qrscanner.QRScannerActivity
 import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.title3_leah
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.entities.ViewState
-import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -170,6 +172,18 @@ fun BalanceForAccount(
                                         }
                                     }
                                 )
+                            )
+                        }
+                        if (accountViewItem.isCoinManagerEnabled) {
+                            add(
+                                MenuItem(
+                                title = TranslatableString.ResString(R.string.display_options),
+                                icon = R.drawable.ic_search,
+                                onClick = {
+                                    navController.slideFromBottomForResult<DisplayOptionsFragment.Result>(R.id.displayOptionsFragment) {
+                                        viewModel.updatePriceChangeUI()
+                                    }
+                                })
                             )
                         }
                     }

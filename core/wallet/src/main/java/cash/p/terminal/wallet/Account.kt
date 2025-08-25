@@ -4,6 +4,7 @@ import android.os.Parcelable
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.network.pirate.domain.enity.PremiumAccountEligibility
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.signer.Signer
 import io.horizontalsystems.ethereumkit.models.Chain
@@ -90,27 +91,20 @@ data class Account(
     }
 }
 
-fun Account.eligibleForPremium(): Boolean {
-    return (type is AccountType.Mnemonic &&
-            !isWatchAccount &&
-            hasAnyBackup) ||
-            (type is AccountType.HardwareCard)
-}
+fun Account.eligibleForPremium(): Boolean
+    = premiumEligibility() == PremiumAccountEligibility.ELIGIBLE
 
+fun Account.premiumEligibility(): PremiumAccountEligibility {
+    return when {
+        isWatchAccount -> PremiumAccountEligibility.WATCH_ACCOUNT
+        type is AccountType.Mnemonic && !hasAnyBackup -> PremiumAccountEligibility.NO_BACKUP
+        type is AccountType.Mnemonic && hasAnyBackup -> PremiumAccountEligibility.ELIGIBLE
+        type is AccountType.HardwareCard -> PremiumAccountEligibility.ELIGIBLE
+        else -> PremiumAccountEligibility.WRONG_TYPE
+    }
+}
 @Parcelize
 sealed class AccountType : Parcelable {
-
-    fun isPremium(token: Token): Boolean {
-        if (!token.isMonero() || this !is Mnemonic) {
-            return false
-        }
-
-        return this.kind == MnemonicKind.Mnemonic15 ||
-                this.kind == MnemonicKind.Mnemonic18 ||
-                this.kind == MnemonicKind.Mnemonic21 ||
-                this.kind == MnemonicKind.Mnemonic24
-    }
-
     @Parcelize
     data class EvmAddress(val address: String) : AccountType()
 

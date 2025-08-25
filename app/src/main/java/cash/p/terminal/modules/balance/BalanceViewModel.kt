@@ -18,6 +18,8 @@ import cash.p.terminal.core.utils.AddressUriResult
 import cash.p.terminal.core.utils.ToncoinUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.modules.address.AddressHandlerFactory
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
@@ -87,6 +89,8 @@ class BalanceViewModel(
         listOf(BalanceSortType.Value, BalanceSortType.Name, BalanceSortType.PercentGrowth)
     private var sortType = service.sortType
 
+    private var displayDiffPricePeriod = localStorage.displayDiffPricePeriod
+
     var isSwapEnabled by mutableStateOf(true)
         private set
     var isStackingEnabled by mutableStateOf(true)
@@ -94,6 +98,8 @@ class BalanceViewModel(
 
     var connectionResult by mutableStateOf<WalletConnectListViewModel.ConnectionResult?>(null)
         private set
+
+    private var displayDiffOptionType = localStorage.displayDiffOptionType
 
     private var refreshViewItemsJob: Job? = null
 
@@ -107,7 +113,7 @@ class BalanceViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             service.balanceItemsFlow
                 .collect { items ->
-                    totalBalance.setTotalServiceItems(items?.map {
+                    totalBalance.setTotalServiceItems(items.map {
                         TotalService.BalanceItem(
                             it.balanceData.total,
                             it.state !is AdapterState.Synced,
@@ -115,7 +121,7 @@ class BalanceViewModel(
                         )
                     })
                     detectPirateAndCosanta(items)
-                    if (balanceHidden && items != null && !itemsBalanceHidden.keys.containsAll(items.map { it.wallet })) {
+                    if (balanceHidden && !itemsBalanceHidden.keys.containsAll(items.map { it.wallet })) {
                         addWalletsToHidden(items.map(BalanceItem::wallet))
                     }
                     refreshViewItems(items)
@@ -183,7 +189,9 @@ class BalanceViewModel(
         balanceTabButtonsEnabled = balanceTabButtonsEnabled,
         sortType = sortType,
         sortTypes = sortTypes,
-        showStackingForWatchAccount = showStackingForWatchAccount
+        showStackingForWatchAccount = showStackingForWatchAccount,
+        displayDiffOptionType = displayDiffOptionType,
+        displayPricePeriod = displayDiffPricePeriod
     )
 
     private fun handleUpdatedBalanceViewType(balanceViewType: BalanceViewType) {
@@ -233,7 +241,8 @@ class BalanceViewModel(
                         isSwipeToDeleteEnabled = !isSingleWalletAccount(),
                         balanceViewType = balanceViewType,
                         networkAvailable = service.networkAvailable,
-                        showStackingUnpaid = true
+                        showStackingUnpaid = true,
+                        displayDiffOptionType = displayDiffOptionType
                     )
                 }
                 replaceOldZCashWithNew()
@@ -314,6 +323,14 @@ class BalanceViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             service.sortType = sortType
         }
+    }
+
+    fun setDisplayPricePeriod(displayPricePeriod: DisplayPricePeriod) {
+        this.displayDiffPricePeriod = displayPricePeriod
+        localStorage.displayDiffPricePeriod = displayPricePeriod
+        emitState()
+
+        refreshViewItems(service.balanceItemsFlow.value)
     }
 
     fun onCloseHeaderNote(headerNote: HeaderNote) {
@@ -493,6 +510,14 @@ class BalanceViewModel(
         class NetworkNotAvailable : SyncError()
         class Dialog(val wallet: Wallet, val errorMessage: String?) : SyncError()
     }
+
+    fun updatePriceChangeUI() {
+        displayDiffPricePeriod = localStorage.displayDiffPricePeriod
+        displayDiffOptionType = localStorage.displayDiffOptionType
+
+        emitState()
+        refreshViewItems(service.balanceItemsFlow.value)
+    }
 }
 
 sealed class ReceiveAllowedState {
@@ -513,6 +538,8 @@ data class BalanceUiState(
     val showStackingForWatchAccount: Boolean,
     val sortType: BalanceSortType,
     val sortTypes: List<BalanceSortType>,
+    val displayDiffOptionType: DisplayDiffOptionType,
+    val displayPricePeriod: DisplayPricePeriod
 )
 
 data class OpenSendTokenSelect(

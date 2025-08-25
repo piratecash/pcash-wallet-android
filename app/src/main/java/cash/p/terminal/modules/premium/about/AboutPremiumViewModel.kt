@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.R
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.markdown.MarkdownBlock
 import cash.p.terminal.modules.markdown.MarkdownVisitorBlock
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
+import cash.p.terminal.network.pirate.domain.enity.PremiumAccountEligibility
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.config.PremiumConfig
@@ -20,6 +20,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.eligibleForPremium
+import cash.p.terminal.wallet.premiumEligibility
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import kotlinx.coroutines.async
@@ -57,7 +58,8 @@ class AboutPremiumViewModel(
             uiState = uiState.copy(activationViewState = ViewState.Loading)
 
             val currentAccount = accountManager.activeAccount
-            if (currentAccount?.eligibleForPremium() == true) {
+            val premiumAccountEligibility = currentAccount?.premiumEligibility()
+            if (premiumAccountEligibility == PremiumAccountEligibility.ELIGIBLE) {
                 try {
                     val result = checkPremiumUseCase.activateTrialPremium(currentAccount.id)
 
@@ -79,7 +81,7 @@ class AboutPremiumViewModel(
                     _uiEvents.trySend(errorResult)
                 }
             } else {
-                val errorResult = TrialPremiumResult.DemoError(R.string.wallet_is_not_eligile)
+                val errorResult = TrialPremiumResult.DemoError(premiumAccountEligibility)
 
                 uiState = uiState.copy(
                     activationViewState = ViewState.Success

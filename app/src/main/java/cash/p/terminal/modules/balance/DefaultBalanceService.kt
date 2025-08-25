@@ -109,7 +109,8 @@ class DefaultBalanceService private constructor(
     ) {
         _balanceItemsState.update { currentItems ->
             val updatedItems = transform(currentItems)
-            val sortedItems = balanceSorter.sort(updatedItems, sortType)
+            val uniqueItems = updatedItems.distinctBy { it.wallet.token.tokenQuery.id }
+            val sortedItems = balanceSorter.sort(uniqueItems, sortType)
             getFilteredItems(sortedItems)
         }
     }

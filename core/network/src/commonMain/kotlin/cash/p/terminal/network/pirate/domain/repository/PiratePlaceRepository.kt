@@ -8,11 +8,13 @@ import cash.p.terminal.network.pirate.domain.enity.InvestmentData
 import cash.p.terminal.network.pirate.domain.enity.InvestmentGraphData
 import cash.p.terminal.network.pirate.domain.enity.MarketTicker
 import cash.p.terminal.network.pirate.domain.enity.PiratePlaceCoin
+import cash.p.terminal.network.pirate.domain.enity.PriceChangeCoinInfo
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.enity.StakeData
 
 interface PiratePlaceRepository {
     suspend fun getCoinInfo(coin: String): PiratePlaceCoin
+    suspend fun getCoinsPriceChange(coins: List<String>, currencyCode: String): List<PriceChangeCoinInfo>?
     suspend fun getInvestmentData(coin: String, address: String): InvestmentData
     suspend fun getChangeNowCoinAssociation(uid: String): List<ChangeNowAssociatedCoin>
     suspend fun getInvestmentChart(coin: String, address: String, period: ChartPeriod): InvestmentGraphData
