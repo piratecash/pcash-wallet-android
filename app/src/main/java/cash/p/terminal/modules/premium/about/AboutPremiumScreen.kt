@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.markdown.MarkdownContent
+import cash.p.terminal.network.pirate.domain.enity.PremiumAccountEligibility
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.ui.compose.components.ButtonPrimaryCustomColor
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -70,17 +71,21 @@ fun AboutPremiumScreen(
                     )
                 }
                 is TrialPremiumResult.DemoError -> {
-                    if(result.errorStringResId != null) {
-                        HudHelper.showErrorMessage(
-                            view,
-                            result.errorStringResId!!
-                        )
-                    } else {
-                        HudHelper.showErrorMessage(
-                            view,
-                            R.string.premium_demo_activation_failed
-                        )
+                    val errorResId = when(result.premiumAccountEligibility) {
+                        PremiumAccountEligibility.NO_BACKUP -> R.string.premium_demo_activation_error_backup
+                        PremiumAccountEligibility.WATCH_ACCOUNT -> R.string.premium_demo_activation_error_watch_account
+                        PremiumAccountEligibility.WRONG_TYPE -> R.string.premium_demo_activation_error_wrong_type
+                        null -> R.string.premium_demo_activation_failed
+                        PremiumAccountEligibility.ELIGIBLE -> {
+                            // not possible state
+                            return@collect
+                        }
                     }
+
+                    HudHelper.showErrorMessage(
+                        view,
+                        errorResId
+                    )
                 }
                 else -> {}
             }
@@ -137,7 +142,7 @@ fun AboutPremiumScreen(
                 )
             }
 
-            if (!uiState.hasPremium && uiState.hasEligibleWallets) {
+            if (!uiState.hasPremium) {
                 Column(
                     modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
