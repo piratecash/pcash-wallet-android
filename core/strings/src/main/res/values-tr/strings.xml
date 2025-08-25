@@ -1587,6 +1587,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Premium\'i etkinleştirmek için cüzdanınızı yedeklemeniz gerekir</string>
+    <string name="premium_demo_activation_error_watch_account">İzleme hesabı premium\'i etkinleştirmek için kullanılamaz</string>
+    <string name="premium_demo_activation_error_wrong_type">Premium\'i etkinleştirmek için anımsatıcı veya donanım cüzdan türünü kullanın</string>
     <string name="Nfts_PriceType_Days_7">Ortalama 7G</string>
     <string name="Nfts_PriceType_Days_30">Ortalama 30G</string>
     <string name="Nfts_PriceType_LastSale">Son İndirim</string>

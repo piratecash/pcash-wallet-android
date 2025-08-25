@@ -1583,6 +1583,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="SubscriptionInfo_PersonalSupport_Info">Kontaktieren Sie unser Team direkt über Telegram für persönliche Hilfe.</string>
     <string name="SubscriptionInfo_GetPremium">Premium erhalten</string>
     <string name="SubscriptionInfo_HavePremium">Ich habe bereits Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Um Premium zu aktivieren, müssen Sie Ihr Wallet sichern</string>
+    <string name="premium_demo_activation_error_watch_account">Ein Watch-Account kann nicht zur Aktivierung von Premium verwendet werden</string>
+    <string name="premium_demo_activation_error_wrong_type">Verwenden Sie den Mnemonik- oder Hardware-Wallet-Typ, um Premium zu aktivieren</string>
     <string name="Nfts_PriceType_Days_7">Durchschnitt 7D</string>
     <string name="Nfts_PriceType_Days_30">Durchschnitt 30D</string>
     <string name="Nfts_PriceType_LastSale">Letzter Verkauf</string>

@@ -1593,6 +1593,11 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">لتفعيل المميزات المدفوعة تحتاج إلى نسخ احتياطي من محفظتك</string>
+    <string name="premium_demo_activation_error_watch_account">لا يمكن استخدام حساب المراقبة لتفعيل المميزات المدفوعة</string>
+    <string name="premium_demo_activation_error_wrong_type">استخدم نوع محفظة ذاكري أو محفظة أجهزة لتفعيل المميزات المدفوعة</string>
     <string name="Nfts_PriceType_Days_7">7D avg.</string>
     <string name="Nfts_PriceType_Days_30">30D avg.</string>
     <string name="Nfts_PriceType_LastSale">Last Sale</string>

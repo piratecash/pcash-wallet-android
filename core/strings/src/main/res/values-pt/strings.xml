@@ -1588,6 +1588,11 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Para ativar Premium você precisa fazer backup da sua carteira</string>
+    <string name="premium_demo_activation_error_watch_account">Uma conta de observação não pode ser usada para ativar Premium</string>
+    <string name="premium_demo_activation_error_wrong_type">Use tipo de carteira mnemônica ou hardware para ativar Premium</string>
     <string name="Nfts_PriceType_Days_7">média de 7D.</string>
     <string name="Nfts_PriceType_Days_30">média de 30.</string>
     <string name="Nfts_PriceType_LastSale">Última Venda</string>

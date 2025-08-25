@@ -2022,6 +2022,9 @@
     <string name="premium_demo_activated">Демо Премиум успешно активирован!</string>
     <string name="premium_demo_activation_failed">Не удалось активировать демо Премиум</string>
     <string name="premium_demo_expired">Срок действия демо Премиум для этого кошелька истёк</string>
+    <string name="premium_demo_activation_error_backup">Для активации премиума необходимо создать резервную копию кошелька</string>
+    <string name="premium_demo_activation_error_watch_account">Кошелёк для просмотра не может быть использован для активации премиума</string>
+    <string name="premium_demo_activation_error_wrong_type">Используйте мнемонический или аппаратный тип кошелька для активации премиума</string>
     <string name="wallet_is_not_eligile">Этот кошелёк не подходит для Премиум</string>
     <string name="Send_Confirmation_YouReceive">Вы получаете</string>
     <string name="Send_Confirmation_Mint">Выпустить</string>
