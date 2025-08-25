@@ -41,8 +41,7 @@ class ManageWalletsService(
     )
 
     private val _itemsFlow = MutableStateFlow<List<Item>>(listOf())
-    val itemsFlow
-        get() = _itemsFlow.asStateFlow()
+    val itemsFlow = _itemsFlow.asStateFlow()
 
     val accountType: AccountType?
         get() = account?.type
