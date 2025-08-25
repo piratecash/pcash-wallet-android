@@ -12,6 +12,7 @@ import cash.p.terminal.modules.settings.appstatus.AppStatusViewModel
 import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
+import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -28,4 +29,5 @@ val viewModelModule = module {
     viewModelOf(::MoneroConfigureViewModel)
     viewModelOf(::AboutPremiumViewModel)
     viewModelOf(::PremiumSettingsViewModel)
+    viewModelOf(::DisplayOptionsViewModel)
 }

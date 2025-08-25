@@ -11,6 +11,8 @@ import cash.p.terminal.entities.AppVersion
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.entities.SyncMode
 import cash.p.terminal.modules.amount.AmountInputType
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.TimeDuration
@@ -658,5 +660,16 @@ class LocalStorageManager(
     override var showChangelogAfterUpdate by preferences.delegate(
         key = "showChangelogOnUpdate",
         default = true
+    )
+
+    // Display Options
+    override var displayDiffPricePeriod by preferences.delegate(
+        key = "display_options_price_period",
+        default = DisplayPricePeriod.ONE_DAY
+    )
+
+    override var displayDiffOptionType by preferences.delegate(
+        key = "display_diff_options_type",
+        default = DisplayDiffOptionType.BOTH
     )
 }

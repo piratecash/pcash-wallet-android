@@ -11,6 +11,7 @@ import cash.p.terminal.network.pirate.data.entity.InvestmentGraphDataDto
 import cash.p.terminal.network.pirate.data.entity.LinksDto
 import cash.p.terminal.network.pirate.data.entity.MarketTickerDto
 import cash.p.terminal.network.pirate.data.entity.PiratePlaceCoinDto
+import cash.p.terminal.network.pirate.data.entity.PriceChangeCoinInfoDto
 import cash.p.terminal.network.pirate.data.entity.StakeDataDto
 import cash.p.terminal.network.pirate.domain.enity.CalculatorData
 import cash.p.terminal.network.pirate.domain.enity.CalculatorItemData
@@ -28,6 +29,7 @@ import cash.p.terminal.network.pirate.domain.enity.PayoutType
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
 import cash.p.terminal.network.pirate.domain.enity.PiratePlaceCoin
 import cash.p.terminal.network.pirate.domain.enity.PriceChange
+import cash.p.terminal.network.pirate.domain.enity.PriceChangeCoinInfo
 import cash.p.terminal.network.pirate.domain.enity.PricePoint
 import cash.p.terminal.network.pirate.domain.enity.Stake
 import cash.p.terminal.network.pirate.domain.enity.StakeData
@@ -209,5 +211,19 @@ internal class PiratePlaceMapper {
         volumeUsd = marketTicker.volumeUsd ?: BigDecimal.ZERO,
         volumePercent = marketTicker.volumePercent ?: BigDecimal.ZERO,
         trustScore = marketTicker.trustScore.orEmpty()
+    )
+
+    fun mapPriceChangeCoinInfoList(dto: List<PriceChangeCoinInfoDto>) = dto.map(::mapPriceChangeCoinInfo)
+
+    fun mapPriceChangeCoinInfo(dto: PriceChangeCoinInfoDto) = PriceChangeCoinInfo(
+        uid = dto.uid.requireNotNull("uid"),
+        price = dto.price ?: BigDecimal.ZERO,
+        priceChange1h = dto.priceChange1h ?: BigDecimal.ZERO,
+        priceChange24h = dto.priceChange24h ?: BigDecimal.ZERO,
+        priceChange7d = dto.priceChange7d ?: BigDecimal.ZERO,
+        priceChange30d = dto.priceChange30d ?: BigDecimal.ZERO,
+        priceChange1y = dto.priceChange1y ?: BigDecimal.ZERO,
+        priceChangeMax = dto.priceChangeMax ?: BigDecimal.ZERO,
+        lastUpdated = dto.lastUpdated ?: 0L
     )
 }

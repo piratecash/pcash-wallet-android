@@ -1122,6 +1122,18 @@ Proceed only if you\'re sure.</string>
     <string name="SettingsCurrency_DisclaimerText">The exchange rate data is provided by a third party service - Coingecko.com.\n\nThe P.CASH wallet app doesn\'t guarantee these values are always correct and matches market data. The chance for inconsistency is higher if you select any base currency other than %s.</string>
     <string name="SettingsCurrency_Understand">I Understand</string>
 
+    <!-- Display options -->
+    <string name="display_options">Display Options</string>
+    <string name="display_options_price_period">Price Period</string>
+    <string name="display_options_percent_change">% Change</string>
+    <string name="display_options_price_change">Price Change</string>
+    <string name="display_options_period_1h">1 Hour</string>
+    <string name="display_options_period_1d">1 Day</string>
+    <string name="display_options_period_1w">1 Week</string>
+    <string name="display_options_period_1m">1 Month</string>
+    <string name="display_options_period_1y">1 Year</string>
+    <string name="display_options_period_all">All</string>
+
     <!--Settings-->
 
     <string name="Settings_Title">Settings</string>

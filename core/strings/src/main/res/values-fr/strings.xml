@@ -1811,4 +1811,16 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Options d\'affichage</string>
+    <string name="display_options_price_period">Période de prix</string>
+    <string name="display_options_percent_change">% Changement</string>
+    <string name="display_options_price_change">Changement de prix</string>
+    <string name="display_options_period_1h">1 Heure</string>
+    <string name="display_options_period_1d">1 Jour</string>
+    <string name="display_options_period_1w">1 Semaine</string>
+    <string name="display_options_period_1m">1 Mois</string>
+    <string name="display_options_period_1y">1 An</string>
+    <string name="display_options_period_all">Tous</string>
 </resources>

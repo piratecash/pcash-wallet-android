@@ -45,8 +45,8 @@ fun ButtonSecondaryCircle(
     enabled: Boolean = true,
     @DrawableRes icon: Int = R.drawable.ic_arrow_down_20,
     contentDescription: String? = null,
-    tint: Color = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.leah,
-    background: Color = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel20,
+    tint: Color = ComposeAppTheme.colors.leah,
+    background: Color = ComposeAppTheme.colors.steel20,
     onClick: () -> Unit,
 ) {
     HsIconButton(

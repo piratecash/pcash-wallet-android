@@ -1,6 +1,6 @@
 package cash.p.terminal.modules.balance
 
-import cash.p.terminal.core.diff
+import cash.p.terminal.core.diffPercentage
 import cash.p.terminal.core.order
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.balance.BalanceItem
@@ -12,7 +12,7 @@ class BalanceSorter {
         return when (sortType) {
             BalanceSortType.Value -> sortByBalance(items)
             BalanceSortType.Name -> items.sortedBy { it.wallet.coin.code }
-            BalanceSortType.PercentGrowth -> items.sortedByDescending { it.coinPrice?.diff }
+            BalanceSortType.PercentGrowth -> items.sortedByDescending { it.coinPrice?.diffPercentage }
         }
     }
 

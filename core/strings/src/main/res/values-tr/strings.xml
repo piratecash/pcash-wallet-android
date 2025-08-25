@@ -1815,4 +1815,16 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Görüntüleme seçenekleri</string>
+    <string name="display_options_price_period">Fiyat dönemi</string>
+    <string name="display_options_percent_change">% Değişim</string>
+    <string name="display_options_price_change">Fiyat değişimi</string>
+    <string name="display_options_period_1h">1 Saat</string>
+    <string name="display_options_period_1d">1 Gün</string>
+    <string name="display_options_period_1w">1 Hafta</string>
+    <string name="display_options_period_1m">1 Ay</string>
+    <string name="display_options_period_1y">1 Yıl</string>
+    <string name="display_options_period_all">Tümü</string>
 </resources>

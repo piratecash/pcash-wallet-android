@@ -1821,4 +1821,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">گزینه‌های نمایش</string>
+    <string name="display_options_price_period">دوره قیمت</string>
+    <string name="display_options_percent_change">% تغییر</string>
+    <string name="display_options_price_change">تغییر قیمت</string>
+    <string name="display_options_period_1h">1 ساعت</string>
+    <string name="display_options_period_1d">1 روز</string>
+    <string name="display_options_period_1w">1 هفته</string>
+    <string name="display_options_period_1m">1 ماه</string>
+    <string name="display_options_period_1y">1 سال</string>
+    <string name="display_options_period_all">همه</string>
 </resources>

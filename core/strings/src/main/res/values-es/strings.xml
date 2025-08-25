@@ -1806,4 +1806,16 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Opciones de visualización</string>
+    <string name="display_options_price_period">Período de precio</string>
+    <string name="display_options_percent_change">% Cambio</string>
+    <string name="display_options_price_change">Cambio de precio</string>
+    <string name="display_options_period_1h">1 Hora</string>
+    <string name="display_options_period_1d">1 Día</string>
+    <string name="display_options_period_1w">1 Semana</string>
+    <string name="display_options_period_1m">1 Mes</string>
+    <string name="display_options_period_1y">1 Año</string>
+    <string name="display_options_period_all">Todos</string>
 </resources>

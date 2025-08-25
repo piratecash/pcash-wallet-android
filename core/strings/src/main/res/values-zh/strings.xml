@@ -1810,4 +1810,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">显示选项</string>
+    <string name="display_options_price_period">价格周期</string>
+    <string name="display_options_percent_change">% 变化</string>
+    <string name="display_options_price_change">价格变化</string>
+    <string name="display_options_period_1h">1小时</string>
+    <string name="display_options_period_1d">1天</string>
+    <string name="display_options_period_1w">1周</string>
+    <string name="display_options_period_1m">1月</string>
+    <string name="display_options_period_1y">1年</string>
+    <string name="display_options_period_all">全部</string>
 </resources>

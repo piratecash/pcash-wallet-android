@@ -1813,4 +1813,16 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Anzeigeoptionen</string>
+    <string name="display_options_price_period">Preiszeitraum</string>
+    <string name="display_options_percent_change">% Änderung</string>
+    <string name="display_options_price_change">Preisänderung</string>
+    <string name="display_options_period_1h">1 Stunde</string>
+    <string name="display_options_period_1d">1 Tag</string>
+    <string name="display_options_period_1w">1 Woche</string>
+    <string name="display_options_period_1m">1 Monat</string>
+    <string name="display_options_period_1y">1 Jahr</string>
+    <string name="display_options_period_all">Alle</string>
 </resources>

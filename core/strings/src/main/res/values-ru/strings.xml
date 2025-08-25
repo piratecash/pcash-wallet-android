@@ -2025,4 +2025,16 @@
     <string name="wallet_is_not_eligile">Этот кошелёк не подходит для Премиум</string>
     <string name="Send_Confirmation_YouReceive">Вы получаете</string>
     <string name="Send_Confirmation_Mint">Выпустить</string>
+
+    <!-- Параметры отображения -->
+    <string name="display_options">Параметры отображения</string>
+    <string name="display_options_price_period">Период цены</string>
+    <string name="display_options_percent_change">% Изменение</string>
+    <string name="display_options_price_change">Изменение цены</string>
+    <string name="display_options_period_1h">1 час</string>
+    <string name="display_options_period_1d">1 день</string>
+    <string name="display_options_period_1w">1 неделя</string>
+    <string name="display_options_period_1m">1 месяц</string>
+    <string name="display_options_period_1y">1 год</string>
+    <string name="display_options_period_all">Все</string>
 </resources>

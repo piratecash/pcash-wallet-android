@@ -1815,4 +1815,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">표시 옵션</string>
+    <string name="display_options_price_period">가격 기간</string>
+    <string name="display_options_percent_change">% 변화</string>
+    <string name="display_options_price_change">가격 변화</string>
+    <string name="display_options_period_1h">1 시간</string>
+    <string name="display_options_period_1d">1 일</string>
+    <string name="display_options_period_1w">1 주</string>
+    <string name="display_options_period_1m">1 개월</string>
+    <string name="display_options_period_1y">1 년</string>
+    <string name="display_options_period_all">모든</string>
 </resources>

@@ -1816,4 +1816,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Opções de visualização</string>
+    <string name="display_options_price_period">Período de preço</string>
+    <string name="display_options_percent_change">% Mudança</string>
+    <string name="display_options_price_change">Mudança de preço</string>
+    <string name="display_options_period_1h">1 Hora</string>
+    <string name="display_options_period_1d">1 Dia</string>
+    <string name="display_options_period_1w">1 Semana</string>
+    <string name="display_options_period_1m">1 Mês</string>
+    <string name="display_options_period_1y">1 Ano</string>
+    <string name="display_options_period_all">Todos</string>
 </resources>

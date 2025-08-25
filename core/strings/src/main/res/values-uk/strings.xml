@@ -1819,4 +1819,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Параметри відображення</string>
+    <string name="display_options_price_period">Період ціни</string>
+    <string name="display_options_percent_change">% Зміна</string>
+    <string name="display_options_price_change">Зміна ціни</string>
+    <string name="display_options_period_1h">1 Година</string>
+    <string name="display_options_period_1d">1 День</string>
+    <string name="display_options_period_1w">1 Тиждень</string>
+    <string name="display_options_period_1m">1 Місяць</string>
+    <string name="display_options_period_1y">1 Рік</string>
+    <string name="display_options_period_all">Всі</string>
 </resources>
