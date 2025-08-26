@@ -54,12 +54,14 @@ import cash.p.terminal.modules.balance.HeaderNote
 import cash.p.terminal.modules.balance.ReceiveAllowedState
 import cash.p.terminal.modules.balance.TotalUIState
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.displayoptions.DisplayOptionsFragment
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.rateapp.RateAppModule
 import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
 import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui.compose.components.DoubleText
@@ -366,7 +368,9 @@ fun BalanceItems(
                             icon = R.drawable.ic_manage_2,
                             contentDescription = stringResource(R.string.ManageCoins_title),
                             onClick = {
-                                navController.slideFromRight(R.id.manageWalletsFragment)
+                                navController.slideFromBottomForResult<DisplayOptionsFragment.Result>(R.id.displayOptionsFragment) {
+                                    viewModel.updatePriceChangeUI()
+                                }
                             }
                         )
                     }
