@@ -1267,6 +1267,11 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Om premium te activeren moet u uw portemonnee back-uppen</string>
+    <string name="premium_demo_activation_error_watch_account">Een watch-account kan niet worden gebruikt om premium te activeren</string>
+    <string name="premium_demo_activation_error_wrong_type">Gebruik mnemonic of hardware wallet type om premium te activeren</string>
     <string name="Nfts_PriceType_Days_7">7D avg.</string>
     <string name="Nfts_PriceType_Days_30">30D avg.</string>
     <string name="Nfts_PriceType_LastSale">Last Sale</string>
@@ -1446,4 +1451,16 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Weergave-opties</string>
+    <string name="display_options_price_period">Prijsperiode</string>
+    <string name="display_options_percent_change">% Wijziging</string>
+    <string name="display_options_price_change">Prijswijziging</string>
+    <string name="display_options_period_1h">1 Uur</string>
+    <string name="display_options_period_1d">1 Dag</string>
+    <string name="display_options_period_1w">1 Week</string>
+    <string name="display_options_period_1m">1 Maand</string>
+    <string name="display_options_period_1y">1 Jaar</string>
+    <string name="display_options_period_all">Alle</string>
 </resources>

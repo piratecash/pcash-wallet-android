@@ -9,6 +9,7 @@ import cash.p.terminal.network.pirate.data.entity.PremiumStatusDto
 import cash.p.terminal.network.pirate.data.mapper.PiratePlaceMapper
 import cash.p.terminal.network.pirate.domain.enity.CoinPriceChart
 import cash.p.terminal.network.pirate.domain.enity.MarketTicker
+import cash.p.terminal.network.pirate.domain.enity.PriceChangeCoinInfo
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import io.ktor.client.call.body
@@ -32,6 +33,19 @@ internal class PiratePlaceRepositoryImpl(
 
     override suspend fun getCoinInfo(coin: String) = withContext(Dispatchers.IO) {
         placeApi.getCoinInfo(coin = coin).let(piratePlaceMapper::mapCoinInfo)
+    }
+
+    override suspend fun getCoinsPriceChange(
+        coins: List<String>,
+        currencyCode: String
+    ): List<PriceChangeCoinInfo>? = withContext(Dispatchers.IO) {
+        try {
+            placeApi.getCoinsPriceChange(coins = coins, currencyCode = currencyCode)
+                .let(piratePlaceMapper::mapPriceChangeCoinInfoList)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            null
+        }
     }
 
     override suspend fun getInvestmentData(coin: String, address: String) =

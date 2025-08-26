@@ -62,4 +62,5 @@ dependencies {
 
     implementation(project(":core:strings"))
     implementation(project(":core:resources"))
+    implementation(project(":core:navigation"))
 }

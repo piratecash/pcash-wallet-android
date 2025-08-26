@@ -24,7 +24,6 @@ class MainActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.updatePremium()
         viewModel.startLockScreenMonitoring()
         validate()
     }
@@ -111,8 +110,6 @@ class MainActivity : BaseActivity() {
                 viewModel.onTcDappRequestHandled()
             }
         }
-
-        viewModel.startMonitoringAccountsForPremium()
     }
 
     private fun closeAfterDelay() {

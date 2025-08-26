@@ -1,7 +1,7 @@
 package cash.p.terminal.modules.pin
 
 import cash.p.terminal.core.App
-import cash.p.terminal.core.managers.UserManager
+import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.modules.pin.core.LockManager
 import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.modules.pin.core.PinManager
@@ -22,7 +22,7 @@ import java.util.concurrent.Executors
 
 class PinComponent(
     private val pinSettingsStorage: IPinSettingsStorage,
-    private val userManager: UserManager,
+    private val userManager: DefaultUserManager,
     private val pinDbStorage: PinDbStorage,
     private val backgroundManager: BackgroundManager
 ) : IPinComponent {

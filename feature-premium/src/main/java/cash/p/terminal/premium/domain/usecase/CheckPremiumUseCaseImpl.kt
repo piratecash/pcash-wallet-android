@@ -10,13 +10,14 @@ import cash.p.terminal.premium.data.repository.PremiumUserRepository
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.eligibleForPremium
+import cash.p.terminal.wallet.managers.UserManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -28,7 +29,8 @@ internal class CheckPremiumUseCaseImpl(
     private val accountManager: IAccountManager,
     private val checkTrialPremiumUseCase: CheckTrialPremiumUseCase,
     private val activateTrialPremiumUseCase: ActivateTrialPremiumUseCase,
-    private val getBnbAddressUseCase: GetBnbAddressUseCaseImpl
+    private val getBnbAddressUseCase: GetBnbAddressUseCaseImpl,
+    private val userManager: UserManager
 ) : CheckPremiumUseCase {
 
     private val mutex = Mutex()
@@ -48,16 +50,19 @@ internal class CheckPremiumUseCaseImpl(
         )
     )
 
-    override fun startAccountMonitorUpdate() {
-        accountManager.accountsFlow
-            .onEach {
-                _premiumCache.value = emptyMap()
-                update()
-            }
-            .catch { error ->
-                println("Error in auto update: $error")
-            }
-            .launchIn(scope)
+    init {
+        scope.launch {
+            update()
+        }
+        scope.launch {
+            combine(
+                userManager.currentUserLevelFlow,
+                accountManager.accountsFlow
+            ) { _, _ -> Unit }
+                .collectLatest {
+                    update()
+                }
+        }
     }
 
     override fun isAnyPremium(): Boolean {
@@ -74,7 +79,9 @@ internal class CheckPremiumUseCaseImpl(
     }
 
     override suspend fun update(): Boolean = mutex.withLock {
-        val currentLevel = accountManager.activeAccount?.level ?: return false
+        _premiumCache.value = emptyMap()
+
+        val currentLevel = userManager.currentUserLevelFlow.value
         val firstAccountToCheck = premiumUserRepository.getByLevel(currentLevel)
 
         val cachedResult = checkCachedPremiumStatus(firstAccountToCheck)
@@ -126,7 +133,7 @@ internal class CheckPremiumUseCaseImpl(
 
         var balanceReceived = false // false means no internet connection or no balance received
         for (account in accountsToCheck) {
-            if(!account.eligibleForPremium()) continue
+            if (!account.eligibleForPremium()) continue
 
             val address = getBnbAddressUseCase.getAddress(account) ?: continue
             lastCheckedAddress = address
@@ -164,7 +171,7 @@ internal class CheckPremiumUseCaseImpl(
 
     private suspend fun deleteRemovedAccounts(accounts: List<Account>) {
         val ids = accounts.map { it.id }
-        if(ids.isNotEmpty()) {
+        if (ids.isNotEmpty()) {
             getBnbAddressUseCase.deleteExcludeAccountIds(ids)
         }
     }

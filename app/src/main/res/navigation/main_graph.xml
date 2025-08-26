@@ -35,6 +35,9 @@
         android:id="@+id/resendBitcoinFragment"
         android:name="cash.p.terminal.modules.transactionInfo.resendbitcoin.ResendBitcoinFragment"/>
     <fragment
+        android:id="@+id/displayOptionsFragment"
+        android:name="cash.p.terminal.modules.displayoptions.DisplayOptionsFragment"/>
+    <fragment
         android:id="@+id/manageWalletsFragment"
         android:name="cash.p.terminal.modules.managewallets.ManageWalletsFragment"/>
     <fragment

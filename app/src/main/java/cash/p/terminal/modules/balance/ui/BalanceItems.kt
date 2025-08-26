@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +46,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.balance.AccountViewItem
 import cash.p.terminal.modules.balance.BalanceUiState
 import cash.p.terminal.modules.balance.BalanceViewItem2
@@ -55,30 +53,35 @@ import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.balance.HeaderNote
 import cash.p.terminal.modules.balance.ReceiveAllowedState
 import cash.p.terminal.modules.balance.TotalUIState
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.rateapp.RateAppModule
 import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui_compose.components.ButtonSecondaryTransparent
+import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui.compose.components.DoubleText
 import cash.p.terminal.ui.compose.components.SelectorDialogCompose
 import cash.p.terminal.ui.compose.components.SelectorItem
+import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellowWithIcon
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryWithIcon
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderSorting
 import cash.p.terminal.ui_compose.components.HsIconButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.BalanceSortType
-import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun NoteWarning(
@@ -329,15 +332,9 @@ fun BalanceItems(
                 }
             }
 
-            item {
-                Divider(
-                    thickness = 1.dp,
-                    color = ComposeAppTheme.colors.steel10,
-                )
-            }
-
             stickyHeader {
                 HeaderSorting {
+                    HSpacer(16.dp)
                     BalanceSortingSelector(
                         sortType = uiState.sortType,
                         sortTypes = uiState.sortTypes
@@ -352,8 +349,18 @@ fun BalanceItems(
                             painter = painterResource(R.drawable.icon_binocule_24),
                             contentDescription = "binoculars icon"
                         )
-                        HSpacer(16.dp)
+                        HSpacer(8.dp)
                     }
+
+                    if (uiState.displayDiffOptionType != DisplayDiffOptionType.NONE) {
+                        PricePeriodSelector(
+                            displayPricePeriod = uiState.displayPricePeriod,
+                        ) {
+                            viewModel.setDisplayPricePeriod(it)
+                        }
+                        HSpacer(8.dp)
+                    }
+
                     if (accountViewItem.isCoinManagerEnabled) {
                         ButtonSecondaryCircle(
                             icon = R.drawable.ic_manage_2,
@@ -508,9 +515,9 @@ fun BalanceSortingSelector(
 ) {
     var showSortTypeSelectorDialog by remember { mutableStateOf(false) }
 
-    ButtonSecondaryTransparent(
+    ButtonSecondaryWithIcon(
         title = stringResource(sortType.getTitleRes()),
-        iconRight = R.drawable.ic_down_arrow_20,
+        iconRight = painterResource(R.drawable.ic_down_arrow_20),
         onClick = {
             showSortTypeSelectorDialog = true
         }
@@ -529,6 +536,35 @@ fun BalanceSortingSelector(
         )
     }
 }
+
+@Composable
+fun PricePeriodSelector(
+    displayPricePeriod: DisplayPricePeriod,
+    onDisplayPricePeriod: (DisplayPricePeriod) -> Unit
+) {
+    var showDisplayPricePeriodDialog by remember { mutableStateOf(false) }
+
+    ButtonSecondaryWithIcon(
+        title = displayPricePeriod.shortForm.getString(),
+        iconRight = painterResource(R.drawable.ic_down_arrow_20),
+        onClick = {
+            showDisplayPricePeriodDialog = true
+        }
+    )
+
+    if (showDisplayPricePeriodDialog) {
+        AlertGroup(
+            title = R.string.display_options_price_period,
+            select = Select(displayPricePeriod, DisplayPricePeriod.entries),
+            onSelect = { selected ->
+                onDisplayPricePeriod(selected)
+                showDisplayPricePeriodDialog = false
+            },
+            onDismiss = { showDisplayPricePeriodDialog = false }
+        )
+    }
+}
+
 
 @Composable
 fun TotalBalanceRow(

@@ -42,11 +42,10 @@ import cash.p.terminal.core.managers.TokenAutoEnableManager
 import cash.p.terminal.core.managers.TonAccountManager
 import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.TonKitManager
-import cash.p.terminal.core.managers.TorManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TronAccountManager
 import cash.p.terminal.core.managers.TronKitManager
-import cash.p.terminal.core.managers.UserManager
+import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
@@ -152,7 +151,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val walletActivator: WalletActivator by inject(WalletActivator::class.java)
         val tokenAutoEnableManager: TokenAutoEnableManager by inject(TokenAutoEnableManager::class.java)
         val accountManager: IAccountManager by inject(IAccountManager::class.java)
-        val userManager: UserManager  by inject(UserManager::class.java)
+        val userManager: DefaultUserManager  by inject(DefaultUserManager::class.java)
         lateinit var accountFactory: IAccountFactory
         lateinit var backupManager: IBackupManager
         lateinit var proFeatureAuthorizationManager: ProFeaturesAuthorizationManager

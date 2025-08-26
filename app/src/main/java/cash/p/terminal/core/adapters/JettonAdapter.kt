@@ -1,11 +1,15 @@
 package cash.p.terminal.core.adapters
 
+import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toAdapterState
+import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.tonkit.Address
 import io.horizontalsystems.tonkit.FriendlyAddress
 import io.reactivex.BackpressureStrategy
@@ -19,6 +23,7 @@ import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
 
 class JettonAdapter(
+    coinManager: ICoinManager,
     tonKitWrapper: TonKitWrapper,
     addressStr: String,
     wallet: Wallet,
@@ -43,6 +48,9 @@ class JettonAdapter(
         get() = balanceUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
+
+    private val getBaseToken: Token? =
+        coinManager.getToken(TokenQuery(wallet.token.blockchainType, TokenType.Native))
 
     override fun start() {
         coroutineScope.launch {
@@ -83,6 +91,7 @@ class JettonAdapter(
         address: FriendlyAddress,
         memo: String?,
     ): BigDecimal {
+        val baseDecimals = getBaseToken?.decimals ?: decimals
         val estimateFee = tonKit.estimateFee(
             jettonWallet = jettonBalance?.walletAddress!!,
             recipient = address,
@@ -90,6 +99,6 @@ class JettonAdapter(
             comment = memo
         )
 
-        return estimateFee.toBigDecimal(decimals).stripTrailingZeros()
+        return estimateFee.toBigDecimal(baseDecimals).stripTrailingZeros()
     }
 }

@@ -9,13 +9,16 @@ import java.math.BigDecimal
 fun formatValueAsDiff(value: Value): String =
     App.numberFormatter.formatValueAsDiff(value)
 
-@Composable
 fun diffText(diff: BigDecimal?): String {
     if (diff == null) return ""
-    val sign = when {
-        diff == BigDecimal.ZERO -> ""
-        diff >= BigDecimal.ZERO -> "+"
+    val sign = diff.diffSign()
+    return App.numberFormatter.format(diff.abs(), 0, 2, sign, "%")
+}
+
+fun BigDecimal.diffSign(): String {
+    return when {
+        this == BigDecimal.ZERO -> ""
+        this >= BigDecimal.ZERO -> "+"
         else -> "-"
     }
-    return App.numberFormatter.format(diff.abs(), 0, 2, sign, "%")
 }

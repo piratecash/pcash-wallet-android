@@ -90,9 +90,10 @@ object SendTransactionServiceFactory {
             }
 
             is TokenType.Spl -> SolanaSendTransactionService(token)
-//            is TokenType.Jetton -> getJettonAdapter(wallet, tokenType.address)
+            is TokenType.Jetton -> TonSendTransactionService(token)
 
-            else -> throw UnsupportedException("Unsupported token type: $tokenType")
+            is TokenType.Asset,
+            is TokenType.Unsupported -> throw UnsupportedException("Unsupported token type: $tokenType")
         }
     } catch (e: Exception) {
         e.printStackTrace()

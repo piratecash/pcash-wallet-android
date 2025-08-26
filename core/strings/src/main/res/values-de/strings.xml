@@ -1252,6 +1252,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="SubscriptionInfo_PersonalSupport_Info">Kontaktieren Sie unser Team direkt über Telegram für persönliche Hilfe.</string>
     <string name="SubscriptionInfo_GetPremium">Premium erhalten</string>
     <string name="SubscriptionInfo_HavePremium">Ich habe bereits Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Um Premium zu aktivieren, müssen Sie Ihr Wallet sichern</string>
+    <string name="premium_demo_activation_error_watch_account">Ein Watch-Account kann nicht zur Aktivierung von Premium verwendet werden</string>
+    <string name="premium_demo_activation_error_wrong_type">Verwenden Sie den Mnemonik- oder Hardware-Wallet-Typ, um Premium zu aktivieren</string>
     <string name="Nfts_PriceType_Days_7">Durchschnitt 7D</string>
     <string name="Nfts_PriceType_Days_30">Durchschnitt 30D</string>
     <string name="Nfts_PriceType_LastSale">Letzter Verkauf</string>
@@ -1433,4 +1438,16 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Anzeigeoptionen</string>
+    <string name="display_options_price_period">Preiszeitraum</string>
+    <string name="display_options_percent_change">% Änderung</string>
+    <string name="display_options_price_change">Preisänderung</string>
+    <string name="display_options_period_1h">1 Stunde</string>
+    <string name="display_options_period_1d">1 Tag</string>
+    <string name="display_options_period_1w">1 Woche</string>
+    <string name="display_options_period_1m">1 Monat</string>
+    <string name="display_options_period_1y">1 Jahr</string>
+    <string name="display_options_period_all">Alle</string>
 </resources>

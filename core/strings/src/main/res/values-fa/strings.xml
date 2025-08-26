@@ -1265,6 +1265,11 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">برای فعال‌سازی پریمیوم باید کیف پول خود را پشتیبان‌گیری کنید</string>
+    <string name="premium_demo_activation_error_watch_account">حساب نظارت نمی‌تواند برای فعال‌سازی پریمیوم استفاده شود</string>
+    <string name="premium_demo_activation_error_wrong_type">برای فعال‌سازی پریمیوم از نوع کیف پول حافظه‌ای یا سخت‌افزاری استفاده کنید</string>
     <string name="Nfts_PriceType_Days_7">7 دی اوت</string>
     <string name="Nfts_PriceType_Days_30">30 دی اوت</string>
     <string name="Nfts_PriceType_LastSale">آخرین فروش</string>
@@ -1444,4 +1449,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">گزینه‌های نمایش</string>
+    <string name="display_options_price_period">دوره قیمت</string>
+    <string name="display_options_percent_change">% تغییر</string>
+    <string name="display_options_price_change">تغییر قیمت</string>
+    <string name="display_options_period_1h">1 ساعت</string>
+    <string name="display_options_period_1d">1 روز</string>
+    <string name="display_options_period_1w">1 هفته</string>
+    <string name="display_options_period_1m">1 ماه</string>
+    <string name="display_options_period_1y">1 سال</string>
+    <string name="display_options_period_all">همه</string>
 </resources>

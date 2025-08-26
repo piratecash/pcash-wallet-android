@@ -1263,6 +1263,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">Premium\'i etkinleştirmek için cüzdanınızı yedeklemeniz gerekir</string>
+    <string name="premium_demo_activation_error_watch_account">İzleme hesabı premium\'i etkinleştirmek için kullanılamaz</string>
+    <string name="premium_demo_activation_error_wrong_type">Premium\'i etkinleştirmek için anımsatıcı veya donanım cüzdan türünü kullanın</string>
     <string name="Nfts_PriceType_Days_7">Ortalama 7G</string>
     <string name="Nfts_PriceType_Days_30">Ortalama 30G</string>
     <string name="Nfts_PriceType_LastSale">Son İndirim</string>
@@ -1442,4 +1447,16 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">Görüntüleme seçenekleri</string>
+    <string name="display_options_price_period">Fiyat dönemi</string>
+    <string name="display_options_percent_change">% Değişim</string>
+    <string name="display_options_price_change">Fiyat değişimi</string>
+    <string name="display_options_period_1h">1 Saat</string>
+    <string name="display_options_period_1d">1 Gün</string>
+    <string name="display_options_period_1w">1 Hafta</string>
+    <string name="display_options_period_1m">1 Ay</string>
+    <string name="display_options_period_1y">1 Yıl</string>
+    <string name="display_options_period_all">Tümü</string>
 </resources>

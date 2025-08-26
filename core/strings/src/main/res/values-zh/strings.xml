@@ -1252,6 +1252,11 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">通过 Telegram 直接联系我们的团队以获取个人帮助。</string>
     <string name="SubscriptionInfo_GetPremium">成为付费会员</string>
     <string name="SubscriptionInfo_HavePremium">我已经有高级版</string>
+    
+    <!--Premium Screens-->
+    <string name="premium_demo_activation_error_backup">要激活高级版，您需要备份钱包</string>
+    <string name="premium_demo_activation_error_watch_account">观察账户不能用于激活高级版</string>
+    <string name="premium_demo_activation_error_wrong_type">使用助记词或硬件钱包类型来激活高级版</string>
     <string name="Nfts_PriceType_Days_7">平均7天</string>
     <string name="Nfts_PriceType_Days_30">平均30天</string>
     <string name="Nfts_PriceType_LastSale">收盘价</string>
@@ -1431,4 +1436,16 @@
     <string name="week_period">Week</string>
     <string name="month_period">Month</string>
     <string name="year_period">Year</string>
+
+    <!-- Display options -->
+    <string name="display_options">显示选项</string>
+    <string name="display_options_price_period">价格周期</string>
+    <string name="display_options_percent_change">% 变化</string>
+    <string name="display_options_price_change">价格变化</string>
+    <string name="display_options_period_1h">1小时</string>
+    <string name="display_options_period_1d">1天</string>
+    <string name="display_options_period_1w">1周</string>
+    <string name="display_options_period_1m">1月</string>
+    <string name="display_options_period_1y">1年</string>
+    <string name="display_options_period_all">全部</string>
 </resources>

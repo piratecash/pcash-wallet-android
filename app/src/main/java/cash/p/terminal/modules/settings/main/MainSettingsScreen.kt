@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -41,6 +42,7 @@ import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui.compose.components.BadgeText
@@ -51,14 +53,13 @@ import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.PremiumHeader
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SectionPremiumUniversalLawrence
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.SectionPremiumUniversalLawrence
-import cash.p.terminal.navigation.slideFromBottom
 
 @Composable
 fun SettingsScreen(
@@ -384,7 +385,7 @@ private fun SettingSections(
 @Composable
 fun HsSettingCell(
     @StringRes title: Int,
-    @DrawableRes icon: Int,
+    @DrawableRes icon: Int? = null,
     iconTint: Color? = null,
     value: String? = null,
     counterBadge: String? = null,
@@ -395,16 +396,19 @@ fun HsSettingCell(
         modifier = Modifier.padding(horizontal = 16.dp),
         onClick = onClick
     ) {
-        Icon(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            tint = iconTint ?: ComposeAppTheme.colors.grey
-        )
+        icon?.let {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                tint = iconTint ?: ComposeAppTheme.colors.grey
+            )
+        }
         body_leah(
             text = stringResource(title),
             maxLines = 1,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(start = if (icon != null) 16.dp else 0.dp, end = 16.dp)
         )
         Spacer(Modifier.weight(1f))
 

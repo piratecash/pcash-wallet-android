@@ -4,6 +4,8 @@ import cash.p.terminal.entities.AppVersion
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.entities.SyncMode
 import cash.p.terminal.modules.amount.AmountInputType
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.market.favorites.WatchlistSorting
@@ -96,6 +98,10 @@ interface ILocalStorage {
 
     var priceChangeInterval: PriceChangeInterval
     val priceChangeIntervalFlow: StateFlow<PriceChangeInterval>
+
+    // Display Options
+    var displayDiffPricePeriod: DisplayPricePeriod
+    var displayDiffOptionType: DisplayDiffOptionType
 
     fun getStackingUpdateTimestamp(wallet: Wallet): Long
     fun setStackingUnpaid(wallet: Wallet, unpaid: BigDecimal)
