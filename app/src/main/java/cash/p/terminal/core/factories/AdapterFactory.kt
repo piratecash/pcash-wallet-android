@@ -140,7 +140,12 @@ class AdapterFactory(
             tokenType = wallet.token.type
         )
 
-        return JettonAdapter(tonKitWrapper, address, wallet)
+        return JettonAdapter(
+            coinManager = coinManager,
+            tonKitWrapper = tonKitWrapper,
+            addressStr = address,
+            wallet = wallet
+        )
     }
 
     private fun getStellarAssetAdapter(wallet: Wallet, code: String, issuer: String): IAdapter {
