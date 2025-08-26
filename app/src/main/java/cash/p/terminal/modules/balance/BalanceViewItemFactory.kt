@@ -5,6 +5,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.diffPercentage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.balance.BalanceModule.warningText
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -124,7 +125,6 @@ class BalanceViewItemFactory {
         BlockchainType.Optimism,
         BlockchainType.Base,
         BlockchainType.ZkSync,
-        BlockchainType.Solana,
         BlockchainType.Gnosis,
         BlockchainType.Fantom,
         BlockchainType.ArbitrumOne,
@@ -440,15 +440,22 @@ class BalanceViewItemFactory {
         val diffCurrencyText = if (displayDiffOptionType.hasPriceChange && diffPercentage != null) {
 
             val percentDecimal = diffPercentage.divide(BigDecimal(100))
-            val previousPrice = currentPrice.divide(BigDecimal.ONE + percentDecimal, 10, RoundingMode.HALF_UP)
+            val previousPrice = tryOrNull {
+                currentPrice.divide(
+                    BigDecimal.ONE + percentDecimal,
+                    10,
+                    RoundingMode.HALF_UP
+                )
+            } ?: return "-100%"
             val priceChange = currentPrice - previousPrice
 
             val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
-            val formattedPriceChange = numberFormatter.formatFiatFull(priceChange.abs(), currency.symbol)
+            val formattedPriceChange =
+                numberFormatter.formatFiatFull(priceChange.abs(), currency.symbol)
             val signedFormattedPrice = "$sign$formattedPriceChange"
 
             if (displayDiffOptionType == DisplayDiffOptionType.BOTH) {
-                "($signedFormattedPrice)"
+                " ($signedFormattedPrice)"
             } else {
                 signedFormattedPrice
             }
