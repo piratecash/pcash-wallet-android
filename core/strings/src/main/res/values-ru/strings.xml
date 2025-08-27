@@ -2040,4 +2040,11 @@
     <string name="display_options_period_1m">1 месяц</string>
     <string name="display_options_period_1y">1 год</string>
     <string name="display_options_period_all">Все</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d опция</item>
+        <item quantity="few">%1$d опции</item>
+        <item quantity="many">%1$d опций</item>
+        <item quantity="other">%1$d опции</item>
+    </plurals>
 </resources>

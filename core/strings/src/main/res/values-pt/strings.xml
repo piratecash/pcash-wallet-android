@@ -1833,4 +1833,9 @@
     <string name="display_options_period_1m">1 Mês</string>
     <string name="display_options_period_1y">1 Ano</string>
     <string name="display_options_period_all">Todos</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d opção</item>
+        <item quantity="other">%1$d opções</item>
+    </plurals>
 </resources>

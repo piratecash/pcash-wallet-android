@@ -2407,4 +2407,9 @@ Proceed only if you\'re sure.</string>
     <string name="premium_demo_activation_error_backup">To activate premium you need to backup your wallet</string>
     <string name="premium_demo_activation_error_watch_account">Watch account can\'t be used to activate premium</string>
     <string name="premium_demo_activation_error_wrong_type">Use mnemonic or hardware wallet type to activate premium</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d option</item>
+        <item quantity="other">%1$d options</item>
+    </plurals>
 </resources>

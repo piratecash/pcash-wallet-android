@@ -1836,4 +1836,11 @@
     <string name="display_options_period_1m">1 Місяць</string>
     <string name="display_options_period_1y">1 Рік</string>
     <string name="display_options_period_all">Всі</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d опція</item>
+        <item quantity="few">%1$d опції</item>
+        <item quantity="many">%1$d опцій</item>
+        <item quantity="other">%1$d опції</item>
+    </plurals>
 </resources>

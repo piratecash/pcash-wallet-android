@@ -1823,4 +1823,9 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="display_options_period_1m">1 Mes</string>
     <string name="display_options_period_1y">1 Año</string>
     <string name="display_options_period_all">Todos</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d opción</item>
+        <item quantity="other">%1$d opciones</item>
+    </plurals>
 </resources>

@@ -1838,4 +1838,9 @@
     <string name="display_options_period_1m">1 ماه</string>
     <string name="display_options_period_1y">1 سال</string>
     <string name="display_options_period_all">همه</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d گزینه</item>
+        <item quantity="other">%1$d گزینه</item>
+    </plurals>
 </resources>

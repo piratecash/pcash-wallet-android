@@ -1827,4 +1827,9 @@
     <string name="display_options_period_1m">1月</string>
     <string name="display_options_period_1y">1年</string>
     <string name="display_options_period_all">全部</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d 个选项</item>
+        <item quantity="other">%1$d 个选项</item>
+    </plurals>
 </resources>
