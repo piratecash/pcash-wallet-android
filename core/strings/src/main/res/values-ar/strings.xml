@@ -1462,4 +1462,21 @@
     <string name="display_options_period_1m">1 شهر</string>
     <string name="display_options_period_1y">1 سنة</string>
     <string name="display_options_period_all">الكل</string>
+
+    <plurals name="options_count">
+        <item quantity="zero">لا توجد خيارات</item>
+        <item quantity="one">%1$d خيار</item>
+        <item quantity="two">%1$d خياران</item>
+        <item quantity="few">%1$d خيارات</item>
+        <item quantity="many">%1$d خيار</item>
+        <item quantity="other">%1$d خيار</item>
+    </plurals>
+    <plurals name="entries_count">
+        <item quantity="zero">لا توجد إدخالات</item>
+        <item quantity="one">عرض إدخال واحد</item>
+        <item quantity="two">عرض إدخالين</item>
+        <item quantity="few">عرض %1$d إدخالات</item>
+        <item quantity="many">عرض %1$d إدخال</item>
+        <item quantity="other">عرض %1$d إدخال</item>
+    </plurals>
 </resources>

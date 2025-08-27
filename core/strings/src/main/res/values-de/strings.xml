@@ -1450,4 +1450,13 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="display_options_period_1m">1 Monat</string>
     <string name="display_options_period_1y">1 Jahr</string>
     <string name="display_options_period_all">Alle</string>
+
+    <plurals name="options_count">
+        <item quantity="one">%1$d Option</item>
+        <item quantity="other">%1$d Optionen</item>
+    </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">Zeige %1$d Eintrag</item>
+        <item quantity="other">Zeige %1$d Einträge</item>
+    </plurals>
 </resources>

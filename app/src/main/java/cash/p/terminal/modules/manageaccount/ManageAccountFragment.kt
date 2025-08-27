@@ -3,6 +3,8 @@ package cash.p.terminal.modules.manageaccount
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -15,7 +17,11 @@ import cash.p.terminal.tangem.ui.accesscoderecovery.AccessCodeRecoveryDialog
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.navigation.slideFromRightForResult
+import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.wallet.IAccountManager
 import kotlinx.parcelize.Parcelize
+import org.koin.java.KoinJavaComponent.inject
+import kotlin.getValue
 
 class ManageAccountFragment : BaseComposeFragment() {
 
@@ -27,8 +33,18 @@ class ManageAccountFragment : BaseComposeFragment() {
             navController.popBackStack()
             return
         }
-        val viewModel =
-            viewModel<ManageAccountViewModel>(factory = ManageAccountModule.Factory(input.accountId))
+
+        val accountManager: IAccountManager by inject(IAccountManager::class.java)
+        val account = remember { accountManager.account(input.accountId) }
+        if (account == null) {
+            val view = LocalView.current
+            LaunchedEffect(Unit) {
+                HudHelper.showErrorMessage(view, getString(R.string.error_no_active_account))
+                navController.popBackStack()
+            }
+            return
+        }
+        val viewModel = viewModel<ManageAccountViewModel>(factory = ManageAccountModule.Factory(account))
 
         LaunchedEffect(Unit) {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {

@@ -180,9 +180,7 @@ fun BalanceForAccount(
                                 title = TranslatableString.ResString(R.string.display_options),
                                 icon = R.drawable.ic_search,
                                 onClick = {
-                                    navController.slideFromBottomForResult<DisplayOptionsFragment.Result>(R.id.displayOptionsFragment) {
-                                        viewModel.updatePriceChangeUI()
-                                    }
+                                    navController.slideFromRight(R.id.manageWalletsFragment)
                                 })
                             )
                         }
