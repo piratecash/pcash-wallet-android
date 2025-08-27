@@ -29,14 +29,14 @@ class MarketSearchService(private val marketKit: MarketKitWrapper) {
         }
     }
 
-    fun setQuery(query: String) {
+    suspend fun setQuery(query: String) {
         this.query = query
 
         refreshResults()
         emitState()
     }
 
-    private fun refreshResults() {
+    private suspend fun refreshResults() {
         results = if (query.isBlank()) {
             listOf()
         } else {

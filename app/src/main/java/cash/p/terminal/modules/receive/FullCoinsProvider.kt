@@ -44,15 +44,12 @@ class FullCoinsProvider(
         query = q
     }
 
-    fun getItems(): List<FullCoin> {
-        val tmpQuery = query
+    suspend fun getItems(): List<FullCoin> {
+        val tmpQuery = query.orEmpty()
 
-        val (customTokens, regularTokens) = predefinedTokens.partition { it.isCustom }
+        val customTokens = predefinedTokens.filter { it.isCustom }
 
-        val fullCoins = if (tmpQuery.isNullOrBlank()) {
-            val coinUids = regularTokens.map { it.coin.uid }
-            customTokens.map { it.fullCoin } + marketKit.fullCoins(coinUids)
-        } else if (isContractAddress(tmpQuery)) {
+        val fullCoins = if (isContractAddress(tmpQuery)) {
             val customFullCoins = customTokens
                 .filter {
                     val type = it.type
@@ -65,15 +62,15 @@ class FullCoinsProvider(
             val customFullCoins = customTokens
                 .filter {
                     val coin = it.coin
-                    coin.name.contains(tmpQuery, true) || coin.code.contains(tmpQuery, true)
+                    tmpQuery.isEmpty() || coin.name.contains(tmpQuery, true) || coin.code.contains(tmpQuery, true)
                 }
                 .map { it.fullCoin }
 
-            customFullCoins + marketKit.fullCoins(tmpQuery)
+            customFullCoins + marketKit.fullCoins(tmpQuery,100_000)
         }
 
         return fullCoins
-            .sortedByFilter(tmpQuery ?: "")
+            .sortedByFilter(tmpQuery)
             .sortedByDescending { fullCoin ->
                 activeWallets.any { it.coin == fullCoin.coin }
             }

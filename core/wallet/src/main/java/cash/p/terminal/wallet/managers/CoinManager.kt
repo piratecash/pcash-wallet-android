@@ -11,6 +11,8 @@ import cash.p.terminal.wallet.models.DefiMarketInfoResponse
 import cash.p.terminal.wallet.models.MarketInfo
 import cash.p.terminal.wallet.models.MarketInfoRaw
 import cash.p.terminal.wallet.storage.CoinStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CoinManager(
     private val storage: CoinStorage,
@@ -22,8 +24,9 @@ class CoinManager(
     fun fullCoin(uid: String): FullCoin? =
         storage.fullCoin(uid)
 
-    fun fullCoins(filter: String, limit: Int): List<FullCoin> =
+    suspend fun fullCoins(filter: String, limit: Int): List<FullCoin> = withContext(Dispatchers.IO) {
         storage.fullCoins(filter, limit)
+    }
 
     fun fullCoins(coinUids: List<String>): List<FullCoin> =
         storage.fullCoins(coinUids)

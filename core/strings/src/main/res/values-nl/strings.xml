@@ -1843,4 +1843,8 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
         <item quantity="one">%1$d optie</item>
         <item quantity="other">%1$d opties</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">Toont %1$d vermelding</item>
+        <item quantity="other">Toont %1$d vermeldingen</item>
+    </plurals>
 </resources>

@@ -203,12 +203,14 @@ fun ListErrorView(
 fun ListEmptyView(
     paddingValues: PaddingValues = PaddingValues(),
     text: String,
-    @DrawableRes icon: Int
+    @DrawableRes icon: Int,
+    modifier: Modifier = Modifier
 ) {
     ScreenMessageWithAction(
         paddingValues = paddingValues,
         text = text,
-        icon = icon
+        modifier = modifier,
+        icon = icon,
     )
 }
 
@@ -217,10 +219,11 @@ fun ScreenMessageWithAction(
     text: String,
     @DrawableRes icon: Int,
     paddingValues: PaddingValues = PaddingValues(),
+    modifier: Modifier = Modifier,
     actionsComposable: (@Composable () -> Unit)? = null
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(paddingValues)
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),

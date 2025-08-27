@@ -1843,4 +1843,8 @@
         <item quantity="one">%1$d گزینه</item>
         <item quantity="other">%1$d گزینه</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">نمایش %1$d ورودی</item>
+        <item quantity="other">نمایش %1$d ورودی</item>
+    </plurals>
 </resources>

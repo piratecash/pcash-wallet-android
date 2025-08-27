@@ -1847,4 +1847,12 @@
         <item quantity="many">%1$d خيار</item>
         <item quantity="other">%1$d خيار</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="zero">لا توجد إدخالات</item>
+        <item quantity="one">عرض إدخال واحد</item>
+        <item quantity="two">عرض إدخالين</item>
+        <item quantity="few">عرض %1$d إدخالات</item>
+        <item quantity="many">عرض %1$d إدخال</item>
+        <item quantity="other">عرض %1$d إدخال</item>
+    </plurals>
 </resources>

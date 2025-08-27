@@ -33,5 +33,6 @@ val Red50 = Color(0x80FF4820)
 val Red20 = Color(0x33FF4820)
 val PurpleD = Color(0x33BF5AF2)
 val PurpleL = Color(0xFFB054DE)
+val DarkGray = Color(0xFF34363F)
 
 val ColorDivider = Color(0x1a6e7899)

@@ -40,8 +40,10 @@ class ReceiveTokenSelectViewModel(
     init {
         fullCoinsProvider.setActiveWallets(walletManager.activeWallets)
 
-        refreshItems()
-        emitState()
+        viewModelScope.launch {
+            refreshItems()
+            emitState()
+        }
     }
 
     fun updateFilter(q: String) {
@@ -53,7 +55,7 @@ class ReceiveTokenSelectViewModel(
         }
     }
 
-    private fun refreshItems() {
+    private suspend fun refreshItems() {
         fullCoins = fullCoinsProvider.getItems()
     }
 

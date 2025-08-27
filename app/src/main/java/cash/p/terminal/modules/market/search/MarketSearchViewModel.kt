@@ -45,7 +45,9 @@ class MarketSearchViewModel(
             }
         }
 
-        marketDiscoveryService.start()
+        viewModelScope.launch {
+            marketDiscoveryService.start()
+        }
     }
 
     private fun handleUpdatedDiscoveryState(discoveryState: MarketDiscoveryService.State) {
@@ -61,7 +63,9 @@ class MarketSearchViewModel(
     }
 
     fun searchByQuery(query: String) {
-        marketSearchService.setQuery(query)
+        viewModelScope.launch {
+            marketSearchService.setQuery(query)
+        }
     }
 
     private fun coinItems(fullCoins: List<FullCoin>) =

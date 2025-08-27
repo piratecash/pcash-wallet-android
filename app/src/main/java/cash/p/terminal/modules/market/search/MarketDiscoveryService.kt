@@ -25,7 +25,7 @@ class MarketDiscoveryService(
     val stateFlow: StateFlow<State>
         get() = _stateFlow.asStateFlow()
 
-    fun start() {
+    suspend fun start() {
         recentCoins = marketKit
             .fullCoins(localStorage.marketSearchRecentCoinUids)
             .sortedBy {

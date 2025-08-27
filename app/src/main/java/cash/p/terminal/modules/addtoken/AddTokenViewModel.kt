@@ -67,14 +67,7 @@ class AddTokenViewModel(private val addTokenService: AddTokenService) :
                     addTokenService.tokenInfo(blockchain, text.trim())
                 }
                 tokenInfo?.let {
-                    if (it.inCoinList) {
-                        caution = Caution(
-                            cash.p.terminal.strings.helpers.Translator.getString(R.string.AddToken_CoinAlreadyInListWarning),
-                            Caution.Type.Warning
-                        )
-                    } else {
-                        addButtonEnabled = true
-                    }
+                    addButtonEnabled = true
                 }
             } catch (e: Exception) {
                 caution = Caution(getErrorText(e), Caution.Type.Error)
@@ -88,7 +81,9 @@ class AddTokenViewModel(private val addTokenService: AddTokenService) :
     fun onAddClick() {
         viewModelScope.launch {
             tokenInfo?.let {
-                addTokenService.addToken(it)
+                if (!it.inCoinList) {
+                    addTokenService.addToken(it)
+                }
                 finished = true
             }
 

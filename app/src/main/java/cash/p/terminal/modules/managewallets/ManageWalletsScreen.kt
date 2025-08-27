@@ -2,8 +2,11 @@ package cash.p.terminal.modules.managewallets
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -15,6 +18,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,25 +27,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
@@ -54,24 +64,28 @@ import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.ListEmptyView
-import cash.p.terminal.ui.compose.components.SearchBar
+import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SearchField
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.ui_compose.theme.SteelLight
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -82,8 +96,15 @@ internal fun ManageWalletsScreen(
     requestScan: () -> Unit,
     restoreSettingsViewModel: IRestoreSettingsUi
 ) {
-    val coinItems by manageWalletsCallback.viewItemsLiveData.observeAsState()
+    val groupsList by manageWalletsCallback.groupsList.collectAsStateWithLifecycle()
     val context = LocalView.current
+    var initialLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(groupsList) {
+        if (groupsList.isNotEmpty()) {
+            initialLoading = false
+        }
+    }
 
     val blockchainType = restoreSettingsViewModel.openTokenConfigure?.blockchainType
     if (blockchainType != null) {
@@ -112,13 +133,19 @@ internal fun ManageWalletsScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
+    ) {
         Column(
             modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)
         ) {
-            SearchBar(
+            AppBar(
                 title = stringResource(R.string.ManageCoins_title),
-                searchHintText = stringResource(R.string.ManageCoins_Search),
+                navigationIcon = {
+                    HsBackButton(onClick = onBackPressed)
+                },
                 menuItems = if (manageWalletsCallback.addTokenEnabled) {
                     listOf(
                         MenuItem(
@@ -130,53 +157,67 @@ internal fun ManageWalletsScreen(
                         ))
                 } else {
                     listOf()
-                },
-                onClose = onBackPressed,
-                onSearchTextChanged = { text ->
-                    manageWalletsCallback.updateFilter(text)
                 }
             )
 
-            coinItems?.let {
-                if (it.isEmpty()) {
-                    ListEmptyView(
-                        text = stringResource(R.string.ManageCoins_NoResults),
-                        icon = R.drawable.ic_not_found
-                    )
+            SearchField(
+                onSearchTextChanged = manageWalletsCallback::updateFilter,
+                modifier = Modifier.padding(
+                    horizontal = 16.dp,
+                    vertical = 12.dp
+                ),
+            )
+
+            if (groupsList.isEmpty()) {
+                if (initialLoading) {
+                    LoadingComponent()
                 } else {
-                    LazyColumn {
-                        item {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Divider(
-                                thickness = 1.dp,
-                                color = ComposeAppTheme.colors.steel10,
-                            )
-                        }
-                        items(it) { viewItem ->
-                            CoinCell(
-                                viewItem = viewItem,
-                                onItemClick = {
-                                    if (viewItem.enabled) {
-                                        manageWalletsCallback.disable(viewItem.item)
-                                    } else {
-                                        manageWalletsCallback.enable(viewItem.item)
-                                    }
-                                },
-                                onInfoClick = {
-                                    navController.slideFromBottom(
-                                        R.id.configuredTokenInfo,
-                                        viewItem.item
-                                    )
+                    Column {
+                        ListEmptyView(
+                            text = stringResource(R.string.ManageCoins_NoResults),
+                            icon = R.drawable.ic_not_found,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            } else {
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = ComposeAppTheme.colors.steel10,
+                )
+                LazyColumn(Modifier.weight(1f)) {
+                    items(groupsList) { group ->
+                        CoinGroupItem(
+                            group = group,
+                            onGroupClick = {
+                                manageWalletsCallback.toggleGroupExpansion(group.coinCode)
+                            },
+                            onItemClick = { token ->
+                                if (group.items.find { it.item == token }?.enabled == true) {
+                                    manageWalletsCallback.disable(token)
+                                } else {
+                                    manageWalletsCallback.enable(token)
                                 }
-                            )
-                        }
-                        item {
-                            VSpacer(height = 32.dp)
-                        }
-                        if (manageWalletsCallback.showScanToAddButton) {
-                            item {
-                                VSpacer(height = ButtonPrimaryDefaults.MinHeight + 32.dp)
+                            },
+                            onInfoClick = { token ->
+                                navController.slideFromBottom(
+                                    R.id.configuredTokenInfo,
+                                    token
+                                )
                             }
+                        )
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = ComposeAppTheme.colors.steel10,
+                        )
+                    }
+                    item {
+                        VSpacer(height = 32.dp)
+                    }
+                    if (manageWalletsCallback.showScanToAddButton) {
+                        item {
+                            VSpacer(height = ButtonPrimaryDefaults.MinHeight + 32.dp)
                         }
                     }
                 }
@@ -201,9 +242,143 @@ internal fun ManageWalletsScreen(
                 navController.popBackStack()
             }
         }
+        val totalItems = remember(groupsList) { groupsList.sumOf { it.items.size } }
+        TotalItemsPanel(
+            count = totalItems,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .imePadding()
+        )
     }
 }
 
+@Composable
+private fun TotalItemsPanel(count: Int, modifier: Modifier) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(14.dp)
+            .background(ComposeAppTheme.colors.midnight)
+    ) {
+        Text(
+            text = pluralStringResource(
+                R.plurals.entries_count,
+                count,
+                count
+            ),
+            style = ComposeAppTheme.typography.caption,
+            color = SteelLight,
+        )
+    }
+}
+
+@Composable
+private fun LoadingComponent() {
+    Box(Modifier.fillMaxSize()) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .size(56.dp)
+                .padding(top = 4.dp, end = 8.dp),
+            color = ComposeAppTheme.colors.grey,
+            strokeWidth = 4.dp
+        )
+    }
+}
+
+@Composable
+private fun CoinGroupItem(
+    group: CoinGroup,
+    onGroupClick: () -> Unit,
+    onItemClick: (Token) -> Unit,
+    onInfoClick: (Token) -> Unit
+) {
+    Column {
+        GroupHeader(
+            group = group,
+            onClick = onGroupClick
+        )
+
+        AnimatedVisibility(
+            visible = group.isExpanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column {
+                group.items.forEach { viewItem ->
+                    CoinCell(
+                        viewItem = viewItem,
+                        onItemClick = {
+                            onItemClick(viewItem.item)
+                        },
+                        onInfoClick = {
+                            onInfoClick(viewItem.item)
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GroupHeader(
+    group: CoinGroup,
+    onClick: () -> Unit
+) {
+    val rotation by animateFloatAsState(
+        targetValue = if (group.isExpanded) 180f else 0f,
+        label = "arrow_rotation"
+    )
+
+    RowUniversal(
+        onClick = onClick,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalPadding = 0.dp
+    ) {
+        val firstItem = group.items.firstOrNull()
+        firstItem?.let {
+            Image(
+                painter = it.imageSource.painter(),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(end = 16.dp, top = 12.dp, bottom = 12.dp)
+                    .size(32.dp)
+                    .clip(CircleShape)
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 12.dp)
+        ) {
+            body_leah(
+                text = group.coinName,
+                maxLines = 1,
+            )
+            subhead2_grey(
+                text = pluralStringResource(
+                    R.plurals.options_count,
+                    group.items.size,
+                    group.items.size
+                ),
+                maxLines = 1,
+                modifier = Modifier.padding(top = 1.dp)
+            )
+        }
+
+        Icon(
+            painter = painterResource(R.drawable.ic_arrow_big_down_20),
+            contentDescription = null,
+            tint = ComposeAppTheme.colors.grey,
+            modifier = Modifier
+                .padding(end = 2.dp)
+                .rotate(rotation)
+        )
+    }
+}
 
 @Composable
 private fun ScanToAddBlock(requestScan: () -> Unit) {
@@ -229,85 +404,78 @@ private fun ScanToAddBlock(requestScan: () -> Unit) {
             onClick = requestScan
         )
     }
-
 }
 
 @Composable
 private fun CoinCell(
-    viewItem: CoinViewItem<cash.p.terminal.wallet.Token>,
+    viewItem: CoinViewItem<Token>,
     onItemClick: () -> Unit,
     onInfoClick: () -> Unit
 ) {
-    Column {
-        RowUniversal(
-            onClick = onItemClick,
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalPadding = 0.dp
+    RowUniversal(
+        onClick = onItemClick,
+        modifier = Modifier.padding(start = 32.dp, end = 16.dp),
+        verticalPadding = 0.dp
+    ) {
+        Image(
+            painter = viewItem.imageSource.painter(),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(end = 16.dp, top = 12.dp, bottom = 12.dp)
+                .size(24.dp)
+                .clip(CircleShape)
+        )
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 12.dp)
         ) {
-            Image(
-                painter = viewItem.imageSource.painter(),
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(end = 16.dp, top = 12.dp, bottom = 12.dp)
-                    .size(32.dp)
-                    .clip(CircleShape)
-            )
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 12.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    body_leah(
-                        text = viewItem.title,
-                        maxLines = 1,
-                    )
-                    viewItem.label?.let { labelText ->
-                        Box(
-                            modifier = Modifier
-                                .padding(start = 6.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(ComposeAppTheme.colors.jeremy)
-                        ) {
-                            Text(
-                                modifier = Modifier.padding(
-                                    start = 4.dp,
-                                    end = 4.dp,
-                                    bottom = 1.dp
-                                ),
-                                text = labelText,
-                                color = ComposeAppTheme.colors.bran,
-                                style = ComposeAppTheme.typography.microSB,
-                                maxLines = 1,
-                            )
-                        }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                body_leah(
+                    text = viewItem.title,
+                    maxLines = 1,
+                )
+                viewItem.label?.let { labelText ->
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(ComposeAppTheme.colors.jeremy)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(
+                                start = 4.dp,
+                                end = 4.dp,
+                                bottom = 1.dp
+                            ),
+                            text = labelText,
+                            color = ComposeAppTheme.colors.bran,
+                            style = ComposeAppTheme.typography.microSB,
+                            maxLines = 1,
+                        )
                     }
                 }
-                subhead2_grey(
-                    text = viewItem.subtitle,
-                    maxLines = 1,
-                    modifier = Modifier.padding(top = 1.dp)
-                )
             }
-            Spacer(Modifier.width(12.dp))
-            if (viewItem.hasInfo) {
-                HsIconButton(onClick = onInfoClick) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_info_20),
-                        contentDescription = null,
-                        tint = ComposeAppTheme.colors.grey
-                    )
-                }
-            }
-            HsSwitch(
-                modifier = Modifier.padding(0.dp),
-                checked = viewItem.enabled,
-                onCheckedChange = { onItemClick.invoke() },
+            subhead2_grey(
+                text = viewItem.subtitle,
+                maxLines = 1,
+                modifier = Modifier.padding(top = 1.dp)
             )
         }
-        Divider(
-            thickness = 1.dp,
-            color = ComposeAppTheme.colors.steel10,
+        Spacer(Modifier.width(12.dp))
+        if (viewItem.hasInfo) {
+            HsIconButton(onClick = onInfoClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_info_20),
+                    contentDescription = null,
+                    tint = ComposeAppTheme.colors.grey
+                )
+            }
+        }
+        HsSwitch(
+            modifier = Modifier.padding(0.dp),
+            checked = viewItem.enabled,
+            onCheckedChange = { onItemClick.invoke() },
         )
     }
 }
@@ -315,7 +483,7 @@ private fun CoinCell(
 @Preview(showBackground = true)
 @Composable
 private fun ManageWalletsScreenPreview() {
-    ComposeAppTheme {
+    ComposeAppTheme(darkTheme = true) {
         val items = listOf(
             CoinViewItem(
                 item = Token(
@@ -331,7 +499,7 @@ private fun ManageWalletsScreenPreview() {
             ),
             CoinViewItem(
                 item = Token(
-                    coin = Coin("Ethereum","Ethereum", "ETH"),
+                    coin = Coin("Ethereum", "Ethereum", "ETH"),
                     blockchain = Blockchain(BlockchainType.Ethereum, "Ethereum", null),
                     type = TokenType.Native,
                     decimals = 18
@@ -341,85 +509,28 @@ private fun ManageWalletsScreenPreview() {
                 subtitle = "Ethereum",
                 enabled = false,
                 hasInfo = true
+            )
+        )
+
+        val groups = listOf(
+            CoinGroup(
+                coinName = "Bitcoin",
+                coinCode = "BTC",
+                items = listOf(items[0]),
+                isExpanded = false
             ),
-            CoinViewItem(
-                item = Token(
-                    coin = Coin("Solana","Solana", "SOL"),
-                    blockchain = Blockchain(BlockchainType.Solana, "Solana", null),
-                    type = TokenType.Native,
-                    decimals = 9
-                ),
-                imageSource = ImageSource.Local(R.drawable.ic_placeholder),
-                title = "SOL",
-                subtitle = "Solana",
-                enabled = true
-            ),
-            CoinViewItem(
-                item = Token(
-                    coin = Coin("Tether","Tether", "USDT"),
-                    blockchain = Blockchain(BlockchainType.Ethereum, "Ethereum", null),
-                    type = TokenType.Eip20("0xdac17f958d2ee523a2206206994597c13d831ec7"),
-                    decimals = 6
-                ),
-                imageSource = ImageSource.Local(R.drawable.ic_placeholder),
-                title = "USDT",
-                subtitle = "Tether USD",
-                enabled = false
-            ),
-            CoinViewItem(
-                item = Token(
-                    coin = Coin("BNB","BNB", "BNB"),
-                    blockchain = Blockchain(BlockchainType.BinanceSmartChain, "BNB Chain", null),
-                    type = TokenType.Native,
-                    decimals = 18
-                ),
-                imageSource = ImageSource.Local(R.drawable.ic_placeholder),
-                title = "BNB",
-                subtitle = "BNB Smart Chain",
-                enabled = true
-            ),
-            CoinViewItem(
-                item = Token(
-                    coin = Coin("Dogecoin","Dogecoin", "DOGE"),
-                    blockchain = Blockchain(BlockchainType.Dogecoin, "Dogecoin", null),
-                    type = TokenType.Native,
-                    decimals = 8
-                ),
-                imageSource = ImageSource.Local(R.drawable.ic_placeholder),
-                title = "DOGE",
-                subtitle = "Dogecoin",
-                enabled = false
-            ),
-            CoinViewItem(
-                item = Token(
-                    coin = Coin("Avalanche","Avalanche", "AVAX"),
-                    blockchain = Blockchain(BlockchainType.Avalanche, "Avalanche", null),
-                    type = TokenType.Native,
-                    decimals = 18
-                ),
-                imageSource = ImageSource.Local(R.drawable.ic_placeholder),
-                title = "AVAX",
-                subtitle = "Avalanche",
-                enabled = true
-            ),
-            CoinViewItem(
-                item = Token(
-                    coin = Coin("Tron","Tron", "TRX"),
-                    blockchain = Blockchain(BlockchainType.Tron, "Tron", null),
-                    type = TokenType.Native,
-                    decimals = 6
-                ),
-                imageSource = ImageSource.Local(R.drawable.ic_placeholder),
-                title = "TRX",
-                subtitle = "Tron",
-                enabled = false
+            CoinGroup(
+                coinName = "Ethereum",
+                coinCode = "ETH",
+                items = listOf(items[1]),
+                isExpanded = true
             )
         )
 
         ManageWalletsScreen(
             navController = rememberNavController(),
             manageWalletsCallback = object : ManageWalletsCallback {
-                override val viewItemsLiveData = MutableLiveData(items)
+                override val groupsList = MutableStateFlow(groups)
                 override val addTokenEnabled = true
                 override val showScanToAddButton = false
                 override val errorMsg: String? = null
@@ -427,6 +538,7 @@ private fun ManageWalletsScreenPreview() {
                 override fun updateFilter(text: String) = Unit
                 override fun enable(token: Token) = Unit
                 override fun disable(token: Token) = Unit
+                override fun toggleGroupExpansion(coinCode: String) = Unit
             },
             onBackPressed = {},
             requestScan = {},

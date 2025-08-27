@@ -2047,4 +2047,10 @@
         <item quantity="many">%1$d опций</item>
         <item quantity="other">%1$d опции</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">%1$d запись</item>
+        <item quantity="few">%1$d записи</item>
+        <item quantity="many">%1$d записей</item>
+        <item quantity="other">%1$d записей</item>
+    </plurals>
 </resources>

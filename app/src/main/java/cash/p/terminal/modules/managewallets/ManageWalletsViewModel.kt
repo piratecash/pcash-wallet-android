@@ -3,8 +3,6 @@ package cash.p.terminal.modules.managewallets
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
@@ -30,6 +28,9 @@ import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
@@ -47,9 +48,12 @@ class ManageWalletsViewModel(
         HardwarePublicKeyStorage::class.java
     )
 
-    override val viewItemsLiveData = MutableLiveData<List<CoinViewItem<Token>>>()
+    private val _groupsList = MutableStateFlow<List<CoinGroup>>(emptyList())
+    override var groupsList: StateFlow<List<CoinGroup>> = _groupsList.asStateFlow()
 
     private val awaitingEnabledTokens = mutableSetOf<Token>()
+    private val expandedGroups = mutableSetOf<String>()
+
     override var showScanToAddButton by mutableStateOf(false)
         private set
 
@@ -145,12 +149,19 @@ class ManageWalletsViewModel(
     }
 
     private fun sync(items: List<ManageWalletsService.Item>) {
-        println("--------------------test_item")
-        items.forEach {
-            println("test_item: $it")
-        }
         val viewItems = items.map { viewItem(it) }
-        viewItemsLiveData.postValue(viewItems)
+
+        val groups = viewItems.groupBy { it.item.coin.uid }
+            .map { (coinCode, groupItems) ->
+                val coinName = groupItems.first().item.coin.name
+                CoinGroup(
+                    coinName = coinName,
+                    coinCode = coinCode,
+                    items = groupItems,
+                    isExpanded = expandedGroups.contains(coinCode)
+                )
+            }
+        _groupsList.tryEmit(groups)
     }
 
     private fun viewItem(
@@ -200,6 +211,15 @@ class ManageWalletsViewModel(
         service.setFilter(filter)
     }
 
+    override fun toggleGroupExpansion(coinCode: String) {
+        if (expandedGroups.contains(coinCode)) {
+            expandedGroups.remove(coinCode)
+        } else {
+            expandedGroups.add(coinCode)
+        }
+        sync(service.itemsFlow.value)
+    }
+
     private fun updateNeedToShowScanToAddButton() {
         showScanToAddButton = isHardwareCard() && awaitingEnabledTokens.isNotEmpty()
     }
@@ -214,8 +234,15 @@ class ManageWalletsViewModel(
     private fun isHardwareCard() = accountManager.activeAccount?.type is AccountType.HardwareCard
 }
 
+data class CoinGroup(
+    val coinName: String,
+    val coinCode: String,
+    val items: List<CoinViewItem<Token>>,
+    val isExpanded: Boolean = false
+)
+
 interface ManageWalletsCallback {
-    val viewItemsLiveData: LiveData<List<CoinViewItem<Token>>>
+    val groupsList: StateFlow<List<CoinGroup>>
     val addTokenEnabled: Boolean
     val showScanToAddButton: Boolean
     val errorMsg: String?
@@ -224,4 +251,5 @@ interface ManageWalletsCallback {
     fun updateFilter(text: String)
     fun enable(token: Token)
     fun disable(token: Token)
+    fun toggleGroupExpansion(coinCode: String)
 }

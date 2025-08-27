@@ -1837,4 +1837,8 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
         <item quantity="one">%1$d seçenek</item>
         <item quantity="other">%1$d seçenek</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">%1$d giriş gösteriliyor</item>
+        <item quantity="other">%1$d giriş gösteriliyor</item>
+    </plurals>
 </resources>

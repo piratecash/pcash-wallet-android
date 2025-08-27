@@ -1843,4 +1843,10 @@
         <item quantity="many">%1$d опцій</item>
         <item quantity="other">%1$d опції</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">Показано %1$d запис</item>
+        <item quantity="few">Показано %1$d записи</item>
+        <item quantity="many">Показано %1$d записів</item>
+        <item quantity="other">Показано %1$d записів</item>
+    </plurals>
 </resources>

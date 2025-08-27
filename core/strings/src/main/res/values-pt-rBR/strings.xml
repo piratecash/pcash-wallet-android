@@ -1837,4 +1837,8 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
         <item quantity="one">%1$d opção</item>
         <item quantity="other">%1$d opções</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">A mostrar %1$d entrada</item>
+        <item quantity="other">A mostrar %1$d entradas</item>
+    </plurals>
 </resources>

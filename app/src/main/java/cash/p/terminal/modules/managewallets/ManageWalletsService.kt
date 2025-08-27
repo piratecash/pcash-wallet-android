@@ -1,8 +1,6 @@
 package cash.p.terminal.modules.managewallets
 
 import cash.p.terminal.core.eligibleTokens
-import cash.p.terminal.core.isDefault
-import cash.p.terminal.core.isNative
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.order
 import cash.p.terminal.core.restoreSettingTypes
@@ -20,13 +18,16 @@ import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.rx2.asFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.java.KoinJavaComponent.inject
 
 class ManageWalletsService(
@@ -49,7 +50,8 @@ class ManageWalletsService(
     private var fullCoins = listOf<FullCoin>()
     private var items = listOf<Item>()
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val mutex = Mutex()
 
     private var filter: String = ""
 
@@ -65,10 +67,12 @@ class ManageWalletsService(
             }
         }
 
-        sync(walletManager.activeWallets)
-        syncFullCoins()
-        sortItems()
-        syncState()
+        coroutineScope.launch {
+            sync(walletManager.activeWallets)
+            syncFullCoins()
+            sortItems()
+            syncState()
+        }
     }
 
     private fun isEnabled(token: Token): Boolean {
@@ -79,49 +83,32 @@ class ManageWalletsService(
         fullCoinsProvider?.setActiveWallets(walletList)
     }
 
-    private fun fetchFullCoins(): List<FullCoin> {
-        return fullCoinsProvider?.getItems() ?: listOf()
+    private suspend fun fetchFullCoins(): List<FullCoin> = withContext(Dispatchers.IO) {
+        fullCoinsProvider?.getItems() ?: listOf()
     }
 
-    private fun syncFullCoins() {
-        fullCoins = fetchFullCoins()
+    private suspend fun syncFullCoins() {
+        mutex.withLock {
+            fullCoins = fetchFullCoins()
+        }
     }
 
-    private fun sortItems() {
-        var comparator = compareByDescending<Item> {
-            it.enabled
-        }
+    private suspend fun sortItems() {
+        val comparator = compareByDescending<Item> { it.enabled }
+            .thenBy { it.token.blockchain.type.order }
 
-        if (filter.isBlank()) {
-            comparator = comparator.thenBy {
-                it.token.blockchain.type.order
-            }
+        mutex.withLock {
+            items = fullCoins
+                .map { getItemsForFullCoin(it) }
+                .flatten()
+                .sortedWith(comparator)
         }
-
-        items = fullCoins
-            .map { getItemsForFullCoin(it) }
-            .flatten()
-            .sortedWith(comparator)
     }
 
     private fun getItemsForFullCoin(fullCoin: FullCoin): List<Item> {
         val accountType = account?.type ?: return listOf()
         val eligibleTokens = fullCoin.eligibleTokens(accountType)
-
-        val tokens = if (filter.isNotBlank()) {
-            eligibleTokens
-        } else if (
-            accountType !is AccountType.HdExtendedKey &&
-            (eligibleTokens.all { it.type is TokenType.Derived } ||
-                    eligibleTokens.all { it.type is TokenType.AddressTyped } ||
-                    eligibleTokens.all { it.type is TokenType.AddressSpecTyped })
-        ) {
-            eligibleTokens.filter { isEnabled(it) || it.type.isDefault }
-        } else {
-            eligibleTokens.filter { isEnabled(it) || it.type.isNative }
-        }
-
-        return tokens.map { getItemForToken(it) }
+        return eligibleTokens.map { getItemForToken(it) }
     }
 
     private fun getItemForToken(token: Token): Item {
@@ -141,7 +128,6 @@ class ManageWalletsService(
         is TokenType.Eip20,
         is TokenType.Spl,
         is TokenType.Jetton -> true
-
         else -> false
     }
 
@@ -151,72 +137,84 @@ class ManageWalletsService(
         }
     }
 
-    private fun handleUpdated(wallets: List<Wallet>) {
+    private suspend fun handleUpdated(wallets: List<Wallet>) {
         sync(wallets)
 
         val newFullCons = fetchFullCoins()
-        if (newFullCons.size > fullCoins.size) {
-            fullCoins = newFullCons
-            sortItems()
+        mutex.withLock {
+            if (newFullCons.size > fullCoins.size) {
+                fullCoins = newFullCons
+                sortItems()
+            }
         }
-
         syncState()
     }
 
-    private fun updateSortedItems(token: Token, enable: Boolean) {
-        items = items.map { item ->
-            if (item.token == token) {
-                item.copy(
-                    enabled = enable,
-                    hasInfo = hasInfo(token, enable)
-                )
-            } else {
-                item
+    private suspend fun updateSortedItems(token: Token, enable: Boolean) {
+        mutex.withLock {
+            items = items.map { item ->
+                if (item.token == token) {
+                    item.copy(
+                        enabled = enable,
+                        hasInfo = hasInfo(token, enable)
+                    )
+                } else {
+                    item
+                }
             }
         }
     }
 
-    private fun enable(token: Token, restoreSettings: RestoreSettings) {
+    private suspend fun enable(token: Token, restoreSettings: RestoreSettings) {
         val account = this.account ?: return
 
         if (restoreSettings.isNotEmpty()) {
             restoreSettingsService.save(restoreSettings, account, token.blockchainType)
         }
-        val hardwarePublicKey = runBlocking {
+
+        val hardwarePublicKey = withContext(Dispatchers.IO) {
             getHardwarePublicKeyForWalletUseCase(account, token)
         }
 
         walletManager.save(listOf(Wallet(token, account, hardwarePublicKey)))
 
         updateSortedItems(token, true)
+        syncState()
     }
 
     fun setFilter(filter: String) {
         this.filter = filter
         fullCoinsProvider?.setQuery(filter)
 
-        syncFullCoins()
-        sortItems()
-        syncState()
+        coroutineScope.launch {
+            syncFullCoins()
+            sortItems()
+            syncState()
+        }
     }
 
     fun enable(token: Token) {
         val account = this.account ?: return
 
-        if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
-            restoreSettingsService.approveSettings(token, account)
-        } else {
-            enable(token, RestoreSettings())
+        coroutineScope.launch {
+            if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
+                restoreSettingsService.approveSettings(token, account)
+            } else {
+                enable(token, RestoreSettings())
+            }
         }
     }
 
     fun disable(token: Token) {
-        walletManager.activeWallets
-            .firstOrNull { it.token == token }
-            ?.let {
-                walletManager.delete(listOf(it))
-                updateSortedItems(token, false)
-            }
+        coroutineScope.launch {
+            walletManager.activeWallets
+                .firstOrNull { it.token == token }
+                ?.let {
+                    walletManager.delete(listOf(it))
+                    updateSortedItems(token, false)
+                    syncState()
+                }
+        }
     }
 
     override fun clear() {

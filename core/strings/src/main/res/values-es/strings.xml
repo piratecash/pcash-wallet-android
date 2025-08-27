@@ -1828,4 +1828,8 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
         <item quantity="one">%1$d opción</item>
         <item quantity="other">%1$d opciones</item>
     </plurals>
+    <plurals name="entries_count">
+        <item quantity="one">Mostrando %1$d entrada</item>
+        <item quantity="other">Mostrando %1$d entradas</item>
+    </plurals>
 </resources>
