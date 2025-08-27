@@ -4,12 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.balance.HeaderNote
+import cash.p.terminal.wallet.Account
 
 object ManageAccountModule {
-    class Factory(private val accountId: String) : ViewModelProvider.Factory {
+    class Factory(private val account: Account) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ManageAccountViewModel(accountId, App.accountManager) as T
+            return ManageAccountViewModel(account, App.accountManager) as T
         }
     }
 

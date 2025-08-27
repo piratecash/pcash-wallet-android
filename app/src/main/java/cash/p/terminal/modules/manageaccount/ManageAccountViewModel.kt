@@ -25,11 +25,10 @@ import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
 class ManageAccountViewModel(
-    accountId: String,
+    val account: Account,
     private val accountManager: IAccountManager,
 ) : ViewModel() {
 
-    val account: Account = accountManager.account(accountId)!!
     private val tangemSdkManager: TangemSdkManager by inject(TangemSdkManager::class.java)
     private val walletManager: IWalletManager by inject(IWalletManager::class.java)
 
