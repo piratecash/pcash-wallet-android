@@ -5,6 +5,7 @@
 - Added a new price change display mechanic:
   - In percentages and in fiat
   - Available intervals: **1 hour, 1 day, 1 week, 1 month, 1 year, and all time**
+  - Added support for the **Ukrainian language**
 
 ### 🎛 Interface Improvements
 
