@@ -306,9 +306,6 @@ dependencies {
     coreLibraryDesugaring libs.desugar.jdk.libs
     implementation libs.zcash.android.sdk
     implementation(libs.grpc.api)
-    implementation("io.github.binance:binance-connector-java:3.0.0rc2") {
-        exclude group: "org.bouncycastle", module: "bcprov-jdk18on"
-    }
 
     // Exclude old version from wherever it's coming
     configurations.configureEach {

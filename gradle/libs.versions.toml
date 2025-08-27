@@ -35,7 +35,7 @@ appcompat = "1.7.0"
 timber = "5.0.1"
 
 tonKotlin = "0.2.15" # same version like in ton-kit
-piratecash-ton = "acae5a0"
+piratecash-ton = "e7d7077"
 piratecash-bitcoin = "81053d51cd"
 stellar-kit = "a885bce"
 piratecash-ethereum = "553d40b"
