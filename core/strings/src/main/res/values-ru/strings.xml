@@ -931,7 +931,6 @@
     <!--Manage Accounts-->
     <string name="ManageAccounts_Title">Кошельки</string>
     <string name="ManageAccounts_CreateNewWallet">Создать кошелёк</string>
-    <string name="new_monero_wallet">Создать кошелёк Monero</string>
     <string name="ManageAccounts_ImportWallet">Импорт кошелька</string>
     <string name="ManageAccounts_WatchAddress">Просмотр кошелька</string>
     <!-- Import Wallet -->
@@ -1458,6 +1457,7 @@
     <string name="no_active_stacking_cosanta_description">COSANTA Стейкинг: Внесите 1 токен и будете получать _annual_interest_ годовых!</string>
     <string name="no_active_stacking_pirate_buy_more_description">Для активации стейкинга вам нужно ещё %1$s токен(ов) и вы будете получать _annual_interest_ годовых!</string>
     <string name="no_active_stacking_cosanta_buy_more_description">Внесите %1$s токен(ов) и начните зарабатывать через 24 часа.</string>
+    <string name="buy_to_activate_premium">⭐ Купите %s токенов, чтобы активировать дополнительные функции!</string>
     <string name="tokens">токены</string>
     <string name="buy_pirate">Купить PirateCash</string>
     <string name="staking_details">Детали стэкинга</string>

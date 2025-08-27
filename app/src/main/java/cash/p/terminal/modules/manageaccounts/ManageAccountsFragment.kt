@@ -129,22 +129,6 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
                         })
                     add(
                         ActionViewItem(
-                            R.drawable.ic_plus,
-                            R.string.new_monero_wallet
-                        ) {
-                            navController.navigateWithTermsAccepted {
-                                navController.slideFromRight(
-                                    R.id.createAccountFragment,
-                                    CreateAccountFragment.Input(
-                                        popOffOnSuccess = args.popOffOnSuccess,
-                                        popOffInclusive = args.popOffInclusive,
-                                        preselectMonero = true
-                                    )
-                                )
-                            }
-                        })
-                    add(
-                        ActionViewItem(
                             R.drawable.ic_download_20,
                             R.string.ManageAccounts_ImportWallet
                         ) {

@@ -700,6 +700,7 @@
     <string name="SettingsCurrency_DisclaimerTitle">Відмова від відповідальності</string>
     <string name="SettingsCurrency_DisclaimerText">Дані про обмінний курс надані третьою стороною Coingecko.сom\n\n Додаток P.CASH Wallet не гарантує, що ці дані завжди вірні та відповідають ринковим. Шанс на невідповідність підвищується при виборі базової валюти, що відрізняється від %s.</string>
     <!--Settings-->
+    <string name="display_options_period_all">Усі</string>
     <string name="Settings_Title">Налаштування</string>
     <string name="Settings_SecurityCenter">Безпека</string>
     <string name="Settings_BaseCurrency">Базова валюта</string>
@@ -929,7 +930,6 @@
     <!--Manage Accounts-->
     <string name="ManageAccounts_Title">Гаманці</string>
     <string name="ManageAccounts_CreateNewWallet">Створити гаманець</string>
-    <string name="new_monero_wallet">Створити гаманець Monero</string>
     <string name="ManageAccounts_ImportWallet">Імпорт гаманця</string>
     <string name="ManageAccounts_WatchAddress">Перегляд гаманця</string>
     <!-- Import Wallet -->
@@ -1456,6 +1456,7 @@
     <string name="no_active_stacking_cosanta_description">COSANTA Стейкінг: Внесіть 1 токен і будете отримувати _annual_interest_ річних!</string>
     <string name="no_active_stacking_pirate_buy_more_description">Для активації стейкінгу вам потрібно ще %1$s токен(ів) і ви будете отримувати _annual_interest_ річних!</string>
     <string name="no_active_stacking_cosanta_buy_more_description">Внесіть %1$s токен(ів) і почніть заробляти через 24 години.</string>
+    <string name="buy_to_activate_premium">⭐ Купіть %s токенів, щоб активувати додаткові можливості!</string>
     <string name="tokens">токени</string>
     <string name="buy_pirate">Купити PirateCash</string>
     <string name="staking_details">Деталі стекінгу</string>
@@ -1633,7 +1634,19 @@
     <string name="premium_demo_activated">Демо Преміум успішно активовано!</string>
     <string name="premium_demo_activation_failed">Не вдалося активувати демо Преміум</string>
     <string name="premium_demo_expired">Термін дії демо Преміум для цього гаманця закінчився</string>
+    <string name="premium_demo_activation_error_wrong_type">Щоб активувати преміум, використайте мнемонічну фразу або апаратний гаманець.</string>
     <string name="wallet_is_not_eligile">Цей гаманець не підходить для Преміум</string>
     <string name="Send_Confirmation_YouReceive">Ви отримуєте</string>
     <string name="Send_Confirmation_Mint">Випустити</string>
+    <string name="premium_demo_activation_error_backup">Щоб активувати преміум, вам потрібно зробити резервну копію вашого гаманця.</string>
+    <string name="premium_demo_activation_error_watch_account">Обліковий запис лише для перегляду не може бути використаний для активації преміуму.</string>
+    <string name="display_options">Параметри відображення</string>
+    <string name="display_options_price_period">Ціновий період</string>
+    <string name="display_options_percent_change">Зміна, %</string>
+    <string name="display_options_price_change">Зміна ціни</string>
+    <string name="display_options_period_1h">1 година</string>
+    <string name="display_options_period_1d">1 день</string>
+    <string name="display_options_period_1w">1 тиждень</string>
+    <string name="display_options_period_1m">1 місяць</string>
+    <string name="display_options_period_1y">1 рік</string>
 </resources>

@@ -1,3 +1,25 @@
+## Version 0.46.1 Highlights
+
+### ✨ New Features
+
+- Added a new price change display mechanic:
+  - In percentages and in fiat
+  - Available intervals: **1 hour, 1 day, 1 week, 1 month, 1 year, and all time**
+
+### 🎛 Interface Improvements
+
+- Completely redesigned the token management mode:
+  - The interface has become more clear and user-friendly
+  - Added new navigation with quick access via the 🔍 icon on the main screen. The old mode is still available if you’re used to it
+
+### 🛠 Important Fixes
+
+- Fixed an issue with activating **Premium** mode
+- Fixed a problem with swapping **JETTON** tokens on the **TON** blockchain
+- Fixed an app crash when no account was found
+
+
+
 ## Version 0.46.0 Highlights
 
 ### ✨ New Features

@@ -80,23 +80,6 @@ fun BalanceNoAccount(
                 }
             }
         )
-        Spacer(Modifier.height(16.dp))
-        ButtonPrimaryDefault(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 48.dp),
-            title = stringResource(R.string.new_monero_wallet),
-            onClick = {
-                navController.navigateWithTermsAccepted {
-                    navController.slideFromRight(R.id.createAccountFragment,
-                        CreateAccountFragment.Input(
-                            popOffOnSuccess = R.id.createAccountFragment,
-                            popOffInclusive = true,
-                            preselectMonero = true
-                        ))
-                }
-            }
-        )
         Spacer(modifier = Modifier.height(16.dp))
         ButtonPrimaryDefault(
             modifier = Modifier
