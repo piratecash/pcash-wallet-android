@@ -393,8 +393,7 @@ dependencies {
     testRuntimeOnly "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     //Android Tor
-    implementation 'info.guardianproject:tor-android:0.4.7.14'
-    implementation 'info.guardianproject:jtorctl:0.4.5.7'
+    implementation libs.tor.android
 
     api 'com.jaredrummler:android-shell:1.0.0'
     api 'com.offbynull.portmapper:portmapper:2.0.5'
