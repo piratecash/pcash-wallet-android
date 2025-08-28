@@ -921,6 +921,7 @@
     <string name="ManageAccount_RecoveryPhraseBackup">进行手动备份</string>
     <string name="ManageAccount_LocalBackup">本地备份</string>
     <string name="duplicate_wallet">复制钱包</string>
+    <string name="duplicate_wallet_info">此功能创建您钱包的副本。您可以设置新名称和额外的密码短语，而无需更改原始钱包。</string>
     <string name="ManageAccount_Unlink">删除钱包</string>
     <string name="ManageAccount_BackupRequired_Title">需要备份</string>
     <string name="ManageAccount_BackupRequired_Description">您必须备份%1$s才能收到%2$s。</string>

@@ -959,6 +959,7 @@
     <string name="ManageAccount_RecoveryPhraseBackup">Ручное резервное \nкопирование</string>
     <string name="ManageAccount_LocalBackup">Локальное резервное \nкопирование</string>
     <string name="duplicate_wallet">Скопировать кошелек</string>
+    <string name="duplicate_wallet_info">Эта функция создает копию вашего кошелька. Вы можете установить новое имя и дополнительную кодовую фразу, не изменяя исходный кошелек.</string>
     <string name="ManageAccount_Unlink">Удалить кошелек</string>
     <string name="ManageAccount_BackupRequired_Title">Необходима резервная копия</string>
     <string name="ManageAccount_BackupRequired_Description">Вам нужно сделать резервную копию %1$s перед получением %2$s.</string>

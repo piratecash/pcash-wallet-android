@@ -932,6 +932,7 @@
     <string name="ManageAccount_RecoveryPhraseBackup">Manual Backup</string>
     <string name="ManageAccount_LocalBackup">Local Backup</string>
     <string name="duplicate_wallet">تکرار کیف پول</string>
+    <string name="duplicate_wallet_info">این ویژگی یک نسخه از کیف پول شما ایجاد می‌کند. شما می‌توانید نام جدید و عبارت عبور اضافی را بدون تغییر کیف پول اصلی تنظیم کنید.</string>
     <string name="ManageAccount_Unlink">Delete Wallet</string>
     <string name="ManageAccount_BackupRequired_Title">تهیه نسخه پشتیبان لازم است</string>
     <string name="ManageAccount_BackupRequired_Description">قبل از دریافت بودجه %2$s، باید از کیف پول%1$s نسخه پشتیبان تهیه کنید.</string>

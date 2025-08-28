@@ -930,6 +930,7 @@
     <string name="ManageAccount_RecoveryPhraseBackup">Manuel Yedekleme</string>
     <string name="ManageAccount_LocalBackup">Yerel Yedekleme</string>
     <string name="duplicate_wallet">Cüzdanı Çoğalt</string>
+    <string name="duplicate_wallet_info">Bu özellik cüzdanınızın bir kopyasını oluşturur. Orijinal cüzdanı değiştirmeden yeni bir ad ve ek parola belirleyebilirsiniz.</string>
     <string name="ManageAccount_Unlink">Cüzdanı Sil</string>
     <string name="ManageAccount_BackupRequired_Title">Yedekleme Gerekli</string>
     <string name="ManageAccount_BackupRequired_Description">%1$s almadan önce %2$s anahtarlarınızı yedeklemeniz gerekiyor.</string>
