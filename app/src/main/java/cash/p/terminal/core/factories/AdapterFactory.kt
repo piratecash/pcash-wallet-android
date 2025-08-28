@@ -121,7 +121,7 @@ class AdapterFactory(
         )
     }
 
-    private fun getSplAdapter(wallet: Wallet, address: String): IAdapter? {
+    private suspend fun getSplAdapter(wallet: Wallet, address: String): IAdapter? {
         val solanaKitWrapper = solanaKitManager.getSolanaKitWrapper(wallet.account)
 
         return SplAdapter(solanaKitWrapper, wallet, address)
@@ -401,7 +401,7 @@ class AdapterFactory(
         )
     }
 
-    fun solanaTransactionsAdapter(source: TransactionSource): ITransactionsAdapter? {
+    suspend fun solanaTransactionsAdapter(source: TransactionSource): ITransactionsAdapter? {
         val solanaKitWrapper = solanaKitManager.getSolanaKitWrapper(source.account)
         val baseToken =
             coinManager.getToken(TokenQuery(BlockchainType.Solana, TokenType.Native)) ?: return null
