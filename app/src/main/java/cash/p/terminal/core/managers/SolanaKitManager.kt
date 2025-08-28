@@ -24,8 +24,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.rx2.asFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class SolanaKitManager(
     private val rpcSourceManager: SolanaRpcSourceManager,
@@ -49,6 +50,8 @@ class SolanaKitManager(
         private set
     private val solanaKitStoppedSubject = PublishSubject.create<Unit>()
 
+    private val mutex = Mutex()
+
     val kitStoppedObservable: Observable<Unit>
         get() = solanaKitStoppedSubject
 
@@ -57,42 +60,41 @@ class SolanaKitManager(
 
     private fun handleUpdateNetwork() {
         stopKit()
-
         solanaKitStoppedSubject.onNext(Unit)
     }
 
-    @Synchronized
-    fun getSolanaKitWrapper(account: Account): SolanaKitWrapper {
+    suspend fun getSolanaKitWrapper(account: Account): SolanaKitWrapper = mutex.withLock {
         if (this.solanaKitWrapper != null && currentAccount != account) {
             stopKit()
             solanaKitWrapper = null
         }
 
-        if (this.solanaKitWrapper == null) {
-            val accountType = account.type
-            this.solanaKitWrapper = when (accountType) {
-                is AccountType.Mnemonic -> {
-                    createKitInstance(accountType, account)
-                }
-
-                is AccountType.SolanaAddress -> {
-                    createKitInstance(accountType, account)
-                }
-
-                is AccountType.HardwareCard -> {
-                    createKitInstance(account.id)
-                }
-
-                else -> throw UnsupportedAccountException()
-            }
-            startKit()
-            subscribeToEvents()
-            useCount = 0
-            currentAccount = account
+        this.solanaKitWrapper?.let { existingWrapper ->
+            useCount++
+            return@withLock existingWrapper
         }
 
-        useCount++
-        return this.solanaKitWrapper!!
+        val accountType = account.type
+        val newWrapper = when (accountType) {
+            is AccountType.Mnemonic -> {
+                createKitInstance(accountType, account)
+            }
+            is AccountType.SolanaAddress -> {
+                createKitInstance(accountType, account)
+            }
+            is AccountType.HardwareCard -> {
+                createKitInstance(account.id)
+            }
+            else -> throw UnsupportedAccountException()
+        }
+
+        this.solanaKitWrapper = newWrapper
+        startKit()
+        subscribeToEvents()
+        useCount = 1
+        currentAccount = account
+
+        return@withLock newWrapper
     }
 
     private fun createKitInstance(
@@ -129,12 +131,15 @@ class SolanaKitManager(
         return SolanaKitWrapper(kit, null)
     }
 
-    private fun createKitInstance(
+    private suspend fun createKitInstance(
         accountId: String
     ): SolanaKitWrapper {
-        val hardwarePublicKey = runBlocking {
-            hardwarePublicKeyStorage.getKey(accountId, BlockchainType.Solana, TokenType.Native)
-        } ?: throw UnsupportedException("Hardware card does not have a public key for Solana")
+        val hardwarePublicKey = hardwarePublicKeyStorage.getKey(
+            accountId,
+            BlockchainType.Solana,
+            TokenType.Native
+        ) ?: throw UnsupportedException("Hardware card does not have a public key for Solana")
+
         val signer = Signer(
             HardwareWalletSolanaAccountSigner(
                 publicKey = PublicKey(hardwarePublicKey.key.value.fromHex()),
@@ -152,8 +157,7 @@ class SolanaKitManager(
         return SolanaKitWrapper(kit, signer)
     }
 
-    @Synchronized
-    fun unlink(account: Account) {
+    suspend fun unlink(account: Account) = mutex.withLock {
         if (account == currentAccount) {
             useCount -= 1
 
@@ -199,7 +203,6 @@ class SolanaKitManager(
             }
         }
     }
-
 }
 
 class SolanaKitWrapper(val solanaKit: SolanaKit, val signer: Signer?)
