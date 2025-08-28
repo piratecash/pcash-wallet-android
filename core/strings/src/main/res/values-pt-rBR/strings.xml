@@ -927,6 +927,7 @@
     <string name="ManageAccount_Save">Salvar</string>
     <string name="ManageAccount_RecoveryPhraseBackup">Backup Manual</string>
     <string name="ManageAccount_LocalBackup">Backup Local</string>
+    <string name="duplicate_wallet">Duplicar carteira</string>
     <string name="ManageAccount_Unlink">Desvincular Carteira</string>
     <string name="ManageAccount_BackupRequired_Title">Backup necessário</string>
     <string name="ManageAccount_BackupRequired_Description">Você precisa fazer um backup de %1$s antes de poder receber %2$s.</string>
