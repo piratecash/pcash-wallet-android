@@ -919,6 +919,7 @@
     <string name="ManageAccount_Save">Guardar</string>
     <string name="ManageAccount_RecoveryPhraseBackup">Copia de seguridad manual</string>
     <string name="ManageAccount_LocalBackup">Copia de seguridad local</string>
+    <string name="copy_wallet_suffix">copia</string>
     <string name="duplicate_wallet">Duplicar monedero</string>
     <string name="duplicate_wallet_info">Esta función crea una copia de tu monedero. Puedes establecer un nuevo nombre y frase de contraseña adicional sin cambiar el monedero original.</string>
     <string name="ManageAccount_Unlink">Eliminar Monedero</string>

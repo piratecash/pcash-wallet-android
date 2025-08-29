@@ -928,6 +928,7 @@
     <string name="ManageAccount_Save">저장</string>
     <string name="ManageAccount_RecoveryPhraseBackup">수동으로 백업합니다</string>
     <string name="ManageAccount_LocalBackup">로컬 백업</string>
+    <string name="copy_wallet_suffix">복사본</string>
     <string name="duplicate_wallet">지갑 복제</string>
     <string name="duplicate_wallet_info">이 기능은 지갑의 복사본을 만듭니다. 원본 지갑을 변경하지 않고 새 이름과 추가 암호 문구를 설정할 수 있습니다.</string>
     <string name="ManageAccount_Unlink">지갑 삭제하기</string>

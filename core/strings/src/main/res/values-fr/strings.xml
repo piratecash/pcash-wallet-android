@@ -925,6 +925,7 @@
     <string name="ManageAccount_Save">Sauvegarder</string>
     <string name="ManageAccount_RecoveryPhraseBackup">Sauvegarde manuelle</string>
     <string name="ManageAccount_LocalBackup">Sauvegarde locale</string>
+    <string name="copy_wallet_suffix">copie</string>
     <string name="duplicate_wallet">Dupliquer le portefeuille</string>
     <string name="duplicate_wallet_info">Cette fonctionnalité crée une copie de votre portefeuille. Vous pouvez définir un nouveau nom et une phrase secrète supplémentaire sans modifier le portefeuille original.</string>
     <string name="ManageAccount_Unlink">Supprimer le portefeuille</string>

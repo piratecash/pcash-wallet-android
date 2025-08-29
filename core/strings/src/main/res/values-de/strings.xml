@@ -919,6 +919,7 @@
     <string name="ManageAccount_Save">Speichern</string>
     <string name="ManageAccount_RecoveryPhraseBackup">Manuelle Sicherung</string>
     <string name="ManageAccount_LocalBackup">Lokale Sicherung</string>
+    <string name="copy_wallet_suffix">kopie</string>
     <string name="duplicate_wallet">Wallet duplizieren</string>
     <string name="duplicate_wallet_info">Diese Funktion erstellt eine Kopie Ihres Wallets. Sie können einen neuen Namen und eine zusätzliche Passphrase festlegen, ohne das ursprüngliche Wallet zu ändern.</string>
     <string name="ManageAccount_Unlink">Wallet löschen</string>
