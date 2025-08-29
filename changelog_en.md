@@ -1,3 +1,20 @@
+## Version 0.46.2 Highlights
+
+### ✨ New Features
+- **Wallet cloning (no clipboard):** 
+
+  Create an additional wallet profile on the same **seed phrase** with a **different password**—without copying the seed to the clipboard. This improves security and speeds up setting up an alternate wallet.
+
+### 🎛 Interface Improvements
+- The **Stacking** section now displays your **Premium** status
+
+### 🛠 Important Fixes
+- Fixed an app crash on the **Solana** blockchain
+- Fixed an app crash on the **Bitcoin** blockchain
+- Fixed **Demo Premium** behavior
+
+
+
 ## Version 0.46.1 Highlights
 
 ### ✨ New Features
