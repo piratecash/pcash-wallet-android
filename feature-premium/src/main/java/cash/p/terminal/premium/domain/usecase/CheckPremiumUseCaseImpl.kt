@@ -70,7 +70,7 @@ internal class CheckPremiumUseCaseImpl(
         if (_trialPremiumCache.value[currentAccount.id] == true) {
             return true
         }
-        return _premiumCache.value[currentAccount.level] ?: false
+        return _premiumCache.value[userManager.currentUserLevelFlow.value] ?: false
     }
 
     override fun isTrialPremium(): Boolean {
