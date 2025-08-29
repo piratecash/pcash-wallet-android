@@ -932,6 +932,7 @@
     <string name="duplicate_wallet">지갑 복제</string>
     <string name="duplicate_wallet_info">이 기능은 지갑의 복사본을 만듭니다. 원본 지갑을 변경하지 않고 새 이름과 추가 암호 문구를 설정할 수 있습니다.</string>
     <string name="unsupported_duplicate_wallet">이 지갑은 복제할 수 없습니다. 다른 것을 선택해 주세요.</string>
+    <string name="wallet_duplicated">지갑이 성공적으로 복제되었습니다</string>
     <string name="error_while_duplicating_wallect">지갑 복제 중 오류가 발생했습니다</string>
     <string name="ManageAccount_Unlink">지갑 삭제하기</string>
     <string name="ManageAccount_BackupRequired_Title">백업이 필요합니다</string>

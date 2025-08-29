@@ -19,10 +19,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +55,7 @@ fun FormsInputPassword(
     hide: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     enabled: Boolean = true,
+    textState: MutableState<TextFieldValue> = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) },
     onValueChange: (String) -> Unit,
     onToggleHide: () -> Unit
 ) {
@@ -86,25 +86,21 @@ fun FormsInputPassword(
                 .background(ComposeAppTheme.colors.lawrence),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            var textState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-                mutableStateOf(TextFieldValue(""))
-            }
-
             BasicTextField(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
                     .weight(1f),
-                value = textState,
+                value = textState.value,
                 onValueChange = { textFieldValue ->
 
                     val text = textFieldValue.text
                     if (maxLength == null || text.length <= maxLength) {
-                        textState = textFieldValue
+                        textState.value = textFieldValue
                         onValueChange.invoke(text)
                     } else {
                         // Need to set textState to new instance of TextFieldValue with the same values
                         // Otherwise it getting set to empty string
-                        textState = TextFieldValue(text = textState.text, selection = textState.selection)
+                        textState.value = TextFieldValue(text = textState.value.text, selection = textState.value.selection)
                     }
                 },
                 textStyle = ColoredTextStyle(
@@ -114,7 +110,7 @@ fun FormsInputPassword(
                 singleLine = singleLine,
                 cursorBrush = SolidColor(ComposeAppTheme.colors.jacob),
                 decorationBox = { innerTextField ->
-                    if (textState.text.isEmpty()) {
+                    if (textState.value.text.isEmpty()) {
                         Text(
                             hint,
                             overflow = TextOverflow.Ellipsis,

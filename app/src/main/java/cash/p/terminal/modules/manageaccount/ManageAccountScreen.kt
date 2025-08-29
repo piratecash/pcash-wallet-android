@@ -1,13 +1,17 @@
 package cash.p.terminal.modules.manageaccount
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
+import androidx.compose.material.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -30,19 +34,24 @@ import cash.p.terminal.modules.balance.ui.NoteWarning
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.BackupItem
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.KeyAction
 import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment
+import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment.Input
+import cash.p.terminal.modules.restoreaccount.RestoreAccountFragment
 import cash.p.terminal.modules.settings.main.HsSettingCell
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsImage
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
@@ -54,9 +63,6 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.navigation.slideFromBottomForResult
 
 @Composable
 internal fun ManageAccountScreen(
@@ -166,6 +172,36 @@ internal fun ManageAccountScreen(
                     account,
                     navController
                 )
+            }
+
+            if (viewState.canBeDuplicated) {
+                VSpacer(32.dp)
+                CellUniversalLawrenceSection(
+                    listOf {
+                        AccountActionWithInfoItem(
+                            title = stringResource(id = R.string.duplicate_wallet),
+                            icon = painterResource(id = R.drawable.ic_copy_24px),
+                            onInfoClick = {
+                                navController.slideFromBottom(
+                                    R.id.duplicateWalletInfoDialog,
+                                    account
+                                )
+                            },
+                            onClick = {
+                                navController.authorizedAction {
+                                    navController.slideFromRight(
+                                        R.id.restoreAccountFragment,
+                                        ManageAccountsModule.Input(
+                                            popOffOnSuccess = R.id.manageAccountsFragment,
+                                            popOffInclusive = true,
+                                            defaultRoute = RestoreAccountFragment.ROUTE_DUPLICATE,
+                                            accountId = account.id
+                                        )
+                                    )
+                                }
+                            }
+                        )
+                    })
             }
 
             VSpacer(32.dp)
@@ -508,6 +544,57 @@ private fun AccountActionItem(
 }
 
 @Composable
+private fun AccountActionWithInfoItem(
+    title: String,
+    onInfoClick: () -> Unit,
+    icon: Painter? = null,
+    iconTint: Color? = null,
+    onClick: (() -> Unit)? = null
+) {
+    RowUniversal(
+        onClick = onClick
+    ) {
+        icon?.let {
+            Icon(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .size(24.dp),
+                painter = icon,
+                contentDescription = null,
+                tint = iconTint ?: ComposeAppTheme.colors.grey
+            )
+        }
+
+        body_leah(
+            modifier = Modifier.weight(1f),
+            text = title,
+        )
+
+        Icon(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .clickable(
+                    onClick = onInfoClick,
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(bounded = false)
+                ),
+            painter = painterResource(id = R.drawable.ic_info_20),
+            contentDescription = null,
+            tint = ComposeAppTheme.colors.grey,
+        )
+
+        onClick?.let {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_arrow_right),
+                contentDescription = null,
+                tint = ComposeAppTheme.colors.grey
+            )
+            HSpacer(16.dp)
+        }
+    }
+}
+
+@Composable
 private fun YellowActionItem(
     title: String,
     icon: Painter? = null,
@@ -574,7 +661,8 @@ private fun ManageAccountScreenPreview() {
                     KeyAction.ForgotAccessCode,
                 ),
                 backupActions = emptyList(),
-                signedHashes = 2
+                signedHashes = 2,
+                canBeDuplicated = true
             ),
             account = Account(
                 id = "id",

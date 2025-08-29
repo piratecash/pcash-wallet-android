@@ -937,6 +937,7 @@
     <string name="duplicate_wallet">Wallet dupliceren</string>
     <string name="duplicate_wallet_info">Deze functie maakt een kopie van je wallet. Je kunt een nieuwe naam en extra wachtwoordzin instellen zonder de originele wallet te wijzigen.</string>
     <string name="unsupported_duplicate_wallet">Deze wallet kan niet worden gedupliceerd. Selecteer een andere.</string>
+    <string name="wallet_duplicated">Wallet succesvol gedupliceerd</string>
     <string name="error_while_duplicating_wallect">Fout bij het dupliceren van de wallet</string>
     <string name="ManageAccount_Unlink">Delete Wallet</string>
     <string name="ManageAccount_BackupRequired_Title">Backup Required</string>

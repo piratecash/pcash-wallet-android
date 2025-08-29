@@ -936,6 +936,7 @@
     <string name="duplicate_wallet">تكرار المحفظة</string>
     <string name="duplicate_wallet_info">هذه الميزة تنشئ نسخة من محفظتك. يمكنك تعيين اسم جديد وعبارة مرور إضافية دون تغيير المحفظة الأصلية.</string>
     <string name="unsupported_duplicate_wallet">لا يمكن تكرار هذه المحفظة. يرجى اختيار أخرى.</string>
+    <string name="wallet_duplicated">تم تكرار المحفظة بنجاح</string>
     <string name="error_while_duplicating_wallect">خطأ في تكرار المحفظة</string>
     <string name="ManageAccount_Unlink">Delete Wallet</string>
     <string name="ManageAccount_BackupRequired_Title">Backup Required</string>

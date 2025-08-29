@@ -363,17 +363,15 @@ fun BalanceItems(
                         HSpacer(8.dp)
                     }
 
-                    if (accountViewItem.isCoinManagerEnabled) {
-                        ButtonSecondaryCircle(
-                            icon = R.drawable.ic_manage_2,
-                            contentDescription = stringResource(R.string.ManageCoins_title),
-                            onClick = {
-                                navController.slideFromBottomForResult<DisplayOptionsFragment.Result>(R.id.displayOptionsFragment) {
-                                    viewModel.updatePriceChangeUI()
-                                }
+                    ButtonSecondaryCircle(
+                        icon = R.drawable.ic_manage_2,
+                        contentDescription = stringResource(R.string.ManageCoins_title),
+                        onClick = {
+                            navController.slideFromBottomForResult<DisplayOptionsFragment.Result>(R.id.displayOptionsFragment) {
+                                viewModel.updatePriceChangeUI()
                             }
-                        )
-                    }
+                        }
+                    )
 
                     HSpacer(16.dp)
                 }

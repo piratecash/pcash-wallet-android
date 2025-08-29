@@ -3,16 +3,21 @@ package cash.p.terminal.modules.displayoptions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAccountManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 internal class DisplayOptionsViewModel(
+    private val accountManager: IAccountManager,
     private val localStorage: ILocalStorage
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(DisplayOptionsUiState())
+    private val _uiState = MutableStateFlow(DisplayOptionsUiState(
+        isCoinManagerEnabled = true
+    ))
     val uiState: StateFlow<DisplayOptionsUiState> = _uiState.asStateFlow()
 
     init {
@@ -25,6 +30,7 @@ internal class DisplayOptionsViewModel(
             val displayDiffOptionType = localStorage.displayDiffOptionType
 
             _uiState.value = DisplayOptionsUiState(
+                isCoinManagerEnabled = accountManager.activeAccount?.type !is AccountType.MnemonicMonero,
                 pricePeriod = pricePeriod,
                 displayDiffOptionType = displayDiffOptionType,
             )
@@ -71,6 +77,7 @@ internal class DisplayOptionsViewModel(
 }
 
 internal data class DisplayOptionsUiState(
+    val isCoinManagerEnabled : Boolean,
     val pricePeriod: DisplayPricePeriod = DisplayPricePeriod.ONE_DAY,
     val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
 )

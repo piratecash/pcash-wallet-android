@@ -54,18 +54,19 @@ internal fun DisplayOptionsScreen(
                     .fillMaxHeight()
                     .verticalScroll(rememberScrollState())
             ) {
-                Spacer(modifier = Modifier.height(12.dp))
-
-                CellUniversalLawrenceSection(
-                    listOf {
-                        HsSettingCell(
-                            title = R.string.ManageCoins_title,
-                            onClick = {
-                                navController.slideFromRight(R.id.manageWalletsFragment)
-                            }
-                        )
-                    }
-                )
+                if (uiState.isCoinManagerEnabled) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    CellUniversalLawrenceSection(
+                        listOf {
+                            HsSettingCell(
+                                title = R.string.ManageCoins_title,
+                                onClick = {
+                                    navController.slideFromRight(R.id.manageWalletsFragment)
+                                }
+                            )
+                        }
+                    )
+                }
 
                 InfoText(
                     text = stringResource(R.string.Market_FilterSection_PriceParameters).uppercase(),
@@ -125,6 +126,7 @@ private fun DisplayOptionsScreenPreview() {
         DisplayOptionsScreen(
             navController = rememberNavController(),
             uiState = DisplayOptionsUiState(
+                isCoinManagerEnabled = true,
                 pricePeriod = DisplayPricePeriod.ONE_DAY,
                 displayDiffOptionType = DisplayDiffOptionType.BOTH
             ),

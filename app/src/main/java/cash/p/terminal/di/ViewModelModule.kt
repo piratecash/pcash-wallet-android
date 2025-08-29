@@ -13,6 +13,9 @@ import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsV
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
+import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
+import cash.p.terminal.wallet.Account
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -30,4 +33,16 @@ val viewModelModule = module {
     viewModelOf(::AboutPremiumViewModel)
     viewModelOf(::PremiumSettingsViewModel)
     viewModelOf(::DisplayOptionsViewModel)
+    viewModel { (accountToCopy: Account) ->
+        DuplicateWalletViewModel(
+            accountToCopy = accountToCopy,
+            accountManager = get(),
+            accountFactory = get(),
+            moneroWalletUseCase = get(),
+            enabledWalletStorage = get(),
+            walletManager = get(),
+            restoreSettingsManager = get()
+        )
+    }
+
 }

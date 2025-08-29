@@ -415,6 +415,9 @@
         android:id="@+id/unlinkConfirmationDialog"
         android:name="cash.p.terminal.modules.unlinkaccount.UnlinkAccountDialog" />
     <dialog
+        android:id="@+id/duplicateWalletInfoDialog"
+        android:name="cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletInfoDialog" />
+    <dialog
         android:id="@+id/feeSettingsInfoDialog"
         android:name="cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog" />
     <dialog

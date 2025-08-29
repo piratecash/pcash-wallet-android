@@ -13,6 +13,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class MoneroWalletUseCase(
     private val appContext: Context,
@@ -75,7 +77,66 @@ class MoneroWalletUseCase(
         }
     }
 
-    suspend fun restoreFromBip39(words: List<String>, passphrase: String, height: Long): AccountType.MnemonicMonero? =
+    suspend fun copyWalletFiles(fromAccount: AccountType.MnemonicMonero): AccountType.MnemonicMonero? =
+        withContext(Dispatchers.IO) {
+            val newWalletInnerName = generateMoneroWalletUseCase() ?: return@withContext null
+
+            val walletFolder: File = Helper.getWalletRoot(appContext)
+            if (!walletFolder.isDirectory()) {
+                Timber.e("Wallet dir " + walletFolder.getAbsolutePath() + "is not a directory")
+                return@withContext null
+            }
+
+            return@withContext if (copyFiles(
+                    walletFolder,
+                    fromAccount.walletInnerName,
+                    newWalletInnerName
+                )
+            ) {
+                AccountType.MnemonicMonero(
+                    words = fromAccount.words,
+                    password = fromAccount.password,
+                    height = fromAccount.height,
+                    walletInnerName = newWalletInnerName
+                )
+            } else {
+                null
+            }
+        }
+
+    private suspend fun copyFiles(
+        dir: File,
+        fromWalletInnerName: String,
+        newWalletInnerName: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (!dir.isDirectory) return@withContext false
+
+        dir.listFiles()?.forEach { file ->
+            val name = file.name
+            if (name.startsWith("$fromWalletInnerName.")) {
+                val extension = name.substringAfter('.', "")
+                val newName = if (extension.isNotEmpty()) {
+                    "$newWalletInnerName.$extension"
+                } else {
+                    newWalletInnerName
+                }
+                val target = File(dir, newName)
+                if (target.exists()) {
+                    Timber.d("Target file $target already exists, skipping copy")
+                    return@withContext false
+                }
+                Files.copy(file.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+
+        return@withContext true
+    }
+
+    suspend fun restoreFromBip39(
+        words: List<String>,
+        passphrase: String,
+        height: Long
+    ): AccountType.MnemonicMonero? =
         restore(MoneroWalletSeedConverter.getLegacySeedFromBip39(words, passphrase), height)
 
     suspend fun restore(words: List<String>, height: Long): AccountType.MnemonicMonero? =
