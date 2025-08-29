@@ -961,6 +961,8 @@
     <string name="copy_wallet_suffix">копия</string>
     <string name="duplicate_wallet">Скопировать кошелек</string>
     <string name="duplicate_wallet_info">Эта функция создает копию вашего кошелька. Вы можете установить новое имя и дополнительную кодовую фразу, не изменяя исходный кошелек.</string>
+    <string name="unsupported_duplicate_wallet">Этот кошелек нельзя скопировать. Пожалуйста, выберите другой.</string>
+    <string name="error_while_duplicating_wallect">Ошибка при копировании кошелька</string>
     <string name="ManageAccount_Unlink">Удалить кошелек</string>
     <string name="ManageAccount_BackupRequired_Title">Необходима резервная копия</string>
     <string name="ManageAccount_BackupRequired_Description">Вам нужно сделать резервную копию %1$s перед получением %2$s.</string>

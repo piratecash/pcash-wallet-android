@@ -928,6 +928,8 @@
     <string name="copy_wallet_suffix">copie</string>
     <string name="duplicate_wallet">Dupliquer le portefeuille</string>
     <string name="duplicate_wallet_info">Cette fonctionnalité crée une copie de votre portefeuille. Vous pouvez définir un nouveau nom et une phrase secrète supplémentaire sans modifier le portefeuille original.</string>
+    <string name="unsupported_duplicate_wallet">Ce portefeuille ne peut pas être dupliqué. Veuillez en sélectionner un autre.</string>
+    <string name="error_while_duplicating_wallect">Erreur lors de la duplication du portefeuille</string>
     <string name="ManageAccount_Unlink">Supprimer le portefeuille</string>
     <string name="ManageAccount_BackupRequired_Title">Sauvegarde requise</string>
     <string name="ManageAccount_BackupRequired_Description">Vous devez sauvegarder %1$s avant de recevoir %2$s.</string>

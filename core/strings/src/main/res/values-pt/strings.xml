@@ -932,6 +932,8 @@
     <string name="copy_wallet_suffix">cópia</string>
     <string name="duplicate_wallet">Duplicar carteira</string>
     <string name="duplicate_wallet_info">Esta funcionalidade cria uma cópia da sua carteira. Você pode definir um novo nome e frase de senha adicional sem alterar a carteira original.</string>
+    <string name="unsupported_duplicate_wallet">Esta carteira não pode ser duplicada. Por favor, selecione outra.</string>
+    <string name="error_while_duplicating_wallect">Erro ao duplicar a carteira</string>
     <string name="ManageAccount_Unlink">Excluir Carteira</string>
     <string name="ManageAccount_BackupRequired_Title">Backup necessário</string>
     <string name="ManageAccount_BackupRequired_Description">Você precisa fazer um backup de %1$s antes de poder receber %2$s.</string>

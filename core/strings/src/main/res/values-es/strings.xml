@@ -922,6 +922,8 @@
     <string name="copy_wallet_suffix">copia</string>
     <string name="duplicate_wallet">Duplicar monedero</string>
     <string name="duplicate_wallet_info">Esta función crea una copia de tu monedero. Puedes establecer un nuevo nombre y frase de contraseña adicional sin cambiar el monedero original.</string>
+    <string name="unsupported_duplicate_wallet">Este monedero no se puede duplicar. Por favor, selecciona otro.</string>
+    <string name="error_while_duplicating_wallect">Error al duplicar el monedero</string>
     <string name="ManageAccount_Unlink">Eliminar Monedero</string>
     <string name="ManageAccount_BackupRequired_Title">Se requiere una copia de seg</string>
     <string name="ManageAccount_BackupRequired_Description">Necesita una Copia de seguridad %1$s antes de poder recibir %2$s.</string>

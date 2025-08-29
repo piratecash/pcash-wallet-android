@@ -1280,6 +1280,7 @@ Proceed only if you\'re sure.</string>
     <string name="copy_wallet_suffix">copy</string>
     <string name="duplicate_wallet">Duplicate Wallet</string>
     <string name="duplicate_wallet_info">This feature creates a copy of your wallet. You can set a new name and additional passphrase without changing the original wallet.</string>
+    <string name="error_while_duplicating_wallect">Error duplicating wallet</string>
     <string name="unsupported_duplicate_wallet">This wallet cannot be duplicated. Please select another one.</string>
     <string name="ManageAccount_Unlink">Delete Wallet</string>
     <string name="ManageAccount_BackupRequired_Title">Backup Required</string>
