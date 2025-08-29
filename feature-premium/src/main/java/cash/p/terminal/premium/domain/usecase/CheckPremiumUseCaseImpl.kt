@@ -35,7 +35,7 @@ internal class CheckPremiumUseCaseImpl(
 
     private val mutex = Mutex()
 
-    private val _premiumCache = MutableStateFlow<Map<Int, Boolean>>(emptyMap())
+    private val _premiumCache = MutableStateFlow<Map<Int, PremiumType>>(emptyMap())
     private val _trialPremiumCache = MutableStateFlow<Map<String, Boolean>>(emptyMap())
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -65,12 +65,12 @@ internal class CheckPremiumUseCaseImpl(
         }
     }
 
-    override fun isAnyPremium(): Boolean {
-        val currentAccount = accountManager.activeAccount ?: return false
+    override fun getPremiumType(): PremiumType {
+        val currentAccount = accountManager.activeAccount ?: return PremiumType.NONE
         if (_trialPremiumCache.value[currentAccount.id] == true) {
-            return true
+            return PremiumType.TRIAL
         }
-        return _premiumCache.value[userManager.currentUserLevelFlow.value] ?: false
+        return _premiumCache.value[userManager.currentUserLevelFlow.value] ?: PremiumType.NONE
     }
 
     override fun isTrialPremium(): Boolean {
@@ -78,7 +78,7 @@ internal class CheckPremiumUseCaseImpl(
         return _trialPremiumCache.value[currentAccount.id] == true
     }
 
-    override suspend fun update(): Boolean = mutex.withLock {
+    override suspend fun update(): PremiumType = mutex.withLock {
         _premiumCache.value = emptyMap()
 
         val currentLevel = userManager.currentUserLevelFlow.value
@@ -89,24 +89,24 @@ internal class CheckPremiumUseCaseImpl(
             updateCache(currentLevel, cachedResult)
         }
 
-        if (cachedResult == null || !cachedResult) {
+        if (cachedResult == null || cachedResult == PremiumType.NONE) {
             updateTrialPremium()
         }
 
         if (cachedResult == null) {
             val premiumStatus = checkPremiumStatusByBalance(firstAccountToCheck, currentLevel)
-            val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: false
+            val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: PremiumType.NONE
             updateCache(currentLevel, result)
         }
 
-        return isAnyPremium()
+        return getPremiumType()
     }
 
-    private fun updateCache(level: Int, isPremium: Boolean) {
-        _premiumCache.value = _premiumCache.value + (level to isPremium)
+    private fun updateCache(level: Int, premiumType: PremiumType) {
+        _premiumCache.value = _premiumCache.value + (level to premiumType)
     }
 
-    private suspend fun checkCachedPremiumStatus(accountToCheck: PremiumUser?): Boolean? {
+    private suspend fun checkCachedPremiumStatus(accountToCheck: PremiumUser?): PremiumType? {
         if (accountToCheck == null) return null
 
         if (accountManager.account(accountToCheck.accountId) == null) {
@@ -124,7 +124,7 @@ internal class CheckPremiumUseCaseImpl(
     private suspend fun checkPremiumStatusByBalance(
         firstAccountToCheck: PremiumUser?,
         currentLevel: Int
-    ): Boolean? {
+    ): PremiumType? {
         val accountsToCheck = getAccountsToCheck(firstAccountToCheck?.accountId)
         deleteRemovedAccounts(accountsToCheck)
 
@@ -143,8 +143,13 @@ internal class CheckPremiumUseCaseImpl(
                 val result = isPremiumByBalance(coinType, address)
                 balanceReceived = balanceReceived || result != null
                 if (result == true) {
-                    updatePremiumData(address, currentLevel, coinType, account, isPremium = true)
-                    return true
+                    val premiumType = if(coinType == PremiumConfig.COIN_TYPE_PIRATE) {
+                        PremiumType.PIRATE
+                    } else {
+                        PremiumType.COSA
+                    }
+                    updatePremiumData(address, currentLevel, coinType, account, premiumType = premiumType)
+                    return premiumType
                 }
             }
         }
@@ -162,11 +167,11 @@ internal class CheckPremiumUseCaseImpl(
                 currentLevel = currentLevel,
                 coinType = coinType,
                 account = lastCheckedAccount,
-                isPremium = false
+                premiumType = PremiumType.NONE
             )
         }
 
-        return false
+        return PremiumType.NONE
     }
 
     private suspend fun deleteRemovedAccounts(accounts: List<Account>) {
@@ -181,14 +186,14 @@ internal class CheckPremiumUseCaseImpl(
         currentLevel: Int,
         coinType: String,
         account: Account,
-        isPremium: Boolean
+        premiumType: PremiumType
     ) {
         premiumUserRepository.insert(
             PremiumUser(
                 address = address,
                 level = currentLevel,
                 coinType = coinType,
-                isPremium = isPremium,
+                isPremium = premiumType,
                 accountId = account.id,
                 lastCheckDate = System.currentTimeMillis()
             )

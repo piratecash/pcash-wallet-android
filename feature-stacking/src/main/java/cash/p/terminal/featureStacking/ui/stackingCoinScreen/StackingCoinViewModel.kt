@@ -3,6 +3,7 @@ package cash.p.terminal.featureStacking.ui.stackingCoinScreen
 import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -11,8 +12,10 @@ import cash.p.terminal.featureStacking.R
 import cash.p.terminal.featureStacking.ui.entities.PayoutViewItem
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
+import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
+import cash.p.terminal.premium.domain.usecase.PremiumType
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BuildConfig
@@ -79,7 +82,10 @@ internal abstract class StackingCoinViewModel(
     val uiState: State<StackingCoinUIState> get() = _uiState
     private var wallet: Wallet? = null
 
-    var isPremium: Boolean by mutableStateOf(false)
+    var premiumType: PremiumType by mutableStateOf(PremiumType.NONE)
+        private set
+
+    var daysPremiumLeft: Int by mutableIntStateOf(0)
         private set
 
     init {
@@ -89,7 +95,11 @@ internal abstract class StackingCoinViewModel(
             }
         }
         viewModelScope.launch {
-            isPremium = checkPremiumUseCase.update()
+            premiumType = checkPremiumUseCase.update()
+        }
+
+        viewModelScope.launch {
+            daysPremiumLeft = (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft ?: 15
         }
     }
 

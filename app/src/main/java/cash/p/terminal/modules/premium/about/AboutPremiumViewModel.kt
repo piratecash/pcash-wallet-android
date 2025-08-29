@@ -64,7 +64,7 @@ class AboutPremiumViewModel(
                     val result = checkPremiumUseCase.activateTrialPremium(currentAccount.id)
 
                     uiState = uiState.copy(
-                        hasPremium = checkPremiumUseCase.isAnyPremium(),
+                        hasPremium = checkPremiumUseCase.getPremiumType().isPremium(),
                         demoDaysLeft = (result as? TrialPremiumResult.DemoActive)?.daysLeft,
                         activationViewState = ViewState.Success
                     )
@@ -101,7 +101,7 @@ class AboutPremiumViewModel(
         viewModelScope.launch {
             try {
                 checkPremiumUseCase.update()
-                val isPremium = checkPremiumUseCase.isAnyPremium()
+                val isPremium = checkPremiumUseCase.getPremiumType()
                 val isTrialPremium = checkPremiumUseCase.isTrialPremium()
 
                 val infoToLoad = if (isTrialPremium) {
@@ -159,7 +159,7 @@ class AboutPremiumViewModel(
                 uiState = uiState.copy(
                     viewState = ViewState.Success,
                     markdownBlocks = markdownBlocks,
-                    hasPremium = isPremium,
+                    hasPremium = isPremium.isPremium(),
                     demoDaysLeft = demoDaysLeft,
                     hasEligibleWallets = hasEligibleWallets
                 )

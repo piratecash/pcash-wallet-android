@@ -194,7 +194,7 @@ class UnifiedAddressCheckerViewModel(
             val isClear = when (type) {
                 is IssueType.SmartContract -> {
                     val blockchainType = checkNotNull(address.blockchainType)
-                    if(!checkPremiumUseCase.isAnyPremium()) {
+                    if(!checkPremiumUseCase.getPremiumType().isPremium()) {
                         throw PremiumNeededException()
                     }
                     checkNotNull(
