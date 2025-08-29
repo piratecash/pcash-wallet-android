@@ -91,6 +91,9 @@ data class Account(
     }
 }
 
+fun Account.canBeDuplicated(): Boolean
+    = type is AccountType.Mnemonic || type is AccountType.MnemonicMonero
+
 fun Account.eligibleForPremium(): Boolean
     = premiumEligibility() == PremiumAccountEligibility.ELIGIBLE
 

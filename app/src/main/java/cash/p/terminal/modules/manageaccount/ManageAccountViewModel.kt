@@ -14,6 +14,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.canBeDuplicated
 import cash.p.terminal.wallet.entities.TokenType
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.tangem.common.card.Card
@@ -41,7 +42,8 @@ class ManageAccountViewModel(
             headerNote = account.headerNote(false),
             keyActions = getKeyActions(account),
             backupActions = getBackupItems(account),
-            signedHashes = (account.type as? AccountType.HardwareCard)?.signedHashes
+            signedHashes = (account.type as? AccountType.HardwareCard)?.signedHashes,
+            canBeDuplicated = account.canBeDuplicated()
         )
     )
         private set

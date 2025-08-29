@@ -957,6 +957,12 @@
     <string name="ManageAccount_Save">Зберегти</string>
     <string name="ManageAccount_RecoveryPhraseBackup">Ручне резервне \nкопіювання</string>
     <string name="ManageAccount_LocalBackup">Локальне резервне \nкопіювання</string>
+    <string name="copy_wallet_suffix">копія</string>
+    <string name="duplicate_wallet">Дублювати гаманець</string>
+    <string name="duplicate_wallet_info">Ця функція створює копію вашого гаманця. Ви можете встановити нову назву та додаткову кодову фразу, не змінюючи оригінальний гаманець.</string>
+    <string name="unsupported_duplicate_wallet">Цей гаманець не можна дублювати. Будь ласка, виберіть інший.</string>
+    <string name="wallet_duplicated">Гаманець успішно дубльовано</string>
+    <string name="error_while_duplicating_wallect">Помилка при дублюванні гаманця</string>
     <string name="ManageAccount_Unlink">Видалити гаманець</string>
     <string name="ManageAccount_BackupRequired_Title">Необхідна резервна копія</string>
     <string name="ManageAccount_BackupRequired_Description">Вам потрібно зробити резервну копію %1$s перед отриманням %2$s.</string>

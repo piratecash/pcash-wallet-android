@@ -1,8 +1,10 @@
 package cash.p.terminal.di
 
 import androidx.preference.PreferenceManager
+import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITorManager
+import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
@@ -77,6 +79,7 @@ val managerModule = module {
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)
     singleOf(::DefaultUserManager) bind UserManager::class
+    singleOf(::AccountFactory) bind IAccountFactory::class
     factoryOf(::WalletActivator)
 
     singleOf(::Mnemonic)

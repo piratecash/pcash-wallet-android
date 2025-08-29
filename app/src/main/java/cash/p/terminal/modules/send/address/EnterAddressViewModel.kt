@@ -66,7 +66,7 @@ class EnterAddressViewModel(
         }
     private val addressCheckByContractEnabled: Boolean
         get() = if (addressCheckerSkippable) {
-            localStorage.recipientAddressContractCheckEnabled && checkPremiumUseCase.isAnyPremium()
+            localStorage.recipientAddressContractCheckEnabled && checkPremiumUseCase.getPremiumType().isPremium()
         } else {
             true
         }
@@ -148,7 +148,7 @@ class EnterAddressViewModel(
         return addressCheckManager.availableCheckTypes(token).filter {
             (addressCheckByContractEnabled && it == AddressCheckType.SmartContract) ||
                     (addressCheckByBaseEnabled && it != AddressCheckType.SmartContract) ||
-                    (it.isPremiumRequired() && !checkPremiumUseCase.isAnyPremium())// To promote in list
+                    (it.isPremiumRequired() && !checkPremiumUseCase.getPremiumType().isPremium())// To promote in list
         }
     }
 
@@ -190,7 +190,7 @@ class EnterAddressViewModel(
                     withContext(Dispatchers.IO) {
                         availableCheckTypes.forEach { type ->
                             val checkResult = try {
-                                if (type.isPremiumRequired() && !checkPremiumUseCase.isAnyPremium()) {
+                                if (type.isPremiumRequired() && !checkPremiumUseCase.getPremiumType().isPremium()) {
                                     AddressCheckResult.NotAllowed
                                 } else if (addressCheckManager.isClear(type, address, token)) {
                                     AddressCheckResult.Clear

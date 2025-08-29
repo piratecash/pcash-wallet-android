@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import cash.p.terminal.premium.data.dao.BnbPremiumAddressDao
 import cash.p.terminal.premium.data.dao.DemoPremiumUserDao
 import cash.p.terminal.premium.data.dao.PremiumUserDao
 import cash.p.terminal.premium.data.database.migrations.Migration_5_6
+import cash.p.terminal.premium.data.database.migrations.Migration_6_7
 import cash.p.terminal.premium.data.model.BnbPremiumAddress
 import cash.p.terminal.premium.data.model.DemoPremiumUser
 import cash.p.terminal.premium.data.model.PremiumUser
@@ -18,9 +20,10 @@ import cash.p.terminal.premium.data.model.PremiumUser
         DemoPremiumUser::class,
         BnbPremiumAddress::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
+@TypeConverters(PremiumTypeConverter::class)
 internal abstract class PremiumDatabase : RoomDatabase() {
 
     abstract fun premiumUserDao(): PremiumUserDao
@@ -37,7 +40,8 @@ internal abstract class PremiumDatabase : RoomDatabase() {
                 DATABASE_NAME
             )
                 .addMigrations(
-                    Migration_5_6
+                    Migration_5_6,
+                    Migration_6_7,
                 )
                 .build()
         }

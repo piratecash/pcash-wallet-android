@@ -151,8 +151,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val walletActivator: WalletActivator by inject(WalletActivator::class.java)
         val tokenAutoEnableManager: TokenAutoEnableManager by inject(TokenAutoEnableManager::class.java)
         val accountManager: IAccountManager by inject(IAccountManager::class.java)
-        val userManager: DefaultUserManager  by inject(DefaultUserManager::class.java)
-        lateinit var accountFactory: IAccountFactory
+        val userManager: DefaultUserManager by inject(DefaultUserManager::class.java)
+        val accountFactory: IAccountFactory by inject(AccountFactory::class.java)
         lateinit var backupManager: IBackupManager
         lateinit var proFeatureAuthorizationManager: ProFeaturesAuthorizationManager
         val zcashBirthdayProvider: ZcashBirthdayProvider by inject(ZcashBirthdayProvider::class.java)
@@ -250,7 +250,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             ProFeaturesAuthorizationManager(proFeaturesStorage, accountManager, appConfigProvider)
 
         networkManager = NetworkManager()
-        accountFactory = AccountFactory(accountManager, userManager)
         backupManager = BackupManager(accountManager)
 
         KeyStoreManager(

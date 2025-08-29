@@ -11,7 +11,7 @@ internal class PremiumSettingsViewModel(
     private var checkEnabled = localStorage.recipientAddressContractCheckEnabled
 
     override fun createState() = PremiumSettingsUiState(
-        checkEnabled = checkEnabled && checkPremiumUseCase.isAnyPremium()
+        checkEnabled = checkEnabled && checkPremiumUseCase.getPremiumType().isPremium()
     )
 
     fun setAddressContractChecking(enabled: Boolean) {

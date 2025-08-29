@@ -10,7 +10,12 @@ import kotlinx.parcelize.Parcelize
 
 object ManageAccountsModule {
     @Parcelize
-    data class Input(val popOffOnSuccess: Int, val popOffInclusive: Boolean) : Parcelable
+    data class Input(
+        val popOffOnSuccess: Int,
+        val popOffInclusive: Boolean,
+        val defaultRoute: String? = null,
+        val accountId: String? = null
+    ) : Parcelable
 
     class Factory(private val mode: Mode) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

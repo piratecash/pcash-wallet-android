@@ -267,7 +267,7 @@ fun Context.hasNFC(): Boolean {
 
 fun NavController.premiumAction(block: () -> Unit) {
     val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
-    if (checkPremiumUseCase.isAnyPremium()) {
+    if (checkPremiumUseCase.getPremiumType().isPremium()) {
         block.invoke()
     } else {
         slideFromBottomForResult<AboutPremiumFragment.Result>(
