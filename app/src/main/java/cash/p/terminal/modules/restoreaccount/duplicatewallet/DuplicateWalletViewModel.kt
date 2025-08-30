@@ -189,8 +189,8 @@ class DuplicateWalletViewModel(
                 name = uiState.accountName,
                 type = type,
                 origin = accountToCopy.origin,
-                backedUp = false,
-                fileBackedUp = false
+                backedUp = accountToCopy.isBackedUp,
+                fileBackedUp = accountToCopy.isFileBackedUp
             )
             copyAccount(newAccount)
         }
