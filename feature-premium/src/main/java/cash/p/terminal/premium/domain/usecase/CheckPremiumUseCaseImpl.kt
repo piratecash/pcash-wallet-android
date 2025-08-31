@@ -82,9 +82,14 @@ internal class CheckPremiumUseCaseImpl(
         _premiumCache.value = emptyMap()
 
         val currentLevel = userManager.currentUserLevelFlow.value
-        val firstAccountToCheck = premiumUserRepository.getByLevel(currentLevel)
+        var firstAccountToCheck = premiumUserRepository.getByLevel(currentLevel)
 
-        val cachedResult = checkCachedPremiumStatus(firstAccountToCheck)
+        val cachedResult = try {
+            checkCachedPremiumStatus(firstAccountToCheck)
+        } catch (_: Exception) {
+            firstAccountToCheck = null
+            null
+        }
         if (cachedResult != null) {
             updateCache(currentLevel, cachedResult)
         }
@@ -110,9 +115,9 @@ internal class CheckPremiumUseCaseImpl(
         if (accountToCheck == null) return null
 
         if (accountManager.account(accountToCheck.accountId) == null) {
-            premiumUserRepository.deleteByAccount(accountToCheck.address)
+            premiumUserRepository.deleteByAccount(accountToCheck.accountId)
             getBnbAddressUseCase.deleteBnbAddress(accountToCheck.accountId)
-            return null
+            error("Account not found")
         }
 
         val isWithinCheckInterval = System.currentTimeMillis() - accountToCheck.lastCheckDate <
