@@ -20,9 +20,8 @@ import cash.p.terminal.modules.sendevmtransaction.ViewItem
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.modules.walletconnect.request.WCChainData
 import cash.p.terminal.strings.helpers.Translator
-import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.toHexStringWithLeadingZero
+import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,6 +45,7 @@ internal class WCSendEthereumTransactionRequestViewModel(
     )
 
     private var sendTransactionState: SendTransactionServiceState
+
     init {
         sendTransactionState = sendTransactionService.stateFlow.value
 
@@ -58,7 +58,9 @@ internal class WCSendEthereumTransactionRequestViewModel(
 
         sendTransactionService.start(viewModelScope)
 
-        sendTransactionService.setSendTransactionData(SendTransactionData.Evm(transactionData, null))
+        viewModelScope.launch {
+            sendTransactionService.setSendTransactionData(SendTransactionData.Evm(transactionData, null))
+        }
     }
 
     override fun createState() = WCSendEthereumTransactionRequestUiState(
@@ -88,7 +90,7 @@ internal class WCSendEthereumTransactionRequestViewModel(
                 chain?.let {
                     add(
                         ViewItem.Value(
-                            it.chain.name,
+                            it.name,
                             it.address ?: "",
                             ValueType.Regular
                         )
@@ -105,7 +107,7 @@ internal class WCSendEthereumTransactionRequestViewModel(
         val transactionHash = sendResult.fullTransaction.transaction.hash
 
         WCDelegate.sessionRequestEvent?.let { sessionRequest ->
-            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, transactionHash.toHexStringWithLeadingZero())
+            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, transactionHash.toHexString())
         }
     }
 

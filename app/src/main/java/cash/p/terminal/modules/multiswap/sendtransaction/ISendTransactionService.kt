@@ -35,7 +35,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     protected val wallet: Wallet by lazy { runBlocking { walletUseCase.createWalletIfNotExists(token)!! } }
     protected val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
-    protected val adapter = (adapterManager.getAdapterForWalletOld(wallet) as T)
+    protected val adapter: T = adapterManager.getAdapterForWallet(wallet)!!
     private val baseCurrency = App.currencyManager.baseCurrency
     protected var uuid = UUID.randomUUID().toString()
 
@@ -52,7 +52,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     protected val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     abstract fun start(coroutineScope: CoroutineScope)
-    abstract fun setSendTransactionData(data: SendTransactionData)
+    abstract suspend fun setSendTransactionData(data: SendTransactionData)
 
     @Composable
     abstract fun GetSettingsContent(navController: NavController)

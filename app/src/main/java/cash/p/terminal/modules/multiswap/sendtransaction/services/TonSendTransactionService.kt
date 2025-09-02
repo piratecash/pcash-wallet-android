@@ -152,7 +152,7 @@ class TonSendTransactionService(
 
     }
 
-    override fun setSendTransactionData(data: SendTransactionData) {
+    override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Common)
         amountService.setAmount(data.amount)
         addressService.setAddress(addressHandlerTon.parseAddress(data.address))

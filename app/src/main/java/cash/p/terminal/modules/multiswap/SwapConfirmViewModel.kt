@@ -312,7 +312,7 @@ class SwapConfirmViewModel(
                     // Build a dummy service to avoid null pointer exceptions
                     object : ISendTransactionService<Nothing>(quote.tokenIn) {
                         override fun start(coroutineScope: CoroutineScope) = Unit
-                        override fun setSendTransactionData(data: SendTransactionData) = Unit
+                        override suspend fun setSendTransactionData(data: SendTransactionData) = Unit
 
                         @Composable
                         override fun GetSettingsContent(navController: NavController) = Unit

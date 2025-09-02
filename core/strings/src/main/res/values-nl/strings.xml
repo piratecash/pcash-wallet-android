@@ -438,6 +438,8 @@
     <string name="WalletConnect_Status_Online">Online</string>
     <string name="WalletConnect_Status_Connecting">Connecting…</string>
     <string name="WalletConnect_NewConnect">New Connection</string>
+    <string name="WalletConnect_SendTransactionRequest_Title">Transactie Versturen</string>
+    <string name="WalletConnect_SendTransactionRequest_ButtonSend">Versturen</string>
     <string name="WalletConnect_SignMessageRequest_Title">Sign Request</string>
     <string name="WalletConnect_SignMessageRequest_ShowMessageTitle">Message to sign</string>
     <string name="WalletConnect_SignMessageRequest_ButtonSign">Sign</string>

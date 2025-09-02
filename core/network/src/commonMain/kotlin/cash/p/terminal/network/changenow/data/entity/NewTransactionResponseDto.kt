@@ -13,4 +13,6 @@ internal class NewTransactionResponseDto(
     val refundAddress: String? = null,
     val refundExtraId: String? = null,
     val payoutExtraId: String? = null,
+    val payinExtraId: String? = null,
+    val payinExtraIdName: String? = null,
 )

@@ -396,7 +396,6 @@ class ChangeNowProvider(
             BlockchainType.PirateCash,
             BlockchainType.Zcash,
             BlockchainType.Solana,
-            BlockchainType.Stellar,
             BlockchainType.Ton,
             BlockchainType.Tron,
             BlockchainType.Monero,
@@ -411,6 +410,13 @@ class ChangeNowProvider(
                     utxoFilters = UtxoFilters(),
                     recommendedGasRate = null,
                     feesMap = null,
+                )
+            }
+            BlockchainType.Stellar -> {
+                SendTransactionData.Stellar.Regular(
+                    amount = amountIn,
+                    address = transaction.payinAddress,
+                    memo = transaction.mandatoryMemo
                 )
             }
 

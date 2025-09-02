@@ -105,7 +105,14 @@ internal class Eip20ApproveViewModel(
             Unlimited -> eip20Adapter.buildApproveUnlimitedTransactionData(Address(spenderAddress))
         }
 
-        sendTransactionService.setSendTransactionData(SendTransactionData.Evm(transactionData, null))
+        viewModelScope.launch {
+            sendTransactionService.setSendTransactionData(
+                SendTransactionData.Evm(
+                    transactionData,
+                    null
+                )
+            )
+        }
     }
 
     suspend fun approve() = withContext(Dispatchers.Default) {

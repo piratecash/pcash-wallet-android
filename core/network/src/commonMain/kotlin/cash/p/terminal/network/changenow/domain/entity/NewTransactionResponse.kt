@@ -10,6 +10,15 @@ data class NewTransactionResponse(
     val toCurrency: String,
     val refundAddress: String?,
     val refundExtraId: String?,
+    val payinExtraId: String?,
+    val payinExtraIdName: String?,
     val id: String,
     val amount: BigDecimal
-)
+) {
+    val mandatoryMemo: String
+        get() = if (payinExtraIdName == "Memo") {
+            payinExtraId.orEmpty()
+        } else {
+            ""
+        }
+}

@@ -13,7 +13,7 @@ import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.badge
-import io.horizontalsystems.core.toHexString
+import io.horizontalsystems.core.toRawHexString
 import io.horizontalsystems.erc20kit.decorations.ApproveEip20Decoration
 import io.horizontalsystems.erc20kit.decorations.OutgoingEip20Decoration
 import io.horizontalsystems.ethereumkit.decorations.OutgoingDecoration
@@ -417,7 +417,7 @@ class SendEvmTransactionViewItemFactory(
                 add(ViewItem.Value(Translator.getString(R.string.Send_Confirmation_Method), it, ValueType.Regular))
             }
 
-            add(ViewItem.Input(transactionData.input.toHexString()))
+            add(ViewItem.Input("Input",transactionData.input.toRawHexString()))
         }
 
         return listOf(SectionViewItem(viewItems))
@@ -562,9 +562,10 @@ sealed class ViewItem {
     ) : ViewItem()
 
     class Address(val title: String, val value: String, val showAdd: Boolean, val blockchainType: BlockchainType) : ViewItem()
-    class Input(val value: String) : ViewItem()
+    class Input(val title: String, val value: String) : ViewItem()
     class TokenItem(val token: Token) : ViewItem()
     class ContactItem(val contact: Contact) : ViewItem()
+    class Fee(val networkFee: SendModule.AmountData) : ViewItem()
 }
 
 data class AmountValues(val coinAmount: String, val fiatAmount: String?)

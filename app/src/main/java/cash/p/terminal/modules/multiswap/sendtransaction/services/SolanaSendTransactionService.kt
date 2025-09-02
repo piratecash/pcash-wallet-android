@@ -122,7 +122,7 @@ class SolanaSendTransactionService(
     @Composable
     override fun GetSettingsContent(navController: NavController) = Unit
 
-    override fun setSendTransactionData(data: SendTransactionData) {
+    override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Common)
 
         addressService.setAddress(

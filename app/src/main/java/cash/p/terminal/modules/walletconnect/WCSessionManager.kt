@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 
 class WCSessionManager(
-    private val accountManager: cash.p.terminal.wallet.IAccountManager,
+    private val accountManager: IAccountManager,
     private val storage: WCSessionStorage,
 ) {
 
@@ -35,12 +35,14 @@ class WCSessionManager(
             return getSessions(accountId)
         }
 
+    private var requestsQueue = listOf<Wallet.Model.SessionRequest>()
+
     fun start() {
         syncSessions()
 
         coroutineScope.launch {
             accountManager.activeAccountStateFlow.collect { activeAccountState ->
-                if (activeAccountState is cash.p.terminal.wallet.ActiveAccountState.ActiveAccount) {
+                if (activeAccountState is ActiveAccountState.ActiveAccount) {
                     syncSessions()
                 }
             }
@@ -65,7 +67,7 @@ class WCSessionManager(
         }
     }
 
-    fun getCurrentSessionRequests(): List<Wallet.Model.SessionRequest> {
+    private fun getCurrentSessionRequests(): List<Wallet.Model.SessionRequest> {
         val accountId = accountManager.activeAccount?.id ?: return emptyList()
         return requests(accountId)
     }
@@ -88,6 +90,12 @@ class WCSessionManager(
 
         _sessionsFlow.update { getSessions(accountId) }
         syncPendingRequest()
+
+        syncRequests()
+    }
+
+    private fun syncRequests() {
+        requestsQueue = getCurrentSessionRequests()
     }
 
     private fun getSessions(accountId: String): List<Wallet.Model.Session> {
@@ -120,6 +128,14 @@ class WCSessionManager(
         storage.deleteSessionsExcept(accountIds = existingAccountIds)
 
         syncSessions()
+    }
+
+    fun getNewSessionRequest(): Wallet.Model.SessionRequest? {
+        val updatedQueue = getCurrentSessionRequests()
+        val newRequests = updatedQueue - requestsQueue
+        syncRequests()
+
+        return newRequests.firstOrNull()
     }
 
     open class RequestDataError : Throwable() {

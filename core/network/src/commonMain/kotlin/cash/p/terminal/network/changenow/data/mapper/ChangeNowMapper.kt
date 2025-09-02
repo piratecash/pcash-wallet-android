@@ -44,7 +44,9 @@ internal class ChangeNowMapper {
         toCurrency = dto.toCurrency,
         refundAddress = dto.refundAddress,
         refundExtraId = dto.refundExtraId,
-        amount = dto.amount.toBigDecimal()
+        payinExtraId = dto.payinExtraId,
+        payinExtraIdName = dto.payinExtraIdName,
+        amount = dto.amount.toBigDecimal(),
     )
 
     fun mapTransactionStatusDto(dto: TransactionStatusDto) = TransactionStatus(

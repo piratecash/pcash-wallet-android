@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters.stellar
 
 import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.managers.StellarKitWrapper
+import cash.p.terminal.core.managers.statusInfo
 import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
@@ -65,7 +66,7 @@ class StellarAssetAdapter(
 
     override suspend fun refresh() = Unit
     override val statusInfo: Map<String, Any>
-        get() = TODO("Not yet implemented")
+        get() = stellarKit.statusInfo()
 
     override val fee: BigDecimal
         get() = stellarKit.sendFee

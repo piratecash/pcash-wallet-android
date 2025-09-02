@@ -4,13 +4,17 @@ import android.util.Log
 import cash.p.terminal.core.UnsupportedException
 import cash.p.terminal.modules.multiswap.sendtransaction.services.BitcoinSendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceStellar
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SolanaSendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.services.TonSendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.services.TronSendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.services.ZCashSendTransactionService
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
+import org.koin.java.KoinJavaComponent.inject
+import kotlin.getValue
 
 object SendTransactionServiceFactory {
     fun create(token: Token): ISendTransactionService<*> = try {
@@ -72,6 +76,12 @@ object SendTransactionServiceFactory {
 
                 BlockchainType.Tron -> {
                     TronSendTransactionService(token)
+                }
+
+                BlockchainType.Stellar -> {
+                    val accountManager: IAccountManager by inject(IAccountManager::class.java)
+                    val activeAccount = accountManager.activeAccount ?: throw IllegalStateException("No active account")
+                    SendTransactionServiceStellar(account = activeAccount, token = token)
                 }
 
                 BlockchainType.Ton -> {

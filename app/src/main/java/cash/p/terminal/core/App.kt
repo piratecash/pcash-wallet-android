@@ -74,6 +74,7 @@ import cash.p.terminal.modules.theme.ThemeType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.WCWalletRequestHandler
+import cash.p.terminal.modules.walletconnect.handler.WCHandlerEvm
 import cash.p.terminal.modules.walletconnect.storage.WCSessionStorage
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
@@ -102,6 +103,7 @@ import com.walletconnect.android.CoreClient
 import com.walletconnect.android.relay.ConnectionType
 import com.walletconnect.web3.wallet.client.Wallet
 import com.walletconnect.web3.wallet.client.Web3Wallet
+import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
 import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
@@ -297,6 +299,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         rateAppManager = RateAppManager(walletManager, adapterManager, localStorage)
 
         wcManager = WCManager(accountManager)
+        wcManager.addWcHandler(WCHandlerEvm(evmBlockchainManager))
+        wcManager.addWcHandler(WCHandlerStellar(get()))
         wcWalletRequestHandler = WCWalletRequestHandler(evmBlockchainManager)
 
         termsManager = TermsManager(localStorage)

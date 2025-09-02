@@ -25,6 +25,16 @@ sealed class SendTransactionData {
         val gasLimit: Long?,
         val feesMap: Map<FeeType, CoinValue> = mapOf()
     ) : SendTransactionData()
+
+    sealed class Stellar : SendTransactionData() {
+        data class Regular(
+            val address: String,
+            val memo: String,
+            val amount: BigDecimal
+        ) : Stellar()
+
+        data class WithTransactionEnvelope(val transactionEnvelope: String) : Stellar()
+    }
 }
 
 enum class FeeType(val stringResId: Int) {

@@ -447,6 +447,8 @@
     <string name="WalletConnect_Status_Online">Доступний</string>
     <string name="WalletConnect_Status_Connecting">Підключення…</string>
     <string name="WalletConnect_NewConnect">Нове з\'єднання</string>
+    <string name="WalletConnect_SendTransactionRequest_Title">Надіслати транзакцію</string>
+    <string name="WalletConnect_SendTransactionRequest_ButtonSend">Надіслати</string>
     <string name="WalletConnect_SignMessageRequest_Title">Запит на підпис</string>
     <string name="WalletConnect_SignMessageRequest_ShowMessageTitle">Повідомлення для підпису</string>
     <string name="WalletConnect_SignMessageRequest_ButtonSign">Підписати</string>

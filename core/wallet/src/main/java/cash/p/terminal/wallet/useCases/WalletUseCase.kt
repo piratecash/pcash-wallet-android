@@ -33,7 +33,7 @@ class WalletUseCase(
                 tokensToAdd = tokensToAdd
             )
         } else {
-            walletManager.save(tokensToAdd.map { Wallet(it, account, null) })
+            walletManager.saveSuspended(tokensToAdd.map { Wallet(it, account, null) })
             return true
         }
     }

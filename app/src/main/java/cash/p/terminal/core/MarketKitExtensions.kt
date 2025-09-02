@@ -236,6 +236,39 @@ val BlockchainType.feePriceScale: FeePriceScale
         else -> FeePriceScale.Gwei
     }
 
+val BlockchainType.isEvm: Boolean
+    get() = when (this) {
+        BlockchainType.ArbitrumOne,
+        BlockchainType.Avalanche,
+        BlockchainType.Base,
+        BlockchainType.BinanceSmartChain,
+        BlockchainType.Ethereum,
+        BlockchainType.Fantom,
+        BlockchainType.Gnosis,
+        BlockchainType.Optimism,
+        BlockchainType.Polygon,
+        BlockchainType.ZkSync,
+            -> true
+
+        BlockchainType.Bitcoin,
+        BlockchainType.BitcoinCash,
+        BlockchainType.Dash,
+        BlockchainType.ECash,
+        BlockchainType.Litecoin,
+        BlockchainType.Solana,
+        BlockchainType.Stellar,
+        BlockchainType.Ton,
+        BlockchainType.Tron,
+        is BlockchainType.Unsupported,
+        BlockchainType.Zcash,
+        BlockchainType.Monero,
+        BlockchainType.Cosanta,
+        BlockchainType.Dogecoin,
+        BlockchainType.PirateCash
+            -> false
+    }
+
+
 fun BlockchainType.supports(accountType: AccountType): Boolean {
     return when (accountType) {
         is AccountType.ZCashUfvKey ->

@@ -3,7 +3,6 @@ package cash.p.terminal.modules.walletconnect.request
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,12 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.core.isEvm
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.sendevmtransaction.TitleValue
 import cash.p.terminal.modules.sendevmtransaction.ValueType
@@ -38,6 +36,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import com.google.gson.Gson
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.launch
 
@@ -46,13 +45,39 @@ class WCRequestFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val wcRequestViewModel =
-            viewModel<WCNewRequestViewModel>(factory = WCNewRequestViewModel.Factory())
+        val wcRequestRouterViewModel =
+            viewModel<WCRequestRouterViewModel>(factory = WCRequestRouterViewModel.Factory())
+
+        val uiState = wcRequestRouterViewModel.uiState
+
+        val blockchainType = uiState.blockchainType
+
+        if (blockchainType == null) {
+            WcRequestError(navController)
+        } else if (blockchainType.isEvm) {
+            WcRequestEvm(navController)
+        } else if (blockchainType is BlockchainType.Stellar) {
+            WcRequestPreScreen(navController)
+        } else {
+            WcRequestError(navController)
+        }
+    }
+
+    private fun showError(e: Throwable) {
+        HudHelper.showErrorMessage(
+            requireActivity().findViewById(R.id.content),
+            e.message ?: e::class.java.simpleName
+        )
+    }
+
+    @Composable
+    fun WcRequestEvm(navController: NavController) {
+        val wcRequestEvmViewModel = viewModel<WCRequestEvmViewModel>(factory = WCRequestEvmViewModel.Factory())
         val composableScope = rememberCoroutineScope()
-        when (val sessionRequestUI = wcRequestViewModel.sessionRequest) {
+        when (val sessionRequestUI = wcRequestEvmViewModel.sessionRequestUi) {
             is SessionRequestUI.Content -> {
                 if (sessionRequestUI.method == "eth_sendTransaction") {
-                    val blockchainType = wcRequestViewModel.blockchain?.type ?: return
+                    val blockchainType = wcRequestEvmViewModel.blockchainType ?: return
                     val transaction =
                         try {
                             val ethTransaction = Gson().fromJson(
@@ -72,7 +97,7 @@ class WCRequestFragment : BaseComposeFragment() {
                         sessionRequestUI.peerUI.peerName
                     )
                 } else if (sessionRequestUI.method == "eth_signTransaction") {
-                    val blockchainType = wcRequestViewModel.blockchain?.type ?: return
+                    val blockchainType = wcRequestEvmViewModel.blockchainType ?: return
 
                     val transaction = try {
                         val ethTransaction = Gson().fromJson(
@@ -98,7 +123,7 @@ class WCRequestFragment : BaseComposeFragment() {
                         onAllow = {
                             composableScope.launch {
                                 try {
-                                    wcRequestViewModel.allow()
+                                    wcRequestEvmViewModel.allow()
                                     navController.popBackStack()
                                 } catch (e: Throwable) {
                                     showError(e)
@@ -109,7 +134,7 @@ class WCRequestFragment : BaseComposeFragment() {
                         onDecline = {
                             composableScope.launch {
                                 try {
-                                    wcRequestViewModel.reject()
+                                    wcRequestEvmViewModel.reject()
                                     navController.popBackStack()
                                 } catch (e: Throwable) {
                                     showError(e)
@@ -136,16 +161,23 @@ class WCRequestFragment : BaseComposeFragment() {
                 }
             }
         }
-
     }
+}
 
-    private fun showError(e: Throwable) {
-        HudHelper.showErrorMessage(
-            requireActivity().findViewById(android.R.id.content),
-            e.message ?: e::class.java.simpleName
+@Composable
+fun WcRequestError(navController: NavController) {
+    ScreenMessageWithAction(
+        text = stringResource(R.string.Error),
+        icon = R.drawable.ic_error_48
+    ) {
+        ButtonPrimaryYellow(
+            modifier = Modifier
+                .padding(horizontal = 48.dp)
+                .fillMaxWidth(),
+            title = stringResource(R.string.Button_Close),
+            onClick = { navController.popBackStack() }
         )
     }
-
 }
 
 @Composable
@@ -179,7 +211,8 @@ fun WCNewSignRequestScreen(
             MessageContent(
                 sessionRequestUI.param,
                 sessionRequestUI.peerUI.peerName,
-                sessionRequestUI.chainData,
+                sessionRequestUI.chainName,
+                sessionRequestUI.chainAddress,
             )
 
             VSpacer(24.dp)
@@ -189,45 +222,18 @@ fun WCNewSignRequestScreen(
             onDecline = onDecline,
             onAllow = onAllow
         )
+
     }
+
 }
 
 @Composable
-@Preview(showBackground = false)
-private fun WCNewSignRequestScreenPreview() {
-    ComposeAppTheme {
-        WCNewSignRequestScreen(
-            sessionRequestUI = SessionRequestUI.Content(
-                method = "eth_sign",
-                topic = "topic",
-                requestId = 1,
-                param = "0x1234567890abcdef",
-                peerUI = PeerUI(
-                    peerIcon = "https://example.com/icon.png",
-                    peerName = "DApp Name",
-                    peerUri = "https://example.com",
-                    peerDescription = "DApp Description"
-                ),
-                chainData = null
-            ),
-            navController = rememberNavController(),
-            onAllow = {},
-            onDecline = {}
-        )
-    }
-}
-
-@Composable
-private fun ActionButtons(
+fun ActionButtons(
     onDecline: () -> Unit = {},
     onAllow: () -> Unit = {}
 ) {
     ButtonsGroupWithShade {
-        Column(
-            Modifier
-                .padding(horizontal = 24.dp)
-                .navigationBarsPadding()
-        ) {
+        Column(Modifier.padding(horizontal = 24.dp)) {
             ButtonPrimaryYellow(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.WalletConnect_SignMessageRequest_ButtonSign),
@@ -244,10 +250,11 @@ private fun ActionButtons(
 }
 
 @Composable
-private fun MessageContent(
+fun MessageContent(
     message: String,
     dAppName: String?,
-    wcChainData: WCChainData?,
+    chainName: String?,
+    chainAddress: String?,
 ) {
     SectionUniversalLawrence {
         dAppName?.let { dApp ->
@@ -259,12 +266,11 @@ private fun MessageContent(
                 )
             )
         }
-        wcChainData?.let {
-            BlockchainCell(wcChainData.chain.name, wcChainData.address)
+        chainName?.let {
+            BlockchainCell(chainName, chainAddress)
         }
     }
 
     MessageToSign(message)
 
 }
-
