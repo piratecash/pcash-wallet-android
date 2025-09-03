@@ -30,3 +30,7 @@ Devices with Android versions 8.1 and above
 ## License
 
 This wallet is open source and available under the terms of the MIT License.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=piratecash/pcash-wallet-android&type=Date)](https://www.star-history.com/#piratecash/pcash-wallet-android&Date)

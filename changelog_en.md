@@ -1,4 +1,23 @@
-## Version 0.46.2 Highlights
+## Main changes in version 0.46.3
+
+### ✨ New features
+- **View incoming transaction addresses (Bitcoin-like chains):**
+  Incoming transaction details now display the **address funds were sent to** for the following blockchains: **BTC / LTC / DASH / DOGE / PIRATE / COSA**. This simplifies auditing and tracking deposits.
+
+- **Monero (25-word seed mode): added QR scanner**
+  For wallets restored with a 25-word seed, the **main screen** now includes the option to **scan recipient addresses via QR code**. This makes sending faster and eliminates manual entry errors.
+
+### 🎛 Improvements
+- **Wallet cloning (copying):**
+  When cloning a wallet profile, the **backup status is now inherited**, making the process more convenient and consistent.
+
+### 💎 Premium
+- Fixed an issue that prevented **Premium** from being activated in some cases.
+- Overall improvements to Premium handling.
+
+
+
+## Main changes in version 0.46.2
 
 ### ✨ New Features
 - **Wallet cloning (no clipboard):** 
@@ -15,7 +34,7 @@
 
 
 
-## Version 0.46.1 Highlights
+## Main changes in version 0.46.1
 
 ### ✨ New Features
 
@@ -38,7 +57,7 @@
 
 
 
-## Version 0.46.0 Highlights
+## Main changes in version 0.46.0
 
 ### ✨ New Features
 
@@ -65,7 +84,7 @@
 
 
 
-## Version 0.45.4 Highlights
+## Main changes in version 0.45.4
 
 - Fixed an issue with displaying transactions when using **12-word Monero wallets**.
   This bug did not affect 25-word wallets.
@@ -79,7 +98,7 @@
 
 
 
-## Version 0.45.3 Highlights
+## Main changes in version 0.45.3
 
 ### ✨ New Features
 
@@ -99,7 +118,7 @@
 
 
 
-## Version 0.45.2 Highlights
+## Main changes in version 0.45.2
 
 ## 🪙 Fixes for TRON
 
@@ -112,7 +131,7 @@
 
 
 
-## Version 0.45.1 Highlights
+## Main changes in version 0.45.1
 
 ## 🔐 Privacy Improvements
 
@@ -126,7 +145,7 @@
 
 
 
-## Version 0.45.0 Highlights
+## Main changes in version 0.45.0
 
 # 📝 Changelog
 
@@ -148,15 +167,14 @@
 
 
 
-## Version 0.44.2 Highlights
+## Main changes in version 0.44.2
 
 - 🐞 Fixed an issue where, in some cases, the **"Next"** button couldn't be pressed after entering an address.
 - ✏️ Corrected a wording in the settings description as reported in issue #56.
 
 
-## Version 0.44.1 Highlights
 
-
+## Main changes in version 0.44.1
 
 ### 💰 **Exchange Interface Improvements**
 - The **available balance is now always visible during amount input**, not just before it 🧮
@@ -176,7 +194,7 @@
 
 
 
-## Version 0.44 Highlights
+## Main changes in version 0.44
 
 
 ## THORCHAIN SWAP INTEGRATION
@@ -197,8 +215,7 @@ Complete Stellar blockchain compatibility and access to its full asset ecosystem
 
 
 
-## Version 0.43 Highlights
-
+## Main changes in version 0.43
 
 ### Monero native blockchain
 
