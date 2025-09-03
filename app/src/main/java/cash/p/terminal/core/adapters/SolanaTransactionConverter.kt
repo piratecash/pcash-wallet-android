@@ -38,8 +38,9 @@ class SolanaTransactionConverter(
                 )
                 outgoingSolanaTransfers.add(
                     SolanaTransactionRecord.SolanaTransfer(
-                        transaction.to,
-                        transactionValue
+                        address = transaction.to,
+                        addressForIncomingAddress = null,
+                        value = transactionValue
                     )
                 )
             } else if (transaction.to == userAddress) {
@@ -47,8 +48,9 @@ class SolanaTransactionConverter(
                     TransactionValue.CoinValue(baseToken, it.movePointLeft(baseToken.decimals))
                 incomingSolanaTransfers.add(
                     SolanaTransactionRecord.SolanaTransfer(
-                        transaction.from,
-                        transactionValue
+                        address = transaction.from,
+                        addressForIncomingAddress = transaction.to,
+                        value = transactionValue
                     )
                 )
             } else {
@@ -80,15 +82,17 @@ class SolanaTransactionConverter(
             if (tokenTransfer.incoming) {
                 incomingSolanaTransfers.add(
                     SolanaTransactionRecord.SolanaTransfer(
-                        fullTransaction.transaction.from,
-                        transactionValue
+                        address = fullTransaction.transaction.from,
+                        addressForIncomingAddress = fullTransaction.transaction.to,
+                        value = transactionValue
                     )
                 )
             } else {
                 outgoingSolanaTransfers.add(
                     SolanaTransactionRecord.SolanaTransfer(
-                        fullTransaction.transaction.to,
-                        transactionValue
+                        address = fullTransaction.transaction.to,
+                        addressForIncomingAddress = null,
+                        value = transactionValue
                     )
                 )
             }
@@ -102,12 +106,13 @@ class SolanaTransactionConverter(
                     token = baseToken,
                     source = source,
                     from = transfer.address,
+                    to = transfer.addressForIncomingAddress,
                     mainValue = transfer.value,
                     spam = spamManager.isSpam(
                         incomingEvents = incomingSolanaTransfers.map {
-                            TransferEvent(it.address, it.value)
+                            TransferEvent(it.address, it.addressForIncomingAddress, it.value)
                         }, outgoingEvents = outgoingSolanaTransfers.map {
-                            TransferEvent(it.address, it.value)
+                            TransferEvent(it.address, null, it.value)
                         }),
                     transactionRecordType = TransactionRecordType.SOLANA_INCOMING
                 )
@@ -134,9 +139,9 @@ class SolanaTransactionConverter(
                 outgoingSolanaTransfers = outgoingSolanaTransfers,
                 spam = spamManager.isSpam(
                     incomingEvents = incomingSolanaTransfers.map {
-                        TransferEvent(it.address, it.value)
+                        TransferEvent(it.address, it.addressForIncomingAddress, it.value)
                     }, outgoingEvents = outgoingSolanaTransfers.map {
-                        TransferEvent(it.address, it.value)
+                        TransferEvent(it.address, null,it.value)
                     }),
                 transactionRecordType = TransactionRecordType.SOLANA_UNKNOWN
             )

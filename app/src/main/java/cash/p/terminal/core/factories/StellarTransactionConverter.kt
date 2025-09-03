@@ -52,6 +52,7 @@ class StellarTransactionConverter(
                     type = StellarTransactionRecord.Type.Receive(
                         value = transactionValue,
                         from = payment.from,
+                        to = payment.to,
                         comment = operation.memo,
                         accountCreated = false,
                     )
@@ -84,6 +85,7 @@ class StellarTransactionConverter(
                     type = StellarTransactionRecord.Type.Receive(
                         value = transactionValue,
                         from = accountCreated.funder,
+                        to = accountCreated.account,
                         comment = operation.memo,
                         accountCreated = true
                     )

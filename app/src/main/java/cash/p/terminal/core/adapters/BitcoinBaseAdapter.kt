@@ -446,6 +446,7 @@ abstract class BitcoinBaseAdapter(
 
         return when (transaction.type) {
             TransactionType.Incoming -> {
+                val to = transaction.outputs.find { output -> output.value == transaction.amount }?.address
                 BitcoinTransactionRecord(
                     source = wallet.transactionSource,
                     token = wallet.token,
@@ -467,8 +468,9 @@ abstract class BitcoinBaseAdapter(
                     showRawTransaction = transaction.status == TransactionStatus.NEW || transaction.status == TransactionStatus.INVALID,
                     amount = satoshiToBTC(transaction.amount),
                     from = from,
-                    to = null,
+                    to = to,
                     memo = memo,
+                    changeAddresses = transaction.outputs.filter { it.changeOutput }.mapNotNull { it.address }.distinct(),
                     transactionRecordType = TransactionRecordType.BITCOIN_INCOMING
                 )
             }
@@ -498,6 +500,7 @@ abstract class BitcoinBaseAdapter(
                     amount = satoshiToBTC(transaction.amount).negate(),
                     to = to,
                     from = null,
+                    changeAddresses = transaction.outputs.filter { it.changeOutput }.mapNotNull { it.address }.distinct(),
                     sentToSelf = false,
                     memo = memo,
                     replaceable = transaction.rbfEnabled && transaction.blockHeight == null && transaction.conflictingTxHash == null,
@@ -530,6 +533,7 @@ abstract class BitcoinBaseAdapter(
                     amount = satoshiToBTC(transaction.amount).negate(),
                     to = to,
                     from = null,
+                    changeAddresses = transaction.outputs.filter { it.changeOutput }.mapNotNull { it.address }.distinct(),
                     sentToSelf = true,
                     memo = memo,
                     replaceable = transaction.rbfEnabled && transaction.blockHeight == null && transaction.conflictingTxHash == null,

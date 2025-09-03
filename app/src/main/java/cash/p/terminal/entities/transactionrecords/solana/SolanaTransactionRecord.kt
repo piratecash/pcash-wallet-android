@@ -36,8 +36,14 @@ class SolanaTransactionRecord(
     from = from,
     sentToSelf = sentToSelf,
 ) {
-
-    data class SolanaTransfer(val address: String?, val value: TransactionValue)
+    /**
+     * @param addressForIncomingAddress used only for incoming transfers
+     */
+    data class SolanaTransfer(
+        val address: String?,
+        val addressForIncomingAddress: String?,
+        val value: TransactionValue
+    )
 
     val fee: TransactionValue? = transaction.fee?.let { TransactionValue.CoinValue(token, it) }
 }

@@ -102,6 +102,7 @@ class TonTransactionConverter(
                     TonTransactionRecord.Action.Type.Receive(
                         value = tonValue(tonTransfer.amount, false),
                         from = format(tonTransfer.sender),
+                        to = format(tonTransfer.recipient),
                         comment = tonTransfer.comment
                     )
                 }
@@ -128,6 +129,7 @@ class TonTransactionConverter(
                     TonTransactionRecord.Action.Type.Receive(
                         value = jettonValue(jettonTransfer.jetton, jettonTransfer.amount, false),
                         from = format(sender),
+                        to = recipient?.let { format(it) }.orEmpty(),
                         comment = jettonTransfer.comment
                     )
                 }
@@ -144,7 +146,8 @@ class TonTransactionConverter(
 
         action.jettonMint?.let { jettonMint ->
             return TonTransactionRecord.Action.Type.Mint(
-                value = jettonValue(jettonMint.jetton, jettonMint.amount, false)
+                value = jettonValue(jettonMint.jetton, jettonMint.amount, false),
+                to = format(jettonMint.recipient)
             )
         }
 

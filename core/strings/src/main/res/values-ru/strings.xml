@@ -644,6 +644,8 @@
     <string name="TransactionInfo_ContactName">Имя контакта</string>
     <string name="TransactionInfo_To">Кому</string>
     <string name="TransactionInfo_From">От</string>
+    <string name="TransactionInfo_Address">Адрес</string>
+    <string name="TransactionInfo_Change_Address">Адрес сдачи</string>
     <string name="TransactionInfo_Spender">Покупатель</string>
     <string name="TransactionInfo_LockedUntil">Заблокировано до %s</string>
     <string name="TransactionInfo_UnlockedAt">Разблокировано %s</string>

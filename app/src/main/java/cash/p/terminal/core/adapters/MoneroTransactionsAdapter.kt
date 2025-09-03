@@ -112,7 +112,7 @@ class MoneroTransactionsAdapter(
 
         val (toAddress, fromAddress) = when (transactionInfo.direction) {
             TransactionInfo.Direction.Direction_In -> {
-                val ourAddress = transactionInfo.address
+                val ourAddress = transactionInfo.address ?: moneroKitWrapper.getAddress()
                 val senderAddress = transactionInfo.transfers?.firstOrNull()?.address
                 Pair(ourAddress, senderAddress)
             }

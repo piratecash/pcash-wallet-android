@@ -621,6 +621,8 @@
     <string name="TransactionInfo_ContactName">联系人姓名</string>
     <string name="TransactionInfo_To">接收人</string>
     <string name="TransactionInfo_From">发送人</string>
+    <string name="TransactionInfo_Address">地址</string>
+    <string name="TransactionInfo_Change_Address">找零地址</string>
     <string name="TransactionInfo_Spender">消费人</string>
     <string name="TransactionInfo_LockedUntil">锁定至 %s</string>
     <string name="TransactionInfo_UnlockedAt">在 %s 解锁了</string>

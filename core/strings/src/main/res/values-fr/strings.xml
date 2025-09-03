@@ -621,6 +621,8 @@
     <string name="TransactionInfo_ContactName">Nom du contact</string>
     <string name="TransactionInfo_To">À</string>
     <string name="TransactionInfo_From">De</string>
+    <string name="TransactionInfo_Address">Adresse</string>
+    <string name="TransactionInfo_Change_Address">Adresse de monnaie</string>
     <string name="TransactionInfo_Spender">Dépendant</string>
     <string name="TransactionInfo_LockedUntil">Verrouillé jusqu\'au %s</string>
     <string name="TransactionInfo_UnlockedAt">Déverrouillé à %s</string>

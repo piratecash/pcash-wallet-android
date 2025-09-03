@@ -45,6 +45,7 @@ class StellarTransactionRecord(
         data class Receive(
             val value: TransactionValue,
             override val from: String,
+            override val to: String,
             val comment: String?,
             val accountCreated: Boolean,
         ) : Type()

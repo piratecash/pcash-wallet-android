@@ -150,16 +150,17 @@ class MoneroKitWrapper(
     private val restoreSettingsManager: RestoreSettingsManager,
     private val account: Account
 ) : MoneroWalletService.Observer {
-
-    companion object {
-        private const val TAG = "MoneroKitWrapper"
-    }
-
     private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
-    private val validateMoneroHeightUseCase: ValidateMoneroHeightUseCase by inject(ValidateMoneroHeightUseCase::class.java)
-    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase by inject(RemoveMoneroWalletFilesUseCase::class.java)
-    private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase by inject(IGetMoneroWalletFilesNameUseCase::class.java)
+    private val validateMoneroHeightUseCase: ValidateMoneroHeightUseCase by inject(
+        ValidateMoneroHeightUseCase::class.java
+    )
+    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase by inject(
+        RemoveMoneroWalletFilesUseCase::class.java
+    )
+    private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase by inject(
+        IGetMoneroWalletFilesNameUseCase::class.java
+    )
 
     private var isStarted = false
 
@@ -168,6 +169,7 @@ class MoneroKitWrapper(
 
     private val _lastBlockInfoFlow = MutableStateFlow<LastBlockInfo?>(null)
     val lastBlockInfoFlow = _lastBlockInfoFlow.asStateFlow()
+    private var cachedTotalHeight: Long = 0
 
     private val _transactionsStateUpdatedFlow = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
@@ -212,8 +214,9 @@ class MoneroKitWrapper(
                         if (moneroFileDao.getAssociatedRecord(account.id) == null) {
                             val restoreSettings =
                                 restoreSettingsManager.settings(account, BlockchainType.Monero)
-                            val height = restoreSettings.birthdayHeight ?: validateMoneroHeightUseCase.getTodayHeight()
-                            if(height == -1L) {
+                            val height = restoreSettings.birthdayHeight
+                                ?: validateMoneroHeightUseCase.getTodayHeight()
+                            if (height == -1L) {
                                 throw IllegalStateException("Monero restore height can't be -1")
                             }
                             restoreFromBip39(
@@ -239,6 +242,10 @@ class MoneroKitWrapper(
                         .setDaemon(it)
                 } ?: throw IllegalStateException("No nodes available")
 
+                /*val walletFolder: File = Helper.getWalletRoot(App.instance)
+                val walletKeyFile = File(walletFolder, "$walletFileName.keys")
+                fixCorruptedWalletFile(walletKeyFile.absolutePath, walletPassword)*/
+
                 moneroWalletService.setObserver(this@MoneroKitWrapper)
                 moneroWalletService.start(walletFileName, walletPassword)
                 isStarted = true
@@ -251,21 +258,51 @@ class MoneroKitWrapper(
         }
     }
 
-    private suspend fun fixWalletHeight() {
-        if(moneroWalletService.wallet?.restoreHeight != -1L ||
-            (account.type as? AccountType.Mnemonic)?.kind != MnemonicKind.Mnemonic12) return
+    /**
+     * @return true if wallet need to be fixed
+     */
+    private suspend fun fixCorruptedWalletFile(
+        walletKeysFileName: String,
+        walletPassword: String
+    ) {
+        if ((account.type as? AccountType.Mnemonic)?.kind != MnemonicKind.Mnemonic12) return
 
+        if (WalletManager.getInstance()
+                .verifyWalletPassword(walletKeysFileName, walletPassword, false)
+        ) return
+
+        val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+        Timber.d("Fixing corrupted wallet file with height: ${restoreSettings.birthdayHeight}")
+        restoreSettings.birthdayHeight?.let {
+            resetWalletAndRestart(it)
+        }
+    }
+
+    private suspend fun fixWalletHeight() {
+        if (moneroWalletService.wallet?.restoreHeight != -1L ||
+            (account.type as? AccountType.Mnemonic)?.kind != MnemonicKind.Mnemonic12
+        ) return
+
+        // Use day of publishing this changes on google play as height
+        // to fix possible first day of using this feature by users
+        resetWalletAndRestart(validateMoneroHeightUseCase("2025-08-13"))
+    }
+
+    private suspend fun resetWalletAndRestart(birthdayHeight: Long) {
         stop(false)
         getMoneroWalletFilesNameUseCase(account)?.also {
             val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
-            // Use day of publishing this changes on google play as height
-            // to fix possible first day of using this feature by users
-            restoreSettings.birthdayHeight = validateMoneroHeightUseCase("2025-08-13")
+            val heightNeedToUpdate = restoreSettings.birthdayHeight != birthdayHeight
+            if (heightNeedToUpdate) {
+                restoreSettings.birthdayHeight = birthdayHeight
+            }
 
             removeMoneroWalletFilesUseCase(it)
             moneroFileDao.deleteAssociatedRecord(account.id)
 
-            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+            if (heightNeedToUpdate) {
+                restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+            }
         }
         start()
     }
@@ -337,10 +374,10 @@ class MoneroKitWrapper(
     // Add methods for balance, transactions, etc.
     fun getBalance(): Long {
         return try {
-            Timber.tag(TAG).d("getBalance: ${moneroWalletService.wallet?.balance}")
+            Timber.d("getBalance: ${moneroWalletService.wallet?.balance}")
             moneroWalletService.wallet?.balance ?: 0L
         } catch (e: Exception) {
-            Timber.tag(TAG).d("getBalance: Failed to get balance")
+            Timber.d("getBalance: Failed to get balance")
             0L
         }
     }
@@ -358,7 +395,7 @@ class MoneroKitWrapper(
         return try {
             moneroWalletService.wallet?.history?.all ?: emptyList()
         } catch (e: Exception) {
-            Timber.tag(TAG).d("getTransactions: Failed to get transactions")
+            Timber.d("getTransactions: Failed to get transactions")
             emptyList()
         }
     }
@@ -381,19 +418,25 @@ class MoneroKitWrapper(
 
         _syncState.value =
             if (moneroWalletService.connectionStatus != ConnectionStatus.ConnectionStatus_Connected) {
-                println("MoneroKitWrapper: Not connected")
+                Timber.d("MoneroKitWrapper: Not connected")
                 AdapterState.NotSynced(IllegalStateException("Not connected"))
             } else if (moneroWalletService.wallet?.isSynchronized == true) {
-                println("MoneroKitWrapper: Synced")
+                Timber.d("MoneroKitWrapper: Synced")
                 AdapterState.Synced
             } else {
-                println("MoneroKitWrapper: Sync in progress")
+                Timber.d("MoneroKitWrapper: Sync in progress")
                 val progressPercent = runCatching {
                     val currentHeight = moneroWalletService.wallet?.blockChainHeight ?: 0
                     val totalHeight = WalletManager.getInstance().blockchainHeight
-
                     if (totalHeight > 0) {
-                        ((currentHeight * 100) / totalHeight).coerceIn(0, 100)
+                        cachedTotalHeight = totalHeight
+                    }
+                    val heightToUse = if (totalHeight > 0) totalHeight else cachedTotalHeight
+                    Timber.d("currentHeight = $currentHeight, totalHeight = $totalHeight")
+
+                    if (heightToUse > 0) {
+                        ((currentHeight.toDouble() / heightToUse) * 100).coerceIn(0.0, 100.0)
+                            .toInt()
                     } else {
                         0
                     }
@@ -407,34 +450,34 @@ class MoneroKitWrapper(
     }
 
     override fun onProgress(text: String?) {
-        Timber.tag(TAG).d("onProgress: $text")
+        Timber.d("onProgress: $text")
     }
 
     override fun onProgress(n: Int) {
-        Timber.tag(TAG).d("onProgress: $n")
+        Timber.d("onProgress: $n")
     }
 
     override fun onWalletStored(success: Boolean) {
-        Timber.tag(TAG).d("onWalletStored: $success")
+        Timber.d("onWalletStored: $success")
     }
 
     override fun onTransactionCreated(
         tag: String?,
         pendingTransaction: PendingTransaction?
     ) {
-        Timber.tag(TAG).d("onTransactionCreated: $tag, $pendingTransaction")
+        Timber.d("onTransactionCreated: $tag, $pendingTransaction")
     }
 
     override fun onTransactionSent(txid: String?) {
-        Timber.tag(TAG).d("onTransactionSent: $txid")
+        Timber.d("onTransactionSent: $txid")
     }
 
     override fun onSendTransactionFailed(error: String?) {
-        Timber.tag(TAG).d("onSendTransactionFailed: $error")
+        Timber.d("onSendTransactionFailed: $error")
     }
 
     override fun onWalletStarted(walletStatus: Wallet.Status?) {
-        Timber.tag(TAG).d("onWalletStarted: $walletStatus")
+        Timber.d("onWalletStarted: $walletStatus")
         if (moneroWalletService.wallet?.isSynchronized == true) {
             println("MoneroKitWrapper: Synced")
             _syncState.value = AdapterState.Synced
@@ -442,6 +485,6 @@ class MoneroKitWrapper(
     }
 
     override fun onWalletOpen(device: Wallet.Device?) {
-        Timber.tag(TAG).d("onWalletOpen: $device")
+        Timber.d("onWalletOpen: $device")
     }
 }

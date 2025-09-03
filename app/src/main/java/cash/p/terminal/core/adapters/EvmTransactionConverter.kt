@@ -67,6 +67,7 @@ internal class EvmTransactionConverter(
                     source = source,
                     spamManager = spamManager,
                     from = decoration.from.eip55,
+                    to = transaction.to?.eip55,
                     value = baseCoinValue(decoration.value, false),
                     transactionRecordType = TransactionRecordType.EVM_INCOMING
                 )
@@ -421,7 +422,7 @@ internal class EvmTransactionConverter(
 
         for (transaction in internalTransactions) {
             events.add(
-                TransferEvent(transaction.from.eip55, baseCoinValue(transaction.value, false))
+                TransferEvent(transaction.from.eip55, transaction.to.eip55, baseCoinValue(transaction.value, false))
             )
         }
 
@@ -433,7 +434,7 @@ internal class EvmTransactionConverter(
         if (value == null || value <= BigInteger.ZERO) return listOf()
 
         return listOf(
-            TransferEvent(transaction.to?.eip55, baseCoinValue(value, true))
+            TransferEvent(transaction.to?.eip55, null, baseCoinValue(value, true))
         )
     }
 
@@ -444,6 +445,7 @@ internal class EvmTransactionConverter(
             events.add(
                 TransferEvent(
                     transfer.from.eip55,
+                    transfer.to.eip55,
                     getEip20Value(
                         transfer.contractAddress,
                         transfer.value,
@@ -463,8 +465,9 @@ internal class EvmTransactionConverter(
         for (transfer in outgoingTransfers) {
             events.add(
                 TransferEvent(
-                    transfer.to.eip55,
-                    getEip20Value(
+                    address = transfer.to.eip55,
+                    addressForIncomingAddress = null,
+                    value = getEip20Value(
                         transfer.contractAddress,
                         transfer.value,
                         true,
@@ -481,6 +484,7 @@ internal class EvmTransactionConverter(
         incomingTransfers.map { transfer ->
             TransferEvent(
                 transfer.from.eip55,
+                transfer.to.eip55,
                 TransactionValue.NftValue(
                     nftUid = NftUid.Evm(
                         source.blockchain.type,
@@ -497,8 +501,9 @@ internal class EvmTransactionConverter(
     private fun getOutgoingEip721Events(outgoingTransfers: List<Eip721TransferEventInstance>): List<TransferEvent> =
         outgoingTransfers.map { transfer ->
             TransferEvent(
-                transfer.to.eip55,
-                TransactionValue.NftValue(
+                address = transfer.to.eip55,
+                addressForIncomingAddress = null,
+                value = TransactionValue.NftValue(
                     nftUid = NftUid.Evm(
                         source.blockchain.type,
                         transfer.contractAddress.hex,
@@ -515,6 +520,7 @@ internal class EvmTransactionConverter(
         incomingTransfers.map { transfer ->
             TransferEvent(
                 transfer.from.eip55,
+                transfer.to.eip55,
                 TransactionValue.NftValue(
                     nftUid = NftUid.Evm(
                         source.blockchain.type,
@@ -531,8 +537,9 @@ internal class EvmTransactionConverter(
     private fun getOutgoingEip1155Events(outgoingTransfers: List<Eip1155TransferEventInstance>): List<TransferEvent> =
         outgoingTransfers.map { transfer ->
             TransferEvent(
-                transfer.to.eip55,
-                TransactionValue.NftValue(
+                address = transfer.to.eip55,
+                addressForIncomingAddress = null,
+                value = TransactionValue.NftValue(
                     nftUid = NftUid.Evm(
                         source.blockchain.type,
                         transfer.contractAddress.hex,

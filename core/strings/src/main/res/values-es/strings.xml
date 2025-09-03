@@ -620,6 +620,8 @@
     <string name="TransactionInfo_ContactName">Nombre de contacto</string>
     <string name="TransactionInfo_To">Para</string>
     <string name="TransactionInfo_From">Desde </string>
+    <string name="TransactionInfo_Address">Dirección</string>
+    <string name="TransactionInfo_Change_Address">Dirección de cambio</string>
     <string name="TransactionInfo_Spender">Gastador</string>
     <string name="TransactionInfo_LockedUntil">Bloqueado hasta %s</string>
     <string name="TransactionInfo_UnlockedAt">Desbloqueado en %s</string>

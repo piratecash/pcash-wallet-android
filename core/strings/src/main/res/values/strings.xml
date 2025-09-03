@@ -845,6 +845,8 @@ Proceed only if you\'re sure.</string>
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">To</string>
     <string name="TransactionInfo_From">From</string>
+    <string name="TransactionInfo_Address">Address</string>
+    <string name="TransactionInfo_Change_Address">Change\nAddress</string>
     <string name="TransactionInfo_Spender">Spender</string>
     <string name="TransactionInfo_Memo" translatable="false">Memo</string>
     <string name="TransactionInfo_LockedUntil">Locked until %s</string>

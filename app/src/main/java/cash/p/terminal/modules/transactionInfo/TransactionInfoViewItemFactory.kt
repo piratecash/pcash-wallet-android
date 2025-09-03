@@ -54,6 +54,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                 value = transactionType.value,
                                 fromAddress = transactionType.from,
+                                toAddress = transactionType.to,
                                 coinPrice = rates[transactionType.value.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
@@ -139,6 +140,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                 value = transaction.value!!,
                                 fromAddress = transaction.from,
+                                toAddress = transaction.to,
                                 coinPrice = rates[transaction.value.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
@@ -244,6 +246,7 @@ class TransactionInfoViewItemFactory(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                     value = event.value,
                                     fromAddress = event.address,
+                                    toAddress = event.addressForIncomingAddress,
                                     coinPrice = rates[event.value.coinUid],
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
@@ -272,6 +275,7 @@ class TransactionInfoViewItemFactory(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                     value = event.value,
                                     fromAddress = event.address,
+                                    toAddress = event.addressForIncomingAddress,
                                     coinPrice = rates[event.value.coinUid],
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
@@ -307,6 +311,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                 value = transaction.value!!,
                                 fromAddress = transaction.from,
+                                toAddress = transaction.to,
                                 coinPrice = rates[transaction.value.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
@@ -366,6 +371,7 @@ class TransactionInfoViewItemFactory(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                     value = event.value,
                                     fromAddress = event.address,
+                                    toAddress = event.addressForIncomingAddress,
                                     coinPrice = rates[event.value.coinUid],
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
@@ -394,6 +400,7 @@ class TransactionInfoViewItemFactory(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                     value = event.value,
                                     fromAddress = event.address,
+                                    toAddress = null,
                                     coinPrice = rates[event.value.coinUid],
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
@@ -426,6 +433,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                 value = transaction.mainValue,
                                 fromAddress = transaction.from,
+                                toAddress = transaction.to,
                                 coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
@@ -447,6 +455,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getSendSectionItems(
                                 value = transaction.mainValue,
                                 toAddress = transaction.to,
+                                changeAddresses = transaction.changeAddresses,
                                 coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 sentToSelf = transaction.sentToSelf,
@@ -475,7 +484,8 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                 value = transaction.mainValue!!,
                                 fromAddress = transaction.from,
-                                coinPrice = rates[transaction.mainValue!!.coinUid],
+                                toAddress = transaction.to,
+                                coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 nftMetadata = nftMetadata,
                                 blockchainType = blockchainType,
@@ -517,6 +527,7 @@ class TransactionInfoViewItemFactory(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                     value = transfer.value,
                                     fromAddress = transfer.address,
+                                    toAddress =  transfer.addressForIncomingAddress,
                                     coinPrice = rates[transfer.value.coinUid],
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
@@ -537,6 +548,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                 value = transaction.mainValue,
                                 fromAddress = transaction.from,
+                                toAddress = transaction.to,
                                 coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,

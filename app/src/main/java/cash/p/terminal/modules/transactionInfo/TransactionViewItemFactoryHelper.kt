@@ -240,6 +240,7 @@ object TransactionViewItemFactoryHelper {
     fun getReceiveSectionItems(
         value: TransactionValue,
         fromAddress: String?,
+        toAddress: String?,
         coinPrice: CurrencyValue?,
         hideAmount: Boolean,
         nftMetadata: Map<NftUid, NftAssetBriefMetadata> = mapOf(),
@@ -287,6 +288,17 @@ object TransactionViewItemFactoryHelper {
             }
         }
 
+        toAddress?.let {
+            items.add(
+                TransactionInfoViewItem.Address(
+                    Translator.getString(R.string.TransactionInfo_To),
+                    toAddress,
+                    false,
+                    blockchainType,
+                )
+            )
+        }
+
         rate?.let { items.add(it) }
 
         return items
@@ -296,6 +308,7 @@ object TransactionViewItemFactoryHelper {
     fun getSendSectionItems(
         value: TransactionValue,
         toAddress: String?,
+        changeAddresses: List<String>? = null,
         coinPrice: CurrencyValue?,
         hideAmount: Boolean,
         sentToSelf: Boolean = false,
@@ -352,6 +365,17 @@ object TransactionViewItemFactoryHelper {
             contact?.let {
                 items.add(TransactionInfoViewItem.ContactItem(it))
             }
+        }
+
+        changeAddresses?.forEach {
+            items.add(
+                TransactionInfoViewItem.Address(
+                    Translator.getString(R.string.TransactionInfo_Change_Address),
+                    it,
+                    false,
+                    blockchainType,
+                )
+            )
         }
 
         rate?.let { items.add(it) }

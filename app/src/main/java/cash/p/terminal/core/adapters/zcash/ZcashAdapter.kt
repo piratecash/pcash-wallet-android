@@ -681,7 +681,8 @@ class ZcashAdapter(
                 showRawTransaction = false,
                 amount = transaction.value.convertZatoshiToZec(DECIMAL_COUNT),
                 from = null,
-                to = null,
+                to = transaction.toAddress,
+                changeAddresses = null,
                 memo = transaction.memo,
                 source = wallet.transactionSource,
                 transactionRecordType = TransactionRecordType.BITCOIN_INCOMING
@@ -704,6 +705,7 @@ class ZcashAdapter(
                 amount = transaction.value.convertZatoshiToZec(DECIMAL_COUNT).negate(),
                 to = transaction.toAddress,
                 from = null,
+                changeAddresses = null,
                 sentToSelf = false,
                 memo = transaction.memo,
                 source = wallet.transactionSource,

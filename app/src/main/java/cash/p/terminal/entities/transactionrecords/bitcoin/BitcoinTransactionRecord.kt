@@ -15,6 +15,7 @@ class BitcoinTransactionRecord(
     amount: BigDecimal,
     to: String?,
     from: String?,
+    val changeAddresses: List<String>?,
     uid: String,
     transactionHash: String,
     transactionIndex: Int,

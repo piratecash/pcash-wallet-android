@@ -625,6 +625,8 @@
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">به</string>
     <string name="TransactionInfo_From">از</string>
+    <string name="TransactionInfo_Address">آدرس</string>
+    <string name="TransactionInfo_Change_Address">آدرس باقی‌مانده</string>
     <string name="TransactionInfo_Spender">خرج کننده</string>
     <string name="TransactionInfo_LockedUntil">قفل شده تا %s</string>
     <string name="TransactionInfo_UnlockedAt">باز شده در %s</string>

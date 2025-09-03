@@ -625,6 +625,8 @@
     <string name="TransactionInfo_ContactName">Kişi Adı</string>
     <string name="TransactionInfo_To">Alan</string>
     <string name="TransactionInfo_From">Gönderen</string>
+    <string name="TransactionInfo_Address">Adres</string>
+    <string name="TransactionInfo_Change_Address">Para üstü adresi</string>
     <string name="TransactionInfo_Spender">Harcayan</string>
     <string name="TransactionInfo_LockedUntil">Şu zamana kadar kitlendi %s</string>
     <string name="TransactionInfo_UnlockedAt">Kilid açıldı %s</string>

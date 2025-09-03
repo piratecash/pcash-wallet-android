@@ -625,6 +625,8 @@
     <string name="TransactionInfo_ContactName">Nome do Contato</string>
     <string name="TransactionInfo_To">Para</string>
     <string name="TransactionInfo_From">De</string>
+    <string name="TransactionInfo_Address">Endereço</string>
+    <string name="TransactionInfo_Change_Address">Endereço de troco</string>
     <string name="TransactionInfo_Spender">Gastador</string>
     <string name="TransactionInfo_LockedUntil">Bloqueado até %s</string>
     <string name="TransactionInfo_UnlockedAt">Desbloqueado às %s</string>

@@ -84,12 +84,13 @@ class TonTransactionRecord(
             data class Receive(
                 val value: TransactionValue,
                 val from: String,
+                val to: String?,
                 val comment: String?,
             ) : Type()
 
             data class Burn(val value: TransactionValue) : Type()
 
-            data class Mint(val value: TransactionValue) : Type()
+            data class Mint(val value: TransactionValue, val to: String?) : Type()
 
             data class Swap(
                 val routerName: String?,

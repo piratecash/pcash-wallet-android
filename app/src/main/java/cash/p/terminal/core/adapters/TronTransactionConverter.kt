@@ -52,6 +52,7 @@ class TronTransactionConverter(
                                 token = baseToken,
                                 source = source,
                                 from = contract.ownerAddress.base58,
+                                to = contract.toAddress.base58,
                                 value = baseCoinValue(contract.amount, false),
                                 spam = contract.amount < BigInteger.TEN,
                                 transactionRecordType = TransactionRecordType.TRON_INCOMING
@@ -201,7 +202,7 @@ class TronTransactionConverter(
 
         for (transaction in internalTransactions) {
             events.add(
-                TransferEvent(transaction.from.base58, baseCoinValue(transaction.value, false))
+                TransferEvent(transaction.from.base58, transaction.to.base58, baseCoinValue(transaction.value, false))
             )
         }
 
@@ -213,7 +214,7 @@ class TronTransactionConverter(
         if (value == null || value <= BigInteger.ZERO) return listOf()
 
         return listOf(
-            TransferEvent(decoration.toAddress?.base58, baseCoinValue(value, true))
+            TransferEvent(decoration.toAddress?.base58, null, baseCoinValue(value, true))
         )
     }
 
@@ -223,8 +224,9 @@ class TronTransactionConverter(
         for (transfer in incomingTransfers) {
             events.add(
                 TransferEvent(
-                    transfer.from.base58,
-                    getEip20Value(transfer.contractAddress, transfer.value, false, transfer.tokenInfo)
+                    address = transfer.from.base58,
+                    addressForIncomingAddress = transfer.to.base58,
+                    value = getEip20Value(transfer.contractAddress, transfer.value, false, transfer.tokenInfo)
                 )
             )
         }
@@ -238,8 +240,9 @@ class TronTransactionConverter(
         for (transfer in outgoingTransfers) {
             events.add(
                 TransferEvent(
-                    transfer.to.base58,
-                    getEip20Value(transfer.contractAddress, transfer.value, true, transfer.tokenInfo)
+                    address = transfer.to.base58,
+                    addressForIncomingAddress = null,
+                    value = getEip20Value(transfer.contractAddress, transfer.value, true, transfer.tokenInfo)
                 )
             )
         }
