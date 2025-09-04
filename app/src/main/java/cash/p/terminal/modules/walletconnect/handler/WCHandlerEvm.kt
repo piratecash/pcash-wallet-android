@@ -7,8 +7,8 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.entities.TokenType
-import com.walletconnect.android.Core
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.android.Core
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.ethereumkit.core.signer.Signer
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain

@@ -16,8 +16,8 @@ import cash.p.terminal.modules.walletconnect.session.WCSessionServiceState.Ready
 import cash.p.terminal.modules.walletconnect.session.WCSessionServiceState.WaitingForApproveSession
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.SingleLiveEvent
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.launch
@@ -194,7 +194,7 @@ class WCSessionViewModel(
     }
 
     private fun getPendingRequestViewItems(topic: String): List<WCRequestViewItem> {
-        return Web3Wallet.getPendingListOfSessionRequests(topic).map { request ->
+        return WalletKit.getPendingListOfSessionRequests(topic).map { request ->
             val methodData = wcManager.getMethodData(request)
 
             WCRequestViewItem(
@@ -282,18 +282,18 @@ class WCSessionViewModel(
     suspend fun approve(proposalPublicKey: String) {
         val accountNonNull = account ?: return
         return suspendCoroutine { continuation ->
-            if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+            if (WalletKit.getSessionProposals().isNotEmpty()) {
                 val namespaces = wcManager.getSupportedNamespaces(accountNonNull)
                 val sessionProposal: Wallet.Model.SessionProposal = try {
                     requireNotNull(
-                        Web3Wallet.getSessionProposals()
+                        WalletKit.getSessionProposals()
                             .find { it.proposerPublicKey == proposalPublicKey })
                 } catch (e: Exception) {
                     continuation.resumeWithException(e)
                     WCDelegate.sessionProposalEvent = null
                     return@suspendCoroutine
                 }
-                val sessionNamespaces = Web3Wallet.generateApprovedNamespaces(
+                val sessionNamespaces = WalletKit.generateApprovedNamespaces(
                     sessionProposal = sessionProposal,
                     supportedNamespaces = namespaces
                 )
@@ -302,7 +302,7 @@ class WCSessionViewModel(
                     namespaces = sessionNamespaces
                 )
 
-                Web3Wallet.approveSession(
+                WalletKit.approveSession(
                     approveProposal,
                     onError = { error ->
                         continuation.resumeWithException(error.throwable)
@@ -318,9 +318,9 @@ class WCSessionViewModel(
 
     suspend fun reject(proposalPublicKey: String, onSuccess: () -> Unit) {
         return suspendCoroutine { continuation ->
-            if (Web3Wallet.getSessionProposals().isNotEmpty()) {
+            if (WalletKit.getSessionProposals().isNotEmpty()) {
                 val sessionProposal: Wallet.Model.SessionProposal = requireNotNull(
-                    Web3Wallet.getSessionProposals()
+                    WalletKit.getSessionProposals()
                         .find { it.proposerPublicKey == proposalPublicKey })
                 val rejectionReason = "Reject Session"
                 val reject = Wallet.Params.SessionReject(
@@ -328,7 +328,7 @@ class WCSessionViewModel(
                     reason = rejectionReason
                 )
 
-                Web3Wallet.rejectSession(
+                WalletKit.rejectSession(
                     reject,
                     onSuccess = {
                         continuation.resume(Unit)

@@ -2,8 +2,8 @@ package cash.p.terminal.modules.walletconnect.handler
 
 import cash.p.terminal.modules.walletconnect.request.AbstractWCAction
 import cash.p.terminal.wallet.Account
-import com.walletconnect.android.Core
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.android.Core
+import com.reown.walletkit.client.Wallet
 
 interface IWCHandler {
     val chainNamespace: String

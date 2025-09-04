@@ -8,7 +8,7 @@ import cash.p.terminal.modules.walletconnect.request.WCChainData
 import cash.p.terminal.modules.walletconnect.session.ValidationError
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 
 class WCManager(

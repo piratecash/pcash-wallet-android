@@ -1,11 +1,11 @@
 package cash.p.terminal.modules.walletconnect
 
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.walletkit.client.Wallet
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.modules.walletconnect.storage.WCSessionStorage
 import cash.p.terminal.modules.walletconnect.storage.WalletConnectV2Session
+import com.reown.walletkit.client.WalletKit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -99,7 +99,7 @@ class WCSessionManager(
     }
 
     private fun getSessions(accountId: String): List<Wallet.Model.Session> {
-        val sessions = Web3Wallet.getListOfActiveSessions()
+        val sessions = WalletKit.getListOfActiveSessions()
         val dbSessions = storage.getSessionsByAccountId(accountId)
 
         val accountSessions = sessions.filter { session ->
@@ -118,7 +118,7 @@ class WCSessionManager(
         val sessions = getSessions(accountId)
         val pendingRequests = mutableListOf<Wallet.Model.SessionRequest>()
         sessions.forEach { session ->
-            pendingRequests.addAll(Web3Wallet.getPendingListOfSessionRequests(session.topic))
+            pendingRequests.addAll(WalletKit.getPendingListOfSessionRequests(session.topic))
         }
         return pendingRequests
     }

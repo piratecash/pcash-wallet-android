@@ -7,8 +7,8 @@ import cash.p.terminal.modules.walletconnect.handler.MethodData
 import cash.p.terminal.modules.walletconnect.handler.UnsupportedMethodException
 import cash.p.terminal.modules.walletconnect.request.AbstractWCAction
 import cash.p.terminal.wallet.Account
-import com.walletconnect.android.Core
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.android.Core
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.stellarkit.StellarKit
 
 class WCHandlerStellar(private val stellarKitManager: StellarKitManager) : IWCHandler {

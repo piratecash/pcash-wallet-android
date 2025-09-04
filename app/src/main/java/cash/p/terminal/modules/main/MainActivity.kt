@@ -12,7 +12,7 @@ import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult

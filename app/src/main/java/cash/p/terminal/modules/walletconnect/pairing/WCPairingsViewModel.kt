@@ -2,7 +2,7 @@ package cash.p.terminal.modules.walletconnect.pairing
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.walletconnect.android.Core
+import com.reown.android.Core
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.modules.walletconnect.WCDelegate
 

@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.walletconnect.android.CoreClient
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.android.CoreClient
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.WCDelegate
@@ -82,7 +82,7 @@ class WalletConnectListViewModel(
         }
         connectionResult = when (WalletConnectListModule.getVersionFromUri(uri)) {
             2 -> {
-                Web3Wallet.pair(
+                WalletKit.pair(
                     Wallet.Params.Pair(uri.trim()),
                     onSuccess = {
                         connectionResult = null
@@ -151,7 +151,7 @@ class WalletConnectListViewModel(
     private fun syncPendingRequestsCountMap() {
         viewModelScope.launch(Dispatchers.IO) {
             wcSessionManager.sessions.forEach { session ->
-                val pendingRequests = Web3Wallet.getPendingListOfSessionRequests(session.topic)
+                val pendingRequests = WalletKit.getPendingListOfSessionRequests(session.topic)
                 pendingRequestCountMap[session.topic] = pendingRequests.size
             }
             _refreshFlow.tryEmit(Unit)

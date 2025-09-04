@@ -98,12 +98,12 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.m2049r.levin.util.NetCipherHelper
 import com.m2049r.levin.util.NetCipherHelper.OnStatusChangedListener
 import com.m2049r.xmrwallet.model.WalletManager
-import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
-import com.walletconnect.android.relay.ConnectionType
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.android.Core
+import com.reown.android.CoreClient
+import com.reown.android.relay.ConnectionType
+import com.reown.walletkit.client.Wallet
 import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
+import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
@@ -445,7 +445,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
                 Log.w("AAA", "error", error.throwable)
             },
         )
-        Web3Wallet.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
+        WalletKit.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
             Log.e("AAA", "error", error.throwable)
         }
     }

@@ -1,9 +1,9 @@
 package cash.p.terminal.modules.walletconnect
 
-import com.walletconnect.android.Core
-import com.walletconnect.android.CoreClient
-import com.walletconnect.web3.wallet.client.Wallet
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.android.Core
+import com.reown.android.CoreClient
+import com.reown.walletkit.client.Wallet
+import com.reown.walletkit.client.WalletKit
 import cash.p.terminal.core.App
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
+object WCDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _coreEvents: MutableSharedFlow<Core.Model> = MutableSharedFlow()
     val coreEvents: SharedFlow<Core.Model> = _coreEvents.asSharedFlow()
@@ -34,26 +34,22 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     private val _connectionAvailableEvent: MutableStateFlow<Boolean?> = MutableStateFlow(null)
     val connectionAvailableEvent: StateFlow<Boolean?> = _connectionAvailableEvent.asStateFlow()
 
-    var authRequestEvent: Pair<Wallet.Model.AuthRequest, Wallet.Model.VerifyContext>? = null
     var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.VerifyContext>? = null
     var sessionRequestEvent: Wallet.Model.SessionRequest? = null
 
     init {
         CoreClient.setDelegate(this)
-        Web3Wallet.setWalletDelegate(this)
+        WalletKit.setWalletDelegate(this)
     }
 
-    override fun onAuthRequest(
-        authRequest: Wallet.Model.AuthRequest,
-        verifyContext: Wallet.Model.VerifyContext
-    ) {
-        Timber.d("WCDelegate onAuthRequest")
-        authRequestEvent = Pair(authRequest, verifyContext)
+    override val onSessionAuthenticate: ((Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit)?
+        get() = { sessionAuthenticate, verifyContext ->
+            Timber.d("WCDelegate onSessionAuthenticate: $sessionAuthenticate")
 
-        scope.launch {
-            _walletEvents.emit(authRequest)
+            scope.launch {
+                _walletEvents.emit(sessionAuthenticate)
+            }
         }
-    }
 
     override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
         Timber.d("WCDelegate onConnectionStateChange: ${state.isAvailable}")
@@ -80,9 +76,9 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         }
     }
 
-//    override fun onSessionExtend(session: Wallet.Model.Session) {
-//        Log.d("Session Extend", "${session.expiry}")
-//    }
+    override fun onSessionExtend(session: Wallet.Model.Session) {
+        Timber.d("WCDelegate onSessionExtend")
+    }
 
     override fun onSessionProposal(
         sessionProposal: Wallet.Model.SessionProposal,
@@ -166,7 +162,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
     }
 
     fun getActiveSessions(): List<Wallet.Model.Session> {
-        return Web3Wallet.getListOfActiveSessions()
+        return WalletKit.getListOfActiveSessions()
     }
 
     fun deletePairing(topic: String, onError: (Throwable) -> Unit = {}) {
@@ -197,7 +193,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
         onSuccess: () -> Unit = {},
         onError: (Throwable) -> Unit = {}
     ) {
-        Web3Wallet.disconnectSession(Wallet.Params.SessionDisconnect(topic),
+        WalletKit.disconnectSession(Wallet.Params.SessionDisconnect(topic),
             onSuccess = {
                 scope.launch {
                     _walletEvents.emit(Wallet.Model.SessionDelete.Success(it.sessionTopic, ""))
@@ -247,7 +243,7 @@ object WCDelegate : Web3Wallet.WalletDelegate, CoreClient.CoreDelegate {
             jsonRpcResponse = jsonRpcResponse
         )
 
-        Web3Wallet.respondSessionRequest(
+        WalletKit.respondSessionRequest(
             response,
             onSuccess = {
                 onSuccessResult.invoke()

@@ -38,14 +38,14 @@ import cash.p.terminal.wallet.isCosanta
 import cash.p.terminal.wallet.isOldZCash
 import cash.p.terminal.wallet.isPirateCash
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
-import com.walletconnect.web3.wallet.client.Wallet.Params.Pair
-import com.walletconnect.web3.wallet.client.Web3Wallet
+import com.reown.walletkit.client.Wallet.Params.Pair
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import cash.p.terminal.ui_compose.components.HudHelper
+import com.reown.walletkit.client.WalletKit
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -485,7 +485,7 @@ class BalanceViewModel(
     }
 
     private fun handleWalletConnectUri(scannedText: String) {
-        Web3Wallet.pair(
+        WalletKit.pair(
             Pair(scannedText.trim()),
             onSuccess = {
                 connectionResult = null

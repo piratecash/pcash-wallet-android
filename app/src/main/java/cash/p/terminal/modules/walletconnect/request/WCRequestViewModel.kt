@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.modules.sendevmtransaction.SectionViewItem
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.strings.helpers.TranslatableString
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

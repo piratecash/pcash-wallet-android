@@ -12,7 +12,7 @@ import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.wallet.IAccountManager
 import com.google.gson.JsonParser
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.ethereumkit.core.hexStringToByteArray
 import kotlinx.parcelize.Parcelize
 import org.json.JSONArray
@@ -151,7 +151,7 @@ class WCRequestEvmViewModel(
                 WCDelegate.respondPendingRequest(
                     sessionRequest.requestId,
                     sessionRequest.topic,
-                    result.to0xHexString(),
+                    result.to0xHexString().normalizeSignature(),
                     onSuccessResult = {
                         continuation.resume(Unit)
                         clearSessionRequest()
@@ -163,6 +163,19 @@ class WCRequestEvmViewModel(
                 )
             }
         }
+    }
+
+    /***
+     * Pancake needs old r standard value in sign
+     */
+    private fun String.normalizeSignature(): String {
+        val v = takeLast(2).lowercase()
+        val normalizedV = when (v) {
+            "00" -> "1b"
+            "01" -> "1c"
+            else -> v
+        }
+        return this.dropLast(2) + normalizedV
     }
 
     suspend fun reject() {

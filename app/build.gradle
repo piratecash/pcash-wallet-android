@@ -171,6 +171,14 @@ android {
 
     configurations.all { c ->
         exclude(group: "com.github.metaplex-foundation.kborsh", module: "kborsh-jvm")
+
+        exclude(group: "com.walletconnect.Scarlet", module: "scarlet-core")
+        exclude(group: "com.walletconnect.Scarlet", module: "scarlet")
+        exclude(group: "com.walletconnect.Scarlet", module: "websocket-okhttp")
+        exclude(group: "com.walletconnect.Scarlet", module: "stream-adapter-rxjava2")
+        exclude(group: "com.walletconnect.Scarlet", module: "message-adapter-gson")
+        exclude(group: "com.walletconnect.Scarlet", module: "lifecycle-android")
+
         c.resolutionStrategy.dependencySubstitution {
             bcprovVersionsToRedirect.each { moduleId ->
                 def (name, version) = moduleId.split(':')
@@ -180,11 +188,11 @@ android {
             substitute module('com.google.protobuf:protobuf-java:3.6.1') using module('com.google.protobuf:protobuf-javalite:3.21.1')
             substitute module('net.jcip:jcip-annotations:1.0') using module('com.github.stephenc.jcip:jcip-annotations:1.0-1')
 
-            substitute module('com.tinder.scarlet:scarlet:0.1.12') using module('com.github.WalletConnect.Scarlet:scarlet:1.0.0')
-            substitute module('com.tinder.scarlet:websocket-okhttp:0.1.12') using module('com.github.WalletConnect.Scarlet:websocket-okhttp:1.0.0')
-            substitute module('com.tinder.scarlet:stream-adapter-rxjava2:0.1.12') using module('com.github.WalletConnect.Scarlet:stream-adapter-rxjava2:1.0.0')
-            substitute module('com.tinder.scarlet:message-adapter-gson:0.1.12') using module('com.github.WalletConnect.Scarlet:message-adapter-gson:1.0.0')
-            substitute module('com.tinder.scarlet:lifecycle-android:0.1.12') using module('com.github.WalletConnect.Scarlet:lifecycle-android:1.0.0')
+            substitute module('com.tinder.scarlet:scarlet:0.1.12') using module('com.github.WalletConnect.Scarlet:scarlet:1.0.2')
+            substitute module('com.tinder.scarlet:websocket-okhttp:0.1.12') using module('com.github.WalletConnect.Scarlet:websocket-okhttp:1.0.2')
+            substitute module('com.tinder.scarlet:stream-adapter-rxjava2:0.1.12') using module('com.github.WalletConnect.Scarlet:stream-adapter-rxjava2:1.0.2')
+            substitute module('com.tinder.scarlet:message-adapter-gson:0.1.12') using module('com.github.WalletConnect.Scarlet:message-adapter-gson:1.0.2')
+            substitute module('com.tinder.scarlet:lifecycle-android:0.1.12') using module('com.github.WalletConnect.Scarlet:lifecycle-android:1.0.2')
         }
 
         resolutionStrategy.eachDependency { details ->
@@ -314,9 +322,9 @@ dependencies {
     }
 
     // WalletConnect V2
-    implementation(platform("com.walletconnect:android-bom:1.15.0"))
-    implementation 'com.walletconnect:web3wallet'
-    implementation 'com.walletconnect:android-core'
+    implementation(platform(libs.android.bom))
+    implementation libs.reown.walletkit
+    implementation libs.reown.core
 
     // Unstoppable Domains
     implementation 'com.github.unstoppabledomains:resolution-java:v7.1.0'

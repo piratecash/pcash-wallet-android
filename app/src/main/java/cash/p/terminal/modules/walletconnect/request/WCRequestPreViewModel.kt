@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.ui_compose.entities.DataState
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.ViewModelUiState
 
 class WCRequestPreViewModel : ViewModelUiState<DataState<WCRequestPreUiState>>() {

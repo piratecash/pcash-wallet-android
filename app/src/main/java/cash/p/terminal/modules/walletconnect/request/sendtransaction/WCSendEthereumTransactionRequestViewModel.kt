@@ -8,6 +8,7 @@ import cash.p.terminal.core.App
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.EvmCoinServiceFactory
+import cash.p.terminal.core.to0xHexString
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceState
@@ -107,7 +108,11 @@ internal class WCSendEthereumTransactionRequestViewModel(
         val transactionHash = sendResult.fullTransaction.transaction.hash
 
         WCDelegate.sessionRequestEvent?.let { sessionRequest ->
-            WCDelegate.respondPendingRequest(sessionRequest.request.id, sessionRequest.topic, transactionHash.toHexString())
+            WCDelegate.respondPendingRequest(
+                requestId = sessionRequest.request.id,
+                topic = sessionRequest.topic,
+                data = transactionHash.to0xHexString()
+            )
         }
     }
 

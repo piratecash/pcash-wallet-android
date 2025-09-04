@@ -13,7 +13,7 @@ import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.IAccountManager
-import com.walletconnect.web3.wallet.client.Wallet
+import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IKeyStoreManager
 import io.horizontalsystems.core.IPinComponent
