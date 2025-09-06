@@ -5,8 +5,20 @@ import android.util.Log
 import androidx.annotation.IdRes
 import androidx.core.os.bundleOf
 import androidx.navigation.NavController
+import androidx.navigation.NavDirections
 import androidx.navigation.NavOptions
 import java.util.UUID
+
+fun NavController.slideFromRight(directions: NavDirections) {
+    val navOptions = NavOptions.Builder()
+        .setEnterAnim(R.anim.slide_from_right)
+        .setExitAnim(android.R.anim.fade_out)
+        .setPopEnterAnim(android.R.anim.fade_in)
+        .setPopExitAnim(R.anim.slide_to_right)
+        .build()
+
+    navigate(directions, navOptions)
+}
 
 fun NavController.slideFromRight(@IdRes resId: Int, input: Parcelable? = null) {
     val navOptions = NavOptions.Builder()

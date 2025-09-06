@@ -6,7 +6,11 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="cash.p.terminal.modules.main.MainFragment"/>
+        android:name="cash.p.terminal.modules.main.MainFragment">
+        <action
+            android:id="@+id/action_to_tokenBalance"
+            app:destination="@id/tokenBalanceFragment" />
+    </fragment>
     <fragment
         android:id="@+id/sendEvmConfirmationFragment"
         android:name="cash.p.terminal.modules.send.evm.confirmation.SendEvmConfirmationFragment"/>
@@ -368,7 +372,11 @@
         android:name="cash.p.terminal.modules.multiswap.SwapSelectCoinFragment" />
     <fragment
         android:id="@+id/tokenBalanceFragment"
-        android:name="cash.p.terminal.modules.balance.token.TokenBalanceFragment" />
+        android:name="cash.p.terminal.modules.balance.token.TokenBalanceFragment">
+        <argument
+            android:name="wallet"
+            app:argType="cash.p.terminal.wallet.Wallet" />
+    </fragment>
     <fragment
         android:id="@+id/кeyAccountInfoFragment"
         android:name="cash.p.terminal.modules.manageaccount.showextendedkey.KeyAccountInfoFragment" />

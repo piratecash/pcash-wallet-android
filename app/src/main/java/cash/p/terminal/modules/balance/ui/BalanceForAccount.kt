@@ -41,7 +41,7 @@ import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
-import cash.p.terminal.modules.displayoptions.DisplayOptionsFragment
+import cash.p.terminal.modules.main.MainFragmentDirections
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.qrscanner.QRScannerActivity
@@ -49,7 +49,6 @@ import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
@@ -177,11 +176,11 @@ fun BalanceForAccount(
                         if (accountViewItem.isCoinManagerEnabled) {
                             add(
                                 MenuItem(
-                                title = TranslatableString.ResString(R.string.display_options),
-                                icon = R.drawable.ic_search,
-                                onClick = {
-                                    navController.slideFromRight(R.id.manageWalletsFragment)
-                                })
+                                    title = TranslatableString.ResString(R.string.display_options),
+                                    icon = R.drawable.ic_search,
+                                    onClick = {
+                                        navController.slideFromRight(R.id.manageWalletsFragment)
+                                    })
                             )
                         }
                     }
@@ -193,8 +192,9 @@ fun BalanceForAccount(
             val navigateToTokenBalance: (BalanceViewItem2) -> Unit = remember {
                 {
                     navController.slideFromRight(
-                        R.id.tokenBalanceFragment,
-                        it.wallet
+                        MainFragmentDirections.actionToTokenBalance(
+                            wallet = it.wallet
+                        )
                     )
                 }
             }
