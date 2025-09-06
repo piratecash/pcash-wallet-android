@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "cash.p.terminal.resources"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         consumerProguardFiles("consumer-rules.pro")

@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "cash.p.terminal.wallet"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         consumerProguardFiles("consumer-rules.pro")
