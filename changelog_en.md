@@ -1,3 +1,20 @@
+## Main changes in version 0.46.4
+
+### 🎛 Improvements
+- **Wallet warning:**
+  Fixed an issue where a null wallet warning was sometimes displayed.
+
+- **Wallet Connect (Reown):**
+  Updated the Wallet Connect version and migrated the code to the newer **Reown** library, since Wallet Connect reached End-of-Life on February 17, 2025.
+
+- **Message signing with Tangem:**
+  Fixed an issue with **Wallet Connect message signing** in some cases when using a **Tangem card**.
+
+- **DASH synchronization (Hybrid):**
+  Fixed an issue where **DASH synchronization** could stop in some cases when using **Hybrid mode**.
+
+
+
 ## Main changes in version 0.46.3
 
 ### ✨ New features
