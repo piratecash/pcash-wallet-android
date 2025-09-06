@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "cash.p.terminal.strings"
-    compileSdk = 34
+    compileSdk = 35
 
     val minSdkVersion: Int = rootProject.ext.get("min_sdk_version") as Int
     defaultConfig {
