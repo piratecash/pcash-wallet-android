@@ -168,6 +168,9 @@ android {
     ]
 
     configurations.all { c ->
+        exclude(group: "com.google.firebase")
+        exclude(group: "com.google.android.gms")
+
         exclude(group: "com.github.metaplex-foundation.kborsh", module: "kborsh-jvm")
 
         exclude(group: "com.walletconnect.Scarlet", module: "scarlet-core")
