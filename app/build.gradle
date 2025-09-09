@@ -249,6 +249,7 @@ android {
             substitute module('com.tinder.scarlet:stream-adapter-rxjava2:0.1.12') using module('com.github.WalletConnect.Scarlet:stream-adapter-rxjava2:1.0.2')
             substitute module('com.tinder.scarlet:message-adapter-gson:0.1.12') using module('com.github.WalletConnect.Scarlet:message-adapter-gson:1.0.2')
             substitute module('com.tinder.scarlet:lifecycle-android:0.1.12') using module('com.github.WalletConnect.Scarlet:lifecycle-android:1.0.2')
+            substitute(module("com.reown:android-core")).using(module("com.github.piratecash.reown-kotlin:android:485f3b1"))
         }
 
         resolutionStrategy.eachDependency { details ->
