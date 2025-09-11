@@ -17,7 +17,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 object SendStellarModule {
     class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter = App.adapterManager.getAdapterForWallet<ISendStellarAdapter>(wallet) ?: throw IllegalStateException("ISendStellarAdapter is null")

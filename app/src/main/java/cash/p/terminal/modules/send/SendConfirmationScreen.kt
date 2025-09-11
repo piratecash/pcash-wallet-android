@@ -77,7 +77,7 @@ fun SendConfirmationScreen(
     amount: BigDecimal,
     address: Address,
     contact: Contact?,
-    fee: BigDecimal,
+    fee: BigDecimal?,
     lockTimeInterval: LockTimeInterval?,
     memo: String?,
     rbfEnabled: Boolean?,
@@ -120,14 +120,14 @@ fun SendConfirmationScreen(
     }
 
     LaunchedEffect(sendResult) {
-        if (sendResult == SendResult.Sent()) {
+        if (sendResult is SendResult.Sent) {
             delay(1200)
             navController.popBackStack(closeUntilDestId, true)
         }
     }
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
-        if (sendResult == SendResult.Sent()) {
+        if (sendResult is SendResult.Sent) {
             navController.popBackStack(closeUntilDestId, true)
         }
     }

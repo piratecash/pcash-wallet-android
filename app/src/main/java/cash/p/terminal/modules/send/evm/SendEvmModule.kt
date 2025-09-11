@@ -10,6 +10,7 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
 import cash.p.terminal.modules.xrate.XRateService
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.parcelize.Parcelize
@@ -59,7 +60,7 @@ object SendEvmModule {
 
     internal class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendEthereumAdapter) ?: throw IllegalArgumentException("SendEthereumAdapter is null")
@@ -80,16 +81,19 @@ object SendEvmModule {
                     val addressService = SendEvmAddressService()
                     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
 
+                    val token = App.evmBlockchainManager.getBaseToken(wallet.token.blockchainType)!!
+                    val sendTransactionService = SendTransactionServiceEvm(token)
+
                     SendEvmViewModel(
                         wallet = wallet,
                         sendToken = wallet.token,
                         adapter = adapter,
+                        sendTransactionService = sendTransactionService,
                         xRateService = xRateService,
                         amountService = amountService,
                         addressService = addressService,
                         coinMaxAllowedDecimals = coinMaxAllowedDecimals,
                         showAddressInput = !hideAddress,
-                        connectivityManager = App.connectivityManager,
                         address = address,
                     ) as T
                 }

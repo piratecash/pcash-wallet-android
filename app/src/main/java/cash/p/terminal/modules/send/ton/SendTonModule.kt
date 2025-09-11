@@ -16,7 +16,7 @@ import cash.p.terminal.wallet.entities.TokenType
 object SendTonModule {
     class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendTonAdapter) ?: throw IllegalStateException("ISendTonAdapter is null")

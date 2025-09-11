@@ -14,7 +14,7 @@ object SendBitcoinModule {
     @Suppress("UNCHECKED_CAST")
     class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter =

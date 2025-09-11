@@ -41,7 +41,7 @@ class SendMoneroViewModel(
     private val showAddressInput: Boolean,
     private val contactsRepo: ContactsRepository,
     private val connectivityManager: ConnectivityManager,
-    private val address: Address,
+    private val address: Address?,
 ) : ViewModelUiState<SendUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = sendToken.decimals
@@ -89,10 +89,11 @@ class SendMoneroViewModel(
 
     override fun createState() = SendUiState(
         availableBalance = amountState.availableBalance,
+        addressError = addressState.addressError,
         amountCaution = amountState.amountCaution,
         canBeSend = amountState.canBeSend && addressState.canBeSend,
         showAddressInput = showAddressInput,
-        address = address
+        address = addressState.address
     )
 
     fun onEnterAmount(amount: BigDecimal?) {
@@ -111,7 +112,7 @@ class SendMoneroViewModel(
         ).firstOrNull()
         return SendConfirmationData(
             amount = decimalAmount,
-            fee = fee ?: BigDecimal.ZERO,
+            fee = fee,
             address = address,
             contact = contact,
             coin = wallet.coin,

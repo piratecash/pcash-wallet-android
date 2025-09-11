@@ -42,7 +42,7 @@ class SendTonViewModel(
     val coinMaxAllowedDecimals: Int,
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
-    private val address: Address,
+    address: Address?,
 ): ViewModelUiState<SendTonUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
@@ -116,7 +116,7 @@ class SendTonViewModel(
         showAddressInput = showAddressInput,
         fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
         feeInProgress = feeState.inProgress,
-        address = address
+        address = addressState.address
     )
 
     fun onEnterAmount(amount: BigDecimal?) {
@@ -135,7 +135,7 @@ class SendTonViewModel(
         ).firstOrNull()
         return SendConfirmationData(
             amount = amountState.amount!!,
-            fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate) ?: BigDecimal.ZERO,
+            fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
             address = address,
             contact = contact,
             coin = wallet.coin,
@@ -214,5 +214,5 @@ data class SendTonUiState(
     val showAddressInput: Boolean,
     val fee: BigDecimal?,
     val feeInProgress: Boolean,
-    val address: Address,
+    val address: Address?,
 )

@@ -344,6 +344,7 @@
     <string name="Send_Confirmation_Own">Own</string>
     <string name="Send_Confirmation_Method">Method</string>
     <string name="Send_Confirmation_Send_Button">Send</string>
+    <string name="security_report">Beveiligingsrapport</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Sent</string>
     <string name="ScanQr_CameraPermission_Title">Camera permission</string>

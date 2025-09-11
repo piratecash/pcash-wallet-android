@@ -344,6 +344,7 @@
     <string name="Send_Confirmation_Own">自有</string>
     <string name="Send_Confirmation_Method">方法</string>
     <string name="Send_Confirmation_Send_Button">发送​​</string>
+    <string name="security_report">安全报告</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713已发送</string>
     <string name="ScanQr_CameraPermission_Title">允许打开相机权限</string>

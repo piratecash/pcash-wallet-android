@@ -67,6 +67,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 import java.math.BigDecimal
 
 internal class SendTransactionServiceEvm(
@@ -227,7 +228,9 @@ internal class SendTransactionServiceEvm(
 
     override suspend fun sendTransaction(): SendTransactionResult.Evm {
         val transaction = transaction ?: throw Exception()
-        if (transaction.errors.isNotEmpty()) throw Exception()
+        if (transaction.errors.isNotEmpty()) {
+            throw IllegalStateException(transaction.errors.firstOrNull()?.cause)
+        }
 
         val transactionData = transaction.transactionData
         val gasPrice = transaction.gasData.gasPrice

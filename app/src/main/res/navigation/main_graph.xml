@@ -4,6 +4,26 @@
     android:id="@+id/main_graph"
     app:startDestination="@id/mainFragment">
 
+    <action
+        android:id="@+id/action_global_to_security_check"
+        app:destination="@id/securityCheckFragment"/>
+
+    <action
+        android:id="@+id/action_global_to_sendFragment"
+        app:destination="@id/sendXFragment"
+        app:enterAnim="@anim/slide_from_right"
+        app:exitAnim="@android:anim/fade_out"
+        app:popEnterAnim="@android:anim/fade_in"
+        app:popExitAnim="@anim/slide_to_right" />
+
+    <action
+        android:id="@+id/action_global_to_sendConfirmationFragment"
+        app:destination="@id/sendConfirmation"
+        app:enterAnim="@anim/slide_from_right"
+        app:exitAnim="@android:anim/fade_out"
+        app:popEnterAnim="@android:anim/fade_in"
+        app:popExitAnim="@anim/slide_to_right" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="cash.p.terminal.modules.main.MainFragment">
@@ -311,8 +331,12 @@
         android:id="@+id/etfFragment"
         android:name="cash.p.terminal.modules.market.etf.EtfFragment" />
     <fragment
-        android:id="@+id/enterAddressFragment"
-        android:name="cash.p.terminal.modules.send.address.EnterAddressFragment"/>
+        android:id="@+id/securityCheckFragment"
+        android:name="cash.p.terminal.modules.send.securitycheck.SecurityCheckFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.send.securitycheck.SecurityCheckFragment$SecurityCheckInput" />
+    </fragment>
     <fragment
         android:id="@+id/nftsFragment"
         android:name="cash.p.terminal.modules.nft.holdings.NftHoldingsFragment" />
@@ -327,7 +351,11 @@
         android:name="cash.p.terminal.modules.nft.collection.NftCollectionFragment"/>
     <fragment
         android:id="@+id/sendXFragment"
-        android:name="cash.p.terminal.modules.send.SendFragment" />
+        android:name="cash.p.terminal.modules.send.SendFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.send.SendFragment$Input" />
+    </fragment>
     <fragment
         android:id="@+id/sendTokenSelectFragment"
         android:name="cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment" />
@@ -351,7 +379,14 @@
         android:name="cash.p.terminal.modules.multiswap.SwapConfirmFragment" />
     <fragment
         android:id="@+id/sendConfirmation"
-        android:name="cash.p.terminal.modules.send.SendConfirmationFragment" />
+        android:name="cash.p.terminal.modules.send.SendConfirmationFragment">
+        <argument
+            android:name="type"
+            app:argType="cash.p.terminal.modules.send.SendConfirmationFragment$Type" />
+        <argument
+            android:name="sendEntryPointDestId"
+            app:argType="integer" />
+    </fragment>
     <fragment
         android:id="@+id/feePriorityInfo"
         android:name="cash.p.terminal.modules.info.FeePriorityInfoFragment" />

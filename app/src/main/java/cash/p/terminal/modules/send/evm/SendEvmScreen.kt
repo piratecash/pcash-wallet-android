@@ -9,52 +9,45 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.entities.Address
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
-import cash.p.terminal.modules.address.HSAddressCell
+import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
-import cash.p.terminal.modules.send.AddressRiskyBottomSheetAlert
+import cash.p.terminal.modules.send.SendConfirmationFragment
+import cash.p.terminal.modules.send.SendFragment.ProceedActionData
 import cash.p.terminal.modules.send.SendScreen
-import cash.p.terminal.modules.send.evm.confirmation.SendEvmConfirmationFragment
+import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
-import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Wallet
-import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.slideFromBottomForResult
 import java.math.BigDecimal
 
 @Composable
-fun SendEvmScreen(
+internal fun SendEvmScreen(
     title: String,
     navController: NavController,
+    viewModel: SendEvmViewModel,
     amountInputModeViewModel: AmountInputModeViewModel,
-    address: Address,
     wallet: Wallet,
     amount: BigDecimal?,
-    hideAddress: Boolean,
-    riskyAddress: Boolean,
-    sendEntryPointDestId: Int,
+    addressCheckerControl: AddressCheckerControl,
+    onNextClick: (ProceedActionData) -> Unit,
 ) {
-    val viewModel =
-        viewModel<SendEvmViewModel>(factory = SendEvmModule.Factory(wallet, address, hideAddress))
     val uiState = viewModel.uiState
 
     val availableBalance = uiState.availableBalance
+    val addressError = uiState.addressError
     val amountCaution = uiState.amountCaution
     val proceedEnabled = uiState.canBeSend
     val amountInputType = amountInputModeViewModel.inputType
@@ -62,12 +55,10 @@ fun SendEvmScreen(
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
         factory = AddressParserModule.Factory(
             wallet.token,
-            PrefilledData(uiState.address.hex, amount)
+            PrefilledData(uiState.address?.hex.orEmpty(), amount)
         )
     )
     val amountUnique = paymentAddressViewModel.amountUnique
-    val view = LocalView.current
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     ComposeAppTheme {
         val focusRequester = remember { FocusRequester() }
@@ -78,17 +69,31 @@ fun SendEvmScreen(
 
         SendScreen(
             title = title,
-            onCloseClick = { navController.popBackStack() }
+            proceedEnabled = proceedEnabled,
+            onCloseClick = { navController.popBackStack() },
+            onSendClick = {
+                onNextClick(
+                    ProceedActionData(
+                        address = uiState.address?.hex,
+                        wallet = wallet,
+                        type = SendConfirmationFragment.Type.Evm,
+                    )
+                )
+            }
         ) {
             if (uiState.showAddressInput) {
-                HSAddressCell(
-                    title = stringResource(R.string.Send_Confirmation_To),
-                    value = uiState.address.hex,
-                    riskyAddress = riskyAddress
+                HSAddressInput(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    initial = uiState.address,
+                    tokenQuery = wallet.token.tokenQuery,
+                    coinCode = wallet.coin.code,
+                    error = addressError,
+                    textPreprocessor = paymentAddressViewModel,
+                    navController = navController
                 ) {
-                    navController.popBackStack()
+                    viewModel.onEnterAddress(it)
                 }
-                VSpacer(16.dp)
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
             HSAmountInput(
@@ -119,7 +124,25 @@ fun SendEvmScreen(
                 amountInputType = amountInputType,
                 rate = viewModel.coinRate
             )
-
+            Spacer(modifier = Modifier.height(12.dp))
+            SectionUniversalLawrence {
+                SwitchWithText(
+                    text = stringResource(R.string.SettingsAddressChecker_RecipientCheck),
+                    checkEnabled = addressCheckerControl.uiState.addressCheckByBaseEnabled,
+                    onCheckedChange = addressCheckerControl::onCheckBaseAddressClick
+                )
+            }
+            SectionUniversalLawrence(modifier = Modifier.padding(top = 8.dp)) {
+                SwitchWithText(
+                    text = stringResource(R.string.settings_smart_contract_check),
+                    checkEnabled = addressCheckerControl.uiState.addressCheckSmartContractEnabled,
+                    onCheckedChange = {
+                        navController.premiumAction {
+                            addressCheckerControl.onCheckSmartContractAddressClick(it)
+                        }
+                    }
+                )
+            }
 
             ButtonPrimaryYellow(
                 modifier = Modifier
@@ -127,51 +150,16 @@ fun SendEvmScreen(
                     .padding(horizontal = 16.dp, vertical = 24.dp),
                 title = stringResource(R.string.Send_DialogProceed),
                 onClick = {
-                    val sendData = viewModel.getSendData() ?: return@ButtonPrimaryYellow
-                    if (!viewModel.hasConnection()) {
-                        HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
-                    } else if (riskyAddress) {
-                        keyboardController?.hide()
-                        navController.slideFromBottomForResult<AddressRiskyBottomSheetAlert.Result>(
-                            R.id.addressRiskyBottomSheetAlert,
-                            AddressRiskyBottomSheetAlert.Input(
-                                alertText = Translator.getString(R.string.Send_RiskyAddress_AlertText)
-                            )
-                        ) {
-                            openSendConfirm(
-                                sendData,
-                                viewModel.wallet.token.blockchainType,
-                                navController,
-                                sendEntryPointDestId
-                            )
-                        }
-                    } else {
-                        openSendConfirm(
-                            sendData,
-                            viewModel.wallet.token.blockchainType,
-                            navController,
-                            sendEntryPointDestId
+                    onNextClick(
+                        ProceedActionData(
+                            address = uiState.address?.hex,
+                            wallet = wallet,
+                            type = SendConfirmationFragment.Type.Evm,
                         )
-                    }
+                    )
                 },
                 enabled = proceedEnabled
             )
         }
     }
-}
-
-private fun openSendConfirm(
-    sendEvmData: SendEvmData,
-    blockchainType: BlockchainType,
-    navController: NavController,
-    sendEntryPointDestId: Int
-) {
-    navController.slideFromRight(
-        R.id.sendEvmConfirmationFragment,
-        SendEvmConfirmationFragment.Input(
-            sendData = sendEvmData,
-            blockchainType = blockchainType,
-            sendEntryPointDestId = sendEntryPointDestId
-        )
-    )
 }

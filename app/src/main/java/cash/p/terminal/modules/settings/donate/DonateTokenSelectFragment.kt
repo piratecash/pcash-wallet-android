@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.entities.Address
@@ -47,14 +48,15 @@ class DonateTokenSelectFragment : BaseComposeFragment() {
                         R.string.Settings_DonateToken,
                         viewItem.wallet.token.fullCoin.coin.code
                     )
-                    navController.slideFromRight(
-                        R.id.sendXFragment,
-                        SendFragment.Input(
-                            wallet = viewItem.wallet,
-                            title = sendTitle,
-                            sendEntryPointDestId = R.id.sendTokenSelectFragment,
-                            address = Address(donateAddress),
-                            hideAddress = true
+                    navController.navigate(
+                        MainGraphDirections.actionGlobalToSendFragment(
+                            SendFragment.Input(
+                                wallet = viewItem.wallet,
+                                title = sendTitle,
+                                sendEntryPointDestId = R.id.sendTokenSelectFragment,
+                                address = Address(donateAddress),
+                                hideAddress = true
+                            )
                         )
                     )
                 }
