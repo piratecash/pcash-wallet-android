@@ -7,18 +7,19 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
+import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.balance.BalanceViewItem2
-import cash.p.terminal.modules.send.address.EnterAddressFragment
+import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.tokenselect.TokenSelectScreen
 import cash.p.terminal.modules.tokenselect.TokenSelectViewModel
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
@@ -76,14 +77,14 @@ class SendTokenSelectFragment : BaseComposeFragment() {
                     R.string.Send_Title,
                     viewItem.wallet.token.fullCoin.coin.code
                 )
-                navController.slideFromRight(
-                    R.id.enterAddressFragment,
-                    EnterAddressFragment.Input(
-                        wallet = viewItem.wallet,
-                        title = sendTitle,
-                        sendEntryPointDestId = R.id.sendTokenSelectFragment,
-                        address = input?.address,
-                        amount = input?.amount,
+                navController.navigate(
+                    MainGraphDirections.actionGlobalToSendFragment(
+                        SendFragment.Input(
+                            wallet = viewItem.wallet,
+                            title = sendTitle,
+                            sendEntryPointDestId = R.id.sendTokenSelectFragment,
+                            address = input?.address?.let { Address(it) }
+                        )
                     )
                 )
             }
@@ -112,6 +113,6 @@ class SendTokenSelectFragment : BaseComposeFragment() {
 
 @Parcelize
 data class PrefilledData(
-    val address: String,
+    val address: String?,
     val amount: BigDecimal? = null,
 ) : Parcelable

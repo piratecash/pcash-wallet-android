@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -27,20 +26,23 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
+import cash.p.terminal.core.premiumAction
+import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
-import cash.p.terminal.modules.address.HSAddressCell
+import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
 import cash.p.terminal.modules.fee.HSFeeRaw
 import cash.p.terminal.modules.memo.HSMemoInput
 import cash.p.terminal.modules.send.SendConfirmationFragment
+import cash.p.terminal.modules.send.SendFragment.ProceedActionData
+import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.bitcoin.advanced.BtcTransactionInputSortInfoScreen
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.advanced.SendBtcAdvancedSettingsScreen
 import cash.p.terminal.modules.send.bitcoin.utxoexpert.UtxoExpertModeScreen
-import cash.p.terminal.modules.send.openConfirm
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
@@ -50,6 +52,8 @@ import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
@@ -68,9 +72,9 @@ fun SendBitcoinNavHost(
     fragmentNavController: NavController,
     viewModel: SendBitcoinViewModel,
     amountInputModeViewModel: AmountInputModeViewModel,
-    sendEntryPointDestId: Int,
     prefilledData: PrefilledData?,
-    riskyAddress: Boolean
+    addressCheckerControl: AddressCheckerControl,
+    onNextClick: (ProceedActionData) -> Unit,
 ) {
     val navController = rememberNavController()
     NavHost(
@@ -84,9 +88,9 @@ fun SendBitcoinNavHost(
                 composeNavController = navController,
                 viewModel = viewModel,
                 amountInputModeViewModel = amountInputModeViewModel,
-                sendEntryPointDestId = sendEntryPointDestId,
                 prefilledData = prefilledData,
-                riskyAddress = riskyAddress
+                addressCheckerControl = addressCheckerControl,
+                onNextClick = onNextClick
             )
         }
         composablePage(SendBtcAdvancedSettingsPage) {
@@ -115,15 +119,15 @@ fun SendBitcoinNavHost(
 }
 
 @Composable
-fun SendBitcoinScreen(
+private fun SendBitcoinScreen(
     title: String,
     fragmentNavController: NavController,
     composeNavController: NavController,
     viewModel: SendBitcoinViewModel,
     amountInputModeViewModel: AmountInputModeViewModel,
-    sendEntryPointDestId: Int,
     prefilledData: PrefilledData?,
-    riskyAddress: Boolean,
+    addressCheckerControl: AddressCheckerControl,
+    onNextClick: (ProceedActionData) -> Unit,
 ) {
     val wallet = viewModel.wallet
     val uiState = viewModel.uiState
@@ -134,7 +138,6 @@ fun SendBitcoinScreen(
     val proceedEnabled = uiState.canBeSend
     val amountInputType = amountInputModeViewModel.inputType
     val feeRateCaution = uiState.feeRateCaution
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     val rate = viewModel.coinRate
 
@@ -167,6 +170,20 @@ fun SendBitcoinScreen(
                             tint = ComposeAppTheme.colors.jacob,
                             onClick = { composeNavController.navigate(SendBtcAdvancedSettingsPage) }
                         ),
+                        MenuItem(
+                            title = TranslatableString.ResString(R.string.Send_DialogProceed),
+                            tint = ComposeAppTheme.colors.jacob,
+                            enabled = proceedEnabled,
+                            onClick = {
+                                onNextClick(
+                                    ProceedActionData(
+                                        address = uiState.address?.hex,
+                                        wallet = wallet,
+                                        type = SendConfirmationFragment.Type.Bitcoin,
+                                    )
+                                )
+                            }
+                        ),
                     )
                 } else {
                     emptyList()
@@ -175,14 +192,18 @@ fun SendBitcoinScreen(
 
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 if (uiState.showAddressInput) {
-                    HSAddressCell(
-                        title = stringResource(R.string.Send_Confirmation_To),
-                        value = prefilledData?.address.orEmpty(),
-                        riskyAddress = riskyAddress
+                    HSAddressInput(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        initial = prefilledData?.address?.let { Address(it) },
+                        tokenQuery = wallet.token.tokenQuery,
+                        coinCode = wallet.coin.code,
+                        error = uiState.addressError,
+                        textPreprocessor = paymentAddressViewModel,
+                        navController = fragmentNavController
                     ) {
-                        fragmentNavController.popBackStack()
+                        viewModel.onEnterAddress(it)
                     }
-                    VSpacer(16.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
                 HSAmountInput(
@@ -213,7 +234,6 @@ fun SendBitcoinScreen(
                     amountInputType = amountInputType,
                     rate = rate
                 )
-
 
                 if (uiState.isMemoAvailable) {
                     VSpacer(12.dp)
@@ -255,17 +275,38 @@ fun SendBitcoinScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(12.dp))
+                SectionUniversalLawrence {
+                    SwitchWithText(
+                        text = stringResource(R.string.SettingsAddressChecker_RecipientCheck),
+                        checkEnabled = addressCheckerControl.uiState.addressCheckByBaseEnabled,
+                        onCheckedChange = addressCheckerControl::onCheckBaseAddressClick
+                    )
+                }
+                SectionUniversalLawrence(modifier = Modifier.padding(top = 8.dp)) {
+                    SwitchWithText(
+                        text = stringResource(R.string.settings_smart_contract_check),
+                        checkEnabled = addressCheckerControl.uiState.addressCheckSmartContractEnabled,
+                        onCheckedChange = {
+                            fragmentNavController.premiumAction {
+                                addressCheckerControl.onCheckSmartContractAddressClick(it)
+                            }
+                        }
+                    )
+                }
+
                 ButtonPrimaryYellow(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 24.dp),
                     title = stringResource(R.string.Send_DialogProceed),
                     onClick = {
-                        fragmentNavController.openConfirm(
-                            type = SendConfirmationFragment.Type.Bitcoin,
-                            riskyAddress = riskyAddress,
-                            keyboardController = keyboardController,
-                            sendEntryPointDestId = sendEntryPointDestId
+                        onNextClick(
+                            ProceedActionData(
+                                address = uiState.address?.hex,
+                                wallet = wallet,
+                                type = SendConfirmationFragment.Type.Bitcoin,
+                            )
                         )
                     },
                     enabled = proceedEnabled

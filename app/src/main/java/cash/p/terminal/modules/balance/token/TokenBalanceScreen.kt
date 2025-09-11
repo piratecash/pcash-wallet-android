@@ -35,15 +35,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.isCustom
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.receive.ReceiveFragment
+import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
 import cash.p.terminal.modules.transactions.TransactionViewItem
@@ -51,6 +52,7 @@ import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.transactions.transactionList
 import cash.p.terminal.modules.transactions.transactionsHiddenBlock
 import cash.p.terminal.navigation.entity.SwapParams
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -65,7 +67,9 @@ import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_grey
@@ -74,9 +78,6 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isCosanta
 import cash.p.terminal.wallet.isPirateCash
-import cash.p.terminal.modules.send.address.EnterAddressFragment
-import cash.p.terminal.ui_compose.components.SnackbarDuration
-import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun TokenBalanceScreen(
@@ -161,7 +162,8 @@ fun TokenBalanceScreen(
                 }
             }
         } else {
-            val itemsBalanceHidden = remember(transactionsViewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
+            val itemsBalanceHidden =
+                remember(transactionsViewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
             HSSwipeRefresh(
                 refreshing = refreshing,
                 modifier = Modifier.padding(paddingValues),
@@ -191,9 +193,12 @@ fun TokenBalanceScreen(
                                 navController
                             )
                         },
-                        isItemBalanceHidden = { itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden },
+                        isItemBalanceHidden = {
+                            itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden
+                        },
                         onValueClick = {
-                            itemsBalanceHidden[it.uid] = !(itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden)
+                            itemsBalanceHidden[it.uid] =
+                                !(itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden)
                         },
                         onBottomReached = viewModel::onBottomReached
                     )
@@ -493,12 +498,18 @@ private fun ButtonsRow(
                     modifier = Modifier.weight(1f),
                     title = stringResource(R.string.Balance_Send),
                     onClick = {
-                        val sendTitle = Translator.getString(R.string.Send_Title, viewItem.wallet.token.fullCoin.coin.code)
-                        navController.slideFromRight(
-                            R.id.enterAddressFragment,
-                            EnterAddressFragment.Input(
-                                wallet = viewItem.wallet,
-                                title = sendTitle
+                        val sendTitle = Translator.getString(
+                            R.string.Send_Title,
+                            viewItem.wallet.token.fullCoin.coin.code
+                        )
+                        navController.navigate(
+                            MainGraphDirections.actionGlobalToSendFragment(
+                                SendFragment.Input(
+                                    wallet = viewItem.wallet,
+                                    title = sendTitle,
+                                    sendEntryPointDestId = R.id.sendTokenSelectFragment,
+                                    address = null
+                                )
                             )
                         )
                     },

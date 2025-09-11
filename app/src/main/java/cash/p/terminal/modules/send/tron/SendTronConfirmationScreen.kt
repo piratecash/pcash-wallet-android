@@ -2,8 +2,6 @@ package cash.p.terminal.modules.send.tron
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,7 +29,6 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
 import cash.p.terminal.modules.fee.HSFeeRaw
@@ -39,24 +36,24 @@ import cash.p.terminal.modules.fee.HSFeeRawWithViewState
 import cash.p.terminal.modules.send.ConfirmAmountCell
 import cash.p.terminal.modules.send.MemoCell
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.ui.compose.components.SectionTitleCell
+import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
+import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.RowUniversal
-import cash.p.terminal.ui.compose.components.SectionTitleCell
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.TextImportantWarning
-import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
-import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
-import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.SnackbarDuration
-import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.delay
 
 @Composable
@@ -121,7 +118,7 @@ fun SendTronConfirmationScreen(
     }
 
     LaunchedEffect(sendResult) {
-        if (sendResult == SendResult.Sent()) {
+        if (sendResult is SendResult.Sent) {
             delay(1200)
             navController.popBackStack(closeUntilDestId, true)
         }
@@ -129,7 +126,7 @@ fun SendTronConfirmationScreen(
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
         //additional close for cases when user closes app immediately after sending
-        if (sendResult == SendResult.Sent()) {
+        if (sendResult is SendResult.Sent) {
             navController.popBackStack(closeUntilDestId, true)
         }
     }
@@ -272,36 +269,12 @@ fun SendTronConfirmationScreen(
 }
 
 @Composable
-private fun InactiveAddressWarningItem(navController: NavController) {
-    val title = stringResource(R.string.Tron_AddressNotActive_Title)
-    val info = stringResource(R.string.Tron_AddressNotActive_Info)
-    RowUniversal(
-        modifier = Modifier
-            .clickable(
-                onClick = {
-                    navController.slideFromBottom(
-                        R.id.feeSettingsInfoDialog,
-                        FeeSettingsInfoDialog.Input(title, info)
-                    )
-                },
-                interactionSource = MutableInteractionSource(),
-                indication = null
-            )
-            .padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        subhead2_jacob(text = stringResource(R.string.Tron_AddressNotActive_Warning))
-
-        Image(
-            modifier = Modifier.padding(horizontal = 8.dp),
-            painter = painterResource(id = R.drawable.ic_info_20),
-            contentDescription = ""
-        )
-    }
-}
-
-@Composable
-private fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> Unit, enabled: Boolean) {
+private fun SendButton(
+    modifier: Modifier,
+    sendResult: SendResult?,
+    onClickSend: () -> Unit,
+    enabled: Boolean
+) {
     when (sendResult) {
         SendResult.Sending -> {
             ButtonPrimaryYellow(

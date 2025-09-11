@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -46,7 +47,7 @@ fun FeeCell(
             modifier = Modifier.clickable(
                 enabled = navController != null,
                 onClick = { navController?.slideFromBottom(R.id.feeSettingsInfoDialog, FeeSettingsInfoDialog.Input(title, info)) },
-                interactionSource = MutableInteractionSource(),
+                interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
             verticalAlignment = Alignment.CenterVertically

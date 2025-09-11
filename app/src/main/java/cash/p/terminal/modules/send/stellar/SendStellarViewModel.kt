@@ -36,7 +36,7 @@ class SendStellarViewModel(
     private val adapter: ISendStellarAdapter,
     val coinMaxAllowedDecimals: Int,
     private val xRateService: XRateService,
-    private val address: Address,
+    address: Address?,
     private val showAddressInput: Boolean,
     private val amountService: SendAmountService,
     private val addressService: SendStellarAddressService,
@@ -113,11 +113,15 @@ class SendStellarViewModel(
         canBeSend = amountState.canBeSend && addressState.canBeSend && minimumAmountState.canBeSend,
         showAddressInput = showAddressInput,
         fee = fee,
-        address = address
+        address = addressState.address
     )
 
     fun onEnterAmount(amount: BigDecimal?) {
         amountService.setAmount(amount)
+    }
+
+    fun onEnterAddress(address: Address?) {
+        addressService.setAddress(address)
     }
 
     fun onEnterMemo(memo: String) {
@@ -195,6 +199,6 @@ data class SendStellarUiState(
     val canBeSend: Boolean,
     val showAddressInput: Boolean,
     val fee: BigDecimal?,
-    val address: Address,
+    val address: Address?,
 )
 

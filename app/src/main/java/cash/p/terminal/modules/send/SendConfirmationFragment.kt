@@ -3,13 +3,14 @@ package cash.p.terminal.modules.send
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinConfirmationScreen
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinViewModel
+import cash.p.terminal.modules.send.evm.SendEvmConfirmationScreen
+import cash.p.terminal.modules.send.evm.SendEvmViewModel
 import cash.p.terminal.modules.send.monero.SendMoneroConfirmationScreen
 import cash.p.terminal.modules.send.monero.SendMoneroViewModel
 import cash.p.terminal.modules.send.solana.SendSolanaConfirmationScreen
@@ -22,17 +23,19 @@ import cash.p.terminal.modules.send.tron.SendTronConfirmationScreen
 import cash.p.terminal.modules.send.tron.SendTronViewModel
 import cash.p.terminal.modules.send.zcash.SendZCashConfirmationScreen
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import kotlinx.parcelize.Parcelize
 
 class SendConfirmationFragment : BaseComposeFragment() {
+    private val args: SendConfirmationFragmentArgs by navArgs()
+
     val amountInputModeViewModel by navGraphViewModels<AmountInputModeViewModel>(R.id.sendXFragment)
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val input = navController.getInput<Input>()
-        val sendEntryPointDestId = input?.sendEntryPointDestId ?: 0
+        val sendEntryPointDestId = args.sendEntryPointDestId
 
-        when (input?.type) {
+        when (args.type) {
             Type.Bitcoin -> {
                 val sendBitcoinViewModel by navGraphViewModels<SendBitcoinViewModel>(R.id.sendXFragment)
 
@@ -43,6 +46,7 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     sendEntryPointDestId
                 )
             }
+
             Type.ZCash -> {
                 val sendZCashViewModel by navGraphViewModels<SendZCashViewModel>(R.id.sendXFragment)
 
@@ -53,6 +57,18 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     sendEntryPointDestId
                 )
             }
+
+            Type.Evm -> {
+                val sendEvmViewModel by navGraphViewModels<SendEvmViewModel>(R.id.sendXFragment)
+
+                SendEvmConfirmationScreen(
+                    navController,
+                    sendEvmViewModel,
+                    amountInputModeViewModel,
+                    sendEntryPointDestId
+                )
+            }
+
             Type.Tron -> {
                 val sendTronViewModel by navGraphViewModels<SendTronViewModel>(R.id.sendXFragment)
                 SendTronConfirmationScreen(
@@ -62,6 +78,7 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     sendEntryPointDestId
                 )
             }
+
             Type.Solana -> {
                 val sendSolanaViewModel by navGraphViewModels<SendSolanaViewModel>(R.id.sendXFragment)
 
@@ -72,6 +89,7 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     sendEntryPointDestId
                 )
             }
+
             Type.Ton -> {
                 val sendTonViewModel by navGraphViewModels<SendTonViewModel>(R.id.sendXFragment)
 
@@ -82,6 +100,7 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     sendEntryPointDestId
                 )
             }
+
             Type.Monero -> {
                 val sendMoneroViewModel by navGraphViewModels<SendMoneroViewModel>(R.id.sendXFragment)
 
@@ -92,6 +111,7 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     sendEntryPointDestId = sendEntryPointDestId
                 )
             }
+
             Type.Stellar -> {
                 val sendStellarViewModel by navGraphViewModels<SendStellarViewModel>(R.id.sendXFragment)
 
@@ -99,18 +119,14 @@ class SendConfirmationFragment : BaseComposeFragment() {
                     navController,
                     sendStellarViewModel,
                     amountInputModeViewModel,
-                    input.sendEntryPointDestId
+                    sendEntryPointDestId
                 )
             }
-            null -> Unit
         }
     }
 
     @Parcelize
     enum class Type : Parcelable {
-        Bitcoin, ZCash, Solana, Tron, Ton, Monero, Stellar
+        Bitcoin, ZCash, Evm, Solana, Tron, Ton, Monero, Stellar
     }
-
-    @Parcelize
-    data class Input(val type: Type, val sendEntryPointDestId: Int) : Parcelable
 }

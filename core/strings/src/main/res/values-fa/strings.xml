@@ -344,6 +344,7 @@
     <string name="Send_Confirmation_Own">Own</string>
     <string name="Send_Confirmation_Method">روش</string>
     <string name="Send_Confirmation_Send_Button">ارسال</string>
+    <string name="security_report">گزارش امنیتی</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 ارسال شد</string>
     <string name="ScanQr_CameraPermission_Title">مجوز دوربین</string>

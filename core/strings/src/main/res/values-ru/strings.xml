@@ -1557,6 +1557,7 @@
     <string name="view_key">Ключ просмотра</string>
     <string name="Balance_Receive_Trustline">Доверительная линия</string>
     <string name="Balance_Reserved_Title">Зарезервировано</string>
+    <string name="security_report">Отчет о безопасности</string>
     <string name="checking_address">Проверка адреса…</string>
     <string name="Send_Address_Recent">Недавние</string>
     <string name="Send_Address_Error_InvalidAddress">Недопустимый адрес</string>

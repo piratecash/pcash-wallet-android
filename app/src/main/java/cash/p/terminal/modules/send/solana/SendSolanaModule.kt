@@ -23,7 +23,7 @@ object SendSolanaModule {
 
     class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendSolanaAdapter)
@@ -87,6 +87,6 @@ object SendSolanaModule {
         val addressError: Throwable?,
         val canBeSend: Boolean,
         val showAddressInput: Boolean,
-        val address: Address,
+        val address: Address?,
     )
 }

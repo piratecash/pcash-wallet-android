@@ -114,7 +114,7 @@ class ResendBitcoinFragment : BaseComposeFragment() {
         }
 
         LaunchedEffect(uiState.sendResult) {
-            if (uiState.sendResult == SendResult.Sent()) {
+            if (uiState.sendResult is SendResult.Sent) {
                 delay(1200)
                 navController.popBackStack(closeUntilDestId, true)
             }
@@ -122,7 +122,7 @@ class ResendBitcoinFragment : BaseComposeFragment() {
 
         LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
             //additional close for cases when user closes app immediately after sending
-            if (uiState.sendResult == SendResult.Sent()) {
+            if (uiState.sendResult is SendResult.Sent) {
                 navController.popBackStack(closeUntilDestId, true)
             }
         }

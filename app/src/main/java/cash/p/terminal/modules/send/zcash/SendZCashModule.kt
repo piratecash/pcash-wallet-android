@@ -14,7 +14,7 @@ object SendZCashModule {
 
     class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter =

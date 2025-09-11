@@ -19,7 +19,7 @@ object SendTronModule {
 
     class Factory(
         private val wallet: Wallet,
-        private val address: Address,
+        private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendTronAdapter) ?: throw IllegalStateException("SendTronAdapter is null")

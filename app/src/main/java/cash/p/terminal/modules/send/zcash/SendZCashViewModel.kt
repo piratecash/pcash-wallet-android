@@ -35,7 +35,7 @@ class SendZCashViewModel(
     private val addressService: SendZCashAddressService,
     private val memoService: SendZCashMemoService,
     private val contactsRepo: ContactsRepository,
-    private val address: Address,
+    private val address: Address?,
     private val showAddressInput: Boolean
 ) : ViewModelUiState<SendZCashUiState>() {
     val blockchainType = wallet.token.blockchainType
@@ -89,7 +89,7 @@ class SendZCashViewModel(
         memoIsAllowed = memoState.memoIsAllowed,
         canBeSend = amountState.canBeSend && addressState.canBeSend,
         showAddressInput = showAddressInput,
-        address = address
+        address = addressState.address
     )
 
     fun onEnterAmount(amount: BigDecimal?) {
@@ -186,5 +186,5 @@ data class SendZCashUiState(
     val memoIsAllowed: Boolean,
     val canBeSend: Boolean,
     val showAddressInput: Boolean,
-    val address: Address,
+    val address: Address?,
 )

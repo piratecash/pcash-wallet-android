@@ -342,6 +342,7 @@
     <string name="Send_Confirmation_Own">Eigene</string>
     <string name="Send_Confirmation_Method">Methode</string>
     <string name="Send_Confirmation_Send_Button">Senden</string>
+    <string name="security_report">Sicherheitsbericht</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Gesendet</string>
     <string name="ScanQr_CameraPermission_Title">Erlaubnis nötig, um die Kamera zu verwalten</string>

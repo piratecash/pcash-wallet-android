@@ -49,7 +49,7 @@ class SendBitcoinViewModel(
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
     private val localStorage: ILocalStorage,
-    private val address: Address
+    private val address: Address?
 ) : ViewModelUiState<SendBitcoinUiState>() {
     private companion object {
         val BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS = listOf(
@@ -258,7 +258,7 @@ class SendBitcoinViewModel(
         ).firstOrNull()
         return SendConfirmationData(
             amount = amountState.amount!!,
-            fee = fee!!,
+            fee = fee,
             address = address,
             contact = contact,
             coin = wallet.token.coin,
@@ -299,7 +299,9 @@ class SendBitcoinViewModel(
             logger.info("success")
             sendResult = SendResult.Sent(transactionRecord)
 
-            recentAddressManager.setRecentAddress(address, blockchainType)
+            address?.let {
+                recentAddressManager.setRecentAddress(address, blockchainType)
+            }
         } catch (e: TangemSdkError.UserCancelled) {
             sendResult = null
             logger.info("user cancelled")

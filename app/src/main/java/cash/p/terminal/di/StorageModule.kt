@@ -21,6 +21,8 @@ import cash.p.terminal.core.storage.RestoreSettingsStorage
 import cash.p.terminal.modules.balance.DefaultBalanceService
 import cash.p.terminal.modules.balance.DefaultBalanceXRateRepository
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.modules.send.address.AddressCheckerControl
+import cash.p.terminal.modules.send.address.AddressCheckerControlImpl
 import cash.p.terminal.modules.transactions.ITransactionRecordRepository
 import cash.p.terminal.modules.transactions.TransactionRecordRepository
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
@@ -59,6 +61,7 @@ val storageModule = module {
     factoryOf(::TransactionViewItemFactory)
 
     factoryOf(::TransactionRecordRepository) bind ITransactionRecordRepository::class
+    factoryOf(::AddressCheckerControlImpl) bind AddressCheckerControl::class
 
     factory<BalanceXRateRepository>(named("wallet")) {
         DefaultBalanceXRateRepository(

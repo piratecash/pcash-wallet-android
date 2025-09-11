@@ -344,6 +344,7 @@
     <string name="Send_Confirmation_Own">Próprio</string>
     <string name="Send_Confirmation_Method">Método</string>
     <string name="Send_Confirmation_Send_Button">Enviar</string>
+    <string name="security_report">Relatório de Segurança</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Enviado</string>
     <string name="ScanQr_CameraPermission_Title">Permissão da câmera</string>
