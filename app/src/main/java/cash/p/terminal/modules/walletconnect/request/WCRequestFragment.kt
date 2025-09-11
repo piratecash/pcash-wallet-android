@@ -3,6 +3,7 @@ package cash.p.terminal.modules.walletconnect.request
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -189,6 +190,7 @@ fun WCNewSignRequestScreen(
 ) {
     Column(
         modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)
+            .navigationBarsPadding()
     ) {
         AppBar(
             stringResource(R.string.WalletConnect_SignMessageRequest_Title),
