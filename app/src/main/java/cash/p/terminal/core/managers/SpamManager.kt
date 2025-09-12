@@ -22,6 +22,7 @@ import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.horizontalsystems.ethereumkit.models.Transaction
 import io.horizontalsystems.nftkit.events.Eip1155TransferEventInstance
 import io.horizontalsystems.nftkit.events.Eip721TransferEventInstance
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,7 +30,10 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.asFlow
+import kotlinx.coroutines.rx2.await
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -220,7 +224,7 @@ class SpamManager(
         return spamAddressStorage.isSpam(transactionHash)
     }
 
-    private fun handleEvmKitStarted(evmKitManager: EvmKitManager?, blockchainType: BlockchainType) {
+    private suspend fun handleEvmKitStarted(evmKitManager: EvmKitManager?, blockchainType: BlockchainType) {
         val evmKitWrapper = evmKitManager?.evmKitWrapper ?: return
         val currentAccount = evmKitManager.currentAccount ?: return
 
@@ -236,24 +240,27 @@ class SpamManager(
         sync(evmKitWrapper.evmKit, currentAccount, spamConfig)
     }
 
-    private fun sync(evmKit: EthereumKit, account: Account, spamConfig: SpamConfig) {
-        val spamScanState =
-            spamAddressStorage.getSpamScanState(spamConfig.blockchainType, account.id)
+    private suspend fun sync(evmKit: EthereumKit, account: Account, spamConfig: SpamConfig) =
+        withContext(Dispatchers.IO + CoroutineExceptionHandler { _, e ->
+            Timber.d("SpamManager sync error: $e")
+        }) {
+            val spamScanState =
+                spamAddressStorage.getSpamScanState(spamConfig.blockchainType, account.id)
 
-        val fullTransactions =
-            evmKit.getFullTransactionsAfterSingle(spamScanState?.lastTransactionHash).blockingGet()
-        val lastTransactionHash = handle(fullTransactions, evmKit.receiveAddress, spamConfig)
+            val fullTransactions =
+                evmKit.getFullTransactionsAfterSingle(spamScanState?.lastTransactionHash).await()
+            val lastTransactionHash = handle(fullTransactions, evmKit.receiveAddress, spamConfig)
 
-        lastTransactionHash?.let {
-            spamAddressStorage.save(
-                SpamScanState(
-                    spamConfig.blockchainType,
-                    account.id,
-                    lastTransactionHash
+            lastTransactionHash?.let {
+                spamAddressStorage.save(
+                    SpamScanState(
+                        spamConfig.blockchainType,
+                        account.id,
+                        lastTransactionHash
+                    )
                 )
-            )
+            }
         }
-    }
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun handle(

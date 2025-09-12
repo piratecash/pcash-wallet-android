@@ -216,6 +216,10 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             Logger.getLogger("").level = Level.SEVERE
         }
 
+        RxJavaPlugins.setErrorHandler { e: Throwable? ->
+            Timber.tag("RxJava ErrorHandler").e(e ?: return@setErrorHandler)
+        }
+
         instance = this
 
         LocalStorageManager(preferences).apply {
