@@ -1557,6 +1557,7 @@
     <string name="Balance_Receive_Trustline">Довірча лінія</string>
     <string name="Balance_Reserved_Title">Зарезервовано</string>
     <string name="security_report">Звіт про безпеку</string>
+    <string name="no_checks_available">Немає доступних перевірок</string>
     <string name="checking_address">Перевірка адреси…</string>
     <string name="Send_Address_Recent">Нещодавні</string>
     <string name="Send_Address_Error_InvalidAddress">Неприпустима адреса</string>

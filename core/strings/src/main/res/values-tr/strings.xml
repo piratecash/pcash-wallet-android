@@ -345,6 +345,7 @@
     <string name="Send_Confirmation_Method">Yöntem</string>
     <string name="Send_Confirmation_Send_Button">Gönder</string>
     <string name="security_report">Güvenlik Raporu</string>
+    <string name="no_checks_available">Kullanılabilir kontrol yok</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Gönderilen</string>
     <string name="ScanQr_CameraPermission_Title">Kamera izni bulunmamaktadır</string>

@@ -345,6 +345,7 @@
     <string name="Send_Confirmation_Method">Method</string>
     <string name="Send_Confirmation_Send_Button">إرسال</string>
     <string name="security_report">تقرير الأمان</string>
+    <string name="no_checks_available">لا توجد فحوصات متاحة</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Sent</string>
     <string name="ScanQr_CameraPermission_Title">Camera permission</string>

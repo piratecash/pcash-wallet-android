@@ -232,6 +232,10 @@ fun AddressCheck(
                 )
             }
         }
+    } else if (!addressValidationInProgress) {
+        NoProblemsFound(Modifier
+            .padding(horizontal = 16.dp)
+        )
     }
 
     checkResults.forEach { (addressCheckType, addressCheckData) ->
@@ -349,4 +353,14 @@ private fun AddressCheckInProgress(modifier: Modifier) {
         HSpacer(8.dp)
         subhead2_grey(text = stringResource(R.string.checking_address))
     }
+}
+
+@Composable
+private fun NoProblemsFound(modifier: Modifier = Modifier) {
+    subhead2_grey(
+        text = stringResource(R.string.no_checks_available),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+    )
 }
