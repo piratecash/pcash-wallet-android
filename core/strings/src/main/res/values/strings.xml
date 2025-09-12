@@ -423,6 +423,7 @@
     <string name="Send_Confirmation_Action">Action</string>
 
     <string name="security_report">Security Report</string>
+    <string name="no_checks_available">No checks available</string>
     <string name="checking_address">Checking address...</string>
     <string name="Send_Address_Recent">Recent</string>
     <string name="Send_Address_Error_InvalidAddress">Invalid Address</string>
