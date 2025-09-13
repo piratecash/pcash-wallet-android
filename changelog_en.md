@@ -1,4 +1,17 @@
+## Main changes in version 0.46.5
+_Release date: September 13, 2025_
+
+### 🎛 Improvements
+- **Send interface:**
+  The send screen has been completely redesigned — now **address and amount are on the same screen**, allowing you to better control what and where you send.
+
+- **Localization (RU/UA):**
+  Fixed an issue with displaying the contract verification type description in Russian and Ukrainian languages. Added minor visual improvements for these localizations.
+
+
+
 ## Main changes in version 0.46.4
+_Release date: September 6, 2025_
 
 ### 🎛 Improvements
 - **Wallet warning:**
@@ -16,6 +29,7 @@
 
 
 ## Main changes in version 0.46.3
+_Release date: September 3, 2025_
 
 ### ✨ New features
 - **View incoming transaction addresses (Bitcoin-like chains):**
@@ -35,6 +49,7 @@
 
 
 ## Main changes in version 0.46.2
+_Release date: August 29, 2025_
 
 ### ✨ New Features
 - **Wallet cloning (no clipboard):** 
@@ -52,6 +67,7 @@
 
 
 ## Main changes in version 0.46.1
+_Release date: August 27, 2025_
 
 ### ✨ New Features
 
@@ -75,6 +91,7 @@
 
 
 ## Main changes in version 0.46.0
+_Release date: August 20, 2025_
 
 ### ✨ New Features
 
@@ -102,6 +119,7 @@
 
 
 ## Main changes in version 0.45.4
+_Release date: August 17, 2025_
 
 - Fixed an issue with displaying transactions when using **12-word Monero wallets**.
   This bug did not affect 25-word wallets.
@@ -116,6 +134,7 @@
 
 
 ## Main changes in version 0.45.3
+_Release date: August 13, 2025_
 
 ### ✨ New Features
 
@@ -136,6 +155,7 @@
 
 
 ## Main changes in version 0.45.2
+_Release date: August 7, 2025_
 
 ## 🪙 Fixes for TRON
 
@@ -149,6 +169,7 @@
 
 
 ## Main changes in version 0.45.1
+_Release date: July 29, 2025_
 
 ## 🔐 Privacy Improvements
 
@@ -163,6 +184,7 @@
 
 
 ## Main changes in version 0.45.0
+_Release date: July 28, 2025_
 
 # 📝 Changelog
 
@@ -185,6 +207,7 @@
 
 
 ## Main changes in version 0.44.2
+_Release date: July 26, 2025_
 
 - 🐞 Fixed an issue where, in some cases, the **"Next"** button couldn't be pressed after entering an address.
 - ✏️ Corrected a wording in the settings description as reported in issue #56.
@@ -192,6 +215,7 @@
 
 
 ## Main changes in version 0.44.1
+_Release date: July 24, 2025_
 
 ### 💰 **Exchange Interface Improvements**
 - The **available balance is now always visible during amount input**, not just before it 🧮
@@ -212,6 +236,7 @@
 
 
 ## Main changes in version 0.44
+_Release date: July 22, 2025_
 
 
 ## THORCHAIN SWAP INTEGRATION
@@ -233,6 +258,7 @@ Complete Stellar blockchain compatibility and access to its full asset ecosystem
 
 
 ## Main changes in version 0.43
+_Release date: July 9, 2025_
 
 ### Monero native blockchain
 
@@ -249,7 +275,8 @@ Resolved an issue where the wallet creation menu did not appear after changing t
 
 
 
-## Version 0.42 Highlights
+## Main changes in version 0.42
+_Release date: Jun 20, 2025_
 
 
 ### Tangem hardware wallet

@@ -164,6 +164,7 @@ fun InfoBlock(checkType: AddressCheckType) {
             style = ComposeAppTheme.typography.body,
             color = ComposeAppTheme.colors.leah,
         )
+        VSpacer(8.dp)
         Text(
             text = info3,
             style = ComposeAppTheme.typography.body,
