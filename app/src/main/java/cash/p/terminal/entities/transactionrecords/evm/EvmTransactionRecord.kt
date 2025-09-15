@@ -45,7 +45,7 @@ class EvmTransactionRecord(
     source = source,
     transactionRecordType = transactionRecordType,
     token = token,
-    to = to,
+    to = to?.let(::listOf),
     from = from,
     sentToSelf = sentToSelf
 ) {

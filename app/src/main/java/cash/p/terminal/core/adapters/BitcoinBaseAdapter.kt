@@ -446,7 +446,10 @@ abstract class BitcoinBaseAdapter(
 
         return when (transaction.type) {
             TransactionType.Incoming -> {
-                val to = transaction.outputs.find { output -> output.value == transaction.amount }?.address
+                val to = transaction.outputs.filter { it.mine && !it.changeOutput }
+                    .mapNotNull { it.address }.distinct()
+                val change = transaction.outputs.filter { it.mine && it.changeOutput }
+                    .mapNotNull { it.address }.distinct()
                 BitcoinTransactionRecord(
                     source = wallet.transactionSource,
                     token = wallet.token,
@@ -470,14 +473,16 @@ abstract class BitcoinBaseAdapter(
                     from = from,
                     to = to,
                     memo = memo,
-                    changeAddresses = transaction.outputs.filter { it.changeOutput }.mapNotNull { it.address }.distinct(),
+                    changeAddresses = change,
                     transactionRecordType = TransactionRecordType.BITCOIN_INCOMING
                 )
             }
 
             TransactionType.Outgoing -> {
-                val to =
-                    transaction.outputs.find { output -> output.value > 0 && output.address != null && !output.mine }?.address
+                val to = transaction.outputs.filter { !it.changeOutput }
+                    .mapNotNull { it.address }.distinct()
+                val change = transaction.outputs.filter { it.changeOutput }
+                    .mapNotNull { it.address }.distinct()
                 BitcoinTransactionRecord(
                     source = wallet.transactionSource,
                     token = wallet.token,
@@ -500,7 +505,7 @@ abstract class BitcoinBaseAdapter(
                     amount = satoshiToBTC(transaction.amount).negate(),
                     to = to,
                     from = null,
-                    changeAddresses = transaction.outputs.filter { it.changeOutput }.mapNotNull { it.address }.distinct(),
+                    changeAddresses = change,
                     sentToSelf = false,
                     memo = memo,
                     replaceable = transaction.rbfEnabled && transaction.blockHeight == null && transaction.conflictingTxHash == null,
@@ -509,8 +514,10 @@ abstract class BitcoinBaseAdapter(
             }
 
             TransactionType.SentToSelf -> {
-                val to = transaction.outputs.firstOrNull { !it.changeOutput }?.address
-                    ?: transaction.outputs.firstOrNull()?.address
+                val to = transaction.outputs.filter { it.mine && !it.changeOutput }
+                    .mapNotNull { it.address }.distinct()
+                val change = transaction.outputs.filter { it.mine && it.changeOutput }
+                    .mapNotNull { it.address }.distinct()
                 BitcoinTransactionRecord(
                     source = wallet.transactionSource,
                     token = wallet.token,
@@ -533,7 +540,7 @@ abstract class BitcoinBaseAdapter(
                     amount = satoshiToBTC(transaction.amount).negate(),
                     to = to,
                     from = null,
-                    changeAddresses = transaction.outputs.filter { it.changeOutput }.mapNotNull { it.address }.distinct(),
+                    changeAddresses = change,
                     sentToSelf = true,
                     memo = memo,
                     replaceable = transaction.rbfEnabled && transaction.blockHeight == null && transaction.conflictingTxHash == null,

@@ -25,7 +25,7 @@ class StellarTransactionRecord(
     source = source,
     transactionRecordType = type.toTransactionRecordType(),
     token = baseToken,
-    to = type.to,
+    to = type.to?.let(::listOf),
     from = type.from,
     sentToSelf = type.sentToSelf,
     memo = operation.memo,

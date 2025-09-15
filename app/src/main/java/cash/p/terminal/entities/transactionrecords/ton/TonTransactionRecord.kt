@@ -29,8 +29,8 @@ class TonTransactionRecord(
     token = token,
 ) {
 
-    override val to: String?
-        get() = actions.firstOrNull { it.type is Action.Type.Send }?.let { (it.type as Action.Type.Send).to }
+    override val to: List<String>?
+        get() = actions.firstOrNull { it.type is Action.Type.Send }?.let { listOf((it.type as Action.Type.Send).to) }
 
     override val from: String?
         get() = actions.firstOrNull { it.type is Action.Type.Receive }?.let { (it.type as Action.Type.Receive).from }

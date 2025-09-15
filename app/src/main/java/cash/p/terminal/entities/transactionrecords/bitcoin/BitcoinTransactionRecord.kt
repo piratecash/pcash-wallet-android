@@ -13,7 +13,7 @@ import java.util.*
 class BitcoinTransactionRecord(
     token: Token,
     amount: BigDecimal,
-    to: String?,
+    to: List<String>?,
     from: String?,
     val changeAddresses: List<String>?,
     uid: String,

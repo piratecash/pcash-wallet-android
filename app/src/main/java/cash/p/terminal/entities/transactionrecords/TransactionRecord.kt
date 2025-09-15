@@ -25,7 +25,7 @@ abstract class TransactionRecord(
     val source: TransactionSource,
     val transactionRecordType: TransactionRecordType,
     open val token: Token,
-    open val to: String? = null,
+    open val to: List<String>? = null,
     open val from: String? = null,
     open val sentToSelf: Boolean = false,
     open val memo: String? = null,

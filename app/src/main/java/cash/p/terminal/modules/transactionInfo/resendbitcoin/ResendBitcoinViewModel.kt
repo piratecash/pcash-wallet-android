@@ -135,7 +135,7 @@ class ResendBitcoinViewModel(
     }
 
     override fun createState(): ResendBitcoinUiState {
-        val address = Address(hex = record.to!!)
+        val address = Address(hex = record.to?.firstOrNull()!!)
         val contact = contactsRepo.getContactsFiltered(blockchainType = blockchainType, addressQuery = address.hex).firstOrNull()
 
         return ResendBitcoinUiState(

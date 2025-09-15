@@ -39,6 +39,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigDecimal
 import java.util.Date
+import kotlin.collections.firstOrNull
 import kotlin.times
 import kotlin.to
 
@@ -313,7 +314,7 @@ class TransactionViewItemFactory(
             ) ?: createViewItemFromEvmOutgoingTransactionRecord(
                 uid = record.uid,
                 value = record.value!!,
-                to = record.to!!,
+                to = record.to?.firstOrNull()!!,
                 blockchainType = record.blockchainType,
                 timestamp = record.timestamp,
                 sentToSelf = record.sentToSelf,
@@ -391,7 +392,7 @@ class TransactionViewItemFactory(
                 uid = record.uid,
                 value = record.value,
                 sentToSelf = record.sentToSelf,
-                to = record.to,
+                to = record.to?.firstOrNull(),
                 from = record.from,
                 spender = record.spender,
                 blockchainType = record.blockchainType,
@@ -521,7 +522,7 @@ class TransactionViewItemFactory(
         val subtitle = record.to?.let { to ->
             Translator.getString(
                 R.string.Transactions_To,
-                mapped(to, record.blockchainType)
+                mapped(to.first(), record.blockchainType)
             )
         } ?: record.subaddressLabel ?: "---"
 
@@ -780,7 +781,7 @@ class TransactionViewItemFactory(
             subtitle = record.to?.let { to ->
                 Translator.getString(
                     R.string.Transactions_To,
-                    mapped(to, record.blockchainType)
+                    mapped(to.first(), record.blockchainType)
                 )
             } ?: "",
             primaryValue = primaryValue,
@@ -1207,7 +1208,7 @@ class TransactionViewItemFactory(
         val subtitle = record.to?.let {
             Translator.getString(
                 R.string.Transactions_To,
-                mapped(it, record.blockchainType)
+                mapped(it.first(), record.blockchainType)
             )
         } ?: "---"
 

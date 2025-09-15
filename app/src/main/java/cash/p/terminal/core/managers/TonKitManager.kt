@@ -204,7 +204,7 @@ object TonHelper {
                 itemsForAction.addAll(
                     TransactionViewItemFactoryHelper.getSendSectionItems(
                         value = actionType.value,
-                        toAddress = actionType.to,
+                        toAddress = listOf(actionType.to),
                         coinPrice = rates[actionType.value.coinUid],
                         hideAmount = hideAmount,
                         sentToSelf = actionType.sentToSelf,
@@ -226,7 +226,7 @@ object TonHelper {
                     TransactionViewItemFactoryHelper.getReceiveSectionItems(
                         value = actionType.value,
                         fromAddress = actionType.from,
-                        toAddress = actionType.to,
+                        toAddress = actionType.to?.let(::listOf),
                         coinPrice = rates[actionType.value.coinUid],
                         hideAmount = hideAmount,
                         blockchainType = blockchainType,
@@ -259,7 +259,7 @@ object TonHelper {
                     TransactionViewItemFactoryHelper.getReceiveSectionItems(
                         value = actionType.value,
                         fromAddress = TransactionViewItemFactoryHelper.zeroAddress,
-                        toAddress = actionType.to,
+                        toAddress = actionType.to?.let(::listOf),
                         coinPrice = rates[actionType.value.coinUid],
                         hideAmount = hideAmount,
                         blockchainType = blockchainType,

@@ -240,7 +240,8 @@ object TransactionViewItemFactoryHelper {
     fun getReceiveSectionItems(
         value: TransactionValue,
         fromAddress: String?,
-        toAddress: String?,
+        toAddress: List<String>?,
+        changeAddresses: List<String>? = null,
         coinPrice: CurrencyValue?,
         hideAmount: Boolean,
         nftMetadata: Map<NftUid, NftAssetBriefMetadata> = mapOf(),
@@ -288,11 +289,22 @@ object TransactionViewItemFactoryHelper {
             }
         }
 
-        toAddress?.let {
+        toAddress?.forEach { address ->
             items.add(
                 TransactionInfoViewItem.Address(
                     Translator.getString(R.string.TransactionInfo_To),
-                    toAddress,
+                    address,
+                    false,
+                    blockchainType,
+                )
+            )
+        }
+
+        changeAddresses?.forEach {
+            items.add(
+                TransactionInfoViewItem.Address(
+                    Translator.getString(R.string.TransactionInfo_Change_Address),
+                    it,
                     false,
                     blockchainType,
                 )
@@ -307,7 +319,7 @@ object TransactionViewItemFactoryHelper {
 
     fun getSendSectionItems(
         value: TransactionValue,
-        toAddress: String?,
+        toAddress: List<String>?,
         changeAddresses: List<String>? = null,
         coinPrice: CurrencyValue?,
         hideAmount: Boolean,
@@ -315,7 +327,7 @@ object TransactionViewItemFactoryHelper {
         nftMetadata: Map<NftUid, NftAssetBriefMetadata> = mapOf(),
         blockchainType: BlockchainType,
     ): List<TransactionInfoViewItem> {
-        val burn = toAddress == zeroAddress
+        val burn = toAddress?.size == 1 && toAddress.first() == zeroAddress
 
         val title: String =
             if (burn) Translator.getString(R.string.Transactions_Burn) else Translator.getString(
@@ -352,18 +364,20 @@ object TransactionViewItemFactoryHelper {
         val items: MutableList<TransactionInfoViewItem> = mutableListOf(amount)
 
         if (!burn && toAddress != null) {
-            val contact = getContact(toAddress, blockchainType)
-            items.add(
-                TransactionInfoViewItem.Address(
-                    Translator.getString(R.string.TransactionInfo_To),
-                    toAddress,
-                    contact == null,
-                    blockchainType,
+            toAddress.forEach { address ->
+                val contact = getContact(address, blockchainType)
+                items.add(
+                    TransactionInfoViewItem.Address(
+                        Translator.getString(R.string.TransactionInfo_To),
+                        address,
+                        contact == null,
+                        blockchainType,
+                    )
                 )
-            )
 
-            contact?.let {
-                items.add(TransactionInfoViewItem.ContactItem(it))
+                contact?.let {
+                    items.add(TransactionInfoViewItem.ContactItem(it))
+                }
             }
         }
 
