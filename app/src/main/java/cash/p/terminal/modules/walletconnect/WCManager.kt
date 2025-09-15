@@ -56,7 +56,7 @@ class WCManager(
         val tmpAccount = accountManager.activeAccount
         return when {
             tmpAccount == null -> SupportState.NotSupportedDueToNoActiveAccount
-            !tmpAccount.isBackedUp && !tmpAccount.isFileBackedUp -> SupportState.NotSupportedDueToNonBackedUpAccount(
+            tmpAccount.accountSupportsBackup && !tmpAccount.isBackedUp && !tmpAccount.isFileBackedUp -> SupportState.NotSupportedDueToNonBackedUpAccount(
                 tmpAccount
             )
             tmpAccount.type.supportsWalletConnect -> SupportState.Supported

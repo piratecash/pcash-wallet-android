@@ -10,6 +10,7 @@ import cash.p.terminal.wallet.Account
 import com.reown.android.Core
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.stellarkit.StellarKit
+import timber.log.Timber
 
 class WCHandlerStellar(private val stellarKitManager: StellarKitManager) : IWCHandler {
     override val chainNamespace = "stellar"
@@ -47,9 +48,13 @@ class WCHandlerStellar(private val stellarKitManager: StellarKitManager) : IWCHa
     }
 
     override fun getAccountAddresses(account: Account): List<String> {
-        val address = stellarKitManager.getAddress(account.type)
-
-        return supportedChains.map { "$it:$address" }
+        return try {
+            val address = stellarKitManager.getAddress(account)
+            supportedChains.map { "$it:$address" }
+        } catch (ex: Exception) {
+            Timber.d(ex)
+            emptyList()
+        }
     }
 
     override fun getMethodData(method: String, chainInternalId: String?): MethodData {

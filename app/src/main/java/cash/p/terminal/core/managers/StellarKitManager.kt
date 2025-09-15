@@ -136,8 +136,20 @@ class StellarKitManager(
         }
     }
 
-    fun getAddress(accountType: AccountType): String {
-        return StellarKit.getAccountId(accountType.toStellarWallet())
+    fun getAddress(account: Account): String {
+        if(account.type is AccountType.HardwareCard) {
+            stellarKitWrapper?.stellarKit?.receiveAddress
+            val hardwarePublicKey = runBlocking {
+                hardwarePublicKeyStorage.getKey(account.id, BlockchainType.Stellar, TokenType.Native)
+            } ?: throw UnsupportedException("Hardware card does not have a public key for Stellar")
+
+            val stellarWallet = HardwareWalletStellarSigner(
+                hardwarePublicKey = hardwarePublicKey
+            )
+            return StellarKit.getInstance(stellarWallet, Network.MainNet, App.instance, account.id).receiveAddress
+        } else {
+            return StellarKit.getAccountId(account.type.toStellarWallet())
+        }
     }
 }
 

@@ -14,12 +14,12 @@ import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
-import kotlin.getValue
 
 class WCHandlerEvm(
     private val evmBlockchainManager: EvmBlockchainManager
 ) : IWCHandler {
-    private val supportedEvmChains = EvmBlockchainManager.blockchainTypes.map { evmBlockchainManager.getChain(it) }
+    private val supportedEvmChains =
+        EvmBlockchainManager.blockchainTypes.map { evmBlockchainManager.getChain(it) }
 
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
             by inject(IHardwarePublicKeyStorage::class.java)
@@ -43,11 +43,12 @@ class WCHandlerEvm(
         "wallet_switchEthereumChain"
     )
 
-    override val supportedEvents = listOf("chainChanged", "accountsChanged", "connect", "disconnect", "message")
+    override val supportedEvents =
+        listOf("chainChanged", "accountsChanged", "connect", "disconnect", "message")
 
     override fun getAccountAddresses(account: Account): List<String> {
-        return supportedEvmChains.map { evmChain ->
-            val address = getEvmAddress(account, evmChain)
+        return supportedEvmChains.mapNotNull { evmChain ->
+            val address = getEvmAddress(account, evmChain) ?: return@mapNotNull null
 
             "${chainNamespace}:${evmChain.id}:${address.eip55}"
         }
@@ -76,7 +77,7 @@ class WCHandlerEvm(
         else -> throw UnsupportedMethodException(request.method)
     }
 
-    private fun getEvmAddress(account: Account, chain: Chain) =
+    private fun getEvmAddress(account: Account, chain: Chain): Address? =
         when (val accountType = account.type) {
             is AccountType.Mnemonic -> {
                 val seed: ByteArray = accountType.seed
@@ -93,14 +94,12 @@ class WCHandlerEvm(
 
             is AccountType.HardwareCard -> {
                 val publicKey = runBlocking {
-                    requireNotNull(
-                        hardwarePublicKeyStorage.getKey(
-                            account.id,
-                            chain.toBlockchainType(),
-                            tokenType = TokenType.Native
-                        )
+                    hardwarePublicKeyStorage.getKey(
+                        account.id,
+                        chain.toBlockchainType(),
+                        tokenType = TokenType.Native
                     )
-                }
+                } ?: return null
                 val addressWithPublicKey = CustomXPubKeyAddressParser.parse(publicKey.key.value)
                 Address(addressWithPublicKey.addressBytes)
             }
