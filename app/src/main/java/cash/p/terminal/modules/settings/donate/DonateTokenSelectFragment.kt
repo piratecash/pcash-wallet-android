@@ -53,7 +53,7 @@ class DonateTokenSelectFragment : BaseComposeFragment() {
                             SendFragment.Input(
                                 wallet = viewItem.wallet,
                                 title = sendTitle,
-                                sendEntryPointDestId = R.id.sendTokenSelectFragment,
+                                sendEntryPointDestId = R.id.donateTokenSelectFragment,
                                 address = Address(donateAddress),
                                 hideAddress = true
                             )

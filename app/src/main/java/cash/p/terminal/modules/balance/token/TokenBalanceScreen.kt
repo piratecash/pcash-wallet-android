@@ -507,7 +507,7 @@ private fun ButtonsRow(
                                 SendFragment.Input(
                                     wallet = viewItem.wallet,
                                     title = sendTitle,
-                                    sendEntryPointDestId = R.id.sendTokenSelectFragment,
+                                    sendEntryPointDestId = R.id.tokenBalanceFragment,
                                     address = null
                                 )
                             )
