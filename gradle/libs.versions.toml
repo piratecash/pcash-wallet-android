@@ -38,7 +38,7 @@ timber = "5.0.1"
 
 tonKotlin = "0.2.15" # same version like in ton-kit
 piratecash-ton = "e7d7077"
-piratecash-bitcoin = "af9cbd0"
+piratecash-bitcoin = "b0c1fd7"
 stellar-kit = "88fd17e"
 piratecash-ethereum = "553d40b"
 horizontalsystems-blockchain-fee = "1d3bd49"
