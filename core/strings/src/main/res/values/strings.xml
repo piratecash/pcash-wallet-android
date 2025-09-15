@@ -1129,6 +1129,8 @@ Proceed only if you\'re sure.</string>
     <string name="SettingsSecurity_SortingBip69">Deterministic BIP69</string>
     <string name="SettingsSecurity_SortingBip69Description">Lexicographical Indexing</string>
     <string name="SettingsSecurity_SyncModeBlockchair" translatable="false">Blockchair API</string>
+    <string name="SettingsSecurity_SyncModeCosantaExplorer" translatable="false">Cosanta Explorer</string>
+    <string name="SettingsSecurity_SyncModePirateCashExplorer" translatable="false">PirateCash Explorer</string>
     <string name="SettingsSecurity_SyncModeBlockchairDescription">Very Fast</string>
     <string name="SettingsSecurity_SyncModeHybrid" translatable="false">Hybrid</string>
     <string name="SettingsSecurity_SyncModeHybridDescription">Fast</string>

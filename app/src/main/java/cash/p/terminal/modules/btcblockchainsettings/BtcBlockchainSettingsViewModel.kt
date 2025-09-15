@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.factories.AdapterFactory
 import cash.p.terminal.entities.BtcRestoreMode
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.BlockchainSettingsIcon
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.ViewItem
@@ -81,7 +80,7 @@ internal class BtcBlockchainSettingsViewModel(
         val viewItems = service.restoreModes.map { mode ->
             ViewItem(
                 id = mode.raw,
-                title = Translator.getString(mode.title),
+                title = Translator.getString(mode.getTitle(service.blockchain.type)),
                 subtitle = Translator.getString(mode.description),
                 selected = mode == service.restoreMode,
                 icon = mode.icon
@@ -93,7 +92,24 @@ internal class BtcBlockchainSettingsViewModel(
 
     private val BtcRestoreMode.icon: BlockchainSettingsIcon
         get() = when (this) {
-            BtcRestoreMode.Blockchair -> BlockchainSettingsIcon.ApiIcon(R.drawable.ic_blockchair)
+            BtcRestoreMode.Blockchair -> {
+                BlockchainSettingsIcon.ApiIcon(
+                    when (service.blockchain.type) {
+                        BlockchainType.Cosanta -> {
+                            R.drawable.ic_cosanta
+                        }
+
+                        BlockchainType.PirateCash -> {
+                            R.drawable.ic_piratecash
+                        }
+
+                        else -> {
+                            R.drawable.ic_blockchair
+                        }
+                    }
+                )
+            }
+
             BtcRestoreMode.Hybrid -> BlockchainSettingsIcon.ApiIcon(R.drawable.ic_api_hybrid)
             BtcRestoreMode.Blockchain -> BlockchainSettingsIcon.BlockchainIcon(service.blockchain.type.imageUrl)
         }
