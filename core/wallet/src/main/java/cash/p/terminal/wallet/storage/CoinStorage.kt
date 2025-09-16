@@ -127,17 +127,18 @@ class CoinStorage(val marketDatabase: MarketDatabase) {
 
     private fun filterOrderByStatement() = """
         priority ASC,
-        CASE 
+        CASE
+            WHEN `Coin`.`marketCapRank` IS NULL THEN 1
+            ELSE 0
+        END,
+        `Coin`.`marketCapRank` ASC,
+        CASE
+            WHEN `Coin`.`code` IS NULL OR `Coin`.`code`  = '' THEN 5
             WHEN `Coin`.`code` LIKE ? THEN 1 
             WHEN `Coin`.`code` LIKE ? THEN 2 
             WHEN `Coin`.`name` LIKE ? THEN 3 
             ELSE 4 
         END, 
-        CASE 
-            WHEN `Coin`.`marketCapRank` IS NULL THEN 1 
-            ELSE 0 
-        END, 
-        `Coin`.`marketCapRank` ASC, 
         `Coin`.`name` ASC 
     """
 

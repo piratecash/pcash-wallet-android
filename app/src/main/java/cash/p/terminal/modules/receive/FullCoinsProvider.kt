@@ -68,12 +68,18 @@ class FullCoinsProvider(
 
             customFullCoins + marketKit.fullCoins(tmpQuery,100_000)
         }
+        return liftActivesKeepingSqlOrder(fullCoins, activeWallets)
+    }
 
-        return fullCoins
-            .sortedByFilter(tmpQuery)
-            .sortedByDescending { fullCoin ->
-                activeWallets.any { it.coin == fullCoin.coin }
-            }
+    fun liftActivesKeepingSqlOrder(
+        fullCoins: List<FullCoin>,
+        activeWallets: List<Wallet>
+    ): List<FullCoin> {
+        val activeUids = activeWallets.map { it.coin.uid }.toHashSet()
+
+        val (actives, others) = fullCoins.partition { it.coin.uid in activeUids }
+
+        return actives + others
     }
 
     private fun isContractAddress(filter: String) = try {
