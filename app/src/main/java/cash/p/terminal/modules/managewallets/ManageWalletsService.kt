@@ -94,14 +94,10 @@ class ManageWalletsService(
     }
 
     private suspend fun sortItems() {
-        //val comparator = compareByDescending<Item> { it.enabled }
-        //    .thenBy { it.token.blockchain.type.order }
-
         mutex.withLock {
             items = fullCoins
                 .map { getItemsForFullCoin(it) }
                 .flatten()
-                //.sortedWith(comparator)
         }
     }
 
