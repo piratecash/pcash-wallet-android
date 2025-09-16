@@ -1,3 +1,24 @@
+## Main changes in version 0.46.6
+_Release date: September 16, 2025_
+
+### 🛠 Fixes
+- **Coins and tokens list:**
+  Now displayed in the correct order, as users expect.
+
+- **WalletConnect (Tangem):**
+  Connecting a Tangem card no longer requires a backup.
+
+- **After sending a transaction:**
+  The app now shows the transaction status and automatically returns to the main screen.
+
+- **Block explorer:**
+  Fixed incorrect naming for PirateCash and Cosanta in sync mode.
+
+- **Receiving addresses:**
+  All addresses are now displayed, even for non-standard transactions.
+
+
+
 ## Main changes in version 0.46.5
 _Release date: September 13, 2025_
 
