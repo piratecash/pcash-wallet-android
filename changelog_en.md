@@ -1,3 +1,21 @@
+## Main changes in version 0.46.7
+_Release date: September 17, 2025_
+
+### ✨ New features
+- **TonConnect:**
+  - You can now connect the app to the [@piratecash](https://t.me/piratecash) mini-game.
+  - Wallet connection is supported for [ston.fi](https://ston.fi) and [dedust.io](https://dedust.io) exchanges.
+- **TonConnect scanning:**
+  Added ability to scan QR codes directly from the main screen.
+- **Hardware wallet:**
+  TonConnect signing support for hardware wallets.
+
+### 🛠 Fixes
+- **TonConnect:**
+  Improved crash handling for TonConnect screen and hardware wallet signing.
+
+
+
 ## Main changes in version 0.46.6
 _Release date: September 16, 2025_
 
