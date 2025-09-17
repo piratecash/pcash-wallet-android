@@ -1,12 +1,12 @@
 package cash.p.terminal.modules.tonconnect
 
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +23,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
-import cash.p.terminal.modules.main.MainActivityViewModel
+import cash.p.terminal.modules.main.MainActivity
 import cash.p.terminal.modules.xtransaction.cells.HeaderCell
 import cash.p.terminal.modules.xtransaction.helpers.TransactionInfoHelper
 import cash.p.terminal.modules.xtransaction.sections.BurnSection
@@ -33,15 +33,15 @@ import cash.p.terminal.modules.xtransaction.sections.ReceiveCoinSection
 import cash.p.terminal.modules.xtransaction.sections.SendCoinSection
 import cash.p.terminal.modules.xtransaction.sections.SwapSection
 import cash.p.terminal.modules.xtransaction.sections.ton.ContractCallSection
+import cash.p.terminal.modules.xtransaction.sections.ton.ContractDeploySection
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.TextImportantError
-import cash.p.terminal.ui_compose.components.VSpacer
-import cash.p.terminal.modules.xtransaction.sections.ton.ContractDeploySection
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.TextImportantError
+import cash.p.terminal.ui_compose.components.VSpacer
 import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -49,10 +49,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun TonConnectSendRequestScreen(navController: NavController) {
     val logger = remember { AppLogger("ton-connect request") }
-    val mainActivityViewModel =
-        viewModel<MainActivityViewModel>(viewModelStoreOwner = LocalActivity.current as ComponentActivity)
+    val mainActivity = LocalActivity.current as? MainActivity
+    if (mainActivity == null) {
+        HudHelper.showErrorMessage(
+            LocalView.current,
+            R.string.unknown_error
+        )
+        navController.popBackStack()
+        return
+    }
+    val mainActivityViewModel = mainActivity.viewModel
     val viewModel = viewModel<TonConnectSendRequestViewModel>(initializer = {
-        val sendRequestEntity = mainActivityViewModel.tcSendRequest.value
+        val sendRequestEntity = mainActivityViewModel.tcSendRequest.replayCache.firstOrNull()
         mainActivityViewModel.onTcSendRequestHandled()
 
         TonConnectSendRequestViewModel(
@@ -63,6 +71,16 @@ fun TonConnectSendRequestScreen(navController: NavController) {
     })
 
     val uiState = viewModel.uiState
+    val view = LocalView.current
+
+    LaunchedEffect(uiState.success) {
+        if (uiState.success) {
+            logger.info("success")
+            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+            delay(1200)
+            navController.popBackStack()
+        }
+    }
 
     ConfirmTransactionScreen(
         onClickBack = navController::popBackStack,
@@ -70,7 +88,6 @@ fun TonConnectSendRequestScreen(navController: NavController) {
         onClickClose = null,
         buttonsSlot = {
             val coroutineScope = rememberCoroutineScope()
-            val view = LocalView.current
 
             if (uiState.error != null) {
                 ButtonPrimaryDefault(
@@ -101,10 +118,6 @@ fun TonConnectSendRequestScreen(navController: NavController) {
                                 try {
                                     logger.info("click confirm button")
                                     viewModel.confirm()
-                                    logger.info("success")
-
-                                    HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-                                    delay(1200)
                                 } catch (t: Throwable) {
                                     logger.warning("failed", t)
                                     HudHelper.showErrorMessage(
@@ -114,7 +127,6 @@ fun TonConnectSendRequestScreen(navController: NavController) {
                                 }
 
                                 buttonEnabled = true
-                                navController.popBackStack()
                             }
                         }
                     }

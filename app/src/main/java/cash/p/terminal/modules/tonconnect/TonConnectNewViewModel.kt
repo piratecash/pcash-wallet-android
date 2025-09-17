@@ -1,19 +1,28 @@
 package cash.p.terminal.modules.tonconnect
 
 import androidx.lifecycle.viewModelScope
-import com.tonapps.wallet.data.tonconnect.entities.DAppManifestEntity
-import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
 import cash.p.terminal.core.App
-import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.toTonWalletFullAccess
+import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.entities.TokenType
+import com.tonapps.wallet.data.tonconnect.entities.DAppManifestEntity
+import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
+import io.horizontalsystems.core.ViewModelUiState
+import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 
 class TonConnectNewViewModel(
     private val requestEntity: DAppRequestEntity,
 ) : ViewModelUiState<TonConnectNewUiState>() {
+
+    private val hardwarePublicKeyStorage: HardwarePublicKeyStorage by inject(
+        HardwarePublicKeyStorage::class.java
+    )
+
     private val tonConnectKit = App.tonConnectManager.kit
 
     private var manifest: DAppManifestEntity? = null
@@ -68,7 +77,11 @@ class TonConnectNewViewModel(
                     requestEntity,
                     manifest,
                     account.id,
-                    account.type.toTonWalletFullAccess()
+                    account.toTonWalletFullAccess(
+                        hardwarePublicKeyStorage,
+                        BlockchainType.Ton,
+                        TokenType.Native
+                    )
                 )
                 println("TonConnect connect result: $res")
                 finish = true

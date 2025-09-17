@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import cash.p.terminal.R
 import cash.p.terminal.core.App
@@ -12,10 +13,11 @@ import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
-import com.reown.walletkit.client.Wallet
-import io.horizontalsystems.core.hideKeyboard
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
+import com.reown.walletkit.client.Wallet
+import io.horizontalsystems.core.hideKeyboard
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 class MainActivity : BaseActivity() {
@@ -86,9 +88,11 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        viewModel.tcSendRequest.observe(this) { tcEvent ->
-            if (tcEvent != null) {
-                navController.slideFromBottom(R.id.tcSendRequestFragment)
+        lifecycleScope.launch {
+            viewModel.tcSendRequest.collect { tcEvent ->
+                if (tcEvent != null) {
+                    navController.slideFromBottom(R.id.tcSendRequestFragment)
+                }
             }
         }
 

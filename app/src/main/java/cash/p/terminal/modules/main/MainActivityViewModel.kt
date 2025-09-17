@@ -7,11 +7,10 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.DAppRequestEntityWrapper
-import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
-import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.IAccountManager
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.BackgroundManager
@@ -21,6 +20,9 @@ import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.security.KeyStoreValidationError
 import io.horizontalsystems.tonkit.models.SignTransaction
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -29,8 +31,7 @@ class MainActivityViewModel(
     private val userManager: DefaultUserManager,
     private val accountManager: IAccountManager,
     private val systemInfoManager: ISystemInfoManager,
-    private val localStorage: ILocalStorage,
-    private val checkPremiumUseCase: CheckPremiumUseCase
+    private val localStorage: ILocalStorage
 ) : ViewModel() {
 
     private val pinComponent: IPinComponent = App.pinComponent
@@ -39,7 +40,14 @@ class MainActivityViewModel(
 
     val navigateToMainLiveData = MutableLiveData(false)
     val wcEvent = MutableLiveData<Wallet.Model?>()
-    val tcSendRequest = MutableLiveData<SignTransaction?>()
+
+    private val _tcSendRequest = MutableSharedFlow<SignTransaction?>(
+        replay = 1,
+        extraBufferCapacity = 1
+    )
+    val tcSendRequest: SharedFlow<SignTransaction?> = _tcSendRequest.asSharedFlow()
+
+
     val tcDappRequest = MutableLiveData<DAppRequestEntityWrapper?>()
     val intentLiveData = MutableLiveData<Intent?>()
 
@@ -59,7 +67,7 @@ class MainActivityViewModel(
         }
         viewModelScope.launch {
             tonConnectManager.sendRequestFlow.collect {
-                tcSendRequest.postValue(it)
+                _tcSendRequest.emit(it)
             }
         }
         viewModelScope.launch {
@@ -103,7 +111,7 @@ class MainActivityViewModel(
     }
 
     fun onTcSendRequestHandled() {
-        tcSendRequest.postValue(null)
+        _tcSendRequest.tryEmit(null)
     }
 
     fun validate() {

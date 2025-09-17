@@ -392,6 +392,10 @@ class BalanceViewModel(
         val wcUriVersion = WalletConnectListModule.getVersionFromUri(scannedText)
         if (wcUriVersion == 2) {
             handleWalletConnectUri(scannedText)
+        } else if (scannedText.startsWith("tc://")) {
+            viewModelScope.launch {
+                App.tonConnectManager.handle(scannedText, false)
+            }
         } else {
             handleAddressData(scannedText)
         }

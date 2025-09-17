@@ -5,6 +5,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toTonWalletFullAccess
+import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -20,15 +21,22 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.tonkit.core.TonWallet
 import io.horizontalsystems.tonkit.models.Event
 import io.horizontalsystems.tonkit.models.SignTransaction
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 
 class TonConnectSendRequestViewModel(
     private val signTransaction: SignTransaction?,
     private val accountManager: IAccountManager,
     private val tonConnectManager: TonConnectManager,
 ) : ViewModelUiState<TonConnectSendRequestUiState>() {
+
+    private val hardwarePublicKeyStorage: HardwarePublicKeyStorage by inject(
+        HardwarePublicKeyStorage::class.java
+    )
 
     private val sendRequestEntity = signTransaction?.request
     private var error: TonConnectSendRequestError? = null
@@ -39,12 +47,14 @@ class TonConnectSendRequestViewModel(
     private var tonWallet: TonWallet.FullAccess? = null
     private var tonKitWrapper: TonKitWrapper? = null
     private var tonEvent: Event? = null
+    private var success: Boolean = false
 
     override fun createState() = TonConnectSendRequestUiState(
         tonTransactionRecord = tonTransactionRecord,
         error = error,
         confirmEnabled = sendRequestEntity != null && tonWallet != null,
-        rejectEnabled = sendRequestEntity != null
+        rejectEnabled = sendRequestEntity != null,
+        success = success
     )
 
     init {
@@ -128,10 +138,18 @@ class TonConnectSendRequestViewModel(
             return
         }
 
-        val tonWallet = account.type.toTonWalletFullAccess().also {
+        val tonWallet = account.toTonWalletFullAccess(
+            hardwarePublicKeyStorage,
+            BlockchainType.Ton,
+            TokenType.Native
+        ).also {
             tonWallet = it
         }
-        val tonKitWrapper = App.tonKitManager.getNonActiveTonKitWrapper(account).also {
+        val tonKitWrapper = App.tonKitManager.getNonActiveTonKitWrapper(
+            account = account,
+            blockchainType = BlockchainType.Ton,
+            tokenType = TokenType.Native
+        ).also {
             tonKitWrapper = it
         }
 
@@ -240,11 +258,16 @@ class TonConnectSendRequestViewModel(
             throw IllegalArgumentException("Field validUntil has expired")
         }
 
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.Default + CoroutineExceptionHandler { _, ex ->
+            Timber.d(ex, "Signing cancelled")
+        }) {
             val boc = transactionSigner.sign(sendRequestEntity, tonWallet)
 
             tonKitWrapper?.tonKit?.send(boc)
             tonConnectKit.approve(sendRequestEntity, boc)
+
+            success = true
+            emitState()
         }
     }
 
@@ -270,4 +293,5 @@ data class TonConnectSendRequestUiState(
     val error: TonConnectSendRequestError?,
     val confirmEnabled: Boolean,
     val rejectEnabled: Boolean,
+    val success: Boolean = false
 )
