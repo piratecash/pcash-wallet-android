@@ -158,7 +158,7 @@ fun SendConfirmationScreen(
                         )
                     }
                     add {
-                        val coinAmount = App.numberFormatter.formatCoinFull(
+                        val coinAmount = App.numberFormatter.formatCoinNotRounded(
                             amount,
                             coin.code,
                             coinMaxAllowedDecimals

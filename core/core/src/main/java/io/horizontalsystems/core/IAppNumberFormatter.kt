@@ -12,6 +12,12 @@ interface IAppNumberFormatter {
         suffix: String = ""
     ): String
 
+    fun formatCoinNotRounded(
+        value: BigDecimal,
+        code: String?,
+        coinDecimals: Int,
+    ): String
+
     fun formatCoinFull(
         value: BigDecimal,
         code: String?,

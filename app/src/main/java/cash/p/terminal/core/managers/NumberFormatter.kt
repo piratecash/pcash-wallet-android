@@ -47,6 +47,11 @@ class NumberFormatter(
         }
     }
 
+    override fun formatCoinNotRounded(value: BigDecimal, code: String?, coinDecimals: Int): String {
+        val rounded = BigDecimalRounded.Regular(value)
+        return formatRounded(rounded = rounded, prefix = null, suffix = code?.let { " $it" })
+    }
+
     override fun formatCoinFull(value: BigDecimal, code: String?, coinDecimals: Int): String {
         val rounded = numberRounding.getRoundedCoinFull(value, coinDecimals)
         return formatRounded(rounded = rounded, prefix = null, suffix = code?.let { " $it" })
