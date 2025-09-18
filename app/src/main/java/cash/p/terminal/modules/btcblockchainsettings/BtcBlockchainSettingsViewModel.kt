@@ -93,21 +93,17 @@ internal class BtcBlockchainSettingsViewModel(
     private val BtcRestoreMode.icon: BlockchainSettingsIcon
         get() = when (this) {
             BtcRestoreMode.Blockchair -> {
-                BlockchainSettingsIcon.ApiIcon(
-                    when (service.blockchain.type) {
-                        BlockchainType.Cosanta -> {
-                            R.drawable.ic_cosanta
-                        }
 
-                        BlockchainType.PirateCash -> {
-                            R.drawable.ic_piratecash
-                        }
-
-                        else -> {
-                            R.drawable.ic_blockchair
-                        }
+                when (service.blockchain.type) {
+                    BlockchainType.Cosanta,
+                    BlockchainType.PirateCash -> {
+                        BlockchainSettingsIcon.BlockchainIcon(service.blockchain.type.imageUrl)
                     }
-                )
+
+                    else -> {
+                        BlockchainSettingsIcon.ApiIcon(R.drawable.ic_blockchair)
+                    }
+                }
             }
 
             BtcRestoreMode.Hybrid -> BlockchainSettingsIcon.ApiIcon(R.drawable.ic_api_hybrid)
