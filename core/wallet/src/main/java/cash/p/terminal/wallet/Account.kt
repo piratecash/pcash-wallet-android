@@ -5,6 +5,7 @@ import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.network.pirate.domain.enity.PremiumAccountEligibility
+import cash.p.terminal.strings.helpers.toMasked
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.signer.Signer
 import io.horizontalsystems.ethereumkit.models.Chain
@@ -162,6 +163,10 @@ sealed class AccountType : Parcelable {
         override fun hashCode(): Int {
             return words.toTypedArray().contentHashCode() + passphrase.hashCode()
         }
+
+        override fun toString(): String {
+            return "Mnemonic(words=(${words.toMasked()}), passphrase='${passphrase.toMasked()}')"
+        }
     }
 
     @Parcelize
@@ -173,6 +178,10 @@ sealed class AccountType : Parcelable {
         override fun hashCode(): Int {
             return key.hashCode()
         }
+
+        override fun toString(): String {
+            return "StellarSecretKey(key='${key.toMasked()}')"
+        }
     }
 
     @Parcelize
@@ -181,8 +190,27 @@ sealed class AccountType : Parcelable {
         val password: String,
         val height: Long,
         val walletInnerName: String
-    ) : AccountType()
+    ) : AccountType() {
+        override fun equals(other: Any?): Boolean {
+            return other is MnemonicMonero
+                    && words.toTypedArray().contentEquals(other.words.toTypedArray())
+                    && password == other.password
+                    && height == other.height
+                    && walletInnerName == other.walletInnerName
+        }
 
+        override fun hashCode(): Int {
+            var result = words.toTypedArray().contentHashCode()
+            result = 31 * result + password.hashCode()
+            result = 31 * result + height.hashCode()
+            result = 31 * result + walletInnerName.hashCode()
+            return result
+        }
+
+        override fun toString(): String {
+            return "MnemonicMonero(words=(${words.toMasked()}), password='${password.toMasked()}', height=$height, walletInnerName='$walletInnerName')"
+        }
+    }
     @Parcelize
     data class EvmPrivateKey(val key: BigInteger) : AccountType() {
         override fun equals(other: Any?): Boolean {
@@ -191,6 +219,10 @@ sealed class AccountType : Parcelable {
 
         override fun hashCode(): Int {
             return key.hashCode()
+        }
+
+        override fun toString(): String {
+            return "EvmPrivateKey(key='${key.toString(16).toMasked()}')"
         }
     }
 
@@ -216,6 +248,10 @@ sealed class AccountType : Parcelable {
 
         override fun hashCode(): Int {
             return key.hashCode()
+        }
+
+        override fun toString(): String {
+            return "ZCashUfvKey(key='${key.toMasked()}')"
         }
     }
 

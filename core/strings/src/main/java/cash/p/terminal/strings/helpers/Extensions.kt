@@ -20,3 +20,20 @@ fun String.shorten(): String {
     else
         this
 }
+
+fun String.toMasked(): String {
+    return when {
+        isEmpty() -> ""
+        length ==1 -> "*"
+        length < 10 -> "**"
+        else -> "${first()}***${last()}"
+    }
+}
+
+fun List<String>.toMasked(): String {
+    return when (size) {
+        0 -> ""
+        1 -> this[0].toMasked()
+        else -> "${first().first()}****${last().last()}"
+    }
+}
