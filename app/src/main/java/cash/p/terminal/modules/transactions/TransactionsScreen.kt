@@ -50,6 +50,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.modules.balance.BalanceAccountsViewModel
 import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceScreenState
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.ListEmptyView
@@ -58,6 +59,7 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HeaderStick
 import cash.p.terminal.ui_compose.components.HsImage
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.ScrollableTabs
@@ -69,9 +71,6 @@ import cash.p.terminal.ui_compose.entities.SectionItemPosition
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.slideFromBottom
-import kotlin.collections.set
 
 @Composable
 fun TransactionsScreen(
@@ -149,14 +148,19 @@ fun TransactionsScreen(
                                 }
                             }
 
-                            val itemsBalanceHidden = remember(viewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
+                            val itemsBalanceHidden =
+                                remember(viewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
                             LazyColumn(state = listState) {
                                 transactionList(
                                     transactionsMap = transactionItems,
                                     willShow = viewModel::willShow,
-                                    isItemBalanceHidden = { itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden },
-                                    onValueClick = {
-                                        itemsBalanceHidden[it.uid] = !(itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden)
+                                    isItemBalanceHidden = {
+                                        itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden
+                                    },
+                                    onSensitiveValueClick = {
+                                        HudHelper.vibrate(App.instance)
+                                        itemsBalanceHidden[it.uid] =
+                                            !(itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden)
                                     },
                                     onClick = onClick,
                                     onBottomReached = viewModel::onBottomReached
@@ -246,7 +250,7 @@ fun LazyListScope.transactionList(
     transactionsMap: Map<String, List<TransactionViewItem>>,
     willShow: (TransactionViewItem) -> Unit,
     isItemBalanceHidden: (TransactionViewItem) -> Boolean,
-    onValueClick: (TransactionViewItem) -> Unit,
+    onSensitiveValueClick: (TransactionViewItem) -> Unit,
     onClick: (TransactionViewItem) -> Unit,
     onBottomReached: () -> Unit
 ) {
@@ -281,8 +285,7 @@ fun LazyListScope.transactionList(
                     position = position,
                     showAmount = shouldShowAmount,
                     onValueClick = {
-                        HudHelper.vibrate(App.instance)
-                        onValueClick(item)
+                        onSensitiveValueClick(item)
                     },
                     onClick = {
                         onClick(item)
@@ -490,7 +493,7 @@ fun TransactionCell(
                 Spacer(Modifier.height(1.dp))
                 Row {
                     subhead2_grey(
-                        text = item.subtitle,
+                        text = if (showAmount) item.subtitle else "*****",
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 8.dp),

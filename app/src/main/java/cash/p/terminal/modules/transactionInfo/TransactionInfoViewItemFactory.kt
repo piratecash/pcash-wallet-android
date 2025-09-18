@@ -23,7 +23,7 @@ class TransactionInfoViewItemFactory(
     private val resendEnabled: Boolean,
     private val blockchainType: BlockchainType,
 ) {
-    fun getViewItemSections(transactionItem: TransactionInfoItem): List<List<TransactionInfoViewItem>> {
+    fun getViewItemSections(transactionItem: TransactionInfoItem, hideSensitiveInfo: Boolean): List<List<TransactionInfoViewItem>> {
         val transaction = transactionItem.record
         val rates = transactionItem.rates
         val nftMetadata = transactionItem.nftMetadata
@@ -591,7 +591,8 @@ class TransactionInfoViewItemFactory(
                 transaction = transaction,
                 status = status,
                 rates = rates,
-                blockchainType = blockchainType
+                blockchainType = blockchainType,
+                hideSensitiveInfo = hideSensitiveInfo
             )
         )
         if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && status == TransactionStatus.Pending && resendEnabled) {

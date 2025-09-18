@@ -37,6 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
+import cash.p.terminal.core.App
 import cash.p.terminal.core.isCustom
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
@@ -196,7 +197,8 @@ fun TokenBalanceScreen(
                         isItemBalanceHidden = {
                             itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden
                         },
-                        onValueClick = {
+                        onSensitiveValueClick = {
+                            HudHelper.vibrate(App.instance)
                             itemsBalanceHidden[it.uid] =
                                 !(itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden)
                         },

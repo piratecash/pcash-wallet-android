@@ -18,6 +18,8 @@ class TransactionInfoViewModel(
 ) : ViewModel() {
 
     private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
+    val balanceHidden: Boolean
+        get() = balanceHiddenManager.balanceHidden
 
     val source: TransactionSource by service::source
     val transactionRecord by service::transactionRecord
@@ -28,12 +30,12 @@ class TransactionInfoViewModel(
     init {
         viewModelScope.launch {
             contactsRepository.contactsFlow.collect {
-                viewItems = factory.getViewItemSections(service.transactionInfoItem)
+                viewItems = factory.getViewItemSections(service.transactionInfoItem, balanceHiddenManager.balanceHidden)
             }
         }
         viewModelScope.launch {
             service.transactionInfoItemFlow.collect { transactionInfoItem ->
-                viewItems = factory.getViewItemSections(transactionInfoItem)
+                viewItems = factory.getViewItemSections(transactionInfoItem, balanceHiddenManager.balanceHidden)
             }
         }
 

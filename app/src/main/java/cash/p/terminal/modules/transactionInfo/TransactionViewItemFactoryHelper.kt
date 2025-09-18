@@ -3,6 +3,7 @@ package cash.p.terminal.modules.transactionInfo
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.isCustom
+import cash.p.terminal.core.orHide
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
@@ -625,6 +626,7 @@ object TransactionViewItemFactoryHelper {
         status: TransactionStatus,
         rates: Map<String, CurrencyValue?>,
         blockchainType: BlockchainType,
+        hideSensitiveInfo: Boolean
     ): List<TransactionInfoViewItem> {
         val items: MutableList<TransactionInfoViewItem> = mutableListOf(
             TransactionInfoViewItem.Value(
@@ -700,7 +702,7 @@ object TransactionViewItemFactoryHelper {
             }
         }
 
-        items.add(TransactionInfoViewItem.TransactionHash(transaction.transactionHash))
+        items.add(TransactionInfoViewItem.TransactionHash(transaction.transactionHash.orHide(hideSensitiveInfo)))
 
         return items
     }

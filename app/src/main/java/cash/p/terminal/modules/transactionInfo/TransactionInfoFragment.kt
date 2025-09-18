@@ -12,27 +12,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui_compose.CoinFragmentInput
+import cash.p.terminal.core.orHide
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui_compose.components.ConnectionStatusView
-import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui.compose.components.DescriptionCell
-import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui.compose.components.PriceWithToggleCell
 import cash.p.terminal.ui.compose.components.SectionTitleCell
-import cash.p.terminal.ui_compose.components.TitleAndValueCell
 import cash.p.terminal.ui.compose.components.TransactionAmountCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoBtcLockCell
@@ -47,8 +41,15 @@ import cash.p.terminal.ui.compose.components.TransactionInfoStatusCell
 import cash.p.terminal.ui.compose.components.TransactionInfoTransactionHashCell
 import cash.p.terminal.ui.compose.components.TransactionNftAmountCell
 import cash.p.terminal.ui.compose.components.WarningMessageCell
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.CoinFragmentInput
+import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
+import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.MenuItem
+import cash.p.terminal.ui_compose.components.TitleAndValueCell
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 class TransactionInfoFragment : BaseComposeFragment() {
 
@@ -111,13 +112,20 @@ fun TransactionInfo(
     viewModel: TransactionInfoViewModel,
     navController: NavController
 ) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)) {
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)
+    ) {
         items(viewModel.viewItems) { section ->
             TransactionInfoSection(
                 section = section,
                 navController = navController,
-                onValueClick = viewModel::toggleBalanceVisibility,
-                getRawTransaction = viewModel::getRawTransaction
+                onSensitiveValueClick = {
+                    HudHelper.vibrate(App.instance)
+                    viewModel.toggleBalanceVisibility()
+                },
+                getRawTransaction = viewModel::getRawTransaction,
+                hideSensitiveInfo = viewModel.balanceHidden
             )
         }
     }
@@ -127,8 +135,9 @@ fun TransactionInfo(
 fun TransactionInfoSection(
     section: List<TransactionInfoViewItem>,
     navController: NavController,
-    onValueClick: () -> Unit,
-    getRawTransaction: () -> String?
+    onSensitiveValueClick: () -> Unit,
+    getRawTransaction: () -> String?,
+    hideSensitiveInfo: Boolean
 ) {
     //items without background
     if (section.size == 1) {
@@ -137,24 +146,29 @@ fun TransactionInfoSection(
                 WarningMessageCell(item.message)
                 return
             }
+
             is TransactionInfoViewItem.Description -> {
                 DescriptionCell(text = item.text)
                 return
             }
+
             else -> {
                 //do nothing
             }
         }
     }
 
-    val context = LocalContext.current
     CellUniversalLawrenceSection(
         buildList {
             for (viewItem in section) {
                 when (viewItem) {
                     is TransactionInfoViewItem.Transaction -> {
                         add {
-                            SectionTitleCell(title = viewItem.leftValue, value = viewItem.rightValue, iconResId = viewItem.icon)
+                            SectionTitleCell(
+                                title = viewItem.leftValue,
+                                value = viewItem.rightValue,
+                                iconResId = viewItem.icon
+                            )
                         }
                     }
 
@@ -168,13 +182,13 @@ fun TransactionInfoSection(
                                 alternativeCoinIconUrl = viewItem.alternativeCoinIconUrl,
                                 badge = viewItem.badge,
                                 coinIconPlaceholder = viewItem.coinIconPlaceholder,
-                                onValueClick = {
-                                    HudHelper.vibrate(context)
-                                    onValueClick()
-                                },
+                                onValueClick = onSensitiveValueClick,
                                 onClick = viewItem.coinUid?.let {
                                     {
-                                        navController.slideFromRight(R.id.coinFragment, CoinFragmentInput(it))
+                                        navController.slideFromRight(
+                                            R.id.coinFragment,
+                                            CoinFragmentInput(it)
+                                        )
                                     }
                                 }
                             )
@@ -217,16 +231,18 @@ fun TransactionInfoSection(
                         add {
                             TransactionInfoAddressCell(
                                 title = viewItem.title,
-                                value = viewItem.value,
+                                value = viewItem.value.orHide(hideSensitiveInfo),
                                 showAdd = viewItem.showAdd,
                                 blockchainType = viewItem.blockchainType,
                                 navController = navController,
+                                textAlign = if (!hideSensitiveInfo) TextAlign.End else TextAlign.Start,
                                 onCopy = {
                                 },
                                 onAddToExisting = {
                                 },
                                 onAddToNew = {
-                                }
+                                },
+                                onValueClick = onSensitiveValueClick,
                             )
                         }
                     }
@@ -239,7 +255,10 @@ fun TransactionInfoSection(
 
                     is TransactionInfoViewItem.Status -> {
                         add {
-                            TransactionInfoStatusCell(status = viewItem.status, navController = navController)
+                            TransactionInfoStatusCell(
+                                status = viewItem.status,
+                                navController = navController
+                            )
                         }
                     }
 
@@ -269,7 +288,10 @@ fun TransactionInfoSection(
                     is TransactionInfoViewItem.Explorer -> {
                         viewItem.url?.let {
                             add {
-                                TransactionInfoExplorerCell(title = viewItem.title, url = viewItem.url)
+                                TransactionInfoExplorerCell(
+                                    title = viewItem.title,
+                                    url = viewItem.url
+                                )
                             }
                         }
                     }
@@ -282,7 +304,10 @@ fun TransactionInfoSection(
 
                     is TransactionInfoViewItem.LockState -> {
                         add {
-                            TransactionInfoBtcLockCell(lockState = viewItem, navController = navController)
+                            TransactionInfoBtcLockCell(
+                                lockState = viewItem,
+                                navController = navController
+                            )
                         }
                     }
 

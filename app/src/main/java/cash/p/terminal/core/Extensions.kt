@@ -38,6 +38,9 @@ import java.math.BigDecimal
 import java.util.Locale
 import java.util.Optional
 
+fun String.orHide(hidden: Boolean, hideValue: String = "*****"): String
+    = if (hidden) hideValue else this
+
 val <T> Optional<T>.orNull: T?
     get() = when {
         isPresent -> get()

@@ -1,6 +1,9 @@
 package cash.p.terminal.ui.compose.components
 
 import android.content.Intent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -44,6 +47,7 @@ import cash.p.terminal.modules.transactionInfo.options.SpeedUpCancelType
 import cash.p.terminal.modules.transactionInfo.options.TransactionSpeedUpCancelFragment
 import cash.p.terminal.modules.transactionInfo.resendbitcoin.ResendBitcoinFragment
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui.helpers.LinkHelper
@@ -57,6 +61,7 @@ import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HsImage
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -75,8 +80,6 @@ import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.slideFromBottom
 
 @Composable
 fun SectionTitleCell(
@@ -273,23 +276,40 @@ fun TransactionInfoAddressCell(
     value: String,
     showAdd: Boolean,
     blockchainType: BlockchainType?,
+    textAlign: TextAlign = TextAlign.End,
     navController: NavController? = null,
     onCopy: (() -> Unit)? = null,
     onAddToExisting: (() -> Unit)? = null,
     onAddToNew: (() -> Unit)? = null,
+    onValueClick: (() -> Unit)? = null
 ) {
     val view = LocalView.current
     var showSaveAddressDialog by remember { mutableStateOf(false) }
     RowUniversal(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .animateContentSize(
+                animationSpec = tween(
+                    durationMillis = 1000,
+                    easing = LinearOutSlowInEasing
+                )
+            ),
     ) {
         subhead2_grey(text = title)
 
         HSpacer(16.dp)
         subhead1_leah(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {
+                        onValueClick?.invoke()
+                    }
+                ),
             text = value,
-            textAlign = TextAlign.Right
+            textAlign = textAlign
         )
 
         if (showAdd) {
