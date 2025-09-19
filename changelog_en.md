@@ -1,3 +1,20 @@
+## Main changes in version 0.46.8
+_Release date: September 19, 2025_
+
+### ✨ New Features
+- **Privacy Mode:**
+  - When hiding transactions, the address and operation type are now also hidden to prevent identifying a transaction by the first and last characters of the address.
+- **Amount Display:**
+  - Removed rounding on the transaction confirmation screen — now the exact amount being sent is shown.
+
+### 🛠 Fixes
+- **Etherscan API:**
+  - Fixed compatibility with the updated transactions API (V2).
+- **Stability:**
+  - Fixed an issue where the app could crash when trying to open the send transaction screen before synchronization was completed.
+
+
+
 ## Main changes in version 0.46.7
 _Release date: September 17, 2025_
 
