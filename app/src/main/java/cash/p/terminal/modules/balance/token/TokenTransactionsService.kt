@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 
@@ -55,9 +56,9 @@ class TokenTransactionsService(
 
     fun start() {
         coroutineScope.launch {
-            println("TokenTransactionsService start")
+            Timber.d("TokenTransactionsService start")
             transactionRecordRepository.itemsObservable.asFlow().collect {
-                println("TokenTransactionsService handleUpdatedRecords ${it.size}")
+                Timber.d("TokenTransactionsService handleUpdatedRecords ${it.size}")
                 handleUpdatedRecords(it)
             }
         }

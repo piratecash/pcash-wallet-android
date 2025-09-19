@@ -14,43 +14,16 @@ object EncodedSecrets : KoinComponent {
         "MSIgMilsMTQjLSgibDEgMjI2LjMlKwkMIwUgNW8xbylFGSYTM0UQYTshEBQgIh4bCiAKJS5LVi0qGSw="
     ))
     val BSCSCAN_KEY = decoder.decode(listOf(
-        "OSonPS0URz8xNi8qFSBXPSA1KiMzKFk+Nzg8Jh8hFjEpIA==",
-        "RTJZIiEVSCAnVF0tGCBXRkUxNkApLCctPCtcPHsgdF4jNFwrMyVZaCRAVzkvO2chLCJAPzowJ1AkPVUqMUd0JBw5Jlc9Tyg2UWYxLS9aOFtmOypCJTY1IycxPlslSjRNaiNtMDtVPi5NOjx7JD9UPCtaFDQsOzomOCEpVToiPSUrLWkmaT46KDQrMg=="
+        "KCksOyt4JSIsJiwxFEE5PTY8LEc8LyNRLzU/JG8hHzA7Mg==",
+        "MSYkRVx3JCdbWic5fDVUNT1OKigpMDdYNTtdLRdDHD40LFxVIDEteyoxOD0nMno+J0dANjw4XSItMydAUzUfJ34uJFVFTzcxPBRCN1E9M1pmM1ghPS4uMyM4NF0jOz0zbygdXiMkRTtNNF5mSCM4KD46fjopJzAlOiA2KDovN0A/I3hEFi8hJiQ5MF8ueEc2OykxMmglMj4rPSU0XCw0O1swKyZjIBcwJ1kjWiIj"
     ))
     val ETHERSCAN_KEY = decoder.decode(listOf(
-        "NygvOzB5QkcnKF4zfyYiOCk2OzQ+MCpYNDtSMmVJbykqJA==",
-        "OSY5JyoUIjBVITw1HyUwSitFXEo2MV9dWzsgPmxBZF07MlxRViBce0MyOyYuLm4gNiIpRTtGNydXWlhHNDZ/KX9bNShHTzg4XGY1NFE4KC1gSCopRj1ZN1YwXzMkP1Mtaj0WPDYgMi4="
+        "QSJXIlF1KS0rVSAkeikyQUAkP0RRJjoxPystMh1HGyAqVQ==",
+        "O1QmSjh+Qy07KS87eDMmJSJOJSVVJjxaPERWN3lFajhCUFwoNj0haSY0Mj5fKGwiOyNGJzooJzMqPzs7MiF2RmohOzUpTzI6WmU9LVcvIFtvQzQ1RD07KlcrOi88MVBHZCF/JUErOztNOi11JDdbPixUYCU3QSYmVipWUlY7PUNRQmc1ZCpCK0UrMl9aGiNBNF8uOmc3LDAjID4oVjVaOitLVkEbIWw5KjBDJShERHQ7QSkpKFB5MS8+Szw1Ry5XK1s8Qz89Y0Z3LD5ZJCYgMSU="
     ))
-    val POLYGONSCAN_KEY = decoder.decode(listOf(
-        "JC0wR1xvMzNTITpQfkdUKkU2XTBSMiBRVTtdIXc2ZC4hLA==",
-        "IFowNjllKCY7KiIuFDspIUEjJ0omJjwoPCdTIB09GT0yVVwnLDQgfSQlMTYqJhkmVSAqOjgmLSpcUC4xVCZnNHomRDRJ"
-    ))
-    val SNOWTRACE_API_KEY = decoder.decode(listOf(
-        "NCdZJTAaRyEzW1oofj4lNTQ1PiNXUCReJkcnQR8zdjAjKQ==",
-        "RFQoKzx/MTQkOFgmHDpVIT0kPyg0LyxcKCUwPX8iH141Jg=="
-    ))
-    val OPTIMISTIC_ETHERSCAN_API_KEY = decoder.decode(listOf(
-        "MVckRSxsKEFUKi8lekQiNCknWTspO1hdLDYsR3o5fConMg==",
-        "R1dUNj1kREJaXT1SGUcsSiI9PTw3VClaPEcrMmhCfSIrMQ=="
-    ))
-    val ARBISCAN_API_KEY = decoder.decode(listOf(
-        "KldSOSYYREZWND8tbEUlREAiKCIzKihbWzVQMBc9aSwjOw==",
-        "RDI2JF0fQjc0XVohZzM7Pis/XjgtI1wsPjhSOXQkfSIqKA=="
-    ))
-    val GNOSISSCAN_API_KEY = decoder.decode(listOf(
-        "JlErSzF4QUA4NFAwHCdSNCciOUAsOSNYXCY1RnolbDokVQ==",
-        "OyY5NSl8OzE3KSc5GCVYMCRENTk9KysjVUY/PWY4FzknOA=="
-    ))
-    val FTMSCAN_API_KEY = decoder.decode(listOf(
-        "RVQ4IlpqOScjNic1Gz1UOzo9NisjUjY4KjUrPX4meFA+Jw==",
-        "OiI2ITh6QkIpKSQ1dT0rOUoiJCtSUi0/PTpWLBsmFzs+MQ=="
-    ))
-    val BASESCAN_API_KEY = decoder.decode(listOf(
-        "MSgkJDseRUQkIlAzFDVTMDUnOCAzMDguJSswJBknFjsmJw==",
-        "ITZVISJ7Oi0zLz5bHEIrQEFEWzczWCs/VUNQIG9GditGVA=="
-    ))
-    val ERA_ZK_SYNC_API_KEY = decoder.decode(listOf(
-        "OCRTRyIZRDQgOS4udD1WI0QkK0Y3LzZYLzQzOh1IfSFHLw=="
+    val OTHER_SCAN_KEY = decoder.decode(listOf(
+        "RDYzISkZOzE6OT9VYEYsRjU6OD9cNThYNTonR2BHejImJQ==",
+        "PTNTKztrOCM4XlgwGUY2Mj41JCcsIiVfN0MkMBgmdiJEKVw7WTRbfSNBJSpeWhlDJTA6Qy5KJjE6IzREUjwYNRcgJDhGTzhLXRgoPTRYMSh4M1g3JyUiQD4wKVE1MzRNGDVkPkFTQTJNR1tpNT8nKSQiHCBZQio2OkdRVC9YOTcmJndFaDg6NjMlKQ=="
     ))
     val WALLET_CONNECT_V2_KEY = decoder.decode(listOf(
         "SAFVFVwcE0NSVFFTTEMEQBITWkUAWVwPCRYHRx5FGFA=",

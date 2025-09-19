@@ -60,8 +60,6 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     abstract suspend fun sendTransaction(): SendTransactionResult
     abstract val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
 
-    private inline fun <reified T> getAdapterType() = T::class.java
-
     private fun getRate(coin: Coin): CurrencyValue? {
         return App.marketKit.coinPrice(coin.uid, baseCurrency.code)?.let {
             CurrencyValue(baseCurrency, it.value)

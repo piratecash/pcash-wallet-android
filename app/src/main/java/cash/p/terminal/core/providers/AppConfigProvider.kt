@@ -43,34 +43,13 @@ class AppConfigProvider {
         EncodedSecrets.TWITTER_BEARER_TOKEN
     }
     val etherscanApiKey by lazy {
-        EncodedSecrets.ETHERSCAN_KEY.split(",")
+        EncodedSecrets.ETHERSCAN_KEY.split(",").map { it.trim() }
+    }
+    val otherScanApiKey by lazy {
+        EncodedSecrets.OTHER_SCAN_KEY.split(",").map { it.trim() }
     }
     val bscscanApiKey by lazy {
-        EncodedSecrets.BSCSCAN_KEY.split(",")
-    }
-    val polygonscanApiKey by lazy {
-        EncodedSecrets.POLYGONSCAN_KEY.split(",")
-    }
-    val snowtraceApiKey by lazy {
-        EncodedSecrets.SNOWTRACE_API_KEY.split(",")
-    }
-    val optimisticEtherscanApiKey by lazy {
-        EncodedSecrets.OPTIMISTIC_ETHERSCAN_API_KEY.split(",")
-    }
-    val arbiscanApiKey by lazy {
-        EncodedSecrets.ARBISCAN_API_KEY.split(",")
-    }
-    val gnosisscanApiKey by lazy {
-        EncodedSecrets.GNOSISSCAN_API_KEY.split(",")
-    }
-    val ftmscanApiKey by lazy {
-        EncodedSecrets.FTMSCAN_API_KEY.split(",")
-    }
-    val basescanApiKey by lazy {
-        EncodedSecrets.BASESCAN_API_KEY.split(",")
-    }
-    val eraZkSyncApiKey by lazy {
-        EncodedSecrets.ERA_ZK_SYNC_API_KEY.split(",")
+        EncodedSecrets.BSCSCAN_KEY.split(",").map { it.trim() }
     }
     val guidesUrl by lazy {
         Translator.getString(R.string.guidesUrl)
@@ -102,7 +81,7 @@ class AppConfigProvider {
     }
 
     val trongridApiKeys: List<String> by lazy {
-        EncodedSecrets.TRONGRID_API_KEYS.split(",")
+        EncodedSecrets.TRONGRID_API_KEYS.split(",").map { it.trim() }
     }
 
     val udnApiKey by lazy {
