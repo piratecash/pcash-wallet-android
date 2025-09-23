@@ -8,15 +8,15 @@ import io.reactivex.Single
 import kotlinx.coroutines.rx2.await
 import java.math.BigInteger
 
-class FeeRateProvider(appConfig: AppConfigProvider) {
+class FeeRateProvider {
 
     private val feeRateKit: FeeRateKit by lazy {
         FeeRateKit(
             FeeProviderConfig(
-                ethEvmUrl = appConfig.blocksDecodedEthereumRpc,
+                ethEvmUrl = AppConfigProvider.blocksDecodedEthereumRpc,
                 ethEvmAuth = null,
                 bscEvmUrl = FeeProviderConfig.defaultBscEvmUrl(),
-                mempoolSpaceUrl = appConfig.mempoolSpaceUrl
+                mempoolSpaceUrl = AppConfigProvider.mempoolSpaceUrl
             )
         )
     }

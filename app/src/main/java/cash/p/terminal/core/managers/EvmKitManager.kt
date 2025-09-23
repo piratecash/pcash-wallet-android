@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.room.concurrent.AtomicInt
 import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
 import cash.p.terminal.wallet.Account
@@ -24,6 +25,7 @@ import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.RpcSource
 import io.horizontalsystems.ethereumkit.models.TransactionData
+import io.horizontalsystems.merkleiokit.MerkleTransactionAdapter
 import io.horizontalsystems.nftkit.core.NftKit
 import io.horizontalsystems.oneinchkit.OneInchKit
 import io.horizontalsystems.uniswapkit.TokenFactory.UnsupportedChainError
@@ -204,13 +206,25 @@ class EvmKitManager(
 //            nftKit = nftKitInstance
 //        }
 
+        val merkleTransactionAdapter = MerkleTransactionAdapter.getInstance(
+            merkleIoPubKey = AppConfigProvider.merkleIoKey,
+            address = address,
+            chain = chain,
+            context = App.instance,
+            walletId = account.id,
+            transactionManager = evmKit.transactionManager,
+            sourceTag = "pcash-wallet-android"
+        )
+        merkleTransactionAdapter?.registerInKit(evmKit)
+
         evmKit.start()
 
         return EvmKitWrapper(
             evmKit = evmKit,
             nftKit = nftKit,
             blockchainType = blockchainType,
-            signer = signer
+            signer = signer,
+            merkleTransactionAdapter = merkleTransactionAdapter
         )
     }
 
@@ -258,21 +272,31 @@ class EvmKitWrapper(
     val evmKit: EthereumKit,
     val nftKit: NftKit?,
     val blockchainType: BlockchainType,
-    val signer: Signer?
+    val signer: Signer?,
+    val merkleTransactionAdapter: MerkleTransactionAdapter?
 ) {
 
     suspend fun sendSingle(
         transactionData: TransactionData,
         gasPrice: GasPrice,
         gasLimit: Long,
-        nonce: Long?
+        nonce: Long?,
+        mevProtectionEnabled: Boolean
     ): FullTransaction {
         requireNotNull(signer) { "Signer is not initialized for this EVM kit" }
+
+        if (mevProtectionEnabled && merkleTransactionAdapter == null) {
+            throw IllegalStateException("MEV Protection is enabled, but MerkleTransactionAdapter is not initialized")
+        }
 
         val rawTransaction =
             evmKit.rawTransaction(transactionData, gasPrice, gasLimit, nonce).await()
         val signature = signer.signature(rawTransaction)
-        return evmKit.send(rawTransaction, signature).await()
+        return if (mevProtectionEnabled && merkleTransactionAdapter != null) {
+            merkleTransactionAdapter.send(rawTransaction, signature).await()
+        } else {
+            evmKit.send(rawTransaction, signature).await()
+        }
     }
 
 }

@@ -9,6 +9,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.address.AddressHandlerTon
 import cash.p.terminal.modules.amount.AmountValidator
@@ -37,7 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class TonSendTransactionService(
+class SendTransactionServiceTon(
     token: Token
 ) : ISendTransactionService<ISendTonAdapter>(token) {
     private val amountValidator = AmountValidator()
@@ -58,7 +59,7 @@ class TonSendTransactionService(
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -153,15 +154,15 @@ class TonSendTransactionService(
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
-        check(data is SendTransactionData.Common)
+        check(data is SendTransactionData.Ton)
         amountService.setAmount(data.amount)
         addressService.setAddress(addressHandlerTon.parseAddress(data.address))
     }
 
-    override suspend fun sendTransaction(): SendTransactionResult {
+    override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
             adapter.send(amountState.amount!!, addressState.tonAddress!!, memo)
-            return SendTransactionResult.Common(SendResult.Sent())
+            return SendTransactionResult.Ton(SendResult.Sent())
         } catch (e: Throwable) {
             cautions = listOf(createCaution(e))
             emitState()

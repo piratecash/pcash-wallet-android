@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.z.ecc.android.sdk.ext.collectWith
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
@@ -14,6 +13,7 @@ import cash.p.terminal.core.LocalizedException
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -52,7 +52,7 @@ class SendSolanaViewModel(
 ) : ViewModelUiState<SendSolanaModule.SendUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
 
@@ -143,7 +143,7 @@ class SendSolanaViewModel(
             if (totalSolAmount > solBalance)
                 throw EvmError.InsufficientBalanceWithFee
 
-            adapter.send(decimalAmount, addressState.evmAddress!!)
+            adapter.send(decimalAmount, addressState.solanaAddress!!)
 
             sendResult = SendResult.Sent()
 

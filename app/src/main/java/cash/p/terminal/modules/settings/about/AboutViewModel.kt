@@ -8,23 +8,21 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ISystemInfoManager
 import kotlinx.coroutines.launch
 
 class AboutViewModel(
-    private val appConfigProvider: AppConfigProvider,
     private val termsManager: ITermsManager,
     private val systemInfoManager: ISystemInfoManager,
 ) : ViewModel() {
 
-    val githubLink = appConfigProvider.appGithubLink
-    val appWebPageLink = appConfigProvider.appWebPageLink
+    val githubLink = AppConfigProvider.appGithubLink
+    val appWebPageLink = AppConfigProvider.appWebPageLink
     val appVersion: String
         get() {
             var appVersion = systemInfoManager.appVersion
             if (cash.p.terminal.strings.helpers.Translator.getString(R.string.is_release) == "false") {
-                appVersion += " (${appConfigProvider.appBuild})"
+                appVersion += " (${AppConfigProvider.appBuild})"
             }
 
             return appVersion

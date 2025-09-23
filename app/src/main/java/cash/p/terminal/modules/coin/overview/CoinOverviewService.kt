@@ -19,7 +19,6 @@ class CoinOverviewService(
     val fullCoin: FullCoin,
     private val marketKit: MarketKitWrapper,
     private val currencyManager: CurrencyManager,
-    private val appConfigProvider: AppConfigProvider,
     private val languageManager: LanguageManager
 ) {
     val currency get() = currencyManager.baseCurrency
@@ -46,7 +45,7 @@ class CoinOverviewService(
     )
 
     private val guideUrl: String?
-        get() = guideUrls[fullCoin.coin.uid]?.let { URL(URL(appConfigProvider.guidesUrl), it).toString() }
+        get() = guideUrls[fullCoin.coin.uid]?.let { URL(URL(AppConfigProvider.guidesUrl), it).toString() }
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 

@@ -32,8 +32,7 @@ import java.util.Optional
 
 class ProFeaturesAuthorizationManager(
     private val storage: ProFeaturesStorage,
-    private val accountManager: IAccountManager,
-    private val appConfigProvider: AppConfigProvider
+    private val accountManager: IAccountManager
 ) {
 
     data class AccountData(
@@ -94,7 +93,7 @@ class ProFeaturesAuthorizationManager(
 
     suspend fun getNFTHolderAccountData(nftType: ProNft): AccountData? = withContext(Dispatchers.IO) {
         val accounts = getAllAccountData
-        val provider = Eip1155Provider.instance(RpcSource.Http(listOf(URI(appConfigProvider.blocksDecodedEthereumRpc)), null))
+        val provider = Eip1155Provider.instance(RpcSource.Http(listOf(URI(AppConfigProvider.blocksDecodedEthereumRpc)), null))
 
         return@withContext first1155TokenHolder(provider, nftType.tokenId, accounts).await().orNull
     }

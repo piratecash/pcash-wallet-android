@@ -521,6 +521,8 @@
     <string name="Swap_Confirm_Title">Confirmer</string>
     <string name="SwapConfirm_QuoteExpired">Devis expiré</string>
     <string name="SwapConfirm_FetchingFinalQuote">Récupération du devis final</string>
+    <string name="SwapWarning_SlippageNotAvailable_Title">Sans Contrôle de Glissement</string>
+    <string name="SwapWarning_SlippageNotAvailable_Description">Les opérations inter-chaînes dépendent de la liquidité de tiers et des délais, ce qui peut affecter le montant final.</string>
     <string name="unsupported_refund_address">Unsupported refund address</string>
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>

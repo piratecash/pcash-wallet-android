@@ -1,6 +1,6 @@
 package cash.p.terminal.modules.addtoken
 
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.wallet.customCoinUid
 import cash.p.terminal.modules.addtoken.AddTokenModule.IAddTokenBlockchainService
 import cash.p.terminal.wallet.Token
@@ -47,7 +47,7 @@ class AddTronTokenBlockchainService(
 
     companion object {
         fun getInstance(blockchain: Blockchain): AddTronTokenBlockchainService {
-            val trc20Provider = Trc20Provider.getInstance(Network.Mainnet, App.appConfigProvider.trongridApiKeys)
+            val trc20Provider = Trc20Provider.getInstance(Network.Mainnet, AppConfigProvider.trongridApiKeys)
             return AddTronTokenBlockchainService(blockchain, trc20Provider)
         }
     }

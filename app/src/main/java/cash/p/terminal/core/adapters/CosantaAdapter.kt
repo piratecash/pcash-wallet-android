@@ -11,12 +11,10 @@ import io.horizontalsystems.bitcoincore.BitcoinCore
 import io.horizontalsystems.bitcoincore.models.BalanceInfo
 import io.horizontalsystems.bitcoincore.models.BlockInfo
 import io.horizontalsystems.bitcoincore.models.TransactionInfo
-import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.cosantakit.CosantaKit
 import io.horizontalsystems.cosantakit.CosantaKit.NetworkType
-import java.math.BigDecimal
 
 class CosantaAdapter(
     override val kit: CosantaKit,
@@ -44,9 +42,6 @@ class CosantaAdapter(
     //
     // BitcoinBaseAdapter
     //
-
-    override val satoshisInBitcoin: BigDecimal =
-        BigDecimal.valueOf(Math.pow(10.0, decimal.toDouble()))
 
     //
     // io.horizontalsystems.cosantakit.CosantaKit Listener

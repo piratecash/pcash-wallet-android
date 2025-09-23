@@ -2,13 +2,13 @@ package cash.p.terminal.modules.multiswap.sendtransaction
 
 import android.util.Log
 import cash.p.terminal.core.UnsupportedException
-import cash.p.terminal.modules.multiswap.sendtransaction.services.BitcoinSendTransactionService
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceBitcoin
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceStellar
-import cash.p.terminal.modules.multiswap.sendtransaction.services.SolanaSendTransactionService
-import cash.p.terminal.modules.multiswap.sendtransaction.services.TonSendTransactionService
-import cash.p.terminal.modules.multiswap.sendtransaction.services.TronSendTransactionService
-import cash.p.terminal.modules.multiswap.sendtransaction.services.ZCashSendTransactionService
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceSolana
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceTon
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceTron
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceZCash
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
@@ -23,11 +23,11 @@ object SendTransactionServiceFactory {
             is TokenType.Derived -> {
                 when (token.blockchainType) {
                     BlockchainType.Bitcoin -> {
-                        BitcoinSendTransactionService(token)
+                        SendTransactionServiceBitcoin(token)
                     }
 
                     BlockchainType.Litecoin -> {
-                        BitcoinSendTransactionService(token)
+                        SendTransactionServiceBitcoin(token)
                     }
 
                     else -> throw UnsupportedException("Unsupported token type: $tokenType")
@@ -36,13 +36,13 @@ object SendTransactionServiceFactory {
 
             is TokenType.AddressTyped -> {
                 if (token.blockchainType == BlockchainType.BitcoinCash) {
-                    BitcoinSendTransactionService(token)
+                    SendTransactionServiceBitcoin(token)
                 } else throw UnsupportedException("Unsupported token type: $tokenType")
             }
 
             is TokenType.AddressSpecTyped -> {
                 if (token.blockchainType == BlockchainType.Zcash) {
-                    ZCashSendTransactionService(token)
+                    SendTransactionServiceZCash(token)
                 } else throw UnsupportedException("Unsupported token type: $tokenType")
             }
 
@@ -50,11 +50,11 @@ object SendTransactionServiceFactory {
                 BlockchainType.Dash,
                 BlockchainType.Dogecoin,
                 BlockchainType.ECash -> {
-                    BitcoinSendTransactionService(token)
+                    SendTransactionServiceBitcoin(token)
                 }
 
                 BlockchainType.Zcash -> {
-                    ZCashSendTransactionService(token)
+                    SendTransactionServiceZCash(token)
                 }
 
                 BlockchainType.Ethereum,
@@ -71,11 +71,11 @@ object SendTransactionServiceFactory {
                 }
 
                 BlockchainType.Solana -> {
-                    SolanaSendTransactionService(token)
+                    SendTransactionServiceSolana(token)
                 }
 
                 BlockchainType.Tron -> {
-                    TronSendTransactionService(token)
+                    SendTransactionServiceTron(token)
                 }
 
                 BlockchainType.Stellar -> {
@@ -85,7 +85,7 @@ object SendTransactionServiceFactory {
                 }
 
                 BlockchainType.Ton -> {
-                    TonSendTransactionService(token)
+                    SendTransactionServiceTon(token)
                 }
 
                 else -> throw UnsupportedException("Unsupported token type: $tokenType")
@@ -93,14 +93,14 @@ object SendTransactionServiceFactory {
 
             is TokenType.Eip20 -> {
                 if (token.blockchainType == BlockchainType.Tron) {
-                    TronSendTransactionService(token)
+                    SendTransactionServiceTron(token)
                 } else {
                     SendTransactionServiceEvm(token)
                 }
             }
 
-            is TokenType.Spl -> SolanaSendTransactionService(token)
-            is TokenType.Jetton -> TonSendTransactionService(token)
+            is TokenType.Spl -> SendTransactionServiceSolana(token)
+            is TokenType.Jetton -> SendTransactionServiceTon(token)
 
             is TokenType.Asset,
             is TokenType.Unsupported -> throw UnsupportedException("Unsupported token type: $tokenType")

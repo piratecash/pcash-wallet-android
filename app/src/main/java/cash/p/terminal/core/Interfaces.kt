@@ -31,6 +31,8 @@ import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.solanakit.models.FullTransaction
 import io.horizontalsystems.tonkit.FriendlyAddress
+import io.horizontalsystems.tronkit.models.Contract
+import io.horizontalsystems.tronkit.network.CreatedTransaction
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -118,6 +120,10 @@ interface ITransactionsAdapter {
         address: String?,
     ): List<TransactionRecord>
 
+    suspend fun getTransactionsAfter(
+        fromTransactionId: String?
+    ): List<TransactionRecord> = emptyList()
+
     fun getRawTransaction(transactionHash: String): String? = null
 
     fun getTransactionRecordsFlow(
@@ -141,12 +147,11 @@ interface ISendBitcoinAdapter {
         memo: String?,
         unspentOutputs: List<UnspentOutputInfo>?,
         pluginData: Map<Byte, IPluginData>?,
-        dustThreshold: Int?,
         changeToFirstInput: Boolean,
         utxoFilters: UtxoFilters
     ): BigDecimal
 
-    fun minimumSendAmount(address: String?, dustThreshold: Int?): BigDecimal?
+    fun minimumSendAmount(address: String?): BigDecimal?
     fun bitcoinFeeInfo(
         amount: BigDecimal,
         feeRate: Int,
@@ -154,7 +159,6 @@ interface ISendBitcoinAdapter {
         memo: String?,
         unspentOutputs: List<UnspentOutputInfo>?,
         pluginData: Map<Byte, IPluginData>?,
-        dustThreshold: Int?,
         changeToFirstInput: Boolean,
         filters: UtxoFilters
     ): BitcoinFeeInfo?
@@ -169,10 +173,11 @@ interface ISendBitcoinAdapter {
         pluginData: Map<Byte, IPluginData>?,
         transactionSorting: TransactionDataSortMode?,
         rbfEnabled: Boolean,
-        dustThreshold: Int?,
         changeToFirstInput: Boolean,
         utxoFilters: UtxoFilters
     ): String
+
+    fun satoshiToBTC(value: Long): BigDecimal
 }
 
 internal interface ISendEthereumAdapter {
@@ -193,6 +198,8 @@ interface ISendZcashAdapter {
 interface ISendSolanaAdapter {
     val availableBalance: BigDecimal
     suspend fun send(amount: BigDecimal, to: SolanaAddress): FullTransaction
+    suspend fun send(rawTransaction: ByteArray): FullTransaction
+    fun estimateFee(rawTransaction: ByteArray): BigDecimal
 }
 
 interface ISendMoneroAdapter {
@@ -220,11 +227,14 @@ interface ISendTronAdapter {
     val trxBalanceData: BalanceData
 
     suspend fun estimateFee(amount: BigDecimal, to: TronAddress): List<Fee>
+    suspend fun estimateFee(transaction: CreatedTransaction): List<Fee>
+    suspend fun estimateFee(contract: Contract): List<Fee>
     suspend fun send(amount: BigDecimal, to: TronAddress, feeLimit: Long?): String
+    suspend fun send(contract: Contract, feeLimit: Long?): String
+    suspend fun send(createdTransaction: CreatedTransaction): String
     suspend fun isAddressActive(address: TronAddress): Boolean
     fun isOwnAddress(address: TronAddress): Boolean
 }
-
 interface IFeeRateProvider {
     val feeRateChangeable: Boolean get() = false
     suspend fun getFeeRates() : FeeRates

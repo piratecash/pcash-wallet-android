@@ -61,11 +61,14 @@ internal class EvmTransactionConverter(
             }
 
             is IncomingDecoration -> {
+                val transactionValue = baseCoinValue(decoration.value, false)
+                val isSpam = SpamManager.isSpam(listOf(TransferEvent(decoration.from.eip55, null, transactionValue)))
+
                 EvmTransactionRecord(
                     transaction = transaction,
                     token = baseToken,
                     source = source,
-                    spamManager = spamManager,
+                    spam = isSpam,
                     from = decoration.from.eip55,
                     to = transaction.to?.eip55,
                     value = baseCoinValue(decoration.value, false),
@@ -270,18 +273,21 @@ internal class EvmTransactionConverter(
                     }
 
                     transaction.from != address && transaction.to != address -> {
+                        val incomingEvents = getInternalEvents(internalTransactions) +
+                                getIncomingEip20Events(incomingEip20Transfers) +
+                                getIncomingEip721Events(incomingEip721Transfers) +
+                                getIncomingEip1155Events(incomingEip1155Transfers)
+                        val outgoingEvents = getOutgoingEip20Events(outgoingEip20Transfers) +
+                                getOutgoingEip721Events(outgoingEip721Transfers) +
+                                getOutgoingEip1155Events(outgoingEip1155Transfers)
+                        val isSpam = SpamManager.isSpam(incomingEvents + outgoingEvents)
                         EvmTransactionRecord(
                             transaction = transaction,
                             token = baseToken,
                             source = source,
-                            spamManager = spamManager,
-                            incomingEvents = getInternalEvents(internalTransactions) +
-                                    getIncomingEip20Events(incomingEip20Transfers) +
-                                    getIncomingEip721Events(incomingEip721Transfers) +
-                                    getIncomingEip1155Events(incomingEip1155Transfers),
-                            outgoingEvents = getOutgoingEip20Events(outgoingEip20Transfers) +
-                                    getOutgoingEip721Events(outgoingEip721Transfers) +
-                                    getOutgoingEip1155Events(outgoingEip1155Transfers),
+                            spam = isSpam,
+                            incomingEvents = incomingEvents,
+                            outgoingEvents = outgoingEvents,
                             transactionRecordType = TransactionRecordType.EVM_EXTERNAL_CONTRACT_CALL
                         )
                     }
@@ -322,7 +328,10 @@ internal class EvmTransactionConverter(
         negative: Boolean,
         tokenInfo: TokenInfo? = null
     ): TransactionValue {
-        val query = TokenQuery(evmTransactionRepository.getBlockchainType(), TokenType.Eip20(tokenAddress.hex))
+        val query = TokenQuery(
+            evmTransactionRepository.getBlockchainType(),
+            TokenType.Eip20(tokenAddress.hex)
+        )
         val token = coinManager.getToken(query)
 
         return when {
@@ -422,7 +431,11 @@ internal class EvmTransactionConverter(
 
         for (transaction in internalTransactions) {
             events.add(
-                TransferEvent(transaction.from.eip55, transaction.to.eip55, baseCoinValue(transaction.value, false))
+                TransferEvent(
+                    transaction.from.eip55,
+                    transaction.to.eip55,
+                    baseCoinValue(transaction.value, false)
+                )
             )
         }
 

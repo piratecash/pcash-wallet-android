@@ -55,6 +55,16 @@ class StellarTransactionsAdapter(
         emptyList()
     }
 
+    override suspend fun getTransactionsAfter(fromTransactionId: String?): List<TransactionRecord> {
+        return stellarKit.operationsAfter(
+            TagQuery(null, null, null),
+            fromTransactionId?.toLongOrNull(),
+            10000
+        ).map {
+            transactionConverter.convert(it)
+        }
+    }
+
     private fun getTagQuery(
         token: Token?,
         transactionType: FilterTransactionType,

@@ -27,7 +27,6 @@ object CoinOverviewModule {
                         fullCoin,
                         App.marketKit,
                         App.currencyManager,
-                        App.appConfigProvider,
                         App.languageManager
                     )
 

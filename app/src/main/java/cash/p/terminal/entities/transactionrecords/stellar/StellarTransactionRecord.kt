@@ -3,6 +3,7 @@ package cash.p.terminal.entities.transactionrecords.stellar
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
+import cash.p.terminal.entities.transactionrecords.evm.TransferEvent
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.transaction.TransactionSource
@@ -13,6 +14,7 @@ class StellarTransactionRecord(
     source: TransactionSource,
     val operation: Operation,
     val type: Type,
+    spam: Boolean,
 ) : TransactionRecord(
     uid = operation.id.toString(),
     transactionHash = operation.transactionHash,
@@ -21,7 +23,7 @@ class StellarTransactionRecord(
     confirmationsThreshold = null,
     timestamp = operation.timestamp,
     failed = !operation.transactionSuccessful,
-    spam = false,
+    spam = spam,
     source = source,
     transactionRecordType = type.toTransactionRecordType(),
     token = baseToken,
@@ -97,5 +99,18 @@ class StellarTransactionRecord(
         TransactionStatus.Failed
     } else {
         TransactionStatus.Completed
+    }
+
+    companion object {
+        fun eventsForPhishingCheck(type: Type): List<TransferEvent> =
+            when (type) {
+                is Type.Receive -> {
+                    listOf(TransferEvent(type.from, null, type.value))
+                }
+
+                is Type.ChangeTrust,
+                is Type.Send,
+                is Type.Unsupported -> listOf()
+            }
     }
 }

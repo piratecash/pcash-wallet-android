@@ -7,5 +7,5 @@ import io.horizontalsystems.core.entities.BlockchainType
 class SpamScanState(
     val blockchainType: BlockchainType,
     val accountId: String,
-    val lastTransactionHash: ByteArray
+    val lastSyncedTransactionId: String
 )

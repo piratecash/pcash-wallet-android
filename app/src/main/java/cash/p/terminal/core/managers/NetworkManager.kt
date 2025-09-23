@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import cash.p.terminal.core.INetworkManager
+import com.google.gson.Strictness
 import io.reactivex.Flowable
 import io.reactivex.Single
 import okhttp3.Interceptor
@@ -143,6 +144,11 @@ object APIClient {
         .addInterceptor(logger)
         .build()
 
+    val gson by lazy {
+        val gsonBuilder = GsonBuilder().setStrictness(Strictness.LENIENT)
+        gsonBuilder.create()
+    }
+
     fun retrofit(apiURL: String, timeout: Long = 60, isSafeCall: Boolean = true): Retrofit {
 
         val httpClient = okHttpClient.newBuilder()
@@ -153,13 +159,11 @@ object APIClient {
         if (!isSafeCall) // if host name cannot be verified, has no or self signed certificate, do unsafe request
             setUnsafeSocketFactory(httpClient)
 
-        val gsonBuilder = GsonBuilder().setLenient()
-
         return Retrofit.Builder()
             .baseUrl(apiURL)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(gsonBuilder.create()))
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .client(httpClient.build())
             .build()
     }

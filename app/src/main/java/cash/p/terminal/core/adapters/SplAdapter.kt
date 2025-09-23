@@ -17,7 +17,7 @@ class SplAdapter(
     private val solanaKitWrapper: SolanaKitWrapper,
     wallet: Wallet,
     private val mintAddressString: String
-) : BaseSolanaAdapter(solanaKitWrapper, wallet.decimal), ISendSolanaAdapter {
+) : BaseSolanaAdapter(solanaKitWrapper, wallet.decimal) {
 
     private val mintAddress = Address(mintAddressString)
 

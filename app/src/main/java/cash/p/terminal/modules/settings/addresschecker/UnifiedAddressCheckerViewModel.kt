@@ -11,6 +11,7 @@ import cash.p.terminal.core.address.Eip20AddressValidator
 import cash.p.terminal.core.address.HashDitAddressValidator
 import cash.p.terminal.core.factories.ContractValidatorFactory
 import cash.p.terminal.core.managers.EvmBlockchainManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressHandlerFactory
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -231,19 +232,18 @@ class UnifiedAddressCheckerViewModel(
     class Factory : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val addressHandlerFactory = AddressHandlerFactory(App.appConfigProvider.udnApiKey)
-            val appConfigProvider = App.appConfigProvider
+            val addressHandlerFactory = AddressHandlerFactory(AppConfigProvider.udnApiKey)
             return UnifiedAddressCheckerViewModel(
                 App.marketKit,
                 addressHandlerFactory,
                 HashDitAddressValidator(
-                    appConfigProvider.hashDitBaseUrl,
-                    appConfigProvider.hashDitApiKey,
+                    AppConfigProvider.hashDitBaseUrl,
+                    AppConfigProvider.hashDitApiKey,
                     App.evmBlockchainManager
                 ),
                 ChainalysisAddressValidator(
-                    appConfigProvider.chainalysisBaseUrl,
-                    appConfigProvider.chainalysisApiKey
+                    AppConfigProvider.chainalysisBaseUrl,
+                    AppConfigProvider.chainalysisApiKey
                 ),
                 Eip20AddressValidator(App.evmSyncSourceManager)
             ) as T

@@ -9,7 +9,6 @@ import cash.p.terminal.wallet.Token
 
 class AddressCheckManager(
     spamManager: SpamManager,
-    appConfigProvider: AppConfigProvider,
     evmBlockchainManager: EvmBlockchainManager,
     evmSyncSourceManager: EvmSyncSourceManager
 ) {
@@ -18,16 +17,16 @@ class AddressCheckManager(
         AddressCheckType.Phishing to PhishingAddressChecker(spamManager),
         AddressCheckType.Blacklist to BlacklistAddressChecker(
             HashDitAddressValidator(
-                appConfigProvider.hashDitBaseUrl,
-                appConfigProvider.hashDitApiKey,
+                AppConfigProvider.hashDitBaseUrl,
+                AppConfigProvider.hashDitApiKey,
                 evmBlockchainManager
             ),
             Eip20AddressValidator(evmSyncSourceManager)
         ),
         AddressCheckType.Sanction to SanctionAddressChecker(
             ChainalysisAddressValidator(
-                appConfigProvider.chainalysisBaseUrl,
-                appConfigProvider.chainalysisApiKey
+                AppConfigProvider.chainalysisBaseUrl,
+                AppConfigProvider.chainalysisApiKey
             )
         )
     )

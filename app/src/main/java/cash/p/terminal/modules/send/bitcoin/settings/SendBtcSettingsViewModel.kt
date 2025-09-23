@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinFeeRateService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinFeeService
 import cash.p.terminal.wallet.Token
@@ -20,7 +21,7 @@ class SendBtcSettingsViewModel(
     val token: Token
 ) : ViewModelUiState<SendBtcSettingsUiState>() {
     val coinMaxAllowedDecimals = token.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private var feeRateState = feeRateService.stateFlow.value
     private var bitcoinFeeInfo = feeService.bitcoinFeeInfoFlow.value

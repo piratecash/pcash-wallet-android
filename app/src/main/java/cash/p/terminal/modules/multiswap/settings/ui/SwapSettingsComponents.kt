@@ -26,21 +26,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.entities.Address
-import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
-import cash.p.terminal.ui_compose.entities.FormsInputStateWarning
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.body_grey50
+import cash.p.terminal.ui_compose.entities.DataState
+import cash.p.terminal.ui_compose.entities.FormsInputStateWarning
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.Token
 
 @Composable
 fun SlippageAmount(
@@ -92,30 +89,27 @@ fun TransactionDeadlineInput(
 
 @Composable
 fun RecipientAddress(
-    blockchainType: BlockchainType,
+    token: Token,
     navController: NavController,
     initial: Address?,
     onError: (Throwable?) -> Unit,
     onValueChange: (Address?) -> Unit,
 ) {
-    val tokenQuery = TokenQuery(blockchainType, TokenType.Native)
-    App.marketKit.token(tokenQuery)?.let { token ->
-        HeaderText(
-            text = stringResource(R.string.SwapSettings_RecipientAddressTitle)
-        )
-        HSAddressInput(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            initial = initial,
-            tokenQuery = token.tokenQuery,
-            coinCode = token.coin.code,
-            navController = navController,
-            onError = onError,
-            onValueChange = onValueChange,
-        )
-        InfoText(
-            text = stringResource(R.string.SwapSettings_RecipientAddressDescription),
-        )
-    }
+    HeaderText(
+        text = stringResource(R.string.SwapSettings_RecipientAddressTitle)
+    )
+    HSAddressInput(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        initial = initial,
+        tokenQuery = token.tokenQuery,
+        coinCode = token.coin.code,
+        navController = navController,
+        onError = onError,
+        onValueChange = onValueChange,
+    )
+    InfoText(
+        text = stringResource(R.string.SwapSettings_RecipientAddressDescription),
+    )
 }
 
 @Composable
@@ -130,18 +124,19 @@ fun InputWithButtons(
     val borderColor = when (state) {
         is DataState.Error -> {
             if (state.error is FormsInputStateWarning) {
-                cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.yellow50
+                ComposeAppTheme.colors.yellow50
             } else {
-                cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.red50
+                ComposeAppTheme.colors.red50
             }
         }
-        else -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel20
+
+        else -> ComposeAppTheme.colors.steel20
     }
 
     val cautionColor = if (state?.errorOrNull is FormsInputStateWarning) {
-        cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.jacob
+        ComposeAppTheme.colors.jacob
     } else {
-        cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian
+        ComposeAppTheme.colors.lucian
     }
 
     Column(modifier = modifier) {

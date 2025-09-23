@@ -537,6 +537,8 @@
     <string name="SwapConfirm_QuoteIsInvalid">Котировка недействительна</string>
     <string name="SwapConfirm_FetchingFinalQuote">Получение котировки</string>
     <string name="SwapWarning_SlippageNotApplicable_Description">Минимальное допустимое проскальзывание для этой котировки составляет %s%%.</string>
+    <string name="SwapWarning_SlippageNotAvailable_Title">Без контроля проскальзывания</string>
+    <string name="SwapWarning_SlippageNotAvailable_Description">Межцепные операции зависят от ликвидности третьих сторон и задержек, что может повлиять на окончательную сумму.</string>
     <string name="unsupported_refund_address">Адрес для возврата не поддерживается.</string>
     <string name="unsupported_address">Адрес не поддерживается</string>
     <string name="unexpected_error">Непредвиденная ошибка</string>

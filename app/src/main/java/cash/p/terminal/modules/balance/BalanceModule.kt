@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.address.AddressHandlerFactory
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.balance.BalanceWarning
@@ -32,7 +33,7 @@ object BalanceModule {
                 totalBalance = TotalBalance(totalService, App.balanceHiddenManager),
                 localStorage = App.localStorage,
                 wCManager = App.wcManager,
-                addressHandlerFactory = AddressHandlerFactory(App.appConfigProvider.udnApiKey),
+                addressHandlerFactory = AddressHandlerFactory(AppConfigProvider.udnApiKey),
                 priceManager = App.priceManager
             ) as T
         }

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.address
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.Address
 import io.horizontalsystems.core.entities.BlockchainType
@@ -14,7 +15,7 @@ object AddressInputModule {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val ensHandler = AddressHandlerEns(tokenQuery.blockchainType, EnsResolverHolder.resolver)
-            val udnHandler = AddressHandlerUdn(tokenQuery, coinCode, App.appConfigProvider.udnApiKey)
+            val udnHandler = AddressHandlerUdn(tokenQuery, coinCode, AppConfigProvider.udnApiKey)
             val addressParserChain = AddressParserChain(domainHandlers = listOf(ensHandler, udnHandler))
 
             when (tokenQuery.blockchainType) {

@@ -15,8 +15,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
-    BaseSolanaAdapter(kitWrapper, decimal),
-    ISendSolanaAdapter {
+    BaseSolanaAdapter(kitWrapper, decimal) {
 
     // IAdapter
 

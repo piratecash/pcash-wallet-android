@@ -1,7 +1,7 @@
 package cash.p.terminal.core.managers
 
 import com.google.gson.*
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Guide
 import cash.p.terminal.entities.GuideCategoryMultiLang
 import io.reactivex.Single
@@ -9,11 +9,10 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.lang.reflect.Type
 import java.net.URL
-import java.util.*
 
 object GuidesManager {
 
-    private val guidesUrl = App.appConfigProvider.guidesUrl
+    private val guidesUrl = AppConfigProvider.guidesUrl
 
     private val gson = GsonBuilder()
             .setDateFormat("yyyy-MM-dd")

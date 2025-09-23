@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.Eip20Adapter
+import cash.p.terminal.core.adapters.Trc20Adapter
 import cash.p.terminal.core.ethereum.CautionViewItem
+import cash.p.terminal.core.isEvm
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.eip20approve.AllowanceMode.OnlyRequired
@@ -19,6 +21,7 @@ import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.ethereumkit.models.Address
 import kotlinx.coroutines.Dispatchers
@@ -89,11 +92,17 @@ internal class Eip20ApproveViewModel(
     }
 
     fun freeze() {
-        val eip20Adapter =
-            walletManager.activeWallets.firstOrNull { it.token == token }?.let { wallet ->
-                adapterManager.getAdapterForWalletOld(wallet) as? Eip20Adapter
+        viewModelScope.launch {
+            if (token.blockchainType.isEvm) {
+                freezeEvm()
+            } else if (token.blockchainType == BlockchainType.Tron) {
+                freezeTron()
             }
+        }
+    }
 
+    private suspend fun freezeEvm() {
+        val eip20Adapter = adapterManager.getAdapterForToken<Eip20Adapter>(token)
         checkNotNull(eip20Adapter)
 
         val transactionData = when (allowanceMode) {
@@ -105,14 +114,23 @@ internal class Eip20ApproveViewModel(
             Unlimited -> eip20Adapter.buildApproveUnlimitedTransactionData(Address(spenderAddress))
         }
 
-        viewModelScope.launch {
-            sendTransactionService.setSendTransactionData(
-                SendTransactionData.Evm(
-                    transactionData,
-                    null
-                )
+        sendTransactionService.setSendTransactionData(SendTransactionData.Evm(transactionData, null))
+    }
+
+    private suspend fun freezeTron() {
+        val trc20Adapter = adapterManager.getAdapterForToken<Trc20Adapter>(token)
+        checkNotNull(trc20Adapter)
+
+        val triggerSmartContract = when (allowanceMode) {
+            OnlyRequired -> trc20Adapter.approveTrc20TriggerSmartContract(
+                spenderAddress,
+                requiredAllowance
             )
+
+            Unlimited -> trc20Adapter.approveTrc20TriggerSmartContractUnlim(spenderAddress)
         }
+
+        sendTransactionService.setSendTransactionData(SendTransactionData.Tron.WithContract(triggerSmartContract))
     }
 
     suspend fun approve() = withContext(Dispatchers.Default) {

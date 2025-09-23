@@ -9,7 +9,7 @@ import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Faq
 import cash.p.terminal.entities.FaqMap
 import cash.p.terminal.modules.markdown.MarkdownFragment
@@ -23,7 +23,7 @@ import java.net.URL
 
 object FaqManager {
 
-    private val faqListUrl = App.appConfigProvider.faqUrl
+    private val faqListUrl = AppConfigProvider.faqUrl
 
     const val faqPathMigrationRequired = "management/migration_required.md"
     const val faqPathMigrationRecommended = "management/migration_recommended.md"

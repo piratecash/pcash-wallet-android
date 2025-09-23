@@ -6,7 +6,6 @@ import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
-import cash.p.terminal.entities.transactionrecords.evm.TransferEvent
 import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecord
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -108,12 +107,6 @@ class SolanaTransactionConverter(
                     from = transfer.address,
                     to = transfer.addressForIncomingAddress,
                     mainValue = transfer.value,
-                    spam = spamManager.isSpam(
-                        incomingEvents = incomingSolanaTransfers.map {
-                            TransferEvent(it.address, it.addressForIncomingAddress, it.value)
-                        }, outgoingEvents = outgoingSolanaTransfers.map {
-                            TransferEvent(it.address, null, it.value)
-                        }),
                     transactionRecordType = TransactionRecordType.SOLANA_INCOMING
                 )
             }
@@ -137,12 +130,6 @@ class SolanaTransactionConverter(
                 source = source,
                 incomingSolanaTransfers = incomingSolanaTransfers,
                 outgoingSolanaTransfers = outgoingSolanaTransfers,
-                spam = spamManager.isSpam(
-                    incomingEvents = incomingSolanaTransfers.map {
-                        TransferEvent(it.address, it.addressForIncomingAddress, it.value)
-                    }, outgoingEvents = outgoingSolanaTransfers.map {
-                        TransferEvent(it.address, null,it.value)
-                    }),
                 transactionRecordType = TransactionRecordType.SOLANA_UNKNOWN
             )
         }

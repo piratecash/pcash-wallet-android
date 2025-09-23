@@ -21,9 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.releasenotes.ReleaseNotesScreen
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
@@ -216,7 +216,7 @@ private fun SettingSections(
                 R.string.Settings_Telegram,
                 R.drawable.ic_telegram_filled_24,
                 onClick = {
-                    LinkHelper.openLinkInAppBrowser(context, App.appConfigProvider.appTelegramLink)
+                    LinkHelper.openLinkInAppBrowser(context, AppConfigProvider.appTelegramLink)
                 }
             )
         }, {
@@ -224,7 +224,7 @@ private fun SettingSections(
                 R.string.Settings_Twitter,
                 R.drawable.ic_twitter_filled_24,
                 onClick = {
-                    LinkHelper.openLinkInAppBrowser(context, App.appConfigProvider.appTwitterLink)
+                    LinkHelper.openLinkInAppBrowser(context, AppConfigProvider.appTwitterLink)
                 }
             )
         })

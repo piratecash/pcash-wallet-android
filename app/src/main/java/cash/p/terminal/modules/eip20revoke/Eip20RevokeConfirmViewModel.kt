@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.Eip20Adapter
+import cash.p.terminal.core.adapters.Trc20Adapter
 import cash.p.terminal.core.ethereum.CautionViewItem
+import cash.p.terminal.core.isEvm
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.multiswap.FiatService
@@ -17,6 +19,7 @@ import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.ethereumkit.models.Address
 import kotlinx.coroutines.Dispatchers
@@ -79,16 +82,36 @@ internal class Eip20RevokeConfirmViewModel(
 
         sendTransactionService.start(viewModelScope)
 
+        when {
+            token.blockchainType.isEvm -> prepareEvmRevokeTransaction()
+            token.blockchainType == BlockchainType.Tron -> prepareTronRevokeTransaction()
+            else -> throw IllegalArgumentException("Unsupported blockchain type for EIP-20 revoke")
+        }
+    }
+
+    private fun prepareEvmRevokeTransaction() {
         val eip20Adapter =
             walletManager.activeWallets.firstOrNull { it.token == token }?.let { wallet ->
-                adapterManager.getAdapterForWalletOld(wallet) as? Eip20Adapter
-            }
-
-        checkNotNull(eip20Adapter)
-
-        val transactionData = eip20Adapter.buildRevokeTransactionData(Address(spenderAddress))
+                adapterManager.getAdapterForWallet<Eip20Adapter>(wallet)
+            } ?: throw IllegalStateException("Eip20Adapter not found for token")
         viewModelScope.launch {
-            sendTransactionService.setSendTransactionData(SendTransactionData.Evm(transactionData, null))
+            val transactionData =
+                eip20Adapter.buildRevokeTransactionData(Address(spenderAddress))
+            sendTransactionService.setSendTransactionData(
+                SendTransactionData.Evm(transactionData, null)
+            )
+        }
+    }
+
+    private fun prepareTronRevokeTransaction() {
+        val trc20Adapter = adapterManager.getAdapterForToken<Trc20Adapter>(token)
+            ?: throw IllegalStateException("Trc20Adapter not found for token")
+        viewModelScope.launch {
+            val triggerSmartContract =
+                trc20Adapter.approveTrc20TriggerSmartContract(spenderAddress, BigDecimal.ZERO)
+            sendTransactionService.setSendTransactionData(
+                SendTransactionData.Tron.WithContract(triggerSmartContract)
+            )
         }
     }
 

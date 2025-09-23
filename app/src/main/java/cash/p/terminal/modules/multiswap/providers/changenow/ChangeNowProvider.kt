@@ -4,6 +4,8 @@ import androidx.collection.LruCache
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.extractBigDecimal
+import cash.p.terminal.core.isEvm
+import cash.p.terminal.core.isUtxoBased
 import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
 import cash.p.terminal.entities.ChangeNowTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
@@ -17,7 +19,6 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.ui.DataFieldRecipientExtended
-import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.network.changenow.data.entity.BackendChangeNowResponseError
 import cash.p.terminal.network.changenow.data.entity.request.NewTransactionRequest
 import cash.p.terminal.network.changenow.domain.entity.ChangeNowCurrency
@@ -33,6 +34,7 @@ import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
 import cash.p.terminal.wallet.entities.TokenType.AddressSpecTyped
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
+import io.horizontalsystems.bitcoincore.transactions.scripts.ScriptType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.models.Address
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -55,7 +57,6 @@ class ChangeNowProvider(
 ) : IMultiSwapProvider {
     override val id = "changenow"
     override val title = "ChangeNow"
-    override val url = ""
     override val icon = R.drawable.ic_change_now
     override val priority = 0
 
@@ -302,16 +303,16 @@ class ChangeNowProvider(
                         amountIn = amountIn,
                         amountOut = BigDecimal.ZERO,
                         amountOutMin = amount,
-                        sendTransactionData = SendTransactionData.Common(
+                        // Placeholder transaction data because out of range error
+                        sendTransactionData = SendTransactionData.Btc(
                             amount = amountIn,
                             address = "",
-                            token = tokenIn,
-                            memo = null,
-                            dustThreshold = null,
                             changeToFirstInput = false,
                             utxoFilters = UtxoFilters(),
-                            recommendedGasRate = null,
-                            feesMap = null,
+                            memo = "",
+                            recommendedGasRate = 1,
+                            minimumSendAmount = null,
+                            feesMap = emptyMap()
                         ),
                         priceImpact = null,
                         fields = emptyList()
@@ -369,50 +370,25 @@ class ChangeNowProvider(
         amountIn: BigDecimal,
         transaction: NewTransactionResponse
     ): SendTransactionData {
-        return when (tokenIn.blockchainType) {
-            BlockchainType.Avalanche,
-            BlockchainType.BinanceSmartChain,
-            BlockchainType.Ethereum,
-            BlockchainType.ArbitrumOne,
-            BlockchainType.Base,
-            BlockchainType.Fantom,
-            BlockchainType.Gnosis,
-            BlockchainType.Optimism,
-            BlockchainType.Polygon,
-            BlockchainType.ZkSync -> {
+        return when {
+            tokenIn.blockchainType.isEvm -> {
                 val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
-                val adapter = adapterManager.getAdapterForToken<ISendEthereumAdapter>(tokenIn) ?: throw IllegalStateException("Ethereum adapter not found")
+                val adapter = adapterManager.getAdapterForToken<ISendEthereumAdapter>(tokenIn)
+                    ?: throw IllegalStateException("Ethereum adapter not found")
 
-                val transactionData = adapter.getTransactionData(amountIn, Address(transaction.payinAddress))
+                val transactionData =
+                    adapter.getTransactionData(amountIn, Address(transaction.payinAddress))
                 SendTransactionData.Evm(transactionData, null)
             }
 
-            BlockchainType.BitcoinCash,
-            BlockchainType.Bitcoin,
-            BlockchainType.Litecoin,
-            BlockchainType.Dash,
-            BlockchainType.Dogecoin,
-            BlockchainType.ECash,
-            BlockchainType.PirateCash,
-            BlockchainType.Zcash,
-            BlockchainType.Solana,
-            BlockchainType.Ton,
-            BlockchainType.Tron,
-            BlockchainType.Monero,
-            BlockchainType.Cosanta -> {
-                SendTransactionData.Common(
+            tokenIn.blockchainType == BlockchainType.Tron -> {
+                SendTransactionData.Tron.Regular(
                     amount = amountIn,
-                    address = transaction.payinAddress,
-                    token = tokenIn,
-                    memo = null,
-                    dustThreshold = null,
-                    changeToFirstInput = false,
-                    utxoFilters = UtxoFilters(),
-                    recommendedGasRate = null,
-                    feesMap = null,
+                    address = transaction.payinAddress
                 )
             }
-            BlockchainType.Stellar -> {
+
+            tokenIn.blockchainType == BlockchainType.Stellar -> {
                 SendTransactionData.Stellar.Regular(
                     amount = amountIn,
                     address = transaction.payinAddress,
@@ -420,33 +396,53 @@ class ChangeNowProvider(
                 )
             }
 
-            is BlockchainType.Unsupported -> {
-                SendTransactionData.Common(
+            tokenIn.blockchainType == BlockchainType.Solana -> {
+                SendTransactionData.Solana.Regular(
                     amount = amountIn,
-                    address = transaction.payinAddress,
-                    token = tokenIn,
-                    memo = null,
-                    dustThreshold = null,
-                    changeToFirstInput = false,
-                    utxoFilters = UtxoFilters(),
-                    recommendedGasRate = null,
-                    feesMap = null,
+                    address = transaction.payinAddress
                 )
             }
+
+            tokenIn.blockchainType.isUtxoBased -> {
+                SendTransactionData.Btc(
+                    address = transaction.payinAddress,
+                    memo = transaction.mandatoryMemo,
+                    amount = amountIn,
+                    recommendedGasRate = 1,
+                    minimumSendAmount = null,
+                    changeToFirstInput = true,
+                    utxoFilters = UtxoFilters(
+                        scriptTypes = listOf(
+                            ScriptType.P2PKH,
+                            ScriptType.P2WPKHSH,
+                            ScriptType.P2WPKH
+                        ),
+                        maxOutputsCountForInputs = 10
+                    ),
+                    feesMap = emptyMap()
+                )
+            }
+
+            tokenIn.blockchainType == BlockchainType.Ton ->
+                SendTransactionData.Ton(
+                    amount = amountIn,
+                    address = transaction.payinAddress
+                )
+
+            tokenIn.blockchainType == BlockchainType.Monero ->
+                SendTransactionData.Monero(
+                    amount = amountIn,
+                    address = transaction.payinAddress
+                )
+
+            else -> SendTransactionData.Unsupported
         }
     }
 
     fun onTransactionCompleted(result: SendTransactionResult) {
         changeNowTransaction?.let {
-            val recordUid = if (result is SendTransactionResult.Common &&
-                result.result is SendResult.Sent
-            ) {
-                result.result.recordUid
-            } else {
-                null
-            }
             changeNowTransaction = it.copy(
-                outgoingRecordUid = recordUid
+                outgoingRecordUid = result.getRecordUid()
             ).also { transactionWithRecordUid ->
                 changeNowTransactionsStorage.save(transactionWithRecordUid)
             }

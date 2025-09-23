@@ -15,7 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -37,7 +37,7 @@ class SubscriptionInfoFragment : BaseComposeFragment() {
 
         SubscriptionInfoScreen(
             onClickGetPremium = {
-                uriHandler.openUri(App.appConfigProvider.analyticsLink)
+                uriHandler.openUri(AppConfigProvider.analyticsLink)
             },
             onClickHavePremium = {
                 navController.popBackStack()

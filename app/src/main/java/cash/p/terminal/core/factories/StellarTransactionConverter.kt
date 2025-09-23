@@ -1,6 +1,7 @@
 package cash.p.terminal.core.factories
 
 import cash.p.terminal.core.ICoinManager
+import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.tokenIconPlaceholder
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
@@ -115,7 +116,10 @@ class StellarTransactionConverter(
             )
         }
 
-        return StellarTransactionRecord(baseToken, source, operation, type)
+        val eventsForPhishingCheck = StellarTransactionRecord.eventsForPhishingCheck(type)
+        val spam = SpamManager.isSpam(eventsForPhishingCheck)
+
+        return StellarTransactionRecord(baseToken, source, operation, type, spam)
     }
 
     private fun getToken(asset: StellarAsset): Token? {

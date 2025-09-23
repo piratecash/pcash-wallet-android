@@ -16,22 +16,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead2_leah
-import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.title
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.imageUrl
 
 class DonateAddressesFragment : BaseComposeFragment() {
@@ -67,7 +67,7 @@ fun DonateScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 VSpacer(12.dp)
-                App.appConfigProvider.donateAddresses.forEach { (blockchainType, address) ->
+                AppConfigProvider.donateAddresses.forEach { (blockchainType, address) ->
                     DonateAddress(
                         coinImageUrl = blockchainType.imageUrl,
                         coinName = blockchainType.title,

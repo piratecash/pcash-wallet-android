@@ -3,6 +3,7 @@ package cash.p.terminal.core.adapters
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.managers.EvmKitWrapper
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.entities.LastBlockInfo
@@ -15,12 +16,15 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.core.hexStringToByteArray
+import io.horizontalsystems.ethereumkit.core.hexStringToByteArrayOrNull
 import io.horizontalsystems.ethereumkit.models.TransactionTag
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.rx2.await
 
 internal class EvmTransactionsAdapter(
+    val evmKitWrapper: EvmKitWrapper,
     private val evmTransactionRepository: EvmTransactionRepository,
     baseToken: Token,
     coinManager: ICoinManager,
@@ -29,6 +33,7 @@ internal class EvmTransactionsAdapter(
     evmLabelManager: EvmLabelManager
 ) : ITransactionsAdapter {
 
+    private val evmKit = evmKitWrapper.evmKit
     private val transactionConverter = EvmTransactionConverter(
         coinManager,
         evmTransactionRepository,
@@ -75,6 +80,13 @@ internal class EvmTransactionsAdapter(
         ).map { tx ->
             transactionConverter.transactionRecord(tx)
         }
+    }
+
+    override suspend fun getTransactionsAfter(fromTransactionId: String?): List<TransactionRecord> {
+        return evmKit.getFullTransactionsAfterSingle(fromTransactionId?.hexStringToByteArrayOrNull())
+            .map {
+                it.map { tx -> transactionConverter.transactionRecord(tx) }
+            }.await()
     }
 
     override fun getTransactionRecordsFlow(

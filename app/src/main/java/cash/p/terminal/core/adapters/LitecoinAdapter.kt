@@ -18,8 +18,6 @@ import io.horizontalsystems.litecoinkit.LitecoinKit
 import io.horizontalsystems.litecoinkit.LitecoinKit.NetworkType
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenType
-import java.math.BigDecimal
-import kotlin.math.pow
 
 class LitecoinAdapter(
     override val kit: LitecoinKit,
@@ -38,12 +36,6 @@ class LitecoinAdapter(
     init {
         kit.listener = this
     }
-
-    //
-    // BitcoinBaseAdapter
-    //
-
-    override val satoshisInBitcoin: BigDecimal = BigDecimal.valueOf(10.0.pow(decimal.toDouble()))
 
     //
     // LitecoinKit Listener

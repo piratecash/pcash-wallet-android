@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -43,7 +43,7 @@ internal class SendEvmViewModel(
     private val showAddressInput: Boolean,
     private val address: Address?
 ) : ViewModelUiState<SendUiState>() {
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val blockchainType = wallet.token.blockchainType
 
     private var amountState = amountService.stateFlow.value
@@ -114,8 +114,7 @@ internal class SendEvmViewModel(
     fun onClickSend() = viewModelScope.launch(Dispatchers.Default) {
         sendResult = try {
             val sendResult = sendTransactionService.sendTransaction()
-            sendResult.fullTransaction.transaction.hash
-            SendResult.Sent()
+            SendResult.Sent(sendResult.getRecordUid())
         } catch (e: Exception) {
             SendResult.Failed(createCaution(e))
         }

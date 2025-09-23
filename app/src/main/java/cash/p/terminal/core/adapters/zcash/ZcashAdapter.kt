@@ -7,6 +7,7 @@ import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.managers.RestoreSettings
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -540,7 +541,7 @@ class ZcashAdapter(
             }
             val calculatedFee = synchronizer.proposeTransfer(
                 account = zcashAccount!!,
-                recipient = App.appConfigProvider.donateAddresses[BlockchainType.Zcash]
+                recipient = AppConfigProvider.donateAddresses[BlockchainType.Zcash]
                     .orEmpty(),
                 amount = balance
             ).totalFeeRequired()

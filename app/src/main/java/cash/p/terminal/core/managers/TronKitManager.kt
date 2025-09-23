@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class TronKitManager(
-    private val appConfigProvider: AppConfigProvider,
     private val backgroundManager: BackgroundManager,
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage
 ) {
@@ -96,7 +95,7 @@ class TronKitManager(
             walletId = account.id,
             seed = seed,
             network = network,
-            tronGridApiKeys = appConfigProvider.trongridApiKeys
+            tronGridApiKeys = AppConfigProvider.trongridApiKeys
         )
 
         return TronKitWrapper(kit, signer)
@@ -113,7 +112,7 @@ class TronKitManager(
             address = Address.fromBase58(address),
             network = network,
             walletId = account.id,
-            tronGridApiKeys = appConfigProvider.trongridApiKeys
+            tronGridApiKeys = AppConfigProvider.trongridApiKeys
         )
 
         return TronKitWrapper(kit, null)
@@ -129,7 +128,6 @@ class TronKitManager(
         val addressAndPublicKey = TronAddressParser.parseXpubToTronAddress(hardwarePublicKey.key.value)
         val signer = HardwareWalletTronSigner(
             hardwarePublicKey = hardwarePublicKey,
-            cardId = (account.type as AccountType.HardwareCard).cardId,
             expectedPublicKeyBytes = addressAndPublicKey.publicKey
         )
 
@@ -138,7 +136,7 @@ class TronKitManager(
             address = addressAndPublicKey.address,
             network = network,
             walletId = account.id,
-            tronGridApiKeys = appConfigProvider.trongridApiKeys
+            tronGridApiKeys = AppConfigProvider.trongridApiKeys
         )
 
         return TronKitWrapper(kit, signer)

@@ -17,7 +17,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.tokenselect.TokenSelectScreen
@@ -42,7 +42,7 @@ class DonateTokenSelectFragment : BaseComposeFragment() {
             title = stringResource(R.string.Settings_DonateWith),
             onClickItem = { viewItem ->
                 val donateAddress: String? =
-                    App.appConfigProvider.donateAddresses[viewItem.wallet.token.blockchainType]
+                    AppConfigProvider.donateAddresses[viewItem.wallet.token.blockchainType]
                 donateAddress?.let {
                     val sendTitle = Translator.getString(
                         R.string.Settings_DonateToken,

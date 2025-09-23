@@ -500,7 +500,7 @@ class TransactionInfoViewItemFactory(
                             TransactionViewItemFactoryHelper.getSendSectionItems(
                                 value = transaction.mainValue!!,
                                 toAddress = transaction.to,
-                                coinPrice = rates[transaction.mainValue!!.coinUid],
+                                coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 sentToSelf = transaction.sentToSelf,
                                 nftMetadata = nftMetadata,

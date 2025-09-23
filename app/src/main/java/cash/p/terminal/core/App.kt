@@ -145,7 +145,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val btcBlockchainManager: BtcBlockchainManager by inject(BtcBlockchainManager::class.java)
         val wordsManager: WordsManager by inject(WordsManager::class.java)
         lateinit var networkManager: INetworkManager
-        val appConfigProvider: AppConfigProvider by inject(AppConfigProvider::class.java)
         val adapterManager: IAdapterManager by inject(AdapterManager::class.java)
 
         val transactionAdapterManager: TransactionAdapterManager by inject(TransactionAdapterManager::class.java)
@@ -245,7 +244,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
         priceManager = PriceManager(localStorage)
 
-        feeRateProvider = FeeRateProvider(appConfigProvider)
+        feeRateProvider = FeeRateProvider()
 
         backgroundManager = get()
 
@@ -253,7 +252,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
         val proFeaturesStorage = ProFeaturesStorage(appDatabase)
         proFeatureAuthorizationManager =
-            ProFeaturesAuthorizationManager(proFeaturesStorage, accountManager, appConfigProvider)
+            ProFeaturesAuthorizationManager(proFeaturesStorage, accountManager)
 
         networkManager = NetworkManager()
         backupManager = BackupManager(accountManager)
@@ -329,11 +328,11 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         setAppTheme()
 
         val nftStorage = NftStorage(appDatabase.nftDao(), marketKit)
-        nftMetadataManager = NftMetadataManager(marketKit, appConfigProvider, nftStorage)
+        nftMetadataManager = NftMetadataManager(marketKit, nftStorage)
         nftAdapterManager = NftAdapterManager(walletManager, evmBlockchainManager)
         nftMetadataSyncer = NftMetadataSyncer(nftAdapterManager, nftMetadataManager, nftStorage)
 
-        initializeWalletConnectV2(appConfigProvider)
+        initializeWalletConnectV2()
 
         wcSessionManager = WCSessionManager(accountManager, WCSessionStorage(appDatabase))
 
@@ -372,12 +371,13 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         )
 
         spamManager = SpamManager(localStorage)
+        spamManager.set(transactionAdapterManager)
 
         tonConnectManager = TonConnectManager(
             context = this,
             adapterFactory = adapterFactory,
             appName = "P.cash Wallet",
-            appVersion = appConfigProvider.appVersion
+            appVersion = AppConfigProvider.appVersion
         )
         tonConnectManager.start()
 
@@ -428,15 +428,15 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             .build()
     }
 
-    private fun initializeWalletConnectV2(appConfig: AppConfigProvider) {
-        val projectId = appConfig.walletConnectProjectId
-        val serverUrl = "wss://${appConfig.walletConnectUrl}?projectId=$projectId"
+    private fun initializeWalletConnectV2() {
+        val projectId = AppConfigProvider.walletConnectProjectId
+        val serverUrl = "wss://${AppConfigProvider.walletConnectUrl}?projectId=$projectId"
         val connectionType = ConnectionType.AUTOMATIC
         val appMetaData = Core.Model.AppMetaData(
-            name = appConfig.walletConnectAppMetaDataName,
+            name = AppConfigProvider.walletConnectAppMetaDataName,
             description = "",
-            url = appConfig.walletConnectAppMetaDataUrl,
-            icons = listOf(appConfig.walletConnectAppMetaDataIcon),
+            url = AppConfigProvider.walletConnectAppMetaDataUrl,
+            icons = listOf(AppConfigProvider.walletConnectAppMetaDataIcon),
             redirect = null,
         )
 

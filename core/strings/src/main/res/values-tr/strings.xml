@@ -525,6 +525,8 @@
     <string name="Swap_Confirm_Title">Onayla</string>
     <string name="SwapConfirm_QuoteExpired">Alıntı süresi doldu</string>
     <string name="SwapConfirm_FetchingFinalQuote">Son teklifi alınıyor</string>
+    <string name="SwapWarning_SlippageNotAvailable_Title">Kayma Kontrolü Yok</string>
+    <string name="SwapWarning_SlippageNotAvailable_Description">Zincirler arası işlemler üçüncü taraf likiditesine ve gecikmelere bağlıdır, bu da nihai tutarı etkileyebilir.</string>
     <string name="unsupported_refund_address">Unsupported refund address</string>
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>

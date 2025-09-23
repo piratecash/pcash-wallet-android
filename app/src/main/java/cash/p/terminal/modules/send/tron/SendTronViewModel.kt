@@ -13,6 +13,7 @@ import cash.p.terminal.core.LocalizedException
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.amount.SendAmountService
@@ -52,7 +53,7 @@ class SendTronViewModel(
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value

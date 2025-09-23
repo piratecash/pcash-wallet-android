@@ -22,7 +22,6 @@ import java.security.SignatureException
 
 class HardwareWalletTronSigner(
     private val hardwarePublicKey: HardwarePublicKey,
-    private val cardId: String,
     private val expectedPublicKeyBytes: ByteArray
 ) : Signer(BigInteger.ZERO) {
 

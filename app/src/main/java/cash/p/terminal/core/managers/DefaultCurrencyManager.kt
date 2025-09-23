@@ -13,8 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class DefaultCurrencyManager(
-    private val localStorage: ILocalStorage,
-    private val appConfigProvider: AppConfigProvider
+    private val localStorage: ILocalStorage
 ) : CurrencyManager {
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -34,20 +33,20 @@ class DefaultCurrencyManager(
         }
 
     private val defaultCurrency: Currency
-        get() = appConfigProvider.currencies.first { it.code == "USD" }
+        get() = AppConfigProvider.currencies.first { it.code == "USD" }
 
     private fun getInitialCurrency(): Currency {
         return localStorage.baseCurrencyCode?.let { code ->
-            appConfigProvider.currencies.find { it.code == code }
+            AppConfigProvider.currencies.find { it.code == code }
         } ?: defaultCurrency
     }
 
-    override val currencies: List<Currency> = appConfigProvider.currencies
+    override val currencies: List<Currency> = AppConfigProvider.currencies
 
     override val baseCurrencyUpdatedSignal = PublishSubject.create<Unit>()
 
     override fun setBaseCurrencyCode(baseCurrencyCode: String) {
-        val newCurrency = appConfigProvider.currencies.find { it.code == baseCurrencyCode }
+        val newCurrency = AppConfigProvider.currencies.find { it.code == baseCurrencyCode }
         baseCurrency = newCurrency ?: defaultCurrency
     }
 }

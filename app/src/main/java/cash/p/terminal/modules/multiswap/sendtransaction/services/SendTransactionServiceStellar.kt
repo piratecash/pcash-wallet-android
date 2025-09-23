@@ -73,7 +73,7 @@ class SendTransactionServiceStellar(account: Account, token: Token) :
     @Composable
     override fun GetSettingsContent(navController: NavController) = Unit
 
-    override suspend fun sendTransaction(): SendTransactionResult {
+    override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         val response = if(transactionEnvelope != null) {
             val transactionEnvelope = requireNotNull(transactionEnvelope)
             stellarKit.sendTransaction(transactionEnvelope)

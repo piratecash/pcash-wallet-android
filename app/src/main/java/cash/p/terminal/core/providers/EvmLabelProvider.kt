@@ -1,12 +1,11 @@
 package cash.p.terminal.core.providers
 
 import com.google.gson.annotations.SerializedName
-import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.APIClient
 import retrofit2.http.GET
 
 class EvmLabelProvider {
-    private val apiURL = App.appConfigProvider.marketApiBaseUrl + "/v1/"
+    private val apiURL = AppConfigProvider.marketApiBaseUrl + "/v1/"
     private val apiService: HsLabelApi by lazy {
         APIClient.retrofit(apiURL, 60).create(HsLabelApi::class.java)
     }

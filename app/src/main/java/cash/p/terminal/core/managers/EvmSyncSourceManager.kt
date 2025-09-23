@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import java.net.URI
 
 class EvmSyncSourceManager(
-    private val appConfigProvider: AppConfigProvider,
     private val blockchainSettingsStorage: BlockchainSettingsStorage,
     private val evmSyncSourceStorage: EvmSyncSourceStorage,
 ) {
@@ -30,8 +29,8 @@ class EvmSyncSourceManager(
 
     private fun defaultTransactionSource(blockchainType: BlockchainType): TransactionSource {
         return when (blockchainType) {
-            BlockchainType.Ethereum -> TransactionSource.etherscanApi(appConfigProvider.etherscanApiKey)
-            BlockchainType.BinanceSmartChain -> TransactionSource.etherscanApi(appConfigProvider.bscscanApiKey)
+            BlockchainType.Ethereum -> TransactionSource.etherscanApi(AppConfigProvider.etherscanApiKey)
+            BlockchainType.BinanceSmartChain -> TransactionSource.etherscanApi(AppConfigProvider.bscscanApiKey)
             BlockchainType.Polygon,
             BlockchainType.Avalanche,
             BlockchainType.Optimism,
@@ -39,7 +38,7 @@ class EvmSyncSourceManager(
             BlockchainType.Gnosis,
             BlockchainType.Fantom,
             BlockchainType.Base,
-            BlockchainType.ZkSync -> TransactionSource.etherscanApi(appConfigProvider.otherScanApiKey)
+            BlockchainType.ZkSync -> TransactionSource.etherscanApi(AppConfigProvider.otherScanApiKey)
             else -> throw Exception("Non-supported EVM blockchain")
         }
     }
@@ -53,7 +52,7 @@ class EvmSyncSourceManager(
                 evmSyncSource(
                     blockchainType,
                     "BlocksDecoded",
-                    RpcSource.Http(listOf(URI(appConfigProvider.blocksDecodedEthereumRpc)), null),
+                    RpcSource.Http(listOf(URI(AppConfigProvider.blocksDecodedEthereumRpc)), null),
                     defaultTransactionSource(blockchainType)
                 ),
                 evmSyncSource(

@@ -5,12 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -46,7 +46,7 @@ class SendTonViewModel(
 ): ViewModelUiState<SendTonUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
 

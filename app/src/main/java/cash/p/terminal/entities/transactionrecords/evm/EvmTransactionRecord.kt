@@ -1,7 +1,6 @@
 package cash.p.terminal.entities.transactionrecords.evm
 
 import cash.p.terminal.core.adapters.BaseEvmAdapter
-import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
@@ -11,7 +10,6 @@ import io.horizontalsystems.ethereumkit.models.Transaction
 import java.math.BigDecimal
 
 class EvmTransactionRecord(
-    spamManager: SpamManager? = null,
     from: String? = null,
     to: String? = null,
     sentToSelf: Boolean = false,

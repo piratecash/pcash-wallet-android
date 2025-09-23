@@ -520,6 +520,8 @@
     <string name="Swap_Confirm_Title">Confirmar</string>
     <string name="SwapConfirm_QuoteExpired">Cotización expirada</string>
     <string name="SwapConfirm_FetchingFinalQuote">Recuperando la comilla final</string>
+    <string name="SwapWarning_SlippageNotAvailable_Title">Sin Control de Deslizamiento</string>
+    <string name="SwapWarning_SlippageNotAvailable_Description">Las operaciones entre cadenas dependen de la liquidez de terceros y los retrasos, lo que puede afectar el monto final.</string>
     <string name="unsupported_refund_address">Unsupported refund address</string>
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>

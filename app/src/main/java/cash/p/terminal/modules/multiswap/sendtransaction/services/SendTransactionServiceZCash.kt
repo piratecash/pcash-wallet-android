@@ -10,6 +10,7 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.amount.AmountValidator
@@ -34,7 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ZCashSendTransactionService(
+class SendTransactionServiceZCash(
     token: Token
 ) : ISendTransactionService<ISendZcashAdapter>(token) {
 
@@ -49,10 +50,11 @@ class ZCashSendTransactionService(
 
     val blockchainType = wallet.token.blockchainType
     val coinMaxAllowedDecimals = wallet.token.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
+    private var memo: String = ""
 
     var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
@@ -107,14 +109,15 @@ class ZCashSendTransactionService(
     )
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
-        check(data is SendTransactionData.Common)
+        check(data is SendTransactionData.Btc)
+        memo = data.memo
 
         amountService.setAmount(data.amount)
         coroutineScope.launch {
             addressService.setAddress(
                 Address(
                     hex = data.address,
-                    blockchainType = data.token.blockchainType
+                    blockchainType = blockchainType
                 )
             )
         }
@@ -136,16 +139,16 @@ class ZCashSendTransactionService(
         emitState()
     }
 
-    override suspend fun sendTransaction(): SendTransactionResult {
+    override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
             val txId = adapter.send(
                 amount = amountState.amount!!,
                 address = addressState.address!!.hex,
-                memo = "",
+                memo = memo,
                 logger = logger
             )
 
-            return SendTransactionResult.Common(SendResult.Sent(txId.byteArray.toHexReversed()))
+            return SendTransactionResult.ZCash(SendResult.Sent(txId.byteArray.toHexReversed()))
         } catch (e: Throwable) {
             cautions = listOf(createCaution(e))
             emitState()

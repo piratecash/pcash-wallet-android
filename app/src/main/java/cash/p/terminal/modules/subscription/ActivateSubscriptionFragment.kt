@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -98,7 +98,7 @@ fun ActivateSubscriptionScreen(navController: NavController) {
                                 .fillMaxWidth(),
                             title = stringResource(R.string.SubscriptionInfo_GetPremium),
                             onClick = {
-                                uriHandler.openUri(App.appConfigProvider.analyticsLink)
+                                uriHandler.openUri(AppConfigProvider.analyticsLink)
                             }
                         )
                     }

@@ -1,8 +1,8 @@
 package cash.p.terminal.modules.backuplocal
 
-import cash.p.terminal.core.App
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.RestoreSettingType
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.wallet.AccountType
 import com.google.gson.annotations.SerializedName
@@ -175,6 +175,6 @@ object BackupLocalModule {
         n = 16384,
         p = 4,
         r = 8,
-        salt = App.appConfigProvider.accountsBackupFileSalt
+        salt = AppConfigProvider.accountsBackupFileSalt
     )
 }

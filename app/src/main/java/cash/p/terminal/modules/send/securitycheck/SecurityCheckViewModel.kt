@@ -8,6 +8,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.address.AddressCheckManager
 import cash.p.terminal.core.address.AddressCheckType
 import cash.p.terminal.core.factories.AddressValidatorFactory
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressHandlerEns
@@ -196,14 +197,13 @@ class SecurityCheckViewModel(
             val tokenQuery = TokenQuery(blockchainType, token.type)
             val ensHandler = AddressHandlerEns(blockchainType, EnsResolverHolder.resolver)
             val udnHandler =
-                AddressHandlerUdn(tokenQuery, coinCode, App.appConfigProvider.udnApiKey)
+                AddressHandlerUdn(tokenQuery, coinCode, AppConfigProvider.udnApiKey)
             val addressParserChain =
                 AddressParserChain(domainHandlers = listOf(ensHandler, udnHandler))
             val addressUriParser = AddressUriParser(token.blockchainType, token.type)
             val addressValidator = AddressValidatorFactory.get(token)
             val addressCheckManager = AddressCheckManager(
                 App.spamManager,
-                App.appConfigProvider,
                 App.evmBlockchainManager,
                 App.evmSyncSourceManager
             )

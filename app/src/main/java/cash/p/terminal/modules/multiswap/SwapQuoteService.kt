@@ -1,7 +1,9 @@
 package cash.p.terminal.modules.multiswap
 
 import android.util.Log
+import cash.p.terminal.modules.multiswap.providers.AllBridgeProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.modules.multiswap.providers.MayaProvider
 import cash.p.terminal.modules.multiswap.providers.OneInchProvider
 import cash.p.terminal.modules.multiswap.providers.PancakeSwapProvider
 import cash.p.terminal.modules.multiswap.providers.PancakeSwapV3Provider
@@ -43,7 +45,9 @@ class SwapQuoteService {
         UniswapProvider,
         UniswapV3Provider,
         changeNowProvider,
-        ThorChainProvider
+        ThorChainProvider,
+        MayaProvider,
+        AllBridgeProvider
     )
 
     private var amountIn: BigDecimal? = null

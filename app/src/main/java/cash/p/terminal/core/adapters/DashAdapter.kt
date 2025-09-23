@@ -25,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
 
 class DashAdapter(
     override val kit: DashKit,
@@ -51,13 +50,6 @@ class DashAdapter(
     init {
         kit.listener = this
     }
-
-    //
-    // BitcoinBaseAdapter
-    //
-
-    override val satoshisInBitcoin: BigDecimal =
-        BigDecimal.valueOf(Math.pow(10.0, decimal.toDouble()))
 
     //
     // DashKit Listener

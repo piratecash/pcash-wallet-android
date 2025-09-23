@@ -6,8 +6,9 @@ import cash.p.terminal.network.data.EncodedSecrets
 import io.horizontalsystems.core.entities.Currency
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.entities.BlockchainType
+import java.math.BigDecimal
 
-class AppConfigProvider {
+object AppConfigProvider {
 
     val appVersion by lazy { BuildConfig.VERSION_NAME }
     val appBuild by lazy { BuildConfig.VERSION_CODE }
@@ -27,13 +28,15 @@ class AppConfigProvider {
     val walletConnectAppMetaDataIcon by lazy { Translator.getString(R.string.walletConnectAppMetaDataIcon) }
     val accountsBackupFileSalt by lazy { Translator.getString(R.string.accountsBackupFileSalt) }
 
-    val spamCoinValueLimits: Map<String, Double> = mapOf(
-        "tether" to 0.01,
-        "usd-coin" to 0.01,
-        "dai" to 0.01,
-        "binance-usd" to 0.01,
-        "binance-peg-busd" to 0.01,
-        "stasis-eurs" to 0.01,
+    val spamCoinValueLimits: Map<String, BigDecimal> = mapOf(
+        "USDT" to BigDecimal("0.01"),
+        "USDC" to BigDecimal("0.01"),
+        "DAI" to BigDecimal("0.01"),
+        "BUSD" to BigDecimal("0.01"),
+        "EURS" to BigDecimal("0.01"),
+        "BSC-USD" to BigDecimal("0.01"),
+        "TRX" to BigDecimal("0.1"),
+        "XLM" to BigDecimal("0.01"),
     )
 
     val blocksDecodedEthereumRpc by lazy {
@@ -106,6 +109,10 @@ class AppConfigProvider {
 
     val hashDitApiKey by lazy {
         EncodedSecrets.HASH_DIT_API_KEY
+    }
+
+    val merkleIoKey by lazy {
+        EncodedSecrets.MERKLE_IO_KEY
     }
 
     val fiatDecimal: Int = 2

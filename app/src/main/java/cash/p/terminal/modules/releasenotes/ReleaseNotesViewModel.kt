@@ -25,14 +25,13 @@ class ReleaseNotesViewModel(
 ) : ViewModel() {
 
     private val connectivityManager: ConnectivityManager = App.connectivityManager
-    private val appConfigProvider: AppConfigProvider = App.appConfigProvider
     private val releaseNotesManager: ReleaseNotesManager = App.releaseNotesManager
 
     var uiState by mutableStateOf(
         ReleaseNotesUiState(
-            twitterUrl = appConfigProvider.appTwitterLink,
-            telegramUrl = appConfigProvider.appTelegramLink,
-            redditUrl = appConfigProvider.appRedditLink,
+            twitterUrl = AppConfigProvider.appTwitterLink,
+            telegramUrl = AppConfigProvider.appTelegramLink,
+            redditUrl = AppConfigProvider.appRedditLink,
             showChangelogAfterUpdate = localStorage.showChangelogAfterUpdate,
         )
     )

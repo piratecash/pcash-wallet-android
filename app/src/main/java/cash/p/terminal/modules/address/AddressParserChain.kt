@@ -1,6 +1,6 @@
 package cash.p.terminal.modules.address
 
-import cash.p.terminal.core.App
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -24,7 +24,7 @@ class AddressParserChain(
             val ensHandler =
                 AddressHandlerEns(tokenQuery.blockchainType, EnsResolverHolder.resolver)
             val udnHandler =
-                AddressHandlerUdn(tokenQuery, coinCode, App.appConfigProvider.udnApiKey)
+                AddressHandlerUdn(tokenQuery, coinCode, AppConfigProvider.udnApiKey)
             val addressParserChain =
                 AddressParserChain(domainHandlers = listOf(ensHandler, udnHandler))
 

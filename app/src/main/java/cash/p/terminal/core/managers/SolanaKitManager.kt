@@ -35,6 +35,12 @@ class SolanaKitManager(
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage
 ) {
 
+    private companion object {
+        // Temporary limits to avoid too many requests problem in solan sdk
+        const val limitFirstTimeTransactionCount: Int = 2
+        const val limitTimeTransactionCount: Int = 2
+    }
+
     private val coroutineScope =
         CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
             Log.d("SolanaKitManager", "Coroutine error", throwable)
@@ -109,7 +115,9 @@ class SolanaKitManager(
             application = App.instance,
             addressString = address,
             rpcSource = rpcSourceManager.rpcSource,
-            walletId = account.id
+            walletId = account.id,
+            limitFirstTimeTransactionCount = limitFirstTimeTransactionCount,
+            limitTimeTransactionCount = limitTimeTransactionCount
         )
 
         return SolanaKitWrapper(kit, signer)
@@ -125,7 +133,9 @@ class SolanaKitManager(
             application = App.instance,
             addressString = address,
             rpcSource = rpcSourceManager.rpcSource,
-            walletId = account.id
+            walletId = account.id,
+            limitFirstTimeTransactionCount = limitFirstTimeTransactionCount,
+            limitTimeTransactionCount = limitTimeTransactionCount
         )
 
         return SolanaKitWrapper(kit, null)
@@ -151,7 +161,9 @@ class SolanaKitManager(
             application = App.instance,
             addressString = Base58.encode(hardwarePublicKey.key.value.fromHex()),
             rpcSource = rpcSourceManager.rpcSource,
-            walletId = accountId
+            walletId = accountId,
+            limitFirstTimeTransactionCount = limitFirstTimeTransactionCount,
+            limitTimeTransactionCount = limitTimeTransactionCount
         )
 
         return SolanaKitWrapper(kit, signer)

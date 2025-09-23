@@ -8,6 +8,7 @@ import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.ethereumkit.core.hexStringToByteArrayOrNull
 import io.horizontalsystems.tronkit.TronKit
 import io.horizontalsystems.tronkit.hexStringToByteArray
 import io.horizontalsystems.tronkit.models.Address
@@ -52,12 +53,22 @@ class TronTransactionsAdapter(
         limit: Int,
         transactionType: FilterTransactionType,
         address: String?,
-    ): List<TransactionRecord> = tronKit.getFullTransactions(
+    ): List<TransactionRecord> = tronKit.getFullTransactionsBefore(
         getFilters(token, transactionType, address),
         from?.transactionHash?.hexStringToByteArray(),
         limit
     ).map {
         transactionConverter.transactionRecord(it)
+    }
+
+    override suspend fun getTransactionsAfter(fromTransactionId: String?): List<TransactionRecord> {
+        return tronKit.getFullTransactionsAfter(
+            listOf(),
+            fromTransactionId?.hexStringToByteArrayOrNull()
+        )
+            .map {
+                transactionConverter.transactionRecord(it)
+            }
     }
 
     override fun getTransactionRecordsFlow(

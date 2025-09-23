@@ -14,8 +14,6 @@ import io.horizontalsystems.bitcoincore.models.BlockInfo
 import io.horizontalsystems.bitcoincore.models.TransactionInfo
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
-import java.math.BigDecimal
-import kotlin.math.pow
 
 class DogecoinAdapter(
     override val kit: DogecoinKit,
@@ -38,8 +36,6 @@ class DogecoinAdapter(
     //
     // BitcoinBaseAdapter
     //
-
-    override val satoshisInBitcoin: BigDecimal = BigDecimal.valueOf(10.0.pow(decimal.toDouble()))
 
     //
     // DogecoinKit Listener

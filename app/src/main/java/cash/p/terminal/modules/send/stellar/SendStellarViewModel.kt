@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import cash.p.terminal.R
+import cash.p.terminal.core.providers.AppConfigProvider
 import org.koin.java.KoinJavaComponent.inject
 import java.net.UnknownHostException
 
@@ -49,7 +50,7 @@ class SendStellarViewModel(
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value

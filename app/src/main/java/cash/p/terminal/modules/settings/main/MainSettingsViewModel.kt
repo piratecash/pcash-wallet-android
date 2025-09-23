@@ -35,7 +35,6 @@ class MainSettingsViewModel(
     private val wcSessionManager: WCSessionManager,
     private val wcManager: WCManager,
     private val accountManager: IAccountManager,
-    private val appConfigProvider: AppConfigProvider,
     private val languageManager: LanguageManager,
     private val currencyManager: CurrencyManager,
 ) : ViewModelUiState<MainSettingUiState>() {
@@ -50,13 +49,13 @@ class MainSettingsViewModel(
         get() {
             var appVersion = systemInfoManager.appVersion
             if (cash.p.terminal.strings.helpers.Translator.getString(R.string.is_release) == "false") {
-                appVersion += " (${appConfigProvider.appBuild})"
+                appVersion += " (${AppConfigProvider.appBuild})"
             }
 
             return appVersion
         }
 
-    val companyWebPage = appConfigProvider.companyWebPageLink
+    val companyWebPage = AppConfigProvider.companyWebPageLink
 
     val walletConnectSupportState: WCManager.SupportState
         get() = wcManager.getWalletConnectSupportState()
@@ -67,7 +66,7 @@ class MainSettingsViewModel(
     private val baseCurrencyCode: String
         get() = currencyManager.baseCurrency.code
 
-    private val appWebPageLink = appConfigProvider.appWebPageLink
+    private val appWebPageLink = AppConfigProvider.appWebPageLink
     private val hasNonStandardAccount: Boolean
         get() = accountManager.hasNonStandardAccount
 

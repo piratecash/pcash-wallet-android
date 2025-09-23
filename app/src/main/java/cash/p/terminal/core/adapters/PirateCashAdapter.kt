@@ -15,7 +15,6 @@ import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.piratecashkit.PirateCashKit
 import io.horizontalsystems.piratecashkit.PirateCashKit.NetworkType
-import java.math.BigDecimal
 
 class PirateCashAdapter(
     override val kit: PirateCashKit,
@@ -43,9 +42,6 @@ class PirateCashAdapter(
     //
     // BitcoinBaseAdapter
     //
-
-    override val satoshisInBitcoin: BigDecimal =
-        BigDecimal.valueOf(Math.pow(10.0, decimal.toDouble()))
 
     //
     // io.horizontalsystems.piratecashkit.PirateCashKit Listener

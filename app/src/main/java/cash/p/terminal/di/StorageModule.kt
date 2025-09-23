@@ -8,7 +8,6 @@ import cash.p.terminal.core.managers.AccountCleaner
 import cash.p.terminal.core.managers.CoinManager
 import cash.p.terminal.core.managers.NumberFormatter
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
-import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.providers.EvmLabelProvider
 import cash.p.terminal.core.storage.AccountsStorage
 import cash.p.terminal.core.storage.AppDatabase
@@ -18,6 +17,7 @@ import cash.p.terminal.core.storage.EnabledWalletsStorage
 import cash.p.terminal.core.storage.EvmSyncSourceStorage
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.core.storage.RestoreSettingsStorage
+import cash.p.terminal.core.storage.SpamAddressStorage
 import cash.p.terminal.modules.balance.DefaultBalanceService
 import cash.p.terminal.modules.balance.DefaultBalanceXRateRepository
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -48,8 +48,8 @@ val storageModule = module {
     singleOf(::AccountCleaner) bind IAccountCleaner::class
     singleOf(::EnabledWalletsStorage) bind IEnabledWalletStorage::class
     singleOf(::HardwarePublicKeyStorage) bind IHardwarePublicKeyStorage::class
-    singleOf(::AppConfigProvider)
     singleOf(::BlockchainSettingsStorage)
+    singleOf(::SpamAddressStorage)
     factoryOf(::ChangeNowTransactionsStorage)
     singleOf(::EvmSyncSourceStorage)
     singleOf(::ContactsRepository)

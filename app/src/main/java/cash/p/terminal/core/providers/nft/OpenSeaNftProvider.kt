@@ -25,14 +25,13 @@ import java.util.Locale
 import java.util.TimeZone
 
 class OpenSeaNftProvider(
-    private val marketKit: MarketKitWrapper,
-    appConfigProvider: AppConfigProvider
+    private val marketKit: MarketKitWrapper
 ) : INftProvider {
 
     private val service: OpenSeaService = OpenSeaService(
-        appConfigProvider.marketApiBaseUrl,
-        appConfigProvider.marketApiKey,
-        appConfigProvider.openSeaApiKey
+        AppConfigProvider.marketApiBaseUrl,
+        AppConfigProvider.marketApiKey,
+        AppConfigProvider.openSeaApiKey
     )
     private val zeroAddress = "0x0000000000000000000000000000000000000000"
 

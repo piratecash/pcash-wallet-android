@@ -12,11 +12,10 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import io.horizontalsystems.core.ISystemInfoManager
 
 class SystemInfoManager(
-    appConfigProvider: AppConfigProvider,
     private val localStorage: ILocalStorage
 ) : ISystemInfoManager {
 
-    override val appVersion: String = appConfigProvider.appVersion
+    override val appVersion: String = AppConfigProvider.appVersion
 
     private val biometricManager by lazy { BiometricManager.from(App.instance) }
 

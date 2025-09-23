@@ -30,7 +30,7 @@ import java.util.UUID
 
 abstract class ISendTransactionService<T>(protected val token: Token) :
     ServiceState<SendTransactionServiceState>() {
-
+    open val mevProtectionAvailable: Boolean = false
     protected var extraFees = mapOf<FeeType, SendModule.AmountData>()
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     protected val wallet: Wallet by lazy { runBlocking { walletUseCase.createWalletIfNotExists(token)!! } }
@@ -57,7 +57,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     @Composable
     abstract fun GetSettingsContent(navController: NavController)
 
-    abstract suspend fun sendTransaction(): SendTransactionResult
+    abstract suspend fun sendTransaction(mevProtectionEnabled: Boolean = false): SendTransactionResult
     abstract val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
 
     private fun getRate(coin: Coin): CurrencyValue? {

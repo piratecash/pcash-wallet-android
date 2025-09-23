@@ -55,6 +55,7 @@ val Token.swappable: Boolean
         BlockchainType.ArbitrumOne,
         BlockchainType.Bitcoin,
         BlockchainType.BitcoinCash,
+        BlockchainType.Dash,
         BlockchainType.Litecoin -> true
 
         else -> false
@@ -265,6 +266,38 @@ val BlockchainType.isEvm: Boolean
         BlockchainType.Cosanta,
         BlockchainType.Dogecoin,
         BlockchainType.PirateCash
+            -> false
+    }
+
+val BlockchainType.isUtxoBased: Boolean
+    get() = when (this) {
+        BlockchainType.Bitcoin,
+        BlockchainType.BitcoinCash,
+        BlockchainType.Dash,
+        BlockchainType.ECash,
+        BlockchainType.Litecoin,
+        BlockchainType.Zcash,
+        BlockchainType.Dogecoin,
+        BlockchainType.PirateCash,
+        BlockchainType.Cosanta
+            -> true
+
+        BlockchainType.ArbitrumOne,
+        BlockchainType.Avalanche,
+        BlockchainType.Base,
+        BlockchainType.BinanceSmartChain,
+        BlockchainType.Ethereum,
+        BlockchainType.Fantom,
+        BlockchainType.Gnosis,
+        BlockchainType.Optimism,
+        BlockchainType.Polygon,
+        BlockchainType.ZkSync,
+        BlockchainType.Solana,
+        BlockchainType.Stellar,
+        BlockchainType.Ton,
+        BlockchainType.Tron,
+        is BlockchainType.Unsupported,
+        BlockchainType.Monero
             -> false
     }
 

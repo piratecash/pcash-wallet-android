@@ -12,6 +12,7 @@ import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.amount.AmountValidator
@@ -40,7 +41,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class SolanaSendTransactionService(
+class SendTransactionServiceSolana(
     token: Token
 ) : ISendTransactionService<ISendSolanaAdapter>(token) {
 
@@ -67,10 +68,13 @@ class SolanaSendTransactionService(
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = token.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
+
+    private var fee = SolanaKit.fee
+    private var rawTransaction: ByteArray? = null
 
     var coinRate by mutableStateOf(xRateService.getRate(token.coin.uid))
         private set
@@ -92,7 +96,12 @@ class SolanaSendTransactionService(
         val coinValue = CoinValue(token, SolanaKit.fee)
         val primaryAmountInfo = SendModule.AmountInfo.CoinValueInfo(coinValue)
         val secondaryAmountInfo = rate?.let {
-            SendModule.AmountInfo.CurrencyValueInfo(CurrencyValue(it.currency, it.value * SolanaKit.fee))
+            SendModule.AmountInfo.CurrencyValueInfo(
+                CurrencyValue(
+                    it.currency,
+                    it.value * SolanaKit.fee
+                )
+            )
         }
 
         SendModule.AmountData(primaryAmountInfo, secondaryAmountInfo)
@@ -123,15 +132,30 @@ class SolanaSendTransactionService(
     override fun GetSettingsContent(navController: NavController) = Unit
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
-        check(data is SendTransactionData.Common)
+        when (data) {
+            is SendTransactionData.Solana.Regular -> {
+                addressService.setAddress(
+                    Address(
+                        hex = data.address,
+                        blockchainType = blockchainType
+                    )
+                )
+                amountService.setAmount(data.amount)
+            }
 
-        addressService.setAddress(
-            Address(
-                hex = data.address,
-                blockchainType = data.token.blockchainType
-            )
-        )
-        amountService.setAmount(data.amount)
+            is SendTransactionData.Solana.WithRawTransaction -> {
+                val rawTransaction = data.rawTransactionStr.hexToByteArray()
+                this.rawTransaction = rawTransaction
+
+                fee = adapter.estimateFee(rawTransaction)
+            }
+
+            else -> {
+                throw IllegalArgumentException("Unsupported data type: ${data::class.java}")
+            }
+        }
+
+        emitState()
     }
 
     private fun handleUpdatedAmountState(amountState: SendAmountService.State) {
@@ -148,17 +172,20 @@ class SolanaSendTransactionService(
         emitState()
     }
 
-    override suspend fun sendTransaction(): SendTransactionResult {
+    override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
-            val totalSolAmount =
-                (if (token.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
+            val tmpRawTransaction = rawTransaction
+            val transaction = if (tmpRawTransaction != null) {
+                adapter.send(tmpRawTransaction)
+            } else {
+                val totalSolAmount =
+                    (if (token.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
 
-            if (totalSolAmount > solBalance)
-                throw EvmError.InsufficientBalanceWithFee
-
-            val transaction = adapter.send(decimalAmount, addressState.evmAddress!!)
-
-            return SendTransactionResult.Common(SendResult.Sent(transaction.transaction.hash))
+                if (totalSolAmount > solBalance)
+                    throw EvmError.InsufficientBalanceWithFee
+                adapter.send(decimalAmount, addressState.solanaAddress!!)
+            }
+            return SendTransactionResult.Solana(SendResult.Sent(transaction.transaction.hash))
         } catch (e: Throwable) {
             cautions = listOf(createCaution(e))
             emitState()

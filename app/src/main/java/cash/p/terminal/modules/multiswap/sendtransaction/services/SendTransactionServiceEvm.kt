@@ -120,6 +120,7 @@ internal class SendTransactionServiceEvm(
         SendTransactionSettings.Evm(null, evmKitWrapper.evmKit.receiveAddress)
     )
     override val sendTransactionSettingsFlow = _sendTransactionSettingsFlow.asStateFlow()
+    override val mevProtectionAvailable = evmKitWrapper.merkleTransactionAdapter != null
 
     private var transaction: SendEvmSettingsService.Transaction? = null
     private var feeAmountData: SendModule.AmountData? = null
@@ -226,7 +227,7 @@ internal class SendTransactionServiceEvm(
         setExtraFeesMap(data.feesMap)
     }
 
-    override suspend fun sendTransaction(): SendTransactionResult.Evm {
+    override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         val transaction = transaction ?: throw Exception()
         if (transaction.errors.isNotEmpty()) {
             throw IllegalStateException(transaction.errors.firstOrNull()?.cause)
@@ -237,7 +238,7 @@ internal class SendTransactionServiceEvm(
         val gasLimit = transaction.gasData.gasLimit
         val nonce = transaction.nonce
 
-        val fullTransaction = evmKitWrapper.sendSingle(transactionData, gasPrice, gasLimit, nonce)
+        val fullTransaction = evmKitWrapper.sendSingle(transactionData, gasPrice, gasLimit, nonce, mevProtectionEnabled)
         return SendTransactionResult.Evm(fullTransaction)
     }
 

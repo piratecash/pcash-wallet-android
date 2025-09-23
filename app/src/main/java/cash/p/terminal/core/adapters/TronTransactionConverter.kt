@@ -1,8 +1,8 @@
 package cash.p.terminal.core.adapters
 
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TronKitWrapper
 import cash.p.terminal.core.tokenIconPlaceholder
 import cash.p.terminal.entities.TransactionValue
@@ -10,10 +10,10 @@ import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.evm.TransferEvent
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.wallet.Token
-import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.transaction.TransactionSource
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.tronkit.TronKit
 import io.horizontalsystems.tronkit.decoration.NativeTransactionDecoration
 import io.horizontalsystems.tronkit.decoration.TokenInfo
@@ -47,6 +47,16 @@ class TronTransactionConverter(
                 when (val contract = decoration.contract) {
                     is TransferContract -> {
                         if (contract.ownerAddress != tronKit.address) {
+                            val transactionValue = baseCoinValue(contract.amount, false)
+                            val spam = SpamManager.isSpam(
+                                listOf(
+                                    TransferEvent(
+                                        contract.ownerAddress.base58,
+                                        null,
+                                        transactionValue
+                                    )
+                                )
+                            )
                             TronTransactionRecord(
                                 transaction = transaction,
                                 token = baseToken,
@@ -54,7 +64,7 @@ class TronTransactionConverter(
                                 from = contract.ownerAddress.base58,
                                 to = contract.toAddress.base58,
                                 value = baseCoinValue(contract.amount, false),
-                                spam = contract.amount < BigInteger.TEN,
+                                spam = spam,
                                 transactionRecordType = TransactionRecordType.TRON_INCOMING
                             )
                         } else {
@@ -80,7 +90,12 @@ class TronTransactionConverter(
                     token = baseToken,
                     source = source,
                     to = decoration.to.base58,
-                    value = getEip20Value(decoration.contractAddress, decoration.value, true, decoration.tokenInfo),
+                    value = getEip20Value(
+                        decoration.contractAddress,
+                        decoration.value,
+                        true,
+                        decoration.tokenInfo
+                    ),
                     sentToSelf = decoration.sentToSelf,
                     transactionRecordType = TransactionRecordType.TRON_OUTGOING
                 )
@@ -100,10 +115,12 @@ class TronTransactionConverter(
             is UnknownTransactionDecoration -> {
                 val address = tronKit.address
 
-                val internalTransactions = decoration.internalTransactions.filter { it.to == address }
+                val internalTransactions =
+                    decoration.internalTransactions.filter { it.to == address }
 
                 val eip20Transfers = decoration.events.mapNotNull { it as? Trc20TransferEvent }
-                val incomingEip20Transfers = eip20Transfers.filter { it.to == address && it.from != address }
+                val incomingEip20Transfers =
+                    eip20Transfers.filter { it.to == address && it.from != address }
                 val outgoingEip20Transfers = eip20Transfers.filter { it.from == address }
 
                 val contractAddress = decoration.toAddress
@@ -113,7 +130,8 @@ class TronTransactionConverter(
                         TronTransactionRecord(
                             transaction = transaction, token = baseToken, source = source,
                             contractAddress = contractAddress.base58,
-                            method = decoration.data?.hexStringToByteArrayOrNull()?.let { evmLabelManager.methodLabel(it) },
+                            method = decoration.data?.hexStringToByteArrayOrNull()
+                                ?.let { evmLabelManager.methodLabel(it) },
                             incomingEvents = getInternalEvents(internalTransactions) +
                                     getIncomingEip20Events(incomingEip20Transfers),
                             outgoingEvents = getTransactionValueEvents(decoration) +
@@ -123,14 +141,17 @@ class TronTransactionConverter(
                     }
 
                     decoration.fromAddress != address && decoration.toAddress != address -> {
+                        val incomingEvents = getInternalEvents(internalTransactions) +
+                                getIncomingEip20Events(incomingEip20Transfers)
+                        val outgoingEvents = getOutgoingEip20Events(outgoingEip20Transfers)
+                        val spam = SpamManager.isSpam(incomingEvents + outgoingEvents)
                         TronTransactionRecord(
                             transaction = transaction,
                             token = baseToken,
                             source = source,
-                            spamManager = App.spamManager,
-                            incomingEvents = getInternalEvents(internalTransactions) +
-                                    getIncomingEip20Events(incomingEip20Transfers),
-                            outgoingEvents = getOutgoingEip20Events(outgoingEip20Transfers),
+                            spam = spam,
+                            incomingEvents = incomingEvents,
+                            outgoingEvents = outgoingEvents,
                             transactionRecordType = TransactionRecordType.TRON_EXTERNAL_CONTRACT_CALL
                         )
                     }
@@ -164,7 +185,12 @@ class TronTransactionConverter(
         return significandAmount
     }
 
-    private fun getEip20Value(tokenAddress: Address, amount: BigInteger, negative: Boolean, tokenInfo: TokenInfo? = null): TransactionValue {
+    private fun getEip20Value(
+        tokenAddress: Address,
+        amount: BigInteger,
+        negative: Boolean,
+        tokenInfo: TokenInfo? = null
+    ): TransactionValue {
         val query = TokenQuery(BlockchainType.Tron, TokenType.Eip20(tokenAddress.base58))
         val token = coinManager.getToken(query)
 
@@ -202,7 +228,11 @@ class TronTransactionConverter(
 
         for (transaction in internalTransactions) {
             events.add(
-                TransferEvent(transaction.from.base58, transaction.to.base58, baseCoinValue(transaction.value, false))
+                TransferEvent(
+                    transaction.from.base58,
+                    transaction.to.base58,
+                    baseCoinValue(transaction.value, false)
+                )
             )
         }
 
@@ -226,7 +256,12 @@ class TronTransactionConverter(
                 TransferEvent(
                     address = transfer.from.base58,
                     addressForIncomingAddress = transfer.to.base58,
-                    value = getEip20Value(transfer.contractAddress, transfer.value, false, transfer.tokenInfo)
+                    value = getEip20Value(
+                        transfer.contractAddress,
+                        transfer.value,
+                        false,
+                        transfer.tokenInfo
+                    )
                 )
             )
         }
@@ -242,7 +277,12 @@ class TronTransactionConverter(
                 TransferEvent(
                     address = transfer.to.base58,
                     addressForIncomingAddress = null,
-                    value = getEip20Value(transfer.contractAddress, transfer.value, true, transfer.tokenInfo)
+                    value = getEip20Value(
+                        transfer.contractAddress,
+                        transfer.value,
+                        true,
+                        transfer.tokenInfo
+                    )
                 )
             )
         }

@@ -1,6 +1,5 @@
 package cash.p.terminal.core.managers
 
-import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.providers.nft.INftProvider
 import cash.p.terminal.core.providers.nft.OpenSeaNftProvider
 import cash.p.terminal.core.storage.NftStorage
@@ -17,12 +16,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 class NftMetadataManager(
     marketKit: MarketKitWrapper,
-    appConfigProvider: AppConfigProvider,
     private val storage: NftStorage
 ) {
     private val providerMap by lazy {
         mapOf<BlockchainType, INftProvider>(
-            BlockchainType.Ethereum to OpenSeaNftProvider(marketKit, appConfigProvider)
+            BlockchainType.Ethereum to OpenSeaNftProvider(marketKit)
         )
     }
 

@@ -719,6 +719,8 @@ Proceed only if you\'re sure.</string>
     <string name="SwapConfirm_FetchingFinalQuote">Fetching final quote</string>
     <string name="SwapWarning_SlippageNotApplicable_Title">Slippage is not applicable</string>
     <string name="SwapWarning_SlippageNotApplicable_Description">Minimum slippage applicable  for this quote is %s%%</string>
+    <string name="SwapWarning_SlippageNotAvailable_Title">No Slippage Control</string>
+    <string name="SwapWarning_SlippageNotAvailable_Description">Cross-chain operations depend on third-party liquidity and delays, which may affect the final amount.</string>
     <string name="unsupported_refund_address">Unsupported refund address</string>
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>

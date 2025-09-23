@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendBitcoinAdapter
@@ -13,6 +12,7 @@ import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
@@ -62,7 +62,7 @@ class SendBitcoinViewModel(
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
 
     val coinMaxAllowedDecimals = wallet.token.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     val blockchainType by adapter::blockchainType
     val feeRateChangeable by feeRateService::feeRateChangeable
@@ -291,7 +291,6 @@ class SendBitcoinViewModel(
                 pluginData = pluginState.pluginData,
                 transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
                 rbfEnabled = localStorage.rbfEnabled,
-                dustThreshold = null,
                 changeToFirstInput = false,
                 utxoFilters = UtxoFilters()
             )

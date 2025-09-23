@@ -13,7 +13,6 @@ import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.tronkit.models.Transaction
 
 class TronTransactionRecord(
-    spamManager: SpamManager? = null,
     from: String? = null,
     to: String? = null,
     sentToSelf: Boolean = false,

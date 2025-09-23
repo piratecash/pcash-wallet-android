@@ -64,6 +64,7 @@ class SwapConfirmViewModel(
     private var fiatAmountOut: BigDecimal? = null
     private var fiatAmountOutMin: BigDecimal? = null
 
+    private var mevProtectionEnabled = false
     private var loading = true
     private var timerState = timerService.stateFlow.value
     private var sendTransactionState = sendTransactionService.stateFlow.value
@@ -76,6 +77,7 @@ class SwapConfirmViewModel(
     private var isAdvancedSettingsAvailable: Boolean =
         tokenIn.blockchainType != BlockchainType.Dogecoin
     private var fetchJob: Job? = null
+    private val mevProtectionAvailable = sendTransactionService.mevProtectionAvailable
 
     init {
         fiatServiceIn.setCurrency(currency)
@@ -207,7 +209,9 @@ class SwapConfirmViewModel(
             quoteFields = quoteFields,
             transactionFields = sendTransactionState.fields,
             criticalError = criticalError,
-            isAdvancedSettingsAvailable = isAdvancedSettingsAvailable
+            isAdvancedSettingsAvailable = isAdvancedSettingsAvailable,
+            mevProtectionAvailable = mevProtectionAvailable,
+            mevProtectionEnabled = mevProtectionEnabled,
         )
     }
 
@@ -281,7 +285,7 @@ class SwapConfirmViewModel(
     }
 
     suspend fun swap() = withContext(Dispatchers.Default) {
-        sendTransactionService.sendTransaction()
+        sendTransactionService.sendTransaction(mevProtectionEnabled)
     }
 
     fun onTransactionCompleted(result: SendTransactionResult) {
@@ -312,12 +316,13 @@ class SwapConfirmViewModel(
                     // Build a dummy service to avoid null pointer exceptions
                     object : ISendTransactionService<Nothing>(quote.tokenIn) {
                         override fun start(coroutineScope: CoroutineScope) = Unit
-                        override suspend fun setSendTransactionData(data: SendTransactionData) = Unit
+                        override suspend fun setSendTransactionData(data: SendTransactionData) =
+                            Unit
 
                         @Composable
                         override fun GetSettingsContent(navController: NavController) = Unit
-                        override suspend fun sendTransaction(): SendTransactionResult =
-                            SendTransactionResult.Common(SendResult.Sending)
+                        override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult =
+                            SendTransactionResult.Solana(SendResult.Sending)
 
                         override val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
                             get() = MutableStateFlow<SendTransactionSettings>(
@@ -374,5 +379,7 @@ data class SwapConfirmUiState(
     val quoteFields: List<DataField>,
     val transactionFields: List<DataField>,
     val criticalError: String? = null,
-    var isAdvancedSettingsAvailable: Boolean
+    var isAdvancedSettingsAvailable: Boolean,
+    val mevProtectionAvailable: Boolean,
+    val mevProtectionEnabled: Boolean,
 )

@@ -3,13 +3,13 @@ package cash.p.terminal.modules.transactionInfo.resendbitcoin
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.LocalizedException
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.adapters.BitcoinBaseAdapter
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import io.horizontalsystems.core.entities.CurrencyValue
@@ -53,7 +53,7 @@ class ResendBitcoinViewModel(
     private val logger = AppLogger("Resend-${token.coin.code}")
 
     private val coinMaxAllowedDecimals: Int = token.decimals
-    private val fiatMaxAllowedDecimals: Int = App.appConfigProvider.fiatDecimal
+    private val fiatMaxAllowedDecimals: Int = AppConfigProvider.fiatDecimal
     private val blockchainType: BlockchainType = token.blockchainType
     private val coinRate: CurrencyValue? = xRateService.getRate(token.coin.uid)
 

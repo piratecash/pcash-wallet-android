@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.multiswap.sendtransaction.services
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +26,7 @@ import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.factories.FeeRateProviderFactory
-import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.amount.AmountInputType
@@ -41,12 +40,10 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceS
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.SendModule
-import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinAddressService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinAmountService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinFeeRateService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinFeeService
-import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinPluginService
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.settings.SendBtcSettingsViewModel
@@ -64,7 +61,6 @@ import cash.p.terminal.wallet.Token
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
-import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,7 +71,7 @@ import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
-class BitcoinSendTransactionService(
+class SendTransactionServiceBitcoin(
     token: Token
 ) : ISendTransactionService<ISendBitcoinAdapter>(token) {
 
@@ -92,7 +88,6 @@ class BitcoinSendTransactionService(
     private val xRateService = XRateService(marketKit, App.currencyManager.baseCurrency)
 
     private var memo: String? = null
-    private var dustThreshold: Int? = null
     private var changeToFirstInput: Boolean = false
     private var utxoFilters: UtxoFilters = UtxoFilters()
     private var networkFee: SendModule.AmountData? = null
@@ -120,7 +115,7 @@ class BitcoinSendTransactionService(
     )
 
     val coinMaxAllowedDecimals = wallet.token.decimals
-    val fiatMaxAllowedDecimals = App.appConfigProvider.fiatDecimal
+    val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     val blockchainType by adapter::blockchainType
 
@@ -129,13 +124,10 @@ class BitcoinSendTransactionService(
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
     private var pluginState = pluginService.stateFlow.value
-    private val btcBlockchainManager: BtcBlockchainManager by inject(BtcBlockchainManager::class.java)
-    private var utxoData = SendBitcoinModule.UtxoData()
 
     private var customUnspentOutputs: List<UnspentOutputInfo>? = null
 
     private var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
-    private val logger = AppLogger("ISendTransactionService")
 
     override fun start(coroutineScope: CoroutineScope) {
         feeRateService.stateFlow.collectWith(coroutineScope) {
@@ -170,19 +162,11 @@ class BitcoinSendTransactionService(
         adapter.availableBalance(
             feeRate = it,
             address = addressState.validAddress?.hex,
+            memo = memo,
             unspentOutputs = customUnspentOutputs,
             pluginData = pluginState.pluginData,
-            memo = memo,
-            dustThreshold = dustThreshold,
             changeToFirstInput = changeToFirstInput,
             utxoFilters = utxoFilters
-        )
-    }
-
-    private fun updateUtxoData(usedUtxosSize: Int) {
-        utxoData = SendBitcoinModule.UtxoData(
-            type = if (customUnspentOutputs == null) SendBitcoinModule.UtxoType.Auto else SendBitcoinModule.UtxoType.Manual,
-            value = "$usedUtxosSize / ${adapter.unspentOutputs.size}"
         )
     }
 
@@ -239,37 +223,27 @@ class BitcoinSendTransactionService(
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
-        check(data is SendTransactionData.Common)
-        addressService.setAddress(
-            Address(
-                hex = data.address,
-                blockchainType = adapter.blockchainType
-            )
-        )
+        check(data is SendTransactionData.Btc)
 
         memo = data.memo
-        dustThreshold = data.dustThreshold
         changeToFirstInput = data.changeToFirstInput
         utxoFilters = data.utxoFilters
 
-        data.recommendedGasRate?.let {
-            feeRateService.setRecommendedAndMin(it, it)
-        }
+        feeRateService.setRecommendedAndMin(data.recommendedGasRate, data.recommendedGasRate)
 
         feeService.setMemo(memo)
-        feeService.setDustThreshold(dustThreshold)
         feeService.setChangeToFirstInput(changeToFirstInput)
         feeService.setUtxoFilters(utxoFilters)
 
         amountService.setMemo(memo)
-        amountService.setDustThreshold(dustThreshold)
+        amountService.setUserMinimumSendAmount(data.minimumSendAmount)
         amountService.setChangeToFirstInput(changeToFirstInput)
         amountService.setUtxoFilters(utxoFilters)
         amountService.setAmount(data.amount)
 
         addressService.setAddress(Address(data.address))
 
-        data.feesMap?.let(::setExtraFeesMap)
+        setExtraFeesMap(data.feesMap)
     }
 
     @Composable
@@ -281,29 +255,28 @@ class BitcoinSendTransactionService(
         SendBtcFeeSettingsScreen(navController, sendSettingsViewModel)
     }
 
-    @SuppressLint("CheckResult")
-    override suspend fun sendTransaction(): SendTransactionResult = withContext(Dispatchers.IO) {
-        try {
-            val recordUid = adapter.send(
-                amount = amountState.amount!!,
-                address = addressState.validAddress!!.hex,
-                memo = memo,
-                feeRate = feeRateState.feeRate!!,
-                unspentOutputs = customUnspentOutputs,
-                pluginData = pluginState.pluginData,
-                transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
-                rbfEnabled = localStorage.rbfEnabled,
-                dustThreshold = dustThreshold,
-                changeToFirstInput = changeToFirstInput,
-                utxoFilters = utxoFilters,
-            )
-            SendTransactionResult.Common(SendResult.Sent(recordUid))
-        } catch (e: Throwable) {
-            cautions = listOf(createCaution(e))
-            emitState()
-            throw e
+    override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult.Btc =
+        withContext(Dispatchers.IO) {
+            try {
+                val transactionRecord = adapter.send(
+                    amount = amountState.amount!!,
+                    address = addressState.validAddress?.hex!!,
+                    memo = memo,
+                    feeRate = feeRateState.feeRate!!,
+                    unspentOutputs = null,
+                    pluginData = null,
+                    transactionSorting = null,
+                    rbfEnabled = false,
+                    changeToFirstInput = changeToFirstInput,
+                    utxoFilters = utxoFilters
+                )
+                SendTransactionResult.Btc(transactionRecord)
+            } catch (e: Throwable) {
+                cautions = listOf(createCaution(e))
+                emitState()
+                throw e
+            }
         }
-    }
 }
 
 @Composable

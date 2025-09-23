@@ -1,8 +1,8 @@
 package cash.p.terminal.modules.multiswap.providers
 
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.convertedError
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.multiswap.EvmBlockchainHelper
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
@@ -30,10 +30,9 @@ import java.math.BigDecimal
 object OneInchProvider : EvmSwapProvider() {
     override val id = "oneinch"
     override val title = "1inch"
-    override val url = "https://app.1inch.io/"
     override val icon = R.drawable.oneinch
     override val priority = 100
-    private val oneInchKit by lazy { OneInchKit.getInstance(App.appConfigProvider.oneInchApiKey) }
+    private val oneInchKit by lazy { OneInchKit.getInstance(AppConfigProvider.oneInchApiKey) }
     private const val PARTNER_FEE: Float = 0.3F
     private const val PARTNER_ADDRESS: String = "0x696Ed8f9E2b3265Abc24a6A035d6c5094f61e61B"
 
@@ -64,7 +63,7 @@ object OneInchProvider : EvmSwapProvider() {
         val blockchainType = tokenIn.blockchainType
         val evmBlockchainHelper = EvmBlockchainHelper(blockchainType)
 
-        val settingRecipient = SwapSettingRecipient(settings, blockchainType)
+        val settingRecipient = SwapSettingRecipient(settings, tokenOut)
         val settingSlippage = SwapSettingSlippage(settings, BigDecimal("1"))
 
         val quote = oneInchKit.getQuoteAsync(
@@ -125,7 +124,7 @@ object OneInchProvider : EvmSwapProvider() {
 
         val gasPrice = sendTransactionSettings.gasPriceInfo?.gasPrice
 
-        val settingRecipient = SwapSettingRecipient(swapSettings, blockchainType)
+        val settingRecipient = SwapSettingRecipient(swapSettings, tokenOut)
         val settingSlippage = SwapSettingSlippage(swapSettings, BigDecimal("1"))
         val slippage = settingSlippage.valueOrDefault()
 
