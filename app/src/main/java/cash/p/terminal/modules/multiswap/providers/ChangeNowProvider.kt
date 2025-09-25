@@ -1,4 +1,4 @@
-package cash.p.terminal.modules.multiswap.providers.changenow
+package cash.p.terminal.modules.multiswap.providers
 
 import androidx.collection.LruCache
 import cash.p.terminal.R
@@ -7,6 +7,7 @@ import cash.p.terminal.core.extractBigDecimal
 import cash.p.terminal.core.isEvm
 import cash.p.terminal.core.isUtxoBased
 import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
+import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.ChangeNowTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
@@ -14,7 +15,6 @@ import cash.p.terminal.modules.multiswap.SwapDepositTooSmall
 import cash.p.terminal.modules.multiswap.SwapFinalQuoteEvm
 import cash.p.terminal.modules.multiswap.SwapQuoteChangeNow
 import cash.p.terminal.modules.multiswap.action.ActionCreate
-import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
@@ -30,13 +30,11 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
-import cash.p.terminal.wallet.entities.TokenType.AddressSpecTyped
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.bitcoincore.transactions.scripts.ScriptType
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.ethereumkit.models.Address
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
+import org.koin.java.KoinJavaComponent
 import java.math.BigDecimal
 
 class ChangeNowProvider(
@@ -60,7 +58,7 @@ class ChangeNowProvider(
     override val icon = R.drawable.ic_change_now
     override val priority = 0
 
-    private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
+    private val marketKit: MarketKitWrapper by KoinJavaComponent.inject(MarketKitWrapper::class.java)
     private val currencies = mutableListOf<ChangeNowCurrency>()
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         throwable.printStackTrace()
@@ -131,7 +129,7 @@ class ChangeNowProvider(
             ).estimatedAmount
         } catch (e: BackendChangeNowResponseError) {
             //extract decimal from message
-            if (e.error == BackendChangeNowResponseError.DEPOSIT_TOO_SMALL) {
+            if (e.error == BackendChangeNowResponseError.Companion.DEPOSIT_TOO_SMALL) {
                 val amount = e.message.extractBigDecimal() ?: throw e
                 throw SwapDepositTooSmall(amount)
             } else {
@@ -237,7 +235,7 @@ class ChangeNowProvider(
     private fun getZCashTransparentToken() = marketKit.token(
         TokenQuery(
             BlockchainType.Zcash,
-            AddressSpecTyped(AddressSpecType.Transparent)
+            TokenType.AddressSpecTyped(TokenType.AddressSpecType.Transparent)
         )
     )
 
@@ -246,8 +244,8 @@ class ChangeNowProvider(
      */
     private fun isZCashUnifiedOrShielded(tokenIn: Token): Boolean =
         tokenIn.blockchainType == BlockchainType.Zcash &&
-                (tokenIn.type == AddressSpecTyped(AddressSpecType.Unified) ||
-                        tokenIn.type == AddressSpecTyped(AddressSpecType.Shielded))
+                (tokenIn.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) ||
+                        tokenIn.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded))
 
     override suspend fun fetchFinalQuote(
         tokenIn: Token,
@@ -295,7 +293,7 @@ class ChangeNowProvider(
                 }
             } catch (e: BackendChangeNowResponseError) {
                 //extract decimal from message
-                if (e.error == BackendChangeNowResponseError.OUT_OF_RANGE) {
+                if (e.error == BackendChangeNowResponseError.Companion.OUT_OF_RANGE) {
                     val amount = e.message.extractBigDecimal() ?: throw e
                     return@withContext SwapFinalQuoteEvm(
                         tokenIn = tokenIn,
@@ -327,7 +325,7 @@ class ChangeNowProvider(
             val fields = buildList {
                 add(
                     DataFieldRecipientExtended(
-                        address = cash.p.terminal.entities.Address(transaction.payinAddress),
+                        address = Address(transaction.payinAddress),
                         blockchainType = tokenOut.blockchainType
                     )
                 )
@@ -372,12 +370,14 @@ class ChangeNowProvider(
     ): SendTransactionData {
         return when {
             tokenIn.blockchainType.isEvm -> {
-                val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+                val adapterManager: IAdapterManager by KoinJavaComponent.inject(IAdapterManager::class.java)
                 val adapter = adapterManager.getAdapterForToken<ISendEthereumAdapter>(tokenIn)
                     ?: throw IllegalStateException("Ethereum adapter not found")
 
                 val transactionData =
-                    adapter.getTransactionData(amountIn, Address(transaction.payinAddress))
+                    adapter.getTransactionData(amountIn,
+                        io.horizontalsystems.ethereumkit.models.Address(transaction.payinAddress)
+                    )
                 SendTransactionData.Evm(transactionData, null)
             }
 
