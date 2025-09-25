@@ -14,10 +14,12 @@ import androidx.compose.ui.unit.dp
 fun TitleAndValueCell(
     title: String,
     value: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    minHeight: Dp = 24.dp,
 ) {
     RowUniversal(
         modifier = modifier.padding(horizontal = 16.dp),
+        minHeight = minHeight
     ) {
         subhead2_grey(text = title, modifier = Modifier.padding(end = 16.dp))
         Spacer(Modifier.weight(1f))
