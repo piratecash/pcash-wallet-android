@@ -1,10 +1,11 @@
 package cash.p.terminal.modules.tonconnect
 
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.core.App
 import com.tonapps.wallet.data.tonconnect.entities.DAppEntity
 import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
-import cash.p.terminal.core.App
 import io.horizontalsystems.core.ViewModelUiState
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -53,7 +54,10 @@ class TonConnectListViewModel : ViewModelUiState<TonConnectListUiState>() {
     }
 
     fun disconnect(dapp: DAppEntity) {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.Default + CoroutineExceptionHandler { _, error ->
+            this.error = error
+            emitState()
+        }) {
             tonConnectKit.disconnect(dapp)
         }
     }
