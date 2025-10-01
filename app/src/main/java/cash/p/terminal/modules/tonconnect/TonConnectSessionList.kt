@@ -16,8 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,60 +25,63 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import com.tonapps.wallet.data.tonconnect.entities.DAppEntity
 import cash.p.terminal.R
 import cash.p.terminal.modules.walletconnect.list.ui.ActionsRow
 import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
 import cash.p.terminal.modules.walletconnect.list.ui.getShape
 import cash.p.terminal.modules.walletconnect.list.ui.showDivider
+import cash.p.terminal.ui_compose.components.HeaderText
+import cash.p.terminal.ui_compose.components.HsDivider
 import cash.p.terminal.ui_compose.components.HsIconButton
-import cash.p.terminal.ui_compose.components.body_leah
+import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import coil.compose.rememberAsyncImagePainter
+import com.tonapps.wallet.data.tonconnect.entities.DAppEntity
 
 @Composable
 fun TonConnectSessionList(
-    dapps: List<DAppEntity>,
-    navController: NavController,
+    dapps: Map<String, List<DAppEntity>>,
     onDelete: (DAppEntity) -> Unit
 ) {
-    var revealedCardId by remember { mutableStateOf<String?>(null) }
-
-//    uiState.error?.let { message ->
-//        val view = LocalView.current
-//        HudHelper.showErrorMessage(view, text = message)
-//        viewModel.errorShown()
-//    }
+    var revealedCardId by remember(dapps.size) { mutableStateOf<String?>(null) }
 
     LazyColumn(contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)) {
-        TCSection(
-            dapps,
-            navController,
-            revealedCardId,
-            onReveal = { id ->
-                if (revealedCardId != id) {
-                    revealedCardId = id
-                }
-            },
-            onConceal = {
-                revealedCardId = null
-            },
-            onDelete = onDelete
-        )
+        dapps.forEach { (groupTitle, list) ->
+            item {
+                HeaderText(text = groupTitle.uppercase())
+            }
+
+            TCSection(
+                list,
+                revealedCardId,
+                onReveal = { id ->
+                    if (revealedCardId != id) {
+                        revealedCardId = id
+                    }
+                },
+                onConceal = {
+                    revealedCardId = null
+                },
+                onDelete = onDelete
+            )
+
+            item {
+                VSpacer(24.dp)
+            }
+        }
+
     }
 }
 
 private fun LazyListScope.TCSection(
     dapps: List<DAppEntity>,
-    navController: NavController,
     revealedCardId: String?,
     onReveal: (String) -> Unit,
     onConceal: () -> Unit,
@@ -102,7 +104,7 @@ private fun LazyListScope.TCSection(
                         content = {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_circle_minus_24),
-                                tint = Color.Gray,
+                                tint = ComposeAppTheme.colors.grey,
                                 contentDescription = "delete",
                             )
                         }
@@ -120,7 +122,6 @@ private fun LazyListScope.TCSection(
                         shape = shape,
                         showDivider = showDivider,
                         dapp = dapp,
-                        navController = navController
                     )
                 }
             )
@@ -134,7 +135,6 @@ fun TCSessionCell(
     shape: Shape,
     showDivider: Boolean = false,
     dapp: DAppEntity,
-    navController: NavController,
 ) {
     Box(
         modifier = Modifier
@@ -145,11 +145,7 @@ fun TCSessionCell(
         contentAlignment = Alignment.Center
     ) {
         if (showDivider) {
-            Divider(
-                thickness = 1.dp,
-                color = ComposeAppTheme.colors.steel10,
-                modifier = Modifier.align(Alignment.TopCenter)
-            )
+            HsDivider(modifier = Modifier.align(Alignment.TopCenter))
         }
         Row(
             modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
@@ -172,7 +168,7 @@ fun TCSessionCell(
                     else -> stringResource(id = R.string.TonConnect_Unnamed)
                 }
 
-                body_leah(
+                headline2_leah(
                     text = title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

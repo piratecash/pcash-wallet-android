@@ -14,6 +14,7 @@ import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
+import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
 import cash.p.terminal.wallet.Account
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -33,6 +34,7 @@ val viewModelModule = module {
     viewModelOf(::AboutPremiumViewModel)
     viewModelOf(::PremiumSettingsViewModel)
     viewModelOf(::DisplayOptionsViewModel)
+    viewModelOf(::TonConnectListViewModel)
     viewModel { (accountToCopy: Account) ->
         DuplicateWalletViewModel(
             accountToCopy = accountToCopy,

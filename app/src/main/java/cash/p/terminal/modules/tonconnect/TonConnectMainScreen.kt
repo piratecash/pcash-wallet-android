@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,15 +22,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.qrscanner.QRScannerActivity
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -41,6 +40,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun TonConnectMainScreen(
+    viewModel: TonConnectListViewModel,
     navController: NavController, deepLinkUri: String?,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
@@ -48,7 +48,6 @@ fun TonConnectMainScreen(
     val invalidUrlBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
 
-    val viewModel = viewModel<TonConnectListViewModel>()
     val qrScannerLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
@@ -117,9 +116,11 @@ fun TonConnectMainScreen(
                 )
             }
         ) {
-            Column(modifier = Modifier
-                .padding(it)
-                .windowInsetsPadding(windowInsets)) {
+            Column(
+                modifier = Modifier
+                    .padding(it)
+                    .windowInsetsPadding(windowInsets)
+            ) {
                 Column(modifier = Modifier.weight(1f)) {
                     val dapps = uiState.dapps
                     if (dapps.isEmpty()) {
@@ -130,7 +131,6 @@ fun TonConnectMainScreen(
                     } else {
                         TonConnectSessionList(
                             dapps = dapps,
-                            navController = navController,
                             onDelete = viewModel::disconnect
                         )
                     }
