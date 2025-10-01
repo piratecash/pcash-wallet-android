@@ -45,6 +45,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -913,10 +914,44 @@ private fun AmountInput(
 @Composable
 fun getPriceImpactColor(priceImpactLevel: PriceImpactLevel?): Color {
     return when (priceImpactLevel) {
-        PriceImpactLevel.Normal -> ComposeAppTheme.colors.jacob
-        PriceImpactLevel.Warning,
-        PriceImpactLevel.Forbidden -> ComposeAppTheme.colors.lucian
-
+        PriceImpactLevel.Warning -> ComposeAppTheme.colors.lucian
+        PriceImpactLevel.Good -> ComposeAppTheme.colors.remus
         else -> ComposeAppTheme.colors.grey
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SwapCoinInputToPreview() {
+    ComposeAppTheme {
+        Column {
+            SwapCoinInputTo(
+                coinAmount = BigDecimal("0.12345678"),
+                fiatAmount = BigDecimal("1234.56"),
+                fiatPriceImpact = BigDecimal("1.23"),
+                fiatPriceImpactLevel = PriceImpactLevel.Normal,
+                currency = Currency("usd", "$", 6, 0),
+                token = null,
+                onClickCoin = {}
+            )
+            SwapCoinInputTo(
+                coinAmount = BigDecimal("0.12345678"),
+                fiatAmount = BigDecimal("1234.56"),
+                fiatPriceImpact = BigDecimal("1.23"),
+                fiatPriceImpactLevel = PriceImpactLevel.Good,
+                currency = Currency("usd", "$", 6, 0),
+                token = null,
+                onClickCoin = {}
+            )
+            SwapCoinInputTo(
+                coinAmount = BigDecimal("0.12345678"),
+                fiatAmount = BigDecimal("1234.56"),
+                fiatPriceImpact = BigDecimal("1.23"),
+                fiatPriceImpactLevel = PriceImpactLevel.Warning,
+                currency = Currency("usd", "$", 6, 0),
+                token = null,
+                onClickCoin = {}
+            )
+        }
     }
 }

@@ -10,7 +10,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 class PriceImpactService {
-    private val normalPriceImpact = BigDecimal(1)
     private val warningPriceImpact = BigDecimal(5)
     private val forbiddenPriceImpact = BigDecimal(20)
 
@@ -37,41 +36,40 @@ class PriceImpactService {
     val stateFlow = _stateFlow.asStateFlow()
 
     fun setPriceImpact(priceImpact: BigDecimal?, providerTitle: String?) {
-        if (priceImpact == null || priceImpact < normalPriceImpact) {
-            this.priceImpact = null
-            priceImpactLevel = null
-            priceImpactCaution = null
-        } else {
-            this.priceImpact = priceImpact
+        priceImpactLevel = priceImpact.getPriceImpactLevel()
+        this.priceImpact = priceImpact
 
-            priceImpactLevel = when {
-                priceImpact < warningPriceImpact -> PriceImpactLevel.Normal
-                priceImpact < forbiddenPriceImpact -> PriceImpactLevel.Warning
-                else -> PriceImpactLevel.Forbidden
-            }
-
-            priceImpactCaution = when (priceImpactLevel) {
-                PriceImpactLevel.Forbidden -> {
+        val priceImpactAbs = priceImpact?.abs()
+        priceImpactCaution = if (priceImpactAbs != null && priceImpact.signum() < 0) {
+            when {
+                priceImpactAbs > forbiddenPriceImpact -> {
                     HSCaution(
                         s = TranslatableString.ResString(R.string.Swap_PriceImpact),
                         type = HSCaution.Type.Error,
-                        description = TranslatableString.ResString(R.string.Swap_PriceImpactTooHigh, providerTitle ?: "")
+                        description = TranslatableString.ResString(
+                            R.string.Swap_PriceImpactTooHigh,
+                            providerTitle ?: ""
+                        )
                     )
                 }
-                PriceImpactLevel.Warning -> {
+
+                priceImpactAbs > warningPriceImpact -> {
                     HSCaution(
                         s = TranslatableString.ResString(R.string.Swap_PriceImpact),
                         type = HSCaution.Type.Warning,
                         description = TranslatableString.ResString(R.string.Swap_PriceImpactWarning)
                     )
                 }
+
                 else -> {
                     null
                 }
             }
+        } else {
+            null
         }
 
-        error = if (priceImpactLevel == PriceImpactLevel.Forbidden) {
+        error = if (priceImpactAbs != null && priceImpactAbs > forbiddenPriceImpact) {
             PriceImpactTooHigh(providerTitle)
         } else {
             null
@@ -97,19 +95,16 @@ class PriceImpactService {
         val fiatAmountIn = fiatAmountIn
         val fiatAmountOut = fiatAmountOut
 
-        val fiatPriceImpact = calculateDiff(fiatAmountOut, fiatAmountIn)
-        val fiatPriceImpactAbs = fiatPriceImpact?.abs()
+        fiatPriceImpact = calculateDiff(fiatAmountOut, fiatAmountIn)
+        fiatPriceImpactLevel = fiatPriceImpact.getPriceImpactLevel()
+    }
 
-        if (fiatPriceImpactAbs == null || fiatPriceImpactAbs < normalPriceImpact) {
-            this.fiatPriceImpact = null
-            fiatPriceImpactLevel = null
-        } else {
-            this.fiatPriceImpact = fiatPriceImpact
-            fiatPriceImpactLevel = when {
-                fiatPriceImpactAbs < warningPriceImpact -> PriceImpactLevel.Normal
-                fiatPriceImpactAbs < forbiddenPriceImpact -> PriceImpactLevel.Warning
-                else -> PriceImpactLevel.Forbidden
-            }
+    private fun BigDecimal?.getPriceImpactLevel(): PriceImpactLevel {
+        return when {
+            this == null -> PriceImpactLevel.Normal
+            this < BigDecimal.ZERO -> PriceImpactLevel.Warning
+            this > BigDecimal.ZERO -> PriceImpactLevel.Good
+            else -> PriceImpactLevel.Normal
         }
     }
 
