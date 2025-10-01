@@ -1,3 +1,24 @@
+## Main changes in version 0.47.0
+_Release date: October 1, 2025_
+
+### ✨ New Features
+- **Jetton Token Swap:**
+  - Added the ability to swap Jetton tokens directly in the app via the **Ston.fi** DEX.
+- **Maya Swap Support:**
+  - Integration with **Maya Swap** is now available.
+
+### 🛠 Fixes
+- **Orphan Blocks:**
+  - Fixed an issue with orphan blocks that caused problems when sending coins for Bitcoin forks
+    (**BTC / LTC / DASH / PIRATE / COSANTA / DOGE**).
+- **Ton Connect (UI):**
+  - Fixed missing scroll in the Ton Connect select menu.
+  - Fixed a visual bug when removing a connection and adjusted padding in the interface.
+- **Premium Mode:**
+  - Fixed an issue with displaying the **PIRATE** amount (value didn’t fit on the screen).
+
+
+
 ## Main changes in version 0.46.8
 _Release date: September 19, 2025_
 

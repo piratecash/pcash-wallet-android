@@ -133,6 +133,16 @@ fun BalanceForAccount(
                         BalanceTitleRow(navController, accountViewItem.name)
                     },
                     menuItems = buildList {
+                        if (accountViewItem.isCoinManagerEnabled) {
+                            add(
+                                MenuItem(
+                                    title = TranslatableString.ResString(R.string.display_options),
+                                    icon = R.drawable.ic_search,
+                                    onClick = {
+                                        navController.slideFromRight(R.id.manageWalletsFragment)
+                                    })
+                            )
+                        }
                         if (accountViewItem.type.supportsWalletConnect) {
                             add(
                                 MenuItem(
@@ -171,16 +181,6 @@ fun BalanceForAccount(
                                         }
                                     }
                                 )
-                            )
-                        }
-                        if (accountViewItem.isCoinManagerEnabled) {
-                            add(
-                                MenuItem(
-                                    title = TranslatableString.ResString(R.string.display_options),
-                                    icon = R.drawable.ic_search,
-                                    onClick = {
-                                        navController.slideFromRight(R.id.manageWalletsFragment)
-                                    })
                             )
                         }
                     }
