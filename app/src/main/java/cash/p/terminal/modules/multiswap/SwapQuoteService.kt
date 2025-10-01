@@ -8,6 +8,7 @@ import cash.p.terminal.modules.multiswap.providers.OneInchProvider
 import cash.p.terminal.modules.multiswap.providers.PancakeSwapProvider
 import cash.p.terminal.modules.multiswap.providers.PancakeSwapV3Provider
 import cash.p.terminal.modules.multiswap.providers.QuickSwapProvider
+import cash.p.terminal.modules.multiswap.providers.StonFiProvider
 import cash.p.terminal.modules.multiswap.providers.ThorChainProvider
 import cash.p.terminal.modules.multiswap.providers.UniswapProvider
 import cash.p.terminal.modules.multiswap.providers.UniswapV3Provider
@@ -31,6 +32,7 @@ import java.math.BigDecimal
 
 class SwapQuoteService {
     private val changeNowProvider: ChangeNowProvider by inject(ChangeNowProvider::class.java)
+    private val stonFiProvider: StonFiProvider by inject(StonFiProvider::class.java)
 
     private companion object {
         const val DEBOUNCE_INPUT_MSEC: Long = 300
@@ -47,7 +49,8 @@ class SwapQuoteService {
         changeNowProvider,
         ThorChainProvider,
         MayaProvider,
-        AllBridgeProvider
+        AllBridgeProvider,
+        stonFiProvider
     )
 
     private var amountIn: BigDecimal? = null

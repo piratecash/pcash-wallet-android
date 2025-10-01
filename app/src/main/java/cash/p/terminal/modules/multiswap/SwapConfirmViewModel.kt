@@ -12,14 +12,14 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ethereum.CautionViewItem
-import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
+import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
-import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceFactory
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceState
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
+import cash.p.terminal.modules.multiswap.sendtransaction.SwapTransactionServiceFactory
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.SendResult
@@ -28,7 +28,6 @@ import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.ViewModelUiState
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,8 +73,7 @@ class SwapConfirmViewModel(
     private var amountOutMin: BigDecimal? = null
     private var quoteFields: List<DataField> = listOf()
     private var criticalError: String? = null
-    private var isAdvancedSettingsAvailable: Boolean =
-        tokenIn.blockchainType != BlockchainType.Dogecoin
+    private var isAdvancedSettingsAvailable: Boolean = sendTransactionService.hasSettings()
     private var fetchJob: Job? = null
     private val mevProtectionAvailable = sendTransactionService.mevProtectionAvailable
 
@@ -307,7 +305,7 @@ class SwapConfirmViewModel(
                 extras: CreationExtras
             ): T {
                 val sendTransactionService = try {
-                    SendTransactionServiceFactory.create(quote.tokenIn)
+                    SwapTransactionServiceFactory.create(quote.tokenIn, quote.provider)
                 } catch (e: Exception) {
                     Toast.makeText(App.instance, R.string.unsupported_token, Toast.LENGTH_SHORT)
                         .show()
@@ -318,6 +316,8 @@ class SwapConfirmViewModel(
                         override fun start(coroutineScope: CoroutineScope) = Unit
                         override suspend fun setSendTransactionData(data: SendTransactionData) =
                             Unit
+
+                        override fun hasSettings(): Boolean = false
 
                         @Composable
                         override fun GetSettingsContent(navController: NavController) = Unit

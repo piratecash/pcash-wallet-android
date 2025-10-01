@@ -184,6 +184,8 @@ class SendTransactionServiceTron(
         emitState()
     }
 
+    override fun hasSettings() = false
+
     @Composable
     override fun GetSettingsContent(navController: NavController) = Unit
 }

@@ -60,6 +60,18 @@ sealed class SendTransactionData {
         val amount: BigDecimal
     ) : SendTransactionData()
 
+    data class TonSwap(
+        val forwardGas: BigDecimal,
+        val offerUnits: BigDecimal,
+        val routerAddress: String,
+        val routerMasterAddress: String,
+        val ptonWalletAddress: String?,
+        val queryId: Long?,
+        val slippage: BigDecimal,
+        val payload: String,
+        val gasBudget: BigDecimal? = null
+    ) : SendTransactionData()
+
     class Monero(
         val address: String,
         val amount: BigDecimal

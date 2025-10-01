@@ -121,9 +121,7 @@ fun SwapConfirmScreen(navController: NavController) {
                 ButtonPrimaryDefault(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Button_Refresh),
-                    onClick = {
-                        viewModel.refresh()
-                    },
+                    onClick = viewModel::refresh
                 )
                 VSpacer(height = 12.dp)
                 subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteIsInvalid))

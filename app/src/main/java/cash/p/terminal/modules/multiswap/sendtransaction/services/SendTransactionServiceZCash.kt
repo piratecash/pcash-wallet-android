@@ -123,6 +123,8 @@ class SendTransactionServiceZCash(
         }
     }
 
+    override fun hasSettings() = false
+
     @Composable
     override fun GetSettingsContent(navController: NavController) = Unit
 

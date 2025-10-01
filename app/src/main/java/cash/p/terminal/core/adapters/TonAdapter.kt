@@ -1,10 +1,10 @@
 package cash.p.terminal.core.adapters
 
-import cash.p.terminal.wallet.AdapterState
-import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toAdapterState
+import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.tonkit.FriendlyAddress
 import io.horizontalsystems.tonkit.core.TonKit.SendAmount
 import io.horizontalsystems.tonkit.models.Account
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9), ISendTonAdapter {
 
@@ -76,7 +77,15 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
         tonKit.send(address, getSendAmount(amount), memo)
     }
 
-    override suspend fun estimateFee(amount: BigDecimal, address: FriendlyAddress, memo: String?): BigDecimal {
+    override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)  {
+        sendWithPayloadBoc(amount, address, payload)
+    }
+
+    override suspend fun estimateFee(
+        amount: BigDecimal,
+        address: FriendlyAddress,
+        memo: String?
+    ): BigDecimal {
         val estimateFee = tonKit.estimateFee(address, getSendAmount(amount), memo)
         return estimateFee.toBigDecimal(decimals).stripTrailingZeros()
     }

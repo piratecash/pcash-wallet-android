@@ -1,13 +1,13 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ICoinManager
-import cash.p.terminal.wallet.AdapterState
-import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toAdapterState
+import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.tonkit.Address
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class JettonAdapter(
     coinManager: ICoinManager,
@@ -84,6 +85,10 @@ class JettonAdapter(
             amount.movePointRight(decimals).toBigInteger(),
             memo
         )
+    }
+
+    override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)  {
+        sendWithPayloadBoc(amount, address, payload)
     }
 
     override suspend fun estimateFee(

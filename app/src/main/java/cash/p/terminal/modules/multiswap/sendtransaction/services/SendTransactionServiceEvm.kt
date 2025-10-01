@@ -250,6 +250,8 @@ internal class SendTransactionServiceEvm(
         nonceService.fixNonce(nonce)
     }
 
+    override fun hasSettings() = true
+
     @Composable
     override fun GetSettingsContent(navController: NavController) {
         val nonceViewModel = viewModel<SendEvmNonceViewModel>(initializer = {

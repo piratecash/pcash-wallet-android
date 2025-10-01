@@ -51,6 +51,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
 
     protected val coroutineScope = CoroutineScope(Dispatchers.IO)
 
+    abstract fun hasSettings(): Boolean
     abstract fun start(coroutineScope: CoroutineScope)
     abstract suspend fun setSendTransactionData(data: SendTransactionData)
 

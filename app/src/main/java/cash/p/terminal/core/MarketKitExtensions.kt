@@ -43,6 +43,7 @@ val Token.iconPlaceholder: Int
 
 val Token.swappable: Boolean
     get() = when (blockchainType) {
+        BlockchainType.Ton,
         BlockchainType.Ethereum,
         BlockchainType.BinanceSmartChain,
         BlockchainType.Polygon,

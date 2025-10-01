@@ -4,6 +4,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
@@ -91,11 +92,15 @@ class WalletUseCase(
         getWallet(token) ?: if (createWallets(setOf(token))) getWallet(token) else null
 
     fun getReceiveAddress(token: Token): String {
-        val wallet = getWallet(token)
-        requireNotNull(wallet) { "WalletUseCase: wallet for $token is not found" }
-        val adapter = adapterManager.getReceiveAdapterForWallet(wallet)
+        val adapter = getReceiveAdapter(token)
         requireNotNull(adapter) { "WalletUseCase: adapter for $token is not found" }
 
         return adapter.receiveAddress
+    }
+
+    fun getReceiveAdapter(token: Token): IReceiveAdapter? {
+        val wallet = getWallet(token)
+        requireNotNull(wallet) { "WalletUseCase: wallet for $token is not found" }
+        return adapterManager.getReceiveAdapterForWallet(wallet)
     }
 }

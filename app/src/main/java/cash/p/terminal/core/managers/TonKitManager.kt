@@ -115,7 +115,8 @@ class TonKitManager(
                 Network.MainNet,
                 App.instance,
                 account.id
-            )
+            ),
+            tonWallet
         )
     }
 
@@ -280,7 +281,7 @@ object TonHelper {
     }
 }
 
-class TonKitWrapper(val tonKit: TonKit)
+class TonKitWrapper(val tonKit: TonKit, val tonWallet: TonWallet)
 
 fun TonKit.statusInfo() = buildMap {
     put("Sync State", syncStateFlow.value.toAdapterState())

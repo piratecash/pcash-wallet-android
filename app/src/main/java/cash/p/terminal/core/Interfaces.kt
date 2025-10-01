@@ -39,6 +39,7 @@ import io.reactivex.Single
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import java.math.BigDecimal
+import java.math.BigInteger
 import io.horizontalsystems.solanakit.models.Address as SolanaAddress
 import io.horizontalsystems.tronkit.models.Address as TronAddress
 
@@ -211,6 +212,7 @@ interface ISendMoneroAdapter {
 interface ISendTonAdapter {
     val availableBalance: BigDecimal
     suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?)
+    suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)
     suspend fun estimateFee(amount: BigDecimal, address: FriendlyAddress, memo: String?) : BigDecimal
 }
 
