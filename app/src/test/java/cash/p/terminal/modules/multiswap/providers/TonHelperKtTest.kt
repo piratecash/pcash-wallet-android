@@ -148,7 +148,7 @@ class TonHelperKtTest {
 
     @Test
     fun stonfiSwap_minimumRequiredParameters_snapshotParity() {
-        val payload = buildStonfiSwapTonToJettonPayload(
+        val payload = buildStonfiSwapTonToJettonPayloadV2(
             tonAmount = 100_000_000L.toBigInt(),
             receiver = addrStd(USER_WALLET_ADDRESS),
             refundAddress = addrStd(USER_WALLET_ADDRESS),
@@ -163,7 +163,7 @@ class TonHelperKtTest {
 
     @Test
     fun stonfiSwap_withReferralAndDifferentQueryId_snapshotParity() {
-        val payload = buildStonfiSwapTonToJettonPayload(
+        val payload = buildStonfiSwapTonToJettonPayloadV2(
             tonAmount = 200_000_000L.toBigInt(),
             receiver = addrStd(USER_WALLET_ADDRESS),
             refundAddress = addrStd(USER_WALLET_ADDRESS),
@@ -180,7 +180,7 @@ class TonHelperKtTest {
 
     @Test
     fun stonfiSwap_differentDeadlineAndAmounts_snapshotParity() {
-        val payload = buildStonfiSwapTonToJettonPayload(
+        val payload = buildStonfiSwapTonToJettonPayloadV2(
             tonAmount = 300_000_000L.toBigInt(),
             receiver = addrStd(USER_WALLET_ADDRESS),
             refundAddress = addrStd(USER_WALLET_ADDRESS),
@@ -198,7 +198,7 @@ class TonHelperKtTest {
 
     @Test
     fun jettonToTon_minimumRequiredParameters_snapshotParity() {
-        val payload = buildJettonToTonPayload(
+        val payload = buildJettonToTonPayloadV2(
             amount = 500_000_000L.toBigInt(),
             router = addrStd(USER_WALLET_ADDRESS),
             ptonWallet = addrStd(USER_WALLET_ADDRESS),
@@ -215,7 +215,7 @@ class TonHelperKtTest {
 
     @Test
     fun jettonToTon_withReferralAndCustomFee_snapshotParity() {
-        val payload = buildJettonToTonPayload(
+        val payload = buildJettonToTonPayloadV2(
             amount = 600_000_000L.toBigInt(),
             router = addrStd(USER_WALLET_ADDRESS),
             ptonWallet = addrStd(USER_WALLET_ADDRESS),
@@ -234,7 +234,7 @@ class TonHelperKtTest {
 
     @Test
     fun jettonToTon_differentAmountsAndQueryId_snapshotParity() {
-        val payload = buildJettonToTonPayload(
+        val payload = buildJettonToTonPayloadV2(
             amount = 700_000_000L.toBigInt(),
             router = addrStd(USER_WALLET_ADDRESS),
             ptonWallet = addrStd(USER_WALLET_ADDRESS),
