@@ -50,7 +50,7 @@ fun TonConnectSessionList(
     dapps: Map<String, List<DAppEntity>>,
     onDelete: (DAppEntity) -> Unit
 ) {
-    var revealedCardId by remember(dapps.size) { mutableStateOf<String?>(null) }
+    var revealedCardId by remember(dapps) { mutableStateOf<String?>(null) }
 
     LazyColumn(contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)) {
         dapps.forEach { (groupTitle, list) ->
