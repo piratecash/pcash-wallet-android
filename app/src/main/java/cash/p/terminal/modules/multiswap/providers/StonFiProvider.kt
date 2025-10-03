@@ -8,7 +8,6 @@ import cash.p.terminal.modules.multiswap.ISwapQuote
 import cash.p.terminal.modules.multiswap.StonFiGasParams
 import cash.p.terminal.modules.multiswap.StonFiSwapData
 import cash.p.terminal.modules.multiswap.SwapQuoteStonFi
-import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.settings.SwapSettingRecipient
@@ -32,7 +31,7 @@ import java.math.BigInteger
 
 class StonFiProvider(
     private val stonFiRepository: StonFiRepository,
-    private val walletUseCase: WalletUseCase,
+    override val walletUseCase: WalletUseCase,
 ) : IMultiSwapProvider {
     override val id = "stonfi"
     override val title = "STON.fi"
@@ -131,35 +130,9 @@ class StonFiProvider(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
             amountIn = amountIn,
-            actionRequired = getActionRequired(tokenIn, tokenOut),
+            actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut),
             swapData = swapData
         )
-    }
-
-    private fun getActionRequired(
-        tokenIn: Token,
-        tokenOut: Token
-    ): ActionCreate? {
-        val tokenInWalletCreated = walletUseCase.getWallet(tokenIn) != null
-        val tokenOutWalletCreated = walletUseCase.getWallet(tokenOut) != null
-
-
-        return if (!tokenInWalletCreated || !tokenOutWalletCreated) {
-            val tokensToAdd = mutableSetOf<Token>()
-            if (!tokenInWalletCreated) {
-                tokensToAdd.add(tokenIn)
-            }
-            if (!tokenOutWalletCreated) {
-                tokensToAdd.add(tokenOut)
-            }
-            ActionCreate(
-                inProgress = false,
-                descriptionResId = R.string.swap_create_wallet_description,
-                tokensToAdd = tokensToAdd
-            )
-        } else {
-            null
-        }
     }
 
     override suspend fun fetchFinalQuote(

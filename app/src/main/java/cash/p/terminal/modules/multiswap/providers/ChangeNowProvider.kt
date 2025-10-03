@@ -48,7 +48,7 @@ import org.koin.java.KoinJavaComponent
 import java.math.BigDecimal
 
 class ChangeNowProvider(
-    private val walletUseCase: WalletUseCase,
+    override val walletUseCase: WalletUseCase,
     private val changeNowRepository: ChangeNowRepository,
     private val getChangeNowAssociatedCoinTickerUseCase: GetChangeNowAssociatedCoinTickerUseCase,
     private val changeNowTransactionsStorage: ChangeNowTransactionsStorage
@@ -178,7 +178,7 @@ class ChangeNowProvider(
             val amountOut = getExchangeAmountOrThrow(tickerFrom, tickerTo, amountIn)
                 ?: throw IllegalStateException("ChangeNowProvider: amount is not found")
 
-            val actionRequired = getActionRequired(tokenIn, tokenOut)
+            val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut)
 
             SwapQuoteChangeNow(
                 amountOut = amountOut,
@@ -193,7 +193,7 @@ class ChangeNowProvider(
         }
     }
 
-    private fun getActionRequired(
+    override fun getCreateTokenActionRequired(
         tokenIn: Token,
         tokenOut: Token
     ): ActionCreate? {

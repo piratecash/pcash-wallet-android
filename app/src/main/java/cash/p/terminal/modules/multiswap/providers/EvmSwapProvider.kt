@@ -12,10 +12,15 @@ import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.DefaultBlockParameter
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import kotlinx.coroutines.rx2.await
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
+import kotlin.getValue
 
 abstract class EvmSwapProvider : IMultiSwapProvider {
+    override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
+
     protected suspend fun getAllowance(token: Token, spenderAddress: Address): BigDecimal? {
         if (token.type !is TokenType.Eip20) return null
 

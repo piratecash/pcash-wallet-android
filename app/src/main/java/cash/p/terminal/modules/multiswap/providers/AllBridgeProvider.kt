@@ -5,7 +5,6 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.isEvm
 import cash.p.terminal.core.managers.APIClient
-import io.horizontalsystems.ethereumkit.models.Address
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
@@ -25,24 +24,17 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.tronkit.hexStringToByteArray
 import io.horizontalsystems.tronkit.network.CreatedTransaction
+import org.koin.java.KoinJavaComponent.inject
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.math.BigDecimal
 import java.math.BigInteger
-import kotlin.collections.any
-import kotlin.collections.first
-import kotlin.collections.forEach
-import kotlin.div
-import kotlin.jvm.java
-import kotlin.let
-import kotlin.minus
-import kotlin.text.split
-import kotlin.times
-import kotlin.to
 
 object AllBridgeProvider : IMultiSwapProvider {
     override val id = "allbridge"
@@ -50,6 +42,8 @@ object AllBridgeProvider : IMultiSwapProvider {
     override val icon = R.drawable.allbridge
     override val priority = 0
     private val feePaymentMethod = FeePaymentMethod.StableCoin
+
+    override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
 
     // From https://docs-core.allbridge.io/product/how-does-allbridge-core-work/allbridge-core-contracts
     private val proxies = mapOf(
@@ -173,20 +167,21 @@ object AllBridgeProvider : IMultiSwapProvider {
 
         val cautions = mutableListOf<HSCaution>()
         val allowance: BigDecimal?
-        val actionRequired: ISwapProviderAction?
+        var actionRequired: ISwapProviderAction? = getCreateTokenActionRequired(tokenIn, tokenOut)
 
         if (tokenIn.blockchainType.isEvm) {
             val proxyAddress = getProxyAddress(bridgeAddress)
             val finalAddress = proxyAddress ?: bridgeAddress
 
             allowance = EvmSwapHelper.getAllowance(tokenIn, finalAddress)
-            actionRequired = EvmSwapHelper.actionApprove(allowance, amountIn, finalAddress, tokenIn)
+            actionRequired = actionRequired ?:
+                EvmSwapHelper.actionApprove(allowance, amountIn, finalAddress, tokenIn)
         } else if (tokenIn.blockchainType == BlockchainType.Tron) {
             allowance = SwapHelper.getAllowanceTrc20(tokenIn, bridgeAddress)
-            actionRequired = SwapHelper.actionApproveTrc20(allowance, amountIn, bridgeAddress, tokenIn)
+            actionRequired = actionRequired ?:
+                SwapHelper.actionApproveTrc20(allowance, amountIn, bridgeAddress, tokenIn)
         } else {
             allowance = null
-            actionRequired = null
         }
 
         val crosschain = tokenIn.blockchainType != tokenOut.blockchainType
@@ -360,7 +355,8 @@ object AllBridgeProvider : IMultiSwapProvider {
         }
 
         val rawTransactionStr = if (tokenIn.blockchainType == tokenOut.blockchainType) {
-            val amountOutMinInt = expectedAmountOutMin.movePointRight(tokenPairOut.abToken.decimals).toBigInteger()
+            val amountOutMinInt =
+                expectedAmountOutMin.movePointRight(tokenPairOut.abToken.decimals).toBigInteger()
 
             allBridgeAPI.rawSwap(
                 amount = amount,

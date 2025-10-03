@@ -25,18 +25,21 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.bitcoincore.transactions.scripts.ScriptType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.contracts.ContractMethod
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.TransactionData
+import org.koin.java.KoinJavaComponent.inject
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import java.util.Date
+import kotlin.getValue
 
 abstract class BaseThorChainProvider(
     baseUrl: String,
@@ -61,6 +64,8 @@ abstract class BaseThorChainProvider(
     )
 
     private var assets = listOf<Asset>()
+
+    override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
 
     override suspend fun start() {
         val assets = mutableListOf<Asset>()
@@ -152,7 +157,7 @@ abstract class BaseThorChainProvider(
         }
 
         val allowance = routerAddress?.let { EvmSwapHelper.getAllowance(tokenIn, it) }
-        val actionApprove = routerAddress?.let {
+        val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut) ?: routerAddress?.let {
             EvmSwapHelper.actionApprove(allowance, amountIn, it, tokenIn)
         }
 
@@ -176,7 +181,7 @@ abstract class BaseThorChainProvider(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
             amountIn = amountIn,
-            actionRequired = actionApprove,
+            actionRequired = actionRequired,
             cautions = cautions,
             slippageThreshold = slippageThreshold
         )
@@ -239,7 +244,8 @@ abstract class BaseThorChainProvider(
             finalSlippage = null
         }
 
-        val quoteSwap = quoteSwap(tokenIn, tokenOut, amountIn, finalSlippage, settingRecipient.value)
+        val quoteSwap =
+            quoteSwap(tokenIn, tokenOut, amountIn, finalSlippage, settingRecipient.value)
 
         val amountOut = quoteSwap.expected_amount_out.movePointLeft(8)
 
@@ -352,7 +358,11 @@ abstract class BaseThorChainProvider(
                     minimumSendAmount = dustThreshold?.plus(1),
                     changeToFirstInput = true,
                     utxoFilters = UtxoFilters(
-                        scriptTypes = listOf(ScriptType.P2PKH, ScriptType.P2WPKHSH, ScriptType.P2WPKH),
+                        scriptTypes = listOf(
+                            ScriptType.P2PKH,
+                            ScriptType.P2WPKHSH,
+                            ScriptType.P2WPKH
+                        ),
                         maxOutputsCountForInputs = 10
                     ),
                     feesMap = feesMap
@@ -475,5 +485,8 @@ sealed class SwapError : Exception() {
 class SlippageNotApplicable(minSlippageApplicable: BigDecimal) : HSCaution(
     TranslatableString.ResString(R.string.SwapWarning_SlippageNotApplicable_Title),
     Type.Warning,
-    TranslatableString.ResString(R.string.SwapWarning_SlippageNotApplicable_Description, minSlippageApplicable),
+    TranslatableString.ResString(
+        R.string.SwapWarning_SlippageNotApplicable_Description,
+        minSlippageApplicable
+    ),
 )

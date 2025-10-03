@@ -57,7 +57,7 @@ abstract class BaseUniswapProvider : EvmSwapProvider() {
             tokenIn,
             tokenOut,
             amountIn,
-            actionApprove(allowance, amountIn, routerAddress, tokenIn)
+            getCreateTokenActionRequired(tokenIn, tokenOut) ?: actionApprove(allowance, amountIn, routerAddress, tokenIn)
         )
     }
 
