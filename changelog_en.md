@@ -1,3 +1,21 @@
+## Main changes in version 0.47.1
+_Release date: October 3, 2025_
+
+### ✨ New Features
+- **Ston.fi (V1/V2):**
+  - Added support for working with both **V1** and **V2** liquidity versions.
+- **Swap Mode:**
+  - Added price change indication with color scheme:
+    - 🟢 **Green** — profitable swap.
+    - 🔴 **Red** — swap with losses.
+    - ⚪ **White** — no loss.
+
+### 🛠 Fixes
+- **Ton Connect (UI):**
+  - Fixed a visual issue when removing a connection.
+
+
+
 ## Main changes in version 0.47.0
 _Release date: October 1, 2025_
 
