@@ -461,7 +461,8 @@ private fun AvailableBalanceField(
 fun PriceImpactField(
     priceImpact: BigDecimal?,
     priceImpactLevel: PriceImpactLevel?,
-    navController: NavController
+    navController: NavController,
+    borderTop: Boolean = true
 ) {
     if (priceImpact == null || priceImpactLevel == null) return
 
@@ -469,6 +470,7 @@ fun PriceImpactField(
     val infoText = stringResource(id = R.string.SwapInfo_PriceImpactDescription)
 
     QuoteInfoRow(
+        borderTop = borderTop,
         title = {
             subhead2_grey(text = stringResource(R.string.Swap_PriceImpact))
 
