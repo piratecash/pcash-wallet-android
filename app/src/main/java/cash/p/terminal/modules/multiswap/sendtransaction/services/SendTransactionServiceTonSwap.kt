@@ -170,8 +170,8 @@ class SendTransactionServiceTonSwap(
 
         // just to check if adapter is correct
         when {
-            data.ptonWalletAddress != null -> addressService.setAddress(
-                addressHandlerTon.parseAddress(data.ptonWalletAddress)
+            data.destinationAddress != null -> addressService.setAddress(
+                addressHandlerTon.parseAddress(data.destinationAddress)
             )
 
             routerMasterAddress != null -> addressService.setAddress(
@@ -189,13 +189,12 @@ class SendTransactionServiceTonSwap(
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
             val tonSwapData = checkNotNull(tonSwapData) { "Nothing to send" }
-
-            val destinationAddress = checkNotNull(tonSwapData.ptonWalletAddress) { "Destination address is missing" }
+            val destinationAddress = checkNotNull(tonSwapData.destinationAddress) { "Destination address is missing" }
 
             val amount = tonSwapData.gasBudget
-                ?: (tonSwapData.offerUnits + tonSwapData.forwardGas + ptonTransferFeeNano)
+                ?: (tonSwapData.offerUnits + tonSwapData.forwardGas + ptonTransferFeeNano).toBigInteger()
             adapter.sendWithPayload(
-                amount = amount.toBigInteger(),
+                amount = amount,
                 address = destinationAddress,
                 payload = tonSwapData.payload
             )

@@ -54,8 +54,7 @@ internal class StonFiRepositoryImpl(
         poolAddress: String?,
         referralAddress: String?,
         referralFeeBps: Int?,
-        dexV2: Boolean?,
-        dexVersion: List<String>?
+        dexVersion: Int?
     ): SimulateSwap = withContext(Dispatchers.IO) {
         stonFiApi.simulateSwap(
             offerAddress = offerAddress,
@@ -65,7 +64,6 @@ internal class StonFiRepositoryImpl(
             poolAddress = poolAddress,
             referralAddress = referralAddress,
             referralFeeBps = referralFeeBps,
-            dexV2 = dexV2,
             dexVersion = dexVersion
         ).let(stonFiMapper::mapSimulateSwapDto)
     }

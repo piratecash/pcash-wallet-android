@@ -25,8 +25,7 @@ interface StonFiRepository {
         poolAddress: String? = null,
         referralAddress: String? = null,
         referralFeeBps: Int? = null,
-        dexV2: Boolean? = true,
-        dexVersion: List<String>? = null
+        dexVersion: Int? = null
     ): SimulateSwap
 
     suspend fun getSwapStatus(

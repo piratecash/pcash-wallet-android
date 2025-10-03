@@ -36,7 +36,8 @@ data class StonFiSwapData(
     val feeAddress: String,
     val feeUnits: String,
     val feePercent: String,
-    val gasParams: StonFiGasParams
+    val gasParams: StonFiGasParams,
+    val dexVersion: Int
 )
 
 data class StonFiGasParams(

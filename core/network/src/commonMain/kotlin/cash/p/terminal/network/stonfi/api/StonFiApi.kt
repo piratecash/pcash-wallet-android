@@ -30,8 +30,7 @@ internal class StonFiApi(
         poolAddress: String? = null,
         referralAddress: String? = null,
         referralFeeBps: Int? = null,
-        dexV2: Boolean? = true,
-        dexVersion: List<String>? = null
+        dexVersion: Int? = null
     ): SimulateSwapDto {
         return httpClient.post {
             url(BASE_URL + "v1/swap/simulate")
@@ -42,7 +41,6 @@ internal class StonFiApi(
             poolAddress?.let { parameter("pool_address", it) }
             referralAddress?.let { parameter("referral_address", it) }
             referralFeeBps?.let { parameter("referral_fee_bps", it) }
-            dexV2?.let { parameter("dex_v2", it) }
             dexVersion?.let { parameter("dex_version", it) }
         }.parseResponse()
     }

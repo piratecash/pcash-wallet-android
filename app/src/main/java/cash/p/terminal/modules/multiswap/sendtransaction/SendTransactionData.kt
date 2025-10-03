@@ -7,6 +7,7 @@ import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.network.CreatedTransaction
 import java.math.BigDecimal
+import java.math.BigInteger
 
 sealed class SendTransactionData {
     data class Evm(
@@ -65,11 +66,11 @@ sealed class SendTransactionData {
         val offerUnits: BigDecimal,
         val routerAddress: String,
         val routerMasterAddress: String,
-        val ptonWalletAddress: String?,
+        val destinationAddress: String?,
         val queryId: Long?,
         val slippage: BigDecimal,
         val payload: String,
-        val gasBudget: BigDecimal? = null
+        val gasBudget: BigInteger? = null
     ) : SendTransactionData()
 
     class Monero(

@@ -16,6 +16,7 @@ import cash.p.terminal.modules.multiswap.settings.SwapSettingSlippage
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.multiswap.ui.DataFieldRecipient
 import cash.p.terminal.modules.multiswap.ui.DataFieldSlippage
+import cash.p.terminal.network.stonfi.domain.entity.SimulateSwap
 import cash.p.terminal.network.stonfi.domain.repository.StonFiRepository
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
@@ -27,6 +28,7 @@ import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
 import timber.log.Timber
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class StonFiProvider(
     private val stonFiRepository: StonFiRepository,
@@ -75,16 +77,19 @@ class StonFiProvider(
         val referralAddressTon = REF_ADDRESS_TON
         val referralFeeBps = referralAddressTon?.let { REF_FEE_BPS }
 
-        val response = stonFiRepository.simulateSwap(
+        val simulation = simulateSwapWithFallback(
             offerAddress = offerAddress,
             askAddress = askAddress,
             units = units,
             slippageTolerance = settingSlippage.valueOrDefault(),
-            referralFeeBps = referralFeeBps,
+            poolAddress = null,
             referralAddress = referralAddressTon,
-            poolAddress = null, // Let STON.fi choose the best pool
-            dexV2 = true
+            referralFeeBps = referralFeeBps,
+            preferredVersions = listOf(2, 1)
         )
+
+        val response = simulation.swap
+        val dexVersionUsed = simulation.dexVersion
 
         val amountOut = BigDecimal(response.askUnits).movePointLeft(tokenOut.decimals)
         val priceImpact = BigDecimal(response.priceImpact)
@@ -109,7 +114,8 @@ class StonFiProvider(
                 forwardGas = response.gasParams.forwardGas,
                 estimatedGasConsumption = response.gasParams.estimatedGasConsumption,
                 gasBudget = response.gasParams.gasBudget
-            )
+            ),
+            dexVersion = dexVersionUsed
         )
 
         val fields = buildList {
@@ -156,7 +162,6 @@ class StonFiProvider(
         }
     }
 
-
     override suspend fun fetchFinalQuote(
         tokenIn: Token,
         tokenOut: Token,
@@ -175,15 +180,21 @@ class StonFiProvider(
         val askAddress = getTokenAddress(tokenOut)
         val units = amountIn.movePointRight(tokenIn.decimals).toBigInteger().toString()
 
-        val response = stonFiRepository.simulateSwap(
+        val preferredDexVersion = swapQuote.swapData.dexVersion
+        val versionsToTry = if (preferredDexVersion == 2) listOf(2, 1) else listOf(1, 2)
+
+        val finalSimulation = simulateSwapWithFallback(
             offerAddress = offerAddress,
             askAddress = askAddress,
             units = units,
             slippageTolerance = settingSlippage.valueOrDefault(),
-            poolAddress = swapQuote.swapData.poolAddress,
+            poolAddress = swapQuote.swapData.poolAddress.takeIf { it.isNotBlank() },
             referralAddress = REF_ADDRESS_TON,
-            referralFeeBps = REF_FEE_BPS
+            referralFeeBps = REF_FEE_BPS,
+            preferredVersions = versionsToTry
         )
+
+        val response = finalSimulation.swap
 
         val amountOut = BigDecimal(response.askUnits).movePointLeft(tokenOut.decimals)
         val minAmountOut = BigDecimal(response.minAskUnits).movePointLeft(tokenOut.decimals)
@@ -198,19 +209,26 @@ class StonFiProvider(
         val receiverOwnerAddress = settingRecipient.value?.hex ?: walletAddressTo
         val receiverAddress = receiverOwnerAddress
 
-        val routerInfo = stonFiRepository.getRouter(swapQuote.swapData.routerAddress)
+        val routerInfo = stonFiRepository.getRouter(response.routerAddress)
 
         val ptonWalletAddress = when {
             // jetton -> ...
             tokenIn.type is TokenType.Jetton -> runCatching {
                 stonFiRepository.getJettonAddress(
-                    (tokenIn.type as TokenType.Jetton).address,
-                    receiverOwnerAddress
+                    contractAddress = (tokenIn.type as TokenType.Jetton).address,
+                    ownerAddress = receiverOwnerAddress
                 )
             }.getOrNull()
 
             // ton -> ...
             else -> routerInfo.ptonWalletAddress
+        }
+
+        val destinationAddress = when {
+            finalSimulation.dexVersion == 1 && tokenIn.type == TokenType.Native -> response.offerJettonWallet
+                .takeUnless { it.isBlank() }
+                ?: throw IllegalStateException("STON.fi v1: missing offer jetton wallet")
+            else -> ptonWalletAddress
         }
 
         val forwardGasDecimal = response.gasParams.forwardGas ?: BigDecimal.ZERO
@@ -222,47 +240,98 @@ class StonFiProvider(
 
         val tonTransferQueryId = System.currentTimeMillis()
 
-        val swapPayload = when {
-            tokenIn.type is TokenType.Jetton ->
-                buildJettonToTonPayload(
-                    amount = amountIn.movePointRight(tokenIn.decimals).toBigInteger(),
-                    router = AddrStd(response.routerAddress),
-                    ptonWallet = AddrStd(response.askJettonWallet),
-                    refundAddress = AddrStd(addressFrom),
-                    minOut = BigInt(response.minAskUnits),
-                    forwardGas = forwardGasBigInt,
-                    queryId = tonTransferQueryId,
-                    refFee = REF_FEE_BPS,
-                    referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
-                )
-
-            else -> {
-                val offerAmountBigInt = try {
-                    BigInt(response.offerUnits.toBigIntegerExact().toString())
-                } catch (_: ArithmeticException) {
-                    BigInt(response.offerUnits.toBigInteger().toString())
-                }
-                buildStonfiSwapTonToJettonPayload(
-                    tonAmount = offerAmountBigInt,
-                    tokenWallet = AddrStd(response.askJettonWallet),
-                    refundAddress = AddrStd(addressFrom),
-                    minOut = BigInt(response.minAskUnits),
-                    receiver = AddrStd(receiverAddress),
-                    refFee = REF_FEE_BPS,
-                    fwdGas = forwardGasBigInt,
-                    referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
-                )
-            }
+        val offerAmountBigInt = try {
+            BigInt(response.offerUnits.toBigIntegerExact().toString())
+        } catch (_: ArithmeticException) {
+            BigInt(response.offerUnits.toBigInteger().toString())
         }
 
-        val gasBudget = response.gasParams.gasBudget?.let { BigDecimal(it) }
+        var gasBudget = response.gasParams.gasBudget?.let { BigInteger(it) }
+
+        val swapPayload = when {
+            tokenIn.type is TokenType.Jetton -> {
+                when (finalSimulation.dexVersion) {
+                    1 -> {
+                        gasBudget = offerAmountBigInt + forwardGasBigInt + BigInt("100000000") // 0.1 TON
+
+                        buildJettonToTonPayloadV1(
+                            router = AddrStd(response.routerAddress),
+                            refundAddress = AddrStd(addressFrom),
+                            routerPtonWallet = AddrStd(routerInfo.ptonWalletAddress),
+                            amount = amountIn.movePointRight(tokenIn.decimals).toBigInteger(),
+                            minOut = BigInt(response.minAskUnits),
+                            queryId = tonTransferQueryId,
+                            referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) },
+                            forwardTonAmount = forwardGasBigInt
+                        )
+                    }
+
+                    2 -> {
+                        buildJettonToTonPayloadV2(
+                            amount = amountIn.movePointRight(tokenIn.decimals).toBigInteger(),
+                            router = AddrStd(response.routerAddress),
+                            ptonWallet = AddrStd(response.askJettonWallet),
+                            refundAddress = AddrStd(addressFrom),
+                            minOut = BigInt(response.minAskUnits),
+                            forwardGas = forwardGasBigInt,
+                            queryId = tonTransferQueryId,
+                            refFee = REF_FEE_BPS,
+                            referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
+                        )
+                    }
+
+                    else -> {
+                        throw IllegalStateException("Unsupported dex version: ${finalSimulation.dexVersion}")
+                    }
+                }
+            }
+
+            else -> {
+
+                when (finalSimulation.dexVersion) {
+                    1 -> {
+                        // amount to send
+                        gasBudget = offerAmountBigInt + BigInt("185000000") // 0.185 TON
+                        val routerJettonWallet = response.askJettonWallet
+                            .takeUnless { it.isNullOrBlank() }
+                            ?: throw IllegalStateException("STON.fi v1: missing ask jetton wallet")
+                        buildStonfiSwapTonToJettonTransferV1(
+                            amount = amountIn.movePointRight(tokenIn.decimals).toBigInteger(),
+                            routerAddress = AddrStd(response.routerAddress),
+                            routerJettonWallet = AddrStd(routerJettonWallet),
+                            receiver = AddrStd(receiverOwnerAddress),
+                            minOut = BigInt(response.minAskUnits),
+                            referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) },
+                            forwardTonAmount = forwardGasBigInt,
+                            queryId = tonTransferQueryId,
+                        )
+                    }
+
+                    2 -> {
+                        buildStonfiSwapTonToJettonPayloadV2(
+                            tonAmount = offerAmountBigInt,
+                            tokenWallet = AddrStd(response.askJettonWallet),
+                            refundAddress = AddrStd(addressFrom),
+                            minOut = BigInt(response.minAskUnits),
+                            receiver = AddrStd(receiverAddress),
+                            refFee = REF_FEE_BPS,
+                            fwdGas = forwardGasBigInt,
+                            referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
+                        )
+                    } else -> {
+                        throw IllegalStateException("Unsupported dex version: ${finalSimulation.dexVersion}")
+                    }
+                }
+
+            }
+        }
 
         val sendTransactionData = SendTransactionData.TonSwap(
             offerUnits = response.offerUnits,
             forwardGas = forwardGasDecimal,
-            routerAddress = swapQuote.swapData.routerAddress,
+            routerAddress = response.routerAddress,
             routerMasterAddress = routerInfo.ptonMasterAddress,
-            ptonWalletAddress = ptonWalletAddress,
+            destinationAddress = destinationAddress,
             queryId = tonTransferQueryId,
             slippage = settingSlippage.valueOrDefault(),
             payload = swapPayload.toByteArray().encodeBase64(),
@@ -280,6 +349,67 @@ class StonFiProvider(
             fields = fields
         )
     }
+
+    private suspend fun simulateSwapWithFallback(
+        offerAddress: String,
+        askAddress: String,
+        units: String,
+        slippageTolerance: BigDecimal,
+        poolAddress: String?,
+        referralAddress: String?,
+        referralFeeBps: Int?,
+        preferredVersions: List<Int>
+    ): SimulationResult {
+        val errors = mutableListOf<Throwable>()
+
+        preferredVersions.forEachIndexed { index, dexVersion ->
+            val poolForAttempt = if (index == 0) poolAddress else null
+
+            val result = runCatching {
+                stonFiRepository.simulateSwap(
+                    offerAddress = offerAddress,
+                    askAddress = askAddress,
+                    units = units,
+                    slippageTolerance = slippageTolerance,
+                    poolAddress = poolForAttempt,
+                    referralAddress = referralAddress,
+                    referralFeeBps = referralFeeBps,
+                    dexVersion = dexVersion
+                )
+            }.getOrElse {
+                errors.add(it)
+                null
+            }
+
+            if (result != null) {
+                if (result.hasPositiveOutput()) {
+                    return SimulationResult(result, dexVersion)
+                }
+
+                errors.add(IllegalStateException("STON.fi returned zero output for dex_version=$dexVersion"))
+            }
+        }
+
+        val cause = errors.lastOrNull()
+        throw cause ?: IllegalStateException("STON.fi: не удалось получить маршрут обмена")
+    }
+
+    private fun SimulateSwap.hasPositiveOutput(): Boolean {
+        val askValue = parsePositiveBigDecimal(askUnits)
+        val minAskValue = parseNonNegativeBigDecimal(minAskUnits)
+        return askValue != null && minAskValue != null
+    }
+
+    private fun parsePositiveBigDecimal(value: String): BigDecimal? =
+        runCatching { BigDecimal(value) }.getOrNull()?.takeIf { it.signum() > 0 }
+
+    private fun parseNonNegativeBigDecimal(value: String): BigDecimal? =
+        runCatching { BigDecimal(value) }.getOrNull()?.takeIf { it.signum() >= 0 }
+
+    private data class SimulationResult(
+        val swap: SimulateSwap,
+        val dexVersion: Int
+    )
 
     private fun getTokenAddress(token: Token): String {
         return when (val tokenType = token.type) {
