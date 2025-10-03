@@ -391,7 +391,7 @@ class StonFiProvider(
         }
 
         val cause = errors.lastOrNull()
-        throw cause ?: IllegalStateException("STON.fi: не удалось получить маршрут обмена")
+        throw cause ?: IllegalStateException("Failed to simulate swap on STON.fi")
     }
 
     private fun SimulateSwap.hasPositiveOutput(): Boolean {
