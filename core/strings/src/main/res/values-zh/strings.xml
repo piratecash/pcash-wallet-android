@@ -513,7 +513,7 @@
     <string name="Swap_Swapping">交易中...</string>
     <string name="Swap_Quoting">引述</string>
     <string name="Swap_Providers">服务提供商</string>
-    <string name="Swap_SelectSwapProvider_Title">掉期供应商</string>
+    <string name="Swap_SwapProvider_Title">掉期供应商</string>
     <string name="Swap_AmountMin">(最小金额)</string>
     <string name="Swap_AmountMax">(最大金额)</string>
     <string name="Swap_YouPay">您支付</string>

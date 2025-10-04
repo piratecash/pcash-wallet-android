@@ -513,7 +513,7 @@
     <string name="Swap_Swapping">Swapping de Crypto</string>
     <string name="Swap_Quoting">Quotation</string>
     <string name="Swap_Providers">Service</string>
-    <string name="Swap_SelectSwapProvider_Title">Fournisseur swap</string>
+    <string name="Swap_SwapProvider_Title">Fournisseur de swap</string>
     <string name="Swap_AmountMin">(montant minimal)</string>
     <string name="Swap_AmountMax">(max)</string>
     <string name="Swap_YouPay">Vous payez</string>

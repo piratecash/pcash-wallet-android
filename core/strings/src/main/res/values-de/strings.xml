@@ -511,7 +511,7 @@
     <string name="Swap_Swapping">Swapping</string>
     <string name="Swap_Quoting">Quoting</string>
     <string name="Swap_Providers">Anbieter</string>
-    <string name="Swap_SelectSwapProvider_Title">Provider tauschen</string>
+    <string name="Swap_SwapProvider_Title">Swap-Anbieter</string>
     <string name="Swap_AmountMin">(Min.)</string>
     <string name="Swap_AmountMax">(max)</string>
     <string name="Swap_YouPay">Sie bezahlen</string>

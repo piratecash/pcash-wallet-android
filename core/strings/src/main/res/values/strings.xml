@@ -708,7 +708,7 @@ Proceed only if you\'re sure.</string>
     <string name="Swap_Swapping">Swapping</string>
     <string name="Swap_Quoting">Quoting</string>
     <string name="Swap_Providers">Providers</string>
-    <string name="Swap_SelectSwapProvider_Title">Swap Provider</string>
+    <string name="Swap_SwapProvider_Title">Swap Provider</string>
     <string name="Swap_AmountMin">(min)</string>
     <string name="Swap_AmountMax">(max)</string>
     <string name="Swap_YouPay">You Pay</string>

@@ -527,7 +527,7 @@
     <string name="Swap_Swapping">Обмен</string>
     <string name="Swap_Quoting">Котировка</string>
     <string name="Swap_Providers">Провайдеры</string>
-    <string name="Swap_SelectSwapProvider_Title">Провайдер</string>
+    <string name="Swap_SwapProvider_Title">Провайдер</string>
     <string name="Swap_AmountMin">(мин)</string>
     <string name="Swap_AmountMax">(макс)</string>
     <string name="Swap_YouPay">Вы платите</string>

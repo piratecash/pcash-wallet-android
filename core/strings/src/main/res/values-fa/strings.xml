@@ -517,7 +517,7 @@
     <string name="Swap_Swapping">در حال جابجایی</string>
     <string name="Swap_Quoting">Quoting</string>
     <string name="Swap_Providers">Providers</string>
-    <string name="Swap_SelectSwapProvider_Title">Swap Provider</string>
+    <string name="Swap_SwapProvider_Title">ارائه‌دهنده مبادله</string>
     <string name="Swap_AmountMin">(دقیقه)</string>
     <string name="Swap_AmountMax">(حداکثر)</string>
     <string name="Swap_YouPay">شما می پردازید</string>

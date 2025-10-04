@@ -517,7 +517,7 @@
     <string name="Swap_Swapping">Trocando</string>
     <string name="Swap_Quoting">Quoting</string>
     <string name="Swap_Providers">Providers</string>
-    <string name="Swap_SelectSwapProvider_Title">Swap Service</string>
+    <string name="Swap_SwapProvider_Title">Fornecedor de swap</string>
     <string name="Swap_AmountMin">(min)</string>
     <string name="Swap_AmountMax">(máx)</string>
     <string name="Swap_YouPay">You Pay</string>

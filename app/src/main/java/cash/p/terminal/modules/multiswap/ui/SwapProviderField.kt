@@ -28,7 +28,7 @@ fun SwapProviderField(
         HSRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            subhead2_grey(text = stringResource(R.string.Swap_SelectSwapProvider_Title))
+            subhead2_grey(text = stringResource(R.string.Swap_SwapProvider_Title))
             Spacer(Modifier.weight(1f))
             Image(
                 modifier = Modifier.size(24.dp),

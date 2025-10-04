@@ -517,7 +517,7 @@
     <string name="Swap_Swapping">Takas</string>
     <string name="Swap_Quoting">Alıntı</string>
     <string name="Swap_Providers">Sağlayıcılar</string>
-    <string name="Swap_SelectSwapProvider_Title">Swap Sağlayıcısı</string>
+    <string name="Swap_SwapProvider_Title">Swap Sağlayıcısı</string>
     <string name="Swap_AmountMin">(dk)</string>
     <string name="Swap_AmountMax">(azami)</string>
     <string name="Swap_YouPay">Ödediğiniz</string>
