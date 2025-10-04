@@ -10,6 +10,8 @@ import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
@@ -20,9 +22,7 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.SendResult
-import cash.p.terminal.modules.send.tron.FeeState
 import cash.p.terminal.modules.send.tron.SendTronAddressService
-import cash.p.terminal.modules.send.tron.SendTronConfirmationData
 import cash.p.terminal.modules.send.tron.SendTronFeeService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Token
@@ -64,7 +64,7 @@ class SendTransactionServiceTron(
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
-    private var feeState: FeeState = FeeState.Loading
+    private var feeState = feeService.stateFlow.value
 
     private var networkFee: SendModule.AmountData? = null
     private var sendTransactionData: SendTransactionData.Tron? = null
@@ -83,19 +83,16 @@ class SendTransactionServiceTron(
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
-    private var confirmationData by mutableStateOf<SendTronConfirmationData?>(null)
 
     private var cautions: List<CautionViewItem> = listOf()
-    private var sendable = false
-    private var loading = true
     private var fields = listOf<DataField>()
 
     override fun createState() = SendTransactionServiceState(
         availableBalance = adapter.balanceData.available,
         networkFee = networkFee,
         cautions = cautions,
-        sendable = sendable,
-        loading = loading,
+        sendable = sendTransactionData != null || (amountState.canBeSend && feeState.canBeSend && addressState.canBeSend),
+        loading = false,
         fields = fields
     )
 
@@ -120,6 +117,12 @@ class SendTransactionServiceTron(
                 feeCoinRate = it
             }
         }
+
+        coroutineScope.launch {
+            feeService.stateFlow.collect {
+                handleUpdatedFeeState(it)
+            }
+        }
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
@@ -127,12 +130,20 @@ class SendTransactionServiceTron(
 
         sendTransactionData = data
 
-        if (data is SendTransactionData.Tron.WithContract) {
-            feeService.setContract(data.contract)
-        } else if (data is SendTransactionData.Tron.WithCreateTransaction) {
-            feeService.setFeeLimit(data.transaction.raw_data.fee_limit)
-        }
+        when (data) {
+            is SendTransactionData.Tron.WithContract -> {
+                feeService.setContract(data.contract)
+            }
 
+            is SendTransactionData.Tron.WithCreateTransaction -> {
+                feeService.setFeeLimit(data.transaction.raw_data.fee_limit)
+            }
+
+            is SendTransactionData.Tron.Regular -> {
+                amountService.setAmount(data.amount)
+                addressService.setAddress(Address(data.address))
+            }
+        }
         emitState()
     }
 
@@ -172,15 +183,25 @@ class SendTransactionServiceTron(
         return SendTransactionResult.Tron(SendResult.Sent(transactionId))
     }
 
-    private fun handleUpdatedAmountState(amountState: SendAmountService.State) {
-        this.amountState = amountState
-        sendable = amountState.canBeSend
+    private fun handleUpdatedFeeState(state: SendTronFeeService.State) {
+        feeState = state
+
+        networkFee = feeState.fee?.let {
+            getAmountData(CoinValue(feeToken, it))
+        }
 
         emitState()
     }
 
-    private fun handleUpdatedAddressState(addressState: SendTronAddressService.State) {
+    private suspend fun handleUpdatedAmountState(amountState: SendAmountService.State) {
+        this.amountState = amountState
+        feeService.setAmount(amountState.amount)
+        emitState()
+    }
+
+    private suspend fun handleUpdatedAddressState(addressState: SendTronAddressService.State) {
         this.addressState = addressState
+        feeService.setTronAddress(addressState.tronAddress)
         emitState()
     }
 
