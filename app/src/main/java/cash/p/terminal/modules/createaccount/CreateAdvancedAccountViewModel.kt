@@ -185,6 +185,8 @@ class CreateAdvancedAccountViewModel(
 
     private fun getDefaultTokens() = listOfNotNull(
         TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)),
+        TokenQuery(BlockchainType.Monero, TokenType.Native),
+        TokenQuery(BlockchainType.Zcash, TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified)),
         TokenQuery(BlockchainType.Ethereum, TokenType.Native),
         TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Native),
         //TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xdac17f958d2ee523a2206206994597c13d831ec7")),

@@ -1,3 +1,16 @@
+## Main changes in version 0.47.2
+_Release date: October 4, 2025_
+
+### ✨ New Features
+- **Wallet creation:**
+  - Added automatic inclusion of **ZEC (Unified)** and **Monero** coins when creating a new wallet.
+
+### 🛠 Fixes
+- **TRX Swap:**
+  - Fixed an issue where the **TRX** swap process could hang during the quote determination stage.
+
+
+
 ## Main changes in version 0.47.1
 _Release date: October 3, 2025_
 
