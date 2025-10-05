@@ -97,7 +97,6 @@ class ManageWalletsViewModel(
         }.distinct()
         tangemScanUseCase.scanProduct(
             blockchainsToDerive = blockchainTypesToDerive,
-            cardId = cardId,
         ).doOnSuccess { scanResponse ->
             val publicKeys =
                 BuildHardwarePublicKeyUseCase().invoke(
