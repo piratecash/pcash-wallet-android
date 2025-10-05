@@ -50,7 +50,7 @@ class Eip20ApproveConfirmFragment : BaseComposeFragment() {
 }
 
 @Composable
-fun Eip20ApproveConfirmScreen(navController: NavController) {
+internal fun Eip20ApproveConfirmScreen(navController: NavController) {
     val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
         navController.getBackStackEntry(R.id.eip20ApproveFragment)
     }
@@ -88,7 +88,8 @@ fun Eip20ApproveConfirmScreen(navController: NavController) {
                             delay(1200)
                             Eip20ApproveConfirmFragment.Result(true)
                         } catch (t: Throwable) {
-                            HudHelper.showErrorMessage(view, t.javaClass.simpleName)
+                            val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                            HudHelper.showErrorMessage(view, msg)
                             Eip20ApproveConfirmFragment.Result(false)
                         }
 

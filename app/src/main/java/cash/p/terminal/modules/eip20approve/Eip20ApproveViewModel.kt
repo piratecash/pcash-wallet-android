@@ -13,13 +13,13 @@ import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.eip20approve.AllowanceMode.OnlyRequired
 import cash.p.terminal.modules.eip20approve.AllowanceMode.Unlimited
 import cash.p.terminal.modules.multiswap.FiatService
+import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
-import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
+import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceFactory
 import cash.p.terminal.modules.send.SendModule
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.IAdapterManager
-import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
@@ -33,9 +33,8 @@ internal class Eip20ApproveViewModel(
     private val token: Token,
     private val requiredAllowance: BigDecimal,
     private val spenderAddress: String,
-    private val walletManager: IWalletManager,
     private val adapterManager: IAdapterManager,
-    val sendTransactionService: SendTransactionServiceEvm,
+    val sendTransactionService: ISendTransactionService<*>,
     private val currencyManager: CurrencyManager,
     private val fiatService: FiatService,
     private val contactsRepository: ContactsRepository,
@@ -144,18 +143,17 @@ internal class Eip20ApproveViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val sendTransactionService = SendTransactionServiceEvm(token)
+            val sendTransactionService = SendTransactionServiceFactory.create(token)
 
             return Eip20ApproveViewModel(
-                token,
-                requiredAllowance,
-                spenderAddress,
-                App.walletManager,
-                App.adapterManager,
-                sendTransactionService,
-                App.currencyManager,
-                FiatService(App.marketKit),
-                App.contactsRepository
+                token = token,
+                requiredAllowance = requiredAllowance,
+                spenderAddress = spenderAddress,
+                adapterManager = App.adapterManager,
+                sendTransactionService = sendTransactionService,
+                currencyManager = App.currencyManager,
+                fiatService = FiatService(App.marketKit),
+                contactsRepository = App.contactsRepository
             ) as T
         }
     }

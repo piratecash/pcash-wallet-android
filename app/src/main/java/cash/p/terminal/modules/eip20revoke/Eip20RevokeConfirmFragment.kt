@@ -59,8 +59,13 @@ class Eip20RevokeConfirmFragment : BaseComposeFragment() {
 @Composable
 fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFragment.Input) {
     val currentBackStackEntry = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.eip20RevokeConfirmFragment)
-    }
+        try {
+            navController.getBackStackEntry(R.id.eip20RevokeConfirmFragment)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    } ?: return
+
     val viewModel = viewModel<Eip20RevokeConfirmViewModel>(
         viewModelStoreOwner = currentBackStackEntry,
         factory = Eip20RevokeConfirmViewModel.Factory(input.token, input.spenderAddress, input.allowance)
@@ -98,7 +103,8 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
                             delay(1200)
                             Eip20RevokeConfirmFragment.Result(true)
                         } catch (t: Throwable) {
-                            HudHelper.showErrorMessage(view, t.javaClass.simpleName)
+                            val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                            HudHelper.showErrorMessage(view, msg)
                             Eip20RevokeConfirmFragment.Result(false)
                         }
 

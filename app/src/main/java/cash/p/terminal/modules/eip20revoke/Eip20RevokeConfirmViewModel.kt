@@ -11,7 +11,9 @@ import cash.p.terminal.core.isEvm
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.multiswap.FiatService
+import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
+import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceFactory
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
 import cash.p.terminal.modules.send.SendModule
 import io.horizontalsystems.core.ViewModelUiState
@@ -34,7 +36,7 @@ internal class Eip20RevokeConfirmViewModel(
     private val spenderAddress: String,
     private val walletManager: IWalletManager,
     private val adapterManager: IAdapterManager,
-    val sendTransactionService: SendTransactionServiceEvm,
+    val sendTransactionService: ISendTransactionService<*>,
     private val currencyManager: CurrencyManager,
     private val fiatService: FiatService,
     private val contactsRepository: ContactsRepository,
@@ -126,18 +128,18 @@ internal class Eip20RevokeConfirmViewModel(
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val sendTransactionService = SendTransactionServiceEvm(token)
+            val sendTransactionService = SendTransactionServiceFactory.create(token)
 
             return Eip20RevokeConfirmViewModel(
-                token,
-                allowance,
-                spenderAddress,
-                App.walletManager,
-                App.adapterManager,
-                sendTransactionService,
-                App.currencyManager,
-                FiatService(App.marketKit),
-                App.contactsRepository
+                token = token,
+                allowance = allowance,
+                spenderAddress = spenderAddress,
+                walletManager = App.walletManager,
+                adapterManager = App.adapterManager,
+                sendTransactionService = sendTransactionService,
+                currencyManager = App.currencyManager,
+                fiatService = FiatService(App.marketKit),
+                contactsRepository = App.contactsRepository
             ) as T
         }
     }

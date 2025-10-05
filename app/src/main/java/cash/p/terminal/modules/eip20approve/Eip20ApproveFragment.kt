@@ -55,9 +55,12 @@ class Eip20ApproveFragment : BaseComposeFragment() {
 @Composable
 fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment.Input) {
     val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.eip20ApproveFragment)
-    }
-
+        try {
+            navController.getBackStackEntry(R.id.eip20ApproveFragment)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    } ?: return
 
     val viewModel = viewModel<Eip20ApproveViewModel>(
         viewModelStoreOwner = viewModelStoreOwner,
