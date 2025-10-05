@@ -45,6 +45,7 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.wallet.WalletFactory
 import com.reown.walletkit.client.WalletKit
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
@@ -77,6 +78,7 @@ class BalanceViewModel(
     private var errorMessage: String? = null
     private var balanceTabButtonsEnabled = localStorage.balanceTabButtonsEnabled
 
+    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
     private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val coinManager: ICoinManager by inject(ICoinManager::class.java)
@@ -274,7 +276,7 @@ class BalanceViewModel(
                     Log.d("BalanceViewModel", "Activating new ZCash")
                     val hardwarePublicKey =
                         runBlocking { getHardwarePublicKeyForWalletUseCase(account, token) }
-                    service.enable(Wallet(token, account, hardwarePublicKey))
+                    walletFactory.create(token, account, hardwarePublicKey)?.let(service::enable)
                 }
             }
         }

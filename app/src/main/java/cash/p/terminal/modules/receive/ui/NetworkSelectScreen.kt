@@ -75,7 +75,7 @@ fun NetworkSelectScreen(
                             imageUrl = blockchain.type.imageUrl,
                             onClick = {
                                 coroutineScope.launch {
-                                    onSelect.invoke(viewModel.getOrCreateWallet(token))
+                                    viewModel.getOrCreateWallet(token)?.let(onSelect)
                                 }
                             }
                         )

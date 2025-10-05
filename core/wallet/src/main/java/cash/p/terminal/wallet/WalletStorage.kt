@@ -4,13 +4,15 @@ import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
+import cash.p.terminal.wallet.WalletFactory
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.runBlocking
 
 class WalletStorage(
     private val marketKit: MarketKitWrapper,
     private val storage: IEnabledWalletStorage,
-    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase
+    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase,
+    private val walletFactory: WalletFactory
 ) : IWalletStorage {
 
     private val map: HashMap<Wallet, Long> = HashMap()
@@ -44,11 +46,11 @@ class WalletStorage(
                         tokenType = token.type
                     )
                 }
-                return@mapNotNull Wallet(
+                return@mapNotNull walletFactory.create(
                     token = token,
                     account = account,
                     hardwarePublicKey = hardwarePublicKey
-                ).apply { map[this] = enabledWallet.id }
+                )?.apply { map[this] = enabledWallet.id }
             }
 
             if (enabledWallet.coinName != null && enabledWallet.coinCode != null && enabledWallet.coinDecimals != null) {
@@ -76,11 +78,11 @@ class WalletStorage(
                     )
                 }
 
-                Wallet(
+                walletFactory.create(
                     token = token,
                     account = account,
                     hardwarePublicKey = hardwarePublicKey
-                ).apply {
+                )?.apply {
                     map[this] = enabledWallet.id
                 }
             } else {

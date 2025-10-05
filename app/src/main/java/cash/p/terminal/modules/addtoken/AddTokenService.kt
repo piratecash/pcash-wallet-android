@@ -8,6 +8,7 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.entities.Blockchain
@@ -24,6 +25,7 @@ class AddTokenService(
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
         GetHardwarePublicKeyForWalletUseCase::class.java
     )
+    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
 
     private val blockchainTypes = listOf(
         BlockchainType.Ethereum,
@@ -91,8 +93,9 @@ class AddTokenService(
                 token.token.type
             )
         }
-        val wallet = Wallet(token.token, account, hardwarePublicKey)
-        walletManager.save(listOf(wallet))
+        walletFactory.create(token.token, account, hardwarePublicKey)?.let {
+            walletManager.save(listOf(it))
+        }
     }
 
     sealed class TokenError : Exception() {

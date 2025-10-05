@@ -1,5 +1,6 @@
 package cash.p.terminal.tangem.di
 
+import cash.p.terminal.tangem.domain.policy.TangemHardwareWalletTokenPolicy
 import cash.p.terminal.tangem.domain.sdk.CardSdkConfigRepository
 import cash.p.terminal.tangem.domain.sdk.CardSdkProvider
 import cash.p.terminal.tangem.domain.sdk.TangemSdkManager
@@ -16,6 +17,7 @@ import cash.p.terminal.tangem.domain.usecase.ValidateBackUseCase
 import cash.p.terminal.tangem.ui.HardwareWalletOnboardingViewModel
 import cash.p.terminal.tangem.ui.accesscode.AddAccessCodeViewModel
 import cash.p.terminal.tangem.ui.accesscoderecovery.AccessCodeRecoveryViewModel
+import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.wallet.useCases.ScanToAddUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
@@ -39,6 +41,8 @@ val featureTangemModule = module {
     singleOf(::CardSdkProvider)
     singleOf(::TangemSdkManager)
     singleOf(::CardSdkConfigRepository)
+
+    singleOf(::TangemHardwareWalletTokenPolicy) bind HardwareWalletTokenPolicy::class
 
     viewModelOf(::HardwareWalletOnboardingViewModel)
     viewModelOf(::AddAccessCodeViewModel)

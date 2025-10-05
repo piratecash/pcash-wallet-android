@@ -12,6 +12,7 @@ import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
@@ -40,6 +41,7 @@ class ManageWalletsService(
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
         GetHardwarePublicKeyForWalletUseCase::class.java
     )
+    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
 
     private val _itemsFlow = MutableStateFlow<List<Item>>(listOf())
     val itemsFlow = _itemsFlow.asStateFlow()
@@ -172,7 +174,9 @@ class ManageWalletsService(
             getHardwarePublicKeyForWalletUseCase(account, token)
         }
 
-        walletManager.save(listOf(Wallet(token, account, hardwarePublicKey)))
+        walletFactory.create(token, account, hardwarePublicKey)?.let {
+            walletManager.save(listOf(it))
+        }
 
         updateSortedItems(token, true)
         syncState()

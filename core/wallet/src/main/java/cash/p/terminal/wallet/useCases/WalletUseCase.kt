@@ -9,13 +9,15 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.WalletFactory
 
 class WalletUseCase(
     private val walletManager: IWalletManager,
     private val accountManager: IAccountManager,
     private val adapterManager: IAdapterManager,
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase,
-    private val scanToAddUseCase: ScanToAddUseCase
+    private val scanToAddUseCase: ScanToAddUseCase,
+    private val walletFactory: WalletFactory
 ) {
     fun getWallet(token: Token): Wallet? = walletManager.activeWallets.find {
         it.token == token
@@ -34,7 +36,7 @@ class WalletUseCase(
                 tokensToAdd = tokensToAdd
             )
         } else {
-            walletManager.saveSuspended(tokensToAdd.map { Wallet(it, account, null) })
+            walletManager.saveSuspended(tokensToAdd.mapNotNull { walletFactory.create(it, account, null) })
             return true
         }
     }
@@ -55,8 +57,8 @@ class WalletUseCase(
             }
         if (tokensToAdd.size == hardwarePublicKeys.size) {
             // We already had all hardware public keys
-            walletManager.save(hardwarePublicKeys.map { (token, hardwarePublicKey) ->
-                Wallet(token, account, hardwarePublicKey)
+            walletManager.save(hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
+                walletFactory.create(token, account, hardwarePublicKey)
             })
             return true
         }
@@ -82,8 +84,8 @@ class WalletUseCase(
                     token to hardwarePublicKey
                 }
             }
-        walletManager.save(hardwarePublicKeys.map { (token, hardwarePublicKey) ->
-            Wallet(token, account, hardwarePublicKey)
+        walletManager.save(hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
+            walletFactory.create(token, account, hardwarePublicKey)
         })
         return allKeysCreated
     }

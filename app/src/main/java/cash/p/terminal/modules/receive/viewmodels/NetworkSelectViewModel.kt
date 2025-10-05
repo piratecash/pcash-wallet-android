@@ -9,6 +9,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import org.koin.java.KoinJavaComponent.inject
@@ -23,21 +24,24 @@ class NetworkSelectViewModel(
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
         GetHardwarePublicKeyForWalletUseCase::class.java
     )
+    private val walletFactory: WalletFactory by inject(
+        WalletFactory::class.java
+    )
 
-    suspend fun getOrCreateWallet(token: Token): Wallet {
+    suspend fun getOrCreateWallet(token: Token): Wallet? {
         return walletManager
             .activeWallets
             .find { it.token == token }
             ?: createWallet(token)
     }
 
-    private suspend fun createWallet(token: Token): Wallet {
+    private suspend fun createWallet(token: Token): Wallet? {
 
-        val wallet = Wallet(
+        val wallet = walletFactory.create(
             token = token,
             account = activeAccount,
             hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(activeAccount, token)
-        )
+        ) ?: return null
 
         walletManager.save(listOf(wallet))
 

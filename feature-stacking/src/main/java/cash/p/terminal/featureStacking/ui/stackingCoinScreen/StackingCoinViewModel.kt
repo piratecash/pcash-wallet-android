@@ -24,6 +24,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.BalanceService
 import cash.p.terminal.wallet.balance.BalanceViewHelper
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -72,6 +73,7 @@ internal abstract class StackingCoinViewModel(
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject<GetHardwarePublicKeyForWalletUseCase>(
         GetHardwarePublicKeyForWalletUseCase::class.java
     )
+    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
 
     private val customDispatcher = Executors.newFixedThreadPool(10).asCoroutineDispatcher()
     private val _uiState = mutableStateOf(
@@ -172,14 +174,14 @@ internal abstract class StackingCoinViewModel(
             val account = accountManager.activeAccount ?: return
             val tokenQuery = TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20(contract))
             marketKitWrapper.token(tokenQuery)?.let { token ->
-                wallet = Wallet(
+                wallet = walletFactory.create(
                     token = token,
                     account = account,
                     hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
                         account = account, blockchainType = token.blockchainType,
                         tokenType = token.type
                     )
-                ).also {
+                )?.also {
                     walletManager.save(listOf(it))
                 }
             }

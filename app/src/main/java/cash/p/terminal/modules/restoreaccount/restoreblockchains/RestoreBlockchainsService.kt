@@ -20,6 +20,7 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
@@ -55,6 +56,8 @@ class RestoreBlockchainsService(
     private val enabledTokens = CopyOnWriteArrayList<Token>()
 
     private var restoreSettingsMap = mutableMapOf<Token, RestoreSettings>()
+
+    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
 
     val cancelEnableBlockchainObservable = PublishSubject.create<Blockchain>()
     val canRestore = BehaviorSubject.createDefault(false)
@@ -217,14 +220,14 @@ class RestoreBlockchainsService(
 
         if (enabledTokens.isEmpty()) return
 
-        val wallets = enabledTokens.map {
+        val wallets = enabledTokens.mapNotNull {
             val hardwarePublicKey = runBlocking {
                 getHardwarePublicKeyForWalletUseCase(
                     account,
                     it
                 )
             }
-            Wallet(it, account, hardwarePublicKey)
+            walletFactory.create(it, account, hardwarePublicKey)
         }
         walletManager.save(wallets)
     }
