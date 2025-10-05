@@ -1,3 +1,18 @@
+## Main changes in version 0.47.3
+_Release date: October 5, 2025_
+
+### ✨ New Features
+- **Hardware wallet:**
+  - Updated the default coin initialization logic for the hardware wallet.
+
+### 🛠 Fixes
+- **TRX-20 Swap:**
+  - Fixed an app crash that occurred when granting permission for **TRX-20** token swaps.
+- **Token addition:**
+  - Removed the required card number field when adding a token for the hardware wallet.
+
+
+
 ## Main changes in version 0.47.2
 _Release date: October 4, 2025_
 
