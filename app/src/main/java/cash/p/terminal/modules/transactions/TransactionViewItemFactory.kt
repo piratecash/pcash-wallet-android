@@ -1205,10 +1205,10 @@ class TransactionViewItemFactory(
         lastBlockTimestamp: Long?,
         icon: TransactionViewItem.Icon?
     ): TransactionViewItem {
-        val subtitle = record.to?.let {
+        val subtitle = record.to?.firstOrNull()?.let {
             Translator.getString(
                 R.string.Transactions_To,
-                mapped(it.first(), record.blockchainType)
+                mapped(it, record.blockchainType)
             )
         } ?: "---"
 

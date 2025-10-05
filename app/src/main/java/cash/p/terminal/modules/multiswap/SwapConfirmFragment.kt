@@ -72,9 +72,9 @@ fun SwapConfirmScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val view = LocalView.current
 
-    val previousBackStackEntry = remember { navController.previousBackStackEntry }
+    val previousBackStackEntry = remember { navController.previousBackStackEntry } ?: return
     val swapViewModel = viewModel<SwapViewModel>(
-        viewModelStoreOwner = previousBackStackEntry!!,
+        viewModelStoreOwner = previousBackStackEntry,
     )
 
     val currentQuote = remember { swapViewModel.getCurrentQuote() } ?: return
