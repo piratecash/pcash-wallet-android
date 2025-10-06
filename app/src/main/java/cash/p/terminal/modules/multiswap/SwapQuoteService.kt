@@ -127,8 +127,12 @@ class SwapQuoteService {
                     quoting = true
                     emitState()
 
-                    quotes = fetchQuotes(supportedProviders, tokenIn, tokenOut, amountIn)
+                    val newQuotes = fetchQuotes(supportedProviders, tokenIn, tokenOut, amountIn)
                         .run { sortedByDescending { it.amountOut } }
+                    if (amountIn != this@SwapQuoteService.amountIn) {
+                        return@launch // ignore outdated quotes
+                    }
+                    quotes = newQuotes
 
                     if (preferredProvider != null && quotes.none { it.provider == preferredProvider }) {
                         preferredProvider = null
