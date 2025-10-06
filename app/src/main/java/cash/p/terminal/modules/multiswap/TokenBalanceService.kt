@@ -45,7 +45,7 @@ class TokenBalanceService(
         val amount = amount ?: return
 
         error = when (adapter?.balanceState) {
-            null -> TokenNotEnabled()
+            null -> null // we handle it as request to add token
             is AdapterState.SearchingTxs -> WalletSyncing()
             is AdapterState.Syncing -> WalletSyncing()
             is AdapterState.NotSynced -> WalletNotSynced()
@@ -75,6 +75,5 @@ class TokenBalanceService(
     data class State(val balance: BigDecimal?, val error: Throwable?)
 }
 
-class TokenNotEnabled : Exception()
 class WalletSyncing : Exception()
 class WalletNotSynced : Exception()

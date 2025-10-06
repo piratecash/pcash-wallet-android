@@ -300,7 +300,6 @@ private fun SwapScreenInner(
 
                             is PriceImpactTooHigh -> stringResource(id = R.string.Swap_ErrorHighPriceImpact)
                             is UnknownHostException -> stringResource(id = R.string.Hud_Text_NoInternet)
-                            is TokenNotEnabled -> stringResource(id = R.string.Swap_ErrorTokenNotEnabled)
                             is WalletSyncing -> stringResource(id = R.string.Swap_ErrorWalletSyncing)
                             is WalletNotSynced -> stringResource(id = R.string.Swap_ErrorWalletNotSynced)
                             else -> error.message ?: error.javaClass.simpleName

@@ -507,7 +507,6 @@
     <string name="Swap_ErrorInsufficientBalance">Недостаточный баланс</string>
     <string name="swap_out_of_min_amount">Меньше мин. суммы %s</string>
     <string name="Swap_ErrorHighPriceImpact">Высокое отклонение цены</string>
-    <string name="Swap_ErrorTokenNotEnabled">Токен не включен</string>
     <string name="Swap_ErrorWalletSyncing">Синхронизация кошелька</string>
     <string name="Swap_ErrorWalletNotSynced">Кошелек не синхронизирован</string>
     <string name="Swap_Proceed">Далее</string>

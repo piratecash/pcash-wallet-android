@@ -505,7 +505,6 @@
     <string name="Swap_ErrorInsufficientBalance">Недостатній баланс</string>
     <string name="swap_out_of_min_amount">Менше мін. суми %s</string>
     <string name="Swap_ErrorHighPriceImpact">Високе відхилення ціни</string>
-    <string name="Swap_ErrorTokenNotEnabled">Токен не увімкнено</string>
     <string name="Swap_ErrorWalletSyncing">Синхронізація гаманця</string>
     <string name="Swap_ErrorWalletNotSynced">Гаманець не синхронізовано</string>
     <string name="Swap_Proceed">Далі</string>
