@@ -286,6 +286,12 @@ class SwapConfirmViewModel(
         sendTransactionService.sendTransaction(mevProtectionEnabled)
     }
 
+    fun toggleMevProtection(enabled: Boolean) {
+        mevProtectionEnabled = enabled
+
+        emitState()
+    }
+
     fun onTransactionCompleted(result: SendTransactionResult) {
         if (swapProvider is ChangeNowProvider) {
             swapProvider.onTransactionCompleted(result)

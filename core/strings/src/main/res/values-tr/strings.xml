@@ -736,6 +736,7 @@
     <string name="SettingsSecurity_AutoLock_After15Min">15 dakika</string>
     <string name="SettingsSecurity_AutoLock_After30Min">30 dakika</string>
     <string name="SettingsSecurity_AutoLock_After1Hour">1 saat</string>
+    <string name="mev_protection">MEV Koruması</string>
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
     <string name="Appearance_AppIcon">UYGULAMA IKONLARI</string>

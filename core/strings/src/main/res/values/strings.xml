@@ -998,6 +998,8 @@ Proceed only if you\'re sure.</string>
     <string name="SettingsSecurity_AutoLock_After30Min">30 minutes</string>
     <string name="SettingsSecurity_AutoLock_After1Hour">1 hour</string>
 
+    <string name="mev_protection">MEV Protection</string>
+
     <!--Address Checker-->
     <string name="SettingsAddressChecker_Title">Address Checker</string>
     <string name="SettingsAddressChecker_RecipientCheck">Recipient Check</string>

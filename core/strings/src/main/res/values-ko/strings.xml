@@ -736,6 +736,7 @@
     <string name="SettingsSecurity_AutoLock_After15Min">15분</string>
     <string name="SettingsSecurity_AutoLock_After30Min">30분</string>
     <string name="SettingsSecurity_AutoLock_After1Hour">1시간</string>
+    <string name="mev_protection">MEV 보호</string>
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
     <string name="Appearance_AppIcon">앱 아이콘</string>

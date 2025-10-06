@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,6 +54,8 @@ import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.ui_compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.body_leah
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -253,6 +257,30 @@ fun SwapConfirmScreen(navController: NavController) {
                 uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
             )
         }
+
+        if (uiState.mevProtectionAvailable) {
+            VSpacer(16.dp)
+            SectionUniversalLawrence {
+                CellUniversal {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(id = R.drawable.ic_shield_24),
+                        contentDescription = null,
+                        tint = ComposeAppTheme.colors.jacob
+                    )
+                    HSpacer(width = 16.dp)
+                    body_leah(text = stringResource(R.string.mev_protection))
+                    HFillSpacer(minWidth = 8.dp)
+                    HsSwitch(
+                        checked = uiState.mevProtectionEnabled,
+                        onCheckedChange = {
+                            viewModel.toggleMevProtection(it)
+                        }
+                    )
+                }
+            }
+        }
+
 
         if (uiState.cautions.isNotEmpty()) {
             Cautions(cautions = uiState.cautions)

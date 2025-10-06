@@ -753,6 +753,7 @@
     <string name="SettingsSecurity_AutoLock_After15Min">15 хвилин</string>
     <string name="SettingsSecurity_AutoLock_After30Min">30 хвилин</string>
     <string name="SettingsSecurity_AutoLock_After1Hour">1 година</string>
+    <string name="mev_protection">Захист MEV</string>
     <string name="SettingsAddressChecker_InvalidAddress">Введена вами адреса недійсна. Будь ласка, перевірте її на наявність помилок або помилок у форматі та спробуйте знову.</string>
     <string name="Appearance_MarketsTab">ВКЛАДКА РИНКІВ</string>
     <string name="Appearance_BalanceTab">ВКЛАДКА БАЛАНСУ</string>
