@@ -497,7 +497,6 @@
     <string name="Swap_ErrorInsufficientBalance">잔액이 부족합니다</string>
     <string name="swap_out_of_min_amount">Out of min amount %s</string>
     <string name="Swap_ErrorHighPriceImpact">높은 가격 영향</string>
-    <string name="Swap_ErrorTokenNotEnabled">토큰 활성화되지 않음</string>
     <string name="Swap_ErrorWalletSyncing">지갑 동기화 중</string>
     <string name="Swap_ErrorWalletNotSynced">지갑이 동기화되지 않음</string>
     <string name="Swap_Proceed">다음</string>
