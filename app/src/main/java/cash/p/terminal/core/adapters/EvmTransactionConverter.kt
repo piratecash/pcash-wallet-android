@@ -62,7 +62,15 @@ internal class EvmTransactionConverter(
 
             is IncomingDecoration -> {
                 val transactionValue = baseCoinValue(decoration.value, false)
-                val isSpam = SpamManager.isSpam(listOf(TransferEvent(decoration.from.eip55, null, transactionValue)))
+                val isSpam = SpamManager.isSpam(
+                    listOf(
+                        TransferEvent(
+                            decoration.from.eip55,
+                            null,
+                            transactionValue
+                        )
+                    )
+                )
 
                 EvmTransactionRecord(
                     transaction = transaction,
@@ -254,45 +262,52 @@ internal class EvmTransactionConverter(
                 val contractAddress = transaction.to
                 val value = transaction.value
 
-                when {
+                val transactionRecordType = when {
                     transaction.from == address && contractAddress != null && value != null -> {
-                        EvmTransactionRecord(
-                            transaction = transaction, token = baseToken, source = source,
-                            contractAddress = contractAddress.eip55,
-                            method = transaction.input?.let { evmLabelManager.methodLabel(it) },
-                            incomingEvents = getInternalEvents(internalTransactions) +
-                                    getIncomingEip20Events(incomingEip20Transfers) +
-                                    getIncomingEip721Events(incomingEip721Transfers) +
-                                    getIncomingEip1155Events(incomingEip1155Transfers),
-                            outgoingEvents = getTransactionValueEvents(transaction) +
-                                    getOutgoingEip20Events(outgoingEip20Transfers) +
-                                    getOutgoingEip721Events(outgoingEip721Transfers) +
-                                    getOutgoingEip1155Events(outgoingEip1155Transfers),
-                            transactionRecordType = TransactionRecordType.EVM_CONTRACT_CALL
-                        )
+                        TransactionRecordType.EVM_CONTRACT_CALL
                     }
 
                     transaction.from != address && transaction.to != address -> {
-                        val incomingEvents = getInternalEvents(internalTransactions) +
-                                getIncomingEip20Events(incomingEip20Transfers) +
-                                getIncomingEip721Events(incomingEip721Transfers) +
-                                getIncomingEip1155Events(incomingEip1155Transfers)
-                        val outgoingEvents = getOutgoingEip20Events(outgoingEip20Transfers) +
-                                getOutgoingEip721Events(outgoingEip721Transfers) +
-                                getOutgoingEip1155Events(outgoingEip1155Transfers)
-                        val isSpam = SpamManager.isSpam(incomingEvents + outgoingEvents)
-                        EvmTransactionRecord(
-                            transaction = transaction,
-                            token = baseToken,
-                            source = source,
-                            spam = isSpam,
-                            incomingEvents = incomingEvents,
-                            outgoingEvents = outgoingEvents,
-                            transactionRecordType = TransactionRecordType.EVM_EXTERNAL_CONTRACT_CALL
-                        )
+                        TransactionRecordType.EVM_EXTERNAL_CONTRACT_CALL
                     }
 
                     else -> null
+                }
+
+                if (transactionRecordType != null) {
+                    val incomingEvents = getInternalEvents(internalTransactions) +
+                            getIncomingEip20Events(incomingEip20Transfers) +
+                            getIncomingEip721Events(incomingEip721Transfers) +
+                            getIncomingEip1155Events(incomingEip1155Transfers)
+                    var outgoingEvents = getOutgoingEip20Events(outgoingEip20Transfers) +
+                            getOutgoingEip721Events(outgoingEip721Transfers) +
+                            getOutgoingEip1155Events(outgoingEip1155Transfers)
+                    val isSpam: Boolean
+                    val contractAddressEip55: String?
+                    val method: String?
+                    if (transactionRecordType == TransactionRecordType.EVM_EXTERNAL_CONTRACT_CALL) {
+                        isSpam = SpamManager.isSpam(incomingEvents + outgoingEvents)
+                        contractAddressEip55 = null
+                        method = null
+                    } else {
+                        outgoingEvents = getTransactionValueEvents(transaction) + outgoingEvents
+                        isSpam = false
+                        contractAddressEip55 = contractAddress?.eip55
+                        method = transaction.input?.let { evmLabelManager.methodLabel(it) }
+                    }
+                    EvmTransactionRecord(
+                        transaction = transaction,
+                        token = baseToken,
+                        source = source,
+                        contractAddress = contractAddressEip55,
+                        method = method,
+                        spam = isSpam,
+                        incomingEvents = incomingEvents,
+                        outgoingEvents = outgoingEvents,
+                        transactionRecordType = transactionRecordType
+                    )
+                } else {
+                    null
                 }
             }
 
@@ -424,7 +439,6 @@ internal class EvmTransactionConverter(
             )
         }
     }
-
 
     private fun getInternalEvents(internalTransactions: List<InternalTransaction>): List<TransferEvent> {
         val events: MutableList<TransferEvent> = mutableListOf()

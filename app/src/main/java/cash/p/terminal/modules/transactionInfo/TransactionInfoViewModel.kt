@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.wallet.transaction.TransactionSource
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
@@ -29,13 +30,14 @@ class TransactionInfoViewModel(
 
     init {
         viewModelScope.launch {
-            contactsRepository.contactsFlow.collect {
-                viewItems = factory.getViewItemSections(service.transactionInfoItem, balanceHiddenManager.balanceHidden)
-            }
-        }
-        viewModelScope.launch {
-            service.transactionInfoItemFlow.collect { transactionInfoItem ->
-                viewItems = factory.getViewItemSections(transactionInfoItem, balanceHiddenManager.balanceHidden)
+            combine(
+                contactsRepository.contactsFlow,
+                service.transactionInfoItemFlow,
+                balanceHiddenManager.balanceHiddenFlow
+            ) { _, transactionInfoItem, balanceHidden ->
+                factory.getViewItemSections(transactionInfoItem, balanceHidden)
+            }.collect { items ->
+                viewItems = items
             }
         }
 
