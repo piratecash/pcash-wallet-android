@@ -6,11 +6,16 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.os.Parcelable
 import android.widget.ImageView
+import androidx.annotation.IdRes
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -38,8 +43,8 @@ import java.math.BigDecimal
 import java.util.Locale
 import java.util.Optional
 
-fun String.orHide(hidden: Boolean, hideValue: String = "*****"): String
-    = if (hidden) hideValue else this
+fun String.orHide(hidden: Boolean, hideValue: String = "*****"): String =
+    if (hidden) hideValue else this
 
 val <T> Optional<T>.orNull: T?
     get() = when {
@@ -280,4 +285,22 @@ fun NavController.premiumAction(block: () -> Unit) {
             block.invoke()
         }
     }
+}
+
+@Composable
+inline fun <reified VM : ViewModel> rememberViewModelFromGraph(
+    navController: NavController,
+    @IdRes destinationId: Int,
+    factory: ViewModelProvider.Factory? = null,
+): VM? {
+    val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
+        tryOrNull {
+            navController.getBackStackEntry(destinationId)
+        }
+    } ?: return null
+
+    return viewModel<VM>(
+        viewModelStoreOwner = viewModelStoreOwner,
+        factory = factory
+    )
 }

@@ -526,6 +526,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
+    <string name="zec_transparent_used">在交换过程中会使用 t 地址 (%s)，这可能会导致交换的匿名性部分泄露。</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">掉期设置</string>
     <string name="SwapSettings_SlippageTitle">无效滑点</string>

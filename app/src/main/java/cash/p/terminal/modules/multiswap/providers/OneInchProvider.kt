@@ -156,14 +156,15 @@ object OneInchProvider : EvmSwapProvider() {
         }
 
         return SwapFinalQuoteEvm(
-            tokenIn,
-            tokenOut,
-            amountIn,
-            amountOut,
-            amountOutMin,
-            SendTransactionData.Evm(TransactionData(swapTx.to, swapTx.value, swapTx.data), swapTx.gasLimit),
-            null,
-            fields
+            tokenIn = tokenIn,
+            tokenOut = tokenOut,
+            amountIn = amountIn,
+            amountOut = amountOut,
+            amountOutMin = amountOutMin,
+            sendTransactionData = SendTransactionData.Evm(TransactionData(swapTx.to, swapTx.value, swapTx.data), swapTx.gasLimit),
+            priceImpact = null,
+            fields = fields,
+            warningMessage = null
         )
     }
 }

@@ -530,6 +530,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
+    <string name="zec_transparent_used">در طول مبادله از آدرس t (%s) استفاده می‌شود که می‌تواند به رفع نسبی ناشناسی مبادله منجر شود.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap Settings</string>
     <string name="SwapSettings_SlippageTitle">تحمل لغزش</string>

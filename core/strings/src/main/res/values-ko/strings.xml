@@ -530,6 +530,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
+    <string name="zec_transparent_used">스왑 중에는 t 주소(%s)가 사용되어 스왑의 익명성이 부분적으로 드러날 수 있습니다.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">스왑 설정</string>
     <string name="SwapSettings_SlippageTitle">토큰 범위 설정</string>

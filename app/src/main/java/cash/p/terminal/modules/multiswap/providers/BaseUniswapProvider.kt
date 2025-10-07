@@ -98,14 +98,15 @@ abstract class BaseUniswapProvider : EvmSwapProvider() {
         }
 
         return SwapFinalQuoteEvm(
-            tokenIn,
-            tokenOut,
-            amountIn,
-            amountOut,
-            amountOutMin,
-            SendTransactionData.Evm(transactionData, null),
-            bestTrade.tradeData.priceImpact,
-            fields
+            tokenIn = tokenIn,
+            tokenOut = tokenOut,
+            amountIn = amountIn,
+            amountOut = amountOut,
+            amountOutMin = amountOutMin,
+            sendTransactionData = SendTransactionData.Evm(transactionData, null),
+            priceImpact = bestTrade.tradeData.priceImpact,
+            fields = fields,
+            warningMessage = null
         )
     }
 

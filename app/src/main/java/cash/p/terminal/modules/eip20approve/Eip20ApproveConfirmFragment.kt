@@ -12,12 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.eip20approve.AllowanceMode.OnlyRequired
 import cash.p.terminal.modules.eip20approve.AllowanceMode.Unlimited
@@ -25,16 +22,19 @@ import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.TokenRow
 import cash.p.terminal.modules.multiswap.TokenRowUnlimited
 import cash.p.terminal.modules.multiswap.ui.DataFieldFee
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
-import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
+import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
+import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.cell.BoxBorderedTop
-import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
-import cash.p.terminal.ui_compose.components.SnackbarDuration
-import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -51,12 +51,9 @@ class Eip20ApproveConfirmFragment : BaseComposeFragment() {
 
 @Composable
 internal fun Eip20ApproveConfirmScreen(navController: NavController) {
-    val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.eip20ApproveFragment)
-    }
-    val viewModel = viewModel<Eip20ApproveViewModel>(
-        viewModelStoreOwner = viewModelStoreOwner,
-    )
+    val viewModel =
+        rememberViewModelFromGraph<Eip20ApproveViewModel>(navController, R.id.eip20ApproveFragment)
+            ?: return
 
     val uiState = viewModel.uiState
 
@@ -79,7 +76,11 @@ internal fun Eip20ApproveConfirmScreen(navController: NavController) {
                 onClick = {
                     coroutineScope.launch {
                         buttonEnabled = false
-                        HudHelper.showInProcessMessage(view, R.string.Swap_Approving, SnackbarDuration.INDEFINITE)
+                        HudHelper.showInProcessMessage(
+                            view,
+                            R.string.Swap_Approving,
+                            SnackbarDuration.INDEFINITE
+                        )
 
                         val result = try {
                             viewModel.approve()
@@ -88,7 +89,8 @@ internal fun Eip20ApproveConfirmScreen(navController: NavController) {
                             delay(1200)
                             Eip20ApproveConfirmFragment.Result(true)
                         } catch (t: Throwable) {
-                            val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                            val msg =
+                                (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
                             HudHelper.showErrorMessage(view, msg)
                             Eip20ApproveConfirmFragment.Result(false)
                         }
@@ -123,6 +125,7 @@ internal fun Eip20ApproveConfirmScreen(navController: NavController) {
                         amountColor = ComposeAppTheme.colors.leah
                     )
                 }
+
                 Unlimited -> {
                     TokenRowUnlimited(
                         token = uiState.token,

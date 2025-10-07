@@ -1,12 +1,11 @@
 package cash.p.terminal.modules.walletconnect.request
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.walletconnect.request.sendtransaction.WCSendEthereumTransactionRequestViewModel
+import cash.p.terminal.ui_compose.BaseComposeFragment
 
 class WCEvmTransactionSettingsFragment : BaseComposeFragment() {
     @Composable
@@ -17,13 +16,10 @@ class WCEvmTransactionSettingsFragment : BaseComposeFragment() {
 
 @Composable
 fun WCEvmTransactionSettingsScreen(navController: NavController) {
-    val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.wcRequestFragment)
-    }
-
-    val viewModel = viewModel<WCSendEthereumTransactionRequestViewModel>(
-        viewModelStoreOwner = viewModelStoreOwner,
-    )
+    val viewModel = rememberViewModelFromGraph<WCSendEthereumTransactionRequestViewModel>(
+        navController,
+        R.id.wcRequestFragment
+    ) ?: return
 
     val sendTransactionService = viewModel.sendTransactionService
 

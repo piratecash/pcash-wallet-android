@@ -12,28 +12,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.requireInput
-import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.TokenRow
 import cash.p.terminal.modules.multiswap.ui.DataFieldFee
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
-import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
-import cash.p.terminal.ui_compose.components.VSpacer
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.chartview.cell.BoxBorderedTop
+import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
+import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SnackbarDuration
-import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.requireInput
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.chartview.cell.BoxBorderedTop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -58,18 +58,12 @@ class Eip20RevokeConfirmFragment : BaseComposeFragment() {
 
 @Composable
 fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFragment.Input) {
-    val currentBackStackEntry = remember(navController.currentBackStackEntry) {
-        try {
-            navController.getBackStackEntry(R.id.eip20RevokeConfirmFragment)
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-    } ?: return
-
-    val viewModel = viewModel<Eip20RevokeConfirmViewModel>(
-        viewModelStoreOwner = currentBackStackEntry,
-        factory = Eip20RevokeConfirmViewModel.Factory(input.token, input.spenderAddress, input.allowance)
+    val viewModel = rememberViewModelFromGraph<Eip20RevokeConfirmViewModel>(
+        navController,
+        R.id.eip20RevokeConfirmFragment,
+        Eip20RevokeConfirmViewModel.Factory(input.token, input.spenderAddress, input.allowance)
     )
+        ?: return
 
     val uiState = viewModel.uiState
 
@@ -103,7 +97,8 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
                             delay(1200)
                             Eip20RevokeConfirmFragment.Result(true)
                         } catch (t: Throwable) {
-                            val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                            val msg =
+                                (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
                             HudHelper.showErrorMessage(view, msg)
                             Eip20RevokeConfirmFragment.Result(false)
                         }

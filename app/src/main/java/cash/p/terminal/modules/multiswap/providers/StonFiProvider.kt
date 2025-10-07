@@ -17,6 +17,7 @@ import cash.p.terminal.modules.multiswap.ui.DataFieldRecipient
 import cash.p.terminal.modules.multiswap.ui.DataFieldSlippage
 import cash.p.terminal.network.stonfi.domain.entity.SimulateSwap
 import cash.p.terminal.network.stonfi.domain.repository.StonFiRepository
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
@@ -402,5 +403,6 @@ class SwapFinalQuoteTon(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    override val cautions: List<HSCaution> = listOf()
+    override val cautions: List<HSCaution> = listOf(),
+    override val warningMessage: TranslatableString? = null
 ) : ISwapFinalQuote

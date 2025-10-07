@@ -11,20 +11,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.logger.AppLogger
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.requireInput
-import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
+import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.requireInput
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -55,24 +55,24 @@ private fun TransactionSpeedUpCancelScreen(
     val logger = remember { AppLogger("tx-speedUp-cancel") }
     val view = LocalView.current
 
-    val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.transactionSpeedUpCancelFragment)
-    }
-
-    val viewModel = viewModel<TransactionSpeedUpCancelViewModel>(
-        viewModelStoreOwner = viewModelStoreOwner,
-        factory = TransactionSpeedUpCancelViewModel.Factory(
+    val viewModel = rememberViewModelFromGraph<TransactionSpeedUpCancelViewModel>(
+        navController,
+        R.id.transactionSpeedUpCancelFragment,
+        TransactionSpeedUpCancelViewModel.Factory(
             input.blockchainType,
             input.transactionHash,
             input.optionType,
         )
-    )
+    ) ?: return
 
     val uiState = viewModel.uiState
 
     LaunchedEffect(uiState.error) {
         if (uiState.error is TransactionAlreadyInBlock) {
-            HudHelper.showErrorMessage(view, R.string.TransactionInfoOptions_Warning_TransactionInBlock)
+            HudHelper.showErrorMessage(
+                view,
+                R.string.TransactionInfoOptions_Warning_TransactionInBlock
+            )
             navController.popBackStack()
         }
     }
@@ -99,7 +99,11 @@ private fun TransactionSpeedUpCancelScreen(
 
                     coroutineScope.launch {
                         buttonEnabled = false
-                        HudHelper.showInProcessMessage(view, R.string.Send_Sending, SnackbarDuration.INDEFINITE)
+                        HudHelper.showInProcessMessage(
+                            view,
+                            R.string.Send_Sending,
+                            SnackbarDuration.INDEFINITE
+                        )
 
                         val result = try {
                             logger.info("sending tx")

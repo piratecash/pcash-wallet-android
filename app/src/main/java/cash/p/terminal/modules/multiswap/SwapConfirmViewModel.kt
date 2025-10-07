@@ -24,6 +24,7 @@ import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.network.changenow.data.entity.BackendChangeNowResponseError
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.CurrencyManager
@@ -59,6 +60,7 @@ class SwapConfirmViewModel(
     private val tokenOut = swapQuote.tokenOut
     private var amountIn = swapQuote.amountIn
     private var fiatAmountIn: BigDecimal? = null
+    private var warningMessage: TranslatableString? = null
 
     private var fiatAmountOut: BigDecimal? = null
     private var fiatAmountOutMin: BigDecimal? = null
@@ -200,6 +202,7 @@ class SwapConfirmViewModel(
             fiatAmountOutMin = fiatAmountOutMin,
             currency = currency,
             networkFee = sendTransactionState.networkFee,
+            warningMessage = warningMessage,
             cautions = cautions,
             validQuote = isSendable(),
             priceImpact = priceImpactState.priceImpact,
@@ -253,6 +256,8 @@ class SwapConfirmViewModel(
                 sendTransactionService.setSendTransactionData(finalQuote.sendTransactionData)
 
                 priceImpactService.setPriceImpact(finalQuote.priceImpact, swapProvider.title)
+
+                warningMessage = finalQuote.warningMessage
                 emitState()
             } catch (e: BackendChangeNowResponseError) {
                 e.printStackTrace()
@@ -378,6 +383,7 @@ data class SwapConfirmUiState(
     val fiatAmountOutMin: BigDecimal?,
     val currency: Currency,
     val networkFee: SendModule.AmountData?,
+    val warningMessage: TranslatableString?,
     val cautions: List<CautionViewItem>,
     val validQuote: Boolean,
     val priceImpact: BigDecimal?,

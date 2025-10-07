@@ -98,14 +98,15 @@ abstract class BaseUniswapV3Provider(dexType: DexType) : EvmSwapProvider() {
         }
 
         return SwapFinalQuoteEvm(
-            tokenIn,
-            tokenOut,
-            amountIn,
-            amountOut,
-            amountOutMin,
-            SendTransactionData.Evm(transactionData, null),
-            bestTrade.tradeDataV3.priceImpact,
-            fields
+            tokenIn = tokenIn,
+            tokenOut = tokenOut,
+            amountIn = amountIn,
+            amountOut = amountOut,
+            amountOutMin = amountOutMin,
+            sendTransactionData = SendTransactionData.Evm(transactionData, null),
+            priceImpact = bestTrade.tradeDataV3.priceImpact,
+            fields = fields,
+            warningMessage = null
         )
     }
 

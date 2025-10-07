@@ -3,6 +3,7 @@ package cash.p.terminal.modules.multiswap
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.ui.DataField
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import java.math.BigDecimal
 
@@ -16,6 +17,7 @@ interface ISwapFinalQuote {
     val priceImpact: BigDecimal?
     val fields: List<DataField>
     val cautions: List<HSCaution>
+    val warningMessage: TranslatableString?
 }
 
 data class SwapFinalQuoteEvm(
@@ -27,7 +29,8 @@ data class SwapFinalQuoteEvm(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    override val cautions: List<HSCaution> = listOf()
+    override val cautions: List<HSCaution> = listOf(),
+    override val warningMessage: TranslatableString?
 ) : ISwapFinalQuote
 
 data class SwapFinalQuoteThorChain(
@@ -39,5 +42,6 @@ data class SwapFinalQuoteThorChain(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    override val cautions: MutableList<HSCaution>
+    override val cautions: MutableList<HSCaution>,
+    override val warningMessage: TranslatableString? = null
 ) : ISwapFinalQuote

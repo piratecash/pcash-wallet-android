@@ -540,6 +540,7 @@
     <string name="unsupported_address">Адреса не підтримується</string>
     <string name="unexpected_error">Непередбачена помилка</string>
     <string name="unsupported_token">Токен не підтримується</string>
+    <string name="zec_transparent_used">Під час свапу використовується t-адреса (%s), що може призвести до часткової деанонімізації свапу.</string>
     <!-- Swap Settings -->
     <string name="Fee_LiquidityFee">Комісія за ліквідність</string>
     <string name="SwapSettings_Title">Налаштування обміну</string>

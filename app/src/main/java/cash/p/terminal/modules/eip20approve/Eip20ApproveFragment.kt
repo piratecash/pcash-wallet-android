@@ -8,32 +8,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.rememberViewModelFromGraph
+import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRightForResult
-import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui_compose.components.HsCheckbox
-import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.HSpacer
+import cash.p.terminal.ui_compose.components.HsCheckbox
+import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.headline1_leah
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.ui_compose.components.CellUniversal
-import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
@@ -54,22 +53,15 @@ class Eip20ApproveFragment : BaseComposeFragment() {
 
 @Composable
 fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment.Input) {
-    val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
-        try {
-            navController.getBackStackEntry(R.id.eip20ApproveFragment)
-        } catch (e: IllegalArgumentException) {
-            null
-        }
-    } ?: return
-
-    val viewModel = viewModel<Eip20ApproveViewModel>(
-        viewModelStoreOwner = viewModelStoreOwner,
-        factory = Eip20ApproveViewModel.Factory(
+    val viewModel = rememberViewModelFromGraph<Eip20ApproveViewModel>(
+        navController,
+        R.id.eip20ApproveFragment,
+        Eip20ApproveViewModel.Factory(
             input.token,
             input.requiredAllowance,
             input.spenderAddress,
         )
-    )
+    ) ?: return
 
     val uiState = viewModel.uiState
 

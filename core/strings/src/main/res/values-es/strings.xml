@@ -525,6 +525,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
+    <string name="zec_transparent_used">Durante el intercambio se utiliza una dirección t (%s), lo que puede provocar una desanonimización parcial del intercambio.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Ajustes de intercambio</string>
     <string name="SwapSettings_SlippageTitle">Tolerancia de deslizamiento</string>

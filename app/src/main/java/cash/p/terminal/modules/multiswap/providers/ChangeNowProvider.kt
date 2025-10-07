@@ -26,6 +26,7 @@ import cash.p.terminal.network.changenow.domain.entity.NewTransactionResponse
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.repository.ChangeNowRepository
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
@@ -313,7 +314,8 @@ class ChangeNowProvider(
                             feesMap = emptyMap()
                         ),
                         priceImpact = null,
-                        fields = emptyList()
+                        fields = emptyList(),
+                        warningMessage = null
                     )
                 } else {
                     throw e
@@ -346,6 +348,13 @@ class ChangeNowProvider(
                 addressOut = walletUseCase.getReceiveAddress(tokenOut)
             )
 
+            val warningMessage = if (isZCashUnifiedOrShielded(tokenIn)) {
+                transaction.refundAddress?.let {
+                    TranslatableString.ResString(R.string.zec_transparent_used, it)
+                }
+            } else {
+                null
+            }
             SwapFinalQuoteEvm(
                 tokenIn = tokenIn,
                 tokenOut = tokenOut,
@@ -358,7 +367,8 @@ class ChangeNowProvider(
                     transaction = transaction
                 ),
                 priceImpact = null,
-                fields = fields
+                fields = fields,
+                warningMessage = warningMessage
             )
         }
     }

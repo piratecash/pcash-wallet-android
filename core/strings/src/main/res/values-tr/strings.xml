@@ -530,6 +530,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
+    <string name="zec_transparent_used">Swap sırasında bir t adresi (%s) kullanılır, bu da swap işleminin kısmen anonimlikten çıkmasına neden olabilir.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap Ayarları</string>
     <string name="SwapSettings_SlippageTitle">Slipaj Toleransı</string>

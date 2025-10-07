@@ -530,6 +530,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
+    <string name="zec_transparent_used">Durante a troca, um endereço t (%s) é usado, o que pode levar a uma desanonimização parcial da troca.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Configurações de troca</string>
     <string name="SwapSettings_SlippageTitle">Tolerância de Slippage</string>

@@ -13,25 +13,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import io.horizontalsystems.core.logger.AppLogger
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.requireInput
-import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.send.evm.SendEvmData
 import cash.p.terminal.modules.send.evm.SendEvmModule
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
+import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.requireInput
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
+import io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.TransactionData
-import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -83,17 +83,15 @@ private fun SendEvmConfirmationScreen(
 ) {
     val logger = remember { AppLogger("send-evm") }
 
-    val currentBackStackEntry = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.sendEvmConfirmationFragment)
-    }
-    val viewModel = viewModel<SendEvmConfirmationViewModel>(
-        viewModelStoreOwner = currentBackStackEntry,
-        factory = SendEvmConfirmationViewModel.Factory(
+    val viewModel = rememberViewModelFromGraph<SendEvmConfirmationViewModel>(
+        navController,
+        R.id.sendEvmConfirmationFragment,
+        SendEvmConfirmationViewModel.Factory(
             transactionData = input.transactionData,
             additionalInfo = input.additionalInfo,
             blockchainType = input.blockchainType,
         )
-    )
+    ) ?: return
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
@@ -118,7 +116,11 @@ private fun SendEvmConfirmationScreen(
 
                     coroutineScope.launch {
                         buttonEnabled = false
-                        HudHelper.showInProcessMessage(view, R.string.Send_Sending, SnackbarDuration.INDEFINITE)
+                        HudHelper.showInProcessMessage(
+                            view,
+                            R.string.Send_Sending,
+                            SnackbarDuration.INDEFINITE
+                        )
 
                         try {
                             logger.info("sending tx")
@@ -131,7 +133,7 @@ private fun SendEvmConfirmationScreen(
                             navController.popBackStack(input.sendEntryPointDestId, true)
                         } catch (t: Throwable) {
                             logger.warning("failed", t)
-                            val errorMsg = if(t is JsonRpc.ResponseError.RpcError) {
+                            val errorMsg = if (t is JsonRpc.ResponseError.RpcError) {
                                 t.error.message
                             } else {
                                 t.message ?: App.instance.getString(R.string.unknown_send_error)

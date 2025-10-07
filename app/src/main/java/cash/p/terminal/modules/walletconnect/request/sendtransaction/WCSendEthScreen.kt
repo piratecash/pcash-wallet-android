@@ -11,19 +11,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import io.horizontalsystems.core.logger.AppLogger
-import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.VSpacer
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.VSpacer
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -35,17 +35,15 @@ fun WCSendEthRequestScreen(
     transaction: WalletConnectTransaction,
     peerName: String,
 ) {
-    val viewModelStoreOwner = remember(navController.currentBackStackEntry) {
-        navController.getBackStackEntry(R.id.wcRequestFragment)
-    }
-    val viewModel = viewModel<WCSendEthereumTransactionRequestViewModel>(
-        viewModelStoreOwner = viewModelStoreOwner,
-        factory = WCSendEthereumTransactionRequestViewModel.Factory(
+    val viewModel = rememberViewModelFromGraph<WCSendEthereumTransactionRequestViewModel>(
+        navController,
+        R.id.wcRequestFragment,
+        WCSendEthereumTransactionRequestViewModel.Factory(
             blockchainType = blockchainType,
             transaction = transaction,
             peerName = peerName
         )
-    )
+    ) ?: return
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
@@ -67,7 +65,11 @@ fun WCSendEthRequestScreen(
                 onClick = {
                     coroutineScope.launch {
                         buttonEnabled = false
-                        HudHelper.showInProcessMessage(view, R.string.Send_Sending, SnackbarDuration.INDEFINITE)
+                        HudHelper.showInProcessMessage(
+                            view,
+                            R.string.Send_Sending,
+                            SnackbarDuration.INDEFINITE
+                        )
 
                         try {
                             logger.info("click confirm button")
