@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -411,9 +412,13 @@ private fun WalletIcon(
             Image(
                 modifier = Modifier
                     .size(32.dp)
-                    .clickable {
-                        onSyncErrorClicked(viewItem, viewModel, navController, view)
-                    },
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = false),
+                        onClick = {
+                            onSyncErrorClicked(viewItem, viewModel, navController, view)
+                        }
+                    ),
                 painter = painterResource(id = R.drawable.ic_attention_24),
                 contentDescription = "coin icon",
                 colorFilter = ColorFilter.tint(ComposeAppTheme.colors.lucian)
