@@ -1,3 +1,16 @@
+## Main changes in version 0.47.4
+_Release date: October 8, 2025_
+
+### 🛠 Fixes
+- **DOGE and LTC sending:**
+  - Fixed an issue where the transaction appeared on **Blockchair** but was not included in the blockchain.
+- **EVM transactions:**
+  - Fixed duplicate transaction display — the received amount is no longer shown twice.
+- **Monero:**
+  - Fixed an app crash when using **Monero**.
+
+
+
 ## Main changes in version 0.47.3
 _Release date: October 5, 2025_
 
