@@ -309,7 +309,7 @@ class ChangeNowProvider(
                             changeToFirstInput = false,
                             utxoFilters = UtxoFilters(),
                             memo = "",
-                            recommendedGasRate = 1,
+                            recommendedGasRate = null,
                             minimumSendAmount = null,
                             feesMap = emptyMap()
                         ),
@@ -418,7 +418,7 @@ class ChangeNowProvider(
                     address = transaction.payinAddress,
                     memo = transaction.mandatoryMemo,
                     amount = amountIn,
-                    recommendedGasRate = 1,
+                    recommendedGasRate = null,
                     minimumSendAmount = null,
                     changeToFirstInput = true,
                     utxoFilters = UtxoFilters(

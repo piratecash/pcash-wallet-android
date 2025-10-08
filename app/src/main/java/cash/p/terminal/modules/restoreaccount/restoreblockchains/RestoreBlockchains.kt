@@ -34,25 +34,24 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.extensions.BottomSheetSelectorMultiple
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellMultilineClear
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
+import cash.p.terminal.ui_compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.entities.Blockchain
-import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.core.entities.Blockchain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -104,7 +103,7 @@ fun ManageWalletsScreen(
         mainViewModel.cancelZCashConfig = false
     }
 
-    if(mainViewModel.cancelMoneroConfig) {
+    if (mainViewModel.cancelMoneroConfig) {
         restoreSettingsViewModel.onCancelEnterBirthdayHeight()
         mainViewModel.cancelMoneroConfig = false
     }
@@ -130,7 +129,8 @@ fun ManageWalletsScreen(
     val coroutineScope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var showBottomSheet by remember { mutableStateOf(false)
+    var showBottomSheet by remember {
+        mutableStateOf(false)
     }
     LaunchedEffect(blockchainTokensViewModel.showBottomSheetDialog) {
         if (blockchainTokensViewModel.showBottomSheetDialog) {
@@ -149,7 +149,14 @@ fun ManageWalletsScreen(
             blockchainTokensViewModel.config?.let { config ->
                 BottomSheetSelectorMultiple(
                     config = config,
-                    onItemsSelected = { blockchainTokensViewModel.onSelect(it) },
+                    onItemsSelected = { indexes ->
+                        blockchainTokensViewModel.onSelect(indexes)
+                        blockchainTokensViewModel.currentRequest?.let {
+                            it.tokens.firstOrNull()?.let { firstToken ->
+                                viewModel.showApproveSettings(firstToken)
+                            }
+                        }
+                    },
                     onCloseClick = {
                         blockchainTokensViewModel.onCancelSelect()
                         coroutineScope.launch { bottomSheetState.hide() }.invokeOnCompletion {

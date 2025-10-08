@@ -17,6 +17,7 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule.rbfSupported
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Wallet
@@ -290,7 +291,7 @@ class SendBitcoinViewModel(
                 unspentOutputs = customUnspentOutputs,
                 pluginData = pluginState.pluginData,
                 transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
-                rbfEnabled = localStorage.rbfEnabled,
+                rbfEnabled = blockchainType.rbfSupported && localStorage.rbfEnabled,
                 changeToFirstInput = false,
                 utxoFilters = UtxoFilters()
             )

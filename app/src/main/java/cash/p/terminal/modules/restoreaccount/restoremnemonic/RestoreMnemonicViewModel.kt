@@ -181,7 +181,7 @@ class RestoreMnemonicViewModel(
             }
 
             isMoneroMnemonic && validateMoneroHeightUseCase(height) == -1L -> {
-                errorHeight = Translator.getString(R.string.inavlid_height)
+                errorHeight = Translator.getString(R.string.invalid_height)
             }
 
             (!isMoneroMnemonic && wordItems.size !in (Mnemonic.EntropyStrength.entries.map { it.wordCount })) -> {

@@ -296,8 +296,8 @@
         android:id="@+id/selectBlockchainsFragment"
         android:name="cash.p.terminal.modules.watchaddress.selectblockchains.SelectBlockchainsFragment" />
     <fragment
-        android:id="@+id/zcashConfigure"
-        android:name="cash.p.terminal.modules.zcashconfigure.ZcashConfigure"/>
+        android:id="@+id/zcashConfigureFragment"
+        android:name="cash.p.terminal.modules.zcashconfigure.ZcashConfigureFragment"/>
     <fragment
         android:id="@+id/moneroConfigure"
         android:name="cash.p.terminal.modules.moneroconfigure.MoneroConfigureFragment"/>

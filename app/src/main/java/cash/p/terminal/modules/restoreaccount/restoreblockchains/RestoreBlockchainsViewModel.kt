@@ -12,6 +12,7 @@ import cash.p.terminal.R
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.core.description
 import cash.p.terminal.ui_compose.components.ImageSource
+import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.imageUrl
 import io.reactivex.BackpressureStrategy
@@ -69,6 +70,13 @@ class RestoreBlockchainsViewModel(
 
     fun disable(blockchain: Blockchain) {
         service.disable(blockchain)
+    }
+
+    /***
+     * Called after user chosen different types of one token (e.g. transparent/shielded/universla for Zcash)
+     */
+    fun showApproveSettings(token: Token) {
+        service.showApproveSettings(token)
     }
 
     fun onClickSettings(blockchain: Blockchain) {

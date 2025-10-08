@@ -1556,7 +1556,7 @@
     <string name="restoreheight_title">Начальный блок для восстановления</string>
     <string name="restoreheight_hint">Укажите блок или дату (ГГГГ-ММ-ДД)</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Неверное количество слов. Должно быть 25. Вы ввели: %d</string>
-    <string name="inavlid_height">Неверное значение высоты</string>
+    <string name="invalid_height">Неверное значение высоты</string>
     <string name="view_key">Ключ просмотра</string>
     <string name="Balance_Receive_Trustline">Доверительная линия</string>
     <string name="Balance_Reserved_Title">Зарезервировано</string>

@@ -35,6 +35,7 @@ kotlin {
         }
         androidMain {
             dependencies {
+                implementation(libs.timber)
             }
         }
         iosMain {

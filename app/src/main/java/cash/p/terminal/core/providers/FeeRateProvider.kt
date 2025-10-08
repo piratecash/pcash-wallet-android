@@ -16,7 +16,8 @@ class FeeRateProvider {
                 ethEvmUrl = AppConfigProvider.blocksDecodedEthereumRpc,
                 ethEvmAuth = null,
                 bscEvmUrl = FeeProviderConfig.defaultBscEvmUrl(),
-                mempoolSpaceUrl = AppConfigProvider.mempoolSpaceUrl
+                mempoolSpaceUrl = AppConfigProvider.mempoolSpaceUrl,
+                blockCypherUrl = AppConfigProvider.blockCypherUrl
             )
         )
     }
@@ -30,7 +31,7 @@ class FeeRateProvider {
     }
 
     fun dogecoinFeeRate(): Single<BigInteger> {
-        return Single.just(BigInteger("3000"))
+        return Single.just(BigInteger("51000"))
     }
 
     fun bitcoinCashFeeRate(): Single<BigInteger> {
@@ -58,8 +59,7 @@ class BitcoinFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IFe
 
 class LitecoinFeeRateProvider(private val feeRateProvider: FeeRateProvider) : IFeeRateProvider {
     override suspend fun getFeeRates(): FeeRates {
-        val feeRate = feeRateProvider.litecoinFeeRate().await()
-        return FeeRates(feeRate.toInt())
+        return FeeRates(2)
     }
 }
 
@@ -100,7 +100,7 @@ class PirateCashFeeRateProvider(private val feeRateProvider: FeeRateProvider) : 
 
 class ECashFeeRateProvider : IFeeRateProvider {
     override suspend fun getFeeRates(): FeeRates {
-        return FeeRates(1)
+        return FeeRates(2)
     }
 }
 

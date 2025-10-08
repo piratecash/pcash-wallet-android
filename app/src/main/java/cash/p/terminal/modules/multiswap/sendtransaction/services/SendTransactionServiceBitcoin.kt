@@ -26,6 +26,7 @@ import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.factories.FeeRateProviderFactory
+import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
@@ -44,6 +45,7 @@ import cash.p.terminal.modules.send.bitcoin.SendBitcoinAddressService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinAmountService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinFeeRateService
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinFeeService
+import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule.rbfSupported
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinPluginService
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.settings.SendBtcSettingsViewModel
@@ -70,6 +72,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
+import kotlin.getValue
 
 class SendTransactionServiceBitcoin(
     token: Token
@@ -83,6 +86,7 @@ class SendTransactionServiceBitcoin(
         SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator())
     private val addressService = SendBitcoinAddressService(adapter)
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
+    private val btcBlockchainManager: BtcBlockchainManager by inject(BtcBlockchainManager::class.java)
     private val pluginService = SendBitcoinPluginService(wallet.token.blockchainType)
     private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
     private val xRateService = XRateService(marketKit, App.currencyManager.baseCurrency)
@@ -229,7 +233,9 @@ class SendTransactionServiceBitcoin(
         changeToFirstInput = data.changeToFirstInput
         utxoFilters = data.utxoFilters
 
-        feeRateService.setRecommendedAndMin(data.recommendedGasRate, data.recommendedGasRate)
+        data.recommendedGasRate?.let {
+            feeRateService.setRecommendedAndMin(data.recommendedGasRate, data.recommendedGasRate)
+        }
 
         feeService.setMemo(memo)
         feeService.setChangeToFirstInput(changeToFirstInput)
@@ -267,8 +273,8 @@ class SendTransactionServiceBitcoin(
                     feeRate = feeRateState.feeRate!!,
                     unspentOutputs = null,
                     pluginData = null,
-                    transactionSorting = null,
-                    rbfEnabled = false,
+                    transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
+                    rbfEnabled = blockchainType.rbfSupported && localStorage.rbfEnabled,
                     changeToFirstInput = changeToFirstInput,
                     utxoFilters = utxoFilters
                 )
