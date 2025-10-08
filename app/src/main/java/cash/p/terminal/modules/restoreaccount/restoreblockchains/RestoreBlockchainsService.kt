@@ -9,7 +9,6 @@ import cash.p.terminal.core.order
 import cash.p.terminal.core.restoreSettingTypes
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.supports
-import cash.p.terminal.core.title
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.wallet.AccountOrigin
@@ -19,9 +18,7 @@ import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
-import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.entities.Blockchain
@@ -171,16 +168,20 @@ class RestoreBlockchainsService(
         val token = tokens.firstOrNull() ?: return
 
         if (tokens.size == 1) {
-            if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
-                restoreSettingsService.approveSettings(token)
-            } else {
-                handleApproveRestoreSettings(token, RestoreSettings())
-            }
+            showApproveSettings(token)
         } else {
             blockchainTokensService.approveTokens(
                 blockchain,
                 tokens,
                 tokens.filter { it.type.isDefault })
+        }
+    }
+
+    fun showApproveSettings(token: Token) {
+        if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
+            restoreSettingsService.approveSettings(token)
+        } else {
+            handleApproveRestoreSettings(token, RestoreSettings())
         }
     }
 

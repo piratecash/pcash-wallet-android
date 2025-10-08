@@ -15,6 +15,7 @@ import cash.p.terminal.network.data.buildNetworkClient
 import cash.p.terminal.network.pirate.di.networkPirateModule
 import cash.p.terminal.network.piratenews.di.networkPirateNewsModule
 import cash.p.terminal.network.stonfi.di.networkStonFiModule
+import cash.p.terminal.network.zcash.di.networkZcashModule
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -34,6 +35,7 @@ val networkModule = module {
         networkChangeNowModule,
         networkPirateNewsModule,
         networkStonFiModule,
+        networkZcashModule,
         databaseModule,
         decoderModule
     )

@@ -20,8 +20,9 @@ object AppConfigProvider {
     val appTelegramLink by lazy { Translator.getString(R.string.appTelegramLink) }
     val appRedditLink by lazy { Translator.getString(R.string.appRedditLink) }
     val reportEmail by lazy { Translator.getString(R.string.reportEmail) }
-    val mempoolSpaceUrl: String = "https://mempool.space"
-    val walletConnectUrl = "relay.walletconnect.com"
+    const val mempoolSpaceUrl: String = "https://mempool.space"
+    const val blockCypherUrl: String = "https://api.blockcypher.com"
+    const val walletConnectUrl = "relay.walletconnect.com"
     val walletConnectProjectId by lazy { EncodedSecrets.WALLET_CONNECT_V2_KEY }
     val walletConnectAppMetaDataName by lazy { Translator.getString(R.string.walletConnectAppMetaDataName) }
     val walletConnectAppMetaDataUrl by lazy { Translator.getString(R.string.walletConnectAppMetaDataUrl) }

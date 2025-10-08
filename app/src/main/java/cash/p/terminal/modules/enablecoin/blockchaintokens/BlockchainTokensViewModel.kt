@@ -26,7 +26,8 @@ class BlockchainTokensViewModel(
 
     var config: BottomSheetSelectorMultipleDialog.Config? = null
         private set
-    private var currentRequest: BlockchainTokensService.Request? = null
+    var currentRequest: BlockchainTokensService.Request? = null
+        private set
 
     init {
         viewModelScope.launch {

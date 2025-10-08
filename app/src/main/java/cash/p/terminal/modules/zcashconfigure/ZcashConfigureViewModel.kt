@@ -4,9 +4,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
+import cash.p.terminal.network.zcash.domain.usecase.GetZcashHeightUseCase
+import cash.p.terminal.strings.helpers.Translator
+import kotlinx.coroutines.launch
+import java.time.LocalDate
 
-class ZcashConfigureViewModel : ViewModel() {
+class ZcashConfigureViewModel(
+    private val getZcashHeightUseCase: GetZcashHeightUseCase
+) : ViewModel() {
 
     var uiState by mutableStateOf(
         ZCashConfigView(
@@ -41,18 +49,50 @@ class ZcashConfigureViewModel : ViewModel() {
             birthdayHeight = height,
             restoreAsNew = false,
             restoreAsOld = false,
-            doneButtonEnabled = height.isNotBlank()
+            doneButtonEnabled = height.isNotBlank(),
+            errorHeight = null
         )
     }
 
     fun onDoneClick() {
-        uiState = ZCashConfigView(
-            birthdayHeight = uiState.birthdayHeight,
-            restoreAsNew = uiState.restoreAsNew,
-            restoreAsOld = uiState.restoreAsOld,
-            doneButtonEnabled = uiState.doneButtonEnabled,
-            closeWithResult = TokenConfig(uiState.birthdayHeight, uiState.restoreAsNew)
-        )
+        viewModelScope.launch {
+            uiState = uiState.copy(loading = true)
+
+            val birthdayHeight = uiState.birthdayHeight?.trim()
+            val heightDetected = if (uiState.restoreAsNew || birthdayHeight == null) {
+                null
+            } else {
+                getLocalDate(birthdayHeight)?.let {
+                    getZcashHeightUseCase(it)?.toString()
+                } ?: birthdayHeight.toLongOrNull()?.toString()
+            }
+            val heightCorrect = uiState.restoreAsNew || (heightDetected != null)
+            val closeWithResult = if (heightCorrect) {
+                TokenConfig(heightDetected, uiState.restoreAsNew)
+            } else {
+                null
+            }
+            uiState = uiState.copy(
+                closeWithResult = closeWithResult,
+                errorHeight = if (heightCorrect) {
+                    null
+                } else {
+                    Translator.getString(R.string.invalid_height)
+                },
+                loading = false
+            )
+        }
+    }
+
+    /**
+     * Check yyyy-MM-dd format
+     */
+    private fun getLocalDate(height: String): LocalDate? {
+        return try {
+            LocalDate.parse(height)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun onClosed() {
@@ -61,7 +101,7 @@ class ZcashConfigureViewModel : ViewModel() {
             restoreAsNew = uiState.restoreAsNew,
             restoreAsOld = uiState.restoreAsOld,
             doneButtonEnabled = uiState.doneButtonEnabled,
-            closeWithResult = null
+            closeWithResult = null,
         )
     }
 }
@@ -71,5 +111,7 @@ data class ZCashConfigView(
     val restoreAsNew: Boolean,
     val restoreAsOld: Boolean,
     val doneButtonEnabled: Boolean,
-    val closeWithResult: TokenConfig? = null
+    val closeWithResult: TokenConfig? = null,
+    val errorHeight: String? = null,
+    val loading: Boolean = false
 )

@@ -58,7 +58,7 @@ import cash.p.terminal.modules.enablecoin.restoresettings.IRestoreSettingsUi
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureFragment
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
-import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
+import cash.p.terminal.modules.zcashconfigure.ZcashConfigureFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
@@ -111,8 +111,8 @@ internal fun ManageWalletsScreen(
         restoreSettingsViewModel.tokenConfigureOpened()
 
         if (blockchainType == BlockchainType.Zcash) {
-            navController.slideFromBottomForResult<ZcashConfigure.Result>(
-                R.id.zcashConfigure
+            navController.slideFromBottomForResult<ZcashConfigureFragment.Result>(
+                R.id.zcashConfigureFragment
             ) {
                 if (it.config != null) {
                     restoreSettingsViewModel.onEnter(it.config)

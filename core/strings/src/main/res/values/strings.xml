@@ -129,7 +129,7 @@
     <string name="Restore_Advanced_Title">Advanced</string>
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Wrong words count. It must be 25 words. You entered: %d</string>
-    <string name="inavlid_height">Invalid height</string>
+    <string name="invalid_height">Invalid height</string>
     <string name="monero_restore_error">Monero restore error</string>
     <string name="Restore_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="Restore_InvalidChecksum">Invalid Checksum</string>

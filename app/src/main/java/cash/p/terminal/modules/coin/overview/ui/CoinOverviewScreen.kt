@@ -37,7 +37,7 @@ import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewMod
 import cash.p.terminal.modules.managewallets.ManageWalletsModule
 import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.markdown.MarkdownFragment
-import cash.p.terminal.modules.zcashconfigure.ZcashConfigure
+import cash.p.terminal.modules.zcashconfigure.ZcashConfigureFragment
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.ListErrorView
@@ -105,7 +105,7 @@ fun CoinOverviewScreen(
     if (restoreSettingsViewModel.openTokenConfigure != null) {
         restoreSettingsViewModel.tokenConfigureOpened()
 
-        navController.slideFromBottomForResult<ZcashConfigure.Result>(R.id.zcashConfigure) {
+        navController.slideFromBottomForResult<ZcashConfigureFragment.Result>(R.id.zcashConfigureFragment) {
             if (it.config != null) {
                 restoreSettingsViewModel.onEnter(it.config)
             } else {

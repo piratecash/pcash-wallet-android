@@ -493,7 +493,7 @@ abstract class BitcoinBaseAdapter(
                     changeAddresses = change,
                     sentToSelf = false,
                     memo = memo,
-                    replaceable = transaction.rbfEnabled && transaction.blockHeight == null && transaction.conflictingTxHash == null,
+                    replaceable = transaction.replaceable,
                     transactionRecordType = TransactionRecordType.BITCOIN_OUTGOING
                 )
             }

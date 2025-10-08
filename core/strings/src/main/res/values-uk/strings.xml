@@ -1553,7 +1553,7 @@
     <string name="restoreheight_title">Початковий блок для відновлення</string>
     <string name="restoreheight_hint">Вкажіть блок або дату (РРРР-ММ-ДД)</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Невірна кількість слів. Має бути 25. Ви ввели: %d</string>
-    <string name="inavlid_height">Невірне значення висоти</string>
+    <string name="invalid_height">Невірне значення висоти</string>
     <string name="view_key">Ключ перегляду</string>
     <string name="Balance_Receive_Trustline">Довірча лінія</string>
     <string name="Balance_Reserved_Title">Зарезервовано</string>
