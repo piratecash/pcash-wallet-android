@@ -14,8 +14,7 @@ koin-bom = "4.1.0"
 compose-bom = "2024.12.01"
 leakcanaryAndroid = "2.14"
 material = "1.12.0"
-mockitoCore = "5.16.0"
-mockitoKotlinKt1X = "1.6.0"
+mockk = "1.14.6"
 navigationUiKtx = "2.8.5"
 powermockApiMockito2 = "2.0.7"
 powermockModuleJunit4 = "2.0.7"
@@ -31,6 +30,7 @@ navigationRuntimeKtx = "2.8.5"
 navigationFragmentKtx = "2.8.5"
 rxjava = "2.2.21"
 kotlinx-coroutines-android = "1.10.2"
+kotlinx-coroutines-test = "1.10.2"
 room = "2.7.2"
 javax-inject = "1"
 appcompat = "1.7.0"
@@ -43,7 +43,7 @@ stellar-kit = "88fd17e"
 piratecash-ethereum = "212e008"
 horizontalsystems-blockchain-fee = "7d01e63"
 piratecash-solana = "86386be"
-monero-kit-android = "fa67f30"
+monero-kit-android = "b749bde"
 netcipher = "2.1.0"
 solanakt = "0f6072a"
 piratecash-tron = "5b79170"
@@ -106,10 +106,9 @@ androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", ve
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
-mockito-kotlin-kt1-x = { module = "com.nhaarman:mockito-kotlin-kt1.1", version.ref = "mockitoKotlinKt1X" }
 powermock-api-mockito2 = { module = "org.powermock:powermock-api-mockito2", version.ref = "powermockApiMockito2" }
 powermock-module-junit4 = { module = "org.powermock:powermock-module-junit4", version.ref = "powermockModuleJunit4" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 rxjava = { group = "io.reactivex.rxjava2", name = "rxjava", version.ref = "rxjava" }
 kotlinx-coroutines-rx2 = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-rx2", version.ref = "kotlinx-coroutines-android" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-android" }
@@ -150,6 +149,7 @@ ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.r
 ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-log = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-test" }
 ktor-kotlinx-serialization = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "javax-inject" }
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3Android" }

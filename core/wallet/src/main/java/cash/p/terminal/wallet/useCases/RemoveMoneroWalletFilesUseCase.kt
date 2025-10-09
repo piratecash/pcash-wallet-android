@@ -11,7 +11,6 @@ import java.io.File
 class RemoveMoneroWalletFilesUseCase(
     private val appContext: Context,
     private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase
-
 ) {
 
     suspend operator fun invoke(account: Account): Boolean = withContext(Dispatchers.IO) {

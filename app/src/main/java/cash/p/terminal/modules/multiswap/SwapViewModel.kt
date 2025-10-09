@@ -227,7 +227,7 @@ class SwapViewModel(
 
     fun createMissingTokens(tokens: Set<Token>) {
         viewModelScope.launch {
-            walletUseCase.createWallets(tokens)
+            walletUseCase.awaitWallets(tokens)
             reQuote()
         }
     }

@@ -11,6 +11,7 @@ import cash.p.terminal.core.supported
 import cash.p.terminal.core.supports
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
+import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Clearable
@@ -179,7 +180,11 @@ class RestoreBlockchainsService(
 
     fun showApproveSettings(token: Token) {
         if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
-            restoreSettingsService.approveSettings(token)
+            restoreSettingsService.approveSettings(
+                token = token,
+                forceRequest = shouldForceBirthdayHeightDialog(token),
+                initialConfig = buildInitialConfig(token)
+            )
         } else {
             handleApproveRestoreSettings(token, RestoreSettings())
         }
@@ -235,6 +240,23 @@ class RestoreBlockchainsService(
 
     override fun clear() {
         coroutineScope.cancel()
+    }
+
+    private fun shouldForceBirthdayHeightDialog(token: Token): Boolean {
+        return when (token.blockchainType) {
+            BlockchainType.Monero -> true
+            BlockchainType.Zcash -> enabledTokens.none { it.blockchainType == BlockchainType.Zcash }
+            else -> false
+        }
+    }
+
+    private fun buildInitialConfig(token: Token): TokenConfig? {
+        val birthdayHeight = restoreSettingsMap[token]?.birthdayHeight?.takeIf { it > 0 } ?: return null
+
+        return TokenConfig(
+            birthdayHeight = birthdayHeight.toString(),
+            restoreAsNew = false
+        )
     }
 
     data class Item(

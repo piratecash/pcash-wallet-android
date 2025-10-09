@@ -1,27 +1,31 @@
 package cash.p.terminal.modules.enablecoin.restoresettings
 
 import android.os.Parcelable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.core.managers.AccountCleaner
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.Token
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.parcelize.Parcelize
+import org.koin.java.KoinJavaComponent.inject
 
 class RestoreSettingsViewModel(
     private val service: RestoreSettingsService,
-    private val clearables: List<Clearable>
+    private val clearables: List<Clearable>,
 ) : ViewModel(), IRestoreSettingsUi {
 
     override var openTokenConfigure by mutableStateOf<Token?>(null)
         private set
 
     private var currentRequest: RestoreSettingsService.Request? = null
+    private var currentRequestConfig: TokenConfig? = null
+
+    private val accountCleaner: AccountCleaner by inject(AccountCleaner::class.java)
 
     init {
         viewModelScope.launch {
@@ -33,6 +37,7 @@ class RestoreSettingsViewModel(
 
     private fun handleRequest(request: RestoreSettingsService.Request) {
         currentRequest = request
+        currentRequestConfig = request.initialConfig
 
         when (request.requestType) {
             RestoreSettingsService.RequestType.BirthdayHeight -> {
@@ -44,9 +49,17 @@ class RestoreSettingsViewModel(
     override fun onEnter(tokenConfig: TokenConfig) {
         val request = currentRequest ?: return
 
-        when (request.requestType) {
-            RestoreSettingsService.RequestType.BirthdayHeight -> {
-                service.enter(tokenConfig, request.token)
+        viewModelScope.launch {
+            when (request.requestType) {
+                RestoreSettingsService.RequestType.BirthdayHeight -> {
+                    val changed =
+                        request.initialConfig?.birthdayHeight != tokenConfig.birthdayHeight
+                    if (changed) {
+                        // Clear wallet DB
+                        accountCleaner.clearWalletForCurrentAccount(request.token.blockchainType)
+                    }
+                    service.enter(tokenConfig, request.token)
+                }
             }
         }
     }
@@ -64,6 +77,12 @@ class RestoreSettingsViewModel(
     override fun tokenConfigureOpened() {
         openTokenConfigure = null
     }
+
+    override fun consumeInitialConfig(): TokenConfig? {
+        return currentRequestConfig.also {
+            currentRequestConfig = null
+        }
+    }
 }
 
 @Parcelize
@@ -73,6 +92,7 @@ interface IRestoreSettingsUi {
     val openTokenConfigure: Token?
 
     fun tokenConfigureOpened()
-    fun onEnter(config: TokenConfig)
+    fun consumeInitialConfig(): TokenConfig?
+    fun onEnter(tokenConfig: TokenConfig)
     fun onCancelEnterBirthdayHeight()
 }

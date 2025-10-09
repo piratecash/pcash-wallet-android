@@ -37,7 +37,7 @@ import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewMod
 import cash.p.terminal.modules.managewallets.ManageWalletsModule
 import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.markdown.MarkdownFragment
-import cash.p.terminal.modules.zcashconfigure.ZcashConfigureFragment
+import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.ListErrorView
@@ -59,7 +59,6 @@ import cash.p.terminal.wallet.models.LinkType
 import io.horizontalsystems.chartview.chart.ChartViewModel
 import io.horizontalsystems.chartview.ui.Chart
 import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.slideFromBottomForResult
 
 @Composable
 fun CoinOverviewScreen(
@@ -102,16 +101,8 @@ fun CoinOverviewScreen(
     val manageWalletsViewModel = viewModel<ManageWalletsViewModel>(factory = vmFactory1)
     val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel>(factory = vmFactory1)
 
-    if (restoreSettingsViewModel.openTokenConfigure != null) {
-        restoreSettingsViewModel.tokenConfigureOpened()
-
-        navController.slideFromBottomForResult<ZcashConfigureFragment.Result>(R.id.zcashConfigureFragment) {
-            if (it.config != null) {
-                restoreSettingsViewModel.onEnter(it.config)
-            } else {
-                restoreSettingsViewModel.onCancelEnterBirthdayHeight()
-            }
-        }
+    restoreSettingsViewModel.openTokenConfigure?.let { token ->
+        navController.openRestoreSettingsDialog(token, restoreSettingsViewModel)
     }
 
 

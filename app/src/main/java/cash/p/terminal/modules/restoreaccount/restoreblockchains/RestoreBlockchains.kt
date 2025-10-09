@@ -36,6 +36,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
+import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.extensions.BottomSheetSelectorMultiple
@@ -59,7 +60,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ManageWalletsScreen(
     mainViewModel: RestoreViewModel,
-    openConfigure: (Token) -> Unit,
+    openConfigure: (Token, TokenConfig?) -> Unit,
     onBackClick: () -> Unit,
     onFinish: () -> Unit
 ) {
@@ -109,8 +110,9 @@ fun ManageWalletsScreen(
     }
 
     restoreSettingsViewModel.openTokenConfigure?.let {
+        val initialConfig = restoreSettingsViewModel.consumeInitialConfig()
         restoreSettingsViewModel.tokenConfigureOpened()
-        openConfigure(it)
+        openConfigure(it, initialConfig)
     }
 
     LaunchedEffect(restored) {

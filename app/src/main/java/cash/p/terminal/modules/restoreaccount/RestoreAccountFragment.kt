@@ -127,10 +127,12 @@ private fun RestoreAccountNavHost(
         composablePage("restore_select_coins") {
             ManageWalletsScreen(
                 mainViewModel = mainViewModel,
-                openConfigure = {
-                    if (it.blockchainType == BlockchainType.Zcash) {
+                openConfigure = { token, initialConfig ->
+                    if (token.blockchainType == BlockchainType.Zcash) {
+                        mainViewModel.setZCashInitialConfig(initialConfig)
                         navController.navigate("zcash_configure")
-                    } else if (it.blockchainType == BlockchainType.Monero) {
+                    } else if (token.blockchainType == BlockchainType.Monero) {
+                        mainViewModel.setMoneroInitialConfig(initialConfig)
                         navController.navigate("monero_configure")
                     }
                 },
@@ -146,25 +148,33 @@ private fun RestoreAccountNavHost(
         }
         composablePopup("zcash_configure") {
             ZcashConfigureScreen(
+                initialConfig = mainViewModel.tokenZCashInitialConfig,
                 onCloseWithResult = { config ->
                     mainViewModel.setZCashConfig(config)
+                    mainViewModel.setZCashInitialConfig(null)
                     navController.popBackStack()
                 },
                 onCloseClick = {
                     mainViewModel.cancelZCashConfig = true
+                    mainViewModel.setZCashInitialConfig(null)
                     navController.popBackStack()
                 }
             )
         }
         composablePopup("monero_configure") {
             val viewModel: MoneroConfigureViewModel = koinViewModel()
+            LaunchedEffect(mainViewModel.tokenMoneroInitialConfig) {
+                viewModel.setInitialConfig(mainViewModel.tokenMoneroInitialConfig)
+            }
             MoneroConfigureScreen(
                 onCloseWithResult = {
                     mainViewModel.setMoneroConfig(it)
+                    mainViewModel.setMoneroInitialConfig(null)
                     navController.popBackStack()
                 },
                 onCloseClick = {
                     mainViewModel.cancelMoneroConfig = true
+                    mainViewModel.setMoneroInitialConfig(null)
                     navController.popBackStack()
                 },
                 onRestoreNew = viewModel::onRestoreNew,

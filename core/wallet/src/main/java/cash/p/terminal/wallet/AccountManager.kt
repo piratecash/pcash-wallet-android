@@ -6,27 +6,22 @@ import io.horizontalsystems.core.logger.AppLogger
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.subjects.PublishSubject
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AccountManager(
     private val storage: IAccountsStorage,
-    private val accountCleaner: IAccountCleaner,
     private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase,
     private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase
 ) : IAccountManager {
     private val logger: AppLogger = AppLogger("AccountManager")
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var accountsCache = mutableMapOf<String, Account>()
     private val accountsDeletedSubject = PublishSubject.create<Unit>()
     private val _activeAccountStateFlow =
@@ -200,18 +195,11 @@ class AccountManager(
                 ActiveAccountState.ActiveAccount(activeAccount)
             }
         }
-//        logger.info("setLevel: $level, activeAccount: ${activeAccount?.id}, activeAccountIdForLevel: $activeAccountIdForLevel, accounts: ${accounts.size}, accountsCache: ${accountsCache.size}")
         _accountsSharedFlow.tryEmit(accounts)
     }
 
-    override fun clearAccounts() {
-        coroutineScope.launch {
-            delay(3000)
-            accountCleaner.clearAccounts(storage.getDeletedAccountIds())
-            storage.clearDeleted()
-        }
-    }
-
+    override fun getDeletedAccountIds() = storage.getDeletedAccountIds()
+    override fun clearDeleted() = storage.clearDeleted()
 }
 
 class NoActiveAccount : Exception()

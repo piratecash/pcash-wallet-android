@@ -54,17 +54,35 @@ class ZcashConfigureViewModel(
         )
     }
 
+    fun setInitialConfig(config: TokenConfig?) {
+        if (config == null) return
+
+        val isNew = config.restoreAsNew
+        val height = config.birthdayHeight
+        uiState = uiState.copy(
+            birthdayHeight = height,
+            restoreAsNew = isNew,
+            restoreAsOld = !isNew,
+            doneButtonEnabled = isNew || !height.isNullOrBlank(),
+            errorHeight = null,
+            closeWithResult = null,
+            loading = false
+        )
+    }
+
     fun onDoneClick() {
         viewModelScope.launch {
             uiState = uiState.copy(loading = true)
 
-            val birthdayHeight = uiState.birthdayHeight?.trim()
-            val heightDetected = if (uiState.restoreAsNew || birthdayHeight == null) {
-                null
+            val birthdayHeight = uiState.birthdayHeight?.trim().takeUnless { it.isNullOrBlank() }
+            val heightDetected = if (uiState.restoreAsNew) {
+                getZcashHeightUseCase.getCurrentBlockHeight()?.toString()
             } else {
-                getLocalDate(birthdayHeight)?.let {
-                    getZcashHeightUseCase(it)?.toString()
-                } ?: birthdayHeight.toLongOrNull()?.toString()
+                birthdayHeight?.let { heightInput ->
+                    getLocalDate(heightInput)?.let { detectedDate ->
+                        getZcashHeightUseCase(detectedDate)?.toString()
+                    } ?: heightInput.toLongOrNull()?.toString()
+                }
             }
             val heightCorrect = uiState.restoreAsNew || (heightDetected != null)
             val closeWithResult = if (heightCorrect) {

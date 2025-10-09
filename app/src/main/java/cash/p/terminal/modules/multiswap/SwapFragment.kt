@@ -94,6 +94,10 @@ import cash.p.terminal.navigation.slideFromRightForResult
 import io.horizontalsystems.core.toBigDecimalOrNullExt
 import java.math.BigDecimal
 import java.net.UnknownHostException
+import cash.p.terminal.modules.managewallets.ManageWalletsModule
+import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
+import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
+import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
 
 class SwapFragment : BaseComposeFragment() {
     @Composable
@@ -115,6 +119,13 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
     )
     val uiState = viewModel.uiState
     val context = LocalContext.current
+    val manageWalletsFactory = remember { ManageWalletsModule.Factory() }
+    val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel>(factory = manageWalletsFactory)
+    val manageWalletsViewModel = viewModel<ManageWalletsViewModel>(factory = manageWalletsFactory)
+
+    restoreSettingsViewModel.openTokenConfigure?.let { token ->
+        navController.openRestoreSettingsDialog(token, restoreSettingsViewModel)
+    }
 
     SwapScreenInner(
         uiState = uiState,
@@ -160,6 +171,9 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             }
         },
         onCreateMissingTokens = { tokens ->
+            tokens.forEach { token ->
+                manageWalletsViewModel.enable(token)
+            }
             viewModel.createMissingTokens(tokens)
         },
         onActionStarted = {

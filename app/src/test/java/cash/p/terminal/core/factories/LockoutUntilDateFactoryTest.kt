@@ -1,25 +1,34 @@
 package cash.p.terminal.core.factories
 
-import com.nhaarman.mockito_kotlin.whenever
-import io.horizontalsystems.core.ICurrentDateProvider
 import cash.p.terminal.modules.pin.core.LockoutUntilDateFactory
+import io.horizontalsystems.core.ICurrentDateProvider
+import io.mockk.clearMocks
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito
-import java.util.*
+import java.util.Date
 
 class LockoutUntilDateFactoryTest {
 
-    private val currentDateProvider = Mockito.mock(ICurrentDateProvider::class.java)
+    private val currentDateProvider = mockk<ICurrentDateProvider>()
     private val factory = LockoutUntilDateFactory(currentDateProvider)
-    var lockoutTimeStamp = 1L
-    var uptime = 1L
+    private var lockoutTimeStamp = 1L
+    private var uptime = 1L
+
+    @Before
+    fun setUp() {
+        clearMocks(currentDateProvider)
+        lockoutTimeStamp = 1L
+        uptime = 1L
+    }
 
 
     @Test
     fun testUnlockTime_0Min() {
         val currentDate = Date()
-        whenever(currentDateProvider.currentDate).thenReturn(currentDate)
+        every { currentDateProvider.currentDate } returns currentDate
         uptime = 4000L
         Assert.assertEquals(factory.lockoutUntilDate(5, lockoutTimeStamp, uptime), currentDate)
     }
@@ -28,7 +37,7 @@ class LockoutUntilDateFactoryTest {
     fun testUnlockTime_5Min() {
         val date = Date()
         val date2 = Date()
-        whenever(currentDateProvider.currentDate).thenReturn(date)
+        every { currentDateProvider.currentDate } returns date
         date2.time = date.time + 5 * 60 * 1000
         Assert.assertEquals(factory.lockoutUntilDate(5, lockoutTimeStamp, uptime), date2)
     }
@@ -37,7 +46,7 @@ class LockoutUntilDateFactoryTest {
     fun testUnlockTime_10Min() {
         val date = Date()
         val date2 = Date()
-        whenever(currentDateProvider.currentDate).thenReturn(date)
+        every { currentDateProvider.currentDate } returns date
         date2.time = date.time + 10 * 60 * 1000
         Assert.assertEquals(factory.lockoutUntilDate(6, lockoutTimeStamp, uptime), date2)
     }
@@ -46,7 +55,7 @@ class LockoutUntilDateFactoryTest {
     fun testUnlockTime_15Min() {
         val date = Date()
         val date2 = Date()
-        whenever(currentDateProvider.currentDate).thenReturn(date)
+        every { currentDateProvider.currentDate } returns date
         date2.time = date.time + 15 * 60 * 1000
         Assert.assertEquals(factory.lockoutUntilDate(7, lockoutTimeStamp, uptime), date2)
     }
@@ -55,7 +64,7 @@ class LockoutUntilDateFactoryTest {
     fun testUnlockTime_30Min() {
         val date = Date()
         val date2 = Date()
-        whenever(currentDateProvider.currentDate).thenReturn(date)
+        every { currentDateProvider.currentDate } returns date
         date2.time = date.time + 30 * 60 * 1000
         Assert.assertEquals(factory.lockoutUntilDate(8, lockoutTimeStamp, uptime), date2)
     }
@@ -64,7 +73,7 @@ class LockoutUntilDateFactoryTest {
     fun testUnlockTime_MoreThan30Min() {
         val date = Date()
         val date2 = Date()
-        whenever(currentDateProvider.currentDate).thenReturn(date)
+        every { currentDateProvider.currentDate } returns date
         date2.time = date.time + 30 * 60 * 1000
         Assert.assertEquals(factory.lockoutUntilDate(9, lockoutTimeStamp, uptime), date2)
     }

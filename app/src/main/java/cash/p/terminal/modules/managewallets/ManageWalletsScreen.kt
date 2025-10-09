@@ -56,11 +56,9 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.IRestoreSettingsUi
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
-import cash.p.terminal.modules.moneroconfigure.MoneroConfigureFragment
+import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
-import cash.p.terminal.modules.zcashconfigure.ZcashConfigureFragment
 import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.ListEmptyView
@@ -106,31 +104,8 @@ internal fun ManageWalletsScreen(
         }
     }
 
-    val blockchainType = restoreSettingsViewModel.openTokenConfigure?.blockchainType
-    if (blockchainType != null) {
-        restoreSettingsViewModel.tokenConfigureOpened()
-
-        if (blockchainType == BlockchainType.Zcash) {
-            navController.slideFromBottomForResult<ZcashConfigureFragment.Result>(
-                R.id.zcashConfigureFragment
-            ) {
-                if (it.config != null) {
-                    restoreSettingsViewModel.onEnter(it.config)
-                } else {
-                    restoreSettingsViewModel.onCancelEnterBirthdayHeight()
-                }
-            }
-        } else if (blockchainType == BlockchainType.Monero) {
-            navController.slideFromBottomForResult<MoneroConfigureFragment.Result>(
-                resId = R.id.moneroConfigure
-            ) {
-                if (it.config != null) {
-                    restoreSettingsViewModel.onEnter(it.config)
-                } else {
-                    restoreSettingsViewModel.onCancelEnterBirthdayHeight()
-                }
-            }
-        }
+    restoreSettingsViewModel.openTokenConfigure?.let { token ->
+        navController.openRestoreSettingsDialog(token, restoreSettingsViewModel)
     }
 
     Box(
@@ -545,7 +520,8 @@ private fun ManageWalletsScreenPreview() {
             restoreSettingsViewModel = object : IRestoreSettingsUi {
                 override val openTokenConfigure: Token? = null
                 override fun tokenConfigureOpened() = Unit
-                override fun onEnter(config: TokenConfig) = Unit
+                override fun consumeInitialConfig(): TokenConfig? = null
+                override fun onEnter(tokenConfig: TokenConfig) = Unit
                 override fun onCancelEnterBirthdayHeight() = Unit
             }
         )

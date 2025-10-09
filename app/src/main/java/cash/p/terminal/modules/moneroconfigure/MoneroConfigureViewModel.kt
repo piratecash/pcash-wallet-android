@@ -34,6 +34,18 @@ class MoneroConfigureViewModel(
         )
     }
 
+    fun setInitialConfig(config: TokenConfig?) {
+        if (config == null) return
+
+        val isNew = config.restoreAsNew
+        uiState = uiState.copy(
+            birthdayHeight = config.birthdayHeight.orEmpty(),
+            restoreAsNew = isNew,
+            errorHeight = null,
+            closeWithResult = null
+        )
+    }
+
     fun onDoneClick() {
         val heightDetected =  if (uiState.restoreAsNew) {
             validateMoneroHeightUseCase.getTodayHeight()

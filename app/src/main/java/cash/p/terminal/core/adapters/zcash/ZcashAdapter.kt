@@ -8,6 +8,7 @@ import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -74,6 +75,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 import java.util.regex.Pattern
@@ -96,6 +98,9 @@ class ZcashAdapter(
 
     private var synchronizer: CloseableSynchronizer
     private var transactionsProvider: ZcashTransactionsProvider
+    private val clearZCashWalletDataUseCase: ClearZCashWalletDataUseCase by inject(
+        ClearZCashWalletDataUseCase::class.java
+    )
 
     private val adapterStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
     private val lastBlockUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
@@ -122,40 +127,8 @@ class ZcashAdapter(
 
 
     companion object {
-        private const val ALIAS_PREFIX = "zcash_"
-
-        private fun getValidAliasFromAccountId(
-            accountId: String,
-            addressSpecTyped: AddressSpecType?
-        ): String {
-            return (ALIAS_PREFIX + accountId.replace("-", "_")).let {
-                if (addressSpecTyped != null) {
-                    it + "_${addressSpecTyped.name}"
-                } else {
-                    it
-                }
-            }
-        }
-
         private const val DECIMAL_COUNT = 8
         val MINERS_FEE = ZcashSdk.MINERS_FEE.convertZatoshiToZec(DECIMAL_COUNT)
-
-        fun clear(accountId: String) {
-            runBlocking {
-                Synchronizer.erase(
-                    appContext = App.instance,
-                    network = ZcashNetwork.Mainnet,
-                    alias = getValidAliasFromAccountId(accountId, null)
-                )
-                AddressSpecType.entries.forEach {
-                    Synchronizer.erase(
-                        appContext = App.instance,
-                        network = ZcashNetwork.Mainnet,
-                        alias = getValidAliasFromAccountId(accountId, it)
-                    )
-                }
-            }
-        }
     }
 
     init {
@@ -197,7 +170,10 @@ class ZcashAdapter(
         synchronizer = Synchronizer.newBlocking(
             context = context,
             zcashNetwork = network,
-            alias = getValidAliasFromAccountId(wallet.account.id, addressSpecTyped),
+            alias = clearZCashWalletDataUseCase.getValidAliasFromAccountId(
+                wallet.account.id,
+                addressSpecTyped
+            ),
             lightWalletEndpoint = lightWalletEndpoint,
             birthday = birthday,
             walletInitMode = walletInitMode,
@@ -325,7 +301,10 @@ class ZcashAdapter(
             synchronizer = Synchronizer.new(
                 context = App.instance,
                 zcashNetwork = network,
-                alias = getValidAliasFromAccountId(wallet.account.id, addressSpecTyped),
+                alias = clearZCashWalletDataUseCase.getValidAliasFromAccountId(
+                    wallet.account.id,
+                    addressSpecTyped
+                ),
                 lightWalletEndpoint = lightWalletEndpoint,
                 birthday = birthday,
                 walletInitMode = walletInitMode,
@@ -392,11 +371,11 @@ class ZcashAdapter(
     }
 
     override suspend fun refresh() = withContext(Dispatchers.IO) {
-            with(synchronizer as SdkSynchronizer) {
-                refreshAllBalances()
-                refreshTransactions()
-            }
+        with(synchronizer as SdkSynchronizer) {
+            refreshAllBalances()
+            refreshTransactions()
         }
+    }
 
     override val debugInfo: String
         get() = ""

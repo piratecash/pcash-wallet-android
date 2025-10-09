@@ -103,6 +103,7 @@ import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
 import com.reown.walletkit.client.Wallet
 import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
+import cash.p.terminal.wallet.IAccountCleaner
 import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.CurrencyManager
@@ -117,6 +118,8 @@ import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.reactivex.plugins.RxJavaPlugins
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
@@ -196,7 +199,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         lateinit var tonConnectManager: TonConnectManager
     }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val accountCleaner: IAccountCleaner by inject(IAccountCleaner::class.java)
 
     override fun onCreate() {
         super.onCreate()
@@ -525,7 +529,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             rateAppManager.onAppLaunch()
             nftMetadataSyncer.start()
             pinComponent.initDefaultPinLevel()
-            accountManager.clearAccounts()
+            clearDeletedAccounts()
             wcSessionManager.start()
 
             AppVersionManager(systemInfoManager, localStorage).apply { storeAppVersion() }
@@ -538,6 +542,14 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
             evmLabelManager.sync()
             contactsRepository.initialize()
+        }
+    }
+
+    private fun clearDeletedAccounts() {
+        coroutineScope.launch {
+            delay(3000)
+            accountCleaner.clearAccounts(accountManager.getDeletedAccountIds())
+            accountManager.clearDeleted()
         }
     }
 

@@ -10,6 +10,8 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.WalletFactory
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 
 class WalletUseCase(
     private val walletManager: IWalletManager,
@@ -36,8 +38,14 @@ class WalletUseCase(
                 tokensToAdd = tokensToAdd
             )
         } else {
-            walletManager.saveSuspended(tokensToAdd.mapNotNull { walletFactory.create(it, account, null) })
-            return true
+            walletManager.saveSuspended(tokensToAdd.mapNotNull {
+                walletFactory.create(
+                    it,
+                    account,
+                    null
+                )
+            })
+            true
         }
     }
 
@@ -92,6 +100,18 @@ class WalletUseCase(
 
     suspend fun createWalletIfNotExists(token: Token): Wallet? =
         getWallet(token) ?: if (createWallets(setOf(token))) getWallet(token) else null
+
+    suspend fun awaitWallets(tokens: Set<Token>) {
+        if (tokens.all { getWallet(it) != null }) return
+
+        walletManager.activeWalletsFlow
+            .filter { wallets ->
+                tokens.all { token ->
+                    wallets.any { it.token == token }
+                }
+            }
+            .first()
+    }
 
     fun getReceiveAddress(token: Token): String {
         val adapter = getReceiveAdapter(token)

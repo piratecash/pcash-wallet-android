@@ -22,6 +22,10 @@ class RestoreViewModel: ViewModel() {
         private set
     var tokenMoneroConfig: TokenConfig? = null
         private set
+    var tokenZCashInitialConfig: TokenConfig? = null
+        private set
+    var tokenMoneroInitialConfig: TokenConfig? = null
+        private set
 
     var cancelZCashConfig: Boolean = false
     var cancelMoneroConfig: Boolean = false
@@ -39,6 +43,14 @@ class RestoreViewModel: ViewModel() {
 
     fun setMoneroConfig(config: TokenConfig?) {
         tokenMoneroConfig = config
+    }
+
+    fun setZCashInitialConfig(config: TokenConfig?) {
+        tokenZCashInitialConfig = config
+    }
+
+    fun setMoneroInitialConfig(config: TokenConfig?) {
+        tokenMoneroInitialConfig = config
     }
 
 }

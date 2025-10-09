@@ -36,6 +36,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -247,7 +248,12 @@ class MoneroKitWrapper(
                 fixCorruptedWalletFile(walletKeyFile.absolutePath, walletPassword)*/
 
                 moneroWalletService.setObserver(this@MoneroKitWrapper)
-                moneroWalletService.start(walletFileName, walletPassword)
+                val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
+                if (walletStatus?.isOk != true) {
+                    Timber.d("Monero wallet start error: $walletStatus, restarting")
+                    delay(3_000)
+                    moneroWalletService.start(walletFileName, walletPassword)
+                }
                 isStarted = true
 
                 fixWalletHeight()

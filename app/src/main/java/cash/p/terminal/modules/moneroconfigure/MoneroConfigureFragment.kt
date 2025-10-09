@@ -52,6 +52,7 @@ import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellMultilineLawrenceSection
@@ -80,7 +81,11 @@ class MoneroConfigureFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
+        val initialConfig = navController.getInput<Input>()?.initialConfig
         val viewModel: MoneroConfigureViewModel = koinViewModel()
+        LaunchedEffect(initialConfig) {
+            viewModel.setInitialConfig(initialConfig)
+        }
         MoneroConfigureScreen(
             onCloseWithResult = { closeWithConfigt(it, navController) },
             onCloseClick = { close(navController) },
@@ -103,6 +108,9 @@ class MoneroConfigureFragment : BaseComposeFragment() {
 
     @Parcelize
     data class Result(val config: TokenConfig?) : Parcelable
+
+    @Parcelize
+    data class Input(val initialConfig: TokenConfig?) : Parcelable
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

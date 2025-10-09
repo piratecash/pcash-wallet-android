@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -110,8 +111,15 @@ fun FormsInput(
                 .background(ComposeAppTheme.colors.lawrence),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            var textState by rememberSaveable(initial, stateSaver = TextFieldValue.Saver) {
+            var textState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
                 mutableStateOf(TextFieldValue(initial ?: "", TextRange(initial?.length ?: 0)))
+            }
+
+            LaunchedEffect(initial) {
+                val incoming = initial ?: ""
+                if (incoming != textState.text) {
+                    textState = TextFieldValue(incoming, TextRange(incoming.length))
+                }
             }
 
             prefix?.let {
@@ -216,11 +224,11 @@ fun FormsInput(
                                     result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
 
                                 val textProcessed = textPreprocessor.process(scannedText)
-                                textState = textState.copy(
+                                textState = TextFieldValue(
                                     text = textProcessed,
                                     selection = TextRange(textProcessed.length)
                                 )
-                                onValueChange.invoke(textProcessed)
+                                onValueChange(textProcessed)
                             }
                         }
 
@@ -243,11 +251,11 @@ fun FormsInput(
                         onClick = {
                             clipboardManager.getText()?.text?.let { textInClipboard ->
                                 val textProcessed = textPreprocessor.process(textInClipboard)
-                                textState = textState.copy(
+                                textState = TextFieldValue(
                                     text = textProcessed,
                                     selection = TextRange(textProcessed.length)
                                 )
-                                onValueChange.invoke(textProcessed)
+                                onValueChange(textProcessed)
                             }
                         },
                     )
@@ -328,8 +336,15 @@ fun FormsInputMultiline(
                 .border(1.dp, borderColor, RoundedCornerShape(12.dp))
                 .background(ComposeAppTheme.colors.lawrence),
         ) {
-            var textState by rememberSaveable(initial, stateSaver = TextFieldValue.Saver) {
+            var textState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
                 mutableStateOf(TextFieldValue(initial ?: ""))
+            }
+
+            LaunchedEffect(initial) {
+                val incoming = initial ?: ""
+                if (incoming != textState.text) {
+                    textState = TextFieldValue(incoming, TextRange(incoming.length))
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

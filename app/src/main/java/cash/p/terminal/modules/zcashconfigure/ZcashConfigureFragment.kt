@@ -29,6 +29,7 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,7 @@ import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
@@ -89,7 +91,9 @@ class ZcashConfigureFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
+        val initialConfig = navController.getInput<Input>()?.initialConfig
         ZcashConfigureScreen(
+            initialConfig = initialConfig,
             onCloseWithResult = { closeWithConfigt(it, navController) },
             onCloseClick = { close(navController) }
         )
@@ -107,6 +111,9 @@ class ZcashConfigureFragment : BaseComposeFragment() {
 
     @Parcelize
     data class Result(val config: TokenConfig?) : Parcelable
+
+    @Parcelize
+    data class Input(val initialConfig: TokenConfig?) : Parcelable
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,6 +121,7 @@ class ZcashConfigureFragment : BaseComposeFragment() {
 fun ZcashConfigureScreen(
     onCloseClick: () -> Unit,
     onCloseWithResult: (TokenConfig) -> Unit,
+    initialConfig: TokenConfig? = null,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets
 ) {
     val viewModel: ZcashConfigureViewModel = koinViewModel()
@@ -125,6 +133,10 @@ fun ZcashConfigureScreen(
 
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(initialConfig) {
+        viewModel.setInitialConfig(initialConfig)
+    }
 
     uiState.closeWithResult?.let {
         viewModel.onClosed()
@@ -382,6 +394,10 @@ private fun SlowSyncWarningBottomSheet(
 @Composable
 private fun Preview_ZcashConfigure() {
     ComposeAppTheme(darkTheme = false) {
-        ZcashConfigureScreen({}, {})
+        ZcashConfigureScreen(
+            onCloseClick = {},
+            onCloseWithResult = {},
+            initialConfig = null
+        )
     }
 }

@@ -4,19 +4,19 @@ import android.app.Application
 import android.content.Context
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
+import io.mockk.mockk
 import org.junit.Test
 import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.verify.verify
-import org.mockito.Mockito.mock
 
 class KoinGraphTest : KoinTest {
 
     @Test
     fun verifyKoinGraph() {
         val testOverrides = module {
-            single<Context> { mock() }
-            single<Application> { mock() }
+            single<Context> { mockk() }
+            single<Application> { mockk() }
             single<HttpClientEngine> { OkHttp.create() }
         }
 

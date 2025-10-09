@@ -2,9 +2,9 @@ package cash.p.terminal.modules.managewallets
 
 import cash.p.terminal.core.eligibleTokens
 import cash.p.terminal.core.managers.RestoreSettings
-import cash.p.terminal.core.order
 import cash.p.terminal.core.restoreSettingTypes
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
+import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.receive.FullCoinsProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -25,10 +25,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 class ManageWalletsService(
@@ -126,6 +126,7 @@ class ManageWalletsService(
         is TokenType.Eip20,
         is TokenType.Spl,
         is TokenType.Jetton -> true
+
         else -> false
     }
 
@@ -198,7 +199,12 @@ class ManageWalletsService(
 
         coroutineScope.launch {
             if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
-                restoreSettingsService.approveSettings(token, account)
+                restoreSettingsService.approveSettings(
+                    token = token,
+                    account = account,
+                    forceRequest = shouldForceBirthdayHeightDialog(token),
+                    initialConfig = buildInitialConfig(token, account)
+                )
             } else {
                 enable(token, RestoreSettings())
             }
@@ -226,4 +232,25 @@ class ManageWalletsService(
         val enabled: Boolean,
         val hasInfo: Boolean
     )
+
+    private fun shouldForceBirthdayHeightDialog(token: Token): Boolean {
+        return when (token.blockchainType) {
+            BlockchainType.Monero -> true
+            BlockchainType.Zcash -> walletManager.activeWallets.none { wallet ->
+                wallet.token.blockchainType == BlockchainType.Zcash
+            }
+
+            else -> false
+        }
+    }
+
+    private fun buildInitialConfig(token: Token, account: Account): TokenConfig? {
+        val restoreSettings = restoreSettingsService.getSettings(account, token.blockchainType)
+        val birthdayHeight = restoreSettings.birthdayHeight?.takeIf { it > 0 } ?: return null
+
+        return TokenConfig(
+            birthdayHeight = birthdayHeight.toString(),
+            restoreAsNew = false
+        )
+    }
 }
