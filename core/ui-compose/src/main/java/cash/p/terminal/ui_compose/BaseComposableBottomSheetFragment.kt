@@ -62,6 +62,7 @@ fun BottomSheetHeader(
     iconPainter: Painter,
     title: String,
     onCloseClick: () -> Unit,
+    modifier: Modifier = Modifier,
     titleColor: Color = ComposeAppTheme.colors.leah,
     iconTint: ColorFilter? = null,
     content: @Composable() (ColumnScope.() -> Unit),
@@ -82,6 +83,7 @@ fun BottomSheetHeader(
         },
         onCloseClick = onCloseClick,
         iconTint = iconTint,
+        modifier = modifier,
         content = content
     )
 }
@@ -127,10 +129,11 @@ private fun BottomSheetHeader(
     titleContent: @Composable() (RowScope.() -> Unit),
     onCloseClick: () -> Unit,
     iconTint: ColorFilter?,
+    modifier: Modifier = Modifier,
     content: @Composable() (ColumnScope.() -> Unit)
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp, 24.dp, 0.dp, 0.dp))
             .verticalScroll(rememberScrollState())

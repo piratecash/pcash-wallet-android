@@ -23,15 +23,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.session.WCSessionModule
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.BadgeText
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun WCSessionCell(
@@ -48,8 +49,11 @@ fun WCSessionCell(
             .background(ComposeAppTheme.colors.lawrence)
             .clickable {
                 navController.slideFromBottom(
-                    R.id.wcSessionFragment,
-                    WCSessionModule.Input(session.sessionTopic)
+                    MainGraphDirections.actionGlobalToWcSessionFragment(
+                        WCSessionModule.Input(
+                            session.sessionTopic
+                        )
+                    )
                 )
             },
         contentAlignment = Alignment.Center

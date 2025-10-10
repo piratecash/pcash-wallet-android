@@ -30,33 +30,33 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
+import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.getInputX
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.walletconnect.session.ui.StatusCell
 import cash.p.terminal.modules.walletconnect.session.ui.TitleValueCell
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui.helpers.TextHelper
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
-import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.findNavController
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import cash.p.terminal.ui_compose.components.HudHelper
 
 class WCSessionFragment : BaseComposeFragment() {
+    private val args: WCSessionFragmentArgs by navArgs()
 
     private val viewModel by viewModels<WCSessionViewModel> {
-        val input = arguments?.getInputX<WCSessionModule.Input>()
-        WCSessionModule.Factory(input?.sessionTopic)
+        WCSessionModule.Factory(args.input?.sessionTopic)
     }
 
     @Composable

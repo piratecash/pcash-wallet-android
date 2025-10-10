@@ -24,6 +24,10 @@
         app:popEnterAnim="@android:anim/fade_in"
         app:popExitAnim="@anim/slide_to_right" />
 
+    <action
+        android:id="@+id/actionGlobalToWcSessionFragment"
+        app:destination="@id/wcSessionFragment"/>
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="cash.p.terminal.modules.main.MainFragment">
@@ -481,7 +485,12 @@
     <!--Wallet Connect-->
     <fragment
         android:id="@+id/wcSessionFragment"
-        android:name="cash.p.terminal.modules.walletconnect.session.WCSessionFragment"/>
+        android:name="cash.p.terminal.modules.walletconnect.session.WCSessionFragment">
+        <argument
+            android:name="input"
+            app:nullable="true"
+            app:argType="cash.p.terminal.modules.walletconnect.session.WCSessionModule$Input" />
+    </fragment>
     <fragment
         android:id="@+id/wcRequestFragment"
         android:name="cash.p.terminal.modules.walletconnect.request.WCRequestFragment"/>

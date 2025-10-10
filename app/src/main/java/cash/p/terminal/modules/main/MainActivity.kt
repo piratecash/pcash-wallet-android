@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BaseActivity
@@ -78,7 +79,9 @@ class MainActivity : BaseActivity() {
                     }
 
                     is Wallet.Model.SessionProposal -> {
-                        navController.slideFromBottom(R.id.wcSessionFragment)
+                        navController.slideFromBottom(
+                        MainGraphDirections.actionGlobalToWcSessionFragment(null)
+                        )
                     }
 
                     else -> {}

@@ -20,6 +20,17 @@ fun NavController.slideFromRight(directions: NavDirections) {
     navigate(directions, navOptions)
 }
 
+fun NavController.slideFromBottom(directions: NavDirections) {
+    val navOptions = NavOptions.Builder()
+        .setEnterAnim(R.anim.slide_from_bottom)
+        .setExitAnim(android.R.anim.fade_out)
+        .setPopEnterAnim(android.R.anim.fade_in)
+        .setPopExitAnim(R.anim.slide_to_bottom)
+        .build()
+
+    navigate(directions, navOptions)
+}
+
 fun NavController.slideFromRight(@IdRes resId: Int, input: Parcelable? = null) {
     val navOptions = NavOptions.Builder()
         .setEnterAnim(R.anim.slide_from_right)

@@ -360,7 +360,6 @@ sealed class AccountType : Parcelable {
         get() = when (this) {
             is HardwareCard,
             is Mnemonic,
-            is MnemonicMonero,
             is EvmPrivateKey -> true
             else -> false
         }

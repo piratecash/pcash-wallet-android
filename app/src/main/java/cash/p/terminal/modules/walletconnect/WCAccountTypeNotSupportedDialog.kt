@@ -6,9 +6,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -73,31 +75,39 @@ fun WCAccountTypeNotSupportedScreen(
     onCloseClick: () -> Unit,
     onSwitchClick: () -> Unit
 ) {
-    BottomSheetHeader(
-        iconPainter = painterResource(R.drawable.ic_wallet_connect_24),
-        iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
-        title = stringResource(R.string.WalletConnect_Title),
-        onCloseClick = onCloseClick
-    ) {
-        TextImportantWarning(
-            modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
-            text = stringResource(id = R.string.WalletConnect_NotSupportedDescription, accountTypeDescription)
-        )
-        ButtonPrimaryYellow(
-            modifier = Modifier
-                .padding(vertical = 20.dp, horizontal = 24.dp)
-                .fillMaxWidth(),
-            title = stringResource(R.string.Button_Switch),
-            onClick = onSwitchClick
-        )
-        Spacer(Modifier.height(12.dp))
+    Scaffold(
+        containerColor = ComposeAppTheme.colors.tyler
+    ) { innerPadding ->
+        BottomSheetHeader(
+            iconPainter = painterResource(R.drawable.ic_wallet_connect_24),
+            iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
+            title = stringResource(R.string.WalletConnect_Title),
+            modifier = Modifier.padding(innerPadding).fillMaxSize(),
+            onCloseClick = onCloseClick
+        ) {
+            TextImportantWarning(
+                modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+                text = stringResource(
+                    id = R.string.WalletConnect_NotSupportedDescription,
+                    accountTypeDescription
+                )
+            )
+            ButtonPrimaryYellow(
+                modifier = Modifier
+                    .padding(vertical = 20.dp, horizontal = 24.dp)
+                    .fillMaxWidth(),
+                title = stringResource(R.string.Button_Switch),
+                onClick = onSwitchClick
+            )
+            Spacer(Modifier.height(12.dp))
+        }
     }
 }
 
 @Preview
 @Composable
 private fun WalletConnectErrorWatchAccountPreview() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         WCAccountTypeNotSupportedScreen("Account Type Desc", {}, {})
     }
 }
