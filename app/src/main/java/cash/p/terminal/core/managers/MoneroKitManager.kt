@@ -26,6 +26,7 @@ import com.m2049r.xmrwallet.model.Wallet
 import com.m2049r.xmrwallet.model.Wallet.ConnectionStatus
 import com.m2049r.xmrwallet.model.WalletManager
 import com.m2049r.xmrwallet.service.MoneroWalletService
+import com.m2049r.xmrwallet.service.WalletCorruptedException
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.SafeSuspendedCall
@@ -198,7 +199,7 @@ class MoneroKitWrapper(
         )
     }
 
-    suspend fun start() = withContext(Dispatchers.IO) {
+    suspend fun start(fixIfCorruptedFile: Boolean = true) = withContext(Dispatchers.IO) {
         if (!isStarted) {
             try {
                 val walletFileName: String
@@ -248,18 +249,40 @@ class MoneroKitWrapper(
                 fixCorruptedWalletFile(walletKeyFile.absolutePath, walletPassword)*/
 
                 moneroWalletService.setObserver(this@MoneroKitWrapper)
-                val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
-                if (walletStatus?.isOk != true) {
-                    Timber.d("Monero wallet start error: $walletStatus, restarting")
-                    delay(3_000)
-                    moneroWalletService.start(walletFileName, walletPassword)
-                }
+                startService(walletFileName, walletPassword, fixIfCorruptedFile)
                 isStarted = true
 
                 fixWalletHeight()
             } catch (e: Exception) {
                 _syncState.value = AdapterState.NotSynced(e)
                 Timber.e(e, "Failed to start Monero wallet")
+            }
+        }
+    }
+
+    private suspend fun startService(
+        walletFileName: String,
+        walletPassword: String,
+        fixIfCorruptedFile: Boolean
+    ) {
+        try {
+            val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
+            if (walletStatus?.isOk != true) {
+                Timber.d("Monero wallet start error: $walletStatus, restarting")
+                delay(3_000)
+                moneroWalletService.start(walletFileName, walletPassword)
+            }
+        } catch (e: WalletCorruptedException) {
+            if (fixIfCorruptedFile) {
+                Timber.e(e, "WalletCorruptedException, trying to fix wallet")
+                restoreSettingsManager.settings(
+                    account,
+                    BlockchainType.Monero
+                ).birthdayHeight?.let {
+                    resetWalletAndRestart(it)
+                }
+            } else {
+                Timber.e(e, "WalletCorruptedException, fix disabled")
             }
         }
     }
@@ -310,7 +333,7 @@ class MoneroKitWrapper(
                 restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
             }
         }
-        start()
+        start(fixIfCorruptedFile = false)
     }
 
     suspend fun stop(saveWallet: Boolean = true) = SafeSuspendedCall.executeSuspendable {
