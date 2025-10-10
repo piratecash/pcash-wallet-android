@@ -53,7 +53,8 @@ class TonConnectNewViewModel(
         }
 
         accounts = App.accountManager.accounts.filter {
-            it.type is AccountType.Mnemonic
+            it.type is AccountType.Mnemonic ||
+                    it.type is AccountType.HardwareCard
         }
 
         if (accounts.isEmpty()) {
