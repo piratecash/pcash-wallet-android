@@ -16,6 +16,7 @@ class EvmTransactionRecord(
     transaction: Transaction,
     token: Token,
     source: TransactionSource,
+    val protected: Boolean,
     spam: Boolean = false,
     transactionRecordType: TransactionRecordType,
     val spender: String? = null,

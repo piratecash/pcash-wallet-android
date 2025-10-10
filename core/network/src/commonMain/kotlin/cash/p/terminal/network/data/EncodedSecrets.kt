@@ -44,7 +44,7 @@ object EncodedSecrets : KoinComponent {
         "QyYVBxFuChI1DlskYTYoIRwnJic9LF4kWQcuNXg1TRk="
     ))
     val MERKLE_IO_KEY = decoder.decode(listOf(
-        "AAg+HgpeL0ZQDwhVGkhVF0FAXBBRAAgLXBYDQx8TGQ5BU0dWUksN"
+        "AAg+HgpeL0AEXFhRSBQDQRARXUIFWFgLWUtRRhcRHQ0XU0hWAEdd"
     ))
     val CHAINALYSIS_API_KEY = decoder.decode(listOf(
         "RFICF1kbSUZQWFoAGkRRFUYWWEdXVlxQCUNVREsSHQlHV0ICV0MKTERNAw5fVRsUBEFGQgwRAlMKDAhEXBUbEg=="

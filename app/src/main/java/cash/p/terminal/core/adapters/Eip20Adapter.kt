@@ -41,7 +41,6 @@ internal class Eip20Adapter(
         coinManager = coinManager,
         evmTransactionRepository = evmTransactionRepository,
         source = wallet.transactionSource,
-        spamManager = App.spamManager,
         baseToken = baseToken,
         evmLabelManager = evmLabelManager
     )

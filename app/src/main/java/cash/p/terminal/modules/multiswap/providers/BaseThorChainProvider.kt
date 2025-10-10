@@ -64,7 +64,7 @@ abstract class BaseThorChainProvider(
     )
 
     private var assets = listOf<Asset>()
-
+    override val mevProtectionAvailable: Boolean = false
     override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
 
     override suspend fun start() {

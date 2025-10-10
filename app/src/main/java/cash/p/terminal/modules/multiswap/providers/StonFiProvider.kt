@@ -39,6 +39,7 @@ class StonFiProvider(
     override val icon = R.drawable.ic_ston_fi
     override val priority = 0
 
+    override val mevProtectionAvailable: Boolean = false
     // TON native token address
     companion object {
         private const val TON_NATIVE_ADDRESS = "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"

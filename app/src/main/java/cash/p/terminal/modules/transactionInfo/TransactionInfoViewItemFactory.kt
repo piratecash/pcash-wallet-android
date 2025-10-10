@@ -595,7 +595,7 @@ class TransactionInfoViewItemFactory(
                 hideSensitiveInfo = hideSensitiveInfo
             )
         )
-        if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && status == TransactionStatus.Pending && resendEnabled) {
+        if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected && status == TransactionStatus.Pending && resendEnabled) {
             itemSections.add(
                 listOf(
                     SpeedUpCancel(

@@ -38,7 +38,6 @@ internal class EvmTransactionsAdapter(
         coinManager,
         evmTransactionRepository,
         source,
-        App.spamManager,
         baseToken,
         evmLabelManager
     )

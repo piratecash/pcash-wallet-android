@@ -27,6 +27,8 @@ import java.math.BigDecimal
 abstract class BaseUniswapV3Provider(dexType: DexType) : EvmSwapProvider() {
     private val uniswapV3Kit by lazy { UniswapV3Kit.getInstance(dexType) }
 
+    override val mevProtectionAvailable: Boolean = true
+
     final override suspend fun fetchQuote(
         tokenIn: Token,
         tokenOut: Token,

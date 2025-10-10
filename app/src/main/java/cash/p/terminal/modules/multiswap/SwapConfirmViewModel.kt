@@ -77,7 +77,8 @@ class SwapConfirmViewModel(
     private var criticalError: String? = null
     private var isAdvancedSettingsAvailable: Boolean = sendTransactionService.hasSettings()
     private var fetchJob: Job? = null
-    private val mevProtectionAvailable = sendTransactionService.mevProtectionAvailable
+    private val mevProtectionAvailable =
+        swapProvider.mevProtectionAvailable && sendTransactionService.mevProtectionAvailable
 
     init {
         fiatServiceIn.setCurrency(currency)

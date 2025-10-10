@@ -26,6 +26,7 @@ import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.horizontalsystems.ethereumkit.models.InternalTransaction
 import io.horizontalsystems.ethereumkit.models.Transaction
+import io.horizontalsystems.merkleiokit.MerkleTransactionAdapter
 import io.horizontalsystems.nftkit.decorations.OutgoingEip1155Decoration
 import io.horizontalsystems.nftkit.decorations.OutgoingEip721Decoration
 import io.horizontalsystems.nftkit.events.Eip1155TransferEventInstance
@@ -42,13 +43,13 @@ internal class EvmTransactionConverter(
     private val coinManager: ICoinManager,
     private val evmTransactionRepository: EvmTransactionRepository,
     private val source: TransactionSource,
-    private val spamManager: SpamManager,
     private val baseToken: Token,
     private val evmLabelManager: EvmLabelManager
 ) {
 
     fun transactionRecord(fullTransaction: FullTransaction): EvmTransactionRecord {
         val transaction = fullTransaction.transaction
+        val isProtected = MerkleTransactionAdapter.isProtected(fullTransaction)
 
         val transactionRecord = when (val decoration = fullTransaction.decoration) {
             is ContractCreationDecoration -> {
@@ -56,6 +57,7 @@ internal class EvmTransactionConverter(
                     transaction = transaction,
                     token = baseToken,
                     source = source,
+                    protected = isProtected,
                     transactionRecordType = TransactionRecordType.EVM_CONTRACT_CREATION
                 )
             }
@@ -76,6 +78,7 @@ internal class EvmTransactionConverter(
                     transaction = transaction,
                     token = baseToken,
                     source = source,
+                    protected = isProtected,
                     spam = isSpam,
                     from = decoration.from.eip55,
                     to = transaction.to?.eip55,
@@ -89,6 +92,7 @@ internal class EvmTransactionConverter(
                     transaction = transaction,
                     token = baseToken,
                     source = source,
+                    protected = isProtected,
                     to = decoration.to.eip55,
                     value = baseCoinValue(decoration.value, true),
                     sentToSelf = decoration.sentToSelf,
@@ -101,6 +105,7 @@ internal class EvmTransactionConverter(
                     transaction = transaction,
                     token = baseToken,
                     source = source,
+                    protected = isProtected,
                     to = decoration.to.eip55,
                     value = getEip20Value(
                         decoration.contractAddress,
@@ -118,6 +123,7 @@ internal class EvmTransactionConverter(
                     transaction = transaction,
                     token = baseToken,
                     source = source,
+                    protected = isProtected,
                     spender = decoration.spender.eip55,
                     value = getEip20Value(decoration.contractAddress, decoration.value, false),
                     transactionRecordType = TransactionRecordType.EVM_APPROVE
@@ -131,7 +137,8 @@ internal class EvmTransactionConverter(
                     amountIn = convertToAmount(decoration.tokenIn, decoration.amountIn, true),
                     amountOut = convertToAmount(decoration.tokenOut, decoration.amountOut, false),
                     recipient = decoration.recipient?.eip55,
-                    transactionRecordType = TransactionRecordType.EVM_SWAP
+                    transactionRecordType = TransactionRecordType.EVM_SWAP,
+                    protected = isProtected,
                 )
             }
 
@@ -148,7 +155,8 @@ internal class EvmTransactionConverter(
                     ),
                     amountOut = convertToAmount(decoration.tokenOut, decoration.amountOut, false),
                     recipient = decoration.recipient?.eip55,
-                    transactionRecordType = TransactionRecordType.EVM_SWAP
+                    transactionRecordType = TransactionRecordType.EVM_SWAP,
+                    protected = isProtected,
                 )
             }
 
@@ -171,7 +179,8 @@ internal class EvmTransactionConverter(
                         )
                     },
                     recipient = null,
-                    transactionRecordType = TransactionRecordType.EVM_SWAP
+                    transactionRecordType = TransactionRecordType.EVM_SWAP,
+                    protected = isProtected
                 )
             }
 
@@ -193,7 +202,8 @@ internal class EvmTransactionConverter(
                             true
                         )
                     },
-                    transactionRecordType = TransactionRecordType.EVM_UNKNOWN_SWAP
+                    transactionRecordType = TransactionRecordType.EVM_UNKNOWN_SWAP,
+                    protected = isProtected
                 )
             }
 
@@ -212,7 +222,8 @@ internal class EvmTransactionConverter(
                         tokenSymbol = decoration.tokenInfo?.tokenSymbol
                     ),
                     sentToSelf = decoration.sentToSelf,
-                    transactionRecordType = TransactionRecordType.EVM_OUTGOING
+                    transactionRecordType = TransactionRecordType.EVM_OUTGOING,
+                    protected = isProtected
                 )
             }
 
@@ -231,7 +242,8 @@ internal class EvmTransactionConverter(
                         tokenSymbol = decoration.tokenInfo?.tokenSymbol
                     ),
                     sentToSelf = decoration.sentToSelf,
-                    transactionRecordType = TransactionRecordType.EVM_OUTGOING
+                    transactionRecordType = TransactionRecordType.EVM_OUTGOING,
+                    protected = isProtected
                 )
             }
 
@@ -304,7 +316,8 @@ internal class EvmTransactionConverter(
                         spam = isSpam,
                         incomingEvents = incomingEvents,
                         outgoingEvents = outgoingEvents,
-                        transactionRecordType = transactionRecordType
+                        transactionRecordType = transactionRecordType,
+                        protected = isProtected
                     )
                 } else {
                     null
@@ -319,7 +332,8 @@ internal class EvmTransactionConverter(
             token = baseToken,
             source = source,
             foreignTransaction = transaction.from != evmTransactionRepository.receiveAddress,
-            transactionRecordType = TransactionRecordType.EVM
+            transactionRecordType = TransactionRecordType.EVM,
+            protected = isProtected
         )
     }
 

@@ -43,6 +43,8 @@ object AllBridgeProvider : IMultiSwapProvider {
     override val priority = 0
     private val feePaymentMethod = FeePaymentMethod.StableCoin
 
+    override val mevProtectionAvailable: Boolean = false
+
     override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
 
     // From https://docs-core.allbridge.io/product/how-does-allbridge-core-work/allbridge-core-contracts

@@ -59,6 +59,7 @@ class ChangeNowProvider(
     override val icon = R.drawable.ic_change_now
     override val priority = 0
 
+    override val mevProtectionAvailable: Boolean = false
     private val marketKit: MarketKitWrapper by KoinJavaComponent.inject(MarketKitWrapper::class.java)
     private val currencies = mutableListOf<ChangeNowCurrency>()
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->

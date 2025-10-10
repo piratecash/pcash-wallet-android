@@ -17,6 +17,8 @@ interface IMultiSwapProvider {
 
     val walletUseCase: WalletUseCase
 
+    val mevProtectionAvailable: Boolean
+
     suspend fun start() = Unit
 
     suspend fun supports(tokenFrom: Token, tokenTo: Token): Boolean {
