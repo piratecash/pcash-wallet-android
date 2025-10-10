@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.App
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.walletconnect.session.ui.DropDownCell
@@ -54,7 +55,10 @@ fun TonConnectNewScreen(
     onResult: (Boolean) -> Unit,
 ) {
     val viewModel = viewModel<TonConnectNewViewModel>(initializer = {
-        TonConnectNewViewModel(requestEntity)
+        TonConnectNewViewModel(
+            requestEntity = requestEntity,
+            tonConnectKit = App.tonConnectManager.kit
+        )
     })
 
     val context = LocalContext.current

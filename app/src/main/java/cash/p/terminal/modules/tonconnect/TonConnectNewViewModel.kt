@@ -1,33 +1,35 @@
 package cash.p.terminal.modules.tonconnect
 
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
+import cash.p.terminal.core.DispatcherProvider
 import cash.p.terminal.core.managers.toTonWalletFullAccess
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.supportsTonConnect
 import com.tonapps.wallet.data.tonconnect.entities.DAppManifestEntity
 import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
-import kotlinx.coroutines.Dispatchers
+import io.horizontalsystems.tonkit.tonconnect.TonConnectKit
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
 class TonConnectNewViewModel(
     private val requestEntity: DAppRequestEntity,
+    private val tonConnectKit: TonConnectKit
 ) : ViewModelUiState<TonConnectNewUiState>() {
 
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage by inject(
         HardwarePublicKeyStorage::class.java
     )
-
-    private val tonConnectKit = App.tonConnectManager.kit
+    private val accountManager: IAccountManager by inject(IAccountManager::class.java)
+    private val dispatchers: DispatcherProvider by inject(DispatcherProvider::class.java)
 
     private var manifest: DAppManifestEntity? = null
     private var accounts: List<Account> = listOf()
-    private var account = App.accountManager.activeAccount
+    private var account: Account? = null
     private var finish = false
     private var error: Throwable? = null
     private var toast: String? = null
@@ -42,7 +44,19 @@ class TonConnectNewViewModel(
     )
 
     init {
-        viewModelScope.launch(Dispatchers.Default) {
+        accounts = accountManager.accounts.filter {
+            it.supportsTonConnect()
+        }
+
+        accountManager.activeAccount?.let { activeAccount ->
+            accounts.find { it.id == activeAccount.id }?.let {
+                account = it
+            } ?: run {
+                account = accounts.firstOrNull()
+            }
+        }
+
+        viewModelScope.launch(dispatchers.io) {
             try {
                 manifest = tonConnectKit.getManifest(requestEntity.payload.manifestUrl)
                 emitState()
@@ -50,11 +64,6 @@ class TonConnectNewViewModel(
                 error = NoManifestError()
                 emitState()
             }
-        }
-
-        accounts = App.accountManager.accounts.filter {
-            it.type is AccountType.Mnemonic ||
-                    it.type is AccountType.HardwareCard
         }
 
         if (accounts.isEmpty()) {
@@ -69,7 +78,7 @@ class TonConnectNewViewModel(
     }
 
     fun connect() {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.io) {
             try {
                 val manifest = manifest ?: throw NoManifestError()
                 val account = account ?: throw IllegalArgumentException("Empty account")

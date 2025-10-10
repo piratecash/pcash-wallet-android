@@ -1,5 +1,7 @@
 package cash.p.terminal.di
 
+import cash.p.terminal.core.DefaultDispatcherProvider
+import cash.p.terminal.core.DispatcherProvider
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
@@ -17,11 +19,15 @@ import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletVie
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
 import cash.p.terminal.wallet.Account
+import org.koin.core.module.dsl.singleOf
+import org.koin.dsl.bind
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val viewModelModule = module {
+    singleOf(::DefaultDispatcherProvider) bind DispatcherProvider::class
+
     viewModelOf(::MainActivityViewModel)
     viewModelOf(::DisplayTransactionsViewModel)
     viewModelOf(::PrivacyViewModel)

@@ -95,6 +95,9 @@ data class Account(
 fun Account.canBeDuplicated(): Boolean
     = type is AccountType.Mnemonic || type is AccountType.MnemonicMonero
 
+fun Account.supportsTonConnect(): Boolean
+        = type is AccountType.Mnemonic || type is AccountType.HardwareCard
+
 fun Account.eligibleForPremium(): Boolean
     = premiumEligibility() == PremiumAccountEligibility.ELIGIBLE
 
