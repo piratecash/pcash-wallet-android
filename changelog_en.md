@@ -1,3 +1,22 @@
+## Main changes in version 0.47.5
+_Release date: October 11, 2025_
+
+### ✨ New Features
+- **MEV Protection:**
+  - DEX swaps now come with **MEV protection** — no more front-running bots eating your profits.
+- **ZEC Swap:**
+  - Added a warning when swapping **ZEC**, since a **t-address** is used for potential refunds, which may partially de-anonymize the user.
+- **ZEC Restore:**
+  - You can now specify the **wallet birth date** as a calendar date instead of only using the block height.
+
+### 🛠 Fixes
+- **Ton Connect:**
+  - Removed wallets that don’t support Ton Connect (e.g., **Monero** with 25-word seed).
+- **Monero:**
+  - Fixed an issue where wallet data could become corrupted — added an **automatic recovery mechanism**.
+
+
+
 ## Main changes in version 0.47.4
 _Release date: October 8, 2025_
 

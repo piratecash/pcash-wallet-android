@@ -524,7 +524,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
-    <string name="zec_transparent_used">Während des Swaps wird eine t-Adresse (%s) verwendet, was zu einer teilweisen Deanonymisierung des Swaps führen kann.</string>
+    <string name="zec_transparent_used">Beim Erstellen des Austauschs wird eine t-Adresse verwendet: %s. Sie wird an den Austauschdienst übermittelt und ist erforderlich für eine Rückerstattung, falls der Austausch nicht abgeschlossen wird. Die Verwendung einer t-Adresse kann zu einer teilweisen Deanonymisierung der Transaktion führen.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap-Einstellungen</string>
     <string name="SwapSettings_SlippageTitle">Slippage-Toleranz</string>
