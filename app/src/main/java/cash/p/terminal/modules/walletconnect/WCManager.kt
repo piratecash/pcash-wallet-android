@@ -17,8 +17,8 @@ class WCManager(
     sealed class SupportState {
         object Supported : SupportState()
         object NotSupportedDueToNoActiveAccount : SupportState()
-        class NotSupportedDueToNonBackedUpAccount(val account: Account) : SupportState()
-        class NotSupported(val accountTypeDescription: String) : SupportState()
+        data class NotSupportedDueToNonBackedUpAccount(val account: Account) : SupportState()
+        object NotSupported : SupportState()
     }
 
     private val handlersMap = mutableMapOf<String, IWCHandler>()
@@ -60,7 +60,7 @@ class WCManager(
                 tmpAccount
             )
             tmpAccount.type.supportsWalletConnect -> SupportState.Supported
-            else -> SupportState.NotSupported(tmpAccount.type.description)
+            else -> SupportState.NotSupported
         }
     }
 

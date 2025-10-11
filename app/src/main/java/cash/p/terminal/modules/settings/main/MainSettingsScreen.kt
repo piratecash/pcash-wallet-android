@@ -8,7 +8,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,14 +32,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.modules.contacts.ContactsFragment
 import cash.p.terminal.modules.contacts.Mode
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
-import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
+import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -50,7 +49,6 @@ import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellSingleLineLawrenceSection
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
-import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.PremiumHeader
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SectionPremiumUniversalLawrence
@@ -58,7 +56,6 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_grey
-import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
@@ -191,8 +188,13 @@ private fun SettingSections(
 
                         is WCManager.SupportState.NotSupported -> {
                             navController.slideFromBottom(
-                                R.id.wcAccountTypeNotSupportedDialog,
-                                WCAccountTypeNotSupportedDialog.Input(state.accountTypeDescription)
+                                MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                                    AccountTypeNotSupportedDialog.Input(
+                                        iconResId = R.drawable.ic_wallet_connect_24,
+                                        titleResId = R.string.WalletConnect_Title,
+                                        connectionLabel = context.getString(R.string.WalletConnect_Title)
+                                    )
+                                )
                             )
                         }
                     }
@@ -205,7 +207,19 @@ private fun SettingSections(
                 value = null,
                 counterBadge = null,
                 onClick = {
-                    navController.slideFromRight(R.id.tcListFragment)
+                    if (viewModel.currentAccountSupportsTonConnect) {
+                        navController.slideFromRight(R.id.tcListFragment)
+                    } else {
+                        navController.slideFromBottom(
+                            MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                                AccountTypeNotSupportedDialog.Input(
+                                    iconResId = R.drawable.ic_ton_connect_24,
+                                    titleResId = R.string.TonConnect_Title,
+                                    connectionLabel = context.getString(R.string.TonConnect_Title)
+                                )
+                            )
+                        )
+                    }
                 }
             )
         }, {

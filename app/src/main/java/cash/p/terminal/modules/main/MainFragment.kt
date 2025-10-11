@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.RateAppManager
@@ -57,7 +58,7 @@ import cash.p.terminal.modules.settings.main.SettingsScreen
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsScreen
 import cash.p.terminal.modules.transactions.TransactionsViewModel
-import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
+import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager.SupportState
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ConnectionStatusView
@@ -327,8 +328,13 @@ private fun MainScreen(
 
             is SupportState.NotSupported -> {
                 fragmentNavController.slideFromBottom(
-                    R.id.wcAccountTypeNotSupportedDialog,
-                    WCAccountTypeNotSupportedDialog.Input(wcSupportState.accountTypeDescription)
+                    MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                        AccountTypeNotSupportedDialog.Input(
+                            iconResId = R.drawable.ic_wallet_connect_24,
+                            titleResId = R.string.WalletConnect_Title,
+                            connectionLabel = stringResource(R.string.WalletConnect_Title)
+                        )
+                    )
                 )
             }
 

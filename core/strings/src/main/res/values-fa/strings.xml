@@ -431,6 +431,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="account_not_supported_by">نوع کیف پول فعلی شما %1$s از %2$s پشتیبانی نمی‌کند</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">وضعیت</string>
     <string name="WalletConnect_Approve_Hint">با کلیک کردن بر روی اتصال، به این برنامه اجازه می دهید آدرس عمومی شما را مشاهده کند. این مرحله امنیتی مهمی برای محافظت از داده های شما در برابر خطرات احتمالی کلاهبرداری است.</string>
@@ -457,7 +458,6 @@
     <string name="WalletConnect_NoConnection">شما هیچ برنامه متصل ندارید</string>
     <string name="WalletConnect_PendingRequests">درخواست های معلق</string>
     <string name="WalletConnect_ActiveWallet">کیف پول فعال</string>
-    <string name="WalletConnect_NotSupportedDescription">You current wallet type %s does not support WalletConnect</string>
     <string name="WalletConnect_Unnamed">Unnamed</string>
     <string name="WalletConnect_Pairings">Pairings</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>

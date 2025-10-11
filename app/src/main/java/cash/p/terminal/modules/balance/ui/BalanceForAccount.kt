@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.utils.ModuleField
@@ -45,7 +46,7 @@ import cash.p.terminal.modules.main.MainFragmentDirections
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.qrscanner.QRScannerActivity
-import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
+import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.navigation.slideFromBottom
@@ -174,8 +175,13 @@ fun BalanceForAccount(
 
                                             is WCManager.SupportState.NotSupported -> {
                                                 navController.slideFromBottom(
-                                                    R.id.wcAccountTypeNotSupportedDialog,
-                                                    WCAccountTypeNotSupportedDialog.Input(state.accountTypeDescription)
+                                                    MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                                                        AccountTypeNotSupportedDialog.Input(
+                                                            iconResId = R.drawable.ic_wallet_connect_24,
+                                                            titleResId = R.string.WalletConnect_Title,
+                                                            connectionLabel = context.getString(R.string.WalletConnect_Title)
+                                                        )
+                                                    )
                                                 )
                                             }
                                         }

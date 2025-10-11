@@ -332,7 +332,6 @@ object AllBridgeProvider : IMultiSwapProvider {
             override val priceImpact: BigDecimal? = null
             override val fields: List<DataField> = fields
             override val cautions: List<HSCaution> = cautions
-            override val warningMessage: TranslatableString? = null
         }
     }
 

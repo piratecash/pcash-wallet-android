@@ -431,6 +431,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="account_not_supported_by">현재 지갑 유형 %1$s에서는 %2$s을(를) 지원하지 않습니다</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">상태</string>
     <string name="WalletConnect_Approve_Hint">승인을 눌러 이 앱이 귀하의 공공 주소를 볼 수 있도록 허용하십시오. 이것은 잠재적인 피싱 위험으로부터 데이터를 보호하기 위한 중요한 보안 단계 입니다.</string>
@@ -457,7 +458,6 @@
     <string name="WalletConnect_NoConnection">연결된 dapp이 없습니다.</string>
     <string name="WalletConnect_PendingRequests">보류 중인 요청</string>
     <string name="WalletConnect_ActiveWallet">지갑 활성화</string>
-    <string name="WalletConnect_NotSupportedDescription">현재 지갑 유형 %s은(는) WalletConnect를 지원하지 않습니다.</string>
     <string name="WalletConnect_Unnamed">이름없음</string>
     <string name="WalletConnect_Pairings">동기화</string>
     <string name="WalletConnect_PairedDApps">페어링된 dApp</string>

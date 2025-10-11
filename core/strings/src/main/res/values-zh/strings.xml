@@ -427,6 +427,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="account_not_supported_by">您当前的钱包类型 %1$s 不支持 %2$s</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">状态</string>
     <string name="WalletConnect_Approve_Hint">点击批准，表示您允许此应用查看您的公开地址。这是保护您的数据免受潜在钓鱼风险威胁的重要安全步骤。</string>
@@ -453,7 +454,6 @@
     <string name="WalletConnect_NoConnection">您没有任何已连接的dapps</string>
     <string name="WalletConnect_PendingRequests">待处理请求</string>
     <string name="WalletConnect_ActiveWallet">激活钱包</string>
-    <string name="WalletConnect_NotSupportedDescription">您当前的钱包类型 %s 不支持 WalletConnect</string>
     <string name="WalletConnect_Unnamed">未命名</string>
     <string name="WalletConnect_Pairings">货币对</string>
     <string name="WalletConnect_PairedDApps">已配对dApp</string>

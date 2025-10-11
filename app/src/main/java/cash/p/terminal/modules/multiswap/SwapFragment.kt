@@ -391,6 +391,15 @@ private fun SwapScreenInner(
                     }
                 }
 
+                uiState.warningMessage?.let { warning ->
+                    VSpacer(height = 12.dp)
+                    TextImportantWarning(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        text = warning.getString(),
+                        icon = R.drawable.ic_attention_20
+                    )
+                }
+
                 if (uiState.error is PriceImpactTooHigh) {
                     VSpacer(height = 12.dp)
                     TextImportantError(

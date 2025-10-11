@@ -440,6 +440,7 @@
     <string name="TonConnect_Unnamed">Безымянный</string>
     <string name="TonConnect_Wallet">Кошелек</string>
     <string name="TonConnect_ChooseWallet">Выберите кошелек</string>
+    <string name="account_not_supported_by">Ваш текущий тип кошелька %1$s не поддерживает %2$s</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Статус</string>
     <string name="WalletConnect_Approve_Hint">Нажав на соединение, вы позволяете этому приложению просматривать ваш публичный адрес. Это важный шаг безопасности, чтобы защитить ваши данные от потенциальных рисков, связанных с фишингом.</string>
@@ -466,7 +467,6 @@
     <string name="WalletConnect_NoConnection">У вас нет подключенных dapps</string>
     <string name="WalletConnect_PendingRequests">Ожидающие запросы</string>
     <string name="WalletConnect_ActiveWallet">Активный кошелек</string>
-    <string name="WalletConnect_NotSupportedDescription">Ваш текущий тип кошелька %s не поддерживает WalletConnect</string>
     <string name="WalletConnect_Unnamed">Без имени</string>
     <string name="WalletConnect_Pairings">Соединения</string>
     <string name="WalletConnect_PairedDApps">Соединеные dApp</string>

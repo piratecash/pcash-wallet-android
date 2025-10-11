@@ -438,6 +438,7 @@
     <string name="TonConnect_Unnamed">Без назви</string>
     <string name="TonConnect_Wallet">Гаманець</string>
     <string name="TonConnect_ChooseWallet">Виберіть гаманець</string>
+    <string name="account_not_supported_by">Ваш поточний тип гаманця %1$s не підтримує %2$s</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Статус</string>
     <string name="WalletConnect_Approve_Hint">Натиснувши на з\'єднання, ви дозволяєте цьому додатку переглядати вашу публічну адресу. Це важливий крок безпеки, щоб захистити ваші дані від потенційних ризиків, пов\'язаних з фішингом.</string>
@@ -464,7 +465,6 @@
     <string name="WalletConnect_NoConnection">У вас немає підключених dapps</string>
     <string name="WalletConnect_PendingRequests">Очікуючі запити</string>
     <string name="WalletConnect_ActiveWallet">Активний гаманець</string>
-    <string name="WalletConnect_NotSupportedDescription">Ваш поточний тип гаманця %s не підтримує WalletConnect</string>
     <string name="WalletConnect_Unnamed">Без назви</string>
     <string name="WalletConnect_Pairings">З\'єднання</string>
     <string name="WalletConnect_PairedDApps">З\'єднані dApp</string>
