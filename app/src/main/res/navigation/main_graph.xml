@@ -516,8 +516,8 @@
         android:id="@+id/wcErrorNoAccountFragment"
         android:name="cash.p.terminal.modules.walletconnect.WCErrorNoAccountFragment" />
     <fragment
-        android:id="@+id/wcAccountTypeNotSupportedDialog"
-        android:name="cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog" />
+        android:id="@+id/accountTypeNotSupportedDialog"
+        android:name="cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog" />
     <fragment
         android:id="@id/aboutPremiumFragment"
         android:name="cash.p.terminal.modules.premium.about.AboutPremiumFragment"/>

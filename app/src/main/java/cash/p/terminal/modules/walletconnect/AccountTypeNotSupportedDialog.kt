@@ -5,6 +5,8 @@ import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,7 +34,7 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.parcelize.Parcelize
 
-class WCAccountTypeNotSupportedDialog : BaseComposableBottomSheetFragment() {
+class AccountTypeNotSupportedDialog : BaseComposableBottomSheetFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,9 +48,12 @@ class WCAccountTypeNotSupportedDialog : BaseComposableBottomSheetFragment() {
                 val navController = findNavController()
 
                 ComposeAppTheme {
-                    WCAccountTypeNotSupportedScreen(
-                        accountTypeDescription = navController.getInput<Input>()?.accountTypeDescription
-                            ?: "",
+                    val input = navController.getInput<Input>()
+
+                    AccountTypeNotSupportedScreen(
+                        iconResId = input?.iconResId ?: R.drawable.ic_wallet_connect_24,
+                        titleResId = input?.titleResId ?: R.string.WalletConnect_Title,
+                        accountTypeDescription = input?.accountTypeDescription.orEmpty(),
                         onCloseClick = {
                             navController.popBackStack()
                         },
@@ -66,11 +71,17 @@ class WCAccountTypeNotSupportedDialog : BaseComposableBottomSheetFragment() {
     }
 
     @Parcelize
-    data class Input(val accountTypeDescription: String) : Parcelable
+    data class Input(
+        @DrawableRes val iconResId: Int,
+        @StringRes val titleResId: Int,
+        val accountTypeDescription: String
+    ) : Parcelable
 }
 
 @Composable
-fun WCAccountTypeNotSupportedScreen(
+private fun AccountTypeNotSupportedScreen(
+    @DrawableRes iconResId: Int,
+    @StringRes titleResId: Int,
     accountTypeDescription: String,
     onCloseClick: () -> Unit,
     onSwitchClick: () -> Unit
@@ -79,9 +90,9 @@ fun WCAccountTypeNotSupportedScreen(
         containerColor = ComposeAppTheme.colors.tyler
     ) { innerPadding ->
         BottomSheetHeader(
-            iconPainter = painterResource(R.drawable.ic_wallet_connect_24),
+            iconPainter = painterResource(iconResId),
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
-            title = stringResource(R.string.WalletConnect_Title),
+            title = stringResource(titleResId),
             modifier = Modifier.padding(innerPadding).fillMaxSize(),
             onCloseClick = onCloseClick
         ) {
@@ -106,8 +117,14 @@ fun WCAccountTypeNotSupportedScreen(
 
 @Preview
 @Composable
-private fun WalletConnectErrorWatchAccountPreview() {
+private fun AccountTypeNotSupportedScreenPreview() {
     ComposeAppTheme {
-        WCAccountTypeNotSupportedScreen("Account Type Desc", {}, {})
+        AccountTypeNotSupportedScreen(
+            iconResId = R.drawable.ic_wallet_connect_24,
+            titleResId = R.string.WalletConnect_Title,
+            accountTypeDescription = "Account Type Desc",
+            onCloseClick = {},
+            onSwitchClick = {}
+        )
     }
 }

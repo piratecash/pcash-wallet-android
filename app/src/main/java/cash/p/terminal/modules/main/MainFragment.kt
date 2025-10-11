@@ -57,7 +57,7 @@ import cash.p.terminal.modules.settings.main.SettingsScreen
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsScreen
 import cash.p.terminal.modules.transactions.TransactionsViewModel
-import cash.p.terminal.modules.walletconnect.WCAccountTypeNotSupportedDialog
+import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager.SupportState
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ConnectionStatusView
@@ -327,8 +327,12 @@ private fun MainScreen(
 
             is SupportState.NotSupported -> {
                 fragmentNavController.slideFromBottom(
-                    R.id.wcAccountTypeNotSupportedDialog,
-                    WCAccountTypeNotSupportedDialog.Input(wcSupportState.accountTypeDescription)
+                    R.id.accountTypeNotSupportedDialog,
+                    AccountTypeNotSupportedDialog.Input(
+                        R.drawable.ic_wallet_connect_24,
+                        R.string.WalletConnect_Title,
+                        wcSupportState.accountTypeDescription
+                    )
                 )
             }
 
