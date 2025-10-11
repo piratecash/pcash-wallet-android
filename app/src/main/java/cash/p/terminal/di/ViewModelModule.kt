@@ -13,6 +13,8 @@ import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicVie
 import cash.p.terminal.modules.settings.appstatus.AppStatusViewModel
 import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
+import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
+import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
@@ -43,6 +45,9 @@ val viewModelModule = module {
     viewModelOf(::DisplayOptionsViewModel)
     viewModelOf(::TonConnectListViewModel)
     viewModelOf(::ZcashConfigureViewModel)
+    viewModel { (input: AccountTypeNotSupportedDialog.Input) ->
+        AccountTypeNotSupportedViewModel(input = input, accountManager = get())
+    }
     viewModel { (accountToCopy: Account) ->
         DuplicateWalletViewModel(
             accountToCopy = accountToCopy,

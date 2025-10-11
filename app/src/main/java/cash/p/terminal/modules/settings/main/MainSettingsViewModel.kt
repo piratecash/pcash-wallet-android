@@ -13,6 +13,7 @@ import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.supportsTonConnect
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IPinComponent
@@ -78,6 +79,9 @@ class MainSettingsViewModel(
 
     private val isPinSet: Boolean
         get() = pinComponent.isPinSet
+
+    val currentAccountSupportsTonConnect: Boolean
+        get() = accountManager.activeAccount?.supportsTonConnect() == true
 
     private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
         .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }

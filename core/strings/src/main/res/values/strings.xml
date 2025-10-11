@@ -561,6 +561,7 @@ Proceed only if you\'re sure.</string>
     <string name="TonConnect_Url" translatable="false">URL</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="account_not_supported_by">Your current wallet type %1$s does not support %2$s</string>
 
     <!--WalletConnect-->
     <string name="WalletConnect_Title" translatable="false">WalletConnect</string>
@@ -591,7 +592,6 @@ Proceed only if you\'re sure.</string>
     <string name="WalletConnect_NoConnection">You don\’t have any connected dapps</string>
     <string name="WalletConnect_PendingRequests">Pending Requests</string>
     <string name="WalletConnect_ActiveWallet">Active Wallet</string>
-    <string name="WalletConnect_NotSupportedDescription">You current wallet type %s does not support WalletConnect</string>
     <string name="WalletConnect_Unnamed">Unnamed</string>
     <string name="WalletConnect_Pairings">Pairings</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>

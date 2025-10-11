@@ -425,6 +425,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="account_not_supported_by">Ihr aktueller Wallet-Typ %1$s unterstützt %2$s nicht</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Status</string>
     <string name="WalletConnect_Approve_Hint">Indem Sie auf \"Genehmigen\" klicken, erlauben Sie dieser App, Ihre öffentliche Adresse anzuzeigen. Dies ist ein wichtiger Sicherheitsschritt, um Ihre Daten vor potenziellen Phishing-Risiken zu schützen.</string>
@@ -451,7 +452,6 @@
     <string name="WalletConnect_NoConnection">Du hast keine verbundenen Dapps</string>
     <string name="WalletConnect_PendingRequests">Ausstehende Anfragen</string>
     <string name="WalletConnect_ActiveWallet">Aktive Wallet</string>
-    <string name="WalletConnect_NotSupportedDescription">Ihr aktueller Wallet-Typ %s unterstützt WalletConnect nicht</string>
     <string name="WalletConnect_Unnamed">Unbenannt</string>
     <string name="WalletConnect_Pairings">Währungspaare</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>

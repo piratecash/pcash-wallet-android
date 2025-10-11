@@ -28,6 +28,10 @@
         android:id="@+id/actionGlobalToWcSessionFragment"
         app:destination="@id/wcSessionFragment"/>
 
+    <action
+        android:id="@+id/actionGlobalToAccountTypeNotSupportedDialog"
+        app:destination="@id/accountTypeNotSupportedDialog" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="cash.p.terminal.modules.main.MainFragment">
@@ -517,7 +521,11 @@
         android:name="cash.p.terminal.modules.walletconnect.WCErrorNoAccountFragment" />
     <fragment
         android:id="@+id/accountTypeNotSupportedDialog"
-        android:name="cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog" />
+        android:name="cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog$Input"/>
+    </fragment>
     <fragment
         android:id="@id/aboutPremiumFragment"
         android:name="cash.p.terminal.modules.premium.about.AboutPremiumFragment"/>

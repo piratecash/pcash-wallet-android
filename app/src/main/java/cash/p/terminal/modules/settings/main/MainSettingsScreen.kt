@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.modules.contacts.ContactsFragment
@@ -187,11 +188,12 @@ private fun SettingSections(
 
                         is WCManager.SupportState.NotSupported -> {
                             navController.slideFromBottom(
-                                R.id.accountTypeNotSupportedDialog,
-                                AccountTypeNotSupportedDialog.Input(
-                                    R.drawable.ic_wallet_connect_24,
-                                    R.string.WalletConnect_Title,
-                                    state.accountTypeDescription
+                                MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                                    AccountTypeNotSupportedDialog.Input(
+                                        iconResId = R.drawable.ic_wallet_connect_24,
+                                        titleResId = R.string.WalletConnect_Title,
+                                        connectionLabel = context.getString(R.string.WalletConnect_Title)
+                                    )
                                 )
                             )
                         }
@@ -205,7 +207,19 @@ private fun SettingSections(
                 value = null,
                 counterBadge = null,
                 onClick = {
-                    navController.slideFromRight(R.id.tcListFragment)
+                    if (viewModel.currentAccountSupportsTonConnect) {
+                        navController.slideFromRight(R.id.tcListFragment)
+                    } else {
+                        navController.slideFromBottom(
+                            MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                                AccountTypeNotSupportedDialog.Input(
+                                    iconResId = R.drawable.ic_ton_connect_24,
+                                    titleResId = R.string.TonConnect_Title,
+                                    connectionLabel = context.getString(R.string.TonConnect_Title)
+                                )
+                            )
+                        )
+                    }
                 }
             )
         }, {

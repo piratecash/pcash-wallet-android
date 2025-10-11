@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.RateAppManager
@@ -327,11 +328,12 @@ private fun MainScreen(
 
             is SupportState.NotSupported -> {
                 fragmentNavController.slideFromBottom(
-                    R.id.accountTypeNotSupportedDialog,
-                    AccountTypeNotSupportedDialog.Input(
-                        R.drawable.ic_wallet_connect_24,
-                        R.string.WalletConnect_Title,
-                        wcSupportState.accountTypeDescription
+                    MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
+                        AccountTypeNotSupportedDialog.Input(
+                            iconResId = R.drawable.ic_wallet_connect_24,
+                            titleResId = R.string.WalletConnect_Title,
+                            connectionLabel = stringResource(R.string.WalletConnect_Title)
+                        )
                     )
                 )
             }

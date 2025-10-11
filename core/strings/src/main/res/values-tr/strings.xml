@@ -431,6 +431,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="account_not_supported_by">Mevcut cüzdan türünüz %1$s, %2$s\'i desteklemiyor</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Durum</string>
     <string name="WalletConnect_Approve_Hint">Onayla butonunu tıklayarak, bu uygulamanın açık adresinizi görüntülemesine izin vermiş olursunuz. Bu, verilerinizi olası kimlik hırsızlığı risklerinden korumak için önemli bir güvenlik adımıdır.</string>
@@ -457,7 +458,6 @@
     <string name="WalletConnect_NoConnection">Bağlı dapp\'niz yok</string>
     <string name="WalletConnect_PendingRequests">bekleyen istekler</string>
     <string name="WalletConnect_ActiveWallet">Aktif Cüzdan</string>
-    <string name="WalletConnect_NotSupportedDescription">Mevcut cüzdan türünüz %s WalletConnect\'i desteklemiyor</string>
     <string name="WalletConnect_Unnamed">İsimsiz</string>
     <string name="WalletConnect_Pairings">Eşleştirme</string>
     <string name="WalletConnect_PairedDApps">Eşleştirilmiş dApps</string>
