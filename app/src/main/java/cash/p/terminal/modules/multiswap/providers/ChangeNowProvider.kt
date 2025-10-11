@@ -7,6 +7,7 @@ import cash.p.terminal.core.extractBigDecimal
 import cash.p.terminal.core.isEvm
 import cash.p.terminal.core.isUtxoBased
 import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.ChangeNowTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
@@ -238,9 +239,8 @@ class ChangeNowProvider(
         if (!isZCashUnifiedOrShielded(tokenIn)) return null
 
         val transparentToken = getZCashTransparentToken() ?: return null
-        if (walletUseCase.getWallet(transparentToken) == null) return null
 
-        val refundAddress = walletUseCase.getReceiveAddress(transparentToken)
+        val refundAddress = tryOrNull { walletUseCase.getReceiveAddress(transparentToken) } ?: return null
 
         return TranslatableString.ResString(R.string.zec_transparent_used, refundAddress)
     }
