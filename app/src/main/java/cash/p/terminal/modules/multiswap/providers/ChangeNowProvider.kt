@@ -238,6 +238,8 @@ class ChangeNowProvider(
         if (!isZCashUnifiedOrShielded(tokenIn)) return null
 
         val transparentToken = getZCashTransparentToken() ?: return null
+        if (walletUseCase.getWallet(transparentToken) == null) return null
+
         val refundAddress = walletUseCase.getReceiveAddress(transparentToken)
 
         return TranslatableString.ResString(R.string.zec_transparent_used, refundAddress)
