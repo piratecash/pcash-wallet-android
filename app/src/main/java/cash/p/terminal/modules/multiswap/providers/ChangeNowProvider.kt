@@ -234,6 +234,15 @@ class ChangeNowProvider(
         }
     }
 
+    override fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? {
+        if (!isZCashUnifiedOrShielded(tokenIn)) return null
+
+        val transparentToken = getZCashTransparentToken() ?: return null
+        val refundAddress = walletUseCase.getReceiveAddress(transparentToken)
+
+        return TranslatableString.ResString(R.string.zec_transparent_used, refundAddress)
+    }
+
     private fun getZCashTransparentToken() = marketKit.token(
         TokenQuery(
             BlockchainType.Zcash,
@@ -316,7 +325,6 @@ class ChangeNowProvider(
                         ),
                         priceImpact = null,
                         fields = emptyList(),
-                        warningMessage = null
                     )
                 } else {
                     throw e
@@ -368,8 +376,7 @@ class ChangeNowProvider(
                     transaction = transaction
                 ),
                 priceImpact = null,
-                fields = fields,
-                warningMessage = warningMessage
+                fields = fields
             )
         }
     }

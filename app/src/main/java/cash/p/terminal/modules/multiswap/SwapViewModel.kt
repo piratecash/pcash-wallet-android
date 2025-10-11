@@ -11,6 +11,7 @@ import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.WalletUseCase
+import cash.p.terminal.strings.helpers.TranslatableString
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
@@ -126,6 +127,7 @@ class SwapViewModel(
         fiatPriceImpact = priceImpactState.fiatPriceImpact,
         fiatPriceImpactLevel = priceImpactState.fiatPriceImpactLevel,
         balanceHidden = balanceHiddenManager.balanceHiddenFlow.value,
+        warningMessage = getWarningMessage(),
         fiatAmountIn = fiatAmountIn,
         fiatAmountOut = fiatAmountOut,
         currency = currency,
@@ -241,6 +243,12 @@ class SwapViewModel(
     fun getCurrentQuote() = quoteState.quote
     fun getSettings() = quoteService.getSwapSettings()
 
+    private fun getWarningMessage(): TranslatableString? {
+        val quote = quoteState.quote ?: return null
+
+        return quote.provider.getWarningMessage(quote.tokenIn, quote.tokenOut)
+    }
+
     class Factory(private val tokenIn: Token?, private val tokenOut: Token?) :
         ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -276,6 +284,7 @@ data class SwapUiState(
     val error: Throwable?,
     val availableBalance: BigDecimal?,
     val balanceHidden: Boolean,
+    val warningMessage: TranslatableString?,
     val priceImpact: BigDecimal?,
     val priceImpactLevel: PriceImpactLevel?,
     val priceImpactCaution: HSCaution?,

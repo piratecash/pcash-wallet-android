@@ -404,6 +404,5 @@ class SwapFinalQuoteTon(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    override val cautions: List<HSCaution> = listOf(),
-    override val warningMessage: TranslatableString? = null
+    override val cautions: List<HSCaution> = listOf()
 ) : ISwapFinalQuote

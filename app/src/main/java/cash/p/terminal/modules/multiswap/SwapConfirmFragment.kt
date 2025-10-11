@@ -56,7 +56,6 @@ import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.components.HsSwitch
-import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.body_leah
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -257,15 +256,6 @@ fun SwapConfirmScreen(navController: NavController) {
                 navController,
                 uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
                 uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
-            )
-        }
-
-        uiState.warningMessage?.let {
-            VSpacer(16.dp)
-            TextImportantWarning(
-                text = it.getString(),
-                icon = R.drawable.ic_attention_24,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
         }
 
