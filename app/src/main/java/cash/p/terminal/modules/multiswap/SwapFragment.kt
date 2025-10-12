@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -98,6 +99,7 @@ import cash.p.terminal.modules.managewallets.ManageWalletsModule
 import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
+import cash.p.terminal.ui_compose.components.HudHelper
 
 class SwapFragment : BaseComposeFragment() {
     @Composable
@@ -119,12 +121,19 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
     )
     val uiState = viewModel.uiState
     val context = LocalContext.current
+    val view = LocalView.current
     val manageWalletsFactory = remember { ManageWalletsModule.Factory() }
     val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel>(factory = manageWalletsFactory)
     val manageWalletsViewModel = viewModel<ManageWalletsViewModel>(factory = manageWalletsFactory)
 
     restoreSettingsViewModel.openTokenConfigure?.let { token ->
         navController.openRestoreSettingsDialog(token, restoreSettingsViewModel)
+    }
+
+    LaunchedEffect(manageWalletsViewModel.errorMsg) {
+        manageWalletsViewModel.errorMsg?.let {
+            HudHelper.showErrorMessage(view, it)
+        }
     }
 
     SwapScreenInner(
