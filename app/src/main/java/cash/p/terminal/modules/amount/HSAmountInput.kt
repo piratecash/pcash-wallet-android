@@ -4,14 +4,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
 import androidx.compose.material.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,6 +30,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cash.p.terminal.R
 import cash.p.terminal.core.HSCaution
-import io.horizontalsystems.core.entities.CurrencyValue
+import cash.p.terminal.core.getText
 import cash.p.terminal.modules.address.AmountUnique
 import cash.p.terminal.ui.compose.animations.shake
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
@@ -36,6 +48,9 @@ import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.body_grey50
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.entities.CurrencyValue
+import io.horizontalsystems.core.toBigDecimalOrNullExt
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 /**
@@ -54,7 +69,8 @@ fun HSAmountInput(
     onValueChange: (BigDecimal?) -> Unit,
     inputType: AmountInputType,
     rate: CurrencyValue?,
-    amountUnique: AmountUnique? = null
+    amountUnique: AmountUnique? = null,
+    pasteEnabled: Boolean = true
 ) {
     val viewModel = viewModel<AmountInputViewModel2>(
         factory = AmountInputModule.Factory(
@@ -111,6 +127,7 @@ fun HSAmountInput(
             inputTextColor = ComposeAppTheme.colors.leah
             hintTextColor = ComposeAppTheme.colors.jacob
         }
+
         AmountInputType.CURRENCY -> {
             inputTextColor = ComposeAppTheme.colors.jacob
             hintTextColor = ComposeAppTheme.colors.leah
@@ -181,6 +198,35 @@ fun HSAmountInput(
                         }
                     }
                 )
+
+                val hasDeleteOrMaxButton = textState.text.isNotEmpty() || viewModel.isMaxEnabled
+
+                if (pasteEnabled) {
+                    val clipboard = LocalClipboard.current
+                    val coroutineScope = rememberCoroutineScope()
+
+                    ButtonSecondaryDefault(
+                        modifier = Modifier
+                            .padding(end = if (hasDeleteOrMaxButton) 0.dp else 16.dp)
+                            .height(28.dp),
+                        title = stringResource(id = R.string.Send_Button_Paste),
+                        onClick = {
+                            coroutineScope.launch {
+                                clipboard.getText()?.toBigDecimalOrNullExt()?.let { amountPasted ->
+                                    val amountPastedText = amountPasted.toPlainString()
+                                    textState =
+                                        textState.copy(
+                                            text = amountPastedText,
+                                            selection = TextRange(amountPastedText.length)
+                                        )
+
+                                    viewModel.onEnterAmount(amountPastedText)
+                                    onValueChange(amountPasted)
+                                }
+                            }
+                        },
+                    )
+                }
 
                 if (textState.text.isNotEmpty()) {
                     ButtonSecondaryCircle(

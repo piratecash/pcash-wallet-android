@@ -13,6 +13,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -303,4 +304,14 @@ inline fun <reified VM : ViewModel> rememberViewModelFromGraph(
         viewModelStoreOwner = viewModelStoreOwner,
         factory = factory
     )
+}
+
+suspend fun Clipboard.getText(): String? {
+    val clip = this.getClipEntry()?.clipData
+    return if (clip != null && clip.itemCount > 0) {
+        val item = clip.getItemAt(0)
+        item.text.toString().takeIf { it.isNotBlank() }
+    } else {
+        null
+    }
 }
