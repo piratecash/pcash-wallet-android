@@ -54,6 +54,7 @@ interface ILocalStorage {
     var rateAppLastRequestTime: Long
     var balanceHidden: Boolean
     var balanceAutoHideEnabled: Boolean
+    var swapMevProtectionEnabled: Boolean
 
     var transactionHideEnabled: Boolean
     var transactionDisplayLevel: TransactionDisplayLevel

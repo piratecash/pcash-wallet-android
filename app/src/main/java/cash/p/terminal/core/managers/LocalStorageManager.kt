@@ -661,6 +661,10 @@ class LocalStorageManager(
         key = "showChangelogOnUpdate",
         default = true
     )
+    override var swapMevProtectionEnabled by preferences.delegate(
+        key = "swap_mev_protection_enabled",
+        default = false
+    )
 
     // Display Options
     override var displayDiffPricePeriod by preferences.delegate(

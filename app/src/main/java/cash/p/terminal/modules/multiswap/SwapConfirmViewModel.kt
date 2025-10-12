@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
@@ -37,6 +38,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 import kotlin.coroutines.cancellation.CancellationException
@@ -53,6 +55,8 @@ class SwapConfirmViewModel(
     private val timerService: TimerService,
     private val priceImpactService: PriceImpactService
 ) : ViewModelUiState<SwapConfirmUiState>() {
+    private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
+
     private var sendTransactionSettings: SendTransactionSettings? = null
     private val currency = currencyManager.baseCurrency
     private val tokenIn = swapQuote.tokenIn
@@ -63,7 +67,6 @@ class SwapConfirmViewModel(
     private var fiatAmountOut: BigDecimal? = null
     private var fiatAmountOutMin: BigDecimal? = null
 
-    private var mevProtectionEnabled = false
     private var loading = true
     private var timerState = timerService.stateFlow.value
     private var sendTransactionState = sendTransactionService.stateFlow.value
@@ -210,7 +213,7 @@ class SwapConfirmViewModel(
             criticalError = criticalError,
             isAdvancedSettingsAvailable = isAdvancedSettingsAvailable,
             mevProtectionAvailable = mevProtectionAvailable,
-            mevProtectionEnabled = mevProtectionEnabled,
+            mevProtectionEnabled = localStorage.swapMevProtectionEnabled && mevProtectionAvailable,
         )
     }
 
@@ -285,11 +288,11 @@ class SwapConfirmViewModel(
     }
 
     suspend fun swap() = withContext(Dispatchers.Default) {
-        sendTransactionService.sendTransaction(mevProtectionEnabled)
+        sendTransactionService.sendTransaction(uiState.mevProtectionEnabled)
     }
 
     fun toggleMevProtection(enabled: Boolean) {
-        mevProtectionEnabled = enabled
+        localStorage.swapMevProtectionEnabled = enabled
 
         emitState()
     }
