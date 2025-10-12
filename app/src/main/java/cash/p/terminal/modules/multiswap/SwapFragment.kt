@@ -174,6 +174,9 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             tokens.forEach { token ->
                 manageWalletsViewModel.enable(token)
             }
+            if (manageWalletsViewModel.showScanToAddButton) {
+                manageWalletsViewModel.requestScanToAddTokens(false)
+            }
             viewModel.createMissingTokens(tokens)
         },
         onActionStarted = {
