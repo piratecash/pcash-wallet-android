@@ -11,7 +11,8 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 class AddTokenService(
@@ -82,15 +83,13 @@ class AddTokenService(
         }
     }
 
-    fun addToken(token: TokenInfo) {
-        val account = accountManager.activeAccount ?: return
-        val hardwarePublicKey = runBlocking {
-            getHardwarePublicKeyForWalletUseCase(
+    suspend fun addToken(token: TokenInfo) = withContext(Dispatchers.IO) {
+        val account = accountManager.activeAccount ?: return@withContext
+        val hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
                 account,
                 token.token.blockchainType,
                 token.token.type
             )
-        }
         walletFactory.create(token.token, account, hardwarePublicKey)?.let {
             walletManager.save(listOf(it))
         }

@@ -58,8 +58,9 @@ import cash.p.terminal.modules.enablecoin.restoresettings.IRestoreSettingsUi
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
+import cash.p.terminal.modules.addtoken.AddTokenFragment
+import cash.p.terminal.navigation.slideFromRightForResult
 import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.components.AppBar
@@ -127,7 +128,11 @@ internal fun ManageWalletsScreen(
                             title = TranslatableString.ResString(R.string.ManageCoins_AddToken),
                             icon = R.drawable.ic_add_yellow,
                             onClick = {
-                                navController.slideFromRight(R.id.addTokenFragment)
+                                navController.slideFromRightForResult<AddTokenFragment.Result>(R.id.addTokenFragment) { result ->
+                                    if (result.success) {
+                                        navController.popBackStack(R.id.mainFragment, false)
+                                    }
+                                }
                             }
                         ))
                 } else {

@@ -36,7 +36,7 @@ class BackupKeyFragment : BaseComposeFragment(screenshotEnabled = false) {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val account = navController.getInput<cash.p.terminal.wallet.Account>()
+        val account = navController.getInput<Account>()
         if (account == null) {
             navController.popBackStack(R.id.mainFragment, false)
             return

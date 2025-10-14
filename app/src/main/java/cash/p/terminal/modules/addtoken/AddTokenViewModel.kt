@@ -81,9 +81,7 @@ class AddTokenViewModel(private val addTokenService: AddTokenService) :
     fun onAddClick() {
         viewModelScope.launch {
             tokenInfo?.let {
-                if (!it.inCoinList) {
-                    addTokenService.addToken(it)
-                }
+                addTokenService.addToken(it)
                 finished = true
             }
 

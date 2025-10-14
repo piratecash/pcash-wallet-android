@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.addtoken
 
+import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,7 +46,9 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.Blockchain
+import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.coroutines.delay
+import kotlinx.parcelize.Parcelize
 
 class AddTokenFragment : BaseComposeFragment() {
 
@@ -54,6 +57,8 @@ class AddTokenFragment : BaseComposeFragment() {
         AddTokenNavHost(navController)
     }
 
+    @Parcelize
+    data class Result(val success: Boolean) : Parcelable
 }
 
 private const val AddTokenPage = "add_token"
@@ -72,7 +77,11 @@ private fun AddTokenNavHost(
         composable(AddTokenPage) {
             AddTokenScreen(
                 navController = navController,
-                closeScreen = { fragmentNavController.popBackStack() },
+                onBack = { fragmentNavController.popBackStack() },
+                onCompleted = { result ->
+                    fragmentNavController.setNavigationResultX(result)
+                    fragmentNavController.popBackStack()
+                },
                 viewModel = viewModel
             )
         }
@@ -89,7 +98,8 @@ private fun AddTokenNavHost(
 @Composable
 private fun AddTokenScreen(
     navController: NavController,
-    closeScreen: () -> Unit,
+    onBack: () -> Unit,
+    onCompleted: (AddTokenFragment.Result) -> Unit,
     viewModel: AddTokenViewModel,
 ) {
     navController.currentBackStackEntry
@@ -111,7 +121,7 @@ private fun AddTokenScreen(
         if (uiState.finished) {
             HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done, SnackbarDuration.MEDIUM)
             delay(300)
-            closeScreen.invoke()
+            onCompleted(AddTokenFragment.Result(success = true))
         }
     }
 
@@ -121,7 +131,7 @@ private fun AddTokenScreen(
             AppBar(
                 title = stringResource(R.string.AddToken_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = closeScreen)
+                    HsBackButton(onClick = onBack)
                 },
                 menuItems = listOf(
                     MenuItem(
