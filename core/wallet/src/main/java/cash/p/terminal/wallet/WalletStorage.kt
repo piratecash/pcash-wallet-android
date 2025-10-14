@@ -111,7 +111,7 @@ class WalletStorage(
         }
 
         storage.save(enabledWallets).forEachIndexed { index, id ->
-            map[wallets[index]] = id
+            map[walletsToAdd[index]] = id
         }
     }
 
