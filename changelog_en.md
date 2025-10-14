@@ -1,3 +1,22 @@
+## Main changes in version 0.47.6
+_Release date: October 14, 2025_
+
+### ✨ New Features
+- **Coin Sending:**
+  - Added the ability to **paste the amount** directly from the clipboard when sending coins.
+- **MEV Protection:**
+  - The app now **remembers the last selected MEV protection state** and automatically restores it on the next launch.
+- **Hardware Card:**
+  - Improved interaction with the hardware card when adding tokens — now an **error dialog is shown if the token cannot be added**.
+
+### 🛠 Fixes
+- **Hardware Card:**
+  - Fixed an issue where the token **was not added in swap mode**.
+- **ZEC Swap:**
+  - Fixed a potential **NullPointerException** when retrieving the **ZEC refund address**.
+
+
+
 ## Main changes in version 0.47.5
 _Release date: October 11, 2025_
 
