@@ -92,12 +92,21 @@ class WalletStorage(
     }
 
     override fun save(wallets: List<Wallet>) {
-        val enabledWallets = mutableListOf<EnabledWallet>()
+        if (wallets.isEmpty()) return
 
-        wallets.forEachIndexed { index, wallet ->
-            enabledWallets.add(
-                enabledWallet(wallet, index)
-            )
+        val accountId = wallets.first().account.id
+        val existingTokenIds = storage.enabledWallets(accountId)
+            .mapTo(mutableSetOf()) { it.tokenQueryId }
+
+        val walletsToAdd = wallets
+            .filter { wallet ->
+                wallet.token.tokenQuery.id !in existingTokenIds
+            }
+
+        if (walletsToAdd.isEmpty()) return
+
+        val enabledWallets = walletsToAdd.mapIndexed { index, wallet ->
+            enabledWallet(wallet, index)
         }
 
         storage.save(enabledWallets).forEachIndexed { index, id ->
