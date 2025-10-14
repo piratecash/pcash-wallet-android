@@ -190,14 +190,8 @@ class CreateAdvancedAccountViewModel(
         TokenQuery(BlockchainType.Ethereum, TokenType.Native),
         TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Native),
         //TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xdac17f958d2ee523a2206206994597c13d831ec7")),
-        TokenQuery(
-            BlockchainType.BinanceSmartChain,
-            TokenType.Eip20(BuildConfig.PIRATE_CONTRACT)
-        ),
-        TokenQuery(
-            BlockchainType.BinanceSmartChain,
-            TokenType.Eip20(BuildConfig.COSANTA_CONTRACT)
-        ),
+        TokenQuery.eip20(BlockchainType.BinanceSmartChain, BuildConfig.PIRATE_CONTRACT),
+        TokenQuery.eip20(BlockchainType.BinanceSmartChain, BuildConfig.COSANTA_CONTRACT),
         //TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20("0xe9e7cea3dedca5984780bafc599bd69add087d56")),
     )
 

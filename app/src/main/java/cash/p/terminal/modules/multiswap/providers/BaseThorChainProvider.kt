@@ -85,7 +85,7 @@ abstract class BaseThorChainProvider(
                     val components = assetId.split("-")
 
                     val tokenType = if (components.size == 2) {
-                        TokenType.Eip20(components[1])
+                        TokenType.Eip20(components[1].lowercase())
                     } else {
                         TokenType.Native
                     }

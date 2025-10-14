@@ -62,7 +62,7 @@ internal class EvmTransactionsAdapter(
 
     override val additionalTokenQueries: List<TokenQuery>
         get() = evmTransactionRepository.getTagTokenContractAddresses().map { address ->
-            TokenQuery(evmTransactionRepository.getBlockchainType(), TokenType.Eip20(address))
+            TokenQuery.eip20(evmTransactionRepository.getBlockchainType(), address)
         }
 
     override suspend fun getTransactions(

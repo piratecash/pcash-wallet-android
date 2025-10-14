@@ -109,9 +109,11 @@ object AllBridgeProvider : IMultiSwapProvider {
                 BlockchainType.BinanceSmartChain,
                 BlockchainType.Ethereum,
                 BlockchainType.Optimism,
-                BlockchainType.Polygon,
-                BlockchainType.Tron,
-                    -> {
+                BlockchainType.Polygon -> {
+                    TokenType.Eip20(abToken.tokenAddress.lowercase())
+                }
+
+                BlockchainType.Tron -> {
                     TokenType.Eip20(abToken.tokenAddress)
                 }
 

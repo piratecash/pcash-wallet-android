@@ -2,6 +2,8 @@ package cash.p.terminal.wallet.entities
 
 import cash.p.terminal.wallet.BuildConfig
 import io.horizontalsystems.core.entities.BlockchainType
+import cash.p.terminal.wallet.extensions.isEvmLike
+import java.util.Locale
 import java.util.Objects
 
 data class TokenQuery(
@@ -32,14 +34,18 @@ data class TokenQuery(
             )
         }
 
-        val PirateCashBnb = TokenQuery(
-            BlockchainType.BinanceSmartChain,
-            TokenType.Eip20(BuildConfig.PIRATE_CONTRACT)
-        )
+        val PirateCashBnb = eip20(BlockchainType.BinanceSmartChain, BuildConfig.PIRATE_CONTRACT)
 
-        val CosantaBnb = TokenQuery(
-            BlockchainType.BinanceSmartChain,
-            TokenType.Eip20(BuildConfig.COSANTA_CONTRACT)
-        )
+        val CosantaBnb = eip20(BlockchainType.BinanceSmartChain, BuildConfig.COSANTA_CONTRACT)
+
+        fun eip20(blockchainType: BlockchainType, address: String): TokenQuery {
+            val normalized = if (blockchainType.isEvmLike()) {
+                address.lowercase(Locale.US)
+            } else {
+                address
+            }
+
+            return TokenQuery(blockchainType, TokenType.Eip20(normalized))
+        }
     }
 }

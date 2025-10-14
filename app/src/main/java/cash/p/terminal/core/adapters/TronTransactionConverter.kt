@@ -11,7 +11,6 @@ import cash.p.terminal.entities.transactionrecords.evm.TransferEvent
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.tronkit.TronKit
@@ -191,7 +190,7 @@ class TronTransactionConverter(
         negative: Boolean,
         tokenInfo: TokenInfo? = null
     ): TransactionValue {
-        val query = TokenQuery(BlockchainType.Tron, TokenType.Eip20(tokenAddress.base58))
+        val query = TokenQuery.eip20(BlockchainType.Tron, tokenAddress.base58)
         val token = coinManager.getToken(query)
 
         return when {

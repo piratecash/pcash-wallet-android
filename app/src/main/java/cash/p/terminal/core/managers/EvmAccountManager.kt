@@ -110,28 +110,48 @@ class EvmAccountManager(
                 is SwapDecoration -> {
                     val tokenOut = decoration.tokenOut
                     if (tokenOut is SwapDecoration.Token.Eip20Coin) {
-                        foundTokens.add(FoundToken(TokenType.Eip20(tokenOut.address.hex), tokenOut.tokenInfo))
+                        foundTokens.add(
+                            FoundToken(
+                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
+                                tokenOut.tokenInfo
+                            )
+                        )
                     }
                 }
 
                 is OneInchSwapDecoration -> {
                     val tokenOut = decoration.tokenOut
                     if (tokenOut is OneInchDecoration.Token.Eip20Coin) {
-                        foundTokens.add(FoundToken(TokenType.Eip20(tokenOut.address.hex), tokenOut.tokenInfo))
+                        foundTokens.add(
+                            FoundToken(
+                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
+                                tokenOut.tokenInfo
+                            )
+                        )
                     }
                 }
 
                 is OneInchUnoswapDecoration -> {
                     val tokenOut = decoration.tokenOut
                     if (tokenOut is OneInchDecoration.Token.Eip20Coin) {
-                        foundTokens.add(FoundToken(TokenType.Eip20(tokenOut.address.hex), tokenOut.tokenInfo))
+                        foundTokens.add(
+                            FoundToken(
+                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
+                                tokenOut.tokenInfo
+                            )
+                        )
                     }
                 }
 
                 is OneInchUnknownDecoration -> {
                     val tokenOut = decoration.tokenAmountOut?.token
                     if (tokenOut is OneInchDecoration.Token.Eip20Coin) {
-                        foundTokens.add(FoundToken(TokenType.Eip20(tokenOut.address.hex), tokenOut.tokenInfo))
+                        foundTokens.add(
+                            FoundToken(
+                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
+                                tokenOut.tokenInfo
+                            )
+                        )
                     }
                 }
 
@@ -144,7 +164,7 @@ class EvmAccountManager(
                         if (eventInstance !is TransferEventInstance) continue
 
                         if (eventInstance.to == address) {
-                            val tokenType = TokenType.Eip20(eventInstance.contractAddress.hex)
+                            val tokenType = TokenType.Eip20(eventInstance.contractAddress.hex.lowercase())
 
                             if (decoration.fromAddress == address) {
                                 foundTokens.add(FoundToken(tokenType, eventInstance.tokenInfo))

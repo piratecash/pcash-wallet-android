@@ -7,6 +7,7 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.extensions.isEvmLike
 import cash.p.terminal.wallet.models.BlockchainEntity
 import cash.p.terminal.wallet.models.TokenEntity
 
@@ -96,7 +97,7 @@ interface CoinDao {
     ) {
 
         fun token(coin: Coin): Token {
-            val tokenType = if (tokenEntity.decimals != null) {
+            var tokenType = if (tokenEntity.decimals != null) {
                 TokenType.fromType(
                     tokenEntity.type,
                     tokenEntity.reference
@@ -106,6 +107,10 @@ interface CoinDao {
                     tokenEntity.type,
                     tokenEntity.reference
                 )
+            }
+
+            if (tokenType is TokenType.Eip20 && blockchainEntity.blockchain.type.isEvmLike()) {
+                tokenType = TokenType.Eip20(tokenType.address.lowercase())
             }
 
             return Token(

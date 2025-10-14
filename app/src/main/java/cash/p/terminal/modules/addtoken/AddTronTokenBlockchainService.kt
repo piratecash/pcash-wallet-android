@@ -7,7 +7,6 @@ import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.Blockchain
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.tronkit.models.Address
 import io.horizontalsystems.tronkit.network.Network
 import io.horizontalsystems.tronkit.rpc.Trc20Provider
@@ -27,13 +26,13 @@ class AddTronTokenBlockchainService(
     }
 
     override fun tokenQuery(reference: String): TokenQuery {
-        return TokenQuery(blockchain.type, TokenType.Eip20(reference))
+        return TokenQuery.eip20(blockchain.type, reference)
     }
 
     override suspend fun token(reference: String): Token {
         val tokenInfo = trc20Provider.getTokenInfo(Address.fromBase58(reference))
         val tokenQuery = tokenQuery(reference)
-        return cash.p.terminal.wallet.Token(
+        return Token(
             coin = Coin(
                 uid = tokenQuery.customCoinUid,
                 name = tokenInfo.tokenName,

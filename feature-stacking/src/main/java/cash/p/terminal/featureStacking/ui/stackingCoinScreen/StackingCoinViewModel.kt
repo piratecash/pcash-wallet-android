@@ -172,7 +172,7 @@ internal abstract class StackingCoinViewModel(
         wallet = getActiveContractWallet(contract)
         if (wallet == null) {
             val account = accountManager.activeAccount ?: return
-            val tokenQuery = TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20(contract))
+            val tokenQuery = TokenQuery.eip20(BlockchainType.BinanceSmartChain, contract)
             marketKitWrapper.token(tokenQuery)?.let { token ->
                 wallet = walletFactory.create(
                     token = token,

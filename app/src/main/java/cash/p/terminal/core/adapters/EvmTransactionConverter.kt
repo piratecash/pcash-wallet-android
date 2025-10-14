@@ -357,9 +357,9 @@ internal class EvmTransactionConverter(
         negative: Boolean,
         tokenInfo: TokenInfo? = null
     ): TransactionValue {
-        val query = TokenQuery(
+        val query = TokenQuery.eip20(
             evmTransactionRepository.getBlockchainType(),
-            TokenType.Eip20(tokenAddress.hex)
+            tokenAddress.hex
         )
         val token = coinManager.getToken(query)
 

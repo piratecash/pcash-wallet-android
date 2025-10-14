@@ -20,8 +20,8 @@ class BaseTokenManager(
         listOf(
             TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)),
             TokenQuery(BlockchainType.Ethereum, TokenType.Native),
-            TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20(BuildConfig.PIRATE_CONTRACT)),
-            TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20(BuildConfig.COSANTA_CONTRACT)),
+            TokenQuery.eip20(BlockchainType.BinanceSmartChain, BuildConfig.PIRATE_CONTRACT),
+            TokenQuery.eip20(BlockchainType.BinanceSmartChain, BuildConfig.COSANTA_CONTRACT),
             TokenQuery(BlockchainType.Zcash, TokenType.AddressSpecTyped(AddressSpecType.Shielded)),
         ).mapNotNull {
             coinManager.getToken(it)

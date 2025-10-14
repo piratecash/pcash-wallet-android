@@ -193,7 +193,11 @@ class OpenSeaNftProvider(
     }
 
     private fun tokenType(address: String): TokenType =
-        if (address == zeroAddress) TokenType.Native else TokenType.Eip20(address)
+        if (address == zeroAddress) {
+            TokenType.Native
+        } else {
+            TokenType.Eip20(address.lowercase())
+        }
 
     private fun tokenMap(blockchainType: BlockchainType, addresses: List<String>): Map<String, Token> =
         try {

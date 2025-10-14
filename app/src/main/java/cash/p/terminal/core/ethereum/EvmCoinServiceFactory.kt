@@ -6,7 +6,6 @@ import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.ethereumkit.models.Address
 import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 
 class EvmCoinServiceFactory(
     private val baseToken: Token,
@@ -25,7 +24,7 @@ class EvmCoinServiceFactory(
     fun getCoinService(token: Token) = EvmCoinService(token, currencyManager, marketKit)
 
     private fun getToken(contractAddress: String): Token? {
-        val tokenQuery = TokenQuery(baseToken.blockchainType, TokenType.Eip20(contractAddress))
+        val tokenQuery = TokenQuery.eip20(baseToken.blockchainType, contractAddress)
         return coinManager.getToken(tokenQuery)
     }
 

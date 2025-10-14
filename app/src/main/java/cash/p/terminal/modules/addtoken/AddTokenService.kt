@@ -1,13 +1,11 @@
 package cash.p.terminal.modules.addtoken
 
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.order
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
