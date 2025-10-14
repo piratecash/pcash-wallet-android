@@ -131,6 +131,30 @@
             </intent-filter>
         </activity-alias>
         <activity-alias
+            android:name=".YellowLauncherAlias"
+            android:enabled="false"
+            android:icon="@mipmap/launcher_dark"
+            android:label="@string/App_Name"
+            android:exported="true"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:label="@string/App_Name">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="wc" />
+            </intent-filter>
+            <intent-filter android:label="@string/App_Name">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="@string/DeeplinkScheme" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
             android:name=".DarkLauncherAlias"
             android:enabled="false"
             android:icon="@mipmap/launcher_dark"

@@ -31,6 +31,7 @@ object AppearanceModule {
 
 enum class AppIcon(val icon: Int, val titleText: String) : WithTranslatableTitle {
     Main(R.drawable.launcher_main_preview, "Main"),
+    Yellow(R.drawable.launcher_yellow_preview, "Yellow"),
     Dark(R.drawable.launcher_dark_preview, "Dark"),
     Mono(R.drawable.launcher_mono_preview, "Mono");
 
@@ -42,8 +43,8 @@ enum class AppIcon(val icon: Int, val titleText: String) : WithTranslatableTitle
 
 
     companion object {
-        private val map = values().associateBy(AppIcon::name)
-        private val titleMap = values().associateBy(AppIcon::titleText)
+        private val map = entries.associateBy(AppIcon::name)
+        private val titleMap = entries.associateBy(AppIcon::titleText)
 
         fun fromString(type: String?): AppIcon? = map[type]
         fun fromTitle(title: String?): AppIcon? = titleMap[title]
