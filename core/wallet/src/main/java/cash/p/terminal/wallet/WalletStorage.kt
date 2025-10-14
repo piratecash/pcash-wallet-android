@@ -102,6 +102,7 @@ class WalletStorage(
             .filter { wallet ->
                 wallet.token.tokenQuery.id !in existingTokenIds
             }
+            .distinctBy { it.token.tokenQuery.id }
 
         if (walletsToAdd.isEmpty()) return
 
