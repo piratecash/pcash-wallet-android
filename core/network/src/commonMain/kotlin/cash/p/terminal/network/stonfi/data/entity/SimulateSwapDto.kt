@@ -26,7 +26,7 @@ internal data class SimulateSwapDto(
 
 @Serializable
 internal data class GasParamsDto(
-    val forward_gas: String,
-    val estimated_gas_consumption: String,
-    val gas_budget: String? = null
+    val forward_gas: String?,
+    val estimated_gas_consumption: String?,
+    val gas_budget: String?
 )

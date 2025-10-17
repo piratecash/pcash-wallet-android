@@ -6,6 +6,7 @@ import cash.p.terminal.modules.multiswap.settings.ISwapSetting
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.wallet.Token
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class SwapQuoteStonFi(
     override val amountOut: BigDecimal,
@@ -27,7 +28,7 @@ data class StonFiSwapData(
     val askJettonWallet: String,
     val routerAddress: String,
     val poolAddress: String,
-    val offerUnits: BigDecimal,
+    val offerUnits: BigInteger,
     val askUnits: String,
     val slippageTolerance: String,
     val minAskUnits: String,
@@ -41,7 +42,7 @@ data class StonFiSwapData(
 )
 
 data class StonFiGasParams(
-    val forwardGas: BigDecimal?,
-    val estimatedGasConsumption: BigDecimal?,
-    val gasBudget: String? = null
+    val forwardGas: BigInteger?,
+    val estimatedGasConsumption: BigInteger?,
+    val gasBudget: BigInteger?
 )

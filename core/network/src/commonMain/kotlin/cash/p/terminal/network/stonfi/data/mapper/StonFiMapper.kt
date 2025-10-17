@@ -12,6 +12,7 @@ import cash.p.terminal.network.stonfi.domain.entity.GasParams
 import cash.p.terminal.network.stonfi.domain.entity.RouterInfo
 import cash.p.terminal.network.stonfi.domain.entity.SimulateSwap
 import cash.p.terminal.network.stonfi.domain.entity.SwapStatus
+import java.math.BigInteger
 
 internal class StonFiMapper {
 
@@ -23,7 +24,7 @@ internal class StonFiMapper {
             askJettonWallet = dto.ask_jetton_wallet,
             routerAddress = dto.router_address,
             poolAddress = dto.pool_address,
-            offerUnits = dto.offer_units.toBigDecimal(),
+            offerUnits = dto.offer_units.toBigInteger(),
             askUnits = dto.ask_units,
             slippageTolerance = dto.slippage_tolerance,
             minAskUnits = dto.min_ask_units,
@@ -80,9 +81,9 @@ internal class StonFiMapper {
 
     private fun mapGasParamsDto(dto: GasParamsDto): GasParams {
         return GasParams(
-            forwardGas = dto.forward_gas.toBigDecimalOrNull(),
-            estimatedGasConsumption = dto.estimated_gas_consumption.toBigDecimal(),
-            gasBudget = dto.gas_budget
+            forwardGas = dto.forward_gas?.toBigIntegerOrNull() ?: BigInteger.ZERO,
+            estimatedGasConsumption = dto.estimated_gas_consumption?.toBigIntegerOrNull() ?: BigInteger.ZERO,
+            gasBudget = dto.gas_budget?.toBigIntegerOrNull() ?: BigInteger.ZERO
         )
     }
 

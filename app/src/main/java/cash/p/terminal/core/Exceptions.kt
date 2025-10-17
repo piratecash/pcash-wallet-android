@@ -28,7 +28,7 @@ open class HSCaution(
 class NotEnoughData() : Exception()
 class UnsupportedException(override val message: String?) : Exception()
 class UnsupportedAccountException : Exception()
-class LocalizedException(val errorTextRes: Int) : Exception()
+class LocalizedException(val errorTextRes: Int, vararg val formatArgs: Any) : Exception()
 class AdapterErrorWrongParameters(override val message: String) : Exception()
 class NoFeeSendTransactionError : Exception()
 class FailedTransaction(errorMessage: String?) : RuntimeException(errorMessage) {

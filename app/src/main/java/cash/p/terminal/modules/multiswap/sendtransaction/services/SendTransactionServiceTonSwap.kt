@@ -5,8 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendTonAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -25,10 +27,8 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.ton.SendTonAddressService
 import cash.p.terminal.modules.send.ton.SendTonAmountService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,13 +36,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.math.RoundingMode
 
 class SendTransactionServiceTonSwap(
     token: Token
 ) : ISendTransactionService<ISendTonAdapter>(token) {
     private val amountValidator = AmountValidator()
+
+    private var feeAdapter: ISendTonAdapter? = null
+    private val accountManager: IAccountManager by inject(IAccountManager::class.java)
 
     private val amountService = SendTonAmountService(
         amountValidator = amountValidator,
@@ -55,10 +60,6 @@ class SendTransactionServiceTonSwap(
     private val addressHandlerTon = AddressHandlerTon()
 
     private val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-    private val feeToken = requireNotNull(
-        App.coinManager.getToken(TokenQuery(BlockchainType.Ton, TokenType.Native))) {
-        "Ton fee token not found"
-    }
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
@@ -72,6 +73,7 @@ class SendTransactionServiceTonSwap(
     private val ptonTransferFeeTon = BigDecimal("0.01")
     private val ptonTransferFeeNano =
         ptonTransferFeeTon.movePointRight(token.decimals).setScale(0, RoundingMode.UNNECESSARY)
+            .toBigInteger()
 
     var coinRate by mutableStateOf(xRateService.getRate(token.coin.uid))
         private set
@@ -81,7 +83,7 @@ class SendTransactionServiceTonSwap(
     override fun createState() = SendTransactionServiceState(
         availableBalance = adapter.availableBalance,
         networkFee = feeAmountData,
-        cautions = cautions,
+        cautions = cautions + listOfNotNull(feeCaution),
         sendable = sendable,
         loading = loading,
         fields = fields
@@ -97,9 +99,9 @@ class SendTransactionServiceTonSwap(
         emitState()
     }
 
-    private fun updatedFee(fee: BigDecimal?) {
+    private fun updatedFee(fee: BigInteger?) {
         fee?.let {
-            val feeNative = fee.movePointLeft(feeToken.decimals).stripTrailingZeros()
+            val feeNative = fee.toBigDecimal().movePointLeft(feeToken.decimals).stripTrailingZeros()
             val primaryAmountInfo =
                 SendModule.AmountInfo.CoinValueInfo(CoinValue(feeToken, feeNative))
             val secondaryAmountInfo = rate?.let {
@@ -125,8 +127,11 @@ class SendTransactionServiceTonSwap(
 
     private var feeAmountData: SendModule.AmountData? = null
     private var cautions: List<CautionViewItem> = listOf()
+    private var feeCaution: CautionViewItem? = null
+
+    private var hasEnoughFeeAmount: Boolean = true
     private val sendable: Boolean
-        get() = amountState.canBeSend && addressState.canBeSend
+        get() = hasEnoughFeeAmount && amountState.canBeSend && addressState.canBeSend
     private var loading = true
     private var fields = listOf<DataField>()
 
@@ -151,6 +156,17 @@ class SendTransactionServiceTonSwap(
                 feeCoinRate = it
             }
         }
+
+        // To calculate fee we need ton adapter
+        coroutineScope.launch(Dispatchers.Default) {
+            // Do not create adapter for hardware wallet account - don't want to display scan dialog
+            if (accountManager.activeAccount?.isHardwareWalletAccount == true) {
+                return@launch
+            }
+            feeAdapter = walletUseCase.createWalletIfNotExists(feeToken)?.run {
+                adapterManager.awaitAdapterForWallet<ISendTonAdapter>(this)
+            }
+        }
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
@@ -160,6 +176,8 @@ class SendTransactionServiceTonSwap(
 
         routerMasterAddress = data.routerMasterAddress
         tonSwapQueryId = data.queryId
+
+        checkFeeBalance()
 
         loading = true // to show loading until fee is set
         emitState()
@@ -180,21 +198,52 @@ class SendTransactionServiceTonSwap(
         }
 
         // Set amount from swap data
-        val amount = data.offerUnits.movePointLeft(token.decimals)
+        val amount = data.offerUnits.toBigDecimal().movePointLeft(token.decimals)
         amountService.setAmount(amount)
 
         updatedFee(data.forwardGas)
     }
 
+    private fun checkFeeBalance() {
+        val data = checkNotNull(tonSwapData) {
+            "SendTransactionData should be SendTransactionData.TonSwap"
+        }
+
+        if (feeAdapter != null) {
+            feeAdapter?.availableBalance?.let { availableBalance ->
+                feeCaution = if (availableBalance < data.forwardGas.toBigDecimal()
+                        .movePointLeft(feeToken.decimals)
+                ) {
+                    createCaution(LocalizedException(R.string.not_enough_ton_for_fee))
+                } else {
+                    null
+                }
+                hasEnoughFeeAmount = feeCaution == null
+            }
+        } else {
+            val neededFee =
+                data.forwardGas.toBigDecimal().movePointLeft(feeToken.decimals).stripTrailingZeros()
+                    .toPlainString() + " " + feeToken.coin.code
+            feeCaution = createCaution(
+                LocalizedException(R.string.check_fee_warning, neededFee)
+            )
+        }
+    }
+
+    private fun getAmount(): BigInteger {
+        val tonSwapData = checkNotNull(tonSwapData) { "Nothing to send" }
+        return tonSwapData.gasBudget
+            ?: (tonSwapData.offerUnits + tonSwapData.forwardGas + ptonTransferFeeNano)
+    }
+
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
             val tonSwapData = checkNotNull(tonSwapData) { "Nothing to send" }
-            val destinationAddress = checkNotNull(tonSwapData.destinationAddress) { "Destination address is missing" }
+            val destinationAddress =
+                checkNotNull(tonSwapData.destinationAddress) { "Destination address is missing" }
 
-            val amount = tonSwapData.gasBudget
-                ?: (tonSwapData.offerUnits + tonSwapData.forwardGas + ptonTransferFeeNano).toBigInteger()
             adapter.sendWithPayload(
-                amount = amount,
+                amount = getAmount(),
                 address = destinationAddress,
                 payload = tonSwapData.payload
             )

@@ -21,10 +21,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.ConcurrentHashMap
 
 class AdapterManager(
@@ -221,6 +228,19 @@ class AdapterManager(
                 adaptersMap[wallet]?.refresh()
             }
         }
+    }
+
+    override suspend fun <T> awaitAdapterForWallet(wallet: Wallet): T? {
+        (adaptersMap[wallet] as? T)?.let { return it }
+
+        return withTimeoutOrNull(300) {
+            merge(
+                initializationInProgressFlow.filter { !it }.map { adaptersMap },
+                adaptersReadyObservable.asFlow()
+            )
+                .mapNotNull { it[wallet] as? T }
+                .first()
+        } ?: adaptersMap[wallet] as? T
     }
 
     @Suppress("UNCHECKED_CAST")

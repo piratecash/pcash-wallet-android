@@ -52,6 +52,7 @@
     <string name="Button_SetAmount">Установить сумму</string>
     <string name="Button_ContinueAnyway">Всё равно продолжить</string>
     <string name="not_enough_ton_for_fee">Недостаточно TON для оплаты комиссии</string>
+    <string name="check_fee_warning">Убедитесь, что у вас есть как минимум %s для комиссий, иначе транзакция может не пройти</string>
     <string name="Error_AssetNotEnabled">Получатель не включил %s, поэтому не может получить.</string>
     <string name="Error_OutOfRange">Не может быть меньше %1$s или более чем %2$s</string>
     <string name="Error_NotInteger">Неверное целое число</string>

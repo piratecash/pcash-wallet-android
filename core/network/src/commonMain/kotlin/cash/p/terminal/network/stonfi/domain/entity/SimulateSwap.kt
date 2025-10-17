@@ -1,6 +1,7 @@
 package cash.p.terminal.network.stonfi.domain.entity
 
 import java.math.BigDecimal
+import java.math.BigInteger
 
 data class SimulateSwap(
     val offerAddress: String,
@@ -9,7 +10,7 @@ data class SimulateSwap(
     val askJettonWallet: String,
     val routerAddress: String,
     val poolAddress: String,
-    val offerUnits: BigDecimal,
+    val offerUnits: BigInteger,
     val askUnits: String,
     val slippageTolerance: String,
     val minAskUnits: String,
@@ -24,7 +25,7 @@ data class SimulateSwap(
 )
 
 data class GasParams(
-    val forwardGas: BigDecimal?,
-    val estimatedGasConsumption: BigDecimal,
-    val gasBudget: String? = null
+    val forwardGas: BigInteger,
+    val estimatedGasConsumption: BigInteger,
+    val gasBudget: BigInteger
 )

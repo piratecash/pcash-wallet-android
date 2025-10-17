@@ -2,7 +2,6 @@ package cash.p.terminal.modules.multiswap.sendtransaction.services
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.entities.CoinValue
@@ -13,9 +12,6 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceS
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.stellarkit.StellarKit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,13 +26,6 @@ class SendTransactionServiceStellar(account: Account, token: Token) :
     private val stellarKit: StellarKit = stellarKitManager.getStellarKitWrapper(account).stellarKit
 
     private var fee: BigDecimal? = stellarKit.sendFee
-
-    private val feeToken = App.coinManager.getToken(
-        TokenQuery(
-            BlockchainType.Stellar,
-            TokenType.Native
-        )
-    ) ?: throw IllegalArgumentException()
 
     private var transactionEnvelope: String? = null
 
@@ -55,12 +44,13 @@ class SendTransactionServiceStellar(account: Account, token: Token) :
     override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Stellar)
 
-        when(data) {
+        when (data) {
             is SendTransactionData.Stellar.Regular -> {
-                    recipient = data.address
-                    memo = data.memo
-                    amount = data.amount
+                recipient = data.address
+                memo = data.memo
+                amount = data.amount
             }
+
             is SendTransactionData.Stellar.WithTransactionEnvelope -> {
                 transactionEnvelope = data.transactionEnvelope
                 fee = StellarKit.estimateFee(data.transactionEnvelope)
@@ -76,10 +66,10 @@ class SendTransactionServiceStellar(account: Account, token: Token) :
     override fun GetSettingsContent(navController: NavController) = Unit
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
-        val response = if(transactionEnvelope != null) {
+        val response = if (transactionEnvelope != null) {
             val transactionEnvelope = requireNotNull(transactionEnvelope)
             stellarKit.sendTransaction(transactionEnvelope)
-        } else if(recipient != null && amount != null && memo != null) {
+        } else if (recipient != null && amount != null && memo != null) {
             val recipient = requireNotNull(recipient)
             val amount = requireNotNull(amount)
             stellarKit.sendNative(recipient, amount, memo)

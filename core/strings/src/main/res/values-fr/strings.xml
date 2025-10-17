@@ -47,6 +47,7 @@
     <string name="Button_Apply">Appliquer</string>
     <string name="Button_SetAmount">Définir le montant</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="check_fee_warning">Assurez-vous de disposer d\'au moins %s pour les frais, sinon la transaction risque d\'échouer</string>
     <string name="Error_OutOfRange">Il doit contenir au moins %1$s et faire un maximum de %2$s caractères</string>
     <string name="Error_NotInteger">Les chiffres que vous avez fournis sont incorrects</string>
     <string name="Error">Erreur</string>

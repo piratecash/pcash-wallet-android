@@ -93,7 +93,7 @@ class SendTransactionServiceSolana(
         _sendTransactionSettingsFlow.asStateFlow()
 
     private val feeAmountData: SendModule.AmountData by lazy {
-        val coinValue = CoinValue(token, SolanaKit.fee)
+        val coinValue = CoinValue(feeToken, SolanaKit.fee)
         val primaryAmountInfo = SendModule.AmountInfo.CoinValueInfo(coinValue)
         val secondaryAmountInfo = rate?.let {
             SendModule.AmountInfo.CurrencyValueInfo(

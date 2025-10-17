@@ -47,6 +47,7 @@
     <string name="Button_Apply">应用</string>
     <string name="Button_SetAmount">设定金额</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="check_fee_warning">请确保至少有 %s 用于手续费，否则交易可能会失败</string>
     <string name="Error_OutOfRange">不能小于 %1$s 或大于 %2$s</string>
     <string name="Error_NotInteger">错误的整数</string>
     <string name="Error">出错</string>

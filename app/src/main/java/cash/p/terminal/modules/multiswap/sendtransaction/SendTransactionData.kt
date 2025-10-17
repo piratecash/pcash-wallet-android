@@ -62,8 +62,8 @@ sealed class SendTransactionData {
     ) : SendTransactionData()
 
     data class TonSwap(
-        val forwardGas: BigDecimal,
-        val offerUnits: BigDecimal,
+        val forwardGas: BigInteger,
+        val offerUnits: BigInteger,
         val routerAddress: String,
         val routerMasterAddress: String,
         val destinationAddress: String?,

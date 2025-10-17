@@ -26,9 +26,6 @@ import cash.p.terminal.modules.send.tron.SendTronAddressService
 import cash.p.terminal.modules.send.tron.SendTronFeeService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,8 +52,6 @@ class SendTransactionServiceTron(
     )
     val addressService = SendTronAddressService(adapter, wallet.token)
     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-    val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Tron, TokenType.Native))
-        ?: throw IllegalArgumentException()
     private val feeService = SendTronFeeService(adapter, feeToken)
 
     val logger: AppLogger = AppLogger("send-tron")

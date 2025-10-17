@@ -206,28 +206,15 @@ class StonFiProvider(
             else -> ptonWalletAddress
         }
 
-        val forwardGasDecimal = response.gasParams.forwardGas ?: BigDecimal.ZERO
-        val forwardGasBigInt = try {
-            BigInt(forwardGasDecimal.toBigIntegerExact().toString())
-        } catch (_: ArithmeticException) {
-            BigInt(forwardGasDecimal.toBigInteger().toString())
-        }
-
         val tonTransferQueryId = System.currentTimeMillis()
 
-        val offerAmountBigInt = try {
-            BigInt(response.offerUnits.toBigIntegerExact().toString())
-        } catch (_: ArithmeticException) {
-            BigInt(response.offerUnits.toBigInteger().toString())
-        }
-
-        var gasBudget = response.gasParams.gasBudget?.let { BigInteger(it) }
+        var gasBudget = response.gasParams.gasBudget
 
         val swapPayload = when {
             tokenIn.type is TokenType.Jetton -> {
                 when (finalSimulation.dexVersion) {
                     1 -> {
-                        gasBudget = offerAmountBigInt + forwardGasBigInt + BigInt("100000000") // 0.1 TON
+                        gasBudget = response.offerUnits + response.gasParams.forwardGas + BigInt("100000000") // 0.1 TON
 
                         buildJettonToTonPayloadV1(
                             router = AddrStd(response.routerAddress),
@@ -237,7 +224,7 @@ class StonFiProvider(
                             minOut = BigInt(response.minAskUnits),
                             queryId = tonTransferQueryId,
                             referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) },
-                            forwardTonAmount = forwardGasBigInt
+                            forwardTonAmount = response.gasParams.forwardGas
                         )
                     }
 
@@ -248,7 +235,7 @@ class StonFiProvider(
                             ptonWallet = AddrStd(response.askJettonWallet),
                             refundAddress = AddrStd(addressFrom),
                             minOut = BigInt(response.minAskUnits),
-                            forwardGas = forwardGasBigInt,
+                            forwardGas = response.gasParams.forwardGas,
                             queryId = tonTransferQueryId,
                             refFee = REF_FEE_BPS,
                             referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
@@ -266,7 +253,7 @@ class StonFiProvider(
                 when (finalSimulation.dexVersion) {
                     1 -> {
                         // amount to send
-                        gasBudget = offerAmountBigInt + BigInt("185000000") // 0.185 TON
+                        gasBudget = response.offerUnits + BigInt("185000000") // 0.185 TON
                         val routerJettonWallet = response.askJettonWallet
                             .takeUnless { it.isNullOrBlank() }
                             ?: throw IllegalStateException("STON.fi v1: missing ask jetton wallet")
@@ -277,20 +264,20 @@ class StonFiProvider(
                             receiver = AddrStd(receiverOwnerAddress),
                             minOut = BigInt(response.minAskUnits),
                             referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) },
-                            forwardTonAmount = forwardGasBigInt,
+                            forwardTonAmount = response.gasParams.forwardGas,
                             queryId = tonTransferQueryId,
                         )
                     }
 
                     2 -> {
                         buildStonfiSwapTonToJettonPayloadV2(
-                            tonAmount = offerAmountBigInt,
+                            tonAmount = response.offerUnits,
                             tokenWallet = AddrStd(response.askJettonWallet),
                             refundAddress = AddrStd(addressFrom),
                             minOut = BigInt(response.minAskUnits),
                             receiver = AddrStd(receiverAddress),
                             refFee = REF_FEE_BPS,
-                            fwdGas = forwardGasBigInt,
+                            fwdGas = response.gasParams.forwardGas,
                             referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
                         )
                     } else -> {
@@ -303,7 +290,7 @@ class StonFiProvider(
 
         val sendTransactionData = SendTransactionData.TonSwap(
             offerUnits = response.offerUnits,
-            forwardGas = forwardGasDecimal,
+            forwardGas = response.gasParams.forwardGas,
             routerAddress = response.routerAddress,
             routerMasterAddress = routerInfo.ptonMasterAddress,
             destinationAddress = destinationAddress,

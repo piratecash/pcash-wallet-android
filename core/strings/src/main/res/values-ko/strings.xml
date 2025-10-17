@@ -47,6 +47,7 @@
     <string name="Button_Apply">적용</string>
     <string name="Button_SetAmount">금액 설정</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="check_fee_warning">수수료로 최소 %s를 보유하고 있는지 확인하세요. 그렇지 않으면 거래가 실패할 수 있습니다</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
     <string name="Error_NotInteger">Wrong integer number</string>
     <string name="Error">오류</string>

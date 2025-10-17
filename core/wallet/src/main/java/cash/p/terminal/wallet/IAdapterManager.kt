@@ -9,6 +9,14 @@ interface IAdapterManager {
 
     fun startAdapterManager()
     suspend fun refresh()
+
+    /**
+     * Wait for adapter for the given wallet to be available
+     * If adapter is already available, return it
+     * Waits up to 300ms for the adapter to be initialized
+     */
+    suspend fun <T> awaitAdapterForWallet(wallet: Wallet): T?
+
     fun <T> getAdapterForWallet(wallet: Wallet): T?
     fun getAdapterForWalletOld(wallet: Wallet): IAdapter?
     fun <T> getAdapterForToken(token: Token): T?

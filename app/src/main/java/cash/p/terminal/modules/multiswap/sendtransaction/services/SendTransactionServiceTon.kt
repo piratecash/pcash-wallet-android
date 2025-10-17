@@ -27,9 +27,6 @@ import cash.p.terminal.modules.send.ton.SendTonAmountService
 import cash.p.terminal.modules.send.ton.SendTonFeeService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,9 +50,6 @@ class SendTransactionServiceTon(
     private val addressHandlerTon = AddressHandlerTon()
     private val feeService = SendTonFeeService(adapter)
     private val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-    private val feeToken =
-        App.coinManager.getToken(TokenQuery(BlockchainType.Ton, TokenType.Native))
-            ?: throw IllegalArgumentException()
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
@@ -98,10 +92,16 @@ class SendTransactionServiceTon(
 
     private fun handleUpdatedFeeState(feeState: SendTonFeeService.State) {
         this.feeState = feeState
-        if(feeState.feeStatus is FeeStatus.Success) {
-            val primaryAmountInfo = SendModule.AmountInfo.CoinValueInfo(CoinValue(feeToken, feeState.feeStatus.fee))
+        if (feeState.feeStatus is FeeStatus.Success) {
+            val primaryAmountInfo =
+                SendModule.AmountInfo.CoinValueInfo(CoinValue(feeToken, feeState.feeStatus.fee))
             val secondaryAmountInfo = rate?.let {
-                SendModule.AmountInfo.CurrencyValueInfo(CurrencyValue(it.currency, it.value * feeState.feeStatus.fee))
+                SendModule.AmountInfo.CurrencyValueInfo(
+                    CurrencyValue(
+                        it.currency,
+                        it.value * feeState.feeStatus.fee
+                    )
+                )
             }
 
             feeAmountData = SendModule.AmountData(primaryAmountInfo, secondaryAmountInfo)

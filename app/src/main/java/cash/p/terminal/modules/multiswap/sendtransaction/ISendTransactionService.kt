@@ -16,6 +16,8 @@ import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.entities.CurrencyValue
@@ -32,22 +34,25 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     ServiceState<SendTransactionServiceState>() {
     open val mevProtectionAvailable: Boolean = false
     protected var extraFees = mapOf<FeeType, SendModule.AmountData>()
-    private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
+    protected val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     protected val wallet: Wallet by lazy { runBlocking { walletUseCase.createWalletIfNotExists(token)!! } }
     protected val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
     protected val adapter: T = adapterManager.getAdapterForWallet(wallet)!!
     private val baseCurrency = App.currencyManager.baseCurrency
     protected var uuid = UUID.randomUUID().toString()
+    private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
 
     protected val rate: CurrencyValue?
         get() {
             val currencyManager: CurrencyManager by inject(CurrencyManager::class.java)
-            val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
             val baseCurrency = currencyManager.baseCurrency
-            return marketKit.coinPrice(token.coin.uid, baseCurrency.code)?.let {
+            return marketKit.coinPrice(feeToken.coin.uid, baseCurrency.code)?.let {
                 CurrencyValue(baseCurrency, it.value)
             }
         }
+
+    protected val feeToken: Token
+        get() = marketKit.token(TokenQuery(token.blockchainType, TokenType.Native)) ?: token
 
     protected val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -71,7 +76,12 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
         val primaryAmountInfo = SendModule.AmountInfo.CoinValueInfo(coinValue)
 
         val secondaryAmountInfo = getRate(coinValue.coin)?.let { rate ->
-            SendModule.AmountInfo.CurrencyValueInfo(CurrencyValue(rate.currency, rate.value * coinValue.value))
+            SendModule.AmountInfo.CurrencyValueInfo(
+                CurrencyValue(
+                    rate.currency,
+                    rate.value * coinValue.value
+                )
+            )
         }
         return SendModule.AmountData(primaryAmountInfo, secondaryAmountInfo)
     }
@@ -90,7 +100,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
         )
 
         is LocalizedException -> CautionViewItem(
-            TranslatableString.ResString(error.errorTextRes).toString(),
+            TranslatableString.ResString(error.errorTextRes, *error.formatArgs).toString(),
             "",
             CautionViewItem.Type.Error
         )

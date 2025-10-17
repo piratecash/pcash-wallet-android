@@ -16,7 +16,10 @@ import kotlinx.coroutines.launch
 import java.io.Closeable
 import java.math.BigDecimal
 
-class SendTonFeeService(private val adapter: ISendTonAdapter) : Closeable {
+class SendTonFeeService(
+    private val adapter: ISendTonAdapter,
+    private val externalScope: CoroutineScope? = null
+) : Closeable {
     private var memo: String? = null
     private var address: FriendlyAddress? = null
     private var amount: BigDecimal? = null
@@ -30,7 +33,7 @@ class SendTonFeeService(private val adapter: ISendTonAdapter) : Closeable {
         )
     )
     val stateFlow = _stateFlow.asStateFlow()
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val coroutineScope = externalScope ?: CoroutineScope(Dispatchers.Default)
     private var estimateFeeJob: Job? = null
 
     private fun refreshFeeAndEmitState() {
@@ -39,7 +42,7 @@ class SendTonFeeService(private val adapter: ISendTonAdapter) : Closeable {
         val memo = memo
 
         estimateFeeJob?.cancel()
-        estimateFeeJob = coroutineScope.launch {
+        estimateFeeJob = coroutineScope.launch(Dispatchers.Default) {
             if (amount != null && address != null) {
                 inProgress = true
                 emitState()
@@ -99,6 +102,7 @@ class SendTonFeeService(private val adapter: ISendTonAdapter) : Closeable {
     )
 
     override fun close() {
+        if (externalScope != null) return // external scope should be closed externally
         coroutineScope.cancel()
     }
 }

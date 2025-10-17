@@ -47,6 +47,7 @@
     <string name="Button_Apply">Übernehmen</string>
     <string name="Button_SetAmount">Setze Betrag</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="check_fee_warning">Stellen Sie sicher, dass Sie mindestens %s für Gebühren haben, sonst kann die Transaktion fehlschlagen</string>
     <string name="Error_OutOfRange">Es muss mindestens %1$s enthalten und darf maximal %2$s Zeichen lang sein</string>
     <string name="Error_NotInteger">Die von Dir angegebenen Zahlen sind nicht richtig</string>
     <string name="Error">Fehler</string>
