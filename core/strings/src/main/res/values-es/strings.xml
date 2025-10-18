@@ -40,6 +40,9 @@
     <string name="Button_Browser">Browser</string>
     <string name="Button_Delete">Eliminar</string>
     <string name="Button_LearnMore">Aprender más</string>
+    <string name="hardware_wallet_offline_confirmation_title">Activación sin conexión</string>
+    <string name="hardware_wallet_offline_confirmation_message">No se puede verificar la autenticidad de la tarjeta en el servidor. Revisa tu conexión a Internet o permite la activación sin conexión. Al activar sin conexión no se realizan comprobaciones en el servidor, lo que reduce la seguridad. ¿Continuar con la activación sin conexión?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Continuar sin conexión</string>
     <string name="Button_Activate">Activar</string>
     <string name="Button_Sign">Firma</string>
     <string name="Button_TryAgain">Inténtalo de nuevo</string>
@@ -1465,6 +1468,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="display_options_period_1m">1 Mes</string>
     <string name="display_options_period_1y">1 Año</string>
     <string name="display_options_period_all">Todos</string>
+    <string name="sum_rounding">Redondeo de importes</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d opción</item>

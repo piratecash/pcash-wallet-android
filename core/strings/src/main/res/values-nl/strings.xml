@@ -40,6 +40,9 @@
     <string name="Button_Browser">Browser</string>
     <string name="Button_Delete">Delete</string>
     <string name="Button_LearnMore">Learn More</string>
+    <string name="hardware_wallet_offline_confirmation_title">Offline activeren</string>
+    <string name="hardware_wallet_offline_confirmation_message">De kaartverificatie kan de server niet bereiken. Controleer je internetverbinding of sta offline activeren toe. Bij offline activeren worden servercontroles overgeslagen, waardoor de veiligheid afneemt. Offline activering voortzetten?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Offline doorgaan</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">Sign</string>
     <string name="Button_TryAgain">Try Again</string>
@@ -1479,6 +1482,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="display_options_period_1m">1 Maand</string>
     <string name="display_options_period_1y">1 Jaar</string>
     <string name="display_options_period_all">Alle</string>
+    <string name="sum_rounding">Afronding van bedragen</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d optie</item>

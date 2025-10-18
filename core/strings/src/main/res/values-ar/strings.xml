@@ -40,6 +40,9 @@
     <string name="Button_Browser">المتصفح</string>
     <string name="Button_Delete">حذف</string>
     <string name="Button_LearnMore">اعرف المزيد</string>
+    <string name="hardware_wallet_offline_confirmation_title">التفعيل بدون إنترنت</string>
+    <string name="hardware_wallet_offline_confirmation_message">تعذر التحقق من أصالة البطاقة عبر الخادم. تحقق من اتصالك بالإنترنت أو اسمح بالتفعيل بدون إنترنت. في وضع عدم الاتصال لا يتم تنفيذ فحوصات الخادم، مما يقلل مستوى الأمان. هل ترغب في المتابعة بالتفعيل بدون إنترنت؟</string>
+    <string name="hardware_wallet_offline_confirmation_positive">متابعة بدون إنترنت</string>
     <string name="Button_Activate">تفعيل</string>
     <string name="Button_Sign">توقيع</string>
     <string name="Button_TryAgain">حاول مرة أخرى</string>
@@ -1478,6 +1481,7 @@
     <string name="display_options_period_1m">1 شهر</string>
     <string name="display_options_period_1y">1 سنة</string>
     <string name="display_options_period_all">الكل</string>
+    <string name="sum_rounding">تقريب المبالغ</string>
 
     <plurals name="options_count">
         <item quantity="zero">لا توجد خيارات</item>

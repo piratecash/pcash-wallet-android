@@ -22,7 +22,8 @@ class DisplayOptionsFragment : BaseComposeFragment() {
             uiState = uiState.value,
             onPricePeriodChanged = viewModel::onPricePeriodChanged,
             onPercentChangeToggled = viewModel::onPercentChangeToggled,
-            onPriceChangeToggled = viewModel::onPriceChangeToggled
+            onPriceChangeToggled = viewModel::onPriceChangeToggled,
+            onRoundingAmountMainPageToggled = viewModel::onRoundingAmountMainPageToggled
         )
     }
 

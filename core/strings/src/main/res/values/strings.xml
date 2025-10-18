@@ -34,6 +34,9 @@
     <string name="hardware_wallet">Hardware wallet</string>
     <string name="hardware_wallet_not_detected">Hardware wallet (no NFC detected)</string>
     <string name="hardware_wallet_not_detected_error">No NFC reader detected, enable to use hardware cards</string>
+    <string name="hardware_wallet_offline_confirmation_title">Offline activation</string>
+    <string name="hardware_wallet_offline_confirmation_message">Card authenticity check cannot reach the server. Check your internet connection or allow offline activation. Offline activation skips server verification and reduces security assurance. Continue with offline activation?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Continue offline</string>
     <string name="Button_Restore">Import</string>
     <string name="Button_Reset">Reset</string>
     <string name="Button_Understand">I Understand</string>
@@ -939,6 +942,7 @@ Proceed only if you\'re sure.</string>
     <string name="display_options_period_1m">1 Month</string>
     <string name="display_options_period_1y">1 Year</string>
     <string name="display_options_period_all">All</string>
+    <string name="sum_rounding">Sum Rounding</string>
 
     <!--Settings-->
     <string name="Settings_Title">Settings</string>

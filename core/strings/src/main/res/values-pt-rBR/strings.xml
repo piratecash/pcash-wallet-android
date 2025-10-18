@@ -40,6 +40,9 @@
     <string name="Button_Browser">Navegador</string>
     <string name="Button_Delete">Deletar</string>
     <string name="Button_LearnMore">Saiba Mais</string>
+    <string name="hardware_wallet_offline_confirmation_title">Ativação offline</string>
+    <string name="hardware_wallet_offline_confirmation_message">Não foi possível verificar a autenticidade do cartão no servidor. Verifique a conexão com a Internet ou permita a ativação offline. A ativação offline ignora as verificações no servidor e reduz a segurança. Deseja continuar a ativação offline?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Continuar offline</string>
     <string name="Button_Activate">Ativar</string>
     <string name="Button_Sign">Assinar</string>
     <string name="Button_TryAgain">Tentar novamente</string>
@@ -1473,6 +1476,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="display_options_period_1m">1 Mês</string>
     <string name="display_options_period_1y">1 Ano</string>
     <string name="display_options_period_all">Todos</string>
+    <string name="sum_rounding">Arredondamento de valores</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d opção</item>

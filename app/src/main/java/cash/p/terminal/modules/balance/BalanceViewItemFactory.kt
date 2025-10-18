@@ -350,6 +350,7 @@ class BalanceViewItemFactory {
     fun viewItem2(
         item: BalanceItem,
         currency: Currency,
+        roundingAmount: Boolean,
         hideBalance: Boolean,
         watchAccount: Boolean,
         isSwipeToDeleteEnabled: Boolean,
@@ -367,7 +368,7 @@ class BalanceViewItemFactory {
         val (primaryValue, secondaryValue) = BalanceViewHelper.getPrimaryAndSecondaryValues(
             balance = item.balanceData.total,
             visible = balanceTotalVisibility,
-            fullFormat = false,
+            fullFormat = !roundingAmount,
             coinDecimals = wallet.decimal,
             dimmed = state !is AdapterState.Synced,
             coinPrice = latestRate,

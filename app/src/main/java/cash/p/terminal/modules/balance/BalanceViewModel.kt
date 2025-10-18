@@ -238,6 +238,7 @@ class BalanceViewModel(
                     balanceViewItemFactory.viewItem2(
                         item = balanceItem,
                         currency = service.baseCurrency,
+                        roundingAmount = localStorage.isRoundingAmountMainPage,
                         hideBalance = balanceHidden && itemsBalanceHidden[balanceItem.wallet] == true,
                         watchAccount = service.isWatchAccount,
                         isSwipeToDeleteEnabled = !isSingleWalletAccount(),

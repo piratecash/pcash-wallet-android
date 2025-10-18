@@ -99,6 +99,7 @@ interface ILocalStorage {
 
     var priceChangeInterval: PriceChangeInterval
     val priceChangeIntervalFlow: StateFlow<PriceChangeInterval>
+    var isRoundingAmountMainPage: Boolean
 
     // Display Options
     var displayDiffPricePeriod: DisplayPricePeriod

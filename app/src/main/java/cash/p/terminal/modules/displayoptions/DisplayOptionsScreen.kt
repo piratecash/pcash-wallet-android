@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
@@ -36,7 +37,8 @@ internal fun DisplayOptionsScreen(
     uiState: DisplayOptionsUiState,
     onPricePeriodChanged: (DisplayPricePeriod) -> Unit,
     onPercentChangeToggled: (Boolean) -> Unit,
-    onPriceChangeToggled: (Boolean) -> Unit
+    onPriceChangeToggled: (Boolean) -> Unit,
+    onRoundingAmountMainPageToggled: (Boolean) -> Unit,
 ) {
     var showPeriodSelector by remember { mutableStateOf(false) }
 
@@ -101,6 +103,18 @@ internal fun DisplayOptionsScreen(
                         }
                     )
                 )
+                CellUniversalLawrenceSection(
+                    listOf(
+                        {
+                            SwitchWithText(
+                                text = stringResource(R.string.sum_rounding),
+                                checkEnabled = uiState.isRoundingAmountMainPage,
+                                onCheckedChange = onRoundingAmountMainPageToggled
+                            )
+                        }
+                    ),
+                    Modifier.padding(top = 32.dp)
+                )
             }
         }
     }
@@ -127,12 +141,14 @@ private fun DisplayOptionsScreenPreview() {
             navController = rememberNavController(),
             uiState = DisplayOptionsUiState(
                 isCoinManagerEnabled = true,
+                isRoundingAmountMainPage = true,
                 pricePeriod = DisplayPricePeriod.ONE_DAY,
                 displayDiffOptionType = DisplayDiffOptionType.BOTH
             ),
             onPricePeriodChanged = {},
             onPercentChangeToggled = {},
-            onPriceChangeToggled = {}
+            onPriceChangeToggled = {},
+            onRoundingAmountMainPageToggled = {}
         )
     }
 }

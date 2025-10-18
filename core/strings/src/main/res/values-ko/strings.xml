@@ -40,6 +40,9 @@
     <string name="Button_Browser">자동</string>
     <string name="Button_Delete">삭제</string>
     <string name="Button_LearnMore">자세히 보기</string>
+    <string name="hardware_wallet_offline_confirmation_title">오프라인 활성화</string>
+    <string name="hardware_wallet_offline_confirmation_message">서버에서 카드의 진위를 확인할 수 없습니다. 인터넷 연결을 확인하거나 오프라인 활성화를 허용해 주세요. 오프라인 활성화 시 서버 검증이 생략되어 보안 보장이 낮아집니다. 오프라인으로 계속 진행하시겠습니까?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">오프라인으로 계속</string>
     <string name="Button_Activate">활성화</string>
     <string name="Button_Sign">가입</string>
     <string name="Button_TryAgain">다시 시도하십시오.</string>
@@ -1474,6 +1477,7 @@
     <string name="display_options_period_1m">1 개월</string>
     <string name="display_options_period_1y">1 년</string>
     <string name="display_options_period_all">모든</string>
+    <string name="sum_rounding">금액 반올림</string>
 
     <plurals name="options_count">
         <item quantity="other">%1$d 옵션</item>

@@ -25,6 +25,9 @@
     <string name="Button_Disconnect">Déconnecter</string>
     <string name="Button_Create">Créer</string>
     <string name="Button_Advanced">Avancé</string>
+    <string name="hardware_wallet_offline_confirmation_title">Activation hors ligne</string>
+    <string name="hardware_wallet_offline_confirmation_message">La vérification de l’authenticité de la carte ne peut pas accéder au serveur. Vérifiez votre connexion Internet ou autorisez l’activation hors ligne. L’activation hors ligne contourne les vérifications serveur et réduit le niveau de sécurité. Poursuivre l’activation hors ligne ?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Continuer hors ligne</string>
     <string name="Button_Restore">Restaurer</string>
     <string name="Button_Reset">Réinitialiser</string>
     <string name="Button_Understand">J’ai Compris</string>
@@ -1471,6 +1474,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="display_options_period_1m">1 Mois</string>
     <string name="display_options_period_1y">1 An</string>
     <string name="display_options_period_all">Tous</string>
+    <string name="sum_rounding">Arrondi des montants</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d option</item>

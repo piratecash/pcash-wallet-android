@@ -28,6 +28,9 @@
     <string name="hardware_wallet">Апаратний гаманець</string>
     <string name="hardware_wallet_not_detected">Апаратний гаманець (NFC не виявлено)</string>
     <string name="hardware_wallet_not_detected_error">NFC-зчитувач не виявлено, увімкніть для використання апаратного гаманця</string>
+    <string name="hardware_wallet_offline_confirmation_title">Офлайн-активація</string>
+    <string name="hardware_wallet_offline_confirmation_message">Перевірити автентичність карти на сервері неможливо. Перевірте підключення до інтернету або дозволите офлайн-активацію. Під час офлайн-активації серверні перевірки не виконуються, тому рівень безпеки знижується. Продовжити офлайн-активацію?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Продовжити офлайн</string>
     <string name="Button_Restore">Імпорт</string>
     <string name="Button_Reset">Скинути</string>
     <string name="Button_Understand">Я розумію</string>
@@ -1665,4 +1668,5 @@
     <string name="display_options_period_1w">1 тиждень</string>
     <string name="display_options_period_1m">1 місяць</string>
     <string name="display_options_period_1y">1 рік</string>
+    <string name="sum_rounding">Округлення сум</string>
 </resources>

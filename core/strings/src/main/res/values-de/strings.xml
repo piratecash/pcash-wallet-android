@@ -40,6 +40,9 @@
     <string name="Button_Browser">Browser</string>
     <string name="Button_Delete">Löschen</string>
     <string name="Button_LearnMore">Mehr erfahren</string>
+    <string name="hardware_wallet_offline_confirmation_title">Offline-Aktivierung</string>
+    <string name="hardware_wallet_offline_confirmation_message">Die Kartenprüfung kann den Server nicht erreichen. Prüfe deine Internetverbindung oder erlaube eine Offline-Aktivierung. Bei der Offline-Aktivierung entfallen Serverprüfungen, wodurch die Sicherheit sinkt. Offline-Aktivierung fortsetzen?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Offline fortfahren</string>
     <string name="Button_Activate">Aktivieren</string>
     <string name="Button_Sign">Signieren</string>
     <string name="Button_TryAgain">Bitte versuche es noch einmal</string>
@@ -1466,6 +1469,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="display_options_period_1m">1 Monat</string>
     <string name="display_options_period_1y">1 Jahr</string>
     <string name="display_options_period_all">Alle</string>
+    <string name="sum_rounding">Summenrundung</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d Option</item>

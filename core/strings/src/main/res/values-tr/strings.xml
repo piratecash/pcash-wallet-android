@@ -40,6 +40,9 @@
     <string name="Button_Browser">Tarayıcı</string>
     <string name="Button_Delete">Sil</string>
     <string name="Button_LearnMore">Daha fazla bilgi edin</string>
+    <string name="hardware_wallet_offline_confirmation_title">Çevrimdışı etkinleştirme</string>
+    <string name="hardware_wallet_offline_confirmation_message">Kart doğrulaması sunucuya ulaşılamadığı için yapılamıyor. İnternet bağlantınızı kontrol edin veya çevrimdışı etkinleştirmeye izin verin. Çevrimdışı etkinleştirmede sunucu kontrolleri atlanır ve güvenlik seviyesi düşer. Çevrimdışı etkinleştirmeye devam edilsin mi?</string>
+    <string name="hardware_wallet_offline_confirmation_positive">Çevrimdışı devam et</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">kaydol</string>
     <string name="Button_TryAgain">Tekrar deneyin</string>
@@ -1475,6 +1478,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="display_options_period_1m">1 Ay</string>
     <string name="display_options_period_1y">1 Yıl</string>
     <string name="display_options_period_all">Tümü</string>
+    <string name="sum_rounding">Tutar yuvarlama</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d seçenek</item>

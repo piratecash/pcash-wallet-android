@@ -16,6 +16,7 @@ internal class DisplayOptionsViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DisplayOptionsUiState(
+        isRoundingAmountMainPage = localStorage.isRoundingAmountMainPage,
         isCoinManagerEnabled = true
     ))
     val uiState: StateFlow<DisplayOptionsUiState> = _uiState.asStateFlow()
@@ -31,6 +32,7 @@ internal class DisplayOptionsViewModel(
 
             _uiState.value = DisplayOptionsUiState(
                 isCoinManagerEnabled = accountManager.activeAccount?.type !is AccountType.MnemonicMonero,
+                isRoundingAmountMainPage = localStorage.isRoundingAmountMainPage,
                 pricePeriod = pricePeriod,
                 displayDiffOptionType = displayDiffOptionType,
             )
@@ -60,6 +62,11 @@ internal class DisplayOptionsViewModel(
         )
     }
 
+    fun onRoundingAmountMainPageToggled(enabled: Boolean) {
+        localStorage.isRoundingAmountMainPage = enabled
+        updateUiState { it.copy(isRoundingAmountMainPage = enabled) }
+    }
+
     private fun updateDisplayOption(
         showPriceChangeEnabled: Boolean,
         showPercentagePriceChangeEnabled: Boolean
@@ -78,6 +85,7 @@ internal class DisplayOptionsViewModel(
 
 internal data class DisplayOptionsUiState(
     val isCoinManagerEnabled : Boolean,
+    val isRoundingAmountMainPage: Boolean,
     val pricePeriod: DisplayPricePeriod = DisplayPricePeriod.ONE_DAY,
     val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
 )

@@ -607,6 +607,11 @@ class LocalStorageManager(
 
     override val priceChangeIntervalFlow = MutableStateFlow(priceChangeInterval)
 
+    override var isRoundingAmountMainPage by preferences.delegate(
+        key = "rounding_amount_main_page",
+        default = true
+    )
+
     override var shareCrashDataEnabled: Boolean
         get() = preferences.getBoolean(SHARE_CRASH_DATA_ENABLED, true)
         set(value) {
