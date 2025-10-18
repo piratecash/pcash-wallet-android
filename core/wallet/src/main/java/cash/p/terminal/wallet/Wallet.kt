@@ -1,10 +1,14 @@
 package cash.p.terminal.wallet
 
 import android.os.Parcelable
+import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.HardwarePublicKey
 import cash.p.terminal.wallet.entities.HardwarePublicKeyType
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.wallet.transaction.TransactionSource
+import io.horizontalsystems.core.entities.Blockchain
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.hdwalletkit.HDExtendedKey
 import kotlinx.parcelize.Parcelize
 import timber.log.Timber
@@ -53,6 +57,32 @@ data class Wallet internal constructor(
 class WalletFactory(
     private val hardwareWalletTokenPolicy: HardwareWalletTokenPolicy
 ) {
+
+    companion object {
+        /***
+         * Preview wallet for Compose previews
+         */
+        fun previewWallet(): Wallet {
+            val token = Token(
+                coin = Coin("Preview Coin", "PCN", "code"),
+                blockchain = Blockchain(
+                    type = BlockchainType.Ethereum,
+                    name = "Ethereum",
+                    eip3091url = null
+                ),
+                type = TokenType.Native,
+                decimals = 8
+            )
+            val account = Account(
+                id = "preview-account-id",
+                name = "Preview Account",
+                type = AccountType.EvmAddress("0x"),
+                origin = AccountOrigin.Created,
+                level = 0
+            )
+            return Wallet(token, account, null)
+        }
+    }
 
     fun create(token: Token, account: Account, hardwarePublicKey: HardwarePublicKey?): Wallet? {
         if (account.type is AccountType.HardwareCard &&

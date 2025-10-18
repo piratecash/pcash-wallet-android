@@ -109,6 +109,7 @@ class TokenSelectViewModel(
                     balanceViewItemFactory.viewItem2(
                         item = balanceItem,
                         currency = service.baseCurrency,
+                        roundingAmount = false,
                         hideBalance = balanceHiddenManager.balanceHidden &&
                                 itemsBalanceHidden.getOrDefault(balanceItem.wallet, true),
                         watchAccount = service.isWatchAccount,

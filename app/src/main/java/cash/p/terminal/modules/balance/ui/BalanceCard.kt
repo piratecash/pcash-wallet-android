@@ -30,13 +30,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
+import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
 import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
@@ -51,6 +54,9 @@ import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.oneLineHeight
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.WalletFactory
+import cash.p.terminal.wallet.balance.DeemedValue
+import java.math.BigDecimal
 
 @Composable
 fun BalanceCardSwipable(
@@ -170,7 +176,6 @@ fun BalanceCardInner(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
-                            modifier = Modifier.weight(weight = 1f),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             body_leah(
@@ -204,6 +209,9 @@ fun BalanceCardInner(
                             color = if (viewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
                             style = ComposeAppTheme.typography.headline2,
                             maxLines = 1,
+                            textAlign = TextAlign.End,
+                            overflow = TextOverflow.MiddleEllipsis,
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -385,3 +393,35 @@ fun onSyncErrorClicked(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun BalanceCardSwipablePreview() {
+    ComposeAppTheme {
+        BalanceCard(
+            onClick = {},
+            onClickSyncError = {},
+            viewItem = BalanceViewItem2(
+                wallet = WalletFactory.previewWallet(),
+                primaryValue = DeemedValue("1.2345678739847587349875938475345345435345345345", false, true),
+                secondaryValue = DeemedValue("0.123456 BTC", false, true),
+                exchangeValue = DeemedValue("1234.56 USD", false, true),
+                fullDiff = "+5.67%",
+                diff = BigDecimal("5.67"),
+                displayDiffOptionType = DisplayDiffOptionType.BOTH,
+                syncingProgress = SyncingProgress(
+                    progress = 10
+                ),
+                syncingTextValue = null,
+                syncedUntilTextValue = null,
+                failedIconVisible = false,
+                badge = "HOT",
+                stackingUnpaid = DeemedValue("12.34 BTC", false, false),
+                errorMessage = null,
+                isWatchAccount = false,
+                isSwipeToDeleteEnabled = false
+            )
+        )
+    }
+}
+
