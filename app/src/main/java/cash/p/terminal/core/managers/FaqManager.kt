@@ -42,7 +42,7 @@ object FaqManager {
     fun showFaqPage(navController: NavController, path: String, language: String = "en") {
         navController.slideFromBottom(
             R.id.markdownFragment,
-            MarkdownFragment.Input(getFaqUrl(path, language), true, true)
+            MarkdownFragment.Input(getFaqUrl(path, language), true)
         )
     }
 
