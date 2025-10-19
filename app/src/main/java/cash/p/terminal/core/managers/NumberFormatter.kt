@@ -44,7 +44,7 @@ class NumberFormatter(
             "< " + prefix + formatter.format(mostLowValue) + suffix
         } else {
             prefix + formatter.format(bigDecimalValue) + suffix
-        }
+        }.fixDecimalSeparator(languageManager.currentLocale)
     }
 
     override fun formatCoinNotRounded(value: BigDecimal, code: String?, coinDecimals: Int): String {
@@ -116,7 +116,7 @@ class NumberFormatter(
             formattedNumber = "$formattedNumber$suffix"
         }
 
-        return formattedNumber
+        return formattedNumber.fixDecimalSeparator(languageManager.currentLocale)
     }
 
     private fun getFormatter(
@@ -160,6 +160,17 @@ class NumberFormatter(
             1 -> "+"
             -1 -> "-"
             else -> ""
+        }
+    }
+
+    /***
+     * 12 310,123 -> 12 310.123 for "uk" and "ru" locales
+     */
+    private fun String.fixDecimalSeparator(locale: Locale): String {
+        return if(locale.language == "uk" || locale.language == "ru") {
+            this.replace(',', '.')
+        } else {
+            this
         }
     }
 }
