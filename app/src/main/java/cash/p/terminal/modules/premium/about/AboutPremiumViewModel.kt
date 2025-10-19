@@ -7,8 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.featureStacking.ui.staking.StackingType
-import cash.p.terminal.modules.markdown.MarkdownBlock
-import cash.p.terminal.modules.markdown.MarkdownVisitorBlock
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
 import cash.p.terminal.network.pirate.domain.enity.PremiumAccountEligibility
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
@@ -21,6 +19,9 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.eligibleForPremium
 import cash.p.terminal.wallet.premiumEligibility
+import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.markdown.node.AstNode
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import kotlinx.coroutines.async
@@ -28,7 +29,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import org.commonmark.parser.Parser
 
 class AboutPremiumViewModel(
     private val getLocalizedAssetUseCase: GetLocalizedAssetUseCase,
@@ -147,7 +147,7 @@ class AboutPremiumViewModel(
                     .replace("ROI_COSA", roiCosaValue)
                     .run {
                         if (isTrialPremium) {
-                            replace("WALLETNAME",  accountManager.activeAccount?.name.orEmpty())
+                            replace("WALLETNAME", accountManager.activeAccount?.name.orEmpty())
                         } else {
                             this
                         }
@@ -189,15 +189,9 @@ class AboutPremiumViewModel(
         return (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft
     }
 
-    private fun getMarkdownBlocks(content: String): List<MarkdownBlock> {
-        val parser = Parser.builder().build()
-        val document = parser.parse(content)
-
-        val markdownVisitor = MarkdownVisitorBlock()
-
-        document.accept(markdownVisitor)
-
-        return markdownVisitor.blocks
+    private fun getMarkdownBlocks(content: String): AstNode? {
+        val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
+        return parser.parse(content)
     }
 
     private suspend fun calculateRoi(coinType: String, amount: Int): String? {
@@ -238,7 +232,7 @@ class AboutPremiumViewModel(
 
 data class AboutPremiumUiState(
     val viewState: ViewState = ViewState.Loading,
-    val markdownBlocks: List<MarkdownBlock> = emptyList(),
+    val markdownBlocks: AstNode? = null,
     val hasPremium: Boolean = false,
     val demoDaysLeft: Int? = null,
     val hasEligibleWallets: Boolean = false,

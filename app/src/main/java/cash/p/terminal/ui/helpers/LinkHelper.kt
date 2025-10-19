@@ -11,6 +11,12 @@ import java.net.MalformedURLException
 import java.net.URL
 
 object LinkHelper {
+
+    fun isMarkdownLink(link: String): Boolean {
+        val url = getValidUrl(link) ?: return false
+        return url.endsWith(".md", ignoreCase = true) || url.endsWith(".markdown", ignoreCase = true)
+    }
+
     fun openLinkInAppBrowser(context: Context, link: String) {
         val urlString = getValidUrl(link) ?: return
 

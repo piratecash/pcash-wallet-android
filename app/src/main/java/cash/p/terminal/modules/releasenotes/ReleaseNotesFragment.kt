@@ -108,6 +108,7 @@ fun ReleaseNotesScreen(
                 modifier = Modifier.weight(1f),
                 viewState = uiState.viewState,
                 markdownBlocks = uiState.markdownBlocks,
+                addFooter = true,
                 onRetryClick = onRetryClick,
                 onUrlClick = onUrlClick
             )
@@ -198,7 +199,7 @@ fun ReleaseNotesScreenPreview() {
             closeablePopup = true,
             uiState = ReleaseNotesUiState(
                 viewState = ViewState.Success,
-                markdownBlocks = emptyList(),
+                markdownBlocks = null,
                 twitterUrl = "https://twitter.com/example",
                 telegramUrl = "https://t.me/example",
                 redditUrl = "https://reddit.com/r/example",

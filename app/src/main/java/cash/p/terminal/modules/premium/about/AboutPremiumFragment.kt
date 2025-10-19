@@ -4,10 +4,8 @@ import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
-import cash.p.terminal.R
-import cash.p.terminal.modules.markdown.MarkdownFragment
+import cash.p.terminal.modules.markdown.openMarkdownOrWeblink
 import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import kotlinx.parcelize.Parcelize
@@ -32,9 +30,7 @@ class AboutPremiumFragment : BaseComposeFragment() {
             onRetryClick = viewModel::retry,
             onCloseClick = navController::popBackStack,
             onUrlClick = { url ->
-                navController.slideFromRight(
-                    R.id.markdownFragment, MarkdownFragment.Input(url)
-                )
+                navController.openMarkdownOrWeblink(url)
             },
             onTryForFreeClick = viewModel::activateDemoPremium
         )

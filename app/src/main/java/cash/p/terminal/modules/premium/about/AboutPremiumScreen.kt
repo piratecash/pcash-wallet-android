@@ -137,6 +137,8 @@ fun AboutPremiumScreen(
                     modifier = Modifier.wrapContentHeight(),
                     viewState = uiState.viewState,
                     markdownBlocks = uiState.markdownBlocks,
+                    scrollableContent = false,
+                    addFooter = true,
                     onRetryClick = onRetryClick,
                     onUrlClick = onUrlClick
                 )

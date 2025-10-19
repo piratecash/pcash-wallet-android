@@ -8,13 +8,14 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui.helpers.LinkHelper
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.MenuItem
+import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.parcelize.Parcelize
 
@@ -25,14 +26,11 @@ class MarkdownFragment : BaseComposeFragment() {
         val input = navController.getInput<Input>()
 
         MarkdownScreen(
-            handleRelativeUrl = input?.handleRelativeUrl ?: false,
             showAsPopup = input?.showAsPopup ?: false,
             markdownUrl = input?.markdownUrl ?: "",
             onCloseClick = { navController.popBackStack() },
             onUrlClick = { url ->
-                navController.slideFromRight(
-                    R.id.markdownFragment, MarkdownFragment.Input(url)
-                )
+                navController.openMarkdownOrWeblink(url)
             }
         )
     }
@@ -40,14 +38,22 @@ class MarkdownFragment : BaseComposeFragment() {
     @Parcelize
     data class Input(
         val markdownUrl: String,
-        val handleRelativeUrl: Boolean = false,
         val showAsPopup: Boolean = false,
     ) : Parcelable
 }
 
+fun NavController.openMarkdownOrWeblink(url: String) {
+    if (LinkHelper.isMarkdownLink(url)) {
+        slideFromRight(
+            R.id.markdownFragment, MarkdownFragment.Input(url)
+        )
+    } else {
+        LinkHelper.openLinkInAppBrowser(this.context, url)
+    }
+}
+
 @Composable
 private fun MarkdownScreen(
-    handleRelativeUrl: Boolean,
     showAsPopup: Boolean,
     markdownUrl: String,
     onCloseClick: () -> Unit,
@@ -77,7 +83,7 @@ private fun MarkdownScreen(
             modifier = Modifier.padding(it),
             viewState = viewModel.viewState,
             markdownBlocks = viewModel.markdownBlocks,
-            handleRelativeUrl = handleRelativeUrl,
+            addFooter = true,
             onRetryClick = { viewModel.retry() },
             onUrlClick = onUrlClick
         )

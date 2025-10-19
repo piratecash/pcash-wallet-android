@@ -5,15 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.modules.markdown.MarkdownBlock
-import cash.p.terminal.modules.markdown.MarkdownVisitorBlock
 import cash.p.terminal.ui_compose.entities.ViewState
+import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.markdown.node.AstNode
 import kotlinx.coroutines.launch
-import org.commonmark.parser.Parser
 
 class MarkdownLocalViewModel : ViewModel() {
 
-    var markdownBlocks by mutableStateOf<List<MarkdownBlock>>(listOf())
+    var markdownBlocks by mutableStateOf<AstNode?>(null)
         private set
 
     var viewState by mutableStateOf<ViewState>(ViewState.Loading)
@@ -30,15 +30,9 @@ class MarkdownLocalViewModel : ViewModel() {
         }
     }
 
-    private fun getMarkdownBlocks(content: String): List<MarkdownBlock> {
-        val parser = Parser.builder().build()
-        val document = parser.parse(content)
-
-        val markdownVisitor = MarkdownVisitorBlock()
-
-        document.accept(markdownVisitor)
-
-        return markdownVisitor.blocks + MarkdownBlock.Footer()
+    private fun getMarkdownBlocks(content: String): AstNode {
+        val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
+        return parser.parse(content)
     }
 
 }

@@ -12,12 +12,13 @@ import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.ui_compose.entities.ViewState
-import cash.p.terminal.modules.markdown.MarkdownBlock
-import cash.p.terminal.modules.markdown.MarkdownVisitorBlock
+import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.halilibo.richtext.markdown.node.AstNode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.commonmark.parser.Parser
 
 class ReleaseNotesViewModel(
     private val getLocalizedAssetUseCase: GetLocalizedAssetUseCase,
@@ -59,7 +60,7 @@ class ReleaseNotesViewModel(
     }
 
     private fun loadContent() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val content = getLocalizedAssetUseCase(GetLocalizedAssetUseCase.CHANGELOG_PREFIX)
                 val markdownBlocks = getMarkdownBlocks(content)
@@ -73,15 +74,9 @@ class ReleaseNotesViewModel(
         }
     }
 
-    private fun getMarkdownBlocks(content: String): List<MarkdownBlock> {
-        val parser = Parser.builder().build()
-        val document = parser.parse(content)
-
-        val markdownVisitor = MarkdownVisitorBlock()
-
-        document.accept(markdownVisitor)
-
-        return markdownVisitor.blocks + MarkdownBlock.Footer()
+    private fun getMarkdownBlocks(content: String): AstNode {
+        val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
+        return parser.parse(content)
     }
 
     fun setShowChangeLogAfterUpdate() {
@@ -92,7 +87,7 @@ class ReleaseNotesViewModel(
 
 data class ReleaseNotesUiState(
     val viewState: ViewState = ViewState.Loading,
-    val markdownBlocks: List<MarkdownBlock> = emptyList(),
+    val markdownBlocks: AstNode? = null,
     val twitterUrl: String,
     val telegramUrl: String,
     val redditUrl: String,

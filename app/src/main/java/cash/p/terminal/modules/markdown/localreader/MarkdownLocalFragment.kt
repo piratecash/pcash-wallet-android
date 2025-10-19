@@ -10,8 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.markdown.MarkdownContent
-import cash.p.terminal.modules.markdown.MarkdownFragment
-import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.modules.markdown.openMarkdownOrWeblink
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -38,9 +37,7 @@ class MarkdownLocalFragment : BaseComposeFragment() {
             viewModel = viewModel,
             onCloseClick = navController::popBackStack,
             onUrlClick = { url ->
-                navController.slideFromRight(
-                    R.id.markdownFragment, MarkdownFragment.Input(url)
-                )
+                navController.openMarkdownOrWeblink(url)
             }
         )
     }
@@ -82,7 +79,7 @@ private fun MarkdownLocalScreen(
             modifier = Modifier.padding(it),
             viewState = viewModel.viewState,
             markdownBlocks = viewModel.markdownBlocks,
-            handleRelativeUrl = true,
+            addFooter = true,
             onRetryClick = {},
             onUrlClick = onUrlClick
         )

@@ -273,16 +273,20 @@ class MoneroKitWrapper(
                 moneroWalletService.start(walletFileName, walletPassword)
             }
         } catch (e: WalletCorruptedException) {
-            if (fixIfCorruptedFile) {
-                Timber.e(e, "WalletCorruptedException, trying to fix wallet")
-                restoreSettingsManager.settings(
-                    account,
-                    BlockchainType.Monero
-                ).birthdayHeight?.let {
-                    resetWalletAndRestart(it)
+            try {
+                if (fixIfCorruptedFile) {
+                    Timber.e(e, "WalletCorruptedException, trying to fix wallet")
+                    restoreSettingsManager.settings(
+                        account,
+                        BlockchainType.Monero
+                    ).birthdayHeight?.let {
+                        resetWalletAndRestart(it)
+                    }
+                } else {
+                    Timber.e(e, "WalletCorruptedException, fix disabled")
                 }
-            } else {
-                Timber.e(e, "WalletCorruptedException, fix disabled")
+            } catch (ex: Exception) {
+                Timber.e(ex, "Failed to fix corrupted wallet")
             }
         }
     }
