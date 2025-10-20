@@ -6,7 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal class EvmContractAddressValidator(
-    private val ethereumRpcApi: EthereumRpcApi
+    private val ethereumRpcApi: EthereumRpcApi,
+    private val excludedContractValidator: ExcludedContractValidator
 ) : ContractAddressValidator {
 
     override suspend fun isContract(address: String, blockchainType: BlockchainType): Boolean? =
@@ -14,7 +15,9 @@ internal class EvmContractAddressValidator(
             return@withContext runCatching {
                 val rpcUrl = getRpcUrlForBlockchain(blockchainType)
                 val code = ethereumRpcApi.getCode(rpcUrl, address)
-
+                if (excludedContractValidator.isKnownNotContract(code, blockchainType)) {
+                    return@runCatching false
+                }
                 code != null && code != "0x"
             }.getOrElse { null }
         }
