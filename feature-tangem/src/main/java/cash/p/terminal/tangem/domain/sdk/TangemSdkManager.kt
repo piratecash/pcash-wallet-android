@@ -32,6 +32,7 @@ import com.tangem.common.usersCode.UserCodeRepository
 import com.tangem.crypto.hdWallet.DerivationPath
 import com.tangem.crypto.hdWallet.bip32.ExtendedPublicKey
 import com.tangem.operations.ScanTask
+import com.tangem.operations.attestation.AttestationTask
 import com.tangem.operations.derivation.DerivationTaskResponse
 import com.tangem.operations.derivation.DeriveMultipleWalletPublicKeysTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
@@ -83,6 +84,12 @@ class TangemSdkManager(
 
     val userCodeRequestPolicy: UserCodeRequestPolicy
         get() = tangemSdk.config.userCodeRequestPolicy
+
+    fun getAttestationMode(): AttestationTask.Mode = cardSdkConfigRepository.getAttestationMode()
+
+    fun setAttestationMode(mode: AttestationTask.Mode) {
+        cardSdkConfigRepository.setAttestationMode(mode)
+    }
 
     suspend fun checkNeedEnrollBiometrics(awaitInitialization: Boolean): Boolean {
         return try {

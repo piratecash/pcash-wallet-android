@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.premiumAction
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -28,6 +27,7 @@ import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendFragment.ProceedActionData
 import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.address.AddressCheckerControl
+import cash.p.terminal.modules.send.address.SmartContractCheckSection
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
@@ -152,17 +152,12 @@ fun SendZCashScreen(
                     onCheckedChange = addressCheckerControl::onCheckBaseAddressClick
                 )
             }
-            SectionUniversalLawrence(modifier = Modifier.padding(top = 8.dp)) {
-                SwitchWithText(
-                    text = stringResource(R.string.settings_smart_contract_check),
-                    checkEnabled = addressCheckerControl.uiState.addressCheckSmartContractEnabled,
-                    onCheckedChange = {
-                        navController.premiumAction {
-                            addressCheckerControl.onCheckSmartContractAddressClick(it)
-                        }
-                    }
-                )
-            }
+            SmartContractCheckSection(
+                token = wallet.token,
+                navController = navController,
+                addressCheckerControl = addressCheckerControl,
+                modifier = Modifier.padding(top = 8.dp)
+            )
 
             ButtonPrimaryYellow(
                 modifier = Modifier

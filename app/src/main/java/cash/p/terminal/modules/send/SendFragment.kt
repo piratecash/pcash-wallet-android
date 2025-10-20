@@ -23,6 +23,7 @@ import cash.p.terminal.modules.pin.ConfirmPinFragment
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.send.SendConfirmationFragment.Type
 import cash.p.terminal.modules.send.address.AddressCheckerControl
+import cash.p.terminal.modules.send.address.isSmartContractCheckSupported
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinNavHost
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinViewModel
@@ -293,8 +294,12 @@ class SendFragment : BaseComposeFragment() {
         data: ProceedActionData,
         keyboardController: SoftwareKeyboardController?
     ) {
+        val smartContractCheckEnabledForToken =
+            addressCheckerControl.uiState.addressCheckSmartContractEnabled &&
+                    isSmartContractCheckSupported(data.wallet.token)
+
         if (addressCheckerControl.uiState.addressCheckByBaseEnabled ||
-            addressCheckerControl.uiState.addressCheckSmartContractEnabled
+            smartContractCheckEnabledForToken
         ) {
             data.address?.let {
                 slideFromRight(

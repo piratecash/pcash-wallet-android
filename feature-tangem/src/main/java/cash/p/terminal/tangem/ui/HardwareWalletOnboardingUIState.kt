@@ -7,6 +7,7 @@ internal data class HardwareWalletOnboardingUIState(
     val backupCards: List<Card> = emptyList(),
     val primaryCardId: String? = null,
     val cardNumToBackup: Int = -1,
+    val showOfflineWarningDialog: Boolean = false,
     val success: Boolean = false,
 )
 

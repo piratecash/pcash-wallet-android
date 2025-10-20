@@ -4,6 +4,7 @@ import com.tangem.TangemSdk
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.CardIdDisplayFormat
 import com.tangem.common.core.UserCodeRequestPolicy
+import com.tangem.operations.attestation.AttestationTask
 
 class CardSdkConfigRepository(
     private val cardSdkProvider: CardSdkProvider
@@ -55,5 +56,11 @@ class CardSdkConfigRepository(
 
     fun setLinkedTerminal(isLinked: Boolean?) {
         sdk.config.linkedTerminal = isLinked
+    }
+
+    fun getAttestationMode(): AttestationTask.Mode = sdk.config.attestationMode
+
+    fun setAttestationMode(mode: AttestationTask.Mode) {
+        sdk.config.attestationMode = mode
     }
 }

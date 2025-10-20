@@ -26,7 +26,6 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.core.premiumAction
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -39,6 +38,7 @@ import cash.p.terminal.modules.memo.HSMemoInput
 import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendFragment.ProceedActionData
 import cash.p.terminal.modules.send.address.AddressCheckerControl
+import cash.p.terminal.modules.send.address.SmartContractCheckSection
 import cash.p.terminal.modules.send.bitcoin.advanced.BtcTransactionInputSortInfoScreen
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.advanced.SendBtcAdvancedSettingsScreen
@@ -283,17 +283,12 @@ private fun SendBitcoinScreen(
                         onCheckedChange = addressCheckerControl::onCheckBaseAddressClick
                     )
                 }
-                SectionUniversalLawrence(modifier = Modifier.padding(top = 8.dp)) {
-                    SwitchWithText(
-                        text = stringResource(R.string.settings_smart_contract_check),
-                        checkEnabled = addressCheckerControl.uiState.addressCheckSmartContractEnabled,
-                        onCheckedChange = {
-                            fragmentNavController.premiumAction {
-                                addressCheckerControl.onCheckSmartContractAddressClick(it)
-                            }
-                        }
-                    )
-                }
+                SmartContractCheckSection(
+                    token = wallet.token,
+                    navController = fragmentNavController,
+                    addressCheckerControl = addressCheckerControl,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
 
                 ButtonPrimaryYellow(
                     modifier = Modifier

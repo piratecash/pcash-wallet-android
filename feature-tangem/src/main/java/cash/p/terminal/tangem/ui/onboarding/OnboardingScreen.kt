@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,6 +24,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
+import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.tangem.R
 import cash.p.terminal.tangem.ui.HardwareWalletError
 import cash.p.terminal.tangem.ui.HardwareWalletOnboardingFragment
@@ -31,11 +35,11 @@ import cash.p.terminal.tangem.ui.accesscode.AddAccessCodeDialog
 import cash.p.terminal.tangem.ui.resetBackupDialog.ResetBackupDialog
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
-import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.navigation.slideFromBottomForResult
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.ui.dialogs.ConfirmationDialogBottomSheet
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun OnboardingScreen(
     viewModel: HardwareWalletOnboardingViewModel,
@@ -43,6 +47,8 @@ internal fun OnboardingScreen(
 ) {
     val uiState = viewModel.uiState.value
     val view = LocalView.current
+    val context = LocalContext.current
+
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
@@ -99,10 +105,24 @@ internal fun OnboardingScreen(
         }
 
         LaunchedEffect(uiState.success) {
-            if(uiState.success) {
+            if (uiState.success) {
                 navController.setNavigationResultX(HardwareWalletOnboardingFragment.Result(true))
                 navController.popBackStack()
             }
+        }
+
+        if (uiState.showOfflineWarningDialog) {
+            ConfirmationDialogBottomSheet(
+                icon = null,
+                title = context.getString(R.string.hardware_wallet_offline_confirmation_title),
+                warningTitle = null,
+                warningText = context.getString(R.string.hardware_wallet_offline_confirmation_message),
+                actionButtonTitle = context.getString(R.string.hardware_wallet_offline_confirmation_positive),
+                transparentButtonTitle = context.getString(R.string.Alert_Cancel),
+                onCloseClick = viewModel::onOfflineModeCancelled,
+                onActionButtonClick = viewModel::onOfflineModeConfirmed,
+                onTransparentButtonClick = viewModel::onOfflineModeCancelled
+            )
         }
 
         Column(

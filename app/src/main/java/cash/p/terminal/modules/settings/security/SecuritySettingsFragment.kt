@@ -47,7 +47,7 @@ import cash.p.terminal.modules.settings.security.ui.TransactionAutoHideBlock
 import cash.p.terminal.modules.settings.security.ui.TransferPasscodeBlock
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.HsSwitch
-import cash.p.terminal.ui.extensions.ConfirmationDialog
+import io.horizontalsystems.core.ui.dialogs.ConfirmationDialogFragment
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -192,7 +192,7 @@ class SecuritySettingsFragment : BaseComposeFragment() {
             getString(R.string.Button_Disable)
         }
 
-        ConfirmationDialog.show(
+        ConfirmationDialogFragment.show(
             icon = R.drawable.ic_tor_connection_24,
             title = getString(R.string.Tor_Alert_Title),
             warningTitle = warningTitle,
@@ -200,7 +200,7 @@ class SecuritySettingsFragment : BaseComposeFragment() {
             actionButtonTitle = actionButton,
             transparentButtonTitle = getString(R.string.Alert_Cancel),
             fragmentManager = childFragmentManager,
-            listener = object : ConfirmationDialog.Listener {
+            listener = object : ConfirmationDialogFragment.Listener {
                 override fun onActionButtonClick() {
                     torViewModel.setTorEnabled()
                 }
