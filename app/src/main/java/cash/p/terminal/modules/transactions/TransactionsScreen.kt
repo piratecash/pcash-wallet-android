@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -38,10 +39,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -54,6 +57,8 @@ import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.ListEmptyView
+import cash.p.terminal.ui_compose.ColorName
+import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
@@ -71,6 +76,8 @@ import cash.p.terminal.ui_compose.entities.SectionItemPosition
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.core.helpers.DateHelper
+import java.util.Date
 
 @Composable
 fun TransactionsScreen(
@@ -441,69 +448,76 @@ fun TransactionCell(
                     is TransactionViewItem.Icon.ImageResource -> {}
                 }
             }
-            Column(
+            Row(
                 modifier = Modifier
                     .padding(end = 16.dp)
-                    .alpha(if (item.spam) 0.5f else 1f)
+                    .alpha(if (item.spam) 0.5f else 1f),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                ) {
                     body_leah(
-                        modifier = Modifier.padding(end = 32.dp),
+                        modifier = Modifier.padding(end = 24.dp),
                         text = item.title,
                         maxLines = 1,
                     )
-                    Spacer(Modifier.weight(1f))
-                    item.primaryValue?.let { coloredValue ->
-                        Text(
-                            text = if (showAmount) coloredValue.value else "*****",
-                            style = ComposeAppTheme.typography.body,
-                            color = coloredValue.color.compose(),
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = onValueClick,
-                            )
-                        )
-                    }
-
-                    if (item.doubleSpend) {
-                        Image(
-                            modifier = Modifier.padding(start = 6.dp),
-                            painter = painterResource(R.drawable.ic_double_spend_20),
-                            contentDescription = null
-                        )
-                    }
-                    item.locked?.let { locked ->
-                        Image(
-                            modifier = Modifier.padding(start = 6.dp),
-                            painter = painterResource(if (locked) R.drawable.ic_lock_20 else R.drawable.ic_unlock_20),
-                            contentDescription = null
-                        )
-                    }
-                    if (item.sentToSelf) {
-                        Image(
-                            modifier = Modifier.padding(start = 6.dp),
-                            painter = painterResource(R.drawable.ic_arrow_return_20),
-                            contentDescription = null
-                        )
-                    }
-                }
-                Spacer(Modifier.height(1.dp))
-                Row {
                     subhead2_grey(
                         text = if (showAmount) item.subtitle else "*****",
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp),
                         maxLines = 2,
                     )
-                    item.secondaryValue?.let { coloredValue ->
+                }
+                Column(
+                    modifier = Modifier.wrapContentWidth(),
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        item.primaryValue?.let { coloredValue ->
+                            Text(
+                                text = if (showAmount) coloredValue.value else "*****",
+                                style = ComposeAppTheme.typography.body,
+                                color = coloredValue.color.compose(),
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                                modifier = Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = onValueClick,
+                                )
+                            )
+                        }
+
+                        if (item.doubleSpend) {
+                            Image(
+                                modifier = Modifier.padding(start = 6.dp),
+                                painter = painterResource(R.drawable.ic_double_spend_20),
+                                contentDescription = null
+                            )
+                        }
+                        item.locked?.let { locked ->
+                            Image(
+                                modifier = Modifier.padding(start = 6.dp),
+                                painter = painterResource(if (locked) R.drawable.ic_lock_20 else R.drawable.ic_unlock_20),
+                                contentDescription = null
+                            )
+                        }
+                        if (item.sentToSelf) {
+                            Image(
+                                modifier = Modifier.padding(start = 6.dp),
+                                painter = painterResource(R.drawable.ic_arrow_return_20),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    if (item.primaryValue != null || item.secondaryValue != null) {
                         Text(
-                            text = if (showAmount) coloredValue.value else "*****",
+                            text = if (showAmount) item.secondaryValue?.value.orEmpty() else "*****",
                             style = ComposeAppTheme.typography.subhead2,
-                            color = coloredValue.color.compose(),
+                            color = item.secondaryValue?.color?.compose() ?: Color.Unspecified,
                             maxLines = 1,
                             modifier = Modifier.clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -512,9 +526,45 @@ fun TransactionCell(
                             )
                         )
                     }
+                    Text(
+                        text = if (showAmount) DateHelper.getOnlyTime(item.date) else "*****",
+                        style = ComposeAppTheme.typography.subhead2,
+                        color = ComposeAppTheme.colors.grey50,
+                        maxLines = 1,
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = onValueClick,
+                        )
+                    )
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TransactionCellPreview() {
+    ComposeAppTheme {
+        TransactionCell(
+            item = TransactionViewItem(
+                uid = "uid",
+                progress = null,
+                title = "Received Bitcoin",
+                subtitle = "From Alice to My Bitcoin Wallet",
+                icon = TransactionViewItem.Icon.Failed,
+                doubleSpend = true,
+                locked = true,
+                sentToSelf = true,
+                primaryValue = ColoredValue("0.00123 BTC", ColorName.Leah),
+                secondaryValue = ColoredValue("$45.67", ColorName.Leah),
+                date = Date()
+            ),
+            position = SectionItemPosition.Single,
+            onValueClick = {},
+            onClick = {}
+        )
     }
 }
 

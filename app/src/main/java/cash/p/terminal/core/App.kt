@@ -393,7 +393,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
     private fun initCipherForMonero() {
         NetCipherHelper.createInstance(this@App)
-        val cipherTag = "NetCipherHelper"
+        val cipherTag = "MoneroNetCipher"
         NetCipherHelper.register(object : OnStatusChangedListener {
             override fun connected() {
                 Timber.tag(cipherTag).d("CONNECTED")

@@ -5,11 +5,15 @@ import androidx.annotation.StringRes
 object Translator {
 
     fun getString(@StringRes id: Int): String {
-        return getLocalAwareContext().getString(id)
+        return runCatching {
+            getLocalAwareContext().getString(id)
+        }.getOrElse { "Preview mode" }
     }
 
     fun getString(@StringRes id: Int, vararg params: Any): String {
-        return getLocalAwareContext().getString(id, *params)
+        return runCatching {
+            getLocalAwareContext().getString(id, *params)
+        }.getOrElse { "Preview mode" }
     }
 
     private fun getLocalAwareContext() =
