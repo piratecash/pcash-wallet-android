@@ -203,6 +203,16 @@ android {
         }
     }
 
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.all { output ->
+                def versionName = variant.versionName
+                def newApkName = "p.cash-${versionName}.apk"
+                output.outputFileName = newApkName
+            }
+        }
+    }
+
 }
 
 dependencies {
