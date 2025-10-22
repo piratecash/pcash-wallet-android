@@ -1284,6 +1284,16 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    <string name="premium_title">پریمیوم</string>
+    <string name="about_premium">درباره پریمیوم</string>
+    <string name="advanced_security">امنیت پیشرفته</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>کاربر می‌داند که این کیف پول در میان سایر کیف پول‌ها قابل مشاهده نخواهد بود.</item>
+        <item>کاربر می‌داند که اگر رمز PIN خود را فراموش کند، می‌تواند با استفاده از عبارت بازیابی (seed phrase) به کیف پول دسترسی پیدا کند.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">برای فعال‌سازی پریمیوم باید کیف پول خود را پشتیبان‌گیری کنید</string>

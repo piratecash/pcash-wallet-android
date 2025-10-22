@@ -1280,6 +1280,16 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    <string name="premium_title">Premium</string>
+    <string name="about_premium">Sobre o Premium</string>
+    <string name="advanced_security">Segurança avançada</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>O utilizador compreende que a carteira não será visível entre outras carteiras.</item>
+        <item>O utilizador compreende que, se esquecer o seu PIN, a carteira pode ser restaurada conhecendo a sua frase semente.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Para ativar Premium você precisa fazer backup da sua carteira</string>

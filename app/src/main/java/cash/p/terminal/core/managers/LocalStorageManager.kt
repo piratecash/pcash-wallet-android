@@ -671,6 +671,11 @@ class LocalStorageManager(
         default = false
     )
 
+    override var hiddenWalletTermsAccepted by preferences.delegate(
+        key = "hidden_wallet_terms_accepted",
+        default = emptySet<String>()
+    )
+
     // Display Options
     override var displayDiffPricePeriod by preferences.delegate(
         key = "display_options_price_period",

@@ -1272,6 +1272,16 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="SubscriptionInfo_PersonalSupport_Info">Póngase en contacto con nuestro equipo directamente a través de Telegram para obtener asistencia personal.</string>
     <string name="SubscriptionInfo_GetPremium">Hazte usuario Premium</string>
     <string name="SubscriptionInfo_HavePremium">Ya tengo Premium</string>
+    <string name="premium_title">Premium</string>
+    <string name="about_premium">Acerca de Premium</string>
+    <string name="advanced_security">Seguridad avanzada</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Crear billetera oculta</string>
+    <string name="AdvancedSecurity_Terms_Title">Términos</string>
+    <string name="AdvancedSecurity_Terms_Warning">La billetera global no verá esta billetera, y si olvida su PIN, puede restaurar el acceso a la billetera usando la frase semilla.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>El usuario entiende que la billetera no será visible entre otras billeteras.</item>
+        <item>El usuario entiende que si olvida su PIN, la billetera puede ser restaurada conociendo su frase semilla.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Para activar Premium necesitas hacer una copia de seguridad de tu billetera</string>

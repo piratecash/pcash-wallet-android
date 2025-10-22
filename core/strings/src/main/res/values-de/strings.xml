@@ -1271,6 +1271,16 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="SubscriptionInfo_PersonalSupport_Info">Kontaktieren Sie unser Team direkt über Telegram für persönliche Hilfe.</string>
     <string name="SubscriptionInfo_GetPremium">Premium erhalten</string>
     <string name="SubscriptionInfo_HavePremium">Ich habe bereits Premium</string>
+    <string name="premium_title">Premium</string>
+    <string name="about_premium">Über Premium</string>
+    <string name="advanced_security">Erweiterte Sicherheit</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Versteckte Wallet erstellen</string>
+    <string name="AdvancedSecurity_Terms_Title">Bedingungen</string>
+    <string name="AdvancedSecurity_Terms_Warning">Die globale Wallet wird diese Wallet nicht sehen, und wenn Sie Ihre PIN vergessen, können Sie den Zugriff auf die Wallet mit der Seed-Phrase wiederherstellen.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>Der Benutzer versteht, dass die Wallet nicht unter anderen Wallets sichtbar sein wird.</item>
+        <item>Der Benutzer versteht, dass die Wallet wiederhergestellt werden kann, wenn er seine Seed-Phrase kennt, falls er seine PIN vergisst.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Um Premium zu aktivieren, müssen Sie Ihr Wallet sichern</string>

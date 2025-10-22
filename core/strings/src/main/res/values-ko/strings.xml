@@ -1280,6 +1280,16 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    <string name="premium_title">프리미엄</string>
+    <string name="about_premium">프리미엄 소개</string>
+    <string name="advanced_security">고급 보안</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>사용자는 이 지갑이 다른 지갑들 사이에서 보이지 않을 것임을 이해합니다.</item>
+        <item>사용자는 PIN을 잊어버린 경우 시드 구문을 알고 있으면 지갑을 복구할 수 있음을 이해합니다.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">프리미엄을 활성화하려면 지갑을 백업해야 합니다</string>

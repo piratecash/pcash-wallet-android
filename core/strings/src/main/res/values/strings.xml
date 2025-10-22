@@ -43,6 +43,7 @@
     <string name="Button_Switch">Switch</string>
     <string name="Button_Remove">Remove</string>
     <string name="Button_Save">Save</string>
+    <string name="create_hidden_wallet">Create Hidden Wallet</string>
     <string name="Button_IAgree">I Agree</string>
     <string name="Button_Continue">Continue</string>
     <string name="Button_Send">Send</string>
@@ -1919,6 +1920,14 @@ Proceed only if you\'re sure.</string>
     <!--Premium Screens-->
     <string name="premium_title">Premium</string>
     <string name="about_premium">About Premium</string>
+    <string name="advanced_security">Advanced Security</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>The user understands that the wallet will not be visible among other wallets.</item>
+        <item>The user understands that if they forget their PIN, the wallet can be restored by knowing its seed phrase.</item>
+    </string-array>
     <string name="premium_settings">Premium settings</string>
     <string name="Premium_TryForFree">Try for FREE</string>
     <string name="Premium_UpgradeText">Upgrade your experience with Premium features!</string>

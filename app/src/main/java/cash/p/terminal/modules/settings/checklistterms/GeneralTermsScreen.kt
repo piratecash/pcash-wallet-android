@@ -2,20 +2,17 @@ package cash.p.terminal.modules.settings.checklistterms
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,32 +23,41 @@ import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
-import cash.p.terminal.ui_compose.components.HsCheckbox
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui_compose.components.RowUniversal
-import cash.p.terminal.ui_compose.components.subhead2_grey
-import cash.p.terminal.ui_compose.components.subhead2_leah
+import cash.p.terminal.ui_compose.components.TermsList
+import cash.p.terminal.ui_compose.entities.TermItem
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 
 @Composable
 internal fun GeneralTermsContent(
-    terms: List<String>,
+    termsStrings: List<String>,
     title: String,
     confirmButtonText: String,
     onClose: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    val checkedItems = remember { mutableStateMapOf<Int, Boolean>() }
-
-    LaunchedEffect(terms) {
-        terms.forEachIndexed { index, _ ->
-            checkedItems[index] = false
+    val checkedItems = remember(termsStrings) {
+        mutableStateMapOf<Int, Boolean>().apply {
+            termsStrings.forEachIndexed { index, _ ->
+                this[index] = false
+            }
         }
     }
 
-    val allItemsChecked = checkedItems.values.all { it }
+    val allItemsChecked by remember {
+        derivedStateOf { checkedItems.values.all { it } }
+    }
+    val terms by remember {
+        derivedStateOf {
+            termsStrings.mapIndexed { index, item ->
+                val (title, description) = item.split("\n", limit = 2).let { parts ->
+                    parts[0] to parts.getOrNull(1)
+                }
+                TermItem(index, title, description, checkedItems[index] == true)
+            }
+        }
+    }
 
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -69,51 +75,15 @@ internal fun GeneralTermsContent(
         }
     ) { paddingValues ->
         Column(Modifier.padding(paddingValues)) {
-            Column(
+            TermsList(
+                terms = terms,
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
-
-                CellUniversalLawrenceSection(
-                    items = terms.mapIndexed { index, description ->
-                        TermsItem(index, description, checkedItems[index] ?: false)
-                    },
-                    showFrame = true
-                ) { item ->
-                    RowUniversal(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalAlignment =  Alignment.Top,
-                        onClick = { checkedItems[item.index] = !checkedItems[item.index]!! }
-                    ) {
-                        HsCheckbox(
-                            checked = item.checked,
-                            enabled = true,
-                            modifier = Modifier.padding(top = 8.dp),
-                            onCheckedChange = { checked ->
-                                checkedItems[item.index] = checked
-                            },
-                        )
-                        Spacer(Modifier.width(16.dp))
-                        val parts = item.description.split("\n", limit = 2)
-                        Column {
-                            subhead2_leah(
-                                text = parts[0]
-                            )
-                            if(parts.size > 1) {
-                                subhead2_grey(
-                                    text = parts[1],
-                                     modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-                    }
+                    .verticalScroll(rememberScrollState()),
+                onItemClicked = { id ->
+                    checkedItems[id] = !(checkedItems[id] ?: false)
                 }
-
-                Spacer(Modifier.height(60.dp))
-            }
-
+            )
             ButtonsGroupWithShade {
                 ButtonPrimaryYellow(
                     modifier = Modifier
@@ -127,12 +97,6 @@ internal fun GeneralTermsContent(
         }
     }
 }
-
-private data class TermsItem(
-    val index: Int,
-    val description: String,
-    val checked: Boolean
-)
 
 @Composable
 internal fun GeneralTermsDialog(
@@ -152,7 +116,7 @@ internal fun GeneralTermsDialog(
                 .background(ComposeAppTheme.colors.tyler)
         ) {
             GeneralTermsContent(
-                terms = terms,
+                termsStrings = terms,
                 title = title,
                 confirmButtonText = confirmButtonText,
                 onClose = onClose,

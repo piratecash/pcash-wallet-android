@@ -1278,7 +1278,17 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="SubscriptionInfo_PersonalSupport_Info">Communiquez avec notre équipe directement sur Telegram pour obtenir une assistance personnelle.</string>
     <string name="SubscriptionInfo_GetPremium">Devenez Premium</string>
     <string name="SubscriptionInfo_HavePremium">J\'ai déjà Premium</string>
-    
+    <string name="premium_title">Premium</string>
+    <string name="about_premium">À propos de Premium</string>
+    <string name="advanced_security">Sécurité avancée</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Créer un portefeuille caché</string>
+    <string name="AdvancedSecurity_Terms_Title">Conditions</string>
+    <string name="AdvancedSecurity_Terms_Warning">Le portefeuille global ne verra pas ce portefeuille, et si vous oubliez votre code PIN, vous pourrez restaurer l\'accès au portefeuille en utilisant la phrase de récupération.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>L\'utilisateur comprend que le portefeuille ne sera pas visible parmi les autres portefeuilles.</item>
+        <item>L\'utilisateur comprend que s\'il oublie son code PIN, le portefeuille peut être restauré en connaissant sa phrase de récupération.</item>
+    </string-array>
+
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Pour activer Premium, vous devez sauvegarder votre portefeuille</string>
     <string name="premium_demo_activation_error_watch_account">Un compte de surveillance ne peut pas être utilisé pour activer Premium</string>

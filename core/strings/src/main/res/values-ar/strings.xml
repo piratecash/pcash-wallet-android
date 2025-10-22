@@ -1285,6 +1285,16 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">Contact our team directly over Telegram for personal assistance.</string>
     <string name="SubscriptionInfo_GetPremium">Get Premium</string>
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
+    <string name="premium_title">بريميوم</string>
+    <string name="about_premium">حول بريميوم</string>
+    <string name="advanced_security">أمان متقدم</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>يفهم المستخدم أن المحفظة لن تكون مرئية بين المحافظ الأخرى.</item>
+        <item>يفهم المستخدم أنه إذا نسي رمز PIN الخاص به، يمكن استعادة المحفظة بمعرفة عبارة الاسترداد الخاصة به.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">لتفعيل المميزات المدفوعة تحتاج إلى نسخ احتياطي من محفظتك</string>

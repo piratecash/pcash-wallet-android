@@ -1271,6 +1271,16 @@
     <string name="SubscriptionInfo_PersonalSupport_Info">通过 Telegram 直接联系我们的团队以获取个人帮助。</string>
     <string name="SubscriptionInfo_GetPremium">成为付费会员</string>
     <string name="SubscriptionInfo_HavePremium">我已经有高级版</string>
+    <string name="premium_title">高级版</string>
+    <string name="about_premium">关于高级版</string>
+    <string name="advanced_security">高级安全</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">创建隐藏钱包</string>
+    <string name="AdvancedSecurity_Terms_Title">条款</string>
+    <string name="AdvancedSecurity_Terms_Warning">全局钱包将看不到此钱包，如果您忘记了PIN码，您可以使用助记词恢复对钱包的访问。</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>用户理解该钱包在其他钱包中将不可见。</item>
+        <item>用户理解如果忘记PIN码，可以通过知道其助记词来恢复钱包。</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">要激活高级版，您需要备份钱包</string>

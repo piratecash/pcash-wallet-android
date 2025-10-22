@@ -12,6 +12,7 @@ import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IKeyStoreManager
@@ -20,18 +21,21 @@ import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.security.KeyStoreValidationError
 import io.horizontalsystems.tonkit.models.SignTransaction
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 class MainActivityViewModel(
     private val userManager: DefaultUserManager,
     private val accountManager: IAccountManager,
     private val systemInfoManager: ISystemInfoManager,
-    private val localStorage: ILocalStorage
+    private val localStorage: ILocalStorage,
+    private val checkPremiumUseCase: CheckPremiumUseCase
 ) : ViewModel() {
 
     private val pinComponent: IPinComponent = App.pinComponent
@@ -58,6 +62,7 @@ class MainActivityViewModel(
         viewModelScope.launch {
             userManager.currentUserLevelFlow.collect {
                 navigateToMainLiveData.postValue(true)
+                updatePremiumStatus()
             }
         }
         viewModelScope.launch {
@@ -74,6 +79,12 @@ class MainActivityViewModel(
             tonConnectManager.dappRequestFlow.collect {
                 tcDappRequest.postValue(it)
             }
+        }
+    }
+
+    private fun updatePremiumStatus() {
+        viewModelScope.launch(Dispatchers.IO) {
+            checkPremiumUseCase.update()
         }
     }
 

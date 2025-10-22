@@ -1643,6 +1643,14 @@
     <!--Premium Screens-->
     <string name="premium_title">Преміум</string>
     <string name="about_premium">Про Преміум</string>
+    <string name="advanced_security">Розширена безпека</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>Користувач розуміє, що гаманець не буде видимим серед інших гаманців.</item>
+        <item>Користувач розуміє, що якщо забуде свій PIN-код, гаманець можна відновити, знаючи його seed-фразу.</item>
+    </string-array>
     <string name="premium_settings">Налаштування Преміум</string>
     <string name="Premium_TryForFree">Спробувати БЕЗКОШТОВНО</string>
     <string name="Premium_UpgradeText">Покращіть свій досвід з функціями Преміум!</string>

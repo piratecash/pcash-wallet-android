@@ -1280,6 +1280,16 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="SubscriptionInfo_PersonalSupport_Info">Entre em contato com nossa equipe diretamente através do Telegram para assistência pessoal.</string>
     <string name="SubscriptionInfo_GetPremium">Obter Premium</string>
     <string name="SubscriptionInfo_HavePremium">Eu já tenho Premium</string>
+    <string name="premium_title">Premium</string>
+    <string name="about_premium">Sobre o Premium</string>
+    <string name="advanced_security">Segurança avançada</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="AdvancedSecurity_Terms_Title">Terms</string>
+    <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>O usuário entende que a carteira não será visível entre outras carteiras.</item>
+        <item>O usuário entende que, se esquecer seu PIN, a carteira pode ser restaurada conhecendo sua frase semente.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Para ativar Premium você precisa fazer backup da sua carteira</string>

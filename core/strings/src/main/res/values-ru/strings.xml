@@ -1645,6 +1645,14 @@
     <!--Premium Screens-->
     <string name="premium_title">Премиум</string>
     <string name="about_premium">О Премиуме</string>
+    <string name="advanced_security">Расширенная безопасность</string>
+    <string name="AdvancedSecurity_CreateHiddenWallet">Создать скрытый кошелёк</string>
+    <string name="AdvancedSecurity_Terms_Title">Условия</string>
+    <string name="AdvancedSecurity_Terms_Warning">Глобальный кошелек не увидит этот кошелек, и если вы забудете свой PIN-код, вы сможете восстановить доступ к кошельку, используя seed-фразу.</string>
+    <string-array name="AdvancedSecurity_Terms_Checkboxes">
+        <item>Пользователь понимает, что кошелёк не будет виден среди других кошельков.</item>
+        <item>Пользователь понимает, что если забудет PIN-код, кошелёк можно восстановить, зная его seed-фразу.</item>
+    </string-array>
     <string name="premium_settings">Настройки Премиум</string>
     <string name="Premium_TryForFree">Попробовать БЕСПЛАТНО</string>
     <string name="Premium_UpgradeText">Улучшите свой опыт с функциями Премиум!</string>

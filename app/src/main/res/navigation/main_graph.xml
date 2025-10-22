@@ -536,6 +536,9 @@
         android:id="@+id/addressCheckerFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckerFragment"/>
     <fragment
+        android:id="@+id/advancedSecurityFragment"
+        android:name="cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityFragment"/>
+    <fragment
         android:id="@+id/addressCheckFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment"/>
 </navigation>

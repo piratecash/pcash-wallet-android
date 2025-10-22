@@ -325,6 +325,14 @@ private fun SettingSections(
                 navController.slideFromRight(R.id.premiumSettingsFragment)
             }
         )
+        HsSettingCell(
+            title = R.string.advanced_security,
+            icon = R.drawable.ic_shield_24,
+            iconTint = ComposeAppTheme.colors.jacob,
+            onClick = {
+                navController.slideFromRight(R.id.advancedSecurityFragment)
+            }
+        )
     }
 
     VSpacer(32.dp)

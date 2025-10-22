@@ -56,6 +56,8 @@ interface ILocalStorage {
     var balanceAutoHideEnabled: Boolean
     var swapMevProtectionEnabled: Boolean
 
+    var hiddenWalletTermsAccepted: Set<String>
+
     var transactionHideEnabled: Boolean
     var transactionDisplayLevel: TransactionDisplayLevel
     var transactionHideSecretPin: EncryptedString?
