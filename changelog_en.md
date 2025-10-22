@@ -1,3 +1,29 @@
+## 🚀 Main changes in version 0.48.0
+_Release date: October 22, 2025_
+
+### ✨ New features
+- **Number display settings:**
+  - Added an option to **disable automatic number rounding** on the main screen.
+    You can now see exact values without abbreviations (K, M, etc.).
+- **Transaction history:**
+  - The transaction list now shows the **exact time** of each transaction.
+- **Number formatting (RU / UA):**
+  - For Russian and Ukrainian interfaces, numbers are now always displayed with:
+    - a **space** as a thousands separator;
+    - a **dot** as a decimal separator, regardless of the system locale.
+- **Contract send check (Premium):**
+  - Improved validation logic — **specific wallet contracts** (e.g., TrustWallet and MetaMask) will **no longer trigger a warning** when sending funds.
+- **Token synchronization:**
+  - Enhanced the behavior of manually added tokens — if such a token appears in our database, it will be **automatically synchronized** with price monitoring and display its icon.
+
+### 🎨 Interface
+- **App icon:**
+  - Updated the **application icon** to match the new **p.cash** branding.
+- **Changelog formatting:**
+  - Improved **text formatting** in the Changelog section for better readability and consistency.
+
+
+
 ## Main changes in version 0.47.6
 _Release date: October 14, 2025_
 
