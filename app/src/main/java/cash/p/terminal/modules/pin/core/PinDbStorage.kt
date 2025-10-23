@@ -41,6 +41,11 @@ class PinDbStorage(private val pinDao: PinDao) {
     fun isPinSetForLevel(level: Int): Boolean {
         return pinDao.get(level)?.passcode != null
     }
+
+    fun getNextHiddenWalletLevel(): Int {
+        val minLevel = pinDao.getMinLevel() ?: 0
+        return if (minLevel < 0) minLevel - 1 else -1
+    }
 }
 
 @Dao
@@ -60,6 +65,9 @@ interface PinDao {
 
     @Query("DELETE FROM Pin WHERE level >= :level")
     fun deleteAllFromLevel(level: Int)
+
+    @Query("SELECT MIN(level) FROM Pin")
+    fun getMinLevel(): Int?
 }
 
 @Entity(primaryKeys = ["level"])

@@ -1275,6 +1275,8 @@
     <string name="about_premium">关于高级版</string>
     <string name="advanced_security">高级安全</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">创建隐藏钱包</string>
+    <string name="create_hidden_wallet_pin">隐藏钱包密码</string>
+    <string name="create_hidden_wallet_pin_description">为隐藏钱包创建 PIN 码</string>
     <string name="AdvancedSecurity_Terms_Title">条款</string>
     <string name="AdvancedSecurity_Terms_Warning">全局钱包将看不到此钱包，如果您忘记了PIN码，您可以使用助记词恢复对钱包的访问。</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

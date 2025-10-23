@@ -18,4 +18,5 @@ interface IAccountsStorage {
     fun clearDeleted()
     fun updateLevels(accountIds: List<String>, level: Int)
     fun updateMaxLevel(level: Int)
+    fun getWalletsCountByLevel(level: Int): Int
 }

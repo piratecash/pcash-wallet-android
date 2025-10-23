@@ -9,10 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
-import cash.p.terminal.wallet.Account
 import cash.p.terminal.modules.walletconnect.WCManager
+import cash.p.terminal.wallet.Account
 import kotlinx.parcelize.Parcelize
+import org.koin.java.KoinJavaComponent.get
 
 object MainModule {
 
@@ -26,7 +28,7 @@ object MainModule {
                 App.termsManager,
                 App.accountManager,
                 App.releaseNotesManager,
-                App.localStorage,
+                get(ILocalStorage::class.java),
                 App.wcSessionManager,
                 App.wcManager,
             ) as T

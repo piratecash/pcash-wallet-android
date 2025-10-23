@@ -131,8 +131,12 @@ class PinConfirmViewModel(
     }
 
     private fun isPinAccepted(pin: String): Boolean = when (pinType) {
-        PinType.REGULAR, PinType.DURESS -> pinComponent.validateCurrentLevel(pin)
-        else -> transactionHiddenManager.isPinMatches(pin)
+        PinType.REGULAR, PinType.DURESS, PinType.HIDDEN_WALLET -> {
+            pinComponent.validateCurrentLevel(pin)
+        }
+        else -> {
+            transactionHiddenManager.isPinMatches(pin)
+        }
     }
 
     private fun confirm(pin: String): Boolean {

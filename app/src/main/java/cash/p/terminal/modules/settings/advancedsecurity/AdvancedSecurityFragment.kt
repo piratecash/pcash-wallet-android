@@ -8,9 +8,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
+import cash.p.terminal.core.ensurePinSet
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsScreen
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -54,8 +56,9 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                 uiState = uiState,
                 onCheckboxToggle = viewModel::toggleCheckbox,
                 onAgreeClick = {
-                    viewModel.onAgreeClick()
-                    navController.popBackStack()
+                    fragmentNavController.ensurePinSet(R.string.PinSet_Title) {
+                        fragmentNavController.slideFromRight(R.id.setHiddenWalletPinFragment)
+                    }
                 },
                 onNavigateBack = navController::navigateUp
             )

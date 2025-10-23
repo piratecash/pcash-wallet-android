@@ -1286,6 +1286,8 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="about_premium">Premium Hakkında</string>
     <string name="advanced_security">Gelişmiş Güvenlik</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">Gizli cüzdan PIN\'i</string>
+    <string name="create_hidden_wallet_pin_description">Gizli cüzdan için bir PIN oluşturun</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

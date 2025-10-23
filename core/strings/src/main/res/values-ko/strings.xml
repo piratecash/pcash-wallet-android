@@ -1284,6 +1284,8 @@
     <string name="about_premium">프리미엄 소개</string>
     <string name="advanced_security">고급 보안</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">숨겨진 월렛 PIN</string>
+    <string name="create_hidden_wallet_pin_description">숨겨진 월렛용 PIN을 생성하세요</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

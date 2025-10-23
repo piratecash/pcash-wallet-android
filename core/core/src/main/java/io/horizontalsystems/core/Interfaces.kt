@@ -53,6 +53,8 @@ interface IPinComponent {
     fun updateLastExitDateBeforeRestart()
     fun isUnique(pin: String, forDuress: Boolean): Boolean
     fun keepUnlocked()
+    fun getPinLevel(pin: String): Int?
+    fun setHiddenWalletPin(pin: String): Int
 }
 
 interface ILockoutStorage {

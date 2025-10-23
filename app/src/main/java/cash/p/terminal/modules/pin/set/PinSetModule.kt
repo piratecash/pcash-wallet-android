@@ -6,6 +6,8 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.modules.pin.PinType
+import cash.p.terminal.wallet.IAccountsStorage
+import cash.p.terminal.wallet.managers.UserManager
 
 object PinSetModule {
 
@@ -15,7 +17,9 @@ object PinSetModule {
             return PinSetViewModel(
                 pinComponent = App.pinComponent,
                 pinType = pinType,
-                transactionHiddenManager = getKoinInstance<TransactionHiddenManager>()
+                transactionHiddenManager = getKoinInstance<TransactionHiddenManager>(),
+                accountsStorage = getKoinInstance<IAccountsStorage>(),
+                userManager = getKoinInstance<UserManager>()
             ) as T
         }
     }

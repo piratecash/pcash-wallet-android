@@ -5,17 +5,21 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BaseActivity
+import cash.p.terminal.core.navigateWithTermsAccepted
+import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
+import cash.p.terminal.navigation.slideFromRightClearingBackStack
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
 import kotlinx.coroutines.launch
@@ -145,5 +149,27 @@ class MainActivity : BaseActivity() {
     } catch (e: MainScreenValidationError.KeystoreRuntimeException) {
         Toast.makeText(App.instance, "Issue with Keystore", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    private fun findNavController(): NavController {
+        val navHost =
+            supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+        return navHost.navController
+    }
+
+    fun openCreateNewWallet() {
+        viewModel.selectBalanceTabOnNextLaunch()
+        // Set flag to select Balance tab when returning to main screen
+        // Open create wallet screen after PIN is created, clearing back stack to main screen
+        findNavController().navigateWithTermsAccepted {
+            findNavController().slideFromRightClearingBackStack(
+                resId = R.id.createAccountFragment,
+                popUpToId = R.id.mainFragment,
+                input = CreateAccountFragment.Input(
+                    popOffOnSuccess = R.id.mainFragment,
+                    popOffInclusive = false
+                )
+            )
+        }
     }
 }

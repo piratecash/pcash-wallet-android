@@ -519,6 +519,11 @@ class LocalStorageManager(
             preferences.edit().putBoolean(RELAUNCH_BY_SETTING_CHANGE, value).commit()
         }
 
+    override var selectBalanceTabOnNextLaunch by preferences.delegate(
+        "select_balance_tab_on_next_launch",
+        false
+    )
+
     override var marketsTabEnabled: Boolean
         get() = preferences.getBoolean(MARKETS_TAB_ENABLED, true)
         set(value) {
@@ -669,11 +674,6 @@ class LocalStorageManager(
     override var swapMevProtectionEnabled by preferences.delegate(
         key = "swap_mev_protection_enabled",
         default = false
-    )
-
-    override var hiddenWalletTermsAccepted by preferences.delegate(
-        key = "hidden_wallet_terms_accepted",
-        default = emptySet<String>()
     )
 
     // Display Options

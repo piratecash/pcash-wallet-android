@@ -155,4 +155,14 @@ class PinComponent(
     override fun keepUnlocked() {
         appLockManager.keepUnlocked()
     }
+
+    override fun getPinLevel(pin: String): Int? {
+        return pinManager.getPinLevel(pin)
+    }
+
+    override fun setHiddenWalletPin(pin: String): Int {
+        val nextLevel = pinManager.getNextHiddenWalletLevel()
+        pinManager.store(pin, nextLevel)
+        return nextLevel
+    }
 }

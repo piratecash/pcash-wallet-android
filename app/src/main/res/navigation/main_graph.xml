@@ -220,6 +220,9 @@
         android:id="@+id/setDuressPinIntroFragment"
         android:name="cash.p.terminal.modules.pin.SetDuressPinIntroFragment" />
     <fragment
+        android:id="@+id/setHiddenWalletPinFragment"
+        android:name="cash.p.terminal.modules.pin.hiddenwallet.SetHiddenWalletPinFragment" />
+    <fragment
         android:id="@+id/setDuressPinSelectAccounts"
         android:name="cash.p.terminal.modules.pin.SetDuressPinSelectAccountsFragment" />
     <fragment

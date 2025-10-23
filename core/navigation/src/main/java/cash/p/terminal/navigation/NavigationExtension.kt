@@ -137,3 +137,22 @@ fun NavController.slideFromBottom(@IdRes resId: Int, input: Parcelable? = null) 
     }
     navigate(resId, args, navOptions)
 }
+
+fun NavController.slideFromRightClearingBackStack(
+    @IdRes resId: Int,
+    @IdRes popUpToId: Int,
+    input: Parcelable? = null
+) {
+    val navOptions = NavOptions.Builder()
+        .setEnterAnim(R.anim.slide_from_right)
+        .setExitAnim(android.R.anim.fade_out)
+        .setPopEnterAnim(android.R.anim.fade_in)
+        .setPopExitAnim(R.anim.slide_to_right)
+        .setPopUpTo(popUpToId, inclusive = false)
+        .build()
+
+    val args = input?.let {
+        bundleOf("input" to it)
+    }
+    navigate(resId, args, navOptions)
+}

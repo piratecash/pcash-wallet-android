@@ -3,6 +3,7 @@ package cash.p.terminal.modules.pin
 enum class PinType {
     REGULAR,
     DURESS,
+    HIDDEN_WALLET,
     TRANSACTIONS_HIDE,
     TRANSFER,
 }

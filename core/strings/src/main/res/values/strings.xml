@@ -43,7 +43,6 @@
     <string name="Button_Switch">Switch</string>
     <string name="Button_Remove">Remove</string>
     <string name="Button_Save">Save</string>
-    <string name="create_hidden_wallet">Create Hidden Wallet</string>
     <string name="Button_IAgree">I Agree</string>
     <string name="Button_Continue">Continue</string>
     <string name="Button_Send">Send</string>
@@ -1922,6 +1921,8 @@ Proceed only if you\'re sure.</string>
     <string name="about_premium">About Premium</string>
     <string name="advanced_security">Advanced Security</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">Hidden Wallet Passcode</string>
+    <string name="create_hidden_wallet_pin_description">Create PIN for Hidden Wallet</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

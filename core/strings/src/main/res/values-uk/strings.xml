@@ -1645,6 +1645,8 @@
     <string name="about_premium">Про Преміум</string>
     <string name="advanced_security">Розширена безпека</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">PIN-код прихованого гаманця</string>
+    <string name="create_hidden_wallet_pin_description">Створіть PIN-код для прихованого гаманця</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

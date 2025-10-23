@@ -71,8 +71,8 @@ internal fun HiddenWalletTermsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
-                    title = if (uiState.allAcceptedBefore) {
-                        stringResource(R.string.create_hidden_wallet)
+                    title = if (uiState.agreeEnabled) {
+                        stringResource(R.string.AdvancedSecurity_CreateHiddenWallet)
                     } else {
                         stringResource(R.string.Button_IAgree)
                     },
@@ -99,8 +99,7 @@ private fun HiddenWalletTermsScreenPreview() {
         HiddenWalletTermsScreen(
             uiState = HiddenWalletTermsUiState(
                 terms = terms,
-                agreeEnabled = false,
-                allAcceptedBefore = true
+                agreeEnabled = false
             ),
             onCheckboxToggle = {},
             onAgreeClick = {},

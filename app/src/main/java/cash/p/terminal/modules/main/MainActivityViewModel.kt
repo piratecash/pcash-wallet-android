@@ -148,6 +148,10 @@ class MainActivityViewModel(
     fun onNavigatedToMain() {
         navigateToMainLiveData.postValue(false)
     }
+
+    fun selectBalanceTabOnNextLaunch() {
+        localStorage.selectBalanceTabOnNextLaunch = true
+    }
 }
 
 sealed class MainScreenValidationError : Exception() {

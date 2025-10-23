@@ -1282,6 +1282,8 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="about_premium">À propos de Premium</string>
     <string name="advanced_security">Sécurité avancée</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Créer un portefeuille caché</string>
+    <string name="create_hidden_wallet_pin">Code d\'accès du portefeuille caché</string>
+    <string name="create_hidden_wallet_pin_description">Créez un code PIN pour le portefeuille caché</string>
     <string name="AdvancedSecurity_Terms_Title">Conditions</string>
     <string name="AdvancedSecurity_Terms_Warning">Le portefeuille global ne verra pas ce portefeuille, et si vous oubliez votre code PIN, vous pourrez restaurer l\'accès au portefeuille en utilisant la phrase de récupération.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

@@ -43,4 +43,8 @@ class PinManager(private val pinDbStorage: PinDbStorage) {
         return pinLevel == userLevel
     }
 
+    fun getNextHiddenWalletLevel(): Int {
+        return pinDbStorage.getNextHiddenWalletLevel()
+    }
+
 }

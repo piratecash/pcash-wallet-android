@@ -1290,6 +1290,8 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="about_premium">Over Premium</string>
     <string name="advanced_security">Geavanceerde beveiliging</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">PIN van verborgen wallet</string>
+    <string name="create_hidden_wallet_pin_description">Maak een PIN aan voor de verborgen wallet</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

@@ -49,10 +49,17 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
         get() = dao.getTotalCount() == 0
 
     override fun allAccounts(accountsMinLevel: Int): List<Account> {
-        return dao.getAll(accountsMinLevel)
-            .mapNotNull { record: AccountRecord ->
-                toAccount(record)
-            }
+        return if (accountsMinLevel < 0) { // hidden accounts level
+            dao.getAccountForLevel(accountsMinLevel)
+                .mapNotNull { record: AccountRecord ->
+                    toAccount(record)
+                }
+        } else {
+            dao.getAll(accountsMinLevel)
+                .mapNotNull { record: AccountRecord ->
+                    toAccount(record)
+                }
+        }
     }
 
     private fun toAccount(record: AccountRecord?): Account? {
@@ -147,6 +154,10 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
 
     override fun clear() {
         dao.deleteAll()
+    }
+
+    override fun getWalletsCountByLevel(level: Int): Int {
+        return dao.getCountByLevel(level)
     }
 
     private fun getAccountRecord(account: Account): AccountRecord {

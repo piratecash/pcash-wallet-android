@@ -1276,6 +1276,8 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="about_premium">Acerca de Premium</string>
     <string name="advanced_security">Seguridad avanzada</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Crear billetera oculta</string>
+    <string name="create_hidden_wallet_pin">PIN de la billetera oculta</string>
+    <string name="create_hidden_wallet_pin_description">Crea un PIN para la billetera oculta</string>
     <string name="AdvancedSecurity_Terms_Title">Términos</string>
     <string name="AdvancedSecurity_Terms_Warning">La billetera global no verá esta billetera, y si olvida su PIN, puede restaurar el acceso a la billetera usando la frase semilla.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

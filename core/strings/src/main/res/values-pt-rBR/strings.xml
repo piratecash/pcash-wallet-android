@@ -1284,6 +1284,8 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="about_premium">Sobre o Premium</string>
     <string name="advanced_security">Segurança avançada</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">PIN da carteira oculta</string>
+    <string name="create_hidden_wallet_pin_description">Crie um PIN para a carteira oculta</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

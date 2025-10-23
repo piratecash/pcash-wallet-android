@@ -1288,6 +1288,8 @@
     <string name="about_premium">درباره پریمیوم</string>
     <string name="advanced_security">امنیت پیشرفته</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
+    <string name="create_hidden_wallet_pin">رمز عبور کیف پول مخفی</string>
+    <string name="create_hidden_wallet_pin_description">یک پین برای کیف پول مخفی ایجاد کنید</string>
     <string name="AdvancedSecurity_Terms_Title">Terms</string>
     <string name="AdvancedSecurity_Terms_Warning">The global wallet will not see this wallet, and if you forget your PIN, you can restore access to the wallet using the seed phrase.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

@@ -9,6 +9,8 @@ import cash.p.terminal.modules.pin.set.PinSetModule.PinSetViewState
 import cash.p.terminal.modules.pin.set.PinSetModule.SetStage.Confirm
 import cash.p.terminal.modules.pin.set.PinSetModule.SetStage.Enter
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.wallet.IAccountsStorage
+import cash.p.terminal.wallet.managers.UserManager
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.delay
@@ -18,6 +20,8 @@ class PinSetViewModel(
     private val pinComponent: IPinComponent,
     private val pinType: PinType,
     private val transactionHiddenManager: TransactionHiddenManager,
+    private val accountsStorage: IAccountsStorage,
+    private val userManager: UserManager,
 ) : ViewModelUiState<PinSetViewState>() {
 
     private var enteredPin = ""
@@ -48,11 +52,28 @@ class PinSetViewModel(
         emitState()
     }
 
-    private fun isPinUnique(pin: String) =
-        when (pinType) {
-            PinType.DURESS, PinType.REGULAR -> pinComponent.isUnique(pin, pinType == PinType.DURESS)
+    private fun isPinUnique(pin: String): Boolean {
+        return when (pinType) {
+            PinType.DURESS, PinType.REGULAR -> {
+                pinComponent.isUnique(pin, pinType == PinType.DURESS)
+            }
+            PinType.HIDDEN_WALLET -> {
+                val existingPinLevel = pinComponent.getPinLevel(pin)
+                if (existingPinLevel == null) {
+                    // PIN not used at all - OK
+                    true
+                } else if (existingPinLevel < 0) {
+                    // PIN used for hidden wallet - check if that level has wallets
+                    val walletsCount = accountsStorage.getWalletsCountByLevel(existingPinLevel)
+                    walletsCount == 0
+                } else {
+                    // PIN used for regular/duress - not allowed
+                    false
+                }
+            }
             else -> pinComponent.isUnique(pin, true) && pinComponent.isUnique(pin, false)
         }
+    }
 
     fun onKeyClick(number: Int) {
         if (enteredPin.length >= PinModule.PIN_COUNT) return
@@ -91,6 +112,10 @@ class PinSetViewModel(
                         when (pinType) {
                             PinType.DURESS -> pinComponent.setDuressPin(submittedPin)
                             PinType.REGULAR -> pinComponent.setPin(submittedPin)
+                            PinType.HIDDEN_WALLET -> {
+                                val pinLevel = pinComponent.setHiddenWalletPin(submittedPin)
+                                userManager.setUserLevel(pinLevel)
+                            }
                             else -> {
                                 transactionHiddenManager.setSeparatePin(submittedPin)
                             }

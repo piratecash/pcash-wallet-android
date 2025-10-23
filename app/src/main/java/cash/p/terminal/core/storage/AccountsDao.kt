@@ -29,6 +29,9 @@ interface AccountsDao {
     @Query("SELECT * FROM AccountRecord WHERE deleted = 0 AND level >= :accountsMinLevel")
     fun getAll(accountsMinLevel: Int): List<AccountRecord>
 
+    @Query("SELECT * FROM AccountRecord WHERE deleted = 0 AND level = :level")
+    fun getAccountForLevel(level: Int): List<AccountRecord>
+
     @Query("SELECT id FROM AccountRecord WHERE deleted = 1")
     fun getDeletedIds(): List<String>
 
@@ -52,4 +55,7 @@ interface AccountsDao {
 
     @Query("DELETE FROM ActiveAccount WHERE level = :level")
     fun deleteActiveAccount(level: Int)
+
+    @Query("SELECT COUNT(*) FROM AccountRecord WHERE deleted = 0 AND level = :level")
+    fun getCountByLevel(level: Int): Int
 }

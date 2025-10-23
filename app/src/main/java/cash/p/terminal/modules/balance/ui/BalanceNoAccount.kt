@@ -28,7 +28,6 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.hasNFC
 import cash.p.terminal.core.navigateWithTermsAccepted
-import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults

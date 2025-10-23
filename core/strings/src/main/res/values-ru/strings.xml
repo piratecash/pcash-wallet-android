@@ -1647,6 +1647,8 @@
     <string name="about_premium">О Премиуме</string>
     <string name="advanced_security">Расширенная безопасность</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Создать скрытый кошелёк</string>
+    <string name="create_hidden_wallet_pin">PIN-код скрытого кошелька</string>
+    <string name="create_hidden_wallet_pin_description">Создайте PIN-код для скрытого кошелька</string>
     <string name="AdvancedSecurity_Terms_Title">Условия</string>
     <string name="AdvancedSecurity_Terms_Warning">Глобальный кошелек не увидит этот кошелек, и если вы забудете свой PIN-код, вы сможете восстановить доступ к кошельку, используя seed-фразу.</string>
     <string-array name="AdvancedSecurity_Terms_Checkboxes">

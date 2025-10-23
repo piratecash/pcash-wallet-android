@@ -214,6 +214,12 @@ class MainViewModel(
     }
 
     fun onResume() {
+        // Check if we need to switch to Balance tab
+        if (localStorage.selectBalanceTabOnNextLaunch) {
+            localStorage.selectBalanceTabOnNextLaunch = false
+            onSelect(MainNavigation.Balance)
+        }
+
         emitState()
         viewModelScope.launch {
             if (!pinComponent.isLocked.value && releaseNotesManager.shouldShowChangeLog()) {

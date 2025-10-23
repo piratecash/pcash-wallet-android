@@ -56,8 +56,6 @@ interface ILocalStorage {
     var balanceAutoHideEnabled: Boolean
     var swapMevProtectionEnabled: Boolean
 
-    var hiddenWalletTermsAccepted: Set<String>
-
     var transactionHideEnabled: Boolean
     var transactionDisplayLevel: TransactionDisplayLevel
     var transactionHideSecretPin: EncryptedString?
@@ -94,6 +92,7 @@ interface ILocalStorage {
     var statsLastSyncTime: Long
     var shareCrashDataEnabled: Boolean
     var showChangelogAfterUpdate: Boolean
+    var selectBalanceTabOnNextLaunch: Boolean
 
     var customDashPeers: String
 
