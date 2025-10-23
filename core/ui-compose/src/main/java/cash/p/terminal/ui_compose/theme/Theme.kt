@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RippleConfiguration
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
@@ -112,6 +113,7 @@ fun ProvideLocalAssets(
         LocalColors provides colorPalette,
         LocalTypography provides typography,
         LocalDensity provides Density(currentDensity.density, fontScale = 1f),
+        LocalContentColor provides colorPalette.leah,
         content = content
     )
 }
