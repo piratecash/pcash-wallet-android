@@ -31,6 +31,7 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.manager.IConnectivityManager
@@ -42,6 +43,7 @@ import cash.p.terminal.wallet.managers.UserManager
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.IPinSettingsStorage
 import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.hdwalletkit.Mnemonic
@@ -93,4 +95,7 @@ val managerModule = module {
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class
     singleOf(::TorManager) bind ITorManager::class
+    factory { (pinComponent: IPinComponent) ->
+        HiddenWalletPinPolicy(pinComponent, get())
+    }
 }

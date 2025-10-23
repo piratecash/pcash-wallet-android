@@ -9,7 +9,7 @@ import cash.p.terminal.modules.pin.set.PinSetModule.PinSetViewState
 import cash.p.terminal.modules.pin.set.PinSetModule.SetStage.Confirm
 import cash.p.terminal.modules.pin.set.PinSetModule.SetStage.Enter
 import cash.p.terminal.strings.helpers.Translator
-import cash.p.terminal.wallet.IAccountsStorage
+import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.wallet.managers.UserManager
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
@@ -20,7 +20,7 @@ class PinSetViewModel(
     private val pinComponent: IPinComponent,
     private val pinType: PinType,
     private val transactionHiddenManager: TransactionHiddenManager,
-    private val accountsStorage: IAccountsStorage,
+    private val hiddenWalletPinPolicy: HiddenWalletPinPolicy,
     private val userManager: UserManager,
 ) : ViewModelUiState<PinSetViewState>() {
 
@@ -57,20 +57,7 @@ class PinSetViewModel(
             PinType.DURESS, PinType.REGULAR -> {
                 pinComponent.isUnique(pin, pinType == PinType.DURESS)
             }
-            PinType.HIDDEN_WALLET -> {
-                val existingPinLevel = pinComponent.getPinLevel(pin)
-                if (existingPinLevel == null) {
-                    // PIN not used at all - OK
-                    true
-                } else if (existingPinLevel < 0) {
-                    // PIN used for hidden wallet - check if that level has wallets
-                    val walletsCount = accountsStorage.getWalletsCountByLevel(existingPinLevel)
-                    walletsCount == 0
-                } else {
-                    // PIN used for regular/duress - not allowed
-                    false
-                }
-            }
+            PinType.HIDDEN_WALLET -> hiddenWalletPinPolicy.canUse(pin)
             else -> pinComponent.isUnique(pin, true) && pinComponent.isUnique(pin, false)
         }
     }

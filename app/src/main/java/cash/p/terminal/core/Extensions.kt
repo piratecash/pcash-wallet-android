@@ -39,6 +39,7 @@ import io.horizontalsystems.hodler.LockTimeInterval
 import kotlinx.coroutines.delay
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import org.koin.core.parameter.ParametersDefinition
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.util.Locale
@@ -246,6 +247,12 @@ fun String?.extractBigDecimal(): BigDecimal? =
 inline fun <reified T> getKoinInstance(): T {
     return object : KoinComponent {
         val value: T by inject()
+    }.value
+}
+
+inline fun <reified T> getKoinInstance(noinline parameters: ParametersDefinition): T {
+    return object : KoinComponent {
+        val value: T by inject(parameters = parameters)
     }.value
 }
 
