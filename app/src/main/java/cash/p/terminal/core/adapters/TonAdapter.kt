@@ -8,6 +8,7 @@ import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.tonkit.FriendlyAddress
 import io.horizontalsystems.tonkit.core.TonKit.SendAmount
 import io.horizontalsystems.tonkit.models.Account
+import io.horizontalsystems.tonkit.models.SyncState
 import io.reactivex.BackpressureStrategy
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
@@ -52,6 +53,15 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     }
 
     override suspend fun refresh() {
+        if (!isSyncing()) {
+            tonKit.refresh()
+        }
+    }
+
+    private fun isSyncing(): Boolean {
+        return tonKit.syncStateFlow.value is SyncState.Syncing ||
+                tonKit.eventSyncStateFlow.value is SyncState.Syncing ||
+                tonKit.jettonSyncStateFlow.value is SyncState.Syncing
     }
 
     override val debugInfo: String
@@ -77,7 +87,7 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
         tonKit.send(address, getSendAmount(amount), memo)
     }
 
-    override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)  {
+    override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String) {
         sendWithPayloadBoc(amount, address, payload)
     }
 

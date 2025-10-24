@@ -18,7 +18,7 @@ abstract class TransactionRecord(
     val transactionHash: String,
     val transactionIndex: Int,
     val blockHeight: Int?,
-    val confirmationsThreshold: Int?,
+    val confirmationsThreshold: Int,
     val timestamp: Long,
     val failed: Boolean = false,
     val spam: Boolean = false,
@@ -62,13 +62,12 @@ abstract class TransactionRecord(
         if (failed) {
             return TransactionStatus.Failed
         } else if (blockHeight != null) {
-            val threshold = confirmationsThreshold ?: 1
-            val confirmations = (lastBlockHeight ?: 0) - blockHeight.toInt() + 1
+            val confirmations = (lastBlockHeight ?: 0) - blockHeight + 1
 
-            return if (confirmations >= threshold) {
+            return if (confirmations >= confirmationsThreshold) {
                 TransactionStatus.Completed
             } else {
-                TransactionStatus.Processing(confirmations.toFloat() / threshold.toFloat())
+                TransactionStatus.Processing(confirmations.toFloat() / confirmationsThreshold.toFloat())
             }
         }
 

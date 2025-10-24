@@ -78,9 +78,9 @@ class MoneroAdapter(
         }
 
         fun balanceInBigDecimal(balance: Long?, decimal: Int): BigDecimal {
-            balance?.toBigDecimal()?.let {
-                return scaleDown(it, decimal)
-            } ?: return BigDecimal.ZERO
+            return balance?.toBigDecimal()?.let {
+                scaleDown(it, decimal)
+            } ?: BigDecimal.ZERO
         }
     }
 }

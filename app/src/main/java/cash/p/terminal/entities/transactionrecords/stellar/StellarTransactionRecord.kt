@@ -20,7 +20,7 @@ class StellarTransactionRecord(
     transactionHash = operation.transactionHash,
     transactionIndex = 0,
     blockHeight = null,
-    confirmationsThreshold = null,
+    confirmationsThreshold = 1,
     timestamp = operation.timestamp,
     failed = !operation.transactionSuccessful,
     spam = spam,

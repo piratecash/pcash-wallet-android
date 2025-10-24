@@ -12,7 +12,7 @@ class MoneroTransactionRecord(
     uid: String,
     transactionHash: String,
     blockHeight: Int?,
-    confirmationsThreshold: Int?,
+    confirmationsThreshold: Int,
     timestamp: Long,
     failed: Boolean = false,
     source: TransactionSource,
@@ -46,20 +46,14 @@ class MoneroTransactionRecord(
     memo = memo,
 ) {
     override fun status(lastBlockHeight: Int?): TransactionStatus {
-        if (failed) {
-            return TransactionStatus.Failed
-        } else if (isPending) {
-            return TransactionStatus.Pending
-        } else if (blockHeight != null && lastBlockHeight != null) {
-            val threshold = confirmationsThreshold ?: 1
-
-            return if (confirmations >= threshold) {
+        return if (failed) {
+            TransactionStatus.Failed
+        } else {
+            if (confirmations >= confirmationsThreshold) {
                 TransactionStatus.Completed
             } else {
-                TransactionStatus.Processing(confirmations.toFloat() / threshold.toFloat())
+                TransactionStatus.Processing(confirmations.toFloat() / confirmationsThreshold.toFloat())
             }
         }
-
-        return TransactionStatus.Pending
     }
 }

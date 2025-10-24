@@ -1,6 +1,7 @@
 package cash.p.terminal.core.managers
 
 import android.util.Log
+import androidx.room.concurrent.AtomicBoolean
 import androidx.room.concurrent.AtomicInt
 import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
@@ -165,6 +166,7 @@ class MoneroKitWrapper(
     )
 
     private var isStarted = false
+    private val initializing = AtomicBoolean(false)
 
     private val _syncState = MutableStateFlow<AdapterState>(AdapterState.Syncing())
     val syncState = _syncState.asStateFlow()
@@ -200,7 +202,8 @@ class MoneroKitWrapper(
     }
 
     suspend fun start(fixIfCorruptedFile: Boolean = true) = withContext(Dispatchers.IO) {
-        if (!isStarted) {
+        if (!isStarted && initializing.compareAndSet(false, true)) {
+            _syncState.value = AdapterState.Syncing()
             try {
                 val walletFileName: String
                 val walletPassword: String
@@ -242,7 +245,7 @@ class MoneroKitWrapper(
                 MoneroConfig.autoSelectNode()?.let {
                     WalletManager.getInstance()
                         .setDaemon(it)
-                } ?: throw IllegalStateException("No nodes available")
+                }
 
                 /*val walletFolder: File = Helper.getWalletRoot(App.instance)
                 val walletKeyFile = File(walletFolder, "$walletFileName.keys")
@@ -256,6 +259,8 @@ class MoneroKitWrapper(
             } catch (e: Exception) {
                 _syncState.value = AdapterState.NotSynced(e)
                 Timber.e(e, "Failed to start Monero wallet")
+            } finally {
+                initializing.set(false)
             }
         }
     }
@@ -269,8 +274,12 @@ class MoneroKitWrapper(
             val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
             if (walletStatus?.isOk != true) {
                 Timber.d("Monero wallet start error: $walletStatus, restarting")
-                delay(3_000)
-                moneroWalletService.start(walletFileName, walletPassword)
+                if (walletStatus?.connectionStatus == ConnectionStatus.ConnectionStatus_Disconnected) {
+                    throw Exception("No internet connection")
+                } else {
+                    delay(3_000)
+                    moneroWalletService.start(walletFileName, walletPassword)
+                }
             }
         } catch (e: WalletCorruptedException) {
             try {
@@ -350,13 +359,15 @@ class MoneroKitWrapper(
     }
 
     suspend fun refresh() {
-        if (isStarted) {
-            try {
-                stop()
-                start()
-            } catch (e: Exception) {
-                Log.e("MoneroKitWrapper", "Failed to refresh Monero wallet", e)
-            }
+        if (_syncState.value is AdapterState.Syncing || initializing.get()) {
+            Timber.d("MoneroKitWrapper: Already syncing, skipping refresh")
+            return
+        }
+        try {
+            stop()
+            start()
+        } catch (e: Exception) {
+            Log.e("MoneroKitWrapper", "Failed to refresh Monero wallet", e)
         }
     }
 
@@ -426,7 +437,14 @@ class MoneroKitWrapper(
 
     fun getTransactions(): List<TransactionInfo> {
         return try {
-            moneroWalletService.wallet?.history?.all ?: emptyList()
+            var transactions = moneroWalletService.wallet?.history?.all ?: emptyList()
+            if (transactions.isEmpty()) {
+                moneroWalletService.wallet?.let {
+                    moneroWalletService.wallet?.history?.refreshWithNotes(it)
+                    transactions = moneroWalletService.wallet?.history?.all ?: emptyList()
+                }
+            }
+            transactions
         } catch (e: Exception) {
             Timber.d("getTransactions: Failed to get transactions")
             emptyList()

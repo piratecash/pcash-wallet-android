@@ -20,7 +20,7 @@ class TonTransactionRecord(
     transactionHash = event.id,
     transactionIndex = 0,
     blockHeight = null,
-    confirmationsThreshold = null,
+    confirmationsThreshold = 1,
     timestamp = event.timestamp,
     failed = false,
     spam = event.scam,

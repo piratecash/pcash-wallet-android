@@ -20,7 +20,7 @@ class BitcoinTransactionRecord(
     transactionHash: String,
     transactionIndex: Int,
     blockHeight: Int?,
-    confirmationsThreshold: Int?,
+    confirmationsThreshold: Int,
     timestamp: Long,
     failed: Boolean,
     memo: String?,
