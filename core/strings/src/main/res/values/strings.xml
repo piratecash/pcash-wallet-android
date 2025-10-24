@@ -1929,6 +1929,18 @@ Proceed only if you\'re sure.</string>
         <item>The user understands that the wallet will not be visible among other wallets.</item>
         <item>The user understands that if they forget their PIN, the wallet can be restored by knowing its seed phrase.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Secure Reset</string>
+    <string name="SecureReset_Pin_Title">Secure Reset PIN</string>
+    <string name="SecureReset_Pin_Description">Create PIN for Secure Reset</string>
+    <string name="SecureReset_Terms_Title">Terms</string>
+    <string name="SecureReset_Terms_Warning">Read the terms and conditions carefully.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">To use this feature, please backup all wallets.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Entering the specified PIN during authorization will result in the deletion of all information, including wallets.</item>
+        <item>If you have not made backup copies of the private keys for all wallets, you will lose access to all your funds.</item>
+        <item>The user is aware of the risks and understands that this action will be irreversible.</item>
+        <item>After reset, your main PIN becomes your reset PIN, and the reset PIN will be turned off.</item>
+    </string-array>
     <string name="premium_settings">Premium settings</string>
     <string name="Premium_TryForFree">Try for FREE</string>
     <string name="Premium_UpgradeText">Upgrade your experience with Premium features!</string>

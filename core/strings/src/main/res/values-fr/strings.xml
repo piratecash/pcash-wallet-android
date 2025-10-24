@@ -1290,6 +1290,18 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
         <item>L\'utilisateur comprend que le portefeuille ne sera pas visible parmi les autres portefeuilles.</item>
         <item>L\'utilisateur comprend que s\'il oublie son code PIN, le portefeuille peut être restauré en connaissant sa phrase de récupération.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Réinitialisation Sécurisée</string>
+    <string name="SecureReset_Pin_Title">PIN de Réinitialisation Sécurisée</string>
+    <string name="SecureReset_Pin_Description">Créer un code PIN pour la réinitialisation sécurisée</string>
+    <string name="SecureReset_Terms_Title">Conditions</string>
+    <string name="SecureReset_Terms_Warning">Lisez attentivement les termes et conditions.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Pour utiliser cette fonctionnalité, veuillez sauvegarder tous les portefeuilles.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>La saisie du code PIN spécifié lors de l\'autorisation entraînera la suppression de toutes les informations, y compris les portefeuilles.</item>
+        <item>Si vous n\'avez pas effectué de copies de sauvegarde des clés privées de tous les portefeuilles, vous perdrez l\'accès à tous vos fonds.</item>
+        <item>L\'utilisateur est conscient des risques et comprend que cette action sera irréversible.</item>
+        <item>Après la réinitialisation, votre PIN principal deviendra votre PIN de réinitialisation, et le PIN de réinitialisation sera désactivé.</item>
+    </string-array>
 
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Pour activer Premium, vous devez sauvegarder votre portefeuille</string>

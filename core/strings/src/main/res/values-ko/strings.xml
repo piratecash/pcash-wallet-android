@@ -1292,6 +1292,18 @@
         <item>사용자는 이 지갑이 다른 지갑들 사이에서 보이지 않을 것임을 이해합니다.</item>
         <item>사용자는 PIN을 잊어버린 경우 시드 구문을 알고 있으면 지갑을 복구할 수 있음을 이해합니다.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">보안 초기화</string>
+    <string name="SecureReset_Pin_Title">보안 초기화 PIN</string>
+    <string name="SecureReset_Pin_Description">보안 초기화용 PIN 생성</string>
+    <string name="SecureReset_Terms_Title">약관</string>
+    <string name="SecureReset_Terms_Warning">약관을 주의 깊게 읽어주세요.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">이 기능을 사용하려면 모든 지갑을 백업하세요.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>인증 중 지정된 PIN을 입력하면 지갑을 포함한 모든 정보가 삭제됩니다.</item>
+        <item>모든 지갑의 개인 키를 백업하지 않은 경우 모든 자금에 대한 액세스 권한을 잃게 됩니다.</item>
+        <item>사용자는 위험을 인식하고 이 작업이 되돌릴 수 없음을 이해합니다.</item>
+        <item>재설정 후 주 PIN이 재설정 PIN이 되고 재설정 PIN이 꺼집니다.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">프리미엄을 활성화하려면 지갑을 백업해야 합니다</string>

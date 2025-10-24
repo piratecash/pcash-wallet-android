@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.modules.walletconnect.WCManager
@@ -24,7 +25,7 @@ object MainModule {
             return MainViewModel(
                 App.pinComponent,
                 App.rateAppManager,
-                App.backupManager,
+                get(IBackupManager::class.java),
                 App.termsManager,
                 App.accountManager,
                 App.releaseNotesManager,

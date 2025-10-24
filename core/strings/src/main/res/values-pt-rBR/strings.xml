@@ -1292,6 +1292,18 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
         <item>O usuário entende que a carteira não será visível entre outras carteiras.</item>
         <item>O usuário entende que, se esquecer seu PIN, a carteira pode ser restaurada conhecendo sua frase semente.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Redefinição Segura</string>
+    <string name="SecureReset_Pin_Title">PIN de Redefinição Segura</string>
+    <string name="SecureReset_Pin_Description">Criar PIN para Redefinição Segura</string>
+    <string name="SecureReset_Terms_Title">Termos</string>
+    <string name="SecureReset_Terms_Warning">Leia os termos e condições com atenção.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Para usar este recurso, faça backup de todas as carteiras.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Inserir o PIN especificado durante a autorização resultará na exclusão de todas as informações, incluindo carteiras.</item>
+        <item>Se você não fez cópias de backup das chaves privadas de todas as carteiras, perderá o acesso a todos os seus fundos.</item>
+        <item>O usuário está ciente dos riscos e entende que esta ação será irreversível.</item>
+        <item>Após a redefinição, seu PIN principal se tornará seu PIN de redefinição, e o PIN de redefinição será desativado.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Para ativar Premium você precisa fazer backup da sua carteira</string>

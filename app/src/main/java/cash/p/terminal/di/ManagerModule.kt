@@ -2,10 +2,12 @@ package cash.p.terminal.di
 
 import androidx.preference.PreferenceManager
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.ConnectivityManager
@@ -31,6 +33,7 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.core.managers.ResetManager
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
@@ -55,6 +58,7 @@ import org.koin.dsl.module
 
 val managerModule = module {
     singleOf(::SystemInfoManager) bind ISystemInfoManager::class
+    singleOf(::BackupManager) bind IBackupManager::class
     singleOf(::LanguageManager)
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)
@@ -91,6 +95,7 @@ val managerModule = module {
     singleOf(::MoneroWalletService)
 
     singleOf(::TransactionAdapterManager)
+    singleOf(::ResetManager)
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class

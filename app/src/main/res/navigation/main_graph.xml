@@ -223,6 +223,9 @@
         android:id="@+id/setHiddenWalletPinFragment"
         android:name="cash.p.terminal.modules.pin.hiddenwallet.SetHiddenWalletPinFragment" />
     <fragment
+        android:id="@+id/setSecureResetPinFragment"
+        android:name="cash.p.terminal.modules.settings.advancedsecurity.securereset.SetSecureResetPinFragment" />
+    <fragment
         android:id="@+id/setDuressPinSelectAccounts"
         android:name="cash.p.terminal.modules.pin.SetDuressPinSelectAccountsFragment" />
     <fragment

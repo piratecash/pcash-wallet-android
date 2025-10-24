@@ -1283,7 +1283,19 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
         <item>Der Benutzer versteht, dass die Wallet nicht unter anderen Wallets sichtbar sein wird.</item>
         <item>Der Benutzer versteht, dass die Wallet wiederhergestellt werden kann, wenn er seine Seed-Phrase kennt, falls er seine PIN vergisst.</item>
     </string-array>
-    
+    <string name="AdvancedSecurity_SecureReset">Sicheres Zurücksetzen</string>
+    <string name="SecureReset_Pin_Title">PIN für sicheres Zurücksetzen</string>
+    <string name="SecureReset_Pin_Description">PIN für sicheres Zurücksetzen erstellen</string>
+    <string name="SecureReset_Terms_Title">Bedingungen</string>
+    <string name="SecureReset_Terms_Warning">Lesen Sie die Bedingungen sorgfältig durch.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Um diese Funktion zu nutzen, sichern Sie bitte alle Wallets.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Die Eingabe der angegebenen PIN bei der Autorisierung führt zur Löschung aller Informationen, einschließlich Wallets.</item>
+        <item>Wenn Sie keine Sicherungskopien der privaten Schlüssel für alle Wallets erstellt haben, verlieren Sie den Zugriff auf alle Ihre Gelder.</item>
+        <item>Der Benutzer ist sich der Risiken bewusst und versteht, dass diese Aktion unumkehrbar ist.</item>
+        <item>Nach dem Zurücksetzen wird Ihre Haupt-PIN zu Ihrer Rücksetz-PIN, und die Rücksetz-PIN wird deaktiviert.</item>
+    </string-array>
+
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Um Premium zu aktivieren, müssen Sie Ihr Wallet sichern</string>
     <string name="premium_demo_activation_error_watch_account">Ein Watch-Account kann nicht zur Aktivierung von Premium verwendet werden</string>

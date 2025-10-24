@@ -55,6 +55,10 @@ interface IPinComponent {
     fun keepUnlocked()
     fun getPinLevel(pin: String): Int?
     fun setHiddenWalletPin(pin: String): Int
+
+    fun setSecureResetPin(pin: String)
+    fun isSecureResetPinSet(): Boolean
+    fun disableSecureResetPin()
 }
 
 interface ILockoutStorage {

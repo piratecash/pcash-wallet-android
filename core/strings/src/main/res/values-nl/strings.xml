@@ -1298,6 +1298,18 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
         <item>De gebruiker begrijpt dat de portemonnee niet zichtbaar zal zijn tussen andere portemonnees.</item>
         <item>De gebruiker begrijpt dat als hij zijn pincode vergeet, de portemonnee kan worden hersteld door zijn herstelzin te kennen.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Veilig Resetten</string>
+    <string name="SecureReset_Pin_Title">Veilig Reset PIN</string>
+    <string name="SecureReset_Pin_Description">PIN aanmaken voor veilig resetten</string>
+    <string name="SecureReset_Terms_Title">Voorwaarden</string>
+    <string name="SecureReset_Terms_Warning">Lees de algemene voorwaarden zorgvuldig door.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Om deze functie te gebruiken, maak een back-up van alle wallets.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Het invoeren van de opgegeven PIN tijdens autorisatie zal resulteren in het verwijderen van alle informatie, inclusief wallets.</item>
+        <item>Als u geen back-ups hebt gemaakt van de privésleutels voor alle wallets, verliest u de toegang tot al uw fondsen.</item>
+        <item>De gebruiker is zich bewust van de risico\'s en begrijpt dat deze actie onomkeerbaar is.</item>
+        <item>Na het resetten wordt uw hoofd-PIN uw reset-PIN en wordt de reset-PIN uitgeschakeld.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Om premium te activeren moet u uw portemonnee back-uppen</string>

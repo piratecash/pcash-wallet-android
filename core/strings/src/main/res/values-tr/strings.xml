@@ -1294,7 +1294,18 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
         <item>Kullanıcı, cüzdanın diğer cüzdanlar arasında görünmeyeceğini anlar.</item>
         <item>Kullanıcı, PIN kodunu unutursa, tohum ifadesini bilerek cüzdanı geri yükleyebileceğini anlar.</item>
     </string-array>
-    
+    <string name="AdvancedSecurity_SecureReset">Güvenli Sıfırlama</string>
+    <string name="SecureReset_Pin_Title">Güvenli Sıfırlama PIN\'i</string>
+    <string name="SecureReset_Pin_Description">Güvenli Sıfırlama için PIN oluşturun</string>
+    <string name="SecureReset_Terms_Title">Şartlar</string>
+    <string name="SecureReset_Terms_Warning">Şartları ve koşulları dikkatlice okuyun.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Bu özelliği kullanmak için lütfen tüm cüzdanları yedekleyin.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Yetkilendirme sırasında belirtilen PIN\'in girilmesi, cüzdanlar dahil tüm bilgilerin silinmesine neden olacaktır.</item>
+        <item>Tüm cüzdanlar için özel anahtarların yedek kopyalarını yapmadıysanız, tüm fonlarınıza erişiminizi kaybedersiniz.</item>
+        <item>Kullanıcı risklerin farkındadır ve bu eylemin geri alınamaz olacağını anlar.</item>
+        <item>Sıfırlama sonrasında ana PIN\'iniz sıfırlama PIN\'iniz olacak ve sıfırlama PIN\'i kapatılacaktır.</item>
+    </string-array>
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Premium\'i etkinleştirmek için cüzdanınızı yedeklemeniz gerekir</string>
     <string name="premium_demo_activation_error_watch_account">İzleme hesabı premium\'i etkinleştirmek için kullanılamaz</string>

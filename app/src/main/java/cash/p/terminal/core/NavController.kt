@@ -15,7 +15,7 @@ fun NavController.authorizedAction(
     action: () -> Unit
 ) {
     val needEnterPin = when (input?.pinType) {
-        PinType.REGULAR, PinType.DURESS, PinType.HIDDEN_WALLET, null -> App.pinComponent.isPinSet
+        PinType.REGULAR, PinType.DURESS, PinType.HIDDEN_WALLET, PinType.SECURE_RESET, null -> App.pinComponent.isPinSet
         PinType.TRANSFER -> getKoinInstance<ILocalStorage>().transferPasscodeEnabled
         PinType.TRANSACTIONS_HIDE -> App.pinComponent.isPinSet || getKoinInstance<TransactionHiddenManager>().transactionHiddenFlow.value.transactionAutoHidePinExists
     }

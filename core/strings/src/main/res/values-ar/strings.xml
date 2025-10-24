@@ -1297,6 +1297,18 @@
         <item>يفهم المستخدم أن المحفظة لن تكون مرئية بين المحافظ الأخرى.</item>
         <item>يفهم المستخدم أنه إذا نسي رمز PIN الخاص به، يمكن استعادة المحفظة بمعرفة عبارة الاسترداد الخاصة به.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">إعادة تعيين آمنة</string>
+    <string name="SecureReset_Pin_Title">رمز PIN لإعادة التعيين الآمن</string>
+    <string name="SecureReset_Pin_Description">إنشاء رمز PIN لإعادة التعيين الآمن</string>
+    <string name="SecureReset_Terms_Title">الشروط</string>
+    <string name="SecureReset_Terms_Warning">اقرأ الشروط والأحكام بعناية.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">لاستخدام هذه الميزة، يرجى نسخ احتياطي لجميع المحافظ.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>إدخال رمز PIN المحدد أثناء التفويض سيؤدي إلى حذف جميع المعلومات، بما في ذلك المحافظ.</item>
+        <item>إذا لم تقم بعمل نسخ احتياطية من المفاتيح الخاصة لجميع المحافظ، فستفقد الوصول إلى جميع أموالك.</item>
+        <item>المستخدم على دراية بالمخاطر ويفهم أن هذا الإجراء سيكون غير قابل للعكس.</item>
+        <item>بعد إعادة التعيين، سيصبح رمز PIN الرئيسي الخاص بك هو رمز PIN لإعادة التعيين، وسيتم إيقاف تشغيل رمز PIN لإعادة التعيين.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">لتفعيل المميزات المدفوعة تحتاج إلى نسخ احتياطي من محفظتك</string>

@@ -1284,6 +1284,18 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
         <item>El usuario entiende que la billetera no será visible entre otras billeteras.</item>
         <item>El usuario entiende que si olvida su PIN, la billetera puede ser restaurada conociendo su frase semilla.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Restablecimiento Seguro</string>
+    <string name="SecureReset_Pin_Title">PIN de Restablecimiento Seguro</string>
+    <string name="SecureReset_Pin_Description">Crear PIN para Restablecimiento Seguro</string>
+    <string name="SecureReset_Terms_Title">Términos</string>
+    <string name="SecureReset_Terms_Warning">Lea los términos y condiciones cuidadosamente.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Para usar esta función, por favor respalde todas las billeteras.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Ingresar el PIN especificado durante la autorización resultará en la eliminación de toda la información, incluidas las billeteras.</item>
+        <item>Si no ha realizado copias de seguridad de las claves privadas de todas las billeteras, perderá el acceso a todos sus fondos.</item>
+        <item>El usuario es consciente de los riesgos y entiende que esta acción será irreversible.</item>
+        <item>Después del reinicio, su PIN principal se convertirá en su PIN de reinicio, y el PIN de reinicio se desactivará.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Para activar Premium necesitas hacer una copia de seguridad de tu billetera</string>

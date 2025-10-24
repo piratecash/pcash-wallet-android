@@ -18,6 +18,8 @@ import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
+import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
+import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
@@ -60,5 +62,7 @@ val viewModelModule = module {
             restoreSettingsManager = get()
         )
     }
+    viewModelOf(::AdvancedSecurityViewModel)
     viewModelOf(::HiddenWalletTermsViewModel)
+    viewModelOf(::SecureResetTermsViewModel)
 }

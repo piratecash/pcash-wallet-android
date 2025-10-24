@@ -157,7 +157,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val accountManager: IAccountManager by inject(IAccountManager::class.java)
         val userManager: DefaultUserManager by inject(DefaultUserManager::class.java)
         val accountFactory: IAccountFactory by inject(AccountFactory::class.java)
-        lateinit var backupManager: IBackupManager
         lateinit var proFeatureAuthorizationManager: ProFeaturesAuthorizationManager
         val zcashBirthdayProvider: ZcashBirthdayProvider by inject(ZcashBirthdayProvider::class.java)
 
@@ -259,7 +258,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             ProFeaturesAuthorizationManager(proFeaturesStorage, accountManager)
 
         networkManager = NetworkManager()
-        backupManager = BackupManager(accountManager)
 
         KeyStoreManager(
             keyAlias = "MASTER_KEY",
@@ -300,7 +298,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             pinSettingsStorage = pinSettingsStorage,
             userManager = userManager,
             pinDbStorage = PinDbStorage(appDatabase.pinDao()),
-            backgroundManager = backgroundManager
+            backgroundManager = backgroundManager,
+            resetManager = get()
         )
 
         rateAppManager = RateAppManager(walletManager, adapterManager, localStorage)

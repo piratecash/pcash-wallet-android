@@ -1655,6 +1655,18 @@
         <item>Пользователь понимает, что кошелёк не будет виден среди других кошельков.</item>
         <item>Пользователь понимает, что если забудет PIN-код, кошелёк можно восстановить, зная его seed-фразу.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Безопасный сброс</string>
+    <string name="SecureReset_Pin_Title">PIN-код безопасного сброса</string>
+    <string name="SecureReset_Pin_Description">Создайте PIN-код для безопасного сброса</string>
+    <string name="SecureReset_Terms_Title">Условия</string>
+    <string name="SecureReset_Terms_Warning">Внимательно прочитайте условия.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Чтобы использовать эту функцию, сделайте резервную копию всех кошельков.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Ввод указанного PIN-кода при авторизации приведёт к удалению всей информации, включая кошельки.</item>
+        <item>Если вы не сделали резервные копии приватных ключей для всех кошельков, вы потеряете доступ ко всем вашим средствам.</item>
+        <item>Пользователь осознает риски и понимает, что данное действие будет необратимо.</item>
+        <item>После сброса ваш основной PIN-код станет вашим PIN-кодом сброса, а PIN-код сброса будет отключён.</item>
+    </string-array>
     <string name="premium_settings">Настройки Премиум</string>
     <string name="Premium_TryForFree">Попробовать БЕСПЛАТНО</string>
     <string name="Premium_UpgradeText">Улучшите свой опыт с функциями Премиум!</string>
