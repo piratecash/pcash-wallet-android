@@ -65,7 +65,7 @@ internal class CheckTrialPremiumUseCase(
             }
             premiumStatus ?: TrialPremiumResult.DemoActive(daysLeft = cachedUser.daysLeft)
         } catch (e: Exception) {
-            Timber.e(e, "Error checking premium status for wallet ${cachedUser?.address}")
+            Timber.d(e, "Error checking premium status for wallet ${cachedUser?.address}")
             TrialPremiumResult.DemoError()
         }
     }

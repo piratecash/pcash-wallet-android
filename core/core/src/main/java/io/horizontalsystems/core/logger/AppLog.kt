@@ -9,10 +9,12 @@ import java.util.Locale
 import java.util.TimeZone
 import java.util.UUID
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 object AppLog {
     lateinit var logsDao: LogsDao
 
+    private const val DAYS_TO_KEEP = 90L
     private val executor = Executors.newSingleThreadExecutor()
     private val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
@@ -48,6 +50,13 @@ object AppLog {
         }
 
         return res
+    }
+
+    fun cleanupOldLogs() {
+        executor.submit {
+            val threeMonthsAgo = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(DAYS_TO_KEEP)
+            logsDao.deleteOlderThan(threeMonthsAgo)
+        }
     }
 
     private fun getStackTraceString(error: Throwable): String {

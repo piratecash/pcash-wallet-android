@@ -542,6 +542,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
             evmLabelManager.sync()
             contactsRepository.initialize()
+            AppLog.cleanupOldLogs()
         }
     }
 

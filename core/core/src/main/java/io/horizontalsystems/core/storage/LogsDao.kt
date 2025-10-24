@@ -14,4 +14,7 @@ interface LogsDao {
     @Query("SELECT * FROM LogEntry ORDER BY id")
     fun getAll(): List<LogEntry>
 
+    @Query("DELETE FROM LogEntry WHERE date < :timestamp")
+    fun deleteOlderThan(timestamp: Long)
+
 }
