@@ -1,3 +1,22 @@
+## 🚀 Main changes in version 0.48.1
+_Release date: October 24, 2025_
+
+### ✨ New features
+- **Premium: Hidden Wallet**
+  - Added a new **“Hidden Wallet”** feature that allows you to create separate wallets protected by **individual PIN codes**.
+    Perfect for keeping private funds or separating personal and business wallets.
+- **Monero:**
+  - Improved the **Monero wallet synchronization mechanism**, enhancing stability and balance accuracy.
+
+### 🛠 Fixes and improvements
+- **Changelog (Dark Theme):**
+  - Fixed an issue with **Changelog text visibility in dark mode**.
+- **Log rotation:**
+  - Enhanced **application log rotation** — old data is now automatically deleted,
+    **never leaves your device**, but you can safely share logs with developers if you want to help fix issues.
+
+
+
 ## 🚀 Main changes in version 0.48.0
 _Release date: October 22, 2025_
 
