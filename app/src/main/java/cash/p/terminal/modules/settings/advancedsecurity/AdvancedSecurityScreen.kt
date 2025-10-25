@@ -19,13 +19,17 @@ import cash.p.terminal.R
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
 internal fun AdvancedSecurityScreen(
+    uiState: AdvancedSecurityUiState,
     onCreateHiddenWalletClick: () -> Unit,
+    onSecureResetToggle: (Boolean) -> Unit,
     onClose: () -> Unit
 ) {
     Scaffold(
@@ -65,6 +69,24 @@ internal fun AdvancedSecurityScreen(
                 }),
                 Modifier.padding(top = 12.dp)
             )
+            VSpacer(16.dp)
+            CellUniversalLawrenceSection(
+                listOf({
+                    RowUniversal(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                    ) {
+                        body_leah(
+                            text = stringResource(R.string.AdvancedSecurity_SecureReset),
+                            maxLines = 1,
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        HsSwitch(
+                            checked = uiState.isSecureResetPinSet,
+                            onCheckedChange = onSecureResetToggle
+                        )
+                    }
+                })
+            )
         }
     }
 }
@@ -74,7 +96,9 @@ internal fun AdvancedSecurityScreen(
 private fun AdvancedSecurityScreenPreview() {
     ComposeAppTheme {
         AdvancedSecurityScreen(
+            uiState = AdvancedSecurityUiState(isSecureResetPinSet = false),
             onCreateHiddenWalletClick = {},
+            onSecureResetToggle = {},
             onClose = {}
         )
     }

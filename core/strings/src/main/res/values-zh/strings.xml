@@ -1283,6 +1283,18 @@
         <item>用户理解该钱包在其他钱包中将不可见。</item>
         <item>用户理解如果忘记PIN码，可以通过知道其助记词来恢复钱包。</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">安全重置</string>
+    <string name="SecureReset_Pin_Title">安全重置PIN</string>
+    <string name="SecureReset_Pin_Description">创建安全重置PIN</string>
+    <string name="SecureReset_Terms_Title">条款</string>
+    <string name="SecureReset_Terms_Warning">请仔细阅读条款和条件。</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">要使用此功能，请备份所有钱包。</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>在授权期间输入指定的PIN将导致删除所有信息，包括钱包。</item>
+        <item>如果您没有备份所有钱包的私钥，您将失去对所有资金的访问权限。</item>
+        <item>用户了解风险并理解此操作将不可逆转。</item>
+        <item>重置后，您的主PIN将成为您的重置PIN，重置PIN将被关闭。</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">要激活高级版，您需要备份钱包</string>

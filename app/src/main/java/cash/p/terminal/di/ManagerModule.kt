@@ -1,11 +1,14 @@
 package cash.p.terminal.di
 
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.preference.PreferenceManager
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.ConnectivityManager
@@ -55,6 +58,7 @@ import org.koin.dsl.module
 
 val managerModule = module {
     singleOf(::SystemInfoManager) bind ISystemInfoManager::class
+    singleOf(::BackupManager) bind IBackupManager::class
     singleOf(::LanguageManager)
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)
@@ -89,6 +93,7 @@ val managerModule = module {
 
     singleOf(::MoneroKitManager)
     singleOf(::MoneroWalletService)
+    singleOf(::GlanceAppWidgetManager)
 
     singleOf(::TransactionAdapterManager)
     singleOf(::TransactionSyncStateRepository)

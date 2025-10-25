@@ -1,4 +1,4 @@
-package cash.p.terminal.core
+package io.horizontalsystems.core
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

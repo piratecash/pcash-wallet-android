@@ -6,4 +6,5 @@ enum class PinType {
     HIDDEN_WALLET,
     TRANSACTIONS_HIDE,
     TRANSFER,
+    SECURE_RESET,
 }

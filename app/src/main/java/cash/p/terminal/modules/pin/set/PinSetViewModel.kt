@@ -58,6 +58,7 @@ class PinSetViewModel(
                 pinComponent.isUnique(pin, pinType == PinType.DURESS)
             }
             PinType.HIDDEN_WALLET -> hiddenWalletPinPolicy.canUse(pin)
+            PinType.SECURE_RESET -> pinComponent.getPinLevel(pin) == null
             else -> pinComponent.isUnique(pin, true) && pinComponent.isUnique(pin, false)
         }
     }
@@ -103,6 +104,7 @@ class PinSetViewModel(
                                 val pinLevel = pinComponent.setHiddenWalletPin(submittedPin)
                                 userManager.setUserLevel(pinLevel)
                             }
+                            PinType.SECURE_RESET -> pinComponent.setSecureResetPin(submittedPin)
                             else -> {
                                 transactionHiddenManager.setSeparatePin(submittedPin)
                             }

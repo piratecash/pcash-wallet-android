@@ -1296,6 +1296,18 @@
         <item>کاربر می‌داند که این کیف پول در میان سایر کیف پول‌ها قابل مشاهده نخواهد بود.</item>
         <item>کاربر می‌داند که اگر رمز PIN خود را فراموش کند، می‌تواند با استفاده از عبارت بازیابی (seed phrase) به کیف پول دسترسی پیدا کند.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">بازنشانی امن</string>
+    <string name="SecureReset_Pin_Title">پین بازنشانی امن</string>
+    <string name="SecureReset_Pin_Description">ایجاد پین برای بازنشانی امن</string>
+    <string name="SecureReset_Terms_Title">شرایط</string>
+    <string name="SecureReset_Terms_Warning">شرایط و ضوابط را با دقت بخوانید.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">برای استفاده از این ویژگی، لطفاً از تمام کیف پول‌ها پشتیبان تهیه کنید.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>وارد کردن پین مشخص شده در هنگام احراز هویت منجر به حذف تمام اطلاعات از جمله کیف پول‌ها خواهد شد.</item>
+        <item>اگر از کلیدهای خصوصی تمام کیف پول‌ها نسخه پشتیبان تهیه نکرده‌اید، دسترسی به تمام وجوه خود را از دست خواهید داد.</item>
+        <item>کاربر از خطرات آگاه است و می‌داند که این اقدام برگشت‌ناپذیر خواهد بود.</item>
+        <item>پس از بازنشانی، پین اصلی شما به پین بازنشانی شما تبدیل می‌شود و پین بازنشانی غیرفعال خواهد شد.</item>
+    </string-array>
     
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">برای فعال‌سازی پریمیوم باید کیف پول خود را پشتیبان‌گیری کنید</string>

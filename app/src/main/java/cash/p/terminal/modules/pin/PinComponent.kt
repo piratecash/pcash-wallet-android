@@ -1,7 +1,9 @@
 package cash.p.terminal.modules.pin
 
 import cash.p.terminal.core.App
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.modules.pin.core.LockManager
 import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.modules.pin.core.PinManager
@@ -18,16 +20,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 class PinComponent(
     private val pinSettingsStorage: IPinSettingsStorage,
     private val userManager: DefaultUserManager,
     private val pinDbStorage: PinDbStorage,
-    private val backgroundManager: BackgroundManager
+    private val backgroundManager: BackgroundManager,
+    private val resetUseCase: ResetUseCase,
+    private val dispatcherProvider: DispatcherProvider,
+    private val scope: CoroutineScope = CoroutineScope(Executors.newFixedThreadPool(5).asCoroutineDispatcher())
 ) : IPinComponent {
-
-    private val scope = CoroutineScope(Executors.newFixedThreadPool(5).asCoroutineDispatcher())
 
     init {
         scope.launch {
@@ -78,9 +82,18 @@ class PinComponent(
     override val isPinSet: Boolean
         get() = pinManager.isPinSet
 
+    private fun getDuressLevel(): Int {
+        var level = userManager.getUserLevel() + 1
+        // Skip reserved level for Secure Reset PIN
+        if (level == SECURE_RESET_PIN_LEVEL) {
+            level++
+        }
+        return level
+    }
+
     override fun isUnique(pin: String, forDuress: Boolean): Boolean {
         val level = if (forDuress) {
-            userManager.getUserLevel() + 1
+            getDuressLevel()
         } else {
             userManager.getUserLevel()
         }
@@ -96,7 +109,7 @@ class PinComponent(
     }
 
     override fun setDuressPin(pin: String) {
-        pinManager.store(pin, userManager.getUserLevel() + 1)
+        pinManager.store(pin, getDuressLevel())
     }
 
     override fun validateCurrentLevel(pin: String): Boolean {
@@ -105,7 +118,7 @@ class PinComponent(
     }
 
     override fun isDuressPinSet(): Boolean {
-        return pinManager.isPinSetForLevel(userManager.getUserLevel() + 1)
+        return pinManager.isPinSetForLevel(getDuressLevel())
     }
 
     override fun disablePin() {
@@ -114,17 +127,24 @@ class PinComponent(
     }
 
     override fun disableDuressPin() {
-        pinManager.disableDuressPin(userManager.getUserLevel() + 1)
+        pinManager.disableDuressPin(getDuressLevel())
         userManager.disallowAccountsForDuress()
     }
 
-    override fun unlock(pin: String): Boolean {
-        val pinLevel = pinManager.getPinLevel(pin) ?: return false
+    override suspend fun unlock(pin: String): Boolean = withContext(dispatcherProvider.io) {
+        var pinLevel = pinManager.getPinLevel(pin) ?: return@withContext false
+
+        if (pinLevel == SECURE_RESET_PIN_LEVEL) {
+            disableSecureResetPin()
+            resetUseCase()
+            pinManager.store(pin, STANDARD_PIN_LEVEL)
+            pinLevel = STANDARD_PIN_LEVEL
+        }
 
         appLockManager.onUnlock()
         userManager.setUserLevel(pinLevel)
 
-        return true
+        true
     }
 
     override fun initDefaultPinLevel() {
@@ -164,5 +184,22 @@ class PinComponent(
         val nextLevel = pinManager.getNextHiddenWalletLevel()
         pinManager.store(pin, nextLevel)
         return nextLevel
+    }
+
+    override fun setSecureResetPin(pin: String) {
+        pinManager.store(pin, SECURE_RESET_PIN_LEVEL)
+    }
+
+    override fun isSecureResetPinSet(): Boolean {
+        return pinManager.isPinSetForLevel(SECURE_RESET_PIN_LEVEL)
+    }
+
+    override fun disableSecureResetPin() {
+        pinManager.disablePin(SECURE_RESET_PIN_LEVEL)
+    }
+
+    companion object {
+        const val SECURE_RESET_PIN_LEVEL = 10000
+        private const val STANDARD_PIN_LEVEL = 0
     }
 }

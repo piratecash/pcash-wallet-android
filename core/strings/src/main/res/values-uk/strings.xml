@@ -1653,6 +1653,18 @@
         <item>Користувач розуміє, що гаманець не буде видимим серед інших гаманців.</item>
         <item>Користувач розуміє, що якщо забуде свій PIN-код, гаманець можна відновити, знаючи його seed-фразу.</item>
     </string-array>
+    <string name="AdvancedSecurity_SecureReset">Безпечне скидання</string>
+    <string name="SecureReset_Pin_Title">PIN-код безпечного скидання</string>
+    <string name="SecureReset_Pin_Description">Створити PIN-код для безпечного скидання</string>
+    <string name="SecureReset_Terms_Title">Умови</string>
+    <string name="SecureReset_Terms_Warning">Уважно прочитайте умови.</string>
+    <string name="SecureReset_Terms_Warning_NoBackup">Щоб використовувати цю функцію, створіть резервні копії всіх гаманців.</string>
+    <string-array name="SecureReset_Terms_Checkboxes">
+        <item>Введення вказаного PIN-коду під час авторизації призведе до видалення всієї інформації, включаючи гаманці.</item>
+        <item>Якщо ви не зробили резервні копії приватних ключів для всіх гаманців, ви втратите доступ до всіх своїх коштів.</item>
+        <item>Користувач усвідомлює ризики та розуміє, що ця дія буде незворотною.</item>
+        <item>Після скидання ваш основний PIN-код стане вашим PIN-кодом скидання, а PIN-код скидання буде вимкнено.</item>
+    </string-array>
     <string name="premium_settings">Налаштування Преміум</string>
     <string name="Premium_TryForFree">Спробувати БЕЗКОШТОВНО</string>
     <string name="Premium_UpgradeText">Покращіть свій досвід з функціями Преміум!</string>

@@ -1,7 +1,7 @@
 package cash.p.terminal.di
 
-import cash.p.terminal.core.DefaultDispatcherProvider
-import cash.p.terminal.core.DispatcherProvider
+import io.horizontalsystems.core.DefaultDispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
@@ -18,6 +18,8 @@ import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
+import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
+import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
@@ -60,5 +62,7 @@ val viewModelModule = module {
             restoreSettingsManager = get()
         )
     }
+    viewModelOf(::AdvancedSecurityViewModel)
     viewModelOf(::HiddenWalletTermsViewModel)
+    viewModelOf(::SecureResetTermsViewModel)
 }

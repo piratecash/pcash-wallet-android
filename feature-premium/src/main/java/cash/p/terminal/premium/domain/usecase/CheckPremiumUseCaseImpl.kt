@@ -11,6 +11,8 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.eligibleForPremium
 import cash.p.terminal.wallet.managers.UserManager
+import io.horizontalsystems.core.DispatcherProvider
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -27,17 +29,19 @@ internal class CheckPremiumUseCaseImpl(
     private val binanceApi: BinanceApi,
     private val piratePlaceRepository: PiratePlaceRepository,
     private val accountManager: IAccountManager,
+    private val checkAdapterPremiumBalanceUseCase: CheckAdapterPremiumBalanceUseCase,
     private val checkTrialPremiumUseCase: CheckTrialPremiumUseCase,
     private val activateTrialPremiumUseCase: ActivateTrialPremiumUseCase,
-    private val getBnbAddressUseCase: GetBnbAddressUseCaseImpl,
-    private val userManager: UserManager
+    private val getBnbAddressUseCase: GetBnbAddressUseCase,
+    private val userManager: UserManager,
+    private val dispatcherProvider: DispatcherProvider
 ) : CheckPremiumUseCase {
 
     private val mutex = Mutex()
 
     private val _premiumCache = MutableStateFlow<Map<Int, PremiumType>>(emptyMap())
     private val _trialPremiumCache = MutableStateFlow<Map<String, Boolean>>(emptyMap())
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val scope = CoroutineScope(dispatcherProvider.default + SupervisorJob())
 
     private val coinConfigs = mapOf(
         PremiumConfig.COIN_TYPE_PIRATE to CoinConfig(
@@ -70,7 +74,18 @@ internal class CheckPremiumUseCaseImpl(
         if (_trialPremiumCache.value[currentAccount.id] == true) {
             return PremiumType.TRIAL
         }
-        return _premiumCache.value[userManager.currentUserLevelFlow.value] ?: PremiumType.NONE
+        val premiumType = _premiumCache.value[userManager.currentUserLevelFlow.value]
+        if (premiumType?.isPremium() != true) {
+            val adapterResult = checkAdapterPremiumBalanceUseCase()
+            if (adapterResult is CheckAdapterPremiumBalanceUseCase.Result.Premium) {
+                scope.launch {
+                    // to keep cache updated
+                    updateAdapterBalance()
+                }
+                return adapterResult.premiumType
+            }
+        }
+        return premiumType ?: PremiumType.NONE
     }
 
     override fun isTrialPremium(): Boolean {
@@ -99,12 +114,50 @@ internal class CheckPremiumUseCaseImpl(
         }
 
         if (cachedResult == null) {
+            val newState = updateAdapterBalance()
+            if (newState?.isPremium() == true) {
+                return newState
+            }
+        }
+
+        if (cachedResult == null) {
             val premiumStatus = checkPremiumStatusByBalance(firstAccountToCheck, currentLevel)
             val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: PremiumType.NONE
             updateCache(currentLevel, result)
         }
 
         return getPremiumType()
+    }
+
+    private suspend fun updateAdapterBalance(): PremiumType? {
+        val currentLevel = userManager.currentUserLevelFlow.value
+        when (val adapterResult = checkAdapterPremiumBalanceUseCase()) {
+            is CheckAdapterPremiumBalanceUseCase.Result.Premium -> {
+                updatePremiumData(
+                    address = adapterResult.address,
+                    currentLevel = currentLevel,
+                    coinType = adapterResult.coinType,
+                    account = adapterResult.account,
+                    premiumType = adapterResult.premiumType
+                )
+                updateCache(currentLevel, adapterResult.premiumType)
+                return adapterResult.premiumType
+            }
+
+            is CheckAdapterPremiumBalanceUseCase.Result.Insufficient -> {
+                updatePremiumData(
+                    address = adapterResult.address,
+                    currentLevel = currentLevel,
+                    coinType = adapterResult.coinType,
+                    account = adapterResult.account,
+                    premiumType = PremiumType.NONE
+                )
+                updateCache(currentLevel, PremiumType.NONE)
+            }
+
+            null -> Unit
+        }
+        return null
     }
 
     private fun updateCache(level: Int, premiumType: PremiumType) {
