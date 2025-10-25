@@ -3,6 +3,8 @@ package cash.p.terminal.core.di
 import android.app.Application
 import android.content.Context
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
+import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
+import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
@@ -38,6 +40,8 @@ class KoinGraphTest : KoinTest {
             injections = injectedParameters(
                 definition<AccountTypeNotSupportedViewModel>(AccountTypeNotSupportedDialog.Input::class),
                 definition<HiddenWalletPinPolicy >(IPinComponent::class),
+                definition<AdvancedSecurityViewModel>(IPinComponent::class),
+                definition<SecureResetTermsViewModel>(Array<String>::class),
                 definition<HiddenWalletTermsViewModel>(Array<String>::class)
             )
         )
