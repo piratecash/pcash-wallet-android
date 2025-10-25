@@ -33,9 +33,7 @@ class AdvancedSecurityFragment : BaseComposeFragment() {
 @Composable
 private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
     val navController = rememberNavController()
-    val viewModel: AdvancedSecurityViewModel = getKoinInstance<AdvancedSecurityViewModel> {
-        parametersOf(App.pinComponent)
-    }
+    val viewModel: AdvancedSecurityViewModel = koinViewModel { parametersOf(App.pinComponent) }
 
     NavHost(
         navController = navController,
