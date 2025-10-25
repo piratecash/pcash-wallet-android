@@ -3,7 +3,7 @@ package cash.p.terminal.domain.usecase
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import cash.p.terminal.core.App
-import cash.p.terminal.core.DispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.core.tor.torcore.TorConstants
 import cash.p.terminal.modules.contacts.ContactsRepository

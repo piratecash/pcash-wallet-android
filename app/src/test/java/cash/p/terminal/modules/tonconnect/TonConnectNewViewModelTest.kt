@@ -1,10 +1,10 @@
 package cash.p.terminal.modules.tonconnect
 
-import cash.p.terminal.core.DispatcherProvider
+import cash.p.terminal.core.TestDispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.toTonWalletFullAccess
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
-import cash.p.terminal.modules.TestDispatcherProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType

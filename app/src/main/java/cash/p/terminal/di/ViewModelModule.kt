@@ -1,7 +1,7 @@
 package cash.p.terminal.di
 
-import cash.p.terminal.core.DefaultDispatcherProvider
-import cash.p.terminal.core.DispatcherProvider
+import io.horizontalsystems.core.DefaultDispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel

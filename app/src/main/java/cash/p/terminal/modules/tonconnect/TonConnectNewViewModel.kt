@@ -1,7 +1,7 @@
 package cash.p.terminal.modules.tonconnect
 
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.DispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.toTonWalletFullAccess
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.wallet.Account

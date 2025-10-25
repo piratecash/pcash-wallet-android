@@ -3,6 +3,8 @@ package cash.p.terminal.premium.di
 import cash.p.terminal.premium.data.database.PremiumDatabase
 import cash.p.terminal.premium.data.repository.PremiumUserRepository
 import cash.p.terminal.premium.domain.usecase.ActivateTrialPremiumUseCase
+import cash.p.terminal.premium.domain.usecase.CheckAdapterPremiumBalanceUseCase
+import cash.p.terminal.premium.domain.usecase.CheckAdapterPremiumBalanceUseCaseImpl
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCaseImpl
 import cash.p.terminal.premium.domain.usecase.CheckTrialPremiumUseCase
@@ -25,6 +27,7 @@ val featurePremiumModule = module {
     factoryOf(::PremiumUserRepository)
 
     // Use Cases
+    singleOf(::CheckAdapterPremiumBalanceUseCaseImpl) bind CheckAdapterPremiumBalanceUseCase::class
     singleOf(::CheckPremiumUseCaseImpl) bind CheckPremiumUseCase::class
     singleOf(::GetBnbAddressUseCaseImpl) bind GetBnbAddressUseCase::class
     factoryOf(::SeedToEvmAddressUseCase)

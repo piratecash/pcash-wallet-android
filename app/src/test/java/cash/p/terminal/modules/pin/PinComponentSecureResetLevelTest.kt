@@ -2,13 +2,13 @@ package cash.p.terminal.modules.pin
 
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.modules.pin.core.Pin
 import cash.p.terminal.modules.pin.core.PinDao
 import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.modules.pin.core.PinManager
 import cash.p.terminal.domain.usecase.ResetUseCase
-import cash.p.terminal.modules.TestDispatcherProvider
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IPinSettingsStorage
 import io.mockk.clearMocks

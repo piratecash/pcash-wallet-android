@@ -1,7 +1,7 @@
 package cash.p.terminal.modules.pin
 
 import cash.p.terminal.core.App
-import cash.p.terminal.core.DispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.modules.pin.core.LockManager

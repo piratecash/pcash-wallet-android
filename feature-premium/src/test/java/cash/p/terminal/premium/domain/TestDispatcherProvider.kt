@@ -1,6 +1,6 @@
-package cash.p.terminal.modules
+package cash.p.terminal.premium.domain
 
-import cash.p.terminal.core.DispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CoroutineDispatcher
 
 class TestDispatcherProvider(
