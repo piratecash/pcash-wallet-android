@@ -63,6 +63,7 @@ import io.horizontalsystems.core.models.HsTimePeriod
 import io.reactivex.Observable
 import io.reactivex.Single
 import managers.CoinManager
+import org.koin.java.KoinJavaComponent.get
 import org.koin.java.KoinJavaComponent.inject
 import retrofit2.Response
 import java.math.BigDecimal
@@ -628,7 +629,7 @@ class MarketKit(
                 HSCache.cacheQuotaBytes = cacheQuotaBytes
             }
 
-            val marketDatabase = MarketDatabase.getInstance(context)
+            val marketDatabase: MarketDatabase = get(MarketDatabase::class.java)
             val dumpManager = DumpManager(marketDatabase)
             val hsProvider = HsProvider(hsApiBaseUrl, hsApiKey)
             val hsNftProvider = HsNftProvider(hsApiBaseUrl, hsApiKey)

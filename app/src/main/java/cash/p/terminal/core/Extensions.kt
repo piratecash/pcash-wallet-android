@@ -14,8 +14,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.Clipboard
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
@@ -36,7 +39,9 @@ import coil.load
 import io.horizontalsystems.ethereumkit.core.toRawHexString
 import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.hodler.LockTimeInterval
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.parameter.ParametersDefinition
@@ -290,7 +295,23 @@ fun NavController.premiumAction(block: () -> Unit) {
             R.id.aboutPremiumFragment,
             AboutPremiumFragment.CloseOnPremiumInput()
         ) {
-            block.invoke()
+            val backStackEntry = currentBackStackEntry
+            if (backStackEntry != null) {
+                backStackEntry.lifecycleScope.launch {
+                    val job = this
+                    val observer = object : DefaultLifecycleObserver {
+                        override fun onResume(owner: LifecycleOwner) {
+                            super.onResume(owner)
+                            backStackEntry.lifecycle.removeObserver(this)
+                            job.cancel()
+                            block.invoke()
+                        }
+                    }
+                    backStackEntry.lifecycle.addObserver(observer)
+                }
+            } else {
+                block.invoke()
+            }
         }
     }
 }

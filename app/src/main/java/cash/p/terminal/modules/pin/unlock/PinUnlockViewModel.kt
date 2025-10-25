@@ -73,13 +73,13 @@ class PinUnlockViewModel(
             )
 
             if (enteredPin.length == PinModule.PIN_COUNT) {
-                if (unlock(enteredPin)) {
-                    uiState = uiState.copy(unlocked = true)
-                } else {
-                    uiState = uiState.copy(
-                        showShakeAnimation = true
-                    )
-                    viewModelScope.launch {
+                viewModelScope.launch {
+                    if (unlock(enteredPin)) {
+                        uiState = uiState.copy(unlocked = true)
+                    } else {
+                        uiState = uiState.copy(
+                            showShakeAnimation = true
+                        )
                         delay(500)
                         enteredPin = ""
                         uiState = uiState.copy(
@@ -128,7 +128,7 @@ class PinUnlockViewModel(
         }
     }
 
-    private fun unlock(pin: String): Boolean {
+    private suspend fun unlock(pin: String): Boolean {
         if (pinComponent.unlock(pin)) {
             lockoutManager.dropFailedAttempts()
             return true

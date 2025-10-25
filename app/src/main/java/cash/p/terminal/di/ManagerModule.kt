@@ -1,5 +1,6 @@
 package cash.p.terminal.di
 
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.preference.PreferenceManager
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.IBackupManager
@@ -33,7 +34,6 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.DefaultUserManager
-import cash.p.terminal.core.managers.ResetManager
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
@@ -93,9 +93,9 @@ val managerModule = module {
 
     singleOf(::MoneroKitManager)
     singleOf(::MoneroWalletService)
+    singleOf(::GlanceAppWidgetManager)
 
     singleOf(::TransactionAdapterManager)
-    singleOf(::ResetManager)
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class

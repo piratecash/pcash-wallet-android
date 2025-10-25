@@ -9,6 +9,7 @@ import cash.p.terminal.wallet.SubscriptionManager
 import cash.p.terminal.wallet.WalletManager
 import cash.p.terminal.wallet.WalletStorage
 import cash.p.terminal.wallet.providers.CryptoCompareProvider
+import cash.p.terminal.wallet.storage.MarketDatabase
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import org.koin.core.module.dsl.factoryOf
@@ -24,6 +25,7 @@ val walletFeatureModule = module {
     singleOf(::SubscriptionManager)
     factoryOf(::WalletUseCase)
     factoryOf(::CryptoCompareProvider)
+    single { MarketDatabase.getInstance(get()) }
 
     singleOf(::GetHardwarePublicKeyForWalletUseCase)
 

@@ -13,7 +13,6 @@ import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.factories.AdapterFactory
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.AppVersionManager
-import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BaseTokenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
@@ -299,7 +298,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             userManager = userManager,
             pinDbStorage = PinDbStorage(appDatabase.pinDao()),
             backgroundManager = backgroundManager,
-            resetManager = get()
+            dispatcherProvider = get(),
+            resetUseCase = get()
         )
 
         rateAppManager = RateAppManager(walletManager, adapterManager, localStorage)

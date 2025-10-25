@@ -1,7 +1,9 @@
 package cash.p.terminal.modules.pin
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.DispatcherProvider
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.modules.pin.core.LockManager
 import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.modules.pin.core.PinManager
@@ -9,7 +11,6 @@ import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.IPinSettingsStorage
-import cash.p.terminal.core.managers.ResetManager
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 class PinComponent(
@@ -26,10 +28,10 @@ class PinComponent(
     private val userManager: DefaultUserManager,
     private val pinDbStorage: PinDbStorage,
     private val backgroundManager: BackgroundManager,
-    private val resetManager: ResetManager,
+    private val resetUseCase: ResetUseCase,
+    private val dispatcherProvider: DispatcherProvider,
+    private val scope: CoroutineScope = CoroutineScope(Executors.newFixedThreadPool(5).asCoroutineDispatcher())
 ) : IPinComponent {
-
-    private val scope = CoroutineScope(Executors.newFixedThreadPool(5).asCoroutineDispatcher())
 
     init {
         scope.launch {
@@ -129,21 +131,20 @@ class PinComponent(
         userManager.disallowAccountsForDuress()
     }
 
-    override fun unlock(pin: String): Boolean {
-        var pinLevel = pinManager.getPinLevel(pin) ?: return false
+    override suspend fun unlock(pin: String): Boolean = withContext(dispatcherProvider.io) {
+        var pinLevel = pinManager.getPinLevel(pin) ?: return@withContext false
 
         if (pinLevel == SECURE_RESET_PIN_LEVEL) {
-            pinManager.disablePin(SECURE_RESET_PIN_LEVEL)
+            disableSecureResetPin()
+            resetUseCase()
             pinManager.store(pin, STANDARD_PIN_LEVEL)
-
             pinLevel = STANDARD_PIN_LEVEL
-            resetManager.clearData()
         }
 
         appLockManager.onUnlock()
         userManager.setUserLevel(pinLevel)
 
-        return true
+        true
     }
 
     override fun initDefaultPinLevel() {

@@ -4,6 +4,7 @@ import cash.p.terminal.core.DispatcherProvider
 import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.toTonWalletFullAccess
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
+import cash.p.terminal.modules.TestDispatcherProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -18,7 +19,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -188,7 +188,14 @@ class TonConnectNewViewModelTest {
             any<Account>().toTonWalletFullAccess(any(), any(), any())
         } returns mockk(relaxed = true)
         every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
-        coEvery { tonConnectKit.connect(any(), any(), any(), any()) } throws IllegalStateException("boom")
+        coEvery {
+            tonConnectKit.connect(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } throws IllegalStateException("boom")
 
         val viewModel = TonConnectNewViewModel(request, tonConnectKit)
         advanceUntilIdle()
@@ -258,12 +265,4 @@ class TonConnectNewViewModelTest {
         "abandon", "ability", "able", "about", "above", "absent",
         "absorb", "abstract", "absurd", "abuse", "access", "accident"
     )
-
-    private class TestDispatcherProvider(
-        dispatcher: CoroutineDispatcher,
-    ) : DispatcherProvider {
-        override val io: CoroutineDispatcher = dispatcher
-        override val default: CoroutineDispatcher = dispatcher
-        override val main: CoroutineDispatcher = dispatcher
-    }
 }

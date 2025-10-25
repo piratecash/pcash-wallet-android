@@ -7,12 +7,19 @@ import cash.p.terminal.modules.pin.core.Pin
 import cash.p.terminal.modules.pin.core.PinDao
 import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.modules.pin.core.PinManager
+import cash.p.terminal.domain.usecase.ResetUseCase
+import cash.p.terminal.modules.TestDispatcherProvider
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IPinSettingsStorage
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -22,12 +29,15 @@ import org.junit.Test
 
 class PinComponentSecureResetLevelTest {
 
+    private val dispatcher = StandardTestDispatcher()
     private val pinDao = InMemoryPinDao()
     private val pinDbStorage = PinDbStorage(pinDao)
     private val pinManager = PinManager(pinDbStorage)
     private val userManager = mockk<DefaultUserManager>(relaxed = true)
     private val pinSettingsStorage = mockk<IPinSettingsStorage>(relaxed = true)
     private val backgroundManager = mockk<BackgroundManager>(relaxed = true)
+    private val resetUseCase = mockk<ResetUseCase>(relaxed = true)
+    private var secureResetCalled = false
     private lateinit var pinComponent: PinComponent
     private var currentUserLevel = 0
 
@@ -47,12 +57,20 @@ class PinComponentSecureResetLevelTest {
         }
         every { userManager.currentUserLevelFlow } returns MutableStateFlow(currentUserLevel)
 
+        clearMocks(resetUseCase)
+        secureResetCalled = false
+        coEvery { resetUseCase.invoke() } answers {
+            secureResetCalled = true
+        }
+
         pinComponent = PinComponent(
             pinSettingsStorage = pinSettingsStorage,
             userManager = userManager,
             pinDbStorage = pinDbStorage,
             backgroundManager = backgroundManager,
-            resetManager = mockk(relaxed = true)
+            resetUseCase = resetUseCase,
+            dispatcherProvider = TestDispatcherProvider(dispatcher),
+            scope = TestScope()
         )
     }
 
@@ -143,7 +161,7 @@ class PinComponentSecureResetLevelTest {
     }
 
     @Test
-    fun `secure reset pin promotes to primary pin on unlock`() {
+    fun `secure reset pin promotes to primary pin on unlock`() = runTest(dispatcher) {
         setUserLevel(0)
         pinComponent.setPin("3333")
         pinComponent.setSecureResetPin("4444")
@@ -154,6 +172,7 @@ class PinComponentSecureResetLevelTest {
         assertEquals(0, pinManager.getPinLevel("4444"))
         assertFalse(pinComponent.isSecureResetPinSet())
         assertEquals(0, currentUserLevel)
+        assertTrue(secureResetCalled)
     }
 }
 

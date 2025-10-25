@@ -45,7 +45,7 @@ interface IPinComponent {
     fun disablePin()
     fun disableDuressPin()
     fun isDuressPinSet(): Boolean
-    fun unlock(pin: String): Boolean
+    suspend fun unlock(pin: String): Boolean
     fun validateCurrentLevel(pin: String): Boolean
     fun onBiometricUnlock()
     fun initDefaultPinLevel()
