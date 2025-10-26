@@ -65,6 +65,10 @@ class TokenBalanceService(
         }
     }
 
+    fun refreshRates() {
+        xRateRepository.refresh()
+    }
+
     private fun handleXRateUpdate(latestRates: Map<String, CoinPrice?>) {
         balanceItem = balanceItem?.copy(
             coinPrice = latestRates[wallet.coin.uid]

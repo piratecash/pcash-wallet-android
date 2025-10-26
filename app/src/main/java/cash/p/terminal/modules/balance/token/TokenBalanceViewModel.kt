@@ -306,6 +306,8 @@ class TokenBalanceViewModel(
 
     fun refresh() = viewModelScope.launch {
         refreshing = true
+        balanceService.refreshRates()
+
         adapterManager.refreshByWallet(wallet)
         delay(1000) // to show refresh indicator because `refreshByWallet` works asynchronously
         refreshing = false
