@@ -1,8 +1,5 @@
 package cash.p.terminal.modules.balance.ui
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,7 +21,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -32,10 +28,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
-import cash.p.terminal.core.utils.ModuleField
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.modules.backupalert.BackupAlert
 import cash.p.terminal.modules.balance.AccountViewItem
 import cash.p.terminal.modules.balance.BalanceModule
@@ -43,11 +38,7 @@ import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.main.MainFragmentDirections
-import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
-import cash.p.terminal.modules.qrscanner.QRScannerActivity
-import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
-import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -69,17 +60,8 @@ fun BalanceForAccount(
 ) {
     val viewModel = viewModel<BalanceViewModel>(factory = BalanceModule.Factory())
 
-    val context = LocalContext.current
     val invalidUrlBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
-    val qrScannerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.handleScannedData(
-                    result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-                )
-            }
-        }
 
     viewModel.uiState.errorMessage?.let { message ->
         val view = LocalView.current
@@ -117,7 +99,9 @@ fun BalanceForAccount(
                 onConfirm = {
                     coroutineScope.launch {
                         invalidUrlBottomSheetState.hide()
-                        qrScannerLauncher.launch(QRScannerActivity.getScanQrIntent(context, true))
+                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                            viewModel.handleScannedData(scannedText)
+                        }
                     }
                 },
                 onClose = {
@@ -144,46 +128,14 @@ fun BalanceForAccount(
                                     })
                             )
                         }
-                        if (accountViewItem.type.supportsWalletConnect) {
+                        if (!accountViewItem.type.isWatchAccountType) {
                             add(
                                 MenuItem(
                                     title = TranslatableString.ResString(R.string.WalletConnect_NewConnect),
                                     icon = R.drawable.ic_qr_scan_20,
                                     onClick = {
-                                        when (val state =
-                                            viewModel.getWalletConnectSupportState()) {
-                                            WCManager.SupportState.Supported -> {
-                                                qrScannerLauncher.launch(
-                                                    QRScannerActivity.getScanQrIntent(context, true)
-                                                )
-                                            }
-
-                                            WCManager.SupportState.NotSupportedDueToNoActiveAccount -> {
-                                                navController.slideFromBottom(R.id.wcErrorNoAccountFragment)
-                                            }
-
-                                            is WCManager.SupportState.NotSupportedDueToNonBackedUpAccount -> {
-                                                val text =
-                                                    cash.p.terminal.strings.helpers.Translator.getString(
-                                                        R.string.WalletConnect_Error_NeedBackup
-                                                    )
-                                                navController.slideFromBottom(
-                                                    R.id.backupRequiredDialog,
-                                                    BackupRequiredDialog.Input(state.account, text)
-                                                )
-                                            }
-
-                                            is WCManager.SupportState.NotSupported -> {
-                                                navController.slideFromBottom(
-                                                    MainGraphDirections.actionGlobalToAccountTypeNotSupportedDialog(
-                                                        AccountTypeNotSupportedDialog.Input(
-                                                            iconResId = R.drawable.ic_wallet_connect_24,
-                                                            titleResId = R.string.WalletConnect_Title,
-                                                            connectionLabel = context.getString(R.string.WalletConnect_Title)
-                                                        )
-                                                    )
-                                                )
-                                            }
+                                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                                            viewModel.handleScannedData(scannedText)
                                         }
                                     }
                                 )

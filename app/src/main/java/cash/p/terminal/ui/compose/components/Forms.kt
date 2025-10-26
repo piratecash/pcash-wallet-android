@@ -1,9 +1,5 @@
 package cash.p.terminal.ui.compose.components
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +32,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -46,9 +42,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.findNavController
 import cash.p.terminal.R
-import cash.p.terminal.core.utils.ModuleField
-import cash.p.terminal.modules.qrscanner.QRScannerActivity
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
@@ -81,7 +77,7 @@ fun FormsInput(
     onValueChange: (String) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val context = LocalContext.current
+    val view = LocalView.current
 
     val borderColor = when (state) {
         is DataState.Error -> {
@@ -217,12 +213,11 @@ fun FormsInput(
                 )
             } else {
                 if (qrScannerEnabled) {
-                    val qrScannerLauncher =
-                        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-                            if (result.resultCode == Activity.RESULT_OK) {
-                                val scannedText =
-                                    result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-
+                    ButtonSecondaryCircle(
+                        modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
+                        icon = R.drawable.ic_qr_scan_20,
+                        onClick = {
+                            view.findNavController().openQrScanner { scannedText ->
                                 val textProcessed = textPreprocessor.process(scannedText)
                                 textState = TextFieldValue(
                                     text = textProcessed,
@@ -230,13 +225,6 @@ fun FormsInput(
                                 )
                                 onValueChange(textProcessed)
                             }
-                        }
-
-                    ButtonSecondaryCircle(
-                        modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
-                        icon = R.drawable.ic_qr_scan_20,
-                        onClick = {
-                            qrScannerLauncher.launch(QRScannerActivity.getScanQrIntent(context))
                         }
                     )
                 }
@@ -308,7 +296,7 @@ fun FormsInputMultiline(
     onPaste: (() -> Unit)? = null,
     onScanQR: (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
+    val view = LocalView.current
 
     val borderColor = when (state) {
         is DataState.Error -> {
@@ -443,12 +431,11 @@ fun FormsInputMultiline(
                     )
                 } else {
                     if (qrScannerEnabled) {
-                        val qrScannerLauncher =
-                            rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-                                if (result.resultCode == Activity.RESULT_OK) {
-                                    val scannedText =
-                                        result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-
+                        ButtonSecondaryCircle(
+                            modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
+                            icon = R.drawable.ic_qr_scan_20,
+                            onClick = {
+                                view.findNavController().openQrScanner { scannedText ->
                                     val textProcessed = textPreprocessor.process(scannedText)
                                     textState = textState.copy(
                                         text = textProcessed,
@@ -456,13 +443,6 @@ fun FormsInputMultiline(
                                     )
                                     onValueChange.invoke(textProcessed)
                                 }
-                            }
-
-                        ButtonSecondaryCircle(
-                            modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
-                            icon = R.drawable.ic_qr_scan_20,
-                            onClick = {
-                                qrScannerLauncher.launch(QRScannerActivity.getScanQrIntent(context))
 
                                 onScanQR?.invoke()
                             }

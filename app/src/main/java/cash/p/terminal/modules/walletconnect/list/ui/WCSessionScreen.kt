@@ -1,8 +1,5 @@
 package cash.p.terminal.modules.walletconnect.list.ui
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,10 +27,9 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.managers.FaqManager
-import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
-import cash.p.terminal.modules.qrscanner.QRScannerActivity
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListUiState
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
@@ -55,21 +50,12 @@ fun WCSessionsScreen(
     deepLinkUri: String?,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
-    val context = LocalContext.current
     val invalidUrlBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
 
     val viewModel = viewModel<WalletConnectListViewModel>(
         factory = WalletConnectListModule.Factory()
     )
-    val qrScannerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.setConnectionUri(
-                    result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-                )
-            }
-        }
 
     val uiState by viewModel.uiState.collectAsState(initial = WalletConnectListUiState())
 
@@ -112,7 +98,9 @@ fun WCSessionsScreen(
                 onConfirm = {
                     coroutineScope.launch {
                         invalidUrlBottomSheetState.hide()
-                        qrScannerLauncher.launch(QRScannerActivity.getScanQrIntent(context, true))
+                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                            viewModel.setConnectionUri(scannedText)
+                        }
                     }
                 },
                 onClose = {
@@ -166,12 +154,9 @@ fun WCSessionsScreen(
                             .fillMaxWidth(),
                         title = stringResource(R.string.WalletConnect_NewConnect),
                         onClick = {
-                            qrScannerLauncher.launch(
-                                QRScannerActivity.getScanQrIntent(
-                                    context,
-                                    true
-                                )
-                            )
+                            navController.openQrScanner(showPasteButton = true) { scannedText ->
+                                viewModel.setConnectionUri(scannedText)
+                            }
                         }
                     )
                 }

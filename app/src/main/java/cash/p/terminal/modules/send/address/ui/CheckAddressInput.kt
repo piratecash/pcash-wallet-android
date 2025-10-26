@@ -1,9 +1,5 @@
 package cash.p.terminal.modules.send.address.ui
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
@@ -27,15 +23,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.findNavController
 import cash.p.terminal.R
-import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.entities.Address
-import cash.p.terminal.modules.qrscanner.QRScannerActivity
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.entities.DataState
@@ -52,7 +48,7 @@ fun CheckAddressInput(
     onValueChange: (String) -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val context = LocalContext.current
+    val view = LocalView.current
 
     val borderColor = when (state) {
         is DataState.Error -> {
@@ -120,21 +116,13 @@ fun CheckAddressInput(
                     }
                 )
             } else {
-                val qrScannerLauncher =
-                    rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-                        if (result.resultCode == Activity.RESULT_OK) {
-                            val scannedText =
-                                result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-
-                            onValueChange.invoke(scannedText)
-                        }
-                    }
-
                 ButtonSecondaryCircle(
                     modifier = Modifier.padding(end = 8.dp),
                     icon = R.drawable.ic_qr_scan_20,
                     onClick = {
-                        qrScannerLauncher.launch(QRScannerActivity.getScanQrIntent(context))
+                        view.findNavController().openQrScanner { scannedText ->
+                            onValueChange.invoke(scannedText)
+                        }
                     }
                 )
 

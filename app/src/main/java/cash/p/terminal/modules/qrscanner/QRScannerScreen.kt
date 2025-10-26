@@ -1,15 +1,9 @@
 package cash.p.terminal.modules.qrscanner
 
 import android.Manifest
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.provider.Settings
-import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,21 +18,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,89 +45,50 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.zxing.client.android.Intents
-import com.journeyapps.barcodescanner.CompoundBarcodeView
-import com.journeyapps.barcodescanner.ScanOptions
+import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.BaseActivity
-import cash.p.terminal.core.utils.ModuleField
-import cash.p.terminal.ui_compose.theme.Dark
-import cash.p.terminal.ui_compose.theme.SteelLight
+import cash.p.terminal.core.premiumAction
+import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.components.ButtonPrimary
+import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaultWithIcon
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.title3_leah
-import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-
-class QRScannerActivity : BaseActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setContent {
-            QRScannerScreen(
-                showPasteButton = intent.getBooleanExtra(SHOW_PASTE_BUTTON, false),
-                onScan = { onScan(it) },
-                onCloseClick = { finish() },
-                onCameraPermissionSettingsClick = { openCameraPermissionSettings() }
-            )
-        }
-    }
-
-    private fun onScan(address: String?) {
-        setResult(RESULT_OK, Intent().apply {
-            putExtra(ModuleField.SCAN_ADDRESS, address)
-        })
-        //slow down fast transition to new window
-        Handler(Looper.getMainLooper()).postDelayed({
-            finish()
-        }, 1000)
-    }
-
-    private fun openCameraPermissionSettings() {
-        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri: Uri = Uri.fromParts("package", packageName, null)
-        intent.data = uri
-        startActivity(intent)
-    }
-
-    companion object {
-        private const val SHOW_PASTE_BUTTON = "show_paste_button_key"
-
-        fun getScanQrIntent(context: Context, showPasteButton: Boolean = false): Intent {
-            val options = ScanOptions()
-            options.captureActivity = QRScannerActivity::class.java
-            options.setOrientationLocked(true)
-            options.setPrompt("")
-            options.setBeepEnabled(false)
-            options.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            val intent = options.createScanIntent(context)
-            intent.putExtra(SHOW_PASTE_BUTTON, showPasteButton)
-            intent.putExtra(Intents.Scan.SCAN_TYPE, Intents.Scan.MIXED_SCAN)
-            return intent
-        }
-    }
-
-}
+import cash.p.terminal.ui_compose.theme.Dark
+import cash.p.terminal.ui_compose.theme.SteelLight
+import cash.p.terminal.ui_compose.theme.YellowD
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionStatus
+import com.google.accompanist.permissions.rememberPermissionState
+import com.journeyapps.barcodescanner.CompoundBarcodeView
+import com.journeyapps.barcodescanner.ScanOptions
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-private fun QRScannerScreen(
+fun QRScannerScreen(
+    uiState: QRScannerUiState,
+    navController: NavController,
     showPasteButton: Boolean,
-    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
     onScan: (String) -> Unit,
     onCloseClick: () -> Unit,
-    onCameraPermissionSettingsClick: () -> Unit
+    onCameraPermissionSettingsClick: () -> Unit,
+    onGalleryImagePicked: (Uri) -> Unit,
+    onErrorMessageConsumed: () -> Unit,
+    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     var showPermissionNeededDialog by remember { mutableStateOf(cameraPermissionState.status != PermissionStatus.Granted) }
+    val view = LocalView.current
+
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let(onGalleryImagePicked)
+        }
 
     if (showPermissionNeededDialog) {
         PermissionNeededDialog(
@@ -141,6 +100,13 @@ private fun QRScannerScreen(
                 showPermissionNeededDialog = false
             }
         )
+    }
+
+    LaunchedEffect(uiState.errorMessageRes) {
+        uiState.errorMessageRes?.let { errorRes ->
+            HudHelper.showErrorMessage(view, errorRes)
+            onErrorMessageConsumed()
+        }
     }
 
     ComposeAppTheme {
@@ -168,17 +134,39 @@ private fun QRScannerScreen(
                     .align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(24.dp))
                 if (showPasteButton) {
                     ButtonPrimaryYellow(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
                         title = stringResource(R.string.Send_Button_Paste),
-                        onClick = { onScan(TextHelper.getCopiedText()) }
+                        enabled = !uiState.isDecodingFromImage,
+                        onClick = {
+                            onScan(TextHelper.getCopiedText())
+                        }
                     )
-                    Spacer(Modifier.height(16.dp))
                 }
+
+                ButtonPrimaryDefaultWithIcon(
+                    icon = R.drawable.star_filled_yellow_16,
+                    iconTint = YellowD,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    title = stringResource(R.string.choose_from_photos),
+                    enabled = !uiState.isDecodingFromImage,
+                    onClick = {
+                        navController.premiumAction {
+                            galleryLauncher.launch(GALLERY_MIME_TYPE)
+                        }
+                    }
+                )
+
                 ButtonPrimary(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    enabled = !uiState.isDecodingFromImage,
                     content = {
                         Text(
                             text = stringResource(R.string.Button_Cancel),
@@ -197,20 +185,48 @@ private fun QRScannerScreen(
                 )
                 Spacer(Modifier.height(48.dp))
             }
+
+            if (uiState.isDecodingFromImage) {
+                LoadingOverlay()
+            }
         }
+    }
+}
+
+@Composable
+private fun LoadingOverlay() {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(ComposeAppTheme.colors.tyler.copy(alpha = 0.7f)),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.material.CircularProgressIndicator(
+            modifier = Modifier.size(48.dp),
+            color = ComposeAppTheme.colors.leah
+        )
     }
 }
 
 @Composable
 private fun ScannerView(onScan: (String) -> Unit) {
     val context = LocalContext.current
-    val barcodeView = remember {
+    val latestOnScan = rememberUpdatedState(onScan)
+    val scanIntent = remember(context) {
+        ScanOptions()
+            .setOrientationLocked(true)
+            .setPrompt("")
+            .setBeepEnabled(false)
+            .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+            .createScanIntent(context)
+    }
+    val barcodeView = remember(scanIntent) {
         CompoundBarcodeView(context).apply {
-            this.initializeFromIntent((context as Activity).intent)
-            this.setStatusText("")
-            this.decodeSingle { result ->
-                result.text?.let { barCodeOrQr ->
-                    onScan.invoke(barCodeOrQr)
+            initializeFromIntent(scanIntent)
+            setStatusText("")
+            decodeSingle { result ->
+                result.text?.let { decoded ->
+                    latestOnScan.value(decoded)
                 }
             }
         }
@@ -318,8 +334,10 @@ private fun PermissionNeededDialog(
 
 @Preview
 @Composable
-private fun Preview_PermissionNeededDialog() {
+private fun PermissionNeededDialogPreview() {
     ComposeAppTheme {
         PermissionNeededDialog({}, {})
     }
 }
+
+private const val GALLERY_MIME_TYPE = "image/*"

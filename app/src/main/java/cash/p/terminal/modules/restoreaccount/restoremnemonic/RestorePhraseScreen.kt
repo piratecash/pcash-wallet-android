@@ -1,11 +1,7 @@
 package cash.p.terminal.modules.restoreaccount.restoremnemonic
 
-import android.app.Activity
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,13 +62,13 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.findNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.displayNameStringRes
-import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.core.utils.Utils
 import cash.p.terminal.modules.createaccount.MnemonicLanguageCell
 import cash.p.terminal.modules.createaccount.PassphraseCell
-import cash.p.terminal.modules.qrscanner.QRScannerActivity
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreByMenu
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
@@ -124,6 +121,7 @@ fun RestorePhrase(
     val viewModel = koinViewModel<RestoreMnemonicViewModel>()
     val uiState = viewModel.uiState
     val context = LocalContext.current
+    val view = LocalView.current
 
     var textState by rememberSaveable("", stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -131,17 +129,6 @@ fun RestorePhrase(
     var showCustomKeyboardDialog by remember { mutableStateOf(false) }
     var isMnemonicPhraseInputFocused by remember { mutableStateOf(false) }
     val keyboardState by observeKeyboardState()
-
-    val qrScannerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                val scannedText = result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-
-                textState =
-                    textState.copy(text = scannedText, selection = TextRange(scannedText.length))
-                viewModel.onEnterMnemonicPhrase(scannedText, scannedText.length)
-            }
-        }
 
     val borderColor = if (uiState.error != null) {
         ComposeAppTheme.colors.red50
@@ -288,9 +275,13 @@ fun RestorePhrase(
                                 modifier = Modifier.padding(end = 8.dp),
                                 icon = R.drawable.ic_qr_scan_20,
                                 onClick = {
-                                    qrScannerLauncher.launch(
-                                        QRScannerActivity.getScanQrIntent(context)
-                                    )
+                                    view.findNavController().openQrScanner { scannedText ->
+                                        textState = textState.copy(
+                                            text = scannedText,
+                                            selection = TextRange(scannedText.length)
+                                        )
+                                        viewModel.onEnterMnemonicPhrase(scannedText, scannedText.length)
+                                    }
                                 }
                             )
 

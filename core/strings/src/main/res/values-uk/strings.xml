@@ -368,6 +368,8 @@
     <string name="ScanQr_NoCameraPermission">Немає дозволу для камери</string>
     <string name="ScanQr_CameraPermissionDeniedText">Доступ до камери для цього застосунку заборонено, ви можете перейти в налаштування та дозволити доступ</string>
     <string name="ScanQr_GoToSettings">Перейти в налаштування</string>
+    <string name="choose_from_photos">Вибрати з фото</string>
+    <string name="image_decode_failed">Не вдалося зчитати QR-код із вибраного зображення</string>
     <string name="Send_Error_UnsupportedAddress">TimeLock працює тільки при надсиланні на платіжні адреси, що починаються з 1... (також відомих як BIP44 адреси)</string>
     <string name="Send_Error_MinimumAmount">Мін. сума %s</string>
     <string name="Send_Error_MaximumAmount">Макс. сума %s</string>

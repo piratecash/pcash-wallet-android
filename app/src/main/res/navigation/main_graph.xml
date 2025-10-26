@@ -536,6 +536,14 @@
         android:id="@id/aboutPremiumFragment"
         android:name="cash.p.terminal.modules.premium.about.AboutPremiumFragment"/>
     <fragment
+        android:id="@+id/qrScannerFragment"
+        android:name="cash.p.terminal.modules.qrscanner.QRScannerFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.qrscanner.QRScannerFragment$Input"
+            app:nullable="true" />
+    </fragment>
+    <fragment
         android:id="@+id/premiumSettingsFragment"
         android:name="cash.p.terminal.modules.premium.settings.PremiumSettingsFragment"/>
     <fragment

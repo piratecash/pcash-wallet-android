@@ -1,8 +1,5 @@
 package cash.p.terminal.modules.tonconnect
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,17 +15,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
-import cash.p.terminal.core.utils.ModuleField
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
-import cash.p.terminal.modules.qrscanner.QRScannerActivity
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.components.AppBar
@@ -44,18 +39,8 @@ fun TonConnectMainScreen(
     navController: NavController, deepLinkUri: String?,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
-    val context = LocalContext.current
     val invalidUrlBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
-
-    val qrScannerLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                viewModel.setConnectionUri(
-                    result.data?.getStringExtra(ModuleField.SCAN_ADDRESS) ?: ""
-                )
-            }
-        }
 
     val uiState = viewModel.uiState
 
@@ -96,7 +81,9 @@ fun TonConnectMainScreen(
                 onConfirm = {
                     coroutineScope.launch {
                         invalidUrlBottomSheetState.hide()
-                        qrScannerLauncher.launch(QRScannerActivity.getScanQrIntent(context, true))
+                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                            viewModel.setConnectionUri(scannedText)
+                        }
                     }
                 },
                 onClose = {
@@ -142,12 +129,9 @@ fun TonConnectMainScreen(
                             .fillMaxWidth(),
                         title = stringResource(R.string.TonConnect_NewConnect),
                         onClick = {
-                            qrScannerLauncher.launch(
-                                QRScannerActivity.getScanQrIntent(
-                                    context,
-                                    true
-                                )
-                            )
+                            navController.openQrScanner(showPasteButton = true) { scannedText ->
+                                viewModel.setConnectionUri(scannedText)
+                            }
                         }
                     )
                 }

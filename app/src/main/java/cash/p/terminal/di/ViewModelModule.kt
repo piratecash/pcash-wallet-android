@@ -2,9 +2,10 @@ package cash.p.terminal.di
 
 import io.horizontalsystems.core.DefaultDispatcherProvider
 import io.horizontalsystems.core.DispatcherProvider
-import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
+import cash.p.terminal.modules.qrscanner.QRScannerViewModel
+import cash.p.terminal.modules.qrscanner.QrCodeImageDecoder
 import cash.p.terminal.modules.premium.about.AboutPremiumViewModel
 import cash.p.terminal.modules.premium.settings.PremiumSettingsViewModel
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
@@ -24,14 +25,16 @@ import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTerms
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import org.koin.core.module.dsl.singleOf
-import org.koin.dsl.bind
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val viewModelModule = module {
     singleOf(::DefaultDispatcherProvider) bind DispatcherProvider::class
+    singleOf(::QrCodeImageDecoder)
 
     viewModelOf(::MainActivityViewModel)
     viewModelOf(::DisplayTransactionsViewModel)
@@ -48,6 +51,7 @@ val viewModelModule = module {
     viewModelOf(::DisplayOptionsViewModel)
     viewModelOf(::TonConnectListViewModel)
     viewModelOf(::ZcashConfigureViewModel)
+    viewModelOf(::QRScannerViewModel)
     viewModel { (input: AccountTypeNotSupportedDialog.Input) ->
         AccountTypeNotSupportedViewModel(input = input, accountManager = get())
     }
