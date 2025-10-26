@@ -1,3 +1,19 @@
+## 🚀 Main changes in version 0.48.2
+_Release date: October 26, 2025_
+
+### ✨ New features
+- **Premium: Delete all wallets**
+  - Added a new feature — **delete all wallets using a secret PIN code**.
+    Instantly wipe the app in an emergency to protect your privacy.
+- **Exchange rates refresh:**
+  - Pulling down on the main screen now **forces a real-time update of coin prices**.
+
+### 🛠 Fixes and improvements
+- **Premium mode:**
+  - Improved **premium status verification**, increasing stability and reliability of feature activation.
+
+
+
 ## 🚀 Main changes in version 0.48.1
 _Release date: October 24, 2025_
 
