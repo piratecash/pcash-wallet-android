@@ -77,15 +77,6 @@ class MainSettingsViewModel(
     val currentAccountSupportsTonConnect: Boolean
         get() = accountManager.activeAccount?.supportsTonConnect() == true
 
-    private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
-        .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
-
-
     private var wcCounterType: CounterType? = null
     private var wcSessionsCount = walletConnectSessionCount
     private var wcPendingRequestCount = 0
