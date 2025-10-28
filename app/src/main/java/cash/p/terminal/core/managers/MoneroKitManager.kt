@@ -32,6 +32,7 @@ import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.SafeSuspendedCall
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -164,6 +165,9 @@ class MoneroKitWrapper(
     private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase by inject(
         IGetMoneroWalletFilesNameUseCase::class.java
     )
+    private val logger = AppLogger("monero-kit").getScoped(account.id)
+    private var lastLoggedConnectionStatus: ConnectionStatus? = null
+    private var lastLoggedSyncProgress: Int = -1
 
     private var isStarted = false
     private val initializing = AtomicBoolean(false)
@@ -185,6 +189,7 @@ class MoneroKitWrapper(
         account: Account,
         height: Long
     ) {
+        logger.info("restoreFromBip39: height=$height")
         val accountType = account.type as? AccountType.Mnemonic
             ?: throw UnsupportedAccountException()
         val restoredAccount = moneroWalletUseCase.restoreFromBip39(
@@ -203,6 +208,9 @@ class MoneroKitWrapper(
 
     suspend fun start(fixIfCorruptedFile: Boolean = true) = withContext(Dispatchers.IO) {
         if (!isStarted && initializing.compareAndSet(false, true)) {
+            logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, currentState=isStarted=$isStarted initializing=${initializing.get()}")
+            lastLoggedSyncProgress = -1
+            lastLoggedConnectionStatus = null
             _syncState.value = AdapterState.Syncing()
             try {
                 val walletFileName: String
@@ -210,13 +218,16 @@ class MoneroKitWrapper(
                 val accountType = account.type
                 when (accountType) {
                     is AccountType.MnemonicMonero -> {
+                        logger.info("start: using AccountType.MnemonicMonero")
                         walletFileName = accountType.walletInnerName
                         walletPassword = accountType.password
                     }
 
                     is AccountType.Mnemonic -> {
+                        logger.info("start: using AccountType.Mnemonic")
                         // Enable first time
                         if (moneroFileDao.getAssociatedRecord(account.id) == null) {
+                            logger.info("start: no associated wallet files, restoring from mnemonic")
                             val restoreSettings =
                                 restoreSettingsManager.settings(account, BlockchainType.Monero)
                             val height = restoreSettings.birthdayHeight
@@ -242,9 +253,13 @@ class MoneroKitWrapper(
                     else -> throw UnsupportedAccountException()
                 }
 
-                MoneroConfig.autoSelectNode()?.let {
+                val selectedNode = MoneroConfig.autoSelectNode()
+                if (selectedNode != null) {
+                    logger.info("start: auto-selected node=$selectedNode")
                     WalletManager.getInstance()
-                        .setDaemon(it)
+                        .setDaemon(selectedNode)
+                } else {
+                    logger.info("start: autoSelectNode returned null")
                 }
 
                 /*val walletFolder: File = Helper.getWalletRoot(App.instance)
@@ -252,12 +267,16 @@ class MoneroKitWrapper(
                 fixCorruptedWalletFile(walletKeyFile.absolutePath, walletPassword)*/
 
                 moneroWalletService.setObserver(this@MoneroKitWrapper)
+                logger.info("start: invoking startService for walletFileName=$walletFileName")
                 startService(walletFileName, walletPassword, fixIfCorruptedFile)
                 isStarted = true
-
+                logger.info(
+                    "start: completed startService, connection=${moneroWalletService.connectionStatus}, walletStatus=${moneroWalletService.wallet?.status}"
+                )
                 fixWalletHeight()
             } catch (e: Exception) {
                 _syncState.value = AdapterState.NotSynced(e)
+                logger.warning("start: failed with exception", e)
                 Timber.e(e, "Failed to start Monero wallet")
             } finally {
                 initializing.set(false)
@@ -270,21 +289,32 @@ class MoneroKitWrapper(
         walletPassword: String,
         fixIfCorruptedFile: Boolean
     ) {
+        logger.info("startService: start walletFileName=$walletFileName fixIfCorruptedFile=$fixIfCorruptedFile")
         try {
             val walletStatus = moneroWalletService.start(walletFileName, walletPassword)
+            logger.info(
+                "startService: initial status=${walletStatus?.toString()} isOk=${walletStatus?.isOk} connection=${walletStatus?.connectionStatus}"
+            )
             if (walletStatus?.isOk != true) {
+                logger.info("startService: wallet status not ok, scheduling retry")
                 Timber.d("Monero wallet start error: $walletStatus, restarting")
                 if (walletStatus?.connectionStatus == ConnectionStatus.ConnectionStatus_Disconnected) {
+                    logger.info("startService: detected disconnected status, aborting start")
                     throw Exception("No internet connection")
                 } else {
                     delay(3_000)
-                    moneroWalletService.start(walletFileName, walletPassword)
+                    val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
+                    logger.info(
+                        "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} connection=${retryStatus?.connectionStatus}"
+                    )
                 }
             }
         } catch (e: WalletCorruptedException) {
+            logger.warning("startService: WalletCorruptedException received", e)
             try {
                 if (fixIfCorruptedFile) {
                     Timber.e(e, "WalletCorruptedException, trying to fix wallet")
+                    logger.info("startService: attempting wallet fix after corruption")
                     restoreSettingsManager.settings(
                         account,
                         BlockchainType.Monero
@@ -293,10 +323,15 @@ class MoneroKitWrapper(
                     }
                 } else {
                     Timber.e(e, "WalletCorruptedException, fix disabled")
+                    logger.info("startService: wallet fix disabled, corruption remains")
                 }
             } catch (ex: Exception) {
+                logger.warning("startService: failed while handling WalletCorruptedException", ex)
                 Timber.e(ex, "Failed to fix corrupted wallet")
             }
+        } catch (e: Exception) {
+            logger.warning("startService: unexpected exception", e)
+            throw e
         }
     }
 
@@ -307,6 +342,7 @@ class MoneroKitWrapper(
         walletKeysFileName: String,
         walletPassword: String
     ) {
+        logger.info("fixCorruptedWalletFile: check walletKeysFileName=$walletKeysFileName")
         if ((account.type as? AccountType.Mnemonic)?.kind != MnemonicKind.Mnemonic12) return
 
         if (WalletManager.getInstance()
@@ -315,6 +351,7 @@ class MoneroKitWrapper(
 
         val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
         Timber.d("Fixing corrupted wallet file with height: ${restoreSettings.birthdayHeight}")
+        logger.info("fixCorruptedWalletFile: fixing with restoreHeight=${restoreSettings.birthdayHeight}")
         restoreSettings.birthdayHeight?.let {
             resetWalletAndRestart(it)
         }
@@ -325,16 +362,19 @@ class MoneroKitWrapper(
             (account.type as? AccountType.Mnemonic)?.kind != MnemonicKind.Mnemonic12
         ) return
 
+        logger.info("fixWalletHeight: restoreHeight missing, resetting to validated height")
         // Use day of publishing this changes on google play as height
         // to fix possible first day of using this feature by users
         resetWalletAndRestart(validateMoneroHeightUseCase("2025-08-13"))
     }
 
     private suspend fun resetWalletAndRestart(birthdayHeight: Long) {
+        logger.info("resetWalletAndRestart: requested with birthdayHeight=$birthdayHeight")
         stop(false)
         getMoneroWalletFilesNameUseCase(account)?.also {
             val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
             val heightNeedToUpdate = restoreSettings.birthdayHeight != birthdayHeight
+            logger.info("resetWalletAndRestart: delete walletFile=$it heightNeedsUpdate=$heightNeedToUpdate")
             if (heightNeedToUpdate) {
                 restoreSettings.birthdayHeight = birthdayHeight
             }
@@ -347,26 +387,36 @@ class MoneroKitWrapper(
             }
         }
         start(fixIfCorruptedFile = false)
+        logger.info("resetWalletAndRestart: restart complete")
     }
 
     suspend fun stop(saveWallet: Boolean = true) = SafeSuspendedCall.executeSuspendable {
         withContext(Dispatchers.IO) {
             if (isStarted) {
+                logger.info("stop: stopping service saveWallet=$saveWallet")
                 isStarted = false
                 moneroWalletService.stop(saveWallet)
+                lastLoggedSyncProgress = -1
+                lastLoggedConnectionStatus = null
+                logger.info("stop: service stopped")
+            } else {
+                logger.info("stop: skip, service already stopped")
             }
         }
     }
 
     suspend fun refresh() {
         if (_syncState.value is AdapterState.Syncing || initializing.get()) {
+            logger.info("refresh: skip, already syncing or initializing")
             Timber.d("MoneroKitWrapper: Already syncing, skipping refresh")
             return
         }
         try {
+            logger.info("refresh: restarting wallet")
             stop()
             start()
         } catch (e: Exception) {
+            logger.warning("refresh: failed to restart wallet", e)
             Log.e("MoneroKitWrapper", "Failed to refresh Monero wallet", e)
         }
     }
@@ -406,6 +456,9 @@ class MoneroKitWrapper(
     }
 
     fun statusInfo(): Map<String, Any> {
+        logger.info(
+            "statusInfo: connection=${moneroWalletService.connectionStatus} wallet=${moneroWalletService.wallet?.status} isStarted=$isStarted restoreHeight=${moneroWalletService.wallet?.restoreHeight}"
+        )
         return mapOf(
             "connectionStatus" to moneroWalletService.connectionStatus,
             "walletStatus" to moneroWalletService.wallet?.status?.toString().orEmpty(),
@@ -421,6 +474,7 @@ class MoneroKitWrapper(
             Timber.d("getBalance: ${moneroWalletService.wallet?.balance}")
             moneroWalletService.wallet?.balance ?: 0L
         } catch (e: Exception) {
+            logger.warning("getBalance: failed to fetch balance", e)
             Timber.d("getBalance: Failed to get balance")
             0L
         }
@@ -430,6 +484,7 @@ class MoneroKitWrapper(
         return try {
             moneroWalletService.wallet!!.address
         } catch (e: Exception) {
+            logger.warning("getAddress: failed to fetch address", e)
             Log.e("MoneroKitWrapper", "Failed to get address", e)
             ""
         }
@@ -446,6 +501,7 @@ class MoneroKitWrapper(
             }
             transactions
         } catch (e: Exception) {
+            logger.warning("getTransactions: failed to fetch transactions", e)
             Timber.d("getTransactions: Failed to get transactions")
             emptyList()
         }
@@ -455,7 +511,16 @@ class MoneroKitWrapper(
         wallet: Wallet?,
         full: Boolean
     ): Boolean {
-        if (moneroWalletService.connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
+        val connectionStatus = moneroWalletService.connectionStatus
+
+        if (connectionStatus != lastLoggedConnectionStatus) {
+            logger.info(
+                "onRefreshed: connection=$connectionStatus full=$full isSynchronized=${wallet?.isSynchronized} daemonHeight=${moneroWalletService.daemonHeight} walletHeight=${wallet?.blockChainHeight}"
+            )
+            lastLoggedConnectionStatus = connectionStatus
+        }
+
+        if (connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
             _lastBlockInfoFlow.value = if (moneroWalletService.daemonHeight != 0L) {
                 LastBlockInfo(moneroWalletService.daemonHeight.toInt())
             } else {
@@ -463,16 +528,22 @@ class MoneroKitWrapper(
             }
         }
 
-        if (moneroWalletService.connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
+        if (connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
             _transactionsStateUpdatedFlow.tryEmit(Unit)
         }
 
         _syncState.value =
-            if (moneroWalletService.connectionStatus != ConnectionStatus.ConnectionStatus_Connected) {
+            if (connectionStatus != ConnectionStatus.ConnectionStatus_Connected) {
                 Timber.d("MoneroKitWrapper: Not connected")
+                logger.info("onRefreshed: connection lost, setting state=NotSynced")
+                lastLoggedSyncProgress = -1
                 AdapterState.NotSynced(IllegalStateException("Not connected"))
             } else if (moneroWalletService.wallet?.isSynchronized == true) {
                 Timber.d("MoneroKitWrapper: Synced")
+                logger.info(
+                    "onRefreshed: wallet synchronized at height=${moneroWalletService.wallet?.blockChainHeight}"
+                )
+                lastLoggedSyncProgress = 100
                 AdapterState.Synced
             } else {
                 Timber.d("MoneroKitWrapper: Sync in progress")
@@ -493,6 +564,17 @@ class MoneroKitWrapper(
                     }
                 }.getOrElse { 0 }
 
+                if (progressPercent == 0 && lastLoggedSyncProgress != 0) {
+                    logger.info("onRefreshed: sync progress started (0%)")
+                }
+                if (progressPercent >= 100 && lastLoggedSyncProgress < 100) {
+                    logger.info("onRefreshed: sync progress reached 100%")
+                }
+                if (progressPercent - lastLoggedSyncProgress >= 5 && progressPercent in 1..99) {
+                    logger.info("onRefreshed: sync progress=${progressPercent}%")
+                }
+                lastLoggedSyncProgress = progressPercent
+
                 AdapterState.Syncing(progressPercent.toInt())
             }
         Timber
@@ -501,14 +583,21 @@ class MoneroKitWrapper(
     }
 
     override fun onProgress(text: String?) {
+        if (!text.isNullOrBlank()) {
+            logger.info("onProgress(text): $text")
+        }
         Timber.d("onProgress: $text")
     }
 
     override fun onProgress(n: Int) {
+        if (n % 10 == 0) {
+            logger.info("onProgress(value): $n")
+        }
         Timber.d("onProgress: $n")
     }
 
     override fun onWalletStored(success: Boolean) {
+        logger.info("onWalletStored: success=$success")
         Timber.d("onWalletStored: $success")
     }
 
@@ -516,18 +605,22 @@ class MoneroKitWrapper(
         tag: String?,
         pendingTransaction: PendingTransaction?
     ) {
+        logger.info("onTransactionCreated: tag=$tag status=${pendingTransaction?.status}")
         Timber.d("onTransactionCreated: $tag, $pendingTransaction")
     }
 
     override fun onTransactionSent(txid: String?) {
+        logger.info("onTransactionSent: txid=${txid ?: "null"}")
         Timber.d("onTransactionSent: $txid")
     }
 
     override fun onSendTransactionFailed(error: String?) {
+        logger.info("onSendTransactionFailed: error=$error")
         Timber.d("onSendTransactionFailed: $error")
     }
 
     override fun onWalletStarted(walletStatus: Wallet.Status?) {
+        logger.info("onWalletStarted: status=${walletStatus?.toString()} isSynchronized=${moneroWalletService.wallet?.isSynchronized}")
         Timber.d("onWalletStarted: $walletStatus")
         if (moneroWalletService.wallet?.isSynchronized == true) {
             println("MoneroKitWrapper: Synced")
