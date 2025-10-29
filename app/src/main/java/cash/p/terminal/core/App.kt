@@ -469,7 +469,7 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         }
     }
 
-    override val workManagerConfiguration: androidx.work.Configuration
+    override val workManagerConfiguration: WorkConfiguration
         get() = if (BuildConfig.DEBUG) {
             WorkConfiguration.Builder()
                 .setMinimumLoggingLevel(Log.DEBUG)
@@ -527,7 +527,9 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             marketKit.sync(needForceUpdateCoins())
             rateAppManager.onAppLaunch()
             nftMetadataSyncer.start()
-            pinComponent.initDefaultPinLevel()
+            if (!pinComponent.isPinSet) {
+                pinComponent.initDefaultPinLevel()
+            }
             clearDeletedAccounts()
             wcSessionManager.start()
 

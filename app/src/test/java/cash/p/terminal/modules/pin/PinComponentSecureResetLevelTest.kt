@@ -222,6 +222,87 @@ class PinComponentSecureResetLevelTest {
         assertFalse(pinComponent.isSecureResetPinSet())
         assertEquals(null, pinManager.getPinLevel("6666"))
     }
+
+    @Test
+    fun `initDefaultPinLevel should restore user level from database after app restart`() {
+        // Simulation: User has set PIN at level 0
+        pinComponent.setPin("1234")
+        assertEquals(0, pinManager.getPinLevel("1234"))
+        assertEquals(0, currentUserLevel)
+
+        // Simulate app restart:
+        // 1. DefaultUserManager is recreated with currentUserLevel = Int.MAX_VALUE
+        currentUserLevel = Int.MAX_VALUE
+        assertEquals(Int.MAX_VALUE, currentUserLevel)
+
+        // 2. On app start, initDefaultPinLevel() should be called
+        // which restores the level from database
+        pinComponent.initDefaultPinLevel()
+
+        // EXPECTATION: currentUserLevel should be restored to 0
+        assertEquals(0, currentUserLevel)
+    }
+
+    @Test
+    fun `initDefaultPinLevel should restore correct user level for duress PIN scenario`() {
+        // Simulation: User has set regular PIN (level 0) and duress PIN (level 1)
+        pinComponent.setPin("1234")
+        assertEquals(0, pinManager.getPinLevel("1234"))
+
+        pinComponent.setDuressPin("5678")
+        assertEquals(1, pinManager.getPinLevel("5678"))
+
+        // User unlocked with duress PIN - level becomes 1
+        setUserLevel(1)
+        assertEquals(1, currentUserLevel)
+
+        // Simulate app restart
+        currentUserLevel = Int.MAX_VALUE
+        assertEquals(Int.MAX_VALUE, currentUserLevel)
+
+        // initDefaultPinLevel should restore the LAST used level
+        // In this case it's level 1 (highest non-SECURE_RESET level)
+        pinComponent.initDefaultPinLevel()
+
+        // EXPECTATION: should restore to level 1 (last set PIN)
+        assertEquals(1, currentUserLevel)
+    }
+
+    @Test
+    fun `initDefaultPinLevel should work when no PIN is set`() {
+        // Simulation: App launched for the first time, no PIN is set
+        assertFalse(pinComponent.isPinSet)
+
+        // currentUserLevel initialized as Int.MAX_VALUE
+        currentUserLevel = Int.MAX_VALUE
+        assertEquals(Int.MAX_VALUE, currentUserLevel)
+
+        // Call initDefaultPinLevel when no PIN is set
+        pinComponent.initDefaultPinLevel()
+
+        // EXPECTATION: should be set to level 0 (default value from getPinLevelLast)
+        assertEquals(0, currentUserLevel)
+    }
+
+    @Test
+    fun `initDefaultPinLevel should skip SECURE_RESET level and restore highest user level`() {
+        // Simulation: Regular PIN (level 0) and Secure Reset PIN (level 10000) are set
+        pinComponent.setPin("1234")
+        assertEquals(0, pinManager.getPinLevel("1234"))
+
+        pinComponent.setSecureResetPin("9999")
+        assertEquals(PinLevels.SECURE_RESET, pinManager.getPinLevel("9999"))
+        assertTrue(pinComponent.isSecureResetPinSet())
+
+        // Simulate app restart
+        currentUserLevel = Int.MAX_VALUE
+
+        // initDefaultPinLevel should restore level 0, ignoring SECURE_RESET (10000)
+        pinComponent.initDefaultPinLevel()
+
+        // EXPECTATION: currentUserLevel = 0, not 10000
+        assertEquals(0, currentUserLevel)
+    }
 }
 
 private class InMemoryPinDao : PinDao {

@@ -1,7 +1,8 @@
 package cash.p.terminal.modules.pin.core
 
-import cash.p.terminal.modules.pin.core.PinLevels
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -27,6 +28,73 @@ class PinDbStorageHiddenLevelTest {
         storage.store("hidden-2", level = -3)
 
         assertEquals(-4, storage.getNextHiddenWalletLevel())
+    }
+
+    @Test
+    fun `deleting hidden wallet PIN should not affect level 0 PIN`() {
+        // Setup: Create regular PIN at level 0 and hidden wallet PIN at level -1
+        storage.store("regular-pin", level = 0)
+        storage.store("hidden-pin", level = -1)
+
+        // Verify both PINs exist
+        assertEquals(0, storage.getLevel("regular-pin"))
+        assertEquals(-1, storage.getLevel("hidden-pin"))
+
+        // Delete hidden wallet PIN (level -1)
+        pinDao.deleteForLevel(-1)
+
+        // EXPECTATION: Level 0 PIN should still exist
+        assertEquals(0, storage.getLevel("regular-pin"))
+        assertTrue(storage.isPinSetForLevel(0))
+
+        // Hidden wallet PIN should be deleted
+        assertEquals(null, storage.getLevel("hidden-pin"))
+        assertFalse(storage.isPinSetForLevel(-1))
+    }
+
+    @Test
+    fun `deleting one hidden wallet PIN should not affect other hidden wallet PINs`() {
+        // Setup: Create regular PIN and multiple hidden wallet PINs
+        storage.store("regular-pin", level = 0)
+        storage.store("hidden-pin-1", level = -1)
+        storage.store("hidden-pin-2", level = -2)
+        storage.store("hidden-pin-3", level = -3)
+
+        // Delete hidden wallet PIN at level -2
+        pinDao.deleteForLevel(-2)
+
+        // EXPECTATION: Other PINs should remain intact
+        assertEquals(0, storage.getLevel("regular-pin"))
+        assertEquals(-1, storage.getLevel("hidden-pin-1"))
+        assertEquals(-3, storage.getLevel("hidden-pin-3"))
+
+        // Only level -2 should be deleted
+        assertEquals(null, storage.getLevel("hidden-pin-2"))
+        assertTrue(storage.isPinSetForLevel(0))
+        assertTrue(storage.isPinSetForLevel(-1))
+        assertFalse(storage.isPinSetForLevel(-2))
+        assertTrue(storage.isPinSetForLevel(-3))
+    }
+
+    @Test
+    fun `deleting level 0 PIN should not affect hidden wallet PINs`() {
+        // Setup: Create regular PIN and hidden wallet PINs
+        storage.store("regular-pin", level = 0)
+        storage.store("hidden-pin-1", level = -1)
+        storage.store("hidden-pin-2", level = -2)
+
+        // Clear level 0 PIN (simulate disabling regular PIN)
+        storage.clearPasscode(0)
+
+        // EXPECTATION: Hidden wallet PINs should remain intact
+        assertEquals(-1, storage.getLevel("hidden-pin-1"))
+        assertEquals(-2, storage.getLevel("hidden-pin-2"))
+        assertTrue(storage.isPinSetForLevel(-1))
+        assertTrue(storage.isPinSetForLevel(-2))
+
+        // Level 0 PIN should be cleared (passcode null but record exists)
+        assertEquals(null, storage.getLevel("regular-pin"))
+        assertFalse(storage.isPinSetForLevel(0))
     }
 }
 
