@@ -88,8 +88,7 @@ class PinSetViewModel(
                 } else {
                     enteredPin = ""
 
-                    error =
-                        cash.p.terminal.strings.helpers.Translator.getString(R.string.PinSet_ErrorPinInUse)
+                    error = Translator.getString(R.string.PinSet_ErrorPinInUse)
                     emitState()
                 }
             }

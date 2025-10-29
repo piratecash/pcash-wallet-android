@@ -11,7 +11,6 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.ensurePinSet
-import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsScreen
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
@@ -53,7 +52,7 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                             navController.navigate(AdvancedSecurityRoutes.SECURE_RESET_TERMS_PAGE)
                         }
                     } else {
-                        navController.authorizedAction {
+                        fragmentNavController.authorizedAction {
                             viewModel.onSecureResetDisabled()
                         }
                     }

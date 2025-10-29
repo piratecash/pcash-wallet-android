@@ -23,8 +23,13 @@ class PinManager(private val pinDbStorage: PinDbStorage) {
     }
 
     fun disablePin(level: Int) {
-        pinDbStorage.clearPasscode(level)
-        pinDbStorage.deleteAllFromLevel(level + 1)
+        if (level < 0 || level == PinLevels.SECURE_RESET) {
+            pinDbStorage.deleteForLevel(level)
+        } else {
+            // For Level 0 and above (regular, duress) - clear current, delete higher levels
+            pinDbStorage.clearPasscode(level)
+            pinDbStorage.deleteAllFromLevel(level + 1)
+        }
         pinSetSubject.onNext(Unit)
     }
 

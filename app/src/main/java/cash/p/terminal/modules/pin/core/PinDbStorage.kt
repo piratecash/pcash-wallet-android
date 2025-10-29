@@ -38,6 +38,10 @@ class PinDbStorage(private val pinDao: PinDao) {
         pinDao.deleteAllFromLevel(level)
     }
 
+    fun deleteForLevel(level: Int) {
+        pinDao.deleteForLevel(level)
+    }
+
     fun isPinSetForLevel(level: Int): Boolean {
         return pinDao.get(level)?.passcode != null
     }
@@ -60,14 +64,22 @@ interface PinDao {
     @Query("SELECT * FROM Pin")
     fun getAll() : List<Pin>
 
-    @Query("SELECT * FROM Pin ORDER BY level DESC LIMIT 1")
+    /** Get the last user level PIN, excluding Secure Reset PIN at level ${PinLevels.SECURE_RESET} */
+    @Query("SELECT * FROM Pin WHERE level != ${PinLevels.SECURE_RESET} ORDER BY level DESC LIMIT 1")
     fun getLastLevelPin(): Pin?
 
     @Query("DELETE FROM Pin WHERE level >= :level")
     fun deleteAllFromLevel(level: Int)
 
+    @Query("DELETE FROM Pin WHERE level = :level")
+    fun deleteForLevel(level: Int)
+
     @Query("SELECT MIN(level) FROM Pin")
     fun getMinLevel(): Int?
+}
+
+object PinLevels {
+    const val SECURE_RESET = 10000
 }
 
 @Entity(primaryKeys = ["level"])

@@ -6,6 +6,7 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.modules.pin.core.LockManager
 import cash.p.terminal.modules.pin.core.PinDbStorage
+import cash.p.terminal.modules.pin.core.PinLevels
 import cash.p.terminal.modules.pin.core.PinManager
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
@@ -85,7 +86,7 @@ class PinComponent(
     private fun getDuressLevel(): Int {
         var level = userManager.getUserLevel() + 1
         // Skip reserved level for Secure Reset PIN
-        if (level == SECURE_RESET_PIN_LEVEL) {
+        if (level == PinLevels.SECURE_RESET) {
             level++
         }
         return level
@@ -134,11 +135,11 @@ class PinComponent(
     override suspend fun unlock(pin: String): Boolean = withContext(dispatcherProvider.io) {
         var pinLevel = pinManager.getPinLevel(pin) ?: return@withContext false
 
-        if (pinLevel == SECURE_RESET_PIN_LEVEL) {
+        if (pinLevel == PinLevels.SECURE_RESET) {
             disableSecureResetPin()
             resetUseCase()
-            pinManager.store(pin, STANDARD_PIN_LEVEL)
-            pinLevel = STANDARD_PIN_LEVEL
+            pinManager.store(pin, 0)
+            pinLevel = 0
         }
 
         appLockManager.onUnlock()
@@ -187,19 +188,14 @@ class PinComponent(
     }
 
     override fun setSecureResetPin(pin: String) {
-        pinManager.store(pin, SECURE_RESET_PIN_LEVEL)
+        pinManager.store(pin, PinLevels.SECURE_RESET)
     }
 
     override fun isSecureResetPinSet(): Boolean {
-        return pinManager.isPinSetForLevel(SECURE_RESET_PIN_LEVEL)
+        return pinManager.isPinSetForLevel(PinLevels.SECURE_RESET)
     }
 
     override fun disableSecureResetPin() {
-        pinManager.disablePin(SECURE_RESET_PIN_LEVEL)
-    }
-
-    companion object {
-        const val SECURE_RESET_PIN_LEVEL = 10000
-        private const val STANDARD_PIN_LEVEL = 0
+        pinManager.disablePin(PinLevels.SECURE_RESET)
     }
 }

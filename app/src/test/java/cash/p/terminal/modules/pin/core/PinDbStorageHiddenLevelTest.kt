@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.pin.core
 
+import cash.p.terminal.modules.pin.core.PinLevels
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -42,7 +43,9 @@ private class InMemoryPinDao : PinDao {
 
     override fun getAll(): List<Pin> = pins.values.toList()
 
-    override fun getLastLevelPin(): Pin? = pins.values.maxByOrNull { it.level }
+    override fun getLastLevelPin(): Pin? = pins.values
+        .filter { it.level != PinLevels.SECURE_RESET }
+        .maxByOrNull { it.level }
 
     override fun deleteAllFromLevel(level: Int) {
         val iterator = pins.iterator()
@@ -51,6 +54,10 @@ private class InMemoryPinDao : PinDao {
                 iterator.remove()
             }
         }
+    }
+
+    override fun deleteForLevel(level: Int) {
+        pins.remove(level)
     }
 
     override fun getMinLevel(): Int? = pins.keys.minOrNull()
