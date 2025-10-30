@@ -162,6 +162,11 @@ class BackupProvider(
                         restoreSettings[restoreSettingType] = value
                     }
                     restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
+                } else if (type is AccountType.MnemonicMonero) {
+                    // For Monero-only accounts without settings in backup, save height from AccountType
+                    val restoreSettings = RestoreSettings()
+                    restoreSettings.birthdayHeight = type.height
+                    restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
                 }
             }
         }
@@ -194,6 +199,11 @@ class BackupProvider(
                         enabledWalletBackup.settings.forEach { (restoreSettingType, value) ->
                             restoreSettings[restoreSettingType] = value
                         }
+                        restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
+                    } else if (account.type is AccountType.MnemonicMonero && tokenQuery.blockchainType == BlockchainType.Monero) {
+                        // For Monero-only accounts without settings in backup, save height from AccountType
+                        val restoreSettings = RestoreSettings()
+                        restoreSettings.birthdayHeight = (account.type as AccountType.MnemonicMonero).height
                         restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
                     }
                 }
