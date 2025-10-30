@@ -3,6 +3,7 @@ package cash.p.terminal.core.managers
 import com.google.gson.annotations.SerializedName
 import cash.p.terminal.R
 import cash.p.terminal.core.IRestoreSettingsStorage
+import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
@@ -10,7 +11,8 @@ import io.horizontalsystems.core.entities.BlockchainType
 
 class RestoreSettingsManager(
         private val storage: IRestoreSettingsStorage,
-        private val zcashBirthdayProvider: ZcashBirthdayProvider
+        private val zcashBirthdayProvider: ZcashBirthdayProvider,
+        private val validateMoneroHeightUseCase: ValidateMoneroHeightUseCase
 ) {
     fun settings(account: Account, blockchainType: BlockchainType): RestoreSettings {
         val records = storage.restoreSettings(account.id, blockchainType.uid)
@@ -46,9 +48,8 @@ class RestoreSettingsManager(
         return when (settingType) {
             RestoreSettingType.BirthdayHeight -> {
                 when (blockchainType) {
-                    BlockchainType.Zcash -> {
-                        return zcashBirthdayProvider.getLatestCheckpointBlockHeight().toString()
-                    }
+                    BlockchainType.Zcash -> zcashBirthdayProvider.getLatestCheckpointBlockHeight().toString()
+                    BlockchainType.Monero -> validateMoneroHeightUseCase.getTodayHeight().toString()
                     else -> null
                 }
             }

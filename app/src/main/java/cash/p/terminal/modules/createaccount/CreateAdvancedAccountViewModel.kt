@@ -112,11 +112,18 @@ class CreateAdvancedAccountViewModel(
 
         activateDefaultWallets(account)
 
-        // Skip birthdayHeight calculation for ZCash for tangem and monero accounts
-        if (accountType !is AccountType.MnemonicMonero &&
-            accountType !is AccountType.HardwareCard
-        ) {
-            predefinedBlockchainSettingsProvider.prepareNew(account, BlockchainType.Zcash)
+        // Prepare birthdayHeight for blockchains that require it
+        if (accountType !is AccountType.HardwareCard) {
+            when (accountType) {
+                is AccountType.MnemonicMonero -> {
+                    // For Monero-only accounts, height is already saved above (line 107-111)
+                }
+                else -> {
+                    // For BIP39 accounts, prepare settings for Zcash and Monero
+                    predefinedBlockchainSettingsProvider.prepareNew(account, BlockchainType.Zcash)
+                    predefinedBlockchainSettingsProvider.prepareNew(account, BlockchainType.Monero)
+                }
+            }
         }
         loading = false
         success = accountType
