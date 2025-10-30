@@ -3,16 +3,19 @@ package cash.p.terminal.modules.managewallets
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
+import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.receive.FullCoinsProvider
+import org.koin.java.KoinJavaComponent.inject
 
 object ManageWalletsModule {
 
     class Factory : ViewModelProvider.Factory {
 
+        private val restoreSettingsManager: RestoreSettingsManager by inject(RestoreSettingsManager::class.java)
         private val restoreSettingsService by lazy {
-            RestoreSettingsService(App.restoreSettingsManager, App.zcashBirthdayProvider)
+            RestoreSettingsService(restoreSettingsManager, App.zcashBirthdayProvider)
         }
 
         private val manageWalletsService by lazy {

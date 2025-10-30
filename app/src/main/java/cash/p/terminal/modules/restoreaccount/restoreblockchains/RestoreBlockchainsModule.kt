@@ -3,12 +3,14 @@ package cash.p.terminal.modules.restoreaccount.restoreblockchains
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
+import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensService
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.wallet.AccountType
+import org.koin.java.KoinJavaComponent.inject
 
 object RestoreBlockchainsModule {
 
@@ -19,8 +21,9 @@ object RestoreBlockchainsModule {
         private val fileBackup: Boolean
     ) : ViewModelProvider.Factory {
 
+        private val restoreSettingsManager: RestoreSettingsManager by inject(RestoreSettingsManager::class.java)
         private val restoreSettingsService by lazy {
-            RestoreSettingsService(App.restoreSettingsManager, App.zcashBirthdayProvider)
+            RestoreSettingsService(restoreSettingsManager, App.zcashBirthdayProvider)
         }
         private val blockchainTokensService by lazy {
             BlockchainTokensService()

@@ -20,27 +20,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.requireInput
+import cash.p.terminal.ui.helpers.LinkHelper
+import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
+import cash.p.terminal.ui_compose.BottomSheetHeaderMultiline
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HSpacer
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_leah
-import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
-import cash.p.terminal.ui_compose.BottomSheetHeaderMultiline
-import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.findNavController
+import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import cash.p.terminal.ui_compose.components.HudHelper
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 class ConfiguredTokenInfoDialog : BaseComposableBottomSheetFragment() {
 
@@ -63,7 +64,9 @@ class ConfiguredTokenInfoDialog : BaseComposableBottomSheetFragment() {
 
 @Composable
 private fun ConfiguredTokenInfo(navController: NavController, token: Token) {
-    val viewModel = viewModel<ConfiguredTokenInfoViewModel>(factory = ConfiguredTokenInfoViewModel.Factory(token))
+    val viewModel = koinViewModel<ConfiguredTokenInfoViewModel> {
+        parametersOf(token)
+    }
     val uiState = viewModel.uiState
 
     ComposeAppTheme {

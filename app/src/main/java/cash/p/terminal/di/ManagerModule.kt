@@ -37,6 +37,7 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
+import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.wallet.IAdapterManager
@@ -100,6 +101,7 @@ val managerModule = module {
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class
     singleOf(::TorManager) bind ITorManager::class
+    singleOf(::PredefinedBlockchainSettingsProvider)
     factory { (pinComponent: IPinComponent) ->
         HiddenWalletPinPolicy(pinComponent, get())
     }

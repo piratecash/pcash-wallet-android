@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.managers.RestoreSettings
+import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
@@ -33,7 +35,8 @@ class CreateAdvancedAccountViewModel(
     private val accountManager: IAccountManager,
     private val walletActivator: WalletActivator,
     private val passphraseValidator: PassphraseValidator,
-    private val predefinedBlockchainSettingsProvider: PredefinedBlockchainSettingsProvider
+    private val predefinedBlockchainSettingsProvider: PredefinedBlockchainSettingsProvider,
+    private val restoreSettingsManager: RestoreSettingsManager
 ) : ViewModel() {
 
     private var passphrase = ""
@@ -99,6 +102,14 @@ class CreateAdvancedAccountViewModel(
         )
 
         accountManager.save(account)
+
+        // Save birthday height for Monero-only accounts to RestoreSettings
+        if (accountType is AccountType.MnemonicMonero) {
+            val restoreSettings = RestoreSettings()
+            restoreSettings.birthdayHeight = accountType.height
+            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+        }
+
         activateDefaultWallets(account)
 
         // Skip birthdayHeight calculation for ZCash for tangem and monero accounts

@@ -31,7 +31,6 @@ import cash.p.terminal.core.managers.NftMetadataSyncer
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
-import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.core.managers.SpamManager
@@ -176,7 +175,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
         lateinit var priceManager: PriceManager
         lateinit var releaseNotesManager: ReleaseNotesManager
-        val restoreSettingsManager: RestoreSettingsManager by inject(RestoreSettingsManager::class.java)
         val evmSyncSourceManager: EvmSyncSourceManager by inject(EvmSyncSourceManager::class.java)
         val evmBlockchainManager: EvmBlockchainManager by inject(EvmBlockchainManager::class.java)
         val solanaRpcSourceManager: SolanaRpcSourceManager by inject(SolanaRpcSourceManager::class.java)
@@ -349,11 +347,11 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             localStorage = localStorage,
             languageManager = languageManager,
             walletStorage = enabledWalletsStorage,
-            settingsManager = restoreSettingsManager,
+            settingsManager = get(),
             accountManager = accountManager,
             accountFactory = accountFactory,
             walletManager = walletManager,
-            restoreSettingsManager = restoreSettingsManager,
+            restoreSettingsManager = get(),
             blockchainSettingsStorage = blockchainSettingsStorage,
             evmBlockchainManager = evmBlockchainManager,
             marketFavoritesManager = marketFavoritesManager,
