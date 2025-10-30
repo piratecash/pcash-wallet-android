@@ -2,12 +2,14 @@ package cash.p.terminal.core.di
 
 import android.app.Application
 import android.content.Context
+import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
+import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.IPinComponent
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
@@ -42,7 +44,8 @@ class KoinGraphTest : KoinTest {
                 definition<HiddenWalletPinPolicy >(IPinComponent::class),
                 definition<AdvancedSecurityViewModel>(IPinComponent::class),
                 definition<SecureResetTermsViewModel>(Array<String>::class),
-                definition<HiddenWalletTermsViewModel>(Array<String>::class)
+                definition<HiddenWalletTermsViewModel>(Array<String>::class),
+                definition<ConfiguredTokenInfoViewModel>(Token::class),
             )
         )
     }
