@@ -139,15 +139,20 @@ class MoneroWalletUseCase(
     ): AccountType.MnemonicMonero? =
         restore(MoneroWalletSeedConverter.getLegacySeedFromBip39(words, passphrase), height)
 
-    suspend fun restore(words: List<String>, height: Long): AccountType.MnemonicMonero? =
+    suspend fun restore(
+        words: List<String>,
+        height: Long,
+        crazyPassExisting: String? = null,
+        walletInnerNameExisting: String? = null
+    ): AccountType.MnemonicMonero? =
         withContext(Dispatchers.IO) {
             if (words.size != MoneroConfig.WORD_COUNT) {
                 Timber.d("Wrong words count")
             }
 
-            val walletInnerName = generateMoneroWalletUseCase() ?: return@withContext null
+            val walletInnerName = walletInnerNameExisting ?: generateMoneroWalletUseCase() ?: return@withContext null
 
-            val crazyPass = KeyStoreHelper.getCrazyPass(appContext, "")
+            val crazyPass = crazyPassExisting ?: KeyStoreHelper.getCrazyPass(appContext, "")
             val walletFolder: File = Helper.getWalletRoot(appContext)
             val newWalletFile = File(walletFolder, walletInnerName)
             closeOpenedWallet()

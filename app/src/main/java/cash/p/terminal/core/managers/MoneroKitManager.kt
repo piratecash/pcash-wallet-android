@@ -28,6 +28,7 @@ import com.m2049r.xmrwallet.model.Wallet.ConnectionStatus
 import com.m2049r.xmrwallet.model.WalletManager
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.m2049r.xmrwallet.service.WalletCorruptedException
+import com.m2049r.xmrwallet.util.Helper
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.SafeSuspendedCall
@@ -221,6 +222,18 @@ class MoneroKitWrapper(
                         logger.info("start: using AccountType.MnemonicMonero")
                         walletFileName = accountType.walletInnerName
                         walletPassword = accountType.password
+
+                        if (!Helper.getWalletFile(App.instance, accountType.walletInnerName).exists()) {
+                            Timber.d("Restoring Monero wallet from mnemonic...")
+                            // restore wallet file if it does not exist
+                            logger.info("start: wallet file does not exist, restoring from mnemonic")
+                            moneroWalletUseCase.restore(
+                                words = accountType.words,
+                                height = accountType.height,
+                                crazyPassExisting = accountType.password,
+                                walletInnerNameExisting = accountType.walletInnerName
+                            )
+                        }
                     }
 
                     is AccountType.Mnemonic -> {
@@ -301,7 +314,13 @@ class MoneroKitWrapper(
                 if (walletStatus?.connectionStatus == ConnectionStatus.ConnectionStatus_Disconnected) {
                     logger.info("startService: detected disconnected status, aborting start")
                     throw Exception("No internet connection")
-                } else {
+                } else if (walletStatus == null) {
+                    // Possible corrupted wallet file
+                    getBirthdayHeight(account)?.let {
+                        resetWalletAndRestart(it)
+                    }
+                }
+                else {
                     delay(3_000)
                     val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
                     logger.info(
@@ -315,10 +334,7 @@ class MoneroKitWrapper(
                 if (fixIfCorruptedFile) {
                     Timber.e(e, "WalletCorruptedException, trying to fix wallet")
                     logger.info("startService: attempting wallet fix after corruption")
-                    restoreSettingsManager.settings(
-                        account,
-                        BlockchainType.Monero
-                    ).birthdayHeight?.let {
+                    getBirthdayHeight(account)?.let {
                         resetWalletAndRestart(it)
                     }
                 } else {
@@ -333,6 +349,17 @@ class MoneroKitWrapper(
             logger.warning("startService: unexpected exception", e)
             throw e
         }
+    }
+
+    private fun getBirthdayHeight(account: Account): Long? {
+        var birthdayHeight = restoreSettingsManager.settings(
+            account,
+            BlockchainType.Monero
+        ).birthdayHeight
+        if ((birthdayHeight ?: 0L) <= 0L) {
+            birthdayHeight = (account.type as? AccountType.MnemonicMonero)?.height
+        }
+        return birthdayHeight
     }
 
     /**
