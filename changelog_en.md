@@ -1,3 +1,23 @@
+## 🚀 Main changes in version 0.48.3
+_Release date: November 1, 2025_
+
+### ✨ New features
+- **Premium: Read QR code from file**
+  - Added a new feature — **scan QR codes directly from an image or file**.
+    Convenient when you have a saved screenshot or received the code as a picture.
+- **Extended Monero logging:**
+  - Introduced an **extended logging mode** for the Monero wallet to help developers quickly assist users experiencing synchronization or balance issues.
+
+### 🛠 Fixes and improvements
+- **Monero:**
+  - Fixed an issue that occurred when a **wallet creation date was incorrect** — the system now handles such cases properly.
+- **ChangeNOW (TON Jetton):**
+  - Fixed a **bug during Jetton token swaps** on the TON blockchain via ChangeNOW.
+- **PIN authorization:**
+  - Fixed an issue that caused **slow app authorization when entering a PIN code**.
+
+
+
 ## 🚀 Main changes in version 0.48.2
 _Release date: October 26, 2025_
 
