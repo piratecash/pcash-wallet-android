@@ -5,8 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendTonAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -26,6 +28,7 @@ import cash.p.terminal.modules.send.ton.SendTonAddressService
 import cash.p.terminal.modules.send.ton.SendTonAmountService
 import cash.p.terminal.modules.send.ton.SendTonFeeService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
@@ -34,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 
 class SendTransactionServiceTon(
     token: Token
@@ -65,16 +69,21 @@ class SendTransactionServiceTon(
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
 
+    private var feeAdapter: ISendTonAdapter? = null
+    private val accountManager: IAccountManager by inject(IAccountManager::class.java)
+    private var feeCaution: CautionViewItem? = null
+    private var hasEnoughFeeAmount: Boolean = true
+
     override fun createState() = SendTransactionServiceState(
         availableBalance = adapter.availableBalance,
         networkFee = feeAmountData,
-        cautions = cautions,
+        cautions = cautions + listOfNotNull(feeCaution),
         sendable = sendable,
         loading = loading,
         fields = fields
     )
 
-    private suspend fun handleUpdatedAmountState(amountState: SendTonAmountService.State) {
+    private fun handleUpdatedAmountState(amountState: SendTonAmountService.State) {
         this.amountState = amountState
 
         feeService.setAmount(amountState.amount)
@@ -82,7 +91,7 @@ class SendTransactionServiceTon(
         emitState()
     }
 
-    private suspend fun handleUpdatedAddressState(addressState: SendTonAddressService.State) {
+    private fun handleUpdatedAddressState(addressState: SendTonAddressService.State) {
         this.addressState = addressState
 
         feeService.setTonAddress(addressState.tonAddress)
@@ -92,6 +101,8 @@ class SendTransactionServiceTon(
 
     private fun handleUpdatedFeeState(feeState: SendTonFeeService.State) {
         this.feeState = feeState
+        checkFeeBalance(feeState)
+
         if (feeState.feeStatus is FeeStatus.Success) {
             val primaryAmountInfo =
                 SendModule.AmountInfo.CoinValueInfo(CoinValue(feeToken, feeState.feeStatus.fee))
@@ -120,7 +131,7 @@ class SendTransactionServiceTon(
     private var feeAmountData: SendModule.AmountData? = null
     private var cautions: List<CautionViewItem> = listOf()
     private val sendable: Boolean
-        get() = amountState.canBeSend && addressState.canBeSend
+        get() = hasEnoughFeeAmount && amountState.canBeSend && addressState.canBeSend
     private var loading = true
     private var fields = listOf<DataField>()
 
@@ -151,6 +162,16 @@ class SendTransactionServiceTon(
             }
         }
 
+        // To calculate fee we need ton adapter
+        coroutineScope.launch(Dispatchers.Default) {
+            // Do not create adapter for hardware wallet account - don't want to display scan dialog
+            if (accountManager.activeAccount?.isHardwareWalletAccount == true) {
+                return@launch
+            }
+            feeAdapter = walletUseCase.createWalletIfNotExists(feeToken)?.run {
+                adapterManager.awaitAdapterForWallet<ISendTonAdapter>(this)
+            }
+        }
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
@@ -167,6 +188,30 @@ class SendTransactionServiceTon(
             cautions = listOf(createCaution(e))
             emitState()
             throw e
+        }
+    }
+
+    private fun checkFeeBalance(feeState: SendTonFeeService.State) {
+        if (feeState.feeStatus !is FeeStatus.Success) {
+            feeCaution = null
+            hasEnoughFeeAmount = true
+        }
+        val fee = (feeState.feeStatus as? FeeStatus.Success)?.fee ?: return
+        if (feeAdapter != null) {
+            feeAdapter?.availableBalance?.let { availableBalance ->
+                feeCaution = if (availableBalance < fee) {
+                    createCaution(LocalizedException(R.string.not_enough_ton_for_fee))
+                } else {
+                    null
+                }
+                hasEnoughFeeAmount = feeCaution == null
+            }
+        } else {
+            val neededFee = fee.stripTrailingZeros()
+                .toPlainString() + " " + feeToken.coin.code
+            feeCaution = createCaution(
+                LocalizedException(R.string.check_fee_warning, neededFee)
+            )
         }
     }
 
