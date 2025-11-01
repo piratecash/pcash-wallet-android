@@ -2,9 +2,11 @@ package cash.p.terminal.tangem.signer
 
 import android.util.Log
 import cash.p.terminal.tangem.domain.usecase.SignHashesTransactionUseCase
+import cash.p.terminal.tangem.domain.usecase.SignMultipleHashesUseCase
 import cash.p.terminal.wallet.entities.HardwarePublicKey
 import com.tangem.common.CompletionResult
 import com.tangem.crypto.hdWallet.DerivationPath
+import com.tangem.operations.sign.SignData
 import com.tangem.operations.sign.SignResponse
 import io.horizontalsystems.bitcoincore.models.Transaction
 import io.horizontalsystems.bitcoincore.models.TransactionOutput
@@ -24,6 +26,10 @@ class HardwareWalletSchnorrSigner(
 
     private val signHashesTransactionUseCase: SignHashesTransactionUseCase by inject(
         SignHashesTransactionUseCase::class.java
+    )
+
+    private val signMultipleHashesUseCase: SignMultipleHashesUseCase by inject(
+        SignMultipleHashesUseCase::class.java
     )
 
     private var transactionSerializer: BaseTransactionSerializer? = null
@@ -67,35 +73,54 @@ class HardwareWalletSchnorrSigner(
     }
 
     override suspend fun sigScriptSchnorrData(data: List<DataToSign>): List<ByteArray> {
+        Log.d("HardwareWalletSigner", "sigScriptSchnorrData with MultipleSignCommand: ${data.size}")
+
         if (data.isEmpty()) {
-            Log.w("HardwareWalletEcdaSigner", "No data to sign")
+            Log.w("HardwareWalletSchnorrSigner", "No data to sign")
             return emptyList()
         }
 
-        val dataToSign = data.map { it.data }
+        val walletPublicKey = hardwarePublicKey.publicKey.copyOfRange(1, hardwarePublicKey.publicKey.size)
 
-        val publicKey = data.first().publicKey
+        // Prepare SignData for each input with its derivation path
+        val signDataList = data.map { dataToSign ->
+            val publicKey = dataToSign.publicKey
+            val changeSegment = if (publicKey.external) "0" else "1"
+            val addressIndexSegment = publicKey.index.toString()
+            val fullDerivationPathString =
+                "${hardwarePublicKey.derivationPath}/$changeSegment/$addressIndexSegment"
 
-        val changeSegment = if (publicKey.external) "0" else "1"
-        val addressIndexSegment = publicKey.index.toString()
-        val fullDerivationPathString =
-            "${hardwarePublicKey.derivationPath}/$changeSegment/$addressIndexSegment"
-        Log.d("HardwareWalletSigner", "sigScriptSchnorrData $fullDerivationPathString")
-        val walletPublicKey =
-            hardwarePublicKey.publicKey.copyOfRange(1, hardwarePublicKey.publicKey.size)
-        val signResponse: CompletionResult<SignResponse> = signHashesTransactionUseCase(
-            hashes = dataToSign.toTypedArray(),
-            walletPublicKey = walletPublicKey,
-            derivationPath = DerivationPath(fullDerivationPathString)
-        )
-        when (signResponse) {
-            is CompletionResult.Success -> {
-                return signResponse.data.signatures
-            }
-
-            is CompletionResult.Failure -> throw signResponse.error
+            SignData(
+                derivationPath = DerivationPath(fullDerivationPathString),
+                hash = dataToSign.data,
+                publicKey = publicKey.publicKey
+            )
         }
 
+        // Sign all hashes with different derivation paths in a single card tap
+        val signResponse = signMultipleHashesUseCase(
+            dataToSign = signDataList,
+            walletPublicKey = walletPublicKey
+        )
+
+        return when (signResponse) {
+            is CompletionResult.Success -> {
+                val responses = signResponse.data.asReversed()
+
+                require(responses.size == data.size) {
+                    "Unexpected signatures count: ${responses.size} != ${data.size}"
+                }
+
+                data.zip(responses).map { (dataToSign, response) ->
+                    val rawSignature = response.signature
+                    if (rawSignature.size != 64) {
+                        throw Error("Invalid Schnorr signature length: ${rawSignature.size}")
+                    }
+                    rawSignature
+                }
+            }
+            is CompletionResult.Failure -> throw signResponse.error
+        }
     }
 
     override suspend fun sigScriptSchnorrData(

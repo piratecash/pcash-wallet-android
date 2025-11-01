@@ -5,6 +5,7 @@ import cash.p.terminal.core.R
 import cash.p.terminal.tangem.domain.model.ProductType
 import cash.p.terminal.tangem.domain.model.ScanResponse
 import cash.p.terminal.tangem.domain.task.CreateProductWalletTask
+import cash.p.terminal.tangem.domain.task.MultiSignHashTask
 import cash.p.terminal.tangem.domain.task.ResetBackupCardTask
 import cash.p.terminal.tangem.domain.task.ResetToFactorySettingsTask
 import cash.p.terminal.tangem.domain.task.ScanProductTask
@@ -38,6 +39,7 @@ import com.tangem.operations.derivation.DeriveMultipleWalletPublicKeysTask
 import com.tangem.operations.derivation.DeriveWalletPublicKeyTask
 import com.tangem.operations.pins.SetUserCodeCommand
 import com.tangem.operations.preflightread.PreflightReadFilter
+import com.tangem.operations.sign.SignData
 import com.tangem.operations.sign.SignHashResponse
 import com.tangem.operations.sign.SignResponse
 import com.tangem.operations.usersetttings.SetUserCodeRecoveryAllowedTask
@@ -204,6 +206,23 @@ class TangemSdkManager(
                     if (continuation.isActive) {
                         continuation.resume(CompletionResult.Failure(result.error))
                     }
+            }
+        }
+    }
+
+    suspend fun signMultiple(
+        cardId: String?,
+        dataToSign: List<SignData>,
+        walletPublicKey: ByteArray,
+        message: Message? = null
+    ): CompletionResult<List<SignHashResponse>> = runTaskAsyncReturnOnMain(
+        runnable = MultiSignHashTask(dataToSign, walletPublicKey),
+        cardId = cardId,
+        initialMessage = message
+    ).also { result ->
+        if (result is CompletionResult.Success) {
+            result.data.lastOrNull()?.totalSignedHashes?.let { total ->
+                accountManager.updateSignedHashes(total)
             }
         }
     }

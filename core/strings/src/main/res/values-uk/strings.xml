@@ -1556,7 +1556,6 @@
     <string name="signed">Підписано</string>
     <string name="error_no_active_account">Активний обліковий запис не знайдено</string>
     <string name="error_hardware_wallet_not_supported">Поки не підтримується апаратною картою</string>
-    <string name="need_to_sign_times">Для створення транзакції вам потрібно буде підписати її %d раз(и)</string>
     <string name="scan_card">Скануйте карту</string>
     <string name="restoreheight_title">Початковий блок для відновлення</string>
     <string name="restoreheight_hint">Вкажіть блок або дату (РРРР-ММ-ДД)</string>

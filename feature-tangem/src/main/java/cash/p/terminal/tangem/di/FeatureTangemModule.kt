@@ -8,6 +8,7 @@ import cash.p.terminal.tangem.domain.usecase.BackupHardwareWalletUseCase
 import cash.p.terminal.tangem.domain.usecase.CollectDerivationsUseCase
 import cash.p.terminal.tangem.domain.usecase.ResetToFactorySettingsUseCase
 import cash.p.terminal.tangem.domain.usecase.SignHashesTransactionUseCase
+import cash.p.terminal.tangem.domain.usecase.SignMultipleHashesUseCase
 import cash.p.terminal.tangem.domain.usecase.SignOneHashTransactionUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemCreatePublicKeyUseCase
@@ -33,6 +34,7 @@ val featureTangemModule = module {
     factoryOf(::CollectDerivationsUseCase)
     factoryOf(::SignOneHashTransactionUseCase)
     factoryOf(::SignHashesTransactionUseCase)
+    singleOf(::SignMultipleHashesUseCase)
     factoryOf(::TangemCreateWalletsUseCase)
     factoryOf(::BackupHardwareWalletUseCase)
     singleOf(::ValidateBackUseCase)

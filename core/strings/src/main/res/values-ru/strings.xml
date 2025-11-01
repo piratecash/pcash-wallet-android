@@ -1557,7 +1557,6 @@
     <string name="signed">Подписано</string>
     <string name="error_no_active_account">Активный аккаунт не найден</string>
     <string name="error_hardware_wallet_not_supported">Пока не поддерживается аппаратной картой</string>
-    <string name="need_to_sign_times">Для создания транзакции вам потребуется подписать её %d раз(а)</string>
     <string name="scan_card">Сканируйте карту</string>
     <string name="restoreheight_title">Начальный блок для восстановления</string>
     <string name="restoreheight_hint">Укажите блок или дату (ГГГГ-ММ-ДД)</string>
