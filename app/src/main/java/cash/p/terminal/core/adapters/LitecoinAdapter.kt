@@ -24,7 +24,7 @@ class LitecoinAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold), LitecoinKit.Listener, ISendBitcoinAdapter {
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD), LitecoinKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
@@ -85,7 +85,8 @@ class LitecoinAdapter(
 
 
     companion object {
-        private const val confirmationsThreshold = 3
+        private const val KIT_CONFIRMATIONS_THRESHOLD = 1
+        private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
 
         private fun createKit(
             wallet: Wallet,
@@ -103,7 +104,7 @@ class LitecoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                     )
                 }
                 is AccountType.Mnemonic -> {
@@ -114,7 +115,7 @@ class LitecoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         purpose = derivation.purpose
                     )
                 }
@@ -125,7 +126,7 @@ class LitecoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
                 is AccountType.HardwareCard -> {
@@ -146,7 +147,7 @@ class LitecoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner
                     )

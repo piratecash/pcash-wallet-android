@@ -21,7 +21,7 @@ class PirateCashAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold),
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
     PirateCashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
@@ -98,7 +98,8 @@ class PirateCashAdapter(
         }
 
     companion object {
-        private const val confirmationsThreshold = 3
+        private const val KIT_CONFIRMATIONS_THRESHOLD = 1
+        private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
 
         private fun createKit(
             wallet: Wallet,
@@ -114,7 +115,7 @@ class PirateCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -126,7 +127,7 @@ class PirateCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -137,7 +138,7 @@ class PirateCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -157,6 +158,7 @@ class PirateCashAdapter(
                         extendedKey = wallet.getHDExtendedKey()!!,
                         walletId = account.id,
                         syncMode = syncMode,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner,
                     )

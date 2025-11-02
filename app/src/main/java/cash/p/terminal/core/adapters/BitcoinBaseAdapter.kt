@@ -64,7 +64,7 @@ abstract class BitcoinBaseAdapter(
     open val syncMode: BitcoinCore.SyncMode,
     private val backgroundManager: BackgroundManager,
     val wallet: Wallet,
-    private val confirmationsThreshold: Int,
+    private val displayConfirmationsThreshold: Int,
     protected val decimal: Int = 8
 ) : IAdapter, ITransactionsAdapter, IBalanceAdapter, IReceiveAdapter, ISendBitcoinAdapter {
 
@@ -442,7 +442,7 @@ abstract class BitcoinBaseAdapter(
                     transactionHash = transaction.transactionHash,
                     transactionIndex = transaction.transactionIndex,
                     blockHeight = transaction.blockHeight,
-                    confirmationsThreshold = confirmationsThreshold,
+                    confirmationsThreshold = displayConfirmationsThreshold,
                     timestamp = transaction.timestamp,
                     fee = transaction.fee?.let {
                         TransactionValue.CoinValue(
@@ -475,7 +475,7 @@ abstract class BitcoinBaseAdapter(
                     transactionHash = transaction.transactionHash,
                     transactionIndex = transaction.transactionIndex,
                     blockHeight = transaction.blockHeight,
-                    confirmationsThreshold = confirmationsThreshold,
+                    confirmationsThreshold = displayConfirmationsThreshold,
                     timestamp = transaction.timestamp,
                     fee = transaction.fee?.let {
                         TransactionValue.CoinValue(
@@ -510,7 +510,7 @@ abstract class BitcoinBaseAdapter(
                     transactionHash = transaction.transactionHash,
                     transactionIndex = transaction.transactionIndex,
                     blockHeight = transaction.blockHeight,
-                    confirmationsThreshold = confirmationsThreshold,
+                    confirmationsThreshold = displayConfirmationsThreshold,
                     timestamp = transaction.timestamp,
                     fee = transaction.fee?.let {
                         TransactionValue.CoinValue(

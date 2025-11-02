@@ -23,7 +23,7 @@ class BitcoinAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold),
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
     BitcoinKit.Listener {
     constructor(
         wallet: Wallet,
@@ -97,7 +97,8 @@ class BitcoinAdapter(
         }
 
     companion object {
-        private const val confirmationsThreshold = 3
+        private const val KIT_CONFIRMATIONS_THRESHOLD = 1
+        private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
 
         private fun createKit(
             wallet: Wallet,
@@ -115,7 +116,7 @@ class BitcoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -127,7 +128,7 @@ class BitcoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         purpose = derivation.purpose
                     )
                 }
@@ -139,7 +140,7 @@ class BitcoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -161,7 +162,7 @@ class BitcoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner,
                     )

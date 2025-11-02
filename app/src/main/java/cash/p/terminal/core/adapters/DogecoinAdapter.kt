@@ -20,7 +20,7 @@ class DogecoinAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold),
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
     DogecoinKit.Listener, ISendBitcoinAdapter {
 
     constructor(
@@ -94,7 +94,8 @@ class DogecoinAdapter(
 
 
     companion object {
-        private const val confirmationsThreshold = 3
+        private const val KIT_CONFIRMATIONS_THRESHOLD = 1
+        private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
 
         private fun createKit(
             wallet: Wallet,
@@ -111,7 +112,7 @@ class DogecoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = DogecoinKit.NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                     )
                 }
 
@@ -132,7 +133,7 @@ class DogecoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = DogecoinKit.NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner
                     )

@@ -31,7 +31,7 @@ class DashAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold),
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
     DashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
@@ -106,7 +106,8 @@ class DashAdapter(
         }
 
     companion object {
-        private const val confirmationsThreshold = 3
+        private const val KIT_CONFIRMATIONS_THRESHOLD = 1
+        private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
         private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         private fun createKit(
@@ -125,7 +126,7 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         initWithEmptySeeds = true
                     )
                 }
@@ -138,7 +139,7 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         initWithEmptySeeds = true
                     )
                 }
@@ -150,7 +151,7 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         initWithEmptySeeds = true
                     )
                 }
@@ -171,7 +172,7 @@ class DashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         initWithEmptySeeds = true,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner

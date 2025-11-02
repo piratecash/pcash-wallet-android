@@ -25,7 +25,7 @@ class BitcoinCashAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, confirmationsThreshold), BitcoinCashKit.Listener, ISendBitcoinAdapter {
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD), BitcoinCashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
@@ -84,7 +84,8 @@ class BitcoinCashAdapter(
         kit.usedAddresses(change).map { UsedAddress(it.index, it.address, "https://blockchair.com/bitcoin-cash/address/${it.address}") }
 
     companion object {
-        private const val confirmationsThreshold = 3
+        private const val KIT_CONFIRMATIONS_THRESHOLD = 1
+        private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
 
         private fun createKit(
             wallet: Wallet,
@@ -101,7 +102,7 @@ class BitcoinCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = networkType,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -113,7 +114,7 @@ class BitcoinCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = networkType,
-                        confirmationsThreshold = confirmationsThreshold
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -124,7 +125,7 @@ class BitcoinCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = networkType,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                     )
                 }
 
@@ -145,7 +146,7 @@ class BitcoinCashAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = networkType,
-                        confirmationsThreshold = confirmationsThreshold,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner
                     )
