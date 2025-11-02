@@ -54,6 +54,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import kotlin.getValue
@@ -83,7 +87,9 @@ class BalanceViewModel(
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val coinManager: ICoinManager by inject(ICoinManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
-    private val itemsBalanceHidden by lazy { mutableMapOf<Wallet, Boolean>() }
+
+    private val _itemsBalanceHidden = MutableStateFlow<Map<Wallet, Boolean>>(emptyMap())
+    private val itemsBalanceHidden: StateFlow<Map<Wallet, Boolean>> = _itemsBalanceHidden.asStateFlow()
 
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(GetHardwarePublicKeyForWalletUseCase::class.java)
 
@@ -123,7 +129,7 @@ class BalanceViewModel(
                         )
                     })
                     detectPirateAndCosanta(items)
-                    if (balanceHidden && !itemsBalanceHidden.keys.containsAll(items.map { it.wallet })) {
+                    if (balanceHidden && !itemsBalanceHidden.value.keys.containsAll(items.map { it.wallet })) {
                         addWalletsToHidden(items.map(BalanceItem::wallet))
                     }
                     refreshViewItems(items)
@@ -176,9 +182,22 @@ class BalanceViewModel(
         isSwapEnabled = !isMoneroAccount && App.instance.isSwapEnabled
     }
 
+    private inline fun mutateHiddenState(
+        crossinline reducer: MutableMap<Wallet, Boolean>.() -> Unit
+    ) {
+        _itemsBalanceHidden.update { current ->
+            val mutableCopy = current.toMutableMap()
+            reducer(mutableCopy)
+            mutableCopy.toMap()
+        }
+    }
+
     private fun addWalletsToHidden(items: List<Wallet>) {
-        itemsBalanceHidden.clear()
-        items.forEach { itemsBalanceHidden.put(it, true) }
+        if (items.isEmpty()) return
+        mutateHiddenState {
+            clear()
+            items.forEach { this[it] = true }
+        }
     }
 
     override fun createState() = BalanceUiState(
@@ -215,15 +234,20 @@ class BalanceViewModel(
     fun onBalanceClick(item: BalanceViewItem2) {
         if (balanceHidden) {
             HudHelper.vibrate(App.instance)
-            itemsBalanceHidden[item.wallet] = itemsBalanceHidden[item.wallet] != true
+
+            mutateHiddenState {
+                this[item.wallet] = this[item.wallet] != true
+            }
             refreshViewItems(service.balanceItemsFlow.value)
             emitState()
         }
     }
 
     override fun toggleBalanceVisibility() {
-        itemsBalanceHidden.keys.forEach {
-            itemsBalanceHidden[it] = !balanceHidden
+        mutateHiddenState {
+            keys.forEach {
+                this[it] = !balanceHidden
+            }
         }
         totalBalance.toggleBalanceVisibility()
     }
@@ -233,13 +257,14 @@ class BalanceViewModel(
         refreshViewItemsJob = viewModelScope.launch(Dispatchers.Default) {
             if (balanceItems != null) {
                 viewState = ViewState.Success
+                val hiddenMap = itemsBalanceHidden.value
                 balanceViewItems = balanceItems.map { balanceItem ->
                     ensureActive()
                     balanceViewItemFactory.viewItem2(
                         item = balanceItem,
                         currency = service.baseCurrency,
                         roundingAmount = localStorage.isRoundingAmountMainPage,
-                        hideBalance = balanceHidden && itemsBalanceHidden[balanceItem.wallet] == true,
+                        hideBalance = balanceHidden && hiddenMap[balanceItem.wallet] == true,
                         watchAccount = service.isWatchAccount,
                         isSwipeToDeleteEnabled = !isSingleWalletAccount(),
                         balanceViewType = balanceViewType,

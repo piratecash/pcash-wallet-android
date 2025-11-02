@@ -54,7 +54,7 @@ class BalanceHiddenManager(
 
     private fun setBalanceHidden(hidden: Boolean) {
         localStorage.balanceHidden = hidden
-        _balanceHiddenFlow.update { localStorage.balanceHidden }
+        _balanceHiddenFlow.update { hidden }
     }
 
 }
