@@ -1,3 +1,20 @@
+## 🚀 Main changes in version 0.48.4
+_Release date: November 4, 2025_
+
+### ✨ New features
+- **Bitcoin-like networks:**
+  - You can now **use your funds right after the first confirmation**,
+    without waiting for the full number of confirmations — making BTC, LTC, and similar networks faster to use.
+
+### 🛠 Fixes and improvements
+- **Tangem:**
+  - Fixed an issue with **sending coins from Tangem wallets** when multiple signatures (different addresses) were used.
+    Such transactions now process correctly.
+- **Main screen:**
+  - Improved the **balance hiding mechanism** — now animations and behavior are smoother and more consistent.
+
+
+
 ## 🚀 Main changes in version 0.48.3
 _Release date: November 1, 2025_
 
