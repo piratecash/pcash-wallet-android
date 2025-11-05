@@ -1,6 +1,7 @@
 package cash.p.terminal.wallet.storage
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -82,10 +83,13 @@ abstract class MarketDatabase : RoomDatabase() {
             return db
         }
 
-        private fun loadInitialCoins(db: SupportSQLiteDatabase, context: Context): Int {
-            var insertCount = 0
+        @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+        fun loadInitialCoins(db: SupportSQLiteDatabase, context: Context): Int {
+            var insertCount = 0 //17536
 
             try {
+                // Load initial coins from asset file
+                // Using INSERT OR REPLACE to handle conflicts automatically
                 val inputStream = context.assets.open("initial_coins_list")
                 val bufferedReader = BufferedReader(InputStreamReader(inputStream))
                 while (bufferedReader.ready()) {
@@ -93,6 +97,9 @@ abstract class MarketDatabase : RoomDatabase() {
                     db.execSQL(insertStmt)
                     insertCount++
                 }
+                bufferedReader.close()
+                inputStream.close()
+                logger.info("Initial coins loaded: $insertCount statements executed")
             } catch (error: Exception) {
                 logger.warning("Error in loadInitialCoins(): ${error.message ?: error.javaClass.simpleName}")
             }
