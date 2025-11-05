@@ -1,3 +1,14 @@
+## 🚀 Main changes in version 0.48.5
+_Release date: November 6, 2025_
+
+### ✨ New features
+- **Token cache on first launch**
+  - Added a local **token list cache** that is used if the app fails to load the token list from the network
+    during the first launch.
+    This improves startup stability and prevents issues with an empty token list.
+
+
+
 ## 🚀 Main changes in version 0.48.4
 _Release date: November 4, 2025_
 
