@@ -319,24 +319,33 @@ class AppStatusViewModel(
 
     private fun getMarketLastSyncTimestamps(): Map<String, Any> {
         val syncInfo = marketKit.syncInfo()
-        val info = LinkedHashMap<String, Any>()
-        info["Coins"] = syncInfo.coinsTimestamp ?: ""
-        info["Blockchains"] = syncInfo.blockchainsTimestamp ?: ""
-        info["Tokens"] = syncInfo.tokensTimestamp ?: ""
-
-        return info
+        return buildMap {
+            put("Coins Timestamp", syncInfo.coinsTimestamp ?: "")
+            put("Blockchains Timestamp", syncInfo.blockchainsTimestamp ?: "")
+            put("Tokens Timestamp", syncInfo.tokensTimestamp ?: "")
+            syncInfo.coinsCount?.let { put("Coins Count", it) }
+            syncInfo.blockchainsCount?.let { put("Blockchains Count", it) }
+            syncInfo.tokensCount?.let { put("Tokens Count", it) }
+            syncInfo.serverAvailable?.let { put("Server Available", if (it) "Yes" else "No") }
+        }
     }
 
     private fun getMarketLastSyncTimestampsBlock(): AppStatusModule.BlockData {
         val syncInfo = marketKit.syncInfo()
 
         return AppStatusModule.BlockData(
-            title = "Market Last Sync Timestamps",
-            content = listOf(
-                BlockContent.TitleValue("Coins", syncInfo.coinsTimestamp ?: ""),
-                BlockContent.TitleValue("Blockchains", syncInfo.blockchainsTimestamp ?: ""),
-                BlockContent.TitleValue("Tokens", syncInfo.tokensTimestamp ?: ""),
-            )
+            title = "Market Sync Info",
+            content = buildList {
+                add(BlockContent.TitleValue("Coins Timestamp", syncInfo.coinsTimestamp ?: ""))
+                add(BlockContent.TitleValue("Blockchains Timestamp", syncInfo.blockchainsTimestamp ?: ""))
+                add(BlockContent.TitleValue("Tokens Timestamp", syncInfo.tokensTimestamp ?: ""))
+                syncInfo.coinsCount?.let { add(BlockContent.TitleValue("Coins Count", it.toString())) }
+                syncInfo.blockchainsCount?.let { add(BlockContent.TitleValue("Blockchains Count", it.toString())) }
+                syncInfo.tokensCount?.let { add(BlockContent.TitleValue("Tokens Count", it.toString())) }
+                syncInfo.serverAvailable?.let {
+                    add(BlockContent.TitleValue("Server Available", if (it) "Yes" else "No"))
+                }
+            }
         )
     }
 

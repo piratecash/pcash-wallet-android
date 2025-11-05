@@ -65,6 +65,15 @@ interface CoinDao {
     @Query("DELETE FROM TokenEntity")
     fun deleteAllTokens()
 
+    @Query("SELECT COUNT(*) FROM Coin")
+    fun getCoinsCount(): Int
+
+    @Query("SELECT COUNT(*) FROM BlockchainEntity")
+    fun getBlockchainsCount(): Int
+
+    @Query("SELECT COUNT(*) FROM TokenEntity")
+    fun getTokensCount(): Int
+
     data class FullCoinWrapper(
         @Embedded
         val coin: Coin,

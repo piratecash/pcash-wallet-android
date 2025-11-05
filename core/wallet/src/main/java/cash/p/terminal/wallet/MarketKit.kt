@@ -680,8 +680,12 @@ sealed class ProviderError : Exception() {
     class ReturnedTimestampIsVeryInaccurate : ProviderError()
 }
 
-class SyncInfo(
+data class SyncInfo(
     val coinsTimestamp: String?,
     val blockchainsTimestamp: String?,
-    val tokensTimestamp: String?
+    val tokensTimestamp: String?,
+    val coinsCount: Int?,
+    val blockchainsCount: Int?,
+    val tokensCount: Int?,
+    val serverAvailable: Boolean?
 )
