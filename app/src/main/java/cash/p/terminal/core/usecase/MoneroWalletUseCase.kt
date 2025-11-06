@@ -27,7 +27,7 @@ class MoneroWalletUseCase(
         // check if the wallet we want to create already exists
         val walletFolder: File = Helper.getWalletRoot(appContext)
         if (!walletFolder.isDirectory()) {
-            Timber.e("Wallet dir " + walletFolder.getAbsolutePath() + "is not a directory")
+            Timber.e("Wallet dir " + walletFolder.absolutePath + "is not a directory")
             return@withContext null
         }
         val cacheFile = File(walletFolder, walletInnerName)
@@ -83,7 +83,7 @@ class MoneroWalletUseCase(
 
             val walletFolder: File = Helper.getWalletRoot(appContext)
             if (!walletFolder.isDirectory()) {
-                Timber.e("Wallet dir " + walletFolder.getAbsolutePath() + "is not a directory")
+                Timber.e("Wallet dir " + walletFolder.absolutePath + "is not a directory")
                 return@withContext null
             }
 
@@ -183,5 +183,4 @@ class MoneroWalletUseCase(
     private suspend fun closeOpenedWallet() {
         moneroKitWrapper.unlinkAll()
     }
-
 }

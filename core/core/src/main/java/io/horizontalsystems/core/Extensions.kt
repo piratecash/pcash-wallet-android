@@ -11,6 +11,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.navigation.NavController
 import cash.p.terminal.ui_compose.parcelable
 import io.horizontalsystems.core.entities.BlockchainType
+import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Locale
@@ -112,3 +113,14 @@ fun Double.smartFormat(): String {
 
 fun String.toBigDecimalOrNullExt(): BigDecimal? =
     toBigDecimalOrNull() ?: replace(',', '.').toBigDecimalOrNull()
+
+fun File?.sizeInMb(): String {
+    if (this == null || !this.exists()) {
+        return "n/a"
+    }
+
+    val sizeInMb = this.length().toDouble() / (1024 * 1024)
+    val roundedSize = String.format("%.2f", sizeInMb)
+
+    return "$roundedSize MB"
+}

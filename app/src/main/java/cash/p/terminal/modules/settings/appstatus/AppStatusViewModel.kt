@@ -1,5 +1,8 @@
 package cash.p.terminal.modules.settings.appstatus
 
+import android.app.ActivityManager
+import android.content.Context
+import android.os.Build
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
@@ -12,6 +15,7 @@ import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TronKitManager
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockContent
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
@@ -337,11 +341,37 @@ class AppStatusViewModel(
             title = "Market Sync Info",
             content = buildList {
                 add(BlockContent.TitleValue("Coins Timestamp", syncInfo.coinsTimestamp ?: ""))
-                add(BlockContent.TitleValue("Blockchains Timestamp", syncInfo.blockchainsTimestamp ?: ""))
+                add(
+                    BlockContent.TitleValue(
+                        "Blockchains Timestamp",
+                        syncInfo.blockchainsTimestamp ?: ""
+                    )
+                )
                 add(BlockContent.TitleValue("Tokens Timestamp", syncInfo.tokensTimestamp ?: ""))
-                syncInfo.coinsCount?.let { add(BlockContent.TitleValue("Coins Count", it.toString())) }
-                syncInfo.blockchainsCount?.let { add(BlockContent.TitleValue("Blockchains Count", it.toString())) }
-                syncInfo.tokensCount?.let { add(BlockContent.TitleValue("Tokens Count", it.toString())) }
+                syncInfo.coinsCount?.let {
+                    add(
+                        BlockContent.TitleValue(
+                            "Coins Count",
+                            it.toString()
+                        )
+                    )
+                }
+                syncInfo.blockchainsCount?.let {
+                    add(
+                        BlockContent.TitleValue(
+                            "Blockchains Count",
+                            it.toString()
+                        )
+                    )
+                }
+                syncInfo.tokensCount?.let {
+                    add(
+                        BlockContent.TitleValue(
+                            "Tokens Count",
+                            it.toString()
+                        )
+                    )
+                }
                 syncInfo.serverAvailable?.let {
                     add(BlockContent.TitleValue("Server Available", if (it) "Yes" else "No"))
                 }
@@ -362,17 +392,44 @@ class AppStatusViewModel(
     private fun getAppInfoBlock(): AppStatusModule.BlockData {
         return AppStatusModule.BlockData(
             title = "App Info",
-            content = listOf(
-                BlockContent.TitleValue(
-                    "Current Time",
-                    DateHelper.formatDate(Date(), "MMM d, yyyy, HH:mm")
-                ),
-                BlockContent.TitleValue("App Version", systemInfoManager.appVersion),
-                BlockContent.TitleValue("Device Model", systemInfoManager.deviceModel),
-                BlockContent.TitleValue("OS Version", systemInfoManager.osVersion),
-                BlockContent.TitleValue("System pin required", if(localStorage.isSystemPinRequired) "Yes" else "No"),
-            )
+            content = buildList {
+                add(
+                    BlockContent.TitleValue(
+                        "Current Time",
+                        DateHelper.formatDate(Date(), "MMM d, yyyy, HH:mm")
+                    )
+                )
+                add(BlockContent.TitleValue("App Version", systemInfoManager.appVersion))
+                add(BlockContent.TitleValue("Device Model", systemInfoManager.deviceModel))
+                add(BlockContent.TitleValue("OS Version", systemInfoManager.osVersion))
+                addAll(getDeviceClass(App.instance))
+                add(
+                    BlockContent.TitleValue(
+                        "System pin required",
+                        if (localStorage.isSystemPinRequired) "Yes" else "No"
+                    )
+                )
+            }
         )
+    }
+
+    private fun getDeviceClass(context: Context): List<BlockContent.TitleValue> {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val memory = am.memoryClass
+        val largeMemory = am.largeMemoryClass
+        val isLowRam = am.isLowRamDevice
+        val perf = tryOrNull { Build.VERSION.MEDIA_PERFORMANCE_CLASS }
+
+        val classLevel = when {
+            perf == null -> "Unknown"
+            isLowRam || memory < 128 -> "Low"
+            perf >= 33 || memory >= 256 -> "High"
+            else -> "Medium"
+        }
+        return buildList {
+            add(BlockContent.TitleValue("Memory", "${memory}MB (${largeMemory}MB)"))
+            add(BlockContent.TitleValue("Performance Class", "$classLevel ($perf)"))
+        }
     }
 
     private fun getAccountDetails(account: cash.p.terminal.wallet.Account): LinkedHashMap<String, Any> {

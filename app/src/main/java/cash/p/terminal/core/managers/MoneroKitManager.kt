@@ -7,6 +7,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.adapters.MoneroAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.utils.MoneroConfig
@@ -34,6 +35,7 @@ import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.SafeSuspendedCall
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
+import io.horizontalsystems.core.sizeInMb
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -49,6 +51,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
+import java.io.File
 import java.math.BigDecimal
 
 class MoneroKitManager(
@@ -180,6 +183,8 @@ class MoneroKitWrapper(
     val lastBlockInfoFlow = _lastBlockInfoFlow.asStateFlow()
     private var cachedTotalHeight: Long = 0
 
+    private var walletFileNameForStatus: String? = null
+
     private val _transactionsStateUpdatedFlow = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
@@ -216,22 +221,22 @@ class MoneroKitWrapper(
             try {
                 val walletFileName: String
                 val walletPassword: String
-                val accountType = account.type
-                when (accountType) {
+                walletFileNameForStatus = null
+                when (val accountType = account.type) {
                     is AccountType.MnemonicMonero -> {
                         logger.info("start: using AccountType.MnemonicMonero")
                         walletFileName = accountType.walletInnerName
                         walletPassword = accountType.password
 
-                        if (!Helper.getWalletFile(App.instance, accountType.walletInnerName).exists()) {
+                        if (!Helper.getWalletFile(App.instance, walletFileName).exists()) {
                             Timber.d("Restoring Monero wallet from mnemonic...")
                             // restore wallet file if it does not exist
                             logger.info("start: wallet file does not exist, restoring from mnemonic")
                             moneroWalletUseCase.restore(
                                 words = accountType.words,
                                 height = accountType.height,
-                                crazyPassExisting = accountType.password,
-                                walletInnerNameExisting = accountType.walletInnerName
+                                crazyPassExisting = walletPassword,
+                                walletInnerNameExisting = walletFileName
                             )
                         }
                     }
@@ -265,6 +270,7 @@ class MoneroKitWrapper(
 
                     else -> throw UnsupportedAccountException()
                 }
+                walletFileNameForStatus = walletFileName
 
                 val selectedNode = MoneroConfig.autoSelectNode()
                 if (selectedNode != null) {
@@ -319,8 +325,7 @@ class MoneroKitWrapper(
                     getBirthdayHeight(account)?.let {
                         resetWalletAndRestart(it)
                     }
-                }
-                else {
+                } else {
                     delay(3_000)
                     val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
                     logger.info(
@@ -332,7 +337,18 @@ class MoneroKitWrapper(
             logger.warning("startService: WalletCorruptedException received", e)
             try {
                 if (fixIfCorruptedFile) {
-                    Timber.e(e, "WalletCorruptedException, trying to fix wallet")
+                    if (e.message?.contains("std::bad_alloc") == true) { // too big cache file
+                        val cacheFileSize = tryOrNull { getCacheFile().sizeInMb() } ?: ""
+                        val deleted = tryOrNull { getCacheFile()?.delete() } ?: false
+                        Timber.d("MoneroKitManager: detected bad_alloc error(size: $cacheFileSize), deleted cache file: $deleted")
+                        logger.info("startService: detected bad_alloc error(size: $cacheFileSize), deleting cache file, deleted=$deleted")
+                        startService(walletFileName, walletPassword, false)
+                        return
+                    }
+                    Timber.e(
+                        e,
+                        "WalletCorruptedException, trying to fix wallet, cache size: ${tryOrNull { getCacheFile().sizeInMb() } ?: "unknown"}"
+                    )
                     logger.info("startService: attempting wallet fix after corruption")
                     getBirthdayHeight(account)?.let {
                         resetWalletAndRestart(it)
@@ -490,9 +506,13 @@ class MoneroKitWrapper(
             "connectionStatus" to moneroWalletService.connectionStatus,
             "walletStatus" to moneroWalletService.wallet?.status?.toString().orEmpty(),
             "isStarted" to isStarted,
-            "Birthday Height" to (moneroWalletService.wallet?.restoreHeight?.toString()
-                ?: "Not set"),
-        )
+            "Birthday Height" to (getBirthdayHeight(account) ?: "Not set"),
+            "Cache file size" to (tryOrNull { getCacheFile().sizeInMb() } ?: "")
+            )
+    }
+
+    private fun getCacheFile(): File? {
+        return walletFileNameForStatus?.let { Helper.getWalletFile(App.instance, it) }
     }
 
     // Add methods for balance, transactions, etc.
