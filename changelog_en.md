@@ -1,3 +1,19 @@
+## 🚀 Main changes in version 0.48.6
+_Release date: November 9, 2025_
+
+### ✨ New features
+- **Market synchronization:**
+  - Improved the **market data synchronization mechanism**, providing more stable and faster updates of price and market information.
+
+### 🛠 Fixes and improvements
+- **Monero:**
+  - Improved memory handling and added extended diagnostic logs.
+    Also fixed a potential issue that could lead to a **memory allocation error (std::bad_alloc)**.
+- **Keystore (HONOR):**
+  - Fixed a potential compatibility issue with **Android Keystore** on **HONOR** devices.
+
+
+
 ## 🚀 Main changes in version 0.48.5
 _Release date: November 6, 2025_
 
