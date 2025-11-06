@@ -44,9 +44,16 @@ object MainModule {
     }
 
     fun startAsNewTask(context: Context) {
-        val intent = Intent(context, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        context.startActivity(intent)
+        val packageManager = context.packageManager
+        val intent = packageManager.getLaunchIntentForPackage(context.packageName)
+            ?.apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+        intent?.let {
+            context.startActivity(Intent.makeRestartActivityTask(intent.component))
+            Runtime.getRuntime().exit(0) // To recreate the process to fix keystore issues
+        }
     }
 
     fun startAsNewTask(context: Activity) {

@@ -27,7 +27,7 @@ class KeyStoreManager(
     private val ANDROID_KEY_STORE = "AndroidKeyStore"
     private val BLOCK_MODE = KeyProperties.BLOCK_MODE_CBC
     private val PADDING = KeyProperties.ENCRYPTION_PADDING_PKCS7
-    private val AUTH_DURATION_SEC = 86400 // 24 hours in seconds (24x60x60)
+    private val AUTH_DURATION_SEC = 7 * 86400 // 7 days in seconds
 
     private val localStoreManager: IPinSettingsStorage by inject(IPinSettingsStorage::class.java)
     private val keyStore: KeyStore = KeyStore.getInstance(ANDROID_KEY_STORE)
