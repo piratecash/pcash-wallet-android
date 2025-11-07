@@ -1,5 +1,18 @@
+## 🚀 Main changes in version 0.48.7
+_Release date: November 7, 2025_
+
+### ✨ New features
+- **EVM transactions:**
+  - Added **feeCoin handling** and improved **caution indicators** when preparing EVM-based transactions, making fee logic clearer and safer for users.
+
+### 🛠 Fixes and improvements
+- **Swap button:**
+  - Fixed an issue where the **swap button enable state** behaved incorrectly in certain cases.
+
+
+
 ## 🚀 Main changes in version 0.48.6
-_Release date: November 9, 2025_
+_Release date: November 6, 2025_
 
 ### ✨ New features
 - **Market synchronization:**
@@ -15,7 +28,7 @@ _Release date: November 9, 2025_
 
 
 ## 🚀 Main changes in version 0.48.5
-_Release date: November 6, 2025_
+_Release date: November 5, 2025_
 
 ### ✨ New features
 - **Token cache on first launch**
