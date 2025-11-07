@@ -117,7 +117,7 @@ class SwapQuoteService {
         val amountIn = amountIn
 
         if (tokenIn != null && tokenOut != null) {
-            quotingJob = coroutineScope.launch(Dispatchers.IO) {
+            quotingJob = coroutineScope.launch {
                 val supportedProviders = allProviders.filter { it.supports(tokenIn, tokenOut) }
 
                 if (supportedProviders.isEmpty()) {

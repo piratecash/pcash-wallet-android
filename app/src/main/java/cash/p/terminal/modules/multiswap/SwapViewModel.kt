@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
+import cash.p.terminal.core.moreThanZero
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -299,7 +300,7 @@ data class SwapUiState(
     val timeRemainingProgress: Float?
 ) {
     val currentStep: SwapStep = when {
-        quoting -> SwapStep.Quoting
+        quoting || (allChosen() && amountIn.moreThanZero() && !fiatAmountOut.moreThanZero()) -> SwapStep.Quoting
         error != null -> SwapStep.Error(error)
         tokenIn == null -> SwapStep.InputRequired(InputType.TokenIn)
         tokenOut == null -> SwapStep.InputRequired(InputType.TokenOut)
@@ -310,6 +311,9 @@ data class SwapUiState(
         quote?.actionRequired != null -> SwapStep.ActionRequired(quote.actionRequired!!)
         else -> SwapStep.Proceed
     }
+
+    private fun allChosen() =
+        tokenIn != null && tokenOut != null
 }
 
 sealed class SwapStep {
