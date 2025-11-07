@@ -56,8 +56,11 @@ internal class SendEvmViewModel(
 
     private val contactsRepository: ContactsRepository by inject(ContactsRepository::class.java)
     private val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Ethereum, TokenType.Native)) ?: throw IllegalArgumentException()
+    val feeTokenMaxAllowedDecimals = feeToken.decimals
 
     var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
+        private set
+    var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
@@ -71,6 +74,9 @@ internal class SendEvmViewModel(
         }
         xRateService.getRateFlow(sendToken.coin.uid).collectWith(viewModelScope) {
             coinRate = it
+        }
+        xRateService.getRateFlow(feeToken.coin.uid).collectWith(viewModelScope) {
+            feeCoinRate = it
         }
 
         addressService.setAddress(address)
