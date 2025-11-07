@@ -228,7 +228,7 @@ internal class SendTransactionServiceEvm(
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
-        val transaction = transaction ?: throw Exception()
+        val transaction = transaction ?: throw Exception("Transaction is empty")
         if (transaction.errors.isNotEmpty()) {
             throw IllegalStateException(transaction.errors.firstOrNull()?.cause)
         }

@@ -25,6 +25,7 @@ open class HSCaution(
     fun isError() = type == Type.Error
     fun isWarning() = type == Type.Warning
 }
+
 class NotEnoughData() : Exception()
 class UnsupportedException(override val message: String?) : Exception()
 class UnsupportedAccountException : Exception()
@@ -34,6 +35,7 @@ class NoFeeSendTransactionError : Exception()
 class FailedTransaction(errorMessage: String?) : RuntimeException(errorMessage) {
     override fun toString() = message ?: "Transaction failed."
 }
+
 class NoDataException() : Exception() {
     override fun getLocalizedMessage(): String {
         return cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_NoData)
@@ -75,9 +77,11 @@ val Throwable.convertedError: Throwable
                 EvmError.RpcError(error.message)
             }
         }
+
         is AddressValidator.AddressValidationException -> {
             EvmAddressError.InvalidAddress
         }
+
         is retrofit2.HttpException -> {
             val errorBody = response()?.errorBody()?.string()
             if (errorBody?.contains("Try to leave the buffer of ETH for gas") == true ||
@@ -94,5 +98,6 @@ val Throwable.convertedError: Throwable
                 this
             }
         }
+
         else -> this
     }

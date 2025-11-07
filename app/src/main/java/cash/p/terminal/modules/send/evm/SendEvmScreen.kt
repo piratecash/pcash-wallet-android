@@ -20,6 +20,7 @@ import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
+import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendFragment.ProceedActionData
 import cash.p.terminal.modules.send.SendScreen
@@ -138,6 +139,10 @@ internal fun SendEvmScreen(
                 addressCheckerControl = addressCheckerControl,
                 modifier = Modifier.padding(top = 8.dp)
             )
+
+            if (uiState.cautions.isNotEmpty() && amountCaution == null && addressError == null) {
+                Cautions(uiState.cautions)
+            }
 
             ButtonPrimaryYellow(
                 modifier = Modifier

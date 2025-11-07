@@ -40,7 +40,7 @@ internal fun SendEvmConfirmationScreen(
         sendResult = sendViewModel.sendResult,
         blockchainType = sendViewModel.blockchainType,
         coin = confirmationData.coin,
-        feeCoin = confirmationData.coin,
+        feeCoin = confirmationData.feeCoin,
         amount = confirmationData.amount,
         address = confirmationData.address,
         contact = confirmationData.contact,

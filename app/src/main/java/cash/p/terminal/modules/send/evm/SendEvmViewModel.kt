@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.LocalizedException
@@ -21,8 +22,12 @@ import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.entities.TokenType
 import cash.z.ecc.android.sdk.ext.collectWith
+import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.ViewModelUiState
+import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -50,6 +55,7 @@ internal class SendEvmViewModel(
     private var addressState = addressService.stateFlow.value
 
     private val contactsRepository: ContactsRepository by inject(ContactsRepository::class.java)
+    private val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Ethereum, TokenType.Native)) ?: throw IllegalArgumentException()
 
     var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
@@ -69,21 +75,18 @@ internal class SendEvmViewModel(
 
         addressService.setAddress(address)
 
-        viewModelScope.launch {
-            sendTransactionService.stateFlow.collect { transactionState ->
-                emitState()
-            }
+        sendTransactionService.stateFlow.collectWith(viewModelScope) {
+            emitState()
         }
 
         sendTransactionService.start(viewModelScope)
 
         amountService.stateFlow.onEach {
-            val tmpAmount = amountState.amount ?: return@onEach
             addressState.address?.let { address ->
                 sendTransactionService.setSendTransactionData(
                     SendTransactionData.Evm(
                         adapter.getTransactionData(
-                            tmpAmount,
+                            amountState.amount ?: BigDecimal.ZERO,
                             io.horizontalsystems.ethereumkit.models.Address(address.hex)
                         ),
                         null
@@ -98,10 +101,16 @@ internal class SendEvmViewModel(
         availableBalance = amountState.availableBalance,
         amountCaution = amountState.amountCaution,
         addressError = addressState.addressError,
-        canBeSend = amountState.canBeSend && addressState.canBeSend,
+        canBeSend = amountState.canBeSend && addressState.canBeSend && sendTransactionService.stateFlow.value.sendable,
         showAddressInput = showAddressInput,
         address = addressState.address,
+        cautions = if (amountMoreThanZero()) sendTransactionService.stateFlow.value.cautions else emptyList()
     )
+
+    private fun amountMoreThanZero(): Boolean {
+        val amount = amountService.stateFlow.value.amount
+        return amount != null && !amount.isZero()
+    }
 
     fun onEnterAmount(amount: BigDecimal?) {
         amountService.setAmount(amount)
@@ -134,7 +143,7 @@ internal class SendEvmViewModel(
             address = address,
             contact = contact,
             coin = wallet.token.coin,
-            feeCoin = wallet.token.coin,
+            feeCoin = feeToken.coin,
             memo = null,
         )
     }
