@@ -22,12 +22,9 @@ import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
-import cash.p.terminal.wallet.entities.TokenQuery
-import cash.p.terminal.wallet.entities.TokenType
 import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.ViewModelUiState
-import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -55,7 +52,8 @@ internal class SendEvmViewModel(
     private var addressState = addressService.stateFlow.value
 
     private val contactsRepository: ContactsRepository by inject(ContactsRepository::class.java)
-    private val feeToken = App.coinManager.getToken(TokenQuery(BlockchainType.Ethereum, TokenType.Native)) ?: throw IllegalArgumentException()
+    private val feeToken = App.evmBlockchainManager.getBaseToken(blockchainType)
+        ?: throw IllegalArgumentException()
     val feeTokenMaxAllowedDecimals = feeToken.decimals
 
     var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
