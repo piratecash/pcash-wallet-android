@@ -11,6 +11,7 @@ import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.moreThanZero
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.address.AddressHandlerTon
@@ -232,8 +233,8 @@ class SendTransactionServiceTonSwap(
 
     private fun getAmount(): BigInteger {
         val tonSwapData = checkNotNull(tonSwapData) { "Nothing to send" }
-        return tonSwapData.gasBudget
-            ?: (tonSwapData.offerUnits + tonSwapData.forwardGas + ptonTransferFeeNano)
+        return tonSwapData.gasBudget?.takeIf { tonSwapData.gasBudget.moreThanZero() } ?:
+            (tonSwapData.offerUnits + tonSwapData.forwardGas + ptonTransferFeeNano)
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {

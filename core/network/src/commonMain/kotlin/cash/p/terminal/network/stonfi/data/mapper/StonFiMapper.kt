@@ -81,9 +81,9 @@ internal class StonFiMapper {
 
     private fun mapGasParamsDto(dto: GasParamsDto): GasParams {
         return GasParams(
-            forwardGas = dto.forward_gas?.toBigIntegerOrNull() ?: BigInteger.ZERO,
-            estimatedGasConsumption = dto.estimated_gas_consumption?.toBigIntegerOrNull() ?: BigInteger.ZERO,
-            gasBudget = dto.gas_budget?.toBigIntegerOrNull() ?: BigInteger.ZERO
+            forwardGas = dto.forwardGas?.toBigIntegerOrNull() ?: BigInteger.ZERO,
+            estimatedGasConsumption = dto.estimatedGasConsumption?.toBigIntegerOrNull() ?: BigInteger.ZERO,
+            gasBudget = dto.gasBudget?.toBigIntegerOrNull() ?: BigInteger.ZERO
         )
     }
 

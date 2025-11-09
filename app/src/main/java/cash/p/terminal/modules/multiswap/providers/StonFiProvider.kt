@@ -17,7 +17,6 @@ import cash.p.terminal.modules.multiswap.ui.DataFieldRecipient
 import cash.p.terminal.modules.multiswap.ui.DataFieldSlippage
 import cash.p.terminal.network.stonfi.domain.entity.SimulateSwap
 import cash.p.terminal.network.stonfi.domain.repository.StonFiRepository
-import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
@@ -28,7 +27,6 @@ import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
 import timber.log.Timber
 import java.math.BigDecimal
-import java.math.BigInteger
 
 class StonFiProvider(
     private val stonFiRepository: StonFiRepository,
@@ -182,7 +180,6 @@ class StonFiProvider(
         val addressFrom = walletUseCase.getReceiveAddress(tokenIn)
         val walletAddressTo = walletUseCase.getReceiveAddress(tokenOut)
         val receiverOwnerAddress = settingRecipient.value?.hex ?: walletAddressTo
-        val receiverAddress = receiverOwnerAddress
 
         val routerInfo = stonFiRepository.getRouter(response.routerAddress)
 
@@ -275,7 +272,7 @@ class StonFiProvider(
                             tokenWallet = AddrStd(response.askJettonWallet),
                             refundAddress = AddrStd(addressFrom),
                             minOut = BigInt(response.minAskUnits),
-                            receiver = AddrStd(receiverAddress),
+                            receiver = AddrStd(receiverOwnerAddress),
                             refFee = REF_FEE_BPS,
                             fwdGas = response.gasParams.forwardGas,
                             referralAddress = REF_ADDRESS_TON?.let { AddrStd(it) }
