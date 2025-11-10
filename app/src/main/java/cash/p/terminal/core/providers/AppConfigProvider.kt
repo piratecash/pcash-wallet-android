@@ -142,13 +142,13 @@ object AppConfigProvider {
 
     val donateAddresses: Map<BlockchainType, String> by lazy {
         mapOf(
-            BlockchainType.Bitcoin to "3G5fwc9PP9Lcb1y3RAYGzoQZs5enJkmdxN",
-            BlockchainType.BitcoinCash to "bitcoincash:qr4f0pkvx86vv6cuae48nj83txqhwyt2fgadd9smxg",
+            BlockchainType.Bitcoin to "bc1q2ph64sryt6skegze6726fp98u44kjsc5exktap",
+            BlockchainType.BitcoinCash to "bitcoincash:qp497gfxadpz30zxp7kltcq9c2jn57z34q5xuclrhf",
             BlockchainType.ECash to "ecash:qrzcal2fmm6vumxp3g2jndk0fepmt2racya9lc4yxy",
-            BlockchainType.Litecoin to "MNbHsci3A8u6UiqjBMMckXzfPrLjeMxdRC",
-            BlockchainType.Cosanta to "CRrYMxgagsPEX4DNFWNdGypUUoBa43Dt4p",
-            BlockchainType.Dash to "XcpUrR8LkohMNB9TfJaC97id6boUhRU3wk",
-            BlockchainType.Dogecoin to "DThko7KFeu6eBag6bmPy5e7nGesmsTMRPD",
+            BlockchainType.Litecoin to "LgevEuuQ8ht3rnd3YyQ6j88cXs49aCaoSU",
+            BlockchainType.Cosanta to "Cbbp3meofT1ESU5p4d9ucXpXw9pxKCMEyi",
+            BlockchainType.Dash to "Xv7U37XKp5d4fjvbeuganwhqXN7Sm4JJkt",
+            BlockchainType.Dogecoin to "DUQx8grwwEgjmdC3WNrczxz33ub3S45x4q",
             BlockchainType.Zcash to "zs1hwyqs4mfrynq0ysjmhv8wuau5zam0gwpx8ujfv8epgyufkmmsp6t7cfk9y0th7qyx7fsc5azm08",
             BlockchainType.Ethereum to "0x52be29951B0D10d5eFa48D58363a25fE5Cc097e9",
             BlockchainType.BinanceSmartChain to "0x52be29951B0D10d5eFa48D58363a25fE5Cc097e9",
@@ -163,8 +163,8 @@ object AppConfigProvider {
             BlockchainType.Gnosis to "0x52be29951B0D10d5eFa48D58363a25fE5Cc097e9",
             BlockchainType.Fantom to "0x52be29951B0D10d5eFa48D58363a25fE5Cc097e9",
             BlockchainType.Ton to "UQCYTBH7n8OnQ6BgOfdkNRWF7socLJb9U-JMRcoz3UpL_0V6",
-            BlockchainType.Tron to "TV4wYRcDun4iHb4oUgcse4Whptk9JKVui2",
-            BlockchainType.Monero to "4B7tJ5W9QFY1quiV4yFWwSCmgyitq1k2xDUWSkoHo9o2aBimKmVPyPxf6b3LyQdxtMB2bkPbr7hAq2bFobhASrbHK4JyX57",
+            BlockchainType.Tron to "TAaYtFBxJztC5pG1zMapvUFSfEyJLSLJM5",
+            BlockchainType.Monero to "4AzdEoZxeGMFkdtAxaNLAZakqEVsWpVb2at4u6966WGDiXkS7ZPyi7haeThTGUAWXVKDTmQ9DYTWRHMjGVSBW82xRQqPxkg",
             BlockchainType.Stellar to "GAZXDMWYHMPM2WF6FCWEBIMJITKKTU6MLHYLCFRVB3WMXTNPVEHBOXRE"
         ).toList().sortedBy { it.first.uid }.toMap()
     }
