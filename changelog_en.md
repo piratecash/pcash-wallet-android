@@ -1,3 +1,20 @@
+## 🚀 Main changes in version 0.48.8
+_Release date: November 11, 2025_
+
+### ✨ New features
+- **InstantSend:**
+  - Added support for **InstantSend** for **DASH / PirateCash / Cosanta**, enabling faster confirmations and improving overall transaction speed.
+
+### 🛠 Fixes and improvements
+- **Donation addresses:**
+  - Updated **Donate** addresses. The project continues to grow thanks to community support — we appreciate every contribution.
+- **EVM fee ticker:**
+  - Fixed an issue with the **fee ticker display** for EVM-based blockchains.
+- **Ston.fi:**
+  - Fixed a problem with buying assets on the **Ston.fi DEX**, where price quotes were not always detected correctly.
+
+
+
 ## 🚀 Main changes in version 0.48.7
 _Release date: November 7, 2025_
 
