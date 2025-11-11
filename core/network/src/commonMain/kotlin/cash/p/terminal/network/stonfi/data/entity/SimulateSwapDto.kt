@@ -1,5 +1,6 @@
 package cash.p.terminal.network.stonfi.data.entity
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,7 +27,10 @@ internal data class SimulateSwapDto(
 
 @Serializable
 internal data class GasParamsDto(
-    val forward_gas: String?,
-    val estimated_gas_consumption: String?,
-    val gas_budget: String?
+    @SerialName("forward_gas")
+    val forwardGas: String? = null,
+    @SerialName("estimated_gas_consumption")
+    val estimatedGasConsumption: String? = null,
+    @SerialName("gas_budget")
+    val gasBudget: String? = null
 )
