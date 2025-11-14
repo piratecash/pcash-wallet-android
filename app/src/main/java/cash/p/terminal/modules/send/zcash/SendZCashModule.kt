@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendZcashAdapter
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Wallet
+import org.koin.java.KoinJavaComponent.inject
 
 object SendZCashModule {
 
@@ -19,6 +21,7 @@ object SendZCashModule {
     ) : ViewModelProvider.Factory {
         val adapter =
             (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendZcashAdapter) ?: throw IllegalStateException("SendZcashAdapter is null")
+        private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -40,7 +43,8 @@ object SendZCashModule {
                 memoService = memoService,
                 contactsRepo = App.contactsRepository,
                 showAddressInput = !hideAddress,
-                address = address
+                address = address,
+                pendingRegistrar = pendingRegistrar
             ) as T
         }
     }

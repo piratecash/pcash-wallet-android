@@ -1692,4 +1692,7 @@
     <string name="display_options_period_1m">1 місяць</string>
     <string name="display_options_period_1y">1 рік</string>
     <string name="sum_rounding">Округлення сум</string>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Надсилання</string>
 </resources>

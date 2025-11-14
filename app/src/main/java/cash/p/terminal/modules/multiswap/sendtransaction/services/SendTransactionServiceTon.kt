@@ -11,8 +11,10 @@ import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.CoinValue
+import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.address.AddressHandlerTon
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
@@ -38,6 +40,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
+import java.math.BigDecimal
+import kotlin.getValue
+import kotlin.math.abs
 
 class SendTransactionServiceTon(
     token: Token
@@ -63,6 +68,15 @@ class SendTransactionServiceTon(
     private var addressState = addressService.stateFlow.value
     private var feeState = feeService.stateFlow.value
     private var memo: String? = null
+
+    private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+    private var pendingTxId: String? = null
+    private val decimalDiff = token.decimals - feeToken.decimals
+    private val decimalRate = if(decimalDiff < 0) {
+        1.toBigDecimal().divide(BigDecimal.TEN.pow(abs(decimalDiff)))
+    } else {
+        BigDecimal.TEN.pow(decimalDiff)
+    }
 
     var coinRate by mutableStateOf(xRateService.getRate(token.coin.uid))
         private set
@@ -182,9 +196,26 @@ class SendTransactionServiceTon(
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
+            val draft = PendingTransactionDraft(
+                wallet = wallet,
+                token = token,
+                amount = amountState.amount!!,
+                fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
+                fromAddress = "",  // TON doesn't require from address
+                toAddress = addressState.address!!.hex,
+                memo = memo,
+                txHash = null
+            )
+
+            // 2. Register pending transaction
+            pendingTxId = pendingRegistrar.register(draft)
+
             adapter.send(amountState.amount!!, addressState.tonAddress!!, memo)
             return SendTransactionResult.Ton(SendResult.Sent())
         } catch (e: Throwable) {
+            pendingTxId?.let {
+                pendingRegistrar.deleteFailed(it)
+            }
             cautions = listOf(createCaution(e))
             emitState()
             throw e

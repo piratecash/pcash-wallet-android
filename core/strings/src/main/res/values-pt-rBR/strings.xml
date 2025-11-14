@@ -1512,4 +1512,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
         <item quantity="one">A mostrar %1$d entrada</item>
         <item quantity="other">A mostrar %1$d entradas</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Enviando</string>
 </resources>

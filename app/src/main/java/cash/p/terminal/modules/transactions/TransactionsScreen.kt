@@ -376,8 +376,7 @@ fun TransactionCell(
                 item.progress?.let { progress ->
                     HSCircularProgressIndicator(progress)
                 }
-                val icon = item.icon
-                when (icon) {
+                when (val icon = item.icon) {
                     TransactionViewItem.Icon.Failed -> {
                         Icon(
                             painter = painterResource(R.drawable.ic_attention_24),

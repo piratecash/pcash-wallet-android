@@ -1516,4 +1516,7 @@
         <item quantity="one">نمایش %1$d ورودی</item>
         <item quantity="other">نمایش %1$d ورودی</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">ارسال</string>
 </resources>

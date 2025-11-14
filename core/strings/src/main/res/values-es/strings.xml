@@ -1504,4 +1504,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
         <item quantity="one">Mostrando %1$d entrada</item>
         <item quantity="other">Mostrando %1$d entradas</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Enviando</string>
 </resources>

@@ -1965,4 +1965,7 @@ Proceed only if you\'re sure.</string>
         <item quantity="one">%1$d entry</item>
         <item quantity="other">%1$d entries</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Sending</string>
 </resources>

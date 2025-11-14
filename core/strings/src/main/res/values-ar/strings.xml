@@ -1525,4 +1525,7 @@
         <item quantity="many">عرض %1$d إدخال</item>
         <item quantity="other">عرض %1$d إدخال</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">جارٍ الإرسال</string>
 </resources>

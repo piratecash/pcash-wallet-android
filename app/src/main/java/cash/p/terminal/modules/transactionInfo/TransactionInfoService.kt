@@ -2,9 +2,11 @@ package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BalanceHiddenManager
+import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
+import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
@@ -34,10 +36,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
-import kotlin.getValue
 
 class TransactionInfoService(
-    val transactionRecord: TransactionRecord,
+    initialTransactionRecord: TransactionRecord,
     private val changeNowTransactionId: String?,
     private val adapter: ITransactionsAdapter,
     private val marketKit: MarketKitWrapper,
@@ -47,8 +48,14 @@ class TransactionInfoService(
     transactionStatusUrl: Pair<String, String>?
 ) {
     private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
+    private val pendingTransactionMatcher: PendingTransactionMatcher by inject(
+        PendingTransactionMatcher::class.java
+    )
 
     private val mutex = Mutex()
+
+    private var _transactionRecord = initialTransactionRecord
+    val transactionRecord: TransactionRecord get() = _transactionRecord
 
     val transactionHash: String get() = transactionRecord.transactionHash
     val source: TransactionSource get() = transactionRecord.source
@@ -85,8 +92,7 @@ class TransactionInfoService(
                     add(tx.fee.coinUid)
 
                     tx.actions.forEach { action ->
-                        val actionType = action.type
-                        when (actionType) {
+                        when (val actionType = action.type) {
                             is TonTransactionRecord.Action.Type.Burn -> {
                                 add(actionType.value.coinUid)
                             }
@@ -228,6 +234,10 @@ class TransactionInfoService(
                     }
                 }
 
+                is PendingTransactionRecord -> {
+                    listOf(tx.mainValue.coinUid)
+                }
+
                 else -> emptyList()
             }
 
@@ -248,6 +258,11 @@ class TransactionInfoService(
             return coinUids.filterNotNull().filter { it.isNotBlank() }.distinct()
         }
 
+    suspend fun updateRecord(newRecord: TransactionRecord) {
+        _transactionRecord = newRecord
+        handleRecordUpdate(newRecord)
+    }
+
     suspend fun start() = withContext(Dispatchers.IO) {
         handleLastBlockUpdate(getChangeNowTransactionStatus())
         _transactionInfoItemFlow.update { transactionInfoItem }
@@ -259,6 +274,17 @@ class TransactionInfoService(
 
                     if (record != null) {
                         handleRecordUpdate(record)
+                    }
+
+                    if (_transactionRecord is PendingTransactionRecord) {
+                        val matchedReal = findMatchingRealTransaction(
+                            pending = _transactionRecord as PendingTransactionRecord,
+                            allRecords = transactionRecords
+                        )
+
+                        if (matchedReal != null) {
+                            updateRecord(matchedReal)
+                        }
                     }
                 }
         }
@@ -287,6 +313,17 @@ class TransactionInfoService(
         fetchRates()
         fetchNftMetadata()
     }
+
+    private fun findMatchingRealTransaction(
+        pending: PendingTransactionRecord,
+        allRecords: List<TransactionRecord>
+    ): TransactionRecord? {
+        return allRecords.firstOrNull { real ->
+            real !is PendingTransactionRecord &&
+                    pendingTransactionMatcher.calculateMatchScore(pending, real).isMatch
+        }
+    }
+
 
     private suspend fun getChangeNowTransactionStatus(): TransactionStatus? =
         changeNowTransactionId?.let { changeNowTransactionId ->

@@ -119,6 +119,7 @@ private class FakeAppDatabase(
     override fun hardwarePublicKeyDao() = unsupported()
     override fun recentAddressDao() = unsupported()
     override fun moneroFileDao() = unsupported()
+    override fun pendingTransactionDao() = unsupported()
 
     private fun unsupported(): Nothing = throw NotImplementedError()
     override fun createInvalidationTracker() = unsupported()

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.transactionInfo
 import cash.p.terminal.R
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.core.managers.TonHelper
+import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
@@ -576,6 +577,20 @@ class TransactionInfoViewItemFactory(
                 }
             }
 
+            is PendingTransactionRecord -> {
+                itemSections.add(
+                    TransactionViewItemFactoryHelper.getSendSectionItems(
+                        value = transaction.mainValue,
+                        toAddress = transaction.to,
+                        coinPrice = rates[transaction.mainValue.coinUid],
+                        hideAmount = transactionItem.hideAmount,
+                        sentToSelf = transaction.sentToSelf,
+                        nftMetadata = nftMetadata,
+                        blockchainType = blockchainType,
+                    )
+                )
+            }
+
             else -> {}
         }
 
@@ -635,7 +650,11 @@ class TransactionInfoViewItemFactory(
                 )
             )
         }
-        itemSections.add(TransactionViewItemFactoryHelper.getExplorerSectionItems(transactionItem.explorerData))
+        if (transactionItem.record.transactionHash.isNotEmpty()) {
+            itemSections.add(
+                TransactionViewItemFactoryHelper.getExplorerSectionItems(transactionItem.explorerData)
+            )
+        }
         transactionItem.transactionStatusUrl?.let {
             itemSections.add(
                 TransactionViewItemFactoryHelper.getExplorerSectionItems(

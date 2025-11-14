@@ -9,10 +9,12 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
@@ -43,6 +45,7 @@ class SendTonViewModel(
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
     address: Address?,
+    private val pendingRegistrar: PendingTransactionRegistrar,
 ): ViewModelUiState<SendTonUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
@@ -62,6 +65,7 @@ class SendTonViewModel(
     private var addressState = addressService.stateFlow.value
     private var feeState = feeService.stateFlow.value
     private var memo: String? = null
+    private var pendingTxId: String? = null
 
     var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
@@ -164,6 +168,22 @@ class SendTonViewModel(
             sendResult = SendResult.Sending
             logger.info("sending tx")
 
+            // 1. Create pending transaction draft BEFORE sending
+            val draft = PendingTransactionDraft(
+                wallet = wallet,
+                token = sendToken,
+                amount = amountState.amount!!,
+                fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
+                fromAddress = "",  // TON doesn't require from address
+                toAddress = addressState.address!!.hex,
+                memo = memo,
+                txHash = null  // TON doesn't return hash immediately
+            )
+
+            // 2. Register pending transaction
+            pendingTxId = pendingRegistrar.register(draft)
+
+            // 3. Broadcast transaction
             adapter.send(amountState.amount!!, addressState.tonAddress!!, memo)
 
             sendResult = SendResult.Sent()
@@ -171,6 +191,10 @@ class SendTonViewModel(
 
             recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Ton)
         } catch (e: Throwable) {
+            // Delete pending transaction on error
+            pendingTxId?.let {
+                pendingRegistrar.deleteFailed(it)
+            }
             sendResult = SendResult.Failed(createCaution(e))
             logger.warning("failed", e)
         }

@@ -10,6 +10,7 @@ import cash.p.terminal.entities.ChangeNowTransaction
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
+import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
@@ -436,6 +437,14 @@ class TransactionViewItemFactory(
                     transactionItem = transactionItem,
                     progress = progress,
                     icon = icon
+                )
+            }
+
+            is PendingTransactionRecord -> {
+                createViewItemFromPendingTransactionRecord(
+                    record = record,
+                    icon = icon,
+                    currencyValue = transactionItem.currencyValue
                 )
             }
 
@@ -1710,4 +1719,38 @@ class TransactionViewItemFactory(
         } ?: ""
     }
 
+    private fun createViewItemFromPendingTransactionRecord(
+        record: PendingTransactionRecord,
+        icon: TransactionViewItem.Icon?,
+        currencyValue: CurrencyValue?,
+    ): TransactionViewItem {
+        val isExpired = record.isExpired
+        val toAddress = record.to?.firstOrNull() ?: ""
+        val subtitle = Translator.getString(
+            R.string.Transactions_To,
+            mapped(toAddress, record.blockchainType)
+        )
+
+        val secondaryValue = currencyValue?.let {
+            getColoredValue(it, ColorName.Grey)
+        }
+        return TransactionViewItem(
+            uid = record.uid,
+            progress = 0.15f,
+            title = Translator.getString(R.string.transaction_pending_title),
+            subtitle = subtitle,
+            primaryValue = getColoredValue(
+                record.mainValue,
+                if (isExpired) ColorName.Grey else ColorName.Lucian
+            ),
+            secondaryValue = secondaryValue,
+            date = Date(record.timestamp * 1000),
+            sentToSelf = false,
+            doubleSpend = false,
+            locked = null,
+            icon = icon ?: getIconForToken(record.token.coin.uid, record.blockchainType.uid),
+            spam = false,
+            showAmount = showAmount
+        )
+    }
 }

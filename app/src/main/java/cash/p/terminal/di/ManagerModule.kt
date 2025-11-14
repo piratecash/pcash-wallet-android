@@ -19,6 +19,10 @@ import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.managers.PendingTransactionMatcher
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
+import cash.p.terminal.core.managers.PendingTransactionRegistrarImpl
+import cash.p.terminal.core.managers.PendingTransactionRepository
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.SolanaKitManager
@@ -37,6 +41,9 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
+import cash.p.terminal.core.converters.PendingTransactionConverter
+import cash.p.terminal.core.providers.PendingAccountProvider
+import cash.p.terminal.core.providers.PendingAccountProviderImpl
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
@@ -105,4 +112,11 @@ val managerModule = module {
     factory { (pinComponent: IPinComponent) ->
         HiddenWalletPinPolicy(pinComponent, get())
     }
+
+    // Pending transactions
+    singleOf(::PendingTransactionRepository)
+    singleOf(::PendingTransactionRegistrarImpl) bind PendingTransactionRegistrar::class
+    singleOf(::PendingTransactionMatcher)
+    singleOf(::PendingAccountProviderImpl) bind PendingAccountProvider::class
+    factoryOf(::PendingTransactionConverter)
 }
