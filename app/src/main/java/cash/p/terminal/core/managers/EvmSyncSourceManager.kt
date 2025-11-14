@@ -30,7 +30,11 @@ class EvmSyncSourceManager(
     private fun defaultTransactionSource(blockchainType: BlockchainType): TransactionSource {
         return when (blockchainType) {
             BlockchainType.Ethereum -> TransactionSource.etherscanApi(AppConfigProvider.etherscanApiKey)
-            BlockchainType.BinanceSmartChain -> TransactionSource.etherscanApi(AppConfigProvider.bscscanApiKey)
+            BlockchainType.BinanceSmartChain -> TransactionSource.etherscanApi(
+                apiKeys = AppConfigProvider.bscscanApiKey,
+                name = "bscscan.com",
+                txBaseUrl = "https://bscscan.com"
+            )
             BlockchainType.Polygon,
             BlockchainType.Avalanche,
             BlockchainType.Optimism,
