@@ -16,6 +16,7 @@ import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
 import cash.p.terminal.core.storage.EnabledWalletsStorage
 import cash.p.terminal.core.storage.EvmSyncSourceStorage
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
+import cash.p.terminal.core.storage.PendingTransactionStorage
 import cash.p.terminal.core.storage.RestoreSettingsStorage
 import cash.p.terminal.core.storage.SpamAddressStorage
 import cash.p.terminal.modules.balance.DefaultBalanceService
@@ -80,4 +81,6 @@ val storageModule = module {
     factory { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
     factory { get<AppDatabase>().moneroFileDao() }
     single { get<AppDatabase>().spamAddressDao() }
+    factory { get<AppDatabase>().pendingTransactionDao() }
+    singleOf(::PendingTransactionStorage)
 }

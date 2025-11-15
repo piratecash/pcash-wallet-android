@@ -1710,4 +1710,7 @@
         <item quantity="many">%1$d записей</item>
         <item quantity="other">%1$d записей</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Отправка</string>
 </resources>

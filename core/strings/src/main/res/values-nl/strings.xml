@@ -1518,4 +1518,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
         <item quantity="one">Toont %1$d vermelding</item>
         <item quantity="other">Toont %1$d vermeldingen</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Verzenden</string>
 </resources>

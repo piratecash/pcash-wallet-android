@@ -300,8 +300,8 @@ data class SwapUiState(
     val timeRemainingProgress: Float?
 ) {
     val currentStep: SwapStep = when {
-        quoting || (allChosen() && amountIn.moreThanZero() && !fiatAmountOut.moreThanZero()) -> SwapStep.Quoting
         error != null -> SwapStep.Error(error)
+        quoting || (allChosen() && amountIn.moreThanZero() && !fiatAmountOut.moreThanZero()) -> SwapStep.Quoting
         tokenIn == null -> SwapStep.InputRequired(InputType.TokenIn)
         tokenOut == null -> SwapStep.InputRequired(InputType.TokenOut)
         amountIn == null || amountIn.compareTo(BigDecimal.ZERO) == 0 -> SwapStep.InputRequired(

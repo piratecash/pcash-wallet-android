@@ -15,11 +15,12 @@ object TransactionsModule {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val transactionsService = TransactionsService(
-                TransactionsRateRepository(App.currencyManager, App.marketKit),
-                TransactionSyncStateRepository(App.transactionAdapterManager),
-                App.contactsRepository,
-                NftMetadataService(App.nftMetadataManager),
-                App.spamManager
+                rateRepository = TransactionsRateRepository(App.currencyManager, App.marketKit),
+                transactionSyncStateRepository = TransactionSyncStateRepository(App.transactionAdapterManager),
+                contactsRepository = App.contactsRepository,
+                nftMetadataService = NftMetadataService(App.nftMetadataManager),
+                spamManager = App.spamManager,
+                pendingMatcher = getKoinInstance()
             )
 
             return TransactionsViewModel(

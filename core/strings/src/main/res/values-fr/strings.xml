@@ -1510,4 +1510,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
         <item quantity="one">Affichage de %1$d entrée</item>
         <item quantity="other">Affichage de %1$d entrées</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Envoi</string>
 </resources>

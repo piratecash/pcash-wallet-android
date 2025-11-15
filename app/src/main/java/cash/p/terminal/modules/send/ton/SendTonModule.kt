@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.xrate.XRateService
@@ -12,6 +13,7 @@ import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import org.koin.java.KoinJavaComponent.inject
 
 object SendTonModule {
     class Factory(
@@ -20,6 +22,7 @@ object SendTonModule {
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendTonAdapter) ?: throw IllegalStateException("ISendTonAdapter is null")
+        private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -52,6 +55,7 @@ object SendTonModule {
                         contactsRepo = App.contactsRepository,
                         showAddressInput = !hideAddress,
                         address = address,
+                        pendingRegistrar = pendingRegistrar
                     ) as T
                 }
 

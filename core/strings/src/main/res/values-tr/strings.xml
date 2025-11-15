@@ -1513,4 +1513,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
         <item quantity="one">%1$d giriş gösteriliyor</item>
         <item quantity="other">%1$d giriş gösteriliyor</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">Gönderiliyor</string>
 </resources>

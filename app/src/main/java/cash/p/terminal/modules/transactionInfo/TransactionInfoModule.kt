@@ -25,7 +25,7 @@ object TransactionInfoModule {
             val transactionSource = transactionItem.record.source
             val adapter: ITransactionsAdapter = App.transactionAdapterManager.getAdapter(transactionSource)!!
             val service = TransactionInfoService(
-                transactionRecord = transactionItem.record,
+                initialTransactionRecord = transactionItem.record,
                 changeNowTransactionId = transactionItem.changeNowTransactionId,
                 adapter = adapter,
                 marketKit = App.marketKit,

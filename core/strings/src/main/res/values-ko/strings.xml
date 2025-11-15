@@ -1511,4 +1511,7 @@
     <plurals name="entries_count">
         <item quantity="other">%1$d개의 항목 표시</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">전송 중</string>
 </resources>

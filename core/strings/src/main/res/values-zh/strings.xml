@@ -1501,4 +1501,7 @@
     <plurals name="entries_count">
         <item quantity="other">显示 %1$d 条记录</item>
     </plurals>
+
+    <!-- Pending Transactions -->
+    <string name="transaction_pending_title">发送中</string>
 </resources>

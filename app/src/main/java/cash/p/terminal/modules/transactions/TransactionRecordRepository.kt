@@ -1,5 +1,7 @@
 package cash.p.terminal.modules.transactions
 
+import cash.p.terminal.core.converters.PendingTransactionConverter
+import cash.p.terminal.core.managers.PendingTransactionRepository
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -22,6 +24,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 class TransactionRecordRepository(
     private val adapterManager: TransactionAdapterManager,
     private val changeNowTransactionsStorage: ChangeNowTransactionsStorage,
+    private val pendingRepository: PendingTransactionRepository,
+    private val pendingConverter: PendingTransactionConverter
 ) : ITransactionRecordRepository {
 
     private var selectedFilterTransactionType: FilterTransactionType = FilterTransactionType.All
@@ -144,7 +148,9 @@ class TransactionRecordRepository(
                             transactionsAdapter = it,
                             transactionWallet = transactionWallet,
                             transactionType = selectedFilterTransactionType,
-                            contact = contact
+                            contact = contact,
+                            pendingRepository = pendingRepository,
+                            pendingConverter = pendingConverter
                         )
                     }
                 }
@@ -212,7 +218,9 @@ class TransactionRecordRepository(
                         transactionsAdapter = it,
                         transactionWallet = transactionWallet,
                         transactionType = FilterTransactionType.Outgoing,
-                        contact = contact
+                        contact = contact,
+                        pendingRepository = pendingRepository,
+                        pendingConverter = pendingConverter
                     )
                 }
             }
@@ -348,7 +356,6 @@ class TransactionRecordRepository(
         if (normalSortedRecords.size < expectedItemsCount) {
             allNormalLoaded.set(true)
         }
-
 
         val extraSortedRecords = extraRecords
             .sortedDescending()

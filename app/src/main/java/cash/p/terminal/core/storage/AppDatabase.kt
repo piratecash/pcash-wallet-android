@@ -51,6 +51,9 @@ import cash.p.terminal.core.storage.migrations.Migration_73_74
 import cash.p.terminal.core.storage.migrations.Migration_74_75
 import cash.p.terminal.core.storage.migrations.Migration_75_76
 import cash.p.terminal.core.storage.migrations.Migration_76_77
+import cash.p.terminal.core.storage.migrations.Migration_77_78
+import cash.p.terminal.core.storage.migrations.Migration_78_79
+import cash.p.terminal.core.storage.migrations.Migration_79_80
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
@@ -60,6 +63,7 @@ import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.EvmSyncSourceRecord
 import cash.p.terminal.entities.MoneroFileRecord
+import cash.p.terminal.entities.PendingTransactionEntity
 import cash.p.terminal.entities.RecentAddress
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.entities.SpamAddress
@@ -85,7 +89,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 77,
+    version = 80,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -114,7 +118,8 @@ import io.horizontalsystems.core.storage.LogsDao
         RecentAddress::class,
         SpamAddress::class,
         SpamScanState::class,
-        MoneroFileRecord::class
+        MoneroFileRecord::class,
+        PendingTransactionEntity::class
     ]
 )
 @TypeConverters(DatabaseConverters::class)
@@ -142,6 +147,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun hardwarePublicKeyDao(): HardwarePublicKeyDao
     abstract fun recentAddressDao(): RecentAddressDao
     abstract fun moneroFileDao(): MoneroFileDao
+    abstract fun pendingTransactionDao(): PendingTransactionDao
 
     companion object {
 
@@ -204,7 +210,10 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_73_74,
                     Migration_74_75,
                     Migration_75_76,
-                    Migration_76_77
+                    Migration_76_77,
+                    Migration_77_78,
+                    Migration_78_79,
+                    Migration_79_80
                 )
                 .build()
         }

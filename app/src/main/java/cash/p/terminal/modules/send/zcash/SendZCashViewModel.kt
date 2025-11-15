@@ -9,8 +9,10 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
@@ -21,6 +23,7 @@ import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.grpc.StatusRuntimeException
 import io.horizontalsystems.core.ViewModelUiState
+import io.horizontalsystems.core.toHexReversed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -36,7 +39,8 @@ class SendZCashViewModel(
     private val memoService: SendZCashMemoService,
     private val contactsRepo: ContactsRepository,
     private val address: Address?,
-    private val showAddressInput: Boolean
+    private val showAddressInput: Boolean,
+    private val pendingRegistrar: PendingTransactionRegistrar
 ) : ViewModelUiState<SendZCashUiState>() {
     val blockchainType = wallet.token.blockchainType
     val coinMaxAllowedDecimals = wallet.token.decimals
@@ -47,6 +51,7 @@ class SendZCashViewModel(
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
     private var memoState = memoService.stateFlow.value
+    private var pendingTxId: String? = null
 
     var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
@@ -153,25 +158,51 @@ class SendZCashViewModel(
 
     private suspend fun send() = withContext(Dispatchers.IO) {
         val logger = logger.getScopedUnique()
-        logger.info("click")
+        logger.info("click send button")
 
         try {
             sendResult = SendResult.Sending
+            // 1. Create pending transaction draft BEFORE sending
+            val draft = PendingTransactionDraft(
+                wallet = wallet,
+                token = wallet.token,
+                amount = amountState.amount!!,
+                fee = fee.value,
+                fromAddress = "",  // ZCash doesn't require from address
+                toAddress = addressState.address!!.hex,
+                memo = memoState.memo,
+                txHash = null  // ZCash doesn't return hash immediately
+            )
 
-            val send = adapter.send(
+            // 2. Register pending transaction
+            pendingTxId = pendingRegistrar.register(draft)
+
+            // 3. Broadcast transaction
+            val txId = adapter.send(
                 amountState.amount!!,
                 addressState.address!!.hex,
                 memoState.memo,
                 logger
             )
+            pendingTxId?.let {
+                pendingRegistrar.updateTxId(it, txId.byteArray.toHexReversed())
+            }
 
+            sendResult = SendResult.Sent(txId.byteArray.toHexReversed())
             logger.info("success")
-            sendResult = SendResult.Sent()
         } catch (e: StatusRuntimeException) {
+            // Delete pending transaction on error
+            pendingTxId?.let {
+                pendingRegistrar.deleteFailed(it)
+            }
             logger.warning("failed", e)
             sendResult =
                 SendResult.Failed(HSCaution(TranslatableString.ResString(R.string.transaction_error_need_to_check)))
         } catch (e: Throwable) {
+            // Delete pending transaction on error
+            pendingTxId?.let {
+                pendingRegistrar.deleteFailed(it)
+            }
             logger.warning("failed", e)
             sendResult = SendResult.Failed(createCaution(e))
         }
