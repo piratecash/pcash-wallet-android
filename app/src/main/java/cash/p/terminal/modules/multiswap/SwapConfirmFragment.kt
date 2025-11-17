@@ -93,7 +93,7 @@ fun SwapConfirmScreen(navController: NavController) {
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
-        onClickBack = navController::popBackStack,
+        onClickBack = navController::navigateUp,
         onClickSettings = if (uiState.isAdvancedSettingsAvailable) {
             {
                 navController.slideFromRight(R.id.swapTransactionSettings)
@@ -154,13 +154,15 @@ fun SwapConfirmScreen(navController: NavController) {
                                 SnackbarDuration.INDEFINITE
                             )
 
-                            val result = try {
+                            try {
                                 val result = viewModel.swap()
                                 viewModel.onTransactionCompleted(result)
 
                                 HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
                                 delay(1200)
-                                SwapConfirmFragment.Result(true)
+
+                                navController.setNavigationResultX(SwapConfirmFragment.Result(true))
+                                navController.popBackStack()
                             } catch (t: Throwable) {
                                 if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
                                     HudHelper.showErrorMessage(
@@ -170,12 +172,9 @@ fun SwapConfirmScreen(navController: NavController) {
                                 } else {
                                     HudHelper.showErrorMessage(view, t.javaClass.simpleName)
                                 }
-                                SwapConfirmFragment.Result(false)
                             }
 
                             buttonEnabled = true
-                            navController.setNavigationResultX(result)
-                            navController.popBackStack()
                         }
                     },
                 )
