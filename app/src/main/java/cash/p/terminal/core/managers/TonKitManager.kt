@@ -12,7 +12,7 @@ import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.Value
 import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper
 import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper.getSwapEventSectionItems
 import cash.p.terminal.modules.transactions.TransactionStatus
-import cash.p.terminal.tangem.signer.TonPrivateKeyEd25519
+import cash.p.terminal.tangem.signer.HardwareWalletTonSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
@@ -29,6 +29,7 @@ import io.horizontalsystems.tonkit.core.TonWallet
 import io.horizontalsystems.tonkit.models.Jetton
 import io.horizontalsystems.tonkit.models.Network
 import io.horizontalsystems.tonkit.models.SyncState
+import io.horizontalsystems.tronkit.hexStringToByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,6 +39,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.bytestring.ByteString
+import org.ton.kotlin.crypto.PublicKeyEd25519
 
 class TonKitManager(
     private val backgroundManager: BackgroundManager,
@@ -346,9 +349,8 @@ fun Account.toTonWallet(
                 throw UnsupportedException("Hardware card does not have a public key for TON")
             }
             TonWallet.FullAccess(
-                TonPrivateKeyEd25519(
-                    hardwarePublicKey
-                )
+                PublicKeyEd25519(ByteString(hardwarePublicKey.key.value.hexStringToByteArray())),
+                HardwareWalletTonSigner(hardwarePublicKey)
             )
         }
     }

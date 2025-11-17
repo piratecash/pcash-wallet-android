@@ -107,7 +107,7 @@ class PendingTransactionMatcher(
     ): Boolean {
         return try {
             val pendingAmount = BigDecimal(pendingAmountAtomic)
-                .movePointLeft(real.token.decimals)
+                .movePointLeft(getRealDecimal(real))
                 .abs()
 
             val realAmount = getRealAmount(real)?.abs() ?: return false
@@ -122,6 +122,22 @@ class PendingTransactionMatcher(
         }
     }
 
+    private fun getRealDecimal(real: TransactionRecord): Int {
+        val value = if(real is TonTransactionRecord) {
+            real.actions.firstOrNull { it.type is TonTransactionRecord.Action.Type.Swap }
+                ?.let { action ->
+                    (action.type as? TonTransactionRecord.Action.Type.Swap)?.valueIn?.decimals
+                }
+                ?: real.actions.firstOrNull { it.type is TonTransactionRecord.Action.Type.Send }
+                    ?.let { action ->
+                        (action.type as? TonTransactionRecord.Action.Type.Send)?.value?.decimals
+                    }
+        } else {
+            null
+        }
+        return value ?: real.token.decimals
+    }
+
     private fun compareTimestamps(
         timestampPending: Long,
         timestampReal: Long
@@ -133,28 +149,26 @@ class PendingTransactionMatcher(
     private fun getRealAmount(
         real: TransactionRecord
     ): BigDecimal? {
-        return when {
-            real.mainValue != null -> {
-                real.mainValue?.let {
-                    when (it) {
-                        is TransactionValue.CoinValue -> it.value
-                        else -> null
+        val value = if(real is TonTransactionRecord) {
+            real.actions.firstOrNull { it.type is TonTransactionRecord.Action.Type.Swap }
+                ?.let { action ->
+                    (action.type as? TonTransactionRecord.Action.Type.Swap)?.valueIn?.decimalValue
+                }
+                ?: real.actions.firstOrNull { it.type is TonTransactionRecord.Action.Type.Send }
+                    ?.let { action ->
+                        (action.type as? TonTransactionRecord.Action.Type.Send)?.value?.decimalValue
                     }
+        } else {
+            null
+        }
+        if (value == null && real.mainValue != null) {
+            real.mainValue?.let {
+                when (it) {
+                    is TransactionValue.CoinValue -> it.value
+                    else -> null
                 }
             }
-
-            real is TonTransactionRecord -> {
-                real.actions.firstOrNull { it.type is TonTransactionRecord.Action.Type.Swap }
-                    ?.let { action ->
-                        (action.type as? TonTransactionRecord.Action.Type.Swap)?.valueIn?.decimalValue
-                    }
-                    ?: real.actions.firstOrNull { it.type is TonTransactionRecord.Action.Type.Send }
-                        ?.let { action ->
-                            (action.type as? TonTransactionRecord.Action.Type.Send)?.value?.decimalValue
-                        }
-            }
-
-            else -> null
         }
+        return value
     }
 }

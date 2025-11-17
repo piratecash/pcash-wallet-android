@@ -4,40 +4,23 @@ import cash.p.terminal.tangem.domain.usecase.SignOneHashTransactionUseCase
 import cash.p.terminal.wallet.entities.HardwarePublicKey
 import com.tangem.common.CompletionResult
 import com.tangem.crypto.hdWallet.DerivationPath
-import io.horizontalsystems.ethereumkit.core.hexStringToByteArray
+import com.tonapps.blockchain.ton.contract.HashSigner
 import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
-import org.ton.api.pk.PrivateKeyEd25519
-import org.ton.api.pub.PublicKeyEd25519
-import org.ton.bitstring.Bits256
+import org.ton.bitstring.BitString
 
-class TonPrivateKeyEd25519(
+class HardwareWalletTonSigner(
     private val hardwarePublicKey: HardwarePublicKey
-) : PrivateKeyEd25519 {
-    private val pubKey = PublicKeyEd25519(hardwarePublicKey.key.value.hexStringToByteArray())
-
+) : HashSigner {
     private val signOneHashTransactionUseCase: SignOneHashTransactionUseCase by inject(
         SignOneHashTransactionUseCase::class.java
     )
 
-    override val key: Bits256
-        get() = TODO("No need for hardware wallet")
-
-    override fun publicKey() = pubKey
-
-    override fun sharedKey(publicKey: PublicKeyEd25519): ByteArray {
-        TODO("No need for hardware wallet")
-    }
-
-    override fun decrypt(data: ByteArray): ByteArray {
-        TODO("No need for hardware wallet")
-    }
-
-    override fun sign(message: ByteArray): ByteArray {
-        return runBlocking {
+    override fun sign(hash: BitString): BitString {
+        val signature = runBlocking {
             val signBytesResponse =
                 signOneHashTransactionUseCase(
-                    hash = message,
+                    hash = hash.toByteArray(),
                     walletPublicKey = hardwarePublicKey.publicKey,
                     derivationPath = DerivationPath(hardwarePublicKey.derivationPath)
                 )
@@ -51,5 +34,6 @@ class TonPrivateKeyEd25519(
                 }
             }
         }
+        return BitString(signature)
     }
 }

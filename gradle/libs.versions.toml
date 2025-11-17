@@ -37,8 +37,8 @@ javax-inject = "1"
 appcompat = "1.7.0"
 timber = "5.0.1"
 
-tonKotlin = "0.2.15" # same version like in ton-kit
-piratecash-ton = "78cf491"
+tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
+piratecash-ton = "1d9d11c"
 piratecash-bitcoin = "cdf3ce6"
 stellar-kit = "96bbbc4"
 piratecash-ethereum = "8a7300b"
@@ -125,7 +125,7 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
 stellar-sdk = { module = "network.lightsail:stellar-sdk", version.ref = "stellarSdk" }
-ton-kotlin-contract = { module = "org.ton:ton-kotlin-contract", version.ref = "tonKotlin" }
+ton-kotlin-contract = { module = "org.ton.kotlin:ton-kotlin-contract", version.ref = "tonKotlin" }
 ton-kit = { group = "com.github.piratecash", name = "ton-kit-android", version.ref = "piratecash-ton" }
 bitcoin-kit = { group = "com.github.piratecash", name = "bitcoin-kit-android", version.ref = "piratecash-bitcoin" }
 stellar-kit = { group = "com.github.piratecash", name = "stellar-kit-android", version.ref = "stellar-kit" }
