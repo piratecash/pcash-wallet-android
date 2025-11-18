@@ -6,10 +6,11 @@ import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.OneTimeReceiveAdapter
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
-import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.WalletFactory
+import cash.p.terminal.wallet.entities.TokenQuery
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -124,5 +125,13 @@ class WalletUseCase(
         val wallet = getWallet(token)
         requireNotNull(wallet) { "WalletUseCase: wallet for $token is not found" }
         return adapterManager.getReceiveAdapterForWallet(wallet)
+    }
+
+    suspend fun getOneTimeReceiveAddress(token: Token): String {
+        val adapter = getReceiveAdapter(token)
+        requireNotNull(adapter) { "WalletUseCase: adapter for $token is not found" }
+
+        return (adapter as? OneTimeReceiveAdapter)?.generateOneTimeAddress()
+            ?: adapter.receiveAddress
     }
 }

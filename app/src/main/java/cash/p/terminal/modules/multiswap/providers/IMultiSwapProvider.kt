@@ -70,6 +70,6 @@ interface IMultiSwapProvider {
         }
     }
 
-    fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? = null
+    suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? = null
 
 }

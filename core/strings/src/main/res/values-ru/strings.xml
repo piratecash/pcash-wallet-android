@@ -548,7 +548,7 @@
     <string name="unsupported_address">Адрес не поддерживается</string>
     <string name="unexpected_error">Непредвиденная ошибка</string>
     <string name="unsupported_token">Токен не поддерживается</string>
-    <string name="zec_transparent_used">При создании обмена используется t-адрес: %s. Он передаётся обменному провайдеру и нужен для возврата средств, если обмен не будет завершён. Использование t-адреса может привести к частичной деанонимизации транзакции.</string>
+    <string name="zec_transparent_used">При создании обмена используется одноразовый t-адрес: %s. Он передаётся обменному провайдеру и нужен для возврата средств, если обмен не будет завершён. Использование t-адреса может привести к частичной деанонимизации транзакции.</string>
     <!-- Swap Settings -->
     <string name="Fee_LiquidityFee">Комиссия за ликвидность</string>
     <string name="SwapSettings_Title">Настройки обмена</string>

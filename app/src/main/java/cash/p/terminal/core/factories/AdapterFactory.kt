@@ -35,6 +35,7 @@ import cash.p.terminal.core.adapters.stellar.StellarAdapter
 import cash.p.terminal.core.adapters.stellar.StellarAssetAdapter
 import cash.p.terminal.core.adapters.stellar.StellarTransactionsAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
+import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
@@ -63,6 +64,7 @@ import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.tonkit.Address
 import org.koin.java.KoinJavaComponent.inject
+import org.koin.core.parameter.parametersOf
 
 class AdapterFactory(
     private val context: Context,
@@ -237,6 +239,10 @@ class AdapterFactory(
             is TokenType.AddressSpecTyped -> {
                 when (wallet.token.blockchainType) {
                     BlockchainType.Zcash -> {
+                        val zcashSingleUseAddressManager =
+                            getKoinInstance<ZcashSingleUseAddressManager> {
+                                parametersOf(wallet.account.id)
+                            }
                         ZcashAdapter(
                             context = context,
                             wallet = wallet,
@@ -246,7 +252,8 @@ class AdapterFactory(
                             ),
                             addressSpecTyped = tokenType.type,
                             localStorage = localStorage,
-                            backgroundManager = backgroundManager
+                            backgroundManager = backgroundManager,
+                            singleUseAddressManager = zcashSingleUseAddressManager
                         )
                     }
 
@@ -309,6 +316,10 @@ class AdapterFactory(
                 }
 
                 BlockchainType.Zcash -> {
+                    val zcashSingleUseAddressManager =
+                        getKoinInstance<ZcashSingleUseAddressManager> {
+                            parametersOf(wallet.account.id)
+                        }
                     ZcashAdapter(
                         context = context,
                         wallet = wallet,
@@ -318,7 +329,8 @@ class AdapterFactory(
                         ),
                         addressSpecTyped = null,
                         localStorage = localStorage,
-                        backgroundManager = backgroundManager
+                        backgroundManager = backgroundManager,
+                        singleUseAddressManager = zcashSingleUseAddressManager
                     )
                 }
 

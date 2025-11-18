@@ -15,3 +15,7 @@ interface IReceiveAdapter {
         return listOf()
     }
 }
+
+interface OneTimeReceiveAdapter {
+    suspend fun generateOneTimeAddress(): String?
+}

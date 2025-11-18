@@ -21,6 +21,7 @@ import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
+import cash.p.terminal.wallet.OneTimeReceiveAdapter
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
@@ -74,6 +75,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
@@ -88,7 +90,9 @@ class ZcashAdapter(
     private val addressSpecTyped: AddressSpecType?,
     private val localStorage: ILocalStorage,
     private val backgroundManager: BackgroundManager,
-) : IAdapter, IBalanceAdapter, IReceiveAdapter, ITransactionsAdapter, ISendZcashAdapter {
+    private val singleUseAddressManager: ZcashSingleUseAddressManager,
+) : IAdapter, IBalanceAdapter, IReceiveAdapter, ITransactionsAdapter, ISendZcashAdapter,
+    OneTimeReceiveAdapter {
     private var accountBirthday = 0L
     private val existingWallet = localStorage.zcashAccountIds.contains(wallet.account.id)
     private val confirmationsThreshold = 10
@@ -121,8 +125,11 @@ class ZcashAdapter(
     override val isMainNet: Boolean = true
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    private var balanceCheckJob: Job? = null
+    private val balanceCheckMutex = kotlinx.coroutines.sync.Mutex()
+
     init {
-        println("ZcashAdapter type $addressSpecTyped")
+        Timber.i("ZcashAdapter type $addressSpecTyped")
     }
 
 
@@ -205,6 +212,19 @@ class ZcashAdapter(
         synchronizer.onChainErrorHandler = ::onChainError
 
         subscribeToEvents()
+    }
+
+    override suspend fun generateOneTimeAddress(): String? {
+        val sdk = synchronizer as? SdkSynchronizer ?: return null
+
+        return try {
+            val singleUseAddress = sdk.getSingleUseTransparentAddress(getFirstAccount().accountUuid)
+            singleUseAddressManager.saveNewAddress(singleUseAddress.address)
+            singleUseAddress.address
+        } catch (error: Exception) {
+            Timber.w(error, "Failed to obtain single-use transparent address")
+            singleUseAddressManager.getNextAddress()
+        }
     }
 
     private fun isWatchOnlyAccount(): Boolean {
@@ -367,6 +387,7 @@ class ZcashAdapter(
     }
 
     override fun stop() {
+        balanceCheckJob?.cancel()
         synchronizer.close()
     }
 
@@ -626,6 +647,20 @@ class ZcashAdapter(
         }
     }
 
+    private fun startOneTimeAddressBalanceCheck() {
+        if (balanceCheckJob?.isActive == true) return
+
+        balanceCheckJob = scope.launch {
+            try {
+                balanceCheckMutex.withLock {
+                    checkTransparentAddressesBalance()
+                }
+            } finally {
+                balanceCheckJob = null
+            }
+        }
+    }
+
     private fun onDownloadProgress(progress: PercentDecimal) {
         syncState = AdapterState.Syncing(progress.toPercentage())
     }
@@ -638,6 +673,23 @@ class ZcashAdapter(
     private fun onBalance(balance: Map<AccountUuid, AccountBalance>?) {
         balance?.get(zcashAccount?.accountUuid)?.sapling?.let {
             balanceUpdatedSubject.onNext(Unit)
+        }
+        startOneTimeAddressBalanceCheck()
+    }
+
+    private suspend fun checkTransparentAddressesBalance() = withContext(Dispatchers.IO) {
+        val addresses = singleUseAddressManager.getAddressesForBalanceCheck()
+        val sdk = synchronizer as? SdkSynchronizer ?: return@withContext
+
+        addresses.forEach { address ->
+            runCatching {
+                val balance = sdk.getTransparentBalance(address)
+                if (balance.value > 0) {
+                    singleUseAddressManager.updateAddressBalance(address, true)
+                }
+            }.onFailure { error ->
+                Timber.w(error, "Failed to check balance for t-address: $address")
+            }
         }
     }
 

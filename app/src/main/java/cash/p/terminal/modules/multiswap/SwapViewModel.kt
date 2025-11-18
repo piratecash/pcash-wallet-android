@@ -47,6 +47,7 @@ class SwapViewModel(
     private val currency = currencyManager.baseCurrency
     private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
+    private var warningMessage: TranslatableString? = null
 
     init {
         viewModelScope.launch {
@@ -128,7 +129,7 @@ class SwapViewModel(
         fiatPriceImpact = priceImpactState.fiatPriceImpact,
         fiatPriceImpactLevel = priceImpactState.fiatPriceImpactLevel,
         balanceHidden = balanceHiddenManager.balanceHiddenFlow.value,
-        warningMessage = getWarningMessage(),
+        warningMessage = warningMessage,
         fiatAmountIn = fiatAmountIn,
         fiatAmountOut = fiatAmountOut,
         currency = currency,
@@ -139,6 +140,12 @@ class SwapViewModel(
             remaining / quoteLifetime.toFloat()
         }
     )
+    private fun checkWarningAndEmitState() {
+        viewModelScope.launch {
+            warningMessage = obtainWarningMessage()
+            emitState()
+        }
+    }
 
     private fun handleUpdatedNetworkState(networkState: NetworkAvailabilityService.State) {
         this.networkState = networkState
@@ -172,7 +179,7 @@ class SwapViewModel(
         fiatServiceOut.setToken(quoteState.tokenOut)
         fiatServiceOut.setAmount(quoteState.quote?.amountOut)
 
-        emitState()
+        checkWarningAndEmitState()
 
         if (quoteState.quote != null) {
             val elapsedMillis = System.currentTimeMillis() - quoteState.quote.createdAt
@@ -244,7 +251,7 @@ class SwapViewModel(
     fun getCurrentQuote() = quoteState.quote
     fun getSettings() = quoteService.getSwapSettings()
 
-    private fun getWarningMessage(): TranslatableString? {
+    private suspend fun obtainWarningMessage(): TranslatableString? {
         val quote = quoteState.quote ?: return null
 
         return quote.provider.getWarningMessage(quote.tokenIn, quote.tokenOut)

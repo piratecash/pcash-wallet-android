@@ -1,13 +1,16 @@
 package cash.p.terminal.domain.usecase
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.storage.ZcashSingleUseAddressStorage
 import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
 import cash.z.ecc.android.sdk.Synchronizer
 import cash.z.ecc.android.sdk.model.ZcashNetwork
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class ClearZCashWalletDataUseCase {
+class ClearZCashWalletDataUseCase(
+    private val zcashSingleUseAddressStorage: ZcashSingleUseAddressStorage
+) {
 
     companion object {
         private const val ALIAS_PREFIX = "zcash_"
@@ -29,6 +32,7 @@ class ClearZCashWalletDataUseCase {
                     alias = getValidAliasFromAccountId(accountId, it)
                 )
             }
+            zcashSingleUseAddressStorage.deleteAccountAddresses(accountId)
         }
     }
 

@@ -75,6 +75,8 @@ class ChangeNowProvider(
     private var cachedFinalQuote: Pair<NewTransactionRequest, NewTransactionResponse>? = null
     private var cacheUpdateTimestamp = 0L
     private val mutex = Mutex()
+    private val zcashAddressMutex = Mutex()
+    private var cachedZcashTransparentAddress: String? = null
 
     private companion object {
         const val CACHE_MIN_AMOUNT_DURATION = 1000L * 60
@@ -235,14 +237,28 @@ class ChangeNowProvider(
         }
     }
 
-    override fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? {
-        if (!isZCashUnifiedOrShielded(tokenIn)) return null
+    override suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? =
+        withContext(Dispatchers.IO) {
+            if (!isZCashUnifiedOrShielded(tokenIn)) return@withContext null
 
+            val refundAddress = getCachedZcashTransparentAddress() ?: return@withContext null
+
+            TranslatableString.ResString(R.string.zec_transparent_used, refundAddress)
+        }
+
+    private suspend fun getCachedZcashTransparentAddress(): String? =
+        zcashAddressMutex.withLock {
+            cachedZcashTransparentAddress ?: initializeZcashAddress()
+        }
+
+    private suspend fun initializeZcashAddress(): String? {
         val transparentToken = getZCashTransparentToken() ?: return null
+        val address = tryOrNull {
+            walletUseCase.getOneTimeReceiveAddress(transparentToken)
+        } ?: return null
 
-        val refundAddress = tryOrNull { walletUseCase.getReceiveAddress(transparentToken) } ?: return null
-
-        return TranslatableString.ResString(R.string.zec_transparent_used, refundAddress)
+        cachedZcashTransparentAddress = address
+        return address
     }
 
     private fun getZCashTransparentToken() = marketKit.token(
@@ -278,11 +294,9 @@ class ChangeNowProvider(
                 var refundAddress = walletUseCase.getReceiveAddress(tokenIn)
                 // For ZCash unified or shielded we need to use transparent address as refund address
                 if (isZCashUnifiedOrShielded(tokenIn)) {
-                    getZCashTransparentToken()?.let {
-                        refundAddress = walletUseCase.getReceiveAddress(it)
-                    } ?: {
-                        throw IllegalStateException("Can't find ZCASH transparent wallet")
-                    }
+                    getCachedZcashTransparentAddress()?.let {
+                        refundAddress = it
+                    } ?: throw IllegalStateException("Can't find ZCASH transparent wallet")
                 }
 
                 val request = NewTransactionRequest(
@@ -359,13 +373,6 @@ class ChangeNowProvider(
                 addressOut = walletUseCase.getReceiveAddress(tokenOut)
             )
 
-            val warningMessage = if (isZCashUnifiedOrShielded(tokenIn)) {
-                transaction.refundAddress?.let {
-                    TranslatableString.ResString(R.string.zec_transparent_used, it)
-                }
-            } else {
-                null
-            }
             SwapFinalQuoteEvm(
                 tokenIn = tokenIn,
                 tokenOut = tokenOut,
@@ -395,7 +402,8 @@ class ChangeNowProvider(
                     ?: throw IllegalStateException("Ethereum adapter not found")
 
                 val transactionData =
-                    adapter.getTransactionData(amountIn,
+                    adapter.getTransactionData(
+                        amountIn,
                         io.horizontalsystems.ethereumkit.models.Address(transaction.payinAddress)
                     )
                 SendTransactionData.Evm(transactionData, null)

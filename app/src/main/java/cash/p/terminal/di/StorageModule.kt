@@ -19,6 +19,8 @@ import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.core.storage.PendingTransactionStorage
 import cash.p.terminal.core.storage.RestoreSettingsStorage
 import cash.p.terminal.core.storage.SpamAddressStorage
+import cash.p.terminal.core.storage.ZcashSingleUseAddressStorage
+import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.modules.balance.DefaultBalanceService
 import cash.p.terminal.modules.balance.DefaultBalanceXRateRepository
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -83,4 +85,16 @@ val storageModule = module {
     single { get<AppDatabase>().spamAddressDao() }
     factory { get<AppDatabase>().pendingTransactionDao() }
     singleOf(::PendingTransactionStorage)
+    single {
+        ZcashSingleUseAddressStorage(
+            dao = get<AppDatabase>().zcashSingleUseAddressDao(),
+            dispatcherProvider = get()
+        )
+    }
+    factory { (accountId: String) ->
+        ZcashSingleUseAddressManager(
+            storage = get(),
+            accountId = accountId
+        )
+    }
 }

@@ -536,7 +536,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
-    <string name="zec_transparent_used">Bij het aanmaken van de wissel wordt een t-adres gebruikt: %s. Dit wordt doorgegeven aan de wisselprovider en is nodig voor een terugbetaling als de wissel niet wordt voltooid. Het gebruik van een t-adres kan leiden tot gedeeltelijke deanonimisering van de transactie.</string>
+    <string name="zec_transparent_used">Bij het aanmaken van de wissel wordt een eenmalig t-adres gebruikt: %s. Dit wordt doorgegeven aan de wisselprovider en is nodig voor een terugbetaling als de wissel niet wordt voltooid. Het gebruik van een t-adres kan leiden tot gedeeltelijke deanonimisering van de transactie.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap Settings</string>
     <string name="SwapSettings_SlippageTitle">Slippage Tolerance</string>
