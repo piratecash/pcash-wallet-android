@@ -35,7 +35,8 @@ internal class WCSendEthereumTransactionRequestViewModel(
     val sendTransactionService: SendTransactionServiceEvm = SendTransactionServiceEvm(
         token = App.evmBlockchainManager.getBaseToken(blockchainType)!!,
         initialGasPrice = transaction.getGasPriceObj(),
-        initialNonce = transaction.nonce
+        initialNonce = transaction.nonce,
+        ignoreMevErrors = true
     )
 
     private val transactionData = TransactionData(

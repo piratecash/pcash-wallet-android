@@ -81,7 +81,7 @@ object SendEvmModule {
                     val addressService = SendEvmAddressService()
                     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
 
-                    val sendTransactionService = SendTransactionServiceEvm(wallet.token)
+                    val sendTransactionService = SendTransactionServiceEvm(wallet.token, ignoreMevErrors = true)
 
                     SendEvmViewModel(
                         wallet = wallet,

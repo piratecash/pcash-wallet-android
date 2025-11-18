@@ -74,7 +74,7 @@ internal class SendEvmConfirmationViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val token = App.evmBlockchainManager.getBaseToken(blockchainType)!!
-            val sendTransactionService = SendTransactionServiceEvm(token)
+            val sendTransactionService = SendTransactionServiceEvm(token, ignoreMevErrors = true)
             val feeToken = App.evmBlockchainManager.getBaseToken(blockchainType)!!
             val coinServiceFactory = EvmCoinServiceFactory(
                 feeToken,

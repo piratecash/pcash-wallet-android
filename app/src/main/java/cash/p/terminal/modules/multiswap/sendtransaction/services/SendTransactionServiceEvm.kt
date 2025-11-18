@@ -67,13 +67,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 import java.math.BigDecimal
 
 internal class SendTransactionServiceEvm(
     token: Token,
     initialGasPrice: GasPrice? = null,
-    initialNonce: Long? = null
+    initialNonce: Long? = null,
+    private val ignoreMevErrors: Boolean = false
 ) : ISendTransactionService<BaseEvmAdapter>(token) {
     private val evmKitWrapper by lazy { App.evmBlockchainManager.getEvmKitManager(token.blockchainType).evmKitWrapper!! }
     private val gasPriceService: IEvmGasPriceService by lazy {
@@ -197,18 +197,24 @@ internal class SendTransactionServiceEvm(
 
         when (transactionState) {
             is DataState.Error -> {
-                cautions = cautionViewItemFactory.cautionViewItems(
-                    listOf(),
-                    listOf(transactionState.error)
-                )
+                val error = transactionState.error
+                val errorsToShow = if (ignoreMevErrors && isMevRelatedError(error)) {
+                    listOf()
+                } else {
+                    listOf(error)
+                }
+
+                cautions = cautionViewItemFactory.cautionViewItems(listOf(), errorsToShow)
             }
 
             is DataState.Success -> {
+                val errors = transactionState.data.errors
+                    .filter { !ignoreMevErrors || !isMevRelatedError(it) }
                 cautions = cautionViewItemFactory.cautionViewItems(
                     transactionState.data.warnings,
-                    transactionState.data.errors
+                    errors
                 )
-                sendable = transactionState.data.errors.isEmpty()
+                sendable = errors.isEmpty()
             }
 
             DataState.Loading -> {
@@ -216,6 +222,13 @@ internal class SendTransactionServiceEvm(
         }
 
         emitState()
+    }
+
+    /**
+     * Checks if the error is related to MEV protection
+     */
+    private fun isMevRelatedError(error: Throwable): Boolean {
+        return error.message?.contains("merkle.io", ignoreCase = true) == true
     }
 
     override suspend fun setSendTransactionData(data: SendTransactionData) {
@@ -238,7 +251,13 @@ internal class SendTransactionServiceEvm(
         val gasLimit = transaction.gasData.gasLimit
         val nonce = transaction.nonce
 
-        val fullTransaction = evmKitWrapper.sendSingle(transactionData, gasPrice, gasLimit, nonce, mevProtectionEnabled)
+        val fullTransaction = evmKitWrapper.sendSingle(
+            transactionData,
+            gasPrice,
+            gasLimit,
+            nonce,
+            mevProtectionEnabled
+        )
         return SendTransactionResult.Evm(fullTransaction)
     }
 
