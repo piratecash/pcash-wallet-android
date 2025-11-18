@@ -532,7 +532,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
-    <string name="zec_transparent_used">Lors de la création de l’échange, une adresse t à usage unique est utilisée : %s. Elle est transmise au fournisseur d’échange et est nécessaire pour un remboursement si l’échange n’est pas terminé. L’utilisation d’une adresse t peut entraîner une désanonymisation partielle de la transaction.</string>
+    <string name="zec_transparent_used">Lors de la création de l’échange, une adresse t temporaire est utilisée : %s. Elle est transmise au fournisseur d’échange et est nécessaire pour un remboursement si l’échange n’est pas terminé. L’utilisation d’une adresse t peut entraîner une désanonymisation partielle de la transaction.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Paramètres de swap</string>
     <string name="SwapSettings_SlippageTitle">Effet de glissement</string>

@@ -532,7 +532,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
-    <string name="zec_transparent_used">在创建兑换时会使用一次性 t 地址：%s。该地址会提供给兑换服务提供商，如果兑换未完成，则需要用于退款。使用 t 地址可能会导致交易部分去匿名化。</string>
+    <string name="zec_transparent_used">在创建兑换时会使用临时 t 地址：%s。该地址会提供给兑换服务提供商，如果兑换未完成，则需要用于退款。使用 t 地址可能会导致交易部分去匿名化。</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">掉期设置</string>
     <string name="SwapSettings_SlippageTitle">无效滑点</string>

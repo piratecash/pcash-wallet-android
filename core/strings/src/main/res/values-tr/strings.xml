@@ -536,7 +536,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
-    <string name="zec_transparent_used">Takas oluşturulurken tek kullanımlık bir t-adresi kullanılır: %s. Bu adres, takas sağlayıcısına iletilir ve takas tamamlanmazsa geri ödeme için gereklidir. Bir t-adresinin kullanılması, işlemin kısmen anonim olmaktan çıkmasına neden olabilir.</string>
+    <string name="zec_transparent_used">Takas oluşturulurken geçici bir t-adresi kullanılır: %s. Bu adres, takas sağlayıcısına iletilir ve takas tamamlanmazsa geri ödeme için gereklidir. Bir t-adresinin kullanılması, işlemin kısmen anonim olmaktan çıkmasına neden olabilir.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap Ayarları</string>
     <string name="SwapSettings_SlippageTitle">Slipaj Toleransı</string>

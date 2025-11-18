@@ -536,7 +536,7 @@
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="unsupported_token">Unsupported token</string>
-    <string name="zec_transparent_used">يتم استخدام عنوان t لمرة واحدة عند إنشاء عملية التبادل: ‎%s‎. يتم إرساله إلى مزود خدمة التبادل ويُستخدم لاسترداد الأموال في حال لم تكتمل عملية التبادل. قد يؤدي استخدام عنوان t إلى كشف جزئي لهوية المعاملة.</string>
+    <string name="zec_transparent_used">يتم استخدام عنوان t مؤقت عند إنشاء عملية التبادل: ‎%s‎. يتم إرساله إلى مزود خدمة التبادل ويُستخدم لاسترداد الأموال في حال لم تكتمل عملية التبادل. قد يؤدي استخدام عنوان t إلى كشف جزئي لهوية المعاملة.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap Settings</string>
     <string name="SwapSettings_SlippageTitle">Slippage Tolerance</string>
