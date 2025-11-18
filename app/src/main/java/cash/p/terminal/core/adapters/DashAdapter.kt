@@ -108,6 +108,7 @@ class DashAdapter(
     companion object {
         private const val KIT_CONFIRMATIONS_THRESHOLD = 1
         private const val DISPLAY_CONFIRMATIONS_THRESHOLD = 3
+        private const val MIN_CONNECTED_PEER_TO_SEND_SIZE = 1
         private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         private fun createKit(
@@ -127,7 +128,8 @@ class DashAdapter(
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        initWithEmptySeeds = true
+                        initWithEmptySeeds = true,
+                        minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
                     )
                 }
 
@@ -140,7 +142,8 @@ class DashAdapter(
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        initWithEmptySeeds = true
+                        initWithEmptySeeds = true,
+                        minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
                     )
                 }
 
@@ -152,7 +155,8 @@ class DashAdapter(
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        initWithEmptySeeds = true
+                        initWithEmptySeeds = true,
+                        minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
                     )
                 }
                 is AccountType.HardwareCard -> {
@@ -175,7 +179,8 @@ class DashAdapter(
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         initWithEmptySeeds = true,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
-                        iSchnorrInputSigner = hardwareWalletSchnorrSigner
+                        iSchnorrInputSigner = hardwareWalletSchnorrSigner,
+                        minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
                     )
                 }
 
