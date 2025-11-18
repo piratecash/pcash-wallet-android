@@ -9,12 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.navigation.NavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
+import cash.p.terminal.core.App
+import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountInputModeModule
@@ -54,6 +57,7 @@ import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
@@ -147,7 +151,16 @@ class SendFragment : BaseComposeFragment() {
             BlockchainType.Gnosis,
             BlockchainType.Fantom,
             BlockchainType.ArbitrumOne -> {
-                val factory = SendEvmModule.Factory(wallet, address, hideAddress)
+                val adapter: ISendEthereumAdapter? = App.adapterManager.getAdapterForWallet(wallet)
+                if (adapter == null) {
+                    HudHelper.showErrorMessage(
+                        LocalView.current,
+                        "No adapter for wallet $wallet"
+                    )
+                    navController.navigateUp()
+                    return
+                }
+                val factory = SendEvmModule.Factory(wallet, address, hideAddress, adapter)
                 val viewModel by navGraphViewModels<SendEvmViewModel>(R.id.sendXFragment) {
                     factory
                 }
