@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +23,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
-
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HFillSpacer
@@ -45,10 +43,11 @@ class SwapSelectProviderFragment : BaseComposeFragment() {
 
 @Composable
 fun SwapSelectProviderScreen(navController: NavController) {
-    val previousBackStackEntry = remember { navController.previousBackStackEntry }
+    val previousBackStackEntry = navController.previousBackStackEntry ?: return
     val swapViewModel = viewModel<SwapViewModel>(
-        viewModelStoreOwner = previousBackStackEntry!!,
+        viewModelStoreOwner = previousBackStackEntry,
     )
+
     val viewModel = viewModel<SwapSelectProviderViewModel>(
         factory = SwapSelectProviderViewModel.Factory(swapViewModel.uiState.quotes)
     )

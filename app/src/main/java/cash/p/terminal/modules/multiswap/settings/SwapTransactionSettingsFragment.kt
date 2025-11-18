@@ -15,8 +15,9 @@ class SwapTransactionSettingsFragment : BaseComposeFragment() {
 
 @Composable
 fun SwapTransactionSettingsScreen(navController: NavController) {
+    val previousBackStackEntry = navController.previousBackStackEntry ?: return
     val viewModel = viewModel<SwapConfirmViewModel>(
-        viewModelStoreOwner = navController.previousBackStackEntry!!,
+        viewModelStoreOwner = previousBackStackEntry
     )
 
     val sendTransactionService = viewModel.sendTransactionService
