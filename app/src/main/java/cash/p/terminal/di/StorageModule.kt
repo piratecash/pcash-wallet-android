@@ -19,6 +19,7 @@ import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.core.storage.PendingTransactionStorage
 import cash.p.terminal.core.storage.RestoreSettingsStorage
 import cash.p.terminal.core.storage.SpamAddressStorage
+import cash.p.terminal.core.storage.ZcashSingleUseAddressDao
 import cash.p.terminal.core.storage.ZcashSingleUseAddressStorage
 import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.modules.balance.DefaultBalanceService
@@ -82,12 +83,13 @@ val storageModule = module {
     factory { get<AppDatabase>().recentAddressDao() }
     factory { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
     factory { get<AppDatabase>().moneroFileDao() }
+    factory { get<AppDatabase>().zcashSingleUseAddressDao() }
     single { get<AppDatabase>().spamAddressDao() }
     factory { get<AppDatabase>().pendingTransactionDao() }
     singleOf(::PendingTransactionStorage)
     single {
         ZcashSingleUseAddressStorage(
-            dao = get<AppDatabase>().zcashSingleUseAddressDao(),
+            dao = get(),
             dispatcherProvider = get()
         )
     }

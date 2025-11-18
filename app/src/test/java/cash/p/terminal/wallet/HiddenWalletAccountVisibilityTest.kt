@@ -4,6 +4,7 @@ import android.content.Context
 import cash.p.terminal.core.storage.AccountsDao
 import cash.p.terminal.core.storage.AccountsStorage
 import cash.p.terminal.core.storage.AppDatabase
+import cash.p.terminal.core.storage.ZcashSingleUseAddressDao
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.wallet.entities.AccountRecord
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
@@ -120,6 +121,7 @@ private class FakeAppDatabase(
     override fun recentAddressDao() = unsupported()
     override fun moneroFileDao() = unsupported()
     override fun pendingTransactionDao() = unsupported()
+    override fun zcashSingleUseAddressDao() = unsupported()
 
     private fun unsupported(): Nothing = throw NotImplementedError()
     override fun createInvalidationTracker() = unsupported()
