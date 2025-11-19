@@ -48,6 +48,7 @@ import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.entities.ViewState
+import cash.p.terminal.ui_compose.rememberDebouncedAction
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -147,14 +148,12 @@ fun BalanceForAccount(
         ) { paddingValues ->
             val uiState = viewModel.uiState
 
-            val navigateToTokenBalance: (BalanceViewItem2) -> Unit = remember {
-                {
-                    navController.slideFromRight(
-                        MainFragmentDirections.actionToTokenBalance(
-                            wallet = it.wallet
-                        )
+            val navigateToTokenBalance: (BalanceViewItem2) -> Unit = rememberDebouncedAction { item ->
+                navController.slideFromRight(
+                    MainFragmentDirections.actionToTokenBalance(
+                        wallet = item.wallet
                     )
-                }
+                )
             }
 
             Crossfade(
