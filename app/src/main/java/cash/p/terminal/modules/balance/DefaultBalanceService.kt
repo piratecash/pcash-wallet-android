@@ -35,7 +35,7 @@ class DefaultBalanceService private constructor(
     private val connectivityManager: ConnectivityManager,
     private val balanceSorter: BalanceSorter,
     private val accountManager: IAccountManager
-) : BalanceService {
+) : BalanceService, AutoCloseable {
 
     private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase by inject(
         RemoveMoneroWalletFilesUseCase::class.java
@@ -195,14 +195,6 @@ class DefaultBalanceService private constructor(
         adapterRepository.refresh()
     }
 
-    override fun clear() {
-        coroutineScope.cancel()
-        adapterRepository.clear()
-        started = false
-        // Clear state
-        _balanceItemsState.value = emptyList()
-    }
-
     override val disabledWalletSubject = PublishSubject.create<Wallet>()
 
     override suspend fun disable(wallet: Wallet) {
@@ -222,6 +214,15 @@ class DefaultBalanceService private constructor(
 
     override fun enable(wallet: Wallet) {
         activeWalletRepository.enable(wallet)
+    }
+
+    override fun close() {
+        coroutineScope.cancel()
+        xRateRepository.clear()
+        adapterRepository.clear()
+        started = false
+        // Clear state
+        _balanceItemsState.value = emptyList()
     }
 
     companion object {

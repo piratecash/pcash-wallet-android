@@ -56,6 +56,7 @@ class TokenSelectViewModel(
 
     init {
         service.start()
+        addCloseable(service)
 
         viewModelScope.launch {
             service.balanceItemsFlow.collect { items ->
@@ -142,10 +143,6 @@ class TokenSelectViewModel(
                 noItems = noItems,
             )
         }
-    }
-
-    override fun onCleared() {
-        service.clear()
     }
 
     class FactoryForSend(

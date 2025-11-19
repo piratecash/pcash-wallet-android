@@ -1,6 +1,5 @@
 package cash.p.terminal.wallet.balance
 
-import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.Wallet
@@ -8,7 +7,7 @@ import io.horizontalsystems.core.entities.Currency
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.flow.StateFlow
 
-interface BalanceService : Clearable {
+interface BalanceService : AutoCloseable {
     val networkAvailable: Boolean
     val baseCurrency: Currency
     var sortType: BalanceSortType
@@ -19,7 +18,6 @@ interface BalanceService : Clearable {
 
     suspend fun refresh()
 
-    override fun clear()
     suspend fun disable(wallet: Wallet)
     fun enable(wallet: Wallet)
     val balanceItemsFlow: StateFlow<List<BalanceItem>?>

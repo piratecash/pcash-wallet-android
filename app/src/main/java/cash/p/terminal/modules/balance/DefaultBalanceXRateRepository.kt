@@ -9,6 +9,7 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 
@@ -73,5 +74,11 @@ class DefaultBalanceXRateRepository(
 
     private fun unsubscribeFromLatestRateUpdates() {
         latestRateJob?.cancel()
+    }
+
+    override fun clear() {
+        unsubscribeFromBaseCurrencyUpdate()
+        unsubscribeFromLatestRateUpdates()
+        coroutineScope.cancel()
     }
 }

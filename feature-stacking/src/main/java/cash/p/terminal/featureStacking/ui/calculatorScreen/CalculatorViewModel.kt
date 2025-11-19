@@ -30,6 +30,10 @@ internal class CalculatorViewModel(
 
     private var calculatorJob: Job? = null
 
+    init {
+        addCloseable(balanceService)
+    }
+
     companion object {
         private const val DELAY = 300L
     }
@@ -109,9 +113,5 @@ internal class CalculatorViewModel(
             dimmed = false
         ).value
         return "${amountBigDecimal.toPlainString()} ${coin.uppercase()} = $amountSecondary"
-    }
-
-    override fun onCleared() {
-        balanceService.clear()
     }
 }

@@ -10,4 +10,5 @@ interface BalanceXRateRepository {
     fun setCoinUids(coinUids: List<String>)
     fun getLatestRates(): Map<String, CoinPrice?>
     fun refresh()
+    fun clear()
 }

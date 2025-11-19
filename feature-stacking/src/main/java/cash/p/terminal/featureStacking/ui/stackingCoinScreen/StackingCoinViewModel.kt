@@ -91,6 +91,8 @@ internal abstract class StackingCoinViewModel(
         private set
 
     init {
+        addCloseable(balanceService)
+
         viewModelScope.launch {
             balanceHiddenManager.balanceHiddenFlow.collectLatest {
                 _uiState.value = uiState.value.copy(balanceHidden = it)
@@ -369,7 +371,6 @@ internal abstract class StackingCoinViewModel(
     }
 
     override fun onCleared() {
-        balanceService.clear()
         customDispatcher.close()
     }
 }

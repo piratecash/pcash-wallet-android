@@ -112,6 +112,8 @@ class BalanceViewModel(
     private var refreshViewItemsJob: Job? = null
 
     init {
+        addCloseable(service)
+
         viewModelScope.launch(Dispatchers.Default) {
             accountManager.activeAccountStateFlow.collect {
                 setupUI()
@@ -319,7 +321,6 @@ class BalanceViewModel(
 
     override fun onCleared() {
         totalBalance.stop()
-        service.clear()
     }
 
     fun onRefresh() {
