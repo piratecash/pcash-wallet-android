@@ -25,8 +25,7 @@ class BalanceAdapterRepository(
     private var wallets = listOf<Wallet>()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private var balanceStateUpdatedJob: Job? = null
-    private var balanceUpdatedJob: Job? = null
+    private val subscriptionJobs = mutableListOf<Job>()
 
     private val readySubject = PublishSubject.create<Unit>()
     val readyObservable: Observable<Unit> get() = readySubject
@@ -65,20 +64,20 @@ class BalanceAdapterRepository(
     }
 
     private fun unsubscribeFromAdapterUpdates() {
-        balanceStateUpdatedJob?.cancel()
-        balanceUpdatedJob?.cancel()
+        subscriptionJobs.forEach { it.cancel() }
+        subscriptionJobs.clear()
     }
 
     private fun subscribeForAdapterUpdates() {
         wallets.forEach { wallet ->
             adapterManager.getBalanceAdapterForWallet(wallet)?.let { adapter ->
-                balanceStateUpdatedJob = coroutineScope.launch {
+                subscriptionJobs += coroutineScope.launch {
                     adapter.balanceStateUpdatedFlow.collect {
                         updatesSubject.onNext(wallet)
                     }
                 }
 
-                balanceUpdatedJob = coroutineScope.launch {
+                subscriptionJobs += coroutineScope.launch {
                     adapter.balanceUpdatedFlow.collect {
                         updatesSubject.onNext(wallet)
 
