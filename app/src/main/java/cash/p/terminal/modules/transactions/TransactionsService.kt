@@ -17,6 +17,7 @@ import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
@@ -43,7 +44,8 @@ class TransactionsService(
 
     private val transactionItems = CopyOnWriteArrayList<TransactionItem>()
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val job = SupervisorJob()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
 
     fun start() {
         coroutineScope.launch {
@@ -238,10 +240,11 @@ class TransactionsService(
     }
 
     override fun clear() {
+        executorService.shutdownNow()
+        coroutineScope.cancel()
         transactionRecordRepository.clear()
         rateRepository.clear()
         transactionSyncStateRepository.clear()
-        coroutineScope.cancel()
     }
 
     private val executorService = Executors.newCachedThreadPool()
