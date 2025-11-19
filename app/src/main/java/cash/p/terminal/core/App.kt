@@ -30,7 +30,6 @@ import cash.p.terminal.core.managers.NftAdapterManager
 import cash.p.terminal.core.managers.NftMetadataManager
 import cash.p.terminal.core.managers.NftMetadataSyncer
 import cash.p.terminal.core.managers.PriceManager
-import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
@@ -166,7 +165,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         val tronKitManager: TronKitManager by inject(TronKitManager::class.java)
         val tonKitManager: TonKitManager by inject(TonKitManager::class.java)
         val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
-        lateinit var rateAppManager: IRateAppManager
         val coinManager: ICoinManager by inject(ICoinManager::class.java)
         lateinit var wcSessionManager: WCSessionManager
         lateinit var wcManager: WCManager
@@ -292,8 +290,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             dispatcherProvider = get(),
             resetUseCase = get()
         )
-
-        rateAppManager = RateAppManager(walletManager, adapterManager, localStorage)
 
         wcManager = WCManager(accountManager)
         wcManager.addWcHandler(WCHandlerEvm(evmBlockchainManager))
@@ -535,7 +531,6 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             EthereumKit.init()
             adapterManager.startAdapterManager()
             marketKit.sync(needForceUpdateCoins())
-            rateAppManager.onAppLaunch()
             nftMetadataSyncer.start()
             if (!pinComponent.isPinSet) {
                 pinComponent.initDefaultPinLevel()
