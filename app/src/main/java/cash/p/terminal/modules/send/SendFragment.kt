@@ -17,6 +17,7 @@ import androidx.navigation.navGraphViewModels
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.authorizedAction
@@ -94,7 +95,16 @@ class SendFragment : BaseComposeFragment() {
             BlockchainType.PirateCash,
             BlockchainType.Cosanta,
             BlockchainType.Dash -> {
-                val factory = SendBitcoinModule.Factory(wallet, address, hideAddress)
+                val adapter: ISendBitcoinAdapter? = App.adapterManager.getAdapterForWallet(wallet)
+                if (adapter == null) {
+                    HudHelper.showErrorMessage(
+                        LocalView.current,
+                        "No adapter for wallet $wallet"
+                    )
+                    navController.navigateUp()
+                    return
+                }
+                val factory = SendBitcoinModule.Factory(wallet, address, hideAddress, adapter)
                 val sendBitcoinViewModel by navGraphViewModels<SendBitcoinViewModel>(R.id.sendXFragment) {
                     factory
                 }

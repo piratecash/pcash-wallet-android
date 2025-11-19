@@ -6,9 +6,9 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.factories.FeeRateProviderFactory
 import cash.p.terminal.entities.Address
-import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 
 object SendBitcoinModule {
@@ -17,15 +17,14 @@ object SendBitcoinModule {
         private val wallet: Wallet,
         private val address: Address?,
         private val hideAddress: Boolean,
+        private val adapter: ISendBitcoinAdapter
     ) : ViewModelProvider.Factory {
-        val adapter =
-            (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendBitcoinAdapter) ?: throw IllegalStateException("SendBitcoinAdapter is null")
-
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val provider = FeeRateProviderFactory.provider(wallet.token.blockchainType)!!
             val feeService = SendBitcoinFeeService(adapter)
             val feeRateService = SendBitcoinFeeRateService(provider)
-            val amountService = SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator())
+            val amountService =
+                SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator())
             val addressService = SendBitcoinAddressService(adapter)
             val pluginService = SendBitcoinPluginService(wallet.token.blockchainType)
             return SendBitcoinViewModel(
@@ -60,6 +59,7 @@ object SendBitcoinModule {
         get() = when (this) {
             BlockchainType.Bitcoin,
             BlockchainType.Litecoin -> true
+
             else -> false
         }
 }
