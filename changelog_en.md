@@ -1,3 +1,41 @@
+## 🚀 Main changes in version 0.48.9
+_Release date: November 19, 2025_
+
+### ✨ New features
+- **Premium: Read QR code from file**
+    - Added a new premium feature — the ability to **read a QR code directly from an image/file**.
+      Useful when paying on websites where a QR code is shown but cannot be scanned with the camera.
+- **Zcash: Enhanced privacy for CEX swaps**
+    - Implemented the use of **temporary refund addresses** to increase anonymity when interacting with CEX during Zcash swaps.
+- **Zcash: Pending transactions**
+    - After sending a transaction, a **local pending entry** is now created automatically for all t/u/z modes.
+- **QR codes: Improved generation**
+    - Updated the QR code generation algorithm:
+      • higher detail level,
+      • improved error correction,
+      • fixes for devices that previously scanned slowly or failed to detect the QR code.
+
+### 🛠 Fixes and improvements
+- **EVM links:**
+    - Links to transactions now point **directly to the appropriate blockchain explorer** instead of redirecting through etherscan.io, reducing user confusion.
+- **mempool.merkle.io:**
+    - Fixed an issue that sometimes showed a false “unable to connect” error when sending tokens.
+- **Crash fixes:**
+    - Fixed crashes occurring when opening:
+        - `SwapConfirmFragmentKt.SwapConfirmScreen`
+        - `SendEvmModule$Factory.<init>`
+        - `SendTonModule$Factory.<init>`
+        - `SwapSelectProviderViewModel.<init>`
+        - `NavigationExtensionKt.slideFromRight`
+        - `SendBitcoinModule$Factory.<init>`
+    - Fixed critical error **Fatal Exception: java.lang.OutOfMemoryError**.
+- **DASH:**
+    - Fixed network interaction issues and improved the sending mechanism.
+- **Zcash SDK:**
+    - Updated **Zcash SDK to version 2.4.0**.
+
+
+
 ## 🚀 Main changes in version 0.48.8
 _Release date: November 11, 2025_
 
