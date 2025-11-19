@@ -9,6 +9,7 @@ import io.reactivex.Single
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import java.io.File
@@ -103,6 +104,11 @@ class TorOperator(private val torSettings: Tor.Settings, private val listener: L
         return killAllDaemons()
     }
 
+    fun cleanup() {
+        connectionJob?.cancel()
+        coroutineScope.cancel()
+    }
+
     fun newIdentity(): Boolean {
         return torControl?.newIdentity() ?: false
     }
@@ -130,6 +136,9 @@ class TorOperator(private val torSettings: Tor.Settings, private val listener: L
                 if (!result) {
                     result = killTorProcess()
                 }
+
+                // Очищаем ресурсы TorControl (coroutines, sockets)
+                torControl?.cleanup()
 
                 torInfo.status = EntityStatus.STOPPED
 

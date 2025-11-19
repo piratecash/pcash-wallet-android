@@ -4,6 +4,12 @@ import android.text.TextUtils
 import cash.p.terminal.core.tor.ConnectionStatus
 import cash.p.terminal.core.tor.Tor
 import io.reactivex.Observable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import net.freehaven.tor.control.EventHandler
 import net.freehaven.tor.control.TorControlConnection
 import java.io.*
@@ -22,12 +28,16 @@ class TorControl(
     }
 
     private val logger = Logger.getLogger("TorControl")
+    private var torConnSocket: Socket? = null
 
     private val CONTROL_SOCKET_TIMEOUT = 60000
     private var controlConn: TorControlConnection? = null
     private var torEventHandler: TorEventHandler? = null
     private var torProcessId: Int = -1
     private val MAX_BOOTSTRAP_CHECK_TRIES = 60
+
+    private val bootstrapScope = CoroutineScope(Dispatchers.IO)
+    private var bootstrapJob: Job? = null
 
     fun eventMonitor(torInfo: Tor.Info? = null, msg: String? = null) {
         msg?.let {
@@ -41,18 +51,32 @@ class TorControl(
     }
 
     fun shutdownTor(): Boolean {
-
         if (!isConnectedToControl())
             return false
 
         try {
             controlConn?.let {
                 it.shutdownTor("HALT")
+                closeSocket()
                 return true
             }
         } catch (e: java.lang.Exception) {
         }
         return false
+    }
+
+    fun cleanup() {
+        bootstrapJob?.cancel()
+        bootstrapScope.cancel()
+        closeSocket()
+    }
+
+    private fun closeSocket() {
+        try {
+            torConnSocket?.close()
+        } finally {
+            torConnSocket = null
+        }
     }
 
     private fun isConnectedToControl(): Boolean {
@@ -87,8 +111,10 @@ class TorControl(
 
                         eventMonitor(msg = "Connecting to control port: $controlPort")
 
-                        val torConnSocket = Socket(TorConstants.IP_LOCALHOST, controlPort)
-                        torConnSocket.soTimeout = CONTROL_SOCKET_TIMEOUT
+                        closeSocket()
+
+                        torConnSocket = Socket(TorConstants.IP_LOCALHOST, controlPort)
+                        torConnSocket?.soTimeout = CONTROL_SOCKET_TIMEOUT
 
                         val conn = TorControlConnection(torConnSocket)
                         controlConn = conn
@@ -97,6 +123,7 @@ class TorControl(
                         emitter.onNext(conn)
                     }
                 } catch (e: Exception) {
+                    closeSocket()
                     controlConn = null
                     torInfo.connection.processId = -1
                     torInfo.connection.status = ConnectionStatus.FAILED
@@ -141,7 +168,7 @@ class TorControl(
                 eventMonitor(msg = "Tor authentication cookie does not exist yet")
             }
         } catch (e: Exception) {
-
+            closeSocket()
             controlConn = null
             torInfo.connection.processId = -1
             torInfo.connection.status = ConnectionStatus.FAILED
@@ -160,8 +187,7 @@ class TorControl(
         }
     }
 
-    @Synchronized
-    fun onBootstrapped(torInfo: Tor.Info) {
+    suspend fun onBootstrapped(torInfo: Tor.Info) {
         if (torInfo.connection.status != ConnectionStatus.CONNECTED) {
 
             eventMonitor(msg = "Starting Bootstrap status checking job ...")
@@ -171,7 +197,7 @@ class TorControl(
 
             do {
                 isSuccess = getBootStatus()
-                Thread.sleep(900)
+                delay(900)
                 tries++
 
             } while (isSuccess == 0 && tries <= MAX_BOOTSTRAP_CHECK_TRIES)
@@ -267,9 +293,11 @@ class TorControl(
 
                 if (TextUtils.equals(status, "CONNECTED")) {
 
-                    Thread(Runnable {
+                    torControl.bootstrapJob?.cancel()
+
+                    torControl.bootstrapJob = torControl.bootstrapScope.launch {
                         torControl.onBootstrapped(torControl.torInfo)
-                    }).start()
+                    }
 
                 } else if (TextUtils.equals(status, "FAILED")) {
                     torControl.torInfo.connection.status = ConnectionStatus.FAILED

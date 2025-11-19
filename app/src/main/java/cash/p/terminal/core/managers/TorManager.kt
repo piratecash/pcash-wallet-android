@@ -43,6 +43,7 @@ class TorManager(context: Context, val localStorage: ILocalStorage) : ITorManage
     override fun stop(): Single<Boolean> {
         disableProxy()
         return torOperator.stop().doFinally {
+            torOperator.cleanup()  // Очищаем CoroutineScope
             executorService.shutdown()
             try {
                 if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
