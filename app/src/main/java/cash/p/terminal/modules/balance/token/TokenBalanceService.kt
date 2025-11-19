@@ -8,6 +8,8 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.models.CoinPrice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -30,7 +32,8 @@ class TokenBalanceService(
             _balanceItemFlow.update { value }
         }
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val job = SupervisorJob()
+    private val coroutineScope = CoroutineScope(Dispatchers.Default + job)
     val baseCurrency by xRateRepository::baseCurrency
 
     suspend fun start() {
@@ -85,5 +88,6 @@ class TokenBalanceService(
 
     override fun clear() {
         balanceAdapterRepository.clear()
+        coroutineScope.cancel()
     }
 }
