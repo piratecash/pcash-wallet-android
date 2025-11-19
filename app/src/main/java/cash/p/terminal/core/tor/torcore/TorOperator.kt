@@ -8,6 +8,7 @@ import cash.p.terminal.core.tor.torutils.ProcessUtils
 import io.reactivex.Single
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import java.io.File
@@ -27,6 +28,7 @@ class TorOperator(private val torSettings: Tor.Settings, private val listener: L
     private var torControl: TorControl? = null
     private lateinit var resManager: TorResourceManager
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private var connectionJob: Job? = null
 
     fun start() {
 
@@ -63,10 +65,11 @@ class TorOperator(private val torSettings: Tor.Settings, private val listener: L
                     torInfo.status = EntityStatus.RUNNING
                     eventMonitor(torInfo = torInfo, msg = "Tor started successfully")
 
-                    torControl?.let { it ->
-                        coroutineScope.launch {
+                    torControl?.let { torControl ->
+                        connectionJob?.cancel()
+                        connectionJob = coroutineScope.launch {
                             try {
-                                it.initConnection(4).asFlow().collect { torConnection ->
+                                torControl.initConnection(4).asFlow().collect { torConnection ->
                                     torInfo.connection = torConnection
                                 }
                             } catch (e: Throwable) {
@@ -95,6 +98,8 @@ class TorOperator(private val torSettings: Tor.Settings, private val listener: L
     }
 
     fun stop(): Single<Boolean> {
+        connectionJob?.cancel()
+        connectionJob = null
         return killAllDaemons()
     }
 

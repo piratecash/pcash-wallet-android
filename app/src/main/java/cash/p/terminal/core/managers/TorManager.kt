@@ -14,6 +14,7 @@ import io.reactivex.Single
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 class TorManager(context: Context, val localStorage: ILocalStorage) : ITorManager, TorOperator.Listener {
 
@@ -41,7 +42,16 @@ class TorManager(context: Context, val localStorage: ILocalStorage) : ITorManage
 
     override fun stop(): Single<Boolean> {
         disableProxy()
-        return torOperator.stop()
+        return torOperator.stop().doFinally {
+            executorService.shutdown()
+            try {
+                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow()
+                }
+            } catch (e: InterruptedException) {
+                executorService.shutdownNow()
+            }
+        }
     }
 
     override fun setTorAsEnabled() {
