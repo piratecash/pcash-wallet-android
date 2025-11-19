@@ -219,6 +219,48 @@ fun NavGraphBuilder.composablePopup(
     )
 }
 
+inline fun <reified T : Any> NavGraphBuilder.composablePage(
+    noinline content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit,
+) {
+    composable<T>(
+        enterTransition = {
+            slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.Left,
+                animationSpec = tween(300)
+            )
+        },
+        popExitTransition = {
+            slideOutOfContainer(
+                AnimatedContentTransitionScope.SlideDirection.Right,
+                animationSpec = tween(300)
+            )
+        },
+        popEnterTransition = { null },
+        content = content
+    )
+}
+
+inline fun <reified T : Any> NavGraphBuilder.composablePopup(
+    noinline content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
+) {
+    composable<T>(
+        enterTransition = {
+            slideIntoContainer(
+                AnimatedContentTransitionScope.SlideDirection.Up,
+                animationSpec = tween(250)
+            )
+        },
+        popExitTransition = {
+            fadeOut(animationSpec = tween(250)) +
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Down,
+                        animationSpec = tween(250)
+                    )
+        },
+        content = content
+    )
+}
+
 suspend fun <T> retryWhen(
     times: Int,
     predicate: suspend (cause: Throwable) -> Boolean,

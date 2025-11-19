@@ -37,7 +37,6 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -57,7 +56,7 @@ import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
 import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.navigation.entity.SwapParams
-import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.CardsSwapInfo
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -89,9 +88,10 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
 import io.horizontalsystems.core.entities.Currency
-import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.navigation.slideFromBottomForResult
-import cash.p.terminal.navigation.slideFromRightForResult
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import io.horizontalsystems.core.toBigDecimalOrNullExt
 import java.math.BigDecimal
 import java.net.UnknownHostException
@@ -100,6 +100,11 @@ import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.core.composablePage
+import cash.p.terminal.core.composablePopup
+import cash.p.terminal.navigation.slideFromBottom
+import kotlinx.serialization.Serializable
+import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
 
 class SwapFragment : BaseComposeFragment() {
     @Composable
@@ -112,22 +117,121 @@ class SwapFragment : BaseComposeFragment() {
     }
 }
 
+@Serializable
+private object SwapMainPage
+
+@Serializable
+private data class SwapSelectCoinPage(val direction: SwapCoinDirection)
+
+@Serializable
+private object SwapSelectProviderPage
+
+@Serializable
+private object SwapConfirmPage
+
+@Serializable
+private object SwapSettingsPage
+
+@Serializable
+private object SwapTransactionSettingsPage
+
+@Serializable
+private enum class SwapCoinDirection { From, To }
+
 @Composable
 fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) {
-    val currentBackStackEntry = remember { navController.currentBackStackEntry }
     val viewModel = viewModel<SwapViewModel>(
-        viewModelStoreOwner = currentBackStackEntry!!,
         factory = SwapViewModel.Factory(tokenIn, tokenOut)
     )
+    val swapNavController = rememberNavController()
+
+    NavHost(
+        navController = swapNavController,
+        startDestination = SwapMainPage
+    ) {
+        composable<SwapMainPage> {
+            SwapMainScreen(
+                fragmentNavController = navController,
+                swapNavController = swapNavController,
+                viewModel = viewModel
+            )
+        }
+        composablePopup<SwapSelectCoinPage> { backStackEntry ->
+            val args = backStackEntry.toRoute<SwapSelectCoinPage>()
+            val direction = args.direction
+            val initialToken = when (direction) {
+                SwapCoinDirection.From -> viewModel.uiState.tokenIn
+                SwapCoinDirection.To -> viewModel.uiState.tokenOut
+            }
+            val titleResId = when (direction) {
+                SwapCoinDirection.From -> R.string.Swap_YouPay
+                SwapCoinDirection.To -> R.string.Swap_YouGet
+            }
+
+            SwapSelectCoinScreen(
+                navController = swapNavController,
+                token = initialToken,
+                title = stringResource(id = titleResId)
+            ) { token ->
+                when (direction) {
+                    SwapCoinDirection.From -> viewModel.onSelectTokenIn(token)
+                    SwapCoinDirection.To -> viewModel.onSelectTokenOut(token)
+                }
+                swapNavController.popBackStack()
+            }
+        }
+        composablePopup<SwapSelectProviderPage> { backStackEntry ->
+            val quotes = viewModel.uiState.quotes
+            if (quotes.isEmpty()) {
+                LaunchedEffect(Unit) {
+                    swapNavController.navigateUp()
+                }
+                return@composablePopup
+            }
+            val selectProviderViewModel = viewModel<SwapSelectProviderViewModel>(
+                viewModelStoreOwner = backStackEntry,
+                factory = SwapSelectProviderViewModel.Factory(quotes)
+            )
+            SwapSelectProviderScreen(
+                onClickClose = swapNavController::popBackStack,
+                quotes = selectProviderViewModel.uiState.quoteViewItems,
+                currentQuote = viewModel.uiState.quote,
+            ) {
+                viewModel.onSelectQuote(it)
+                swapNavController.popBackStack()
+            }
+        }
+        composablePage<SwapConfirmPage> {
+            SwapConfirmScreen(
+                fragmentNavController = navController,
+                swapNavController = swapNavController,
+                swapViewModel = viewModel,
+                onOpenSettings = { swapNavController.navigate(SwapTransactionSettingsPage) }
+            )
+        }
+        composablePage<SwapSettingsPage> {
+            SwapSettingsScreen(navController = swapNavController, swapViewModel = viewModel)
+        }
+        composablePage<SwapTransactionSettingsPage> {
+            SwapTransactionSettingsScreen(navController = swapNavController)
+        }
+    }
+}
+
+@Composable
+private fun SwapMainScreen(
+    fragmentNavController: NavController,
+    swapNavController: NavController,
+    viewModel: SwapViewModel
+) {
     val uiState = viewModel.uiState
-    val context = LocalContext.current
     val view = LocalView.current
     val manageWalletsFactory = remember { ManageWalletsModule.Factory() }
     val restoreSettingsViewModel = viewModel<RestoreSettingsViewModel>(factory = manageWalletsFactory)
     val manageWalletsViewModel = viewModel<ManageWalletsViewModel>(factory = manageWalletsFactory)
 
     restoreSettingsViewModel.openTokenConfigure?.let { token ->
-        navController.openRestoreSettingsDialog(token, restoreSettingsViewModel)
+        fragmentNavController.openRestoreSettingsDialog(token, restoreSettingsViewModel)
     }
 
     LaunchedEffect(manageWalletsViewModel.errorMsg) {
@@ -138,46 +242,26 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
 
     SwapScreenInner(
         uiState = uiState,
-        onClickClose = navController::popBackStack,
+        onClickClose = fragmentNavController::navigateUp,
         onClickCoinFrom = {
-            navController.slideFromBottomForResult<Token>(
-                R.id.swapSelectCoinFragment,
-                SwapSelectCoinFragment.Input(
-                    uiState.tokenOut,
-                    context.getString(R.string.Swap_YouPay)
-                )
-            ) {
-                viewModel.onSelectTokenIn(it)
-            }
+            swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From))
         },
         onClickCoinTo = {
-            navController.slideFromBottomForResult<Token>(
-                R.id.swapSelectCoinFragment,
-                SwapSelectCoinFragment.Input(
-                    uiState.tokenIn,
-                    context.getString(R.string.Swap_YouGet)
-                )
-            ) {
-                viewModel.onSelectTokenOut(it)
-            }
+            swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.To))
         },
         onSwitchPairs = viewModel::onSwitchPairs,
         onEnterAmount = viewModel::onEnterAmount,
         onEnterAmountPercentage = viewModel::onEnterAmountPercentage,
         onEnterFiatAmount = viewModel::onEnterFiatAmount,
         onClickProvider = {
-            navController.slideFromBottom(R.id.swapSelectProvider)
+            swapNavController.navigate(SwapSelectProviderPage)
         },
         onClickProviderSettings = {
-            navController.slideFromRight(R.id.swapSettings)
+            swapNavController.navigate(SwapSettingsPage)
         },
         onTimeout = viewModel::reQuote,
         onClickNext = {
-            navController.slideFromRightForResult<SwapConfirmFragment.Result>(R.id.swapConfirm) {
-                if (it.success) {
-                    navController.popBackStack()
-                }
-            }
+            swapNavController.navigate(SwapConfirmPage)
         },
         onCreateMissingTokens = { tokens ->
             tokens.forEach { token ->
@@ -194,7 +278,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
         onActionCompleted = {
             viewModel.onActionCompleted()
         },
-        navController = navController,
+        navController = fragmentNavController,
         onBalanceClicked = viewModel::toggleHideBalance
     )
 }

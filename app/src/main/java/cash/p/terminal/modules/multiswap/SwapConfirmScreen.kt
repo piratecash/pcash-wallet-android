@@ -1,12 +1,12 @@
 package cash.p.terminal.modules.multiswap
 
-import android.os.Parcelable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,15 +28,19 @@ import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.ui.DataFieldFee
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
-import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.CoinImage
-import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsImageCircle
+import cash.p.terminal.ui_compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
@@ -47,56 +51,43 @@ import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.imageUrl
 import io.horizontalsystems.bitcoincore.managers.SendValueErrors
-import cash.p.terminal.ui_compose.components.CellUniversal
-import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.entities.CurrencyValue
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.ui_compose.components.HsSwitch
-import cash.p.terminal.ui_compose.components.body_leah
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 
-class SwapConfirmFragment : BaseComposeFragment() {
-    @Composable
-    override fun GetContent(navController: NavController) {
-        SwapConfirmScreen(navController)
-    }
-
-    @Parcelize
-    data class Result(val success: Boolean) : Parcelable
-}
-
 @Composable
-fun SwapConfirmScreen(navController: NavController) {
+fun SwapConfirmScreen(
+    fragmentNavController: NavController,
+    swapNavController: NavController,
+    swapViewModel: SwapViewModel,
+    onOpenSettings: (() -> Unit)? = null
+) {
     val coroutineScope = rememberCoroutineScope()
     val view = LocalView.current
 
-    val previousBackStackEntry = remember { navController.previousBackStackEntry } ?: return
-    val swapViewModel = viewModel<SwapViewModel>(
-        viewModelStoreOwner = previousBackStackEntry,
-    )
-
-    val currentQuote = remember { swapViewModel.getCurrentQuote() } ?: return
+    val currentQuote = remember { swapViewModel.getCurrentQuote() } ?: run {
+        LaunchedEffect(Unit) {
+            swapNavController.popBackStack()
+        }
+        return
+    }
     val settings = remember { swapViewModel.getSettings() }
 
-    val currentBackStackEntry = remember { navController.currentBackStackEntry }
+    val currentBackStackEntry = remember { swapNavController.currentBackStackEntry }
     val viewModel = viewModel<SwapConfirmViewModel>(
         viewModelStoreOwner = currentBackStackEntry!!,
-        factory = SwapConfirmViewModel.provideFactory(currentQuote, settings, navController)
+        factory = SwapConfirmViewModel.provideFactory(currentQuote, settings, fragmentNavController)
     )
 
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
-        onClickBack = navController::navigateUp,
+        onClickBack = swapNavController::navigateUp,
         onClickSettings = if (uiState.isAdvancedSettingsAvailable) {
             {
-                navController.slideFromRight(R.id.swapTransactionSettings)
+                onOpenSettings?.invoke()
             }
         } else {
             null
@@ -161,8 +152,7 @@ fun SwapConfirmScreen(navController: NavController) {
                                 HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
                                 delay(1200)
 
-                                navController.setNavigationResultX(SwapConfirmFragment.Result(true))
-                                navController.popBackStack()
+                                fragmentNavController.navigateUp()
                             } catch (t: Throwable) {
                                 if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
                                     HudHelper.showErrorMessage(
@@ -213,7 +203,11 @@ fun SwapConfirmScreen(navController: NavController) {
                     uiState.amountIn,
                     amountOut
                 )
-                PriceImpactField(uiState.priceImpact, uiState.priceImpactLevel, navController)
+                PriceImpactField(
+                    uiState.priceImpact,
+                    uiState.priceImpactLevel,
+                    fragmentNavController
+                )
                 uiState.amountOutMin?.let { amountOutMin ->
                     val subvalue = uiState.fiatAmountOutMin?.let { fiatAmountOutMin ->
                         CurrencyValue(uiState.currency, fiatAmountOutMin).getFormattedFull()
@@ -233,7 +227,7 @@ fun SwapConfirmScreen(navController: NavController) {
                     )
                 }
                 uiState.quoteFields.forEach {
-                    it.GetContent(navController, true)
+                    it.GetContent(fragmentNavController, true)
                 }
             }
         }
@@ -243,7 +237,7 @@ fun SwapConfirmScreen(navController: NavController) {
             VSpacer(height = 16.dp)
             SectionUniversalLawrence {
                 transactionFields.forEachIndexed { index, field ->
-                    field.GetContent(navController, index != 0)
+                    field.GetContent(fragmentNavController, index != 0)
                 }
             }
         }
@@ -251,7 +245,7 @@ fun SwapConfirmScreen(navController: NavController) {
         VSpacer(height = 16.dp)
         SectionUniversalLawrence {
             DataFieldFee(
-                navController,
+                fragmentNavController,
                 uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
                 uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
             )

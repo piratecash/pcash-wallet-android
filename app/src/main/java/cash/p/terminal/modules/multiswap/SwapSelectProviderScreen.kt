@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,10 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HFillSpacer
@@ -35,39 +31,8 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
-class SwapSelectProviderFragment : BaseComposeFragment() {
-    @Composable
-    override fun GetContent(navController: NavController) {
-        SwapSelectProviderScreen(navController)
-    }
-}
-
 @Composable
-fun SwapSelectProviderScreen(navController: NavController) {
-    val previousBackStackEntry = remember { navController.previousBackStackEntry } ?: return
-    val swapViewModel = viewModel<SwapViewModel>(
-        viewModelStoreOwner = previousBackStackEntry,
-    )
-
-    val viewModel = viewModel<SwapSelectProviderViewModel>(
-        factory = SwapSelectProviderViewModel.Factory(swapViewModel.uiState.quotes)
-    )
-
-    val uiState = viewModel.uiState
-    val currentQuote = swapViewModel.uiState.quote
-
-    SwapSelectProviderScreenInner(
-        onClickClose = navController::navigateUp,
-        quotes = uiState.quoteViewItems,
-        currentQuote = currentQuote,
-    ) {
-        swapViewModel.onSelectQuote(it)
-        navController.navigateUp()
-    }
-}
-
-@Composable
-private fun SwapSelectProviderScreenInner(
+fun SwapSelectProviderScreen(
     onClickClose: () -> Unit,
     quotes: List<QuoteViewItem>,
     currentQuote: SwapProviderQuote?,
@@ -148,7 +113,7 @@ private fun SwapSelectProviderScreenInner(
 @Composable
 private fun SwapSelectProviderScreenPreview() {
     ComposeAppTheme(darkTheme = false) {
-        SwapSelectProviderScreenInner(
+        SwapSelectProviderScreen(
             onClickClose = {},
             quotes = listOf(
 //                SwapProviderQuote(

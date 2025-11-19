@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.multiswap.SwapViewModel
 import cash.p.terminal.ui_compose.components.AppBar
@@ -21,21 +20,10 @@ import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
-class SwapSettingsFragment : BaseComposeFragment() {
-    @Composable
-    override fun GetContent(navController: NavController) {
-        SwapProviderSettingsScreen(navController)
-    }
-}
-
 @Composable
-private fun SwapProviderSettingsScreen(navController: NavController) {
-    val previousBackStackEntry = navController.previousBackStackEntry ?: return
-    val swapViewModel = viewModel<SwapViewModel>(
-        viewModelStoreOwner = previousBackStackEntry,
-    )
-
-    val viewModel = viewModel<SwapSettingsViewModel>(factory = SwapSettingsViewModel.Factory(swapViewModel.getSettings()))
+fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewModel) {
+    val viewModel =
+        viewModel<SwapSettingsViewModel>(factory = SwapSettingsViewModel.Factory(swapViewModel.getSettings()))
 
     val uiState = viewModel.uiState
 

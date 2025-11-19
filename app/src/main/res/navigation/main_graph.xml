@@ -380,18 +380,6 @@
         android:id="@+id/stacking"
         android:name="cash.p.terminal.featureStacking.ui.staking.StackingFragment" />
     <fragment
-        android:id="@+id/swapSelectProvider"
-        android:name="cash.p.terminal.modules.multiswap.SwapSelectProviderFragment" />
-    <fragment
-        android:id="@+id/swapSettings"
-        android:name="cash.p.terminal.modules.multiswap.settings.SwapSettingsFragment" />
-    <fragment
-        android:id="@+id/swapTransactionSettings"
-        android:name="cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsFragment" />
-    <fragment
-        android:id="@+id/swapConfirm"
-        android:name="cash.p.terminal.modules.multiswap.SwapConfirmFragment" />
-    <fragment
         android:id="@+id/sendConfirmation"
         android:name="cash.p.terminal.modules.send.SendConfirmationFragment">
         <argument
@@ -416,9 +404,6 @@
     <fragment
         android:id="@+id/statusInfoDialog"
         android:name="cash.p.terminal.modules.info.TransactionStatusInfoFragment" />
-    <fragment
-        android:id="@+id/swapSelectCoinFragment"
-        android:name="cash.p.terminal.modules.multiswap.SwapSelectCoinFragment" />
     <fragment
         android:id="@+id/tokenBalanceFragment"
         android:name="cash.p.terminal.modules.balance.token.TokenBalanceFragment">
