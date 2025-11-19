@@ -55,6 +55,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.res.ResourcesCompat
@@ -92,6 +93,8 @@ import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.google.zxing.qrcode.encoder.Encoder
 import io.github.alexzhirkevich.qrose.options.QrBallShape
 import io.github.alexzhirkevich.qrose.options.QrErrorCorrectionLevel
 import io.github.alexzhirkevich.qrose.options.QrFrameShape
@@ -218,7 +221,7 @@ fun ReceiveAddressScreen(
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .background(ComposeAppTheme.colors.white)
-                                                .size(224.dp),
+                                                .size(QR_CODE_SIZE),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             QrCodeImage(uiState.uri)
@@ -324,6 +327,7 @@ fun ReceiveAddressScreen(
 
 @Composable
 private fun QrCodeImage(address: String) {
+    val quietZone = remember(address) { calculateQuietZone(address) }
     val logoPainter: Painter =
         adaptiveIconPainterResource(
             id = R.mipmap.launcher_main,
@@ -331,10 +335,10 @@ private fun QrCodeImage(address: String) {
         )
     val qrcodePainter: Painter =
         rememberQrCodePainter(address) {
-            errorCorrectionLevel = QrErrorCorrectionLevel.Medium
+            errorCorrectionLevel = QrErrorCorrectionLevel.MediumHigh
             logo {
                 painter = logoPainter
-                padding = QrLogoPadding.Natural(.3f)
+                padding = QrLogoPadding.Natural(.25f)
                 shape = QrLogoShape.roundCorners(0.8f)
                 size = 0.2f
             }
@@ -348,12 +352,27 @@ private fun QrCodeImage(address: String) {
     Image(
         painter = qrcodePainter,
         modifier = Modifier
-            .padding(8.dp)
+            .padding(quietZone)
             .fillMaxSize(),
         contentScale = ContentScale.FillWidth,
         contentDescription = null
     )
 }
+
+private val QR_CODE_SIZE = 300.dp
+private val DEFAULT_QUIET_ZONE = 8.dp
+
+private fun calculateQuietZone(content: String): Dp {
+    return runCatching {
+        val modules = Encoder.encode(content, ErrorCorrectionLevel.Q).matrix?.width
+            ?.takeIf { it > 0 } ?: return DEFAULT_QUIET_ZONE
+        val moduleSize = QR_CODE_SIZE.value / modules
+        (moduleSize * QUIET_ZONE_MODULES).dp
+    }.getOrElse { DEFAULT_QUIET_ZONE }
+        .coerceAtLeast(DEFAULT_QUIET_ZONE)
+}
+
+private const val QUIET_ZONE_MODULES = 4f
 
 @Composable
 private fun WarningTextView(
