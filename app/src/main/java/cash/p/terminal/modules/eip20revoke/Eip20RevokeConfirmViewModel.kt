@@ -67,6 +67,7 @@ internal class Eip20RevokeConfirmViewModel(
         fiatService.setCurrency(currency)
         fiatService.setToken(token)
         fiatService.setAmount(allowance)
+        addCloseable(fiatService)
 
         viewModelScope.launch {
             fiatService.stateFlow.collect {

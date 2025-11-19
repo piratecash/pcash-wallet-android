@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.ServiceState
+import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.Currency
@@ -8,12 +9,15 @@ import cash.p.terminal.wallet.models.CoinPrice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatService.State>() {
+class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatService.State>(),
+    AutoCloseable {
     private var currency: Currency? = null
     private var token: Token? = null
     private var amount: BigDecimal? = null
@@ -21,7 +25,9 @@ class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatSe
 
     private var fiatAmount: BigDecimal? = null
     private var coinPriceUpdatesJob: Job? = null
-    private var coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    private val job = SupervisorJob()
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
 
     override fun createState() = State(
         coinPrice = coinPrice,
@@ -114,6 +120,10 @@ class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatSe
         refreshAmount()
 
         emitState()
+    }
+
+    override fun close() {
+        coroutineScope.cancel()
     }
 
     data class State(

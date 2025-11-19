@@ -85,14 +85,17 @@ class SwapConfirmViewModel(
         fiatServiceIn.setCurrency(currency)
         fiatServiceIn.setToken(tokenIn)
         fiatServiceIn.setAmount(amountIn)
+        addCloseable(fiatServiceIn)
 
         fiatServiceOut.setCurrency(currency)
         fiatServiceOut.setToken(tokenOut)
         fiatServiceOut.setAmount(amountOut)
+        addCloseable(fiatServiceOut)
 
         fiatServiceOutMin.setCurrency(currency)
         fiatServiceOutMin.setToken(tokenOut)
         fiatServiceOutMin.setAmount(amountOutMin)
+        addCloseable(fiatServiceOutMin)
 
         viewModelScope.launch {
             fiatServiceIn.stateFlow.collect {

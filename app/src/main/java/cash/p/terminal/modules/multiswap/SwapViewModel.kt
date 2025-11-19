@@ -102,7 +102,9 @@ class SwapViewModel(
         }
 
         fiatServiceIn.setCurrency(currency)
+        addCloseable(fiatServiceIn)
         fiatServiceOut.setCurrency(currency)
+        addCloseable(fiatServiceOut)
         networkAvailabilityService.start(viewModelScope)
         tokenIn?.let {
             quoteService.setTokenIn(it)
@@ -266,16 +268,16 @@ class SwapViewModel(
             val priceImpactService = PriceImpactService()
 
             return SwapViewModel(
-                swapQuoteService,
-                tokenBalanceService,
-                priceImpactService,
-                App.currencyManager,
-                FiatService(App.marketKit),
-                FiatService(App.marketKit),
-                TimerService(),
-                NetworkAvailabilityService(App.connectivityManager),
-                tokenIn,
-                tokenOut
+                quoteService = swapQuoteService,
+                balanceService = tokenBalanceService,
+                priceImpactService = priceImpactService,
+                currencyManager = App.currencyManager,
+                fiatServiceIn = FiatService(App.marketKit),
+                fiatServiceOut = FiatService(App.marketKit),
+                timerService = TimerService(),
+                networkAvailabilityService = NetworkAvailabilityService(App.connectivityManager),
+                tokenIn = tokenIn,
+                tokenOut = tokenOut
             ) as T
         }
     }

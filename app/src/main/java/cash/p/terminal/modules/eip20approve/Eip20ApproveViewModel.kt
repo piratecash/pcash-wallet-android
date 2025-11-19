@@ -66,6 +66,7 @@ internal class Eip20ApproveViewModel(
         fiatService.setCurrency(currency)
         fiatService.setToken(token)
         fiatService.setAmount(requiredAllowance)
+        addCloseable(fiatService)
 
         viewModelScope.launch {
             fiatService.stateFlow.collect {
