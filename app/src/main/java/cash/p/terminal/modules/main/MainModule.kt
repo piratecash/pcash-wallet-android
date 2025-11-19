@@ -24,7 +24,6 @@ object MainModule {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             return MainViewModel(
                 App.pinComponent,
-                App.rateAppManager,
                 get(IBackupManager::class.java),
                 App.termsManager,
                 App.accountManager,
@@ -93,7 +92,6 @@ object MainModule {
         val selectedTabIndex: Int,
         val deeplinkPage: DeeplinkPage?,
         val mainNavItems: List<NavigationViewItem>,
-        val showRateAppDialog: Boolean,
         val contentHidden: Boolean,
         val showWhatsNew: Boolean,
         val activeWallet: Account?,
