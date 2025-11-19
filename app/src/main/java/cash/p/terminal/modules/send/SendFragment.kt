@@ -18,6 +18,7 @@ import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendEthereumAdapter
+import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountInputModeModule
@@ -207,7 +208,16 @@ class SendFragment : BaseComposeFragment() {
             }
 
             BlockchainType.Ton -> {
-                val factory = SendTonModule.Factory(wallet, address, hideAddress)
+                val adapter: ISendTonAdapter? = App.adapterManager.getAdapterForWallet(wallet)
+                if (adapter == null) {
+                    HudHelper.showErrorMessage(
+                        LocalView.current,
+                        "No adapter for wallet $wallet"
+                    )
+                    navController.navigateUp()
+                    return
+                }
+                val factory = SendTonModule.Factory(wallet, address, hideAddress, adapter)
                 val sendTonViewModel by navGraphViewModels<SendTonViewModel>(R.id.sendXFragment) { factory }
                 Box(
                     modifier = Modifier

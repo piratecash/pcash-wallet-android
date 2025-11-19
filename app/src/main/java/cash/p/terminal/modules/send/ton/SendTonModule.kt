@@ -20,8 +20,8 @@ object SendTonModule {
         private val wallet: Wallet,
         private val address: Address?,
         private val hideAddress: Boolean,
+        private val adapter: ISendTonAdapter
     ) : ViewModelProvider.Factory {
-        val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendTonAdapter) ?: throw IllegalStateException("ISendTonAdapter is null")
         private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
 
         @Suppress("UNCHECKED_CAST")
