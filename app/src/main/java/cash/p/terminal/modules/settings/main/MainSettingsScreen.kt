@@ -34,7 +34,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
-import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.modules.contacts.ContactsFragment
 import cash.p.terminal.modules.contacts.Mode
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -354,14 +353,6 @@ private fun SettingSections(
                 showAlert = uiState.aboutAppShowAlert,
                 onClick = {
                     navController.slideFromRight(R.id.aboutAppFragment)
-                }
-            )
-        }, {
-            HsSettingCell(
-                R.string.Settings_RateUs,
-                R.drawable.ic_star_20,
-                onClick = {
-                    RateAppManager.openPlayMarket(context)
                 }
             )
         }, {
