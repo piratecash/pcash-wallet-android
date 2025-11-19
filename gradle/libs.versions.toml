@@ -1,5 +1,6 @@
 [versions]
 activityCompose = "1.10.0"
+gradle = "8.13.1"
 navigationSafeArgsGradlePlugin = "2.9.3"
 reownBom = "1.4.9"
 androidGradlePlugin = "8.6.1"
@@ -72,6 +73,7 @@ tor-android = "0.4.8.17.2"
 
 [libraries]
 android-bom = { module = "com.reown:android-bom", version.ref = "reownBom" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 reown-core = { module = "com.reown:android-core" }
 reown-walletkit = { module = "com.reown:walletkit" }
 androidx-navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationSafeArgsGradlePlugin" }
