@@ -162,7 +162,10 @@ class SecurityCheckViewModel(
 
             inputState = if (
                 addressValidationError == null &&
-                checkResults.none { it.value.checkResult == AddressCheckResult.Detected }
+                checkResults.none {
+                    it.value.checkResult == AddressCheckResult.Detected ||
+                            it.value.checkResult == AddressCheckResult.AlphaAmlVeryHigh
+                }
             )
                 DataState.Success(address)
             else
