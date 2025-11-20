@@ -1526,4 +1526,10 @@
     <string name="alpha_aml_low_risk">ریسک پایین</string>
     <string name="alpha_aml_high_risk">ریسک بالا</string>
     <string name="alpha_aml_very_high_risk">بالاترین ریسک</string>
+    <string name="check_from_aml">بررسی از alpha-aml.com</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">مشکل AML شناسایی شد!</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">آدرس وارد شده در لیست سیاه AML قرار دارد. تراکنش‌ها به این آدرس می‌توانند منجر به از دست دادن وجوه یا سایر خطرات شوند. لطفاً قبل از ادامه، جزئیات گیرنده را بررسی کنید.</string>
+    <string name="Send_Address_AmlCheck_Info1">بررسی می‌کند که آیا آدرس مقصد در لیست alpha-aml.com قرار دارد.</string>
+    <string name="Send_Address_AmlCheck_Info2">تمیز: بدون پرچم لیست سیاه.</string>
+    <string name="Send_Address_AmlCheck_Info3">شناسایی شده: آدرس در لیست alpha-aml.com قرار دارد و ممکن است با خطرات قانونی یا امنیتی مرتبط باشد. با احتیاط ادامه دهید. بسیاری از صرافی‌های رمزنگاری کاربرانی را که از کیف پول‌هایی که با آدرس‌های لیست سیاه تعامل داشته‌اند، واریز یا برداشت می‌کنند، محدود می‌کنند. این را در نظر داشته باشید.</string>
 </resources>

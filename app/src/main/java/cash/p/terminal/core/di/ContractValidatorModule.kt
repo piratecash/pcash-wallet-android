@@ -90,5 +90,6 @@ val contractValidatorModule = module {
         )
     }
     singleOf(::ExcludedContractValidator)
+
     singleOf(::AlphaAmlAddressValidator)
 }

@@ -54,10 +54,12 @@ import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.VSpacer
+import cash.p.terminal.ui_compose.components.subhead2
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_lucian
 import cash.p.terminal.ui_compose.components.subhead2_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.ui_compose.theme.YellowL
 import cash.p.terminal.wallet.Wallet
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -321,9 +323,25 @@ fun CheckValue(
                 subhead2_lucian(stringResource(checkResult.title))
             }
 
-            else -> {
-                subhead2_grey(stringResource(R.string.NotAvailable))
+            AddressCheckResult.AlphaAmlVeryLow -> {
+                subhead2_remus(stringResource(checkResult.title))
             }
+
+            AddressCheckResult.AlphaAmlLow -> {
+                subhead2(stringResource(checkResult.title), ComposeAppTheme.colors.yellowD)
+            }
+
+            AddressCheckResult.AlphaAmlHigh -> {
+                subhead2(stringResource(checkResult.title), YellowL)
+            }
+
+            AddressCheckResult.AlphaAmlVeryHigh -> {
+                subhead2_lucian(stringResource(checkResult.title))
+            }
+
+            AddressCheckResult.NotAllowed,
+            AddressCheckResult.NotAvailable,
+            AddressCheckResult.NotSupported -> subhead2_grey(stringResource(R.string.NotAvailable))
         }
     }
 }

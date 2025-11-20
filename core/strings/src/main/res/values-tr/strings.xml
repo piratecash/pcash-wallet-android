@@ -1523,4 +1523,10 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="alpha_aml_low_risk">Düşük Risk</string>
     <string name="alpha_aml_high_risk">Yüksek Risk</string>
     <string name="alpha_aml_very_high_risk">En Yüksek Risk</string>
+    <string name="check_from_aml">alpha-aml.com kontrolü</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">AML Sorunu Tespit Edildi!</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">Girdiğiniz adres AML kara listesinde bulunuyor. Bu adrese yapılan işlemler kayıp veya diğer risklere yol açabilir. Lütfen devam etmeden önce alıcının bilgilerini doğrulayın.</string>
+    <string name="Send_Address_AmlCheck_Info1">Hedef adresin alpha-aml.com\'da listelenip listelenmediğini kontrol eder.</string>
+    <string name="Send_Address_AmlCheck_Info2">Temiz: Kara liste işareti yok.</string>
+    <string name="Send_Address_AmlCheck_Info3">Tespit edildi: Adres alpha-aml.com\'da listelenmiştir ve yasal veya güvenlik riskleriyle ilişkili olabilir. Dikkatli ilerleyin. Birçok kripto borsası, kara listedeki adreslerle etkileşime geçmiş cüzdanlardan para yatıran veya çeken kullanıcıları kısıtlar. Bunu aklınızda tutun.</string>
 </resources>

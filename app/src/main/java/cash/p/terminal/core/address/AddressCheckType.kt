@@ -6,6 +6,7 @@ enum class AddressCheckType {
     SmartContract,
     Phishing,
     Blacklist,
+    AmlCheck,
     Sanction;
 
     val title: Int
@@ -13,6 +14,7 @@ enum class AddressCheckType {
             SmartContract -> R.string.Send_Address_NotSmartContractCheck
             Phishing -> R.string.Send_Address_PhishingCheck
             Blacklist -> R.string.Send_Address_BlacklistCheck
+            AmlCheck -> R.string.check_from_aml
             Sanction -> R.string.Send_Address_SanctionCheck
         }
 
@@ -21,6 +23,7 @@ enum class AddressCheckType {
             SmartContract -> R.string.Send_Address_ErrorMessage_SmartContractDetected
             Phishing -> R.string.Send_Address_ErrorMessage_PhishingDetected
             Blacklist -> R.string.Send_Address_ErrorMessage_BlacklistDetected
+            AmlCheck -> R.string.Send_Address_ErrorMessage_AmlDetected
             Sanction -> R.string.Send_Address_ErrorMessage_SanctionDetected
         }
 
@@ -29,6 +32,7 @@ enum class AddressCheckType {
             SmartContract -> R.string.Send_Address_ErrorMessage_SmartContractDetected_Description
             Phishing -> R.string.Send_Address_ErrorMessage_PhishingDetected_Description
             Blacklist -> R.string.Send_Address_ErrorMessage_BlacklistDetected_Description
+            AmlCheck -> R.string.Send_Address_ErrorMessage_AmlDetected_Description
             Sanction -> R.string.Send_Address_ErrorMessage_SanctionDetected_Description
         }
 

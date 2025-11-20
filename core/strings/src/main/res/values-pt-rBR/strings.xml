@@ -1522,4 +1522,10 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="alpha_aml_low_risk">Risco Baixo</string>
     <string name="alpha_aml_high_risk">Risco Alto</string>
     <string name="alpha_aml_very_high_risk">Risco Mais Alto</string>
+    <string name="check_from_aml">Verificação de alpha-aml.com</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">Problema AML detectado!</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">O endereço inserido está na lista negra AML. Transações para este endereço podem levar a perdas ou outros riscos. Por favor, verifique os dados do destinatário antes de prosseguir.</string>
+    <string name="Send_Address_AmlCheck_Info1">Verifica se o endereço de destino está listado em alpha-aml.com.</string>
+    <string name="Send_Address_AmlCheck_Info2">Limpo: Sem sinalizadores de lista negra.</string>
+    <string name="Send_Address_AmlCheck_Info3">Detectado: O endereço está listado em alpha-aml.com e pode estar associado a riscos legais ou de segurança. Prossiga com cautela. Muitas exchanges de criptomoedas restringem usuários que depositam ou retiram fundos de carteiras que interagiram com endereços na lista negra. Tenha isso em mente.</string>
 </resources>

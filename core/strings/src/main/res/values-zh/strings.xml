@@ -1511,4 +1511,10 @@
     <string name="alpha_aml_low_risk">低风险</string>
     <string name="alpha_aml_high_risk">高风险</string>
     <string name="alpha_aml_very_high_risk">最高风险</string>
+    <string name="check_from_aml">alpha-aml.com 检查</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">检测到 AML 问题！</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">您输入的地址在 AML 黑名单中。向此地址的交易可能导致损失或其他风险。请在继续之前验证收件人的详细信息。</string>
+    <string name="Send_Address_AmlCheck_Info1">检查目标地址是否在 alpha-aml.com 列表中。</string>
+    <string name="Send_Address_AmlCheck_Info2">清洁：无黑名单标记。</string>
+    <string name="Send_Address_AmlCheck_Info3">检测到：该地址在 alpha-aml.com 上列出，可能与法律或安全风险相关。请谨慎操作。许多加密货币交易所会限制从与黑名单地址有交互的钱包存入或提取资金的用户。请记住这一点。</string>
 </resources>

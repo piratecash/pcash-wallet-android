@@ -439,6 +439,7 @@
     <string name="Send_Address_PhishingCheck_Info2">Clear: No suspicious activity detected.</string>
     <string name="Send_Address_PhishingCheck_Info3">Detected: It appears that someone may be trying to trick you into sending funds to an incorrect address. Do not proceed unless absolutely certain that the address is correct. Consider sending a small test transaction first.</string>
     <string name="Send_Address_BlacklistCheck">Blacklist Check</string>
+    <string name="check_from_aml">Check from alpha-aml.com</string>
     <string name="Send_Address_NotSmartContractCheck_Info1">Checks if the destination address is not a smart contract.</string>
     <string name="Send_Address_NotSmartContractCheck_Info2">Clear: Not a smart contract.</string>
     <string name="Send_Address_NotSmartContractCheck_Info3">Detected: The address is a smart contract. Make sure you really intend to send funds to this address. In some cases, such transfers may be irreversible or result in loss of funds.
@@ -446,6 +447,9 @@ Proceed only if you\'re sure.</string>
     <string name="Send_Address_BlacklistCheck_Info1">Checks if the destination address is listed on official or unofficial blacklists.</string>
     <string name="Send_Address_BlacklistCheck_Info2">Clear: No blacklist flags.</string>
     <string name="Send_Address_BlacklistCheck_Info3">Detected: The address is blacklisted and may be associated with legal or security risks. Proceed with caution. Many crypto exchanges restrict users who deposit or withdraw funds from wallets that have interacted with blacklisted addresses. Keep that in mind.</string>
+    <string name="Send_Address_AmlCheck_Info1">Checks if the destination address is listed in alpha-aml.com.</string>
+    <string name="Send_Address_AmlCheck_Info2">Clear: No blacklist flags.</string>
+    <string name="Send_Address_AmlCheck_Info3">Detected: The address is listed on alpha-aml.com and may be associated with legal or security risks. Proceed with caution. Many crypto exchanges restrict users who deposit or withdraw funds from wallets that have interacted with blacklisted addresses. Keep that in mind.</string>
     <string name="Send_Address_SanctionCheck">Sanctions Check</string>
     <string name="Send_Address_SanctionCheck_Info1">Verifies whether the recipient’s address is subject to international sanctions, using data from Chainalysis.com.</string>
     <string name="Send_Address_SanctionCheck_Info2">Clear: No sanctions detected.</string>
@@ -453,11 +457,13 @@ Proceed only if you\'re sure.</string>
     <string name="Send_Address_ErrorMessage_SmartContractDetected">The recipient address is a smart contract!</string>
     <string name="Send_Address_ErrorMessage_PhishingDetected">Phishing Address Detected!</string>
     <string name="Send_Address_ErrorMessage_BlacklistDetected">Blacklisted Address Detected!</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">AML Problem Detected!</string>
     <string name="Send_Address_ErrorMessage_SanctionDetected">Sanctioned Address Detected!</string>
     <string name="Send_Address_ErrorMessage_SmartContractDetected_Description">Make sure you really intend to send funds to this address. In some cases, such transfers may be irreversible or result in loss of funds.
 Proceed only if you\'re sure.</string>
     <string name="Send_Address_ErrorMessage_PhishingDetected_Description">The address you entered may be fraudulent. Scammers often alter the first and last characters. Verify the full address carefully before proceeding to avoid loss.</string>
     <string name="Send_Address_ErrorMessage_BlacklistDetected_Description">The address you entered is flagged as blacklisted. Transactions to this address could lead to loss or other risks. Please verify the recipient\'s details before proceeding.</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">The address you entered is found in the AML blacklist. Transactions to this address could lead to loss or other risks. Please verify the recipient\'s details before proceeding.</string>
     <string name="Send_Address_ErrorMessage_SanctionDetected_Description">The address you entered is marked as being under sanctions. Transactions to this address could lead to loss or other risks. Please verify the recipient\'s details before proceeding.</string>
 
     <string name="Send_RiskyAddress">Risky Address!</string>

@@ -1521,4 +1521,10 @@
     <string name="alpha_aml_low_risk">낮은 위험</string>
     <string name="alpha_aml_high_risk">높은 위험</string>
     <string name="alpha_aml_very_high_risk">최고 위험</string>
+    <string name="check_from_aml">alpha-aml.com 확인</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">AML 문제 감지됨!</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">입력한 주소가 AML 블랙리스트에 있습니다. 이 주소로의 거래는 손실이나 기타 위험을 초래할 수 있습니다. 계속하기 전에 수신자 정보를 확인하십시오.</string>
+    <string name="Send_Address_AmlCheck_Info1">대상 주소가 alpha-aml.com에 등록되어 있는지 확인합니다.</string>
+    <string name="Send_Address_AmlCheck_Info2">깨끗함: 블랙리스트 플래그 없음.</string>
+    <string name="Send_Address_AmlCheck_Info3">감지됨: 주소가 alpha-aml.com에 등록되어 있으며 법적 또는 보안 위험과 관련이 있을 수 있습니다. 주의해서 진행하십시오. 많은 암호화폐 거래소는 블랙리스트 주소와 상호 작용한 지갑에서 자금을 입금하거나 출금하는 사용자를 제한합니다. 이 점을 염두에 두십시오.</string>
 </resources>

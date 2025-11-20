@@ -1520,4 +1520,10 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="alpha_aml_low_risk">Faible Risque</string>
     <string name="alpha_aml_high_risk">Risque Élevé</string>
     <string name="alpha_aml_very_high_risk">Risque Très Élevé</string>
+    <string name="check_from_aml">Vérification de alpha-aml.com</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">Problème AML détecté !</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">L\'adresse saisie figure sur la liste noire AML. Les transactions vers cette adresse pourraient entraîner des pertes ou d\'autres risques. Veuillez vérifier les détails du destinataire avant de continuer.</string>
+    <string name="Send_Address_AmlCheck_Info1">Vérifie si l\'adresse de destination est répertoriée sur alpha-aml.com.</string>
+    <string name="Send_Address_AmlCheck_Info2">Clair : Aucun drapeau de liste noire.</string>
+    <string name="Send_Address_AmlCheck_Info3">Détecté : L\'adresse est répertoriée sur alpha-aml.com et peut être associée à des risques juridiques ou de sécurité. Procédez avec prudence. De nombreux échanges de cryptomonnaies restreignent les utilisateurs qui déposent ou retirent des fonds de portefeuilles ayant interagi avec des adresses sur liste noire. Gardez cela à l\'esprit.</string>
 </resources>

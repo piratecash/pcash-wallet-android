@@ -1562,6 +1562,28 @@ fun subhead2_lucian(
 }
 
 @Composable
+fun subhead2(
+    text: String,
+    color: Color,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {}
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        textAlign = textAlign,
+        overflow = overflow,
+        maxLines = maxLines,
+        onTextLayout = onTextLayout,
+        style = ComposeAppTheme.typography.subhead2,
+        color = color,
+    )
+}
+
+@Composable
 fun D6(
     text: String,
     modifier: Modifier = Modifier,

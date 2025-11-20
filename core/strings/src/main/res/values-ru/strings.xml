@@ -1578,6 +1578,7 @@
     <string name="Send_Address_PhishingCheck_Info2">Чистый: подозрительная активность не обнаружена.</string>
     <string name="Send_Address_PhishingCheck_Info3">Обнаружено: Похоже, кто-то пытается обманом заставить вас отправить средства на неверный адрес. Не продолжайте, если вы не полностью уверены в правильности адреса. Рекомендуется сначала отправить небольшую тестовую транзакцию.</string>
     <string name="Send_Address_BlacklistCheck">Проверка по чёрному списку</string>
+    <string name="check_from_aml">Проверка от alpha-aml.com</string>
     <string name="Send_Address_NotSmartContractCheck_Info1">Проверяет, что адрес назначения не является смарт-контрактом.</string>
     <string name="Send_Address_NotSmartContractCheck_Info2">Чистый: адрес не является смарт-контрактом.</string>
     <string name="Send_Address_NotSmartContractCheck_Info3">Обнаружен: адрес является смарт-контрактом. Убедитесь, что вы действительно хотите отправить средства на этот адрес. В некоторых случаях такие переводы могут быть необратимыми или привести к потере средств. Продолжайте только если уверены.</string>
@@ -1719,4 +1720,9 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Отправка</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected">Обнаружена проблема AML!</string>
+    <string name="Send_Address_ErrorMessage_AmlDetected_Description">Введённый адрес находится в чёрном списке AML. Транзакции на этот адрес могут привести к потере средств или другим рискам. Пожалуйста, проверьте данные получателя перед продолжением.</string>
+    <string name="Send_Address_AmlCheck_Info1">Проверяет, находится ли адрес назначения в списке alpha-aml.com.</string>
+    <string name="Send_Address_AmlCheck_Info2">Чисто: Нет флагов в чёрном списке.</string>
+    <string name="Send_Address_AmlCheck_Info3">Обнаружено: Адрес находится в списке alpha-aml.com и может быть связан с юридическими или безопасностными рисками. Действуйте осторожно. Многие криптобиржи ограничивают пользователей, которые вносят или выводят средства из кошельков, взаимодействовавших с адресами из чёрного списка. Учитывайте это.</string>
 </resources>

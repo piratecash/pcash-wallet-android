@@ -143,14 +143,12 @@ class SecurityCheckViewModel(
                 withContext(Dispatchers.IO) {
                     availableCheckTypes.forEach { type ->
                         val checkResult = try {
-                            if (type.isPremiumRequired() && !checkPremiumUseCase.getPremiumType()
-                                    .isPremium()
+                            if (type.isPremiumRequired() &&
+                                !checkPremiumUseCase.getPremiumType().isPremium()
                             ) {
                                 AddressCheckResult.NotAllowed
-                            } else if (addressCheckManager.isClear(type, address, token)) {
-                                AddressCheckResult.Clear
                             } else {
-                                AddressCheckResult.Detected
+                                addressCheckManager.isClear(type, address, token)
                             }
                         } catch (e: Throwable) {
                             AddressCheckResult.NotAvailable
