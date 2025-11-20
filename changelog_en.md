@@ -1,3 +1,20 @@
+## 🚀 Main changes in version 0.49.0
+_Release date: November 20, 2025_
+
+### ✨ New features
+- **Alpha AML integration**
+    - Added support for the **alpha-aml.com** service — a tool for checking cryptocurrency wallets and transactions.
+      Alpha AML helps users:
+      • assess the risk level of interacting with an address;
+      • identify wallets from blacklists, sanction lists, and scam reports;
+      • avoid receiving potentially “dirty” cryptocurrency.
+
+### 🛠 Fixes and improvements
+- **BalanceAdapterRepository**
+    - Fixed an app crash caused by a **concurrency exception** in `BalanceAdapterRepository`.
+
+
+
 ## 🚀 Main changes in version 0.48.9
 _Release date: November 19, 2025_
 
