@@ -1513,4 +1513,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Envoi</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">Vérification AML</string>
+    <string name="alpha_aml_description">Alpha AML est un outil de vérification des portefeuilles et transactions de cryptomonnaies. Il évalue le niveau de risque d\'interaction avec un portefeuille, identifie les adresses sur les listes noires, les listes de sanctions, les rapports d\'escroquerie et aide à éviter de recevoir des cryptomonnaies contaminées.</string>
+    <string name="alpha_aml_very_low_risk">Risque Très Faible</string>
+    <string name="alpha_aml_low_risk">Faible Risque</string>
+    <string name="alpha_aml_high_risk">Risque Élevé</string>
+    <string name="alpha_aml_very_high_risk">Risque Très Élevé</string>
 </resources>

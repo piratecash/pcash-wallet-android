@@ -1508,4 +1508,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Senden</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">AML-Prüfung</string>
+    <string name="alpha_aml_description">Alpha AML ist ein Tool zur Überprüfung von Kryptowährungs-Wallets und Transaktionen. Es bewertet das Risikoniveau bei der Interaktion mit einem Wallet, identifiziert Adressen auf Blacklists, Sanktionslisten und Betrugsberichten und hilft, den Erhalt von belasteten Kryptowährungen zu vermeiden.</string>
+    <string name="alpha_aml_very_low_risk">Geringstes Risiko</string>
+    <string name="alpha_aml_low_risk">Niedriges Risiko</string>
+    <string name="alpha_aml_high_risk">Hohes Risiko</string>
+    <string name="alpha_aml_very_high_risk">Höchstes Risiko</string>
 </resources>

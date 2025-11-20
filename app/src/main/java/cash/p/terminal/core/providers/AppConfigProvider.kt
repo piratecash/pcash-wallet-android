@@ -112,6 +112,14 @@ object AppConfigProvider {
         EncodedSecrets.HASH_DIT_API_KEY
     }
 
+    val alphaAmlBaseUrl by lazy {
+        Translator.getString(R.string.alphaAmlBaseUrl)
+    }
+
+    val alphaAmlApiKey by lazy {
+        EncodedSecrets.ALPHA_AML_API_KEY
+    }
+
     val merkleIoKey by lazy {
         EncodedSecrets.MERKLE_IO_KEY
     }

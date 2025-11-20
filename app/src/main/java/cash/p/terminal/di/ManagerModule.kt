@@ -42,9 +42,11 @@ import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.converters.PendingTransactionConverter
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
+import cash.p.terminal.network.alphaaml.api.AlphaAmlApi
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.wallet.IAdapterManager
@@ -111,6 +113,15 @@ val managerModule = module {
     singleOf(::PredefinedBlockchainSettingsProvider)
     factory { (pinComponent: IPinComponent) ->
         HiddenWalletPinPolicy(pinComponent, get())
+    }
+
+    // Network APIs
+    single {
+        AlphaAmlApi(
+            httpClient = get(),
+            baseUrl = AppConfigProvider.alphaAmlBaseUrl,
+            apiKey = AppConfigProvider.alphaAmlApiKey
+        )
     }
 
     // Pending transactions

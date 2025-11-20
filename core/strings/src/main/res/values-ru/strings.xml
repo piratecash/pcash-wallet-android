@@ -1623,6 +1623,12 @@
     <string name="SettingsAddressChecker_SanctionsCheck">Проверка на санкции</string>
     <string name="smart_contract_check">Проверка на смарт контракт</string>
     <string name="smart_contract_check_desription">Позволяет проверить, что адрес не является смарт контрактом</string>
+    <string name="alpha_aml_title">Проверка AML</string>
+    <string name="alpha_aml_description">Alpha AML — инструмент для проверки криптокошельков и транзакций. Оценивает уровень риска взаимодействия с кошельком, выявляет адреса находящиеся в блэклистах, санкционных списках, скам отчетах и помогает избежать получения «грязной» крипты.</string>
+    <string name="alpha_aml_very_low_risk">Наименьший риск</string>
+    <string name="alpha_aml_low_risk">Низкий риск</string>
+    <string name="alpha_aml_high_risk">Высокий риск</string>
+    <string name="alpha_aml_very_high_risk">Наивысший риск</string>
     <string name="SettingsAddressChecker_TokenBlacklistCheck">Проверка %s по чёрному списку</string>
     <string name="SettingsAddressChecker_ChainalysisCheckDescription">Chainalysis - это платформа для анализа блокчейнов, которая предоставляет инструменты для отслеживания, расследования и оценки рисков криптовалютных адресов. Она помогает выявлять адреса, связанные с санкциями, мошенничеством и другой незаконной деятельностью.</string>
     <string name="SettingsAddressChecker_HashditCheckDescription">HashDit - это платформа безопасности, которая позволяет пользователям проверять адреса кошельков на наличие рисков, таких как санкции и статус в чёрных списках. Она помогает избегать взаимодействия с потенциально вредоносными или заблокированными адресами.</string>

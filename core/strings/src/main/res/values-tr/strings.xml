@@ -1516,4 +1516,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Gönderiliyor</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">AML Kontrolü</string>
+    <string name="alpha_aml_description">Alpha AML, kripto para cüzdanlarını ve işlemlerini kontrol etmek için bir araçtır. Bir cüzdanla etkileşim risk seviyesini değerlendirir, kara listelerdeki, yaptırım listelerindeki ve dolandırıcılık raporlarındaki adresleri tespit eder ve kirlenmiş kripto para almaktan kaçınmaya yardımcı olur.</string>
+    <string name="alpha_aml_very_low_risk">En Düşük Risk</string>
+    <string name="alpha_aml_low_risk">Düşük Risk</string>
+    <string name="alpha_aml_high_risk">Yüksek Risk</string>
+    <string name="alpha_aml_very_high_risk">En Yüksek Risk</string>
 </resources>

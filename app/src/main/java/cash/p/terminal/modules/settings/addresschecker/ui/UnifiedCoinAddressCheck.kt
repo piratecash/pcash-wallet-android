@@ -63,6 +63,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.ui_compose.theme.YellowL
 import cash.p.terminal.wallet.imageUrl
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
@@ -142,6 +143,25 @@ fun UnifiedAddressCheckScreen(
                             } else {
                                 null
                             }
+                        )
+                    }
+                    VSpacer(16.dp)
+
+                    SecurityCheckCard(
+                        title = stringResource(R.string.alpha_aml_title),
+                        icon = painterResource(R.drawable.ic_alpha_aml),
+                        infoTitle = stringResource(R.string.alpha_aml_check_title_description),
+                        description = stringResource(R.string.alpha_aml_description),
+                        onInfoClick = { info ->
+                            bottomCheckInfo = info
+                            coroutineScope.launch {
+                                infoModalBottomSheetState.show()
+                            }
+                        }
+                    ) {
+                        NetworkItem(
+                            title = stringResource(R.string.alpha_aml_check_title_description),
+                            status = uiState.checkResults[IssueType.AlphaAml]
                         )
                     }
                     VSpacer(16.dp)
@@ -270,6 +290,7 @@ private fun Throwable.getErrorMessage() = when (this) {
 fun SecurityCheckCard(
     title: String,
     icon: Painter,
+    infoTitle: String = title,
     description: String,
     onInfoClick: (BottomCheckInfo) -> Unit = {},
     results: @Composable ColumnScope.() -> Unit
@@ -322,7 +343,7 @@ fun SecurityCheckCard(
                         .size(20.dp)
                         .clickable(onClick = {
                             onInfoClick.invoke(
-                                BottomCheckInfo(title, description)
+                                BottomCheckInfo(infoTitle, description)
                             )
                         })
                 )
@@ -384,6 +405,10 @@ fun NetworkItem(
                     val color = when (status) {
                         CheckState.Clear -> ComposeAppTheme.colors.remus
                         CheckState.Detected -> ComposeAppTheme.colors.lucian
+                        CheckState.AlphaAmlVeryLow -> ComposeAppTheme.colors.remus
+                        CheckState.AlphaAmlLow -> ComposeAppTheme.colors.yellowD
+                        CheckState.AlphaAmlHigh -> YellowL
+                        CheckState.AlphaAmlVeryHigh -> ComposeAppTheme.colors.lucian
                         else -> ComposeAppTheme.colors.grey
                     }
                     Text(

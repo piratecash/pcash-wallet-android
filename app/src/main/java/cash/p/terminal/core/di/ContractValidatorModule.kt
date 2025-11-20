@@ -1,5 +1,6 @@
 package cash.p.terminal.core.di
 
+import cash.p.terminal.core.address.AlphaAmlAddressValidator
 import cash.p.terminal.modules.send.contractvalidators.ContractAddressValidator
 import cash.p.terminal.modules.send.contractvalidators.EvmContractAddressValidator
 import cash.p.terminal.modules.send.contractvalidators.ExcludedContractValidator
@@ -89,4 +90,5 @@ val contractValidatorModule = module {
         )
     }
     singleOf(::ExcludedContractValidator)
+    singleOf(::AlphaAmlAddressValidator)
 }

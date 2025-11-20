@@ -53,4 +53,7 @@ object EncodedSecrets : KoinComponent {
         "OxYYCzJLBj86KhsTbBMbBwAfBysVBDkIPwcWDFc3fCw3CTY6ChYhWg==",
         "ESQsGA9iNCwLOS8XeSkTICEUKigXKAg5JRckJ2EcaTErIhwpOz0/aw=="
     ))
+    val ALPHA_AML_API_KEY = decoder.decode(listOf(
+        "FRorGwpqExwtBSMqeAooQj0eJUtKBBcjXBFXIlcSQy4HOyMqVzoGbwkXUD0AL246GxckPgY9DSsGCyUwCi14SUYKJBkWACk5HnczPBElBA9FFCI6RTo7EVYsFCRZPA8lWT5mWF0uKiAWASYYHiwbPio1GgoUNiEANjwcJldQWz0dRkojTRs0DSlVCAsMaDoC"
+    ))
 }

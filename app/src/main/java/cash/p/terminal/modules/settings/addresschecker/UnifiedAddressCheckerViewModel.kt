@@ -6,10 +6,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import  cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.address.AlphaAmlAddressValidator
 import cash.p.terminal.core.address.ChainalysisAddressValidator
+import cash.p.terminal.network.alphaaml.data.AlphaAmlRiskGrade
 import cash.p.terminal.core.address.Eip20AddressValidator
 import cash.p.terminal.core.address.HashDitAddressValidator
 import cash.p.terminal.core.factories.ContractValidatorFactory
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
@@ -34,7 +37,8 @@ class UnifiedAddressCheckerViewModel(
     addressHandlerFactory: AddressHandlerFactory,
     private val hashDitValidator: HashDitAddressValidator,
     private val chainalysisValidator: ChainalysisAddressValidator,
-    private val eip20Validator: Eip20AddressValidator
+    private val eip20Validator: Eip20AddressValidator,
+    private val alphaAmlValidator: AlphaAmlAddressValidator
 ) : ViewModelUiState<AddressCheckState>() {
     private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
 
@@ -83,6 +87,7 @@ class UnifiedAddressCheckerViewModel(
 
             issueTypes = buildList {
                 add(IssueType.SmartContract)
+                add(IssueType.AlphaAml)
                 add(IssueType.Chainalysis)
                 addAll(hashDitBlockchains.map { IssueType.HashDit(it.type) })
                 addAll(contractFullCoins.flatMap { it.tokens }.map { IssueType.Contract(it) })
@@ -180,7 +185,9 @@ class UnifiedAddressCheckerViewModel(
         val canCheck = when (type) {
             is IssueType.SmartContract,
             is IssueType.Chainalysis -> true
-            is IssueType.HashDit, is IssueType.Contract -> {
+            is IssueType.AlphaAml,
+            is IssueType.HashDit,
+            is IssueType.Contract -> {
                 address.blockchainType?.let { addressBlockchainType ->
                     EvmBlockchainManager.blockchainTypes.contains(addressBlockchainType)
                 } ?: false
@@ -192,33 +199,46 @@ class UnifiedAddressCheckerViewModel(
         }
 
         return try {
-            val isClear = when (type) {
+            when (type) {
                 is IssueType.SmartContract -> {
                     val blockchainType = checkNotNull(address.blockchainType)
                     if(!checkPremiumUseCase.getPremiumType().isPremium()) {
                         throw PremiumNeededException()
                     }
-                    checkNotNull(
+                    val isClear = checkNotNull(
                         ContractValidatorFactory.get(blockchainType)
                             ?.isContract(address.hex, blockchainType)
                             ?.not()
                     ) { "No internet connection" }
+                    if (isClear) CheckState.Clear else CheckState.Detected
+                }
+
+                is IssueType.AlphaAml -> {
+                    val riskGrade = alphaAmlValidator.getRiskGrade(address)
+                    when (riskGrade) {
+                        null -> CheckState.NotAvailable
+                        AlphaAmlRiskGrade.VeryLow -> CheckState.AlphaAmlVeryLow
+                        AlphaAmlRiskGrade.Low -> CheckState.AlphaAmlLow
+                        AlphaAmlRiskGrade.High -> CheckState.AlphaAmlHigh
+                        AlphaAmlRiskGrade.VeryHigh -> CheckState.AlphaAmlVeryHigh
+                    }
                 }
 
                 is IssueType.Chainalysis -> {
-                    chainalysisValidator.isClear(address)
+                    val isClear = chainalysisValidator.isClear(address)
+                    if (isClear) CheckState.Clear else CheckState.Detected
                 }
 
                 is IssueType.HashDit -> {
-                    hashDitValidator.isClear(address, type.blockchainType)
+                    val isClear = hashDitValidator.isClear(address, type.blockchainType)
+                    if (isClear) CheckState.Clear else CheckState.Detected
                 }
 
                 is IssueType.Contract -> {
-                    eip20Validator.isClear(address, type.token)
+                    val isClear = eip20Validator.isClear(address, type.token)
+                    if (isClear) CheckState.Clear else CheckState.Detected
                 }
             }
-
-            if (isClear) CheckState.Clear else CheckState.Detected
 
         } catch (e: PremiumNeededException) {
             Log.e("TAG", "Premium needed for $type: ", e)
@@ -233,6 +253,7 @@ class UnifiedAddressCheckerViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val addressHandlerFactory = AddressHandlerFactory(AppConfigProvider.udnApiKey)
+            val alphaAmlAddressValidator: AlphaAmlAddressValidator = getKoinInstance()
             return UnifiedAddressCheckerViewModel(
                 App.marketKit,
                 addressHandlerFactory,
@@ -245,7 +266,8 @@ class UnifiedAddressCheckerViewModel(
                     AppConfigProvider.chainalysisBaseUrl,
                     AppConfigProvider.chainalysisApiKey
                 ),
-                Eip20AddressValidator(App.evmSyncSourceManager)
+                Eip20AddressValidator(App.evmSyncSourceManager),
+                alphaAmlAddressValidator
             ) as T
         }
     }
@@ -261,12 +283,14 @@ data class AddressCheckState(
 sealed class IssueType {
     object Chainalysis : IssueType()
     object SmartContract : IssueType()
+    object AlphaAml : IssueType()
     data class HashDit(val blockchainType: BlockchainType) : IssueType()
     data class Contract(val token: Token) : IssueType()
 
     override fun equals(other: Any?): Boolean {
         return when {
             this is SmartContract && other is SmartContract -> true
+            this is AlphaAml && other is AlphaAml -> true
             this is Chainalysis && other is Chainalysis -> true
             this is HashDit && other is HashDit -> this.blockchainType == other.blockchainType
             this is Contract && other is Contract -> this.token == other.token
@@ -277,6 +301,7 @@ sealed class IssueType {
     override fun hashCode(): Int {
         return when (this) {
             is SmartContract -> "smart_contract".hashCode()
+            is AlphaAml -> "alpha_aml".hashCode()
             is Chainalysis -> "chainalysis".hashCode()
             is HashDit -> blockchainType.hashCode()
             is Contract -> token.hashCode()
@@ -290,13 +315,21 @@ enum class CheckState {
     Locked,
     Clear,
     Detected,
-    NotAvailable;
+    NotAvailable,
+    AlphaAmlVeryLow,
+    AlphaAmlLow,
+    AlphaAmlHigh,
+    AlphaAmlVeryHigh;
 
     val title: Int
         get() = when (this) {
             Clear -> R.string.Send_Address_Error_Clear
             Detected -> R.string.Send_Address_Error_Detected
             NotAvailable -> R.string.NotAvailable
+            AlphaAmlVeryLow -> R.string.alpha_aml_very_low_risk
+            AlphaAmlLow -> R.string.alpha_aml_low_risk
+            AlphaAmlHigh -> R.string.alpha_aml_high_risk
+            AlphaAmlVeryHigh -> R.string.alpha_aml_very_high_risk
             else -> R.string.Idle
         }
 }

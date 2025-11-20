@@ -1022,6 +1022,13 @@ Proceed only if you\'re sure.</string>
     <string name="SettingsAddressChecker_TokenBlacklistCheck">%s Blacklist Check</string>
     <string name="smart_contract_check">Smart contract check</string>
     <string name="smart_contract_check_desription">Checks if the destination address is not a smart contract.</string>
+    <string name="alpha_aml_title">AML Check</string>
+    <string name="alpha_aml_description">Alpha AML is a tool for checking cryptocurrency wallets and transactions. It assesses the risk level of interacting with a wallet, identifies addresses on blacklists, sanctions lists, scam reports, and helps avoid receiving tainted crypto.</string>
+    <string name="alpha_aml_check_title_description" translatable="false">alpha-aml.com</string>
+    <string name="alpha_aml_very_low_risk">Lowest Risk</string>
+    <string name="alpha_aml_low_risk">Low Risk</string>
+    <string name="alpha_aml_high_risk">High Risk</string>
+    <string name="alpha_aml_very_high_risk">Highest Risk</string>
     <string name="SettingsAddressChecker_ChainalysisCheck" translatable="false">Chainalysis.com</string>
     <string name="SettingsAddressChecker_ChainalysisCheckDescription">Chainalysis is a blockchain analysis platform that provides tools for tracking, investigating, and assessing the risk of cryptocurrency addresses. It helps identify addresses associated with sanctions, fraud, and other illicit activities.</string>
     <string name="SettingsAddressChecker_HashditCheck" translatable="false">Hashdit.io</string>

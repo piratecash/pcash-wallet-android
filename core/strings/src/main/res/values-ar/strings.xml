@@ -1528,4 +1528,11 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">جارٍ الإرسال</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">فحص AML</string>
+    <string name="alpha_aml_description">Alpha AML هي أداة للتحقق من محافظ العملات المشفرة والمعاملات. تقوم بتقييم مستوى المخاطر للتفاعل مع المحفظة، وتحديد العناوين في القوائم السوداء وقوائم العقوبات وتقارير الاحتيال والمساعدة في تجنب استلام العملات المشفرة الملوثة.</string>
+    <string name="alpha_aml_very_low_risk">أدنى مخاطر</string>
+    <string name="alpha_aml_low_risk">مخاطر منخفضة</string>
+    <string name="alpha_aml_high_risk">مخاطر عالية</string>
+    <string name="alpha_aml_very_high_risk">أعلى مخاطر</string>
 </resources>

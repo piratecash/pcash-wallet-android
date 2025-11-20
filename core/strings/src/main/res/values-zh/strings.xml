@@ -1504,4 +1504,11 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">发送中</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">AML 检查</string>
+    <string name="alpha_aml_description">Alpha AML 是一个用于检查加密货币钱包和交易的工具。它评估与钱包交互的风险级别，识别黑名单、制裁名单和诈骗报告中的地址，并帮助避免接收受污染的加密货币。</string>
+    <string name="alpha_aml_very_low_risk">最低风险</string>
+    <string name="alpha_aml_low_risk">低风险</string>
+    <string name="alpha_aml_high_risk">高风险</string>
+    <string name="alpha_aml_very_high_risk">最高风险</string>
 </resources>

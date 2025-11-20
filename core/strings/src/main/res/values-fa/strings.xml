@@ -1519,4 +1519,11 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">ارسال</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">بررسی AML</string>
+    <string name="alpha_aml_description">Alpha AML ابزاری برای بررسی کیف پول‌های رمزنگاری و تراکنش‌ها است. سطح ریسک تعامل با کیف پول را ارزیابی می‌کند، آدرس‌های موجود در لیست سیاه، لیست تحریم‌ها و گزارش‌های کلاهبرداری را شناسایی کرده و به جلوگیری از دریافت ارزهای دیجیتال آلوده کمک می‌کند.</string>
+    <string name="alpha_aml_very_low_risk">کمترین ریسک</string>
+    <string name="alpha_aml_low_risk">ریسک پایین</string>
+    <string name="alpha_aml_high_risk">ریسک بالا</string>
+    <string name="alpha_aml_very_high_risk">بالاترین ریسک</string>
 </resources>

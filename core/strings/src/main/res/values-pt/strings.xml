@@ -1515,4 +1515,11 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Enviando</string>
+    <!-- Alpha AML Risk Levels -->
+    <string name="alpha_aml_title">Verificação AML</string>
+    <string name="alpha_aml_description">Alpha AML é uma ferramenta para verificar carteiras e transações de criptomoedas. Avalia o nível de risco de interagir com uma carteira, identifica endereços em listas negras, listas de sanções, relatórios de fraude e ajuda a evitar receber criptomoedas contaminadas.</string>
+    <string name="alpha_aml_very_low_risk">Risco Mais Baixo</string>
+    <string name="alpha_aml_low_risk">Risco Baixo</string>
+    <string name="alpha_aml_high_risk">Risco Alto</string>
+    <string name="alpha_aml_very_high_risk">Risco Mais Alto</string>
 </resources>
