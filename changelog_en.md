@@ -5,11 +5,21 @@ _Release date: November 20, 2025_
 - **Alpha AML integration**
     - Added support for the **alpha-aml.com** service — a tool for checking cryptocurrency wallets and transactions.
       Alpha AML helps users:
-      • assess the risk level of interacting with an address;
-      • identify wallets from blacklists, sanction lists, and scam reports;
-      • avoid receiving potentially “dirty” cryptocurrency.
+      - assess the risk level of interacting with an address;
+      - identify wallets from blacklists, sanction lists, and scam reports;
+      - avoid receiving potentially “dirty” cryptocurrency.
 
 ### 🛠 Fixes and improvements
+- **Smart contract address validation**
+    - Fixed an issue related to smart contract address detection (details omitted).
+
+- **Sending funds to Smart Contracts**
+    - Fixed and improved the logic for sending funds to smart contracts:
+      - resolved an issue where the RPC did not return an accurate transaction cost;
+      - added a fallback fee estimation mechanism using a dummy address `0x0000000000000000000000000000000000000000`;
+      - added a user warning:
+      _“Failed to accurately calculate the network fee. We applied an approximate value, but the transaction may fail or the fee may be higher than expected.”_
+
 - **BalanceAdapterRepository**
     - Fixed an app crash caused by a **concurrency exception** in `BalanceAdapterRepository`.
 
@@ -28,9 +38,9 @@ _Release date: November 19, 2025_
     - After sending a transaction, a **local pending entry** is now created automatically for all t/u/z modes.
 - **QR codes: Improved generation**
     - Updated the QR code generation algorithm:
-      • higher detail level,
-      • improved error correction,
-      • fixes for devices that previously scanned slowly or failed to detect the QR code.
+      - higher detail level,
+      - improved error correction,
+      - fixes for devices that previously scanned slowly or failed to detect the QR code.
 
 ### 🛠 Fixes and improvements
 - **EVM links:**
