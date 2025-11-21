@@ -538,6 +538,7 @@ Proceed only if you\'re sure.</string>
         \n\nThe recommended fee rate shown as the amount of satoshi user needs to pay for a single byte of the transaction. Thus, the total fee depends on the total size of the transaction which is measured in bytes.
         \n\nUsers may use provided controls to increase or decrease the fee rate value. The change in fee rate changes the total fee for the transaction the user will pay.
         \n\nSetting fee rate below recommended value may result in a transaction being held as pending for hours, or being rejected. The lower the value, the longer it will take for the transaction to confirm. For transactions where priority is important, we recommend setting higher fee rate.</string>
+    <string name="warning_inaccurate_commission">We couldn\'t calculate the network fee precisely. We used an approximate value, but the transaction may fail or the fee may be higher than normal.</string>
 
 
     <!--Fee Info -->

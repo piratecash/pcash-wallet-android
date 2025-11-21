@@ -5,6 +5,7 @@ import io.horizontalsystems.ethereumkit.core.rollup.L1FeeProvider
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.ethereumkit.models.Address
 import io.reactivex.Single
 import java.math.BigInteger
 
@@ -13,7 +14,7 @@ open class EvmCommonGasDataService(
     protected val predefinedGasLimit: Long? = null
 ) {
 
-    open fun estimatedGasDataAsync(gasPrice: GasPrice, transactionData: TransactionData, stubAmount: BigInteger? = null): Single<GasData> {
+    open fun estimatedGasDataAsync(gasPrice: GasPrice, transactionData: TransactionData, stubAmount: BigInteger? = null, toAddress: Address? = null): Single<GasData> {
         if (predefinedGasLimit != null) {
             return Single.just(GasData(gasLimit = predefinedGasLimit, gasPrice = gasPrice))
         }
@@ -26,19 +27,44 @@ open class EvmCommonGasDataService(
             transactionData
         }
 
-        return evmKit.estimateGas(stubTransactionData, gasPrice)
-            .onErrorResumeNext {
-                evmKit.estimateGas(stubTransactionData)
-            }
-            .map { estimatedGasLimit ->
-                val gasLimit =
-                    if (surchargeRequired) EvmFeeModule.surcharged(estimatedGasLimit) else estimatedGasLimit
-                GasData(
-                    gasLimit = gasLimit,
-                    estimatedGasLimit = estimatedGasLimit,
-                    gasPrice = gasPrice
-                )
-            }
+        return if (toAddress != null) {
+            evmKit.estimateGas(
+                to = toAddress,
+                value = transactionData.value,
+                gasPrice = gasPrice
+            )
+                .onErrorResumeNext {
+                    evmKit.estimateGas(
+                        to = toAddress,
+                        value = stubTransactionData.value,
+                        gasPrice = null,
+                        data = null
+                    )
+                }
+                .map { estimatedGasLimit ->
+                    val gasLimit =
+                        if (surchargeRequired) EvmFeeModule.surcharged(estimatedGasLimit) else estimatedGasLimit
+                    GasData(
+                        gasLimit = gasLimit,
+                        estimatedGasLimit = estimatedGasLimit,
+                        gasPrice = gasPrice
+                    )
+                }
+        } else {
+            evmKit.estimateGas(stubTransactionData, gasPrice)
+                .onErrorResumeNext {
+                    evmKit.estimateGas(stubTransactionData)
+                }
+                .map { estimatedGasLimit ->
+                    val gasLimit =
+                        if (surchargeRequired) EvmFeeModule.surcharged(estimatedGasLimit) else estimatedGasLimit
+                    GasData(
+                        gasLimit = gasLimit,
+                        estimatedGasLimit = estimatedGasLimit,
+                        gasPrice = gasPrice
+                    )
+                }
+        }
     }
 
     companion object {

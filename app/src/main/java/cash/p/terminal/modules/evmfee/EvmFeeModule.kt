@@ -91,7 +91,8 @@ data class GasPriceInfo(
 open class GasData(
     val gasLimit: Long,
     val estimatedGasLimit: Long = gasLimit,
-    var gasPrice: GasPrice
+    var gasPrice: GasPrice,
+    var warning: CalculateWarning? = null
 ) {
     open val fee: BigInteger
         get() = gasLimit.toBigInteger() * gasPrice.max.toBigInteger()
@@ -101,6 +102,10 @@ open class GasData(
 
     val isSurcharged: Boolean
         get() = gasLimit != estimatedGasLimit
+}
+
+abstract class CalculateWarning: Warning() {
+    object Reverted : CalculateWarning()
 }
 
 class RollupGasData(

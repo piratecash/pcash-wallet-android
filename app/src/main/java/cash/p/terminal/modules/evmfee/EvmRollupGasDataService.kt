@@ -3,6 +3,7 @@ package cash.p.terminal.modules.evmfee
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.core.hexStringToBigIntegerOrNull
 import io.horizontalsystems.ethereumkit.core.rollup.L1FeeProvider
+import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.reactivex.Single
@@ -14,13 +15,13 @@ class EvmRollupGasDataService(
     predefinedGasLimit: Long? = null
 ) : EvmCommonGasDataService(evmKit, predefinedGasLimit) {
 
-    override fun estimatedGasDataAsync(gasPrice: GasPrice, transactionData: TransactionData, stubAmount: BigInteger?): Single<GasData> =
+    override fun estimatedGasDataAsync(gasPrice: GasPrice, transactionData: TransactionData, stubAmount: BigInteger?, toAddress: Address?): Single<GasData> =
         if (predefinedGasLimit != null) {
             l1GasFee(transactionData, gasPrice, predefinedGasLimit).map { l1Fee ->
                 RollupGasData(gasLimit = predefinedGasLimit, gasPrice = gasPrice, l1Fee = l1Fee)
             }
         } else {
-            super.estimatedGasDataAsync(gasPrice, transactionData, stubAmount).flatMap { gasData ->
+            super.estimatedGasDataAsync(gasPrice, transactionData, stubAmount, toAddress).flatMap { gasData ->
                 val gasLimit = gasData.gasLimit
                 val stubTransactionData = if (stubAmount != null) {
                     TransactionData(transactionData.to, maxBytes(transactionData.value), transactionData.input)

@@ -2,8 +2,10 @@ package cash.p.terminal.modules.evmfee
 
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.convertedError
+import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper
 import cash.p.terminal.ui_compose.entities.DataState
 import io.horizontalsystems.ethereumkit.core.EthereumKit
+import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.coroutines.CancellationException
@@ -109,11 +111,13 @@ class EvmFeeService(
             } else {
                 val transactionDataAdjusted =
                     TransactionData(transactionData.to, adjustedValue, byteArrayOf())
-                Transaction(transactionDataAdjusted, gasData, default, warnings, errors)
+                val allWarnings = warnings + listOfNotNull(gasData.warning)
+                Transaction(transactionDataAdjusted, gasData, default, allWarnings, errors)
             }
         } else {
             val gasData = gasDataSingle(gasPrice, gasPriceDefault, null, transactionData)
-            Transaction(transactionData, gasData, default, warnings, errors)
+            val allWarnings = warnings + listOfNotNull(gasData.warning)
+            Transaction(transactionData, gasData, default, allWarnings, errors)
         }
     }
 
@@ -144,6 +148,19 @@ class EvmFeeService(
                 ).await()
                 gasData.gasPrice = gasPrice
                 gasData
+            } else if (error is io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc.ResponseError.RpcError) {
+                return if (error.error.code == 3) { // Execution reverted
+                    gasDataService.estimatedGasDataAsync(
+                        gasPrice = gasPrice,
+                        transactionData = transactionData,
+                        stubAmount = stubAmount,
+                        toAddress = Address(TransactionViewItemFactoryHelper.zeroAddress)
+                    ).await().apply {
+                        this.warning = CalculateWarning.Reverted
+                    }
+                } else {
+                    throw error
+                }
             } else {
                 throw error
             }

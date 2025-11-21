@@ -4,8 +4,10 @@ import cash.p.terminal.R
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.wallet.Warning
 import cash.p.terminal.core.convertedError
+import cash.p.terminal.modules.evmfee.CalculateWarning
 import cash.p.terminal.modules.evmfee.FeeSettingsError
 import cash.p.terminal.modules.evmfee.FeeSettingsWarning
+import cash.p.terminal.strings.helpers.Translator
 
 class CautionViewItemFactory(
     private val baseCoinService: EvmCoinService
@@ -18,28 +20,37 @@ class CautionViewItemFactory(
         return when (warning) {
             FeeSettingsWarning.RiskOfGettingStuck -> {
                 CautionViewItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.FeeSettings_RiskOfGettingStuck_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.FeeSettings_RiskOfGettingStuck),
+                    Translator.getString(R.string.FeeSettings_RiskOfGettingStuck_Title),
+                    Translator.getString(R.string.FeeSettings_RiskOfGettingStuck),
                     CautionViewItem.Type.Warning
                 )
             }
             FeeSettingsWarning.RiskOfGettingStuckLegacy -> {
                 CautionViewItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.FeeSettings_RiskOfGettingStuckLegacy_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.FeeSettings_RiskOfGettingStuckLegacy),
+                    Translator.getString(R.string.FeeSettings_RiskOfGettingStuckLegacy_Title),
+                    Translator.getString(R.string.FeeSettings_RiskOfGettingStuckLegacy),
                     CautionViewItem.Type.Warning
                 )
             }
             FeeSettingsWarning.Overpricing -> {
                 CautionViewItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.FeeSettings_Overpricing_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.FeeSettings_Overpricing),
+                    Translator.getString(R.string.FeeSettings_Overpricing_Title),
+                    Translator.getString(R.string.FeeSettings_Overpricing),
                     CautionViewItem.Type.Warning
                 )
             }
+
+            CalculateWarning.Reverted -> {
+                CautionViewItem(
+                    Translator.getString(R.string.common_warning),
+                    Translator.getString(R.string.warning_inaccurate_commission),
+                    CautionViewItem.Type.Warning
+                )
+            }
+
             else -> {
                 CautionViewItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Warning_Title),
+                    Translator.getString(R.string.EthereumTransaction_Warning_Title),
                     warning.javaClass.simpleName,
                     CautionViewItem.Type.Warning
                 )
@@ -51,8 +62,8 @@ class CautionViewItemFactory(
         return when (error) {
             FeeSettingsError.InsufficientBalance -> {
                 CautionViewItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalance_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(
+                    Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalance_Title),
+                    Translator.getString(
                         R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
                         baseCoinService.token.coin.code
                     ),
@@ -61,8 +72,8 @@ class CautionViewItemFactory(
             }
             FeeSettingsError.UsedNonce -> {
                 CautionViewItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.SendEvmSettings_Error_NonceUsed_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.SendEvmSettings_Error_NonceUsed),
+                    Translator.getString(R.string.SendEvmSettings_Error_NonceUsed_Title),
+                    Translator.getString(R.string.SendEvmSettings_Error_NonceUsed),
                     CautionViewItem.Type.Error
                 )
             }
@@ -77,8 +88,8 @@ class CautionViewItemFactory(
         when (val convertedError = error.convertedError) {
             is EvmError.InsufficientBalanceWithFee -> {
                 Pair(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(
+                    Translator.getString(R.string.EthereumTransaction_Error_Title),
+                    Translator.getString(
                         R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
                         baseCoinService.token.coin.code
                     )
@@ -86,8 +97,8 @@ class CautionViewItemFactory(
             }
             is EvmError.ExecutionReverted -> {
                 Pair(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(
+                    Translator.getString(R.string.EthereumTransaction_Error_Title),
+                    Translator.getString(
                         R.string.EthereumTransaction_Error_ExecutionReverted,
                         convertedError.message ?: ""
                     )
@@ -95,8 +106,8 @@ class CautionViewItemFactory(
             }
             is EvmError.CannotEstimateSwap -> {
                 Pair(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_CannotEstimate_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(
+                    Translator.getString(R.string.EthereumTransaction_Error_CannotEstimate_Title),
+                    Translator.getString(
                         R.string.EthereumTransaction_Error_CannotEstimate,
                         baseCoinService.token.coin.code
                     )
@@ -104,19 +115,19 @@ class CautionViewItemFactory(
             }
             is EvmError.LowerThanBaseGasLimit -> {
                 Pair(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_LowerThanBaseGasLimit_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_LowerThanBaseGasLimit)
+                    Translator.getString(R.string.EthereumTransaction_Error_LowerThanBaseGasLimit_Title),
+                    Translator.getString(R.string.EthereumTransaction_Error_LowerThanBaseGasLimit)
                 )
             }
             is EvmError.InsufficientLiquidity -> {
                 Pair(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_InsufficientLiquidity_Title),
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_InsufficientLiquidity)
+                    Translator.getString(R.string.EthereumTransaction_Error_InsufficientLiquidity_Title),
+                    Translator.getString(R.string.EthereumTransaction_Error_InsufficientLiquidity)
                 )
             }
             else -> {
                 Pair(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.EthereumTransaction_Error_Title),
+                    Translator.getString(R.string.EthereumTransaction_Error_Title),
                     convertedError.message ?: convertedError.javaClass.simpleName
                 )
             }
