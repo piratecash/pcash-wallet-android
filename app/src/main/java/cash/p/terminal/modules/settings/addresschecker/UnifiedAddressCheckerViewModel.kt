@@ -4,19 +4,20 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import  cash.p.terminal.R
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.address.AlphaAmlAddressValidator
 import cash.p.terminal.core.address.ChainalysisAddressValidator
-import cash.p.terminal.network.alphaaml.data.AlphaAmlRiskGrade
 import cash.p.terminal.core.address.Eip20AddressValidator
 import cash.p.terminal.core.address.HashDitAddressValidator
 import cash.p.terminal.core.factories.ContractValidatorFactory
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressHandlerFactory
+import cash.p.terminal.network.alphaaml.data.AlphaAmlRiskGrade
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -28,6 +29,8 @@ import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -117,13 +120,11 @@ class UnifiedAddressCheckerViewModel(
         } else {
             checkResults = issueTypes.associateWith { CheckState.Checking }
             emitState()
-            viewModelScope.launch {
-                processAddress(value)
-            }
+            processAddress(value)
         }
     }
 
-    private suspend fun processAddress(address: String) {
+    private fun processAddress(address: String) {
         try {
             val handlers = parserChain.supportedAddressHandlers(address)
 
@@ -181,10 +182,36 @@ class UnifiedAddressCheckerViewModel(
         }
     }
 
+    private suspend fun checkOnSmartContract(addressStr: String): CheckState = coroutineScope {
+        val handlers = parserChain.supportedAddressHandlers(addressStr)
+        if (handlers.isEmpty()) return@coroutineScope CheckState.NotAvailable
+
+        val results = handlers.map { handler ->
+            async(Dispatchers.IO) {
+                val address = tryOrNull { handler.parseAddress(addressStr) } ?: return@async null
+                val blockchain = address.blockchainType ?: return@async null
+
+                ContractValidatorFactory.get(blockchain)
+                    ?.isContract(address.hex, blockchain) // true/false/null
+            }
+        }.awaitAll()
+
+        if (results.any { it == null }) {
+            throw IllegalStateException("No internet connection")
+        }
+
+        if (results.any { it == true }) {
+            return@coroutineScope CheckState.Detected
+        }
+
+        return@coroutineScope CheckState.Clear
+    }
+
     private suspend fun performSingleCheck(address: Address, type: IssueType): CheckState {
         val canCheck = when (type) {
             is IssueType.SmartContract,
             is IssueType.Chainalysis -> true
+
             is IssueType.AlphaAml,
             is IssueType.HashDit,
             is IssueType.Contract -> {
@@ -201,16 +228,10 @@ class UnifiedAddressCheckerViewModel(
         return try {
             when (type) {
                 is IssueType.SmartContract -> {
-                    val blockchainType = checkNotNull(address.blockchainType)
-                    if(!checkPremiumUseCase.getPremiumType().isPremium()) {
+                    if (!checkPremiumUseCase.getPremiumType().isPremium()) {
                         throw PremiumNeededException()
                     }
-                    val isClear = checkNotNull(
-                        ContractValidatorFactory.get(blockchainType)
-                            ?.isContract(address.hex, blockchainType)
-                            ?.not()
-                    ) { "No internet connection" }
-                    if (isClear) CheckState.Clear else CheckState.Detected
+                    checkOnSmartContract(address.hex)
                 }
 
                 is IssueType.AlphaAml -> {
