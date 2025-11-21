@@ -31,7 +31,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -51,6 +53,11 @@ class UnifiedAddressCheckerViewModel(
     private var value = ""
     private var inputState: DataState<Address>? = null
     private var parseAddressJob: Job? = null
+    private var currentRequestId = 0L
+
+    companion object {
+        private const val DEBOUNCE_DELAY_MS = 300L
+    }
 
     private val parserChain = addressHandlerFactory.parserChain(null, true)
     private val coinUids = listOf("tether", "usd-coin", "paypal-usd")
@@ -109,26 +116,37 @@ class UnifiedAddressCheckerViewModel(
 
     fun onEnterAddress(value: String) {
         parseAddressJob?.cancel()
+        val requestId = ++currentRequestId
 
         this.value = value.trim()
         inputState = null
-        addressValidationInProgress = true
 
         if (value.isBlank()) {
             this.value = ""
+            addressValidationInProgress = false
             resetCheckStatus()
         } else {
+            addressValidationInProgress = true
             checkResults = issueTypes.associateWith { CheckState.Checking }
             emitState()
-            processAddress(value)
+
+            parseAddressJob = viewModelScope.launch {
+                delay(DEBOUNCE_DELAY_MS)
+                if (requestId == currentRequestId) {
+                    processAddress(value, requestId)
+                }
+            }
         }
     }
 
-    private fun processAddress(address: String) {
+    private suspend fun processAddress(address: String, requestId: Long) {
         try {
+            if (requestId != currentRequestId) return
+
             val handlers = parserChain.supportedAddressHandlers(address)
 
             if (handlers.isEmpty()) {
+                if (requestId != currentRequestId) return
                 val error = Exception()
                 inputState = DataState.Error(error)
                 addressValidationInProgress = false
@@ -137,8 +155,11 @@ class UnifiedAddressCheckerViewModel(
             }
 
             val parsedAddress = handlers.first().parseAddress(address)
-            check(parsedAddress)
+            check(parsedAddress, requestId)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
+            if (requestId != currentRequestId) return
             inputState = DataState.Error(e)
             addressValidationInProgress = false
             emitState()
@@ -150,9 +171,8 @@ class UnifiedAddressCheckerViewModel(
         emitState()
     }
 
-    private fun check(address: Address) {
-        parseAddressJob = viewModelScope.launch(Dispatchers.IO) {
-            val results = mutableMapOf<IssueType, CheckState>()
+    private suspend fun check(address: Address, requestId: Long) {
+        withContext(Dispatchers.IO) {
             val checkJobs = issueTypes.map { type ->
                 async {
                     type to performSingleCheck(address, type)
@@ -162,7 +182,9 @@ class UnifiedAddressCheckerViewModel(
             try {
                 checkJobs.forEach { deferred ->
                     val (type, result) = deferred.await()
-                    results[type] = result
+
+                    // Skip if this is a stale request
+                    if (requestId != currentRequestId) return@withContext
 
                     // Update UI incrementally
                     checkResults = checkResults.toMutableMap().apply {
@@ -171,13 +193,14 @@ class UnifiedAddressCheckerViewModel(
                     emitState()
                 }
             } catch (e: CancellationException) {
-                resetCheckStatus()
-                throw e
-            } catch (e: Exception) {
+                // Don't update state - new request already set its own state
                 throw e
             } finally {
-                addressValidationInProgress = false
-                emitState()
+                // Only update if this is still the current request
+                if (requestId == currentRequestId) {
+                    addressValidationInProgress = false
+                    emitState()
+                }
             }
         }
     }
