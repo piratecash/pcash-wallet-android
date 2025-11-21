@@ -11,7 +11,7 @@ _Release date: November 20, 2025_
 
 ### 🛠 Fixes and improvements
 - **Smart contract address validation**
-    - Fixed an issue related to smart contract address detection (details omitted).
+    - Fixed an issue related to smart contract address detection.
 
 - **Sending funds to Smart Contracts**
     - Fixed and improved the logic for sending funds to smart contracts:
