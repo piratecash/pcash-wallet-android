@@ -47,6 +47,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent
+import java.lang.System
 import java.math.BigDecimal
 
 class ChangeNowProvider(
@@ -470,7 +471,8 @@ class ChangeNowProvider(
     fun onTransactionCompleted(result: SendTransactionResult) {
         changeNowTransaction?.let {
             changeNowTransaction = it.copy(
-                outgoingRecordUid = result.getRecordUid()
+                outgoingRecordUid = result.getRecordUid(),
+                date = System.currentTimeMillis()
             ).also { transactionWithRecordUid ->
                 changeNowTransactionsStorage.save(transactionWithRecordUid)
             }

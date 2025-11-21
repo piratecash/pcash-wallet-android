@@ -9,7 +9,7 @@ class ChangeNowTransactionsStorage(appDatabase: AppDatabase) {
     private val dao by lazy { appDatabase.changeNowTransactionsDao() }
 
     private companion object {
-        const val THRESHOLD_MSEC = 30000
+        const val THRESHOLD_MSEC = 40_000
     }
 
     fun save(
@@ -31,14 +31,15 @@ class ChangeNowTransactionsStorage(appDatabase: AppDatabase) {
 
     fun getTransaction(transactionId: String) = dao.getTransaction(transactionId)
 
-    fun getByTokenIn(
-        token: Token,
+    fun getByCoinUidIn(
+        coinUid: String,
+        blockchainType: String,
         amountIn: BigDecimal?,
         timestamp: Long
     ) = dao.getByTokenIn(
-        coinUid = token.coin.uid,
+        coinUid = coinUid,
         amountIn = amountIn,
-        blockchainType = token.blockchainType.uid,
+        blockchainType = blockchainType,
         dateFrom = timestamp - THRESHOLD_MSEC,
         dateTo = timestamp + THRESHOLD_MSEC
     )

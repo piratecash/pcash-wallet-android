@@ -304,8 +304,9 @@ class TransactionRecordRepository(
                                     val shortOutgoingTransactionRecord =
                                         record.getShortOutgoingTransactionRecord()
                                     if (shortOutgoingTransactionRecord?.token != null &&
-                                        changeNowTransactionsStorage.getByTokenIn(
-                                            token = shortOutgoingTransactionRecord.token,
+                                        changeNowTransactionsStorage.getByCoinUidIn(
+                                            coinUid = shortOutgoingTransactionRecord.token.coin.uid,
+                                            blockchainType = shortOutgoingTransactionRecord.token.blockchainType.uid,
                                             amountIn = shortOutgoingTransactionRecord.amountOut,
                                             timestamp = shortOutgoingTransactionRecord.timestamp
                                         ) != null

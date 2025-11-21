@@ -1310,8 +1310,9 @@ class TransactionViewItemFactory(
         )
     } else {
         changeNowTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
-            ?: changeNowTransactionsStorage.getByTokenIn(
-                token = token,
+            ?: changeNowTransactionsStorage.getByCoinUidIn(
+                coinUid = transactionItem.record.mainValue?.coinUid ?: token.coin.uid,
+                blockchainType = token.blockchainType.uid,
                 amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
                 timestamp = transactionItem.record.timestamp * 1000
             )

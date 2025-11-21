@@ -109,7 +109,7 @@ class TonTransactionsAdapter(
             }
 
     } catch (e: NotSupportedException) {
-        emptyFlow<List<TransactionRecord>>()
+        emptyFlow()
     }
 
     override fun getTransactionUrl(transactionHash: String): String {
