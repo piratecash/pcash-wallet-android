@@ -1,4 +1,14 @@
-## 🚀 Main changes in version 0.49.0
+## 🚀 Key Changes in Version 0.49.2
+_Release date: November 22, 2025_
+
+### 🛠 Fixes and Improvements
+- **ChangeNOW swap transaction display**
+    - Fixed an issue where, in some cases, only the outgoing transaction was shown instead of the actual swap request when using **ChangeNOW**.
+    - The swap request and its status are now displayed correctly.
+
+
+
+## 🚀 Main changes in version 0.49.0-1
 _Release date: November 20, 2025_
 
 ### ✨ New features
