@@ -72,4 +72,9 @@ tasks.withType<KotlinJvmCompile>().configureEach {
 
 dependencies {
     add("kspAndroid", libs.room.compiler)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(kotlin("test"))
 }

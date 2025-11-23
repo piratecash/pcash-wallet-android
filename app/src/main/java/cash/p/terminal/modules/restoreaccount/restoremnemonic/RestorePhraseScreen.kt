@@ -385,10 +385,15 @@ fun RestorePhrase(
                         .background(Color.Green),
                     wordSuggestions = uiState.wordSuggestions
                 ) { wordItem, suggestion ->
+                    val currentText = textState.text
+
+                    // Guard: stale suggestion for changed text
+                    if (wordItem.range.last > currentText.length) return@SuggestionsBar
+
                     HudHelper.vibrate(context)
 
                     val cursorIndex = wordItem.range.first + suggestion.length + 1
-                    var text = textState.text.replaceRange(wordItem.range, suggestion)
+                    var text = currentText.replaceRange(wordItem.range, suggestion)
 
                     if (text.length < cursorIndex) {
                         text = "$text "
