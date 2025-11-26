@@ -101,7 +101,7 @@ class SpamManager(
 
         private fun isSpam(transactionValue: TransactionValue): Boolean {
             val spamCoinLimits = AppConfigProvider.spamCoinValueLimits
-            val value = transactionValue.decimalValue
+            val value = transactionValue.decimalValue?.abs()
 
             var limit: BigDecimal = BigDecimal.ZERO
             when (transactionValue) {
