@@ -19,13 +19,13 @@ class PendingTransactionMatcher(
 
     suspend fun matchAndResolve(allRealTxs: List<TransactionRecord>) {
         // Get all pending transactions from all wallets
+        val firstRealTransaction = allRealTxs.firstOrNull { it !is PendingTransactionRecord } ?: return
+        val pending = repository.getPendingForWallet(firstRealTransaction.source.account.id)
+
         allRealTxs.forEach { real ->
             if (real is PendingTransactionRecord) {
                 return@forEach
             }
-
-            val walletId = real.source.account.id
-            val pending = repository.getPendingForWallet(walletId)
 
             val matched = findBestMatch(real, pending)
             if (matched != null) {
