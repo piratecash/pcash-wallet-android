@@ -64,7 +64,6 @@ fun HSFeeRaw(
         info = info,
         value = formatted,
         viewState = viewState,
-        navController = navController
     )
 }
 
@@ -91,7 +90,6 @@ fun HSFeeRawWithViewState(
         info = info,
         value = formatted,
         viewState = viewState,
-        navController = navController
     )
 }
 

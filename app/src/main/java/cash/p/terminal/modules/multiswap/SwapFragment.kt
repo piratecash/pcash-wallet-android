@@ -52,7 +52,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.entities.CoinValue
-import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
 import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.navigation.entity.SwapParams
@@ -100,9 +99,9 @@ import cash.p.terminal.modules.managewallets.ManageWalletsViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.enablecoin.restoresettings.openRestoreSettingsDialog
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.navigation.slideFromBottom
 import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
 
@@ -479,7 +478,6 @@ private fun SwapScreenInner(
                         PriceImpactField(
                             uiState.priceImpact,
                             uiState.priceImpactLevel,
-                            navController
                         )
                         quote.fields.forEach {
                             it.GetContent(navController, false)
@@ -579,13 +577,13 @@ private fun AvailableBalanceField(
 fun PriceImpactField(
     priceImpact: BigDecimal?,
     priceImpactLevel: PriceImpactLevel?,
-    navController: NavController,
     borderTop: Boolean = true
 ) {
     if (priceImpact == null || priceImpactLevel == null) return
 
     val infoTitle = stringResource(id = R.string.SwapInfo_PriceImpactTitle)
     val infoText = stringResource(id = R.string.SwapInfo_PriceImpactDescription)
+    var showInfoDialog by remember { mutableStateOf(false) }
 
     QuoteInfoRow(
         borderTop = borderTop,
@@ -596,12 +594,7 @@ fun PriceImpactField(
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
                     .clickable(
-                        onClick = {
-                            navController.slideFromBottom(
-                                R.id.feeSettingsInfoDialog,
-                                FeeSettingsInfoDialog.Input(infoTitle, infoText)
-                            )
-                        },
+                        onClick = { showInfoDialog = true },
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
                     ),
@@ -622,6 +615,14 @@ fun PriceImpactField(
             )
         }
     )
+
+    if (showInfoDialog) {
+        InfoBottomSheet(
+            title = infoTitle,
+            text = infoText,
+            onDismiss = { showInfoDialog = false }
+        )
+    }
 }
 
 @Composable

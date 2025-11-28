@@ -78,7 +78,6 @@ fun SendEvmTransactionView(
         VSpacer(height = 16.dp)
         SectionUniversalLawrence {
             DataFieldFee(
-                navController,
                 networkFee?.primary?.getFormattedPlain() ?: "---",
                 networkFee?.secondary?.getFormattedPlain() ?: "---"
             )
@@ -147,7 +146,6 @@ fun SectionView(viewItems: List<ViewItem>, navController: NavController) {
             is ViewItem.Input -> TitleValueHex(item.title, item.value.shorten(), item.value)
             is ViewItem.TokenItem -> Token(item)
             is ViewItem.Fee -> DataFieldFee(
-                navController,
                 item.networkFee.primary.getFormattedPlain() ?: "---",
                 item.networkFee.secondary?.getFormattedPlain() ?: "---"
             )

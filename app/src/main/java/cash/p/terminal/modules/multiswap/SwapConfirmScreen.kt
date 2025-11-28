@@ -206,7 +206,6 @@ fun SwapConfirmScreen(
                 PriceImpactField(
                     uiState.priceImpact,
                     uiState.priceImpactLevel,
-                    fragmentNavController
                 )
                 uiState.amountOutMin?.let { amountOutMin ->
                     val subvalue = uiState.fiatAmountOutMin?.let { fiatAmountOutMin ->
@@ -245,7 +244,6 @@ fun SwapConfirmScreen(
         VSpacer(height = 16.dp)
         SectionUniversalLawrence {
             DataFieldFee(
-                fragmentNavController,
                 uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
                 uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
             )

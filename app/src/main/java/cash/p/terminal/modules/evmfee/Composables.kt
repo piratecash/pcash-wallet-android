@@ -44,7 +44,6 @@ import cash.p.terminal.R
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.wallet.Warning
 import cash.p.terminal.core.ethereum.CautionViewItem
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.evmfee.eip1559.Eip1559FeeSettingsViewModel
 import cash.p.terminal.modules.evmfee.legacy.LegacyFeeSettingsViewModel
 import cash.p.terminal.modules.fee.FeeCell
@@ -52,6 +51,7 @@ import cash.p.terminal.ui.compose.animations.shake
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
+import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantError
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -82,7 +82,6 @@ fun Eip1559FeeSettings(
                         info = stringResource(R.string.FeeSettings_NetworkFee_Info),
                         value = summaryViewItem?.fee,
                         viewState = summaryViewItem?.viewState,
-                        navController = navController
                     )
                 },
                 {
@@ -90,7 +89,6 @@ fun Eip1559FeeSettings(
                         title = stringResource(R.string.FeeSettings_GasLimit),
                         info = stringResource(R.string.FeeSettings_GasLimit_Info),
                         value = summaryViewItem?.gasLimit,
-                        navController = navController
                     )
                 },
                 {
@@ -98,7 +96,6 @@ fun Eip1559FeeSettings(
                         title = stringResource(R.string.FeeSettings_BaseFee),
                         info = stringResource(R.string.FeeSettings_BaseFee_Info),
                         value = currentBaseFee,
-                        navController = navController
                     )
                 }
             )
@@ -115,7 +112,6 @@ fun Eip1559FeeSettings(
                     decimals = maxFee.scale.decimals,
                     warnings = maxFee.warnings,
                     errors = maxFee.errors,
-                    navController = navController,
                     onValueChange = {
                         viewModel.onSelectGasPrice(maxFee.wei(it), priorityFee.weiValue)
                     },
@@ -135,7 +131,6 @@ fun Eip1559FeeSettings(
                     decimals = priorityFee.scale.decimals,
                     warnings = priorityFee.warnings,
                     errors = priorityFee.errors,
-                    navController = navController,
                     onValueChange = {
                         viewModel.onSelectGasPrice(maxFee.weiValue, priorityFee.wei(it))
                     },
@@ -159,7 +154,6 @@ fun EvmSettingsInput(
     decimals: Int,
     warnings: List<Warning>,
     errors: List<Throwable>,
-    navController: NavController,
     onValueChange: (BigDecimal) -> Unit,
     onClickIncrement: () -> Unit,
     onClickDecrement: () -> Unit
@@ -176,7 +170,6 @@ fun EvmSettingsInput(
         value = value,
         decimals = decimals,
         borderColor = borderColor,
-        navController = navController,
         onValueChange = onValueChange,
         onClickIncrement = onClickIncrement,
         onClickDecrement = onClickDecrement
@@ -207,7 +200,6 @@ fun EvmSettingsInput(
         value = value,
         decimals = decimals,
         borderColor = borderColor,
-        navController = navController,
         onValueChange = onValueChange,
         onClickIncrement = onClickIncrement,
         onClickDecrement = onClickDecrement
@@ -221,16 +213,25 @@ private fun EvmSettingsInput(
     value: BigDecimal,
     decimals: Int,
     borderColor: Color,
-    navController: NavController,
     onValueChange: (BigDecimal) -> Unit,
     onClickIncrement: () -> Unit,
     onClickDecrement: () -> Unit,
 ) {
+    var showInfoDialog by remember { mutableStateOf(false) }
+
     HeaderText(text = title) {
-        navController.slideFromBottom(R.id.feeSettingsInfoDialog, FeeSettingsInfoDialog.Input(title, info))
+        showInfoDialog = true
     }
 
     NumberInputWithButtons(value, decimals, borderColor, onValueChange, onClickIncrement, onClickDecrement)
+
+    if (showInfoDialog) {
+        InfoBottomSheet(
+            title = title,
+            text = info,
+            onDismiss = { showInfoDialog = false }
+        )
+    }
 }
 
 @Composable
@@ -353,15 +354,13 @@ fun LegacyFeeSettings(
                         info = stringResource(R.string.FeeSettings_NetworkFee_Info),
                         value = summaryViewItem?.fee,
                         viewState = summaryViewItem?.viewState,
-                        navController = navController
                     )
                 },
                 {
                     FeeInfoCell(
                         title = stringResource(R.string.FeeSettings_GasLimit),
                         info = stringResource(R.string.FeeSettings_GasLimit_Info),
-                        value = summaryViewItem?.gasLimit,
-                        navController = navController
+                        value = summaryViewItem?.gasLimit
                     )
                 }
             )
@@ -376,7 +375,6 @@ fun LegacyFeeSettings(
                 decimals = fee.scale.decimals,
                 warnings = fee.warnings,
                 errors = fee.errors,
-                navController = navController,
                 onValueChange = {
                     viewModel.onSelectGasPrice(fee.wei(it))
                 },
@@ -430,8 +428,9 @@ fun FeeInfoCell(
     title: String,
     info: String,
     value: String?,
-    navController: NavController
 ) {
+    var showInfoDialog by remember { mutableStateOf(false) }
+
     RowUniversal(
         modifier = Modifier
             .fillMaxSize()
@@ -440,7 +439,7 @@ fun FeeInfoCell(
     ) {
         Row(
             modifier = Modifier.clickable(
-                onClick = { navController.slideFromBottom(R.id.feeSettingsInfoDialog, FeeSettingsInfoDialog.Input(title, info)) },
+                onClick = { showInfoDialog = true },
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
@@ -461,6 +460,14 @@ fun FeeInfoCell(
             textAlign = TextAlign.End,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
+        )
+    }
+
+    if (showInfoDialog) {
+        InfoBottomSheet(
+            title = title,
+            text = info,
+            onDismiss = { showInfoDialog = false }
         )
     }
 }

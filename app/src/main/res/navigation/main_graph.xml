@@ -460,9 +460,6 @@
         android:id="@+id/duplicateWalletInfoDialog"
         android:name="cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletInfoDialog" />
     <dialog
-        android:id="@+id/feeSettingsInfoDialog"
-        android:name="cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog" />
-    <dialog
         android:id="@+id/proUsersInfoDialog"
         android:name="cash.p.terminal.modules.profeatures.yakauthorization.ProUsersInfoDialog" />
     <dialog

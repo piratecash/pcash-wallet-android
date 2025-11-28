@@ -21,8 +21,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +46,6 @@ import cash.p.terminal.core.isCustom
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewModel
-import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendFragment
@@ -70,6 +72,7 @@ import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -327,7 +330,6 @@ private fun LockedBalanceSection(balanceViewItem: BalanceViewItem, navController
                     infoTitle = lockedValue.infoTitle.getString(),
                     infoText = lockedValue.info.getString(),
                     lockedAmount = lockedValue.coinValue,
-                    navController = navController
                 )
             }
         }
@@ -340,8 +342,8 @@ private fun LockedBalanceCell(
     infoTitle: String,
     infoText: String,
     lockedAmount: DeemedValue<String>,
-    navController: NavController
 ) {
+    var showInfoDialog by remember { mutableStateOf(false) }
 
     RowUniversal(
         modifier = Modifier
@@ -355,12 +357,7 @@ private fun LockedBalanceCell(
         HSpacer(8.dp)
         HsIconButton(
             modifier = Modifier.size(20.dp),
-            onClick = {
-                navController.slideFromBottom(
-                    R.id.feeSettingsInfoDialog,
-                    FeeSettingsInfoDialog.Input(infoTitle, infoText)
-                )
-            }
+            onClick = { showInfoDialog = true }
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_info_20),
@@ -375,6 +372,14 @@ private fun LockedBalanceCell(
             color = if (lockedAmount.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.leah,
             style = ComposeAppTheme.typography.subhead2,
             maxLines = 1,
+        )
+    }
+
+    if (showInfoDialog) {
+        InfoBottomSheet(
+            title = infoTitle,
+            text = infoText,
+            onDismiss = { showInfoDialog = false }
         )
     }
 }

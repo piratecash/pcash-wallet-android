@@ -151,7 +151,6 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
         VSpacer(height = 16.dp)
         SectionUniversalLawrence {
             DataFieldFee(
-                navController,
                 uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
                 uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
             )

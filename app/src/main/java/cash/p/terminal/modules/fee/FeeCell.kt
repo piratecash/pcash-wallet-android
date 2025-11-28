@@ -13,20 +13,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.ui_compose.entities.ViewState
-import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
+import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
@@ -35,8 +36,9 @@ fun FeeCell(
     info: String,
     value: FeeItem?,
     viewState: ViewState?,
-    navController: NavController?
 ) {
+    var showInfoDialog by remember { mutableStateOf(false) }
+
     RowUniversal(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,8 +47,7 @@ fun FeeCell(
     ) {
         Row(
             modifier = Modifier.clickable(
-                enabled = navController != null,
-                onClick = { navController?.slideFromBottom(R.id.feeSettingsInfoDialog, FeeSettingsInfoDialog.Input(title, info)) },
+                onClick = { showInfoDialog = true },
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ),
@@ -54,13 +55,11 @@ fun FeeCell(
         ) {
             subhead2_grey(text = title)
 
-            navController?.let {
-                Image(
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    painter = painterResource(id = R.drawable.ic_info_20),
-                    contentDescription = ""
-                )
-            }
+            Image(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                painter = painterResource(id = R.drawable.ic_info_20),
+                contentDescription = ""
+            )
         }
 
         Spacer(Modifier.weight(1f))
@@ -97,5 +96,13 @@ fun FeeCell(
                 )
             }
         }
+    }
+
+    if (showInfoDialog) {
+        InfoBottomSheet(
+            title = title,
+            text = info,
+            onDismiss = { showInfoDialog = false }
+        )
     }
 }

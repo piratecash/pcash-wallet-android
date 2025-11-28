@@ -145,7 +145,6 @@ fun ActivateTokenScreen(
         VSpacer(height = 16.dp)
         SectionUniversalLawrence {
             DataFieldFee(
-                navController,
                 uiState.feeCoinValue?.getFormattedFull() ?: "---",
                 uiState.feeFiatValue?.getFormattedFull() ?: "---"
             )

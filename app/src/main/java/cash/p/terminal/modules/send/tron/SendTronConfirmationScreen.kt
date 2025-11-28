@@ -16,6 +16,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -30,13 +34,11 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
-import cash.p.terminal.modules.evmfee.FeeSettingsInfoDialog
 import cash.p.terminal.modules.fee.HSFeeRaw
 import cash.p.terminal.modules.fee.HSFeeRawWithViewState
 import cash.p.terminal.modules.send.ConfirmAmountCell
 import cash.p.terminal.modules.send.MemoCell
 import cash.p.terminal.modules.send.SendResult
-import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.SectionTitleCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
@@ -47,6 +49,7 @@ import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportantError
@@ -232,7 +235,6 @@ fun SendTronConfirmationScreen(
                                 title = stringResource(R.string.FeeInfo_TronResourcesConsumed_Title),
                                 value = it,
                                 info = stringResource(R.string.FeeInfo_TronResourcesConsumed_Description),
-                                navController = navController
                             )
                         }
                     }
@@ -309,9 +311,10 @@ private fun SendButton(
 private fun ResourcesConsumed(
     title: String,
     value: String,
-    info: String,
-    navController: NavController
+    info: String
 ) {
+    var showInfoDialog by remember { mutableStateOf(false) }
+
     RowUniversal(
         modifier = Modifier.padding(horizontal = 16.dp),
     ) {
@@ -319,11 +322,7 @@ private fun ResourcesConsumed(
         Spacer(modifier = Modifier.width(8.dp))
         HsIconButton(
             modifier = Modifier.size(20.dp),
-            onClick = {
-                navController.slideFromBottom(
-                    R.id.feeSettingsInfoDialog, FeeSettingsInfoDialog.Input(title, info)
-                )
-            }
+            onClick = { showInfoDialog = true }
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_info_20),
@@ -336,6 +335,14 @@ private fun ResourcesConsumed(
             modifier = Modifier.weight(1f),
             text = value,
             textAlign = TextAlign.Right
+        )
+    }
+
+    if (showInfoDialog) {
+        InfoBottomSheet(
+            title = title,
+            text = info,
+            onDismiss = { showInfoDialog = false }
         )
     }
 }
