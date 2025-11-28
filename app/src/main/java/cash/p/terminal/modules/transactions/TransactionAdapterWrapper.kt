@@ -21,16 +21,19 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
 class TransactionAdapterWrapper(
     private val transactionsAdapter: ITransactionsAdapter,
     val transactionWallet: TransactionWallet,
+    @Volatile
     private var transactionType: FilterTransactionType,
+    @Volatile
     private var contact: Contact?,
     private val pendingRepository: PendingTransactionRepository,
     private val pendingConverter: PendingTransactionConverter
@@ -70,11 +73,9 @@ class TransactionAdapterWrapper(
 
     fun setTransactionType(transactionType: FilterTransactionType) {
         this.transactionType = transactionType
-        coroutineScope.launch {
-            _transactionRecords.update { emptyList() }
-            _allLoaded.value = false
-            subscribeForUpdates()
-        }
+        _transactionRecords.update { emptyList() }
+        _allLoaded.value = false
+        subscribeForUpdates()
     }
 
     fun setContact(contact: Contact?) {
@@ -87,56 +88,86 @@ class TransactionAdapterWrapper(
     }
 
     private fun subscribeForUpdates() {
+        // Snapshot: capture current filter parameters at subscription time
+        val expectedType = transactionType
+        val expectedContact = contact
+        val expectedAddress = address
+
         updatesJob?.cancel()
 
-        if (contact != null && address == null) return
+        if (expectedContact != null && expectedAddress == null) return
 
         updatesJob = coroutineScope.launch {
             val walletId = transactionWallet.source.account.id
 
-            combine(
-                transactionsAdapter.getTransactionRecordsFlow(
-                    transactionWallet.token,
-                    transactionType,
-                    address
-                ).onStart { emit(emptyList()) },
-                pendingRepository.getActivePendingFlow(walletId).onStart { emit(emptyList()) }
-            ) { _, pendingEntities ->
-                // Convert pending entities to records
-                getPending(pendingEntities)
-            }.collect { _ ->
+            merge(
+                transactionsAdapter
+                    .getTransactionRecordsFlow(
+                        transactionWallet.token,
+                        expectedType,     // Use snapshot!
+                        expectedAddress   // Use snapshot!
+                    ), pendingRepository.getActivePendingFlow(walletId)
+            ).collectLatest {
+                if (!isActive ||
+                    transactionType != expectedType ||
+                    contact != expectedContact
+                ) {
+                    return@collectLatest
+                }
+
                 _transactionRecords.update { emptyList() }
                 _allLoaded.value = false
                 _updatedFlow.emit(Unit)
+
             }
         }
     }
 
-    suspend fun get(limit: Int): List<TransactionRecord> = when {
-        _transactionRecords.value.size >= limit || _allLoaded.value -> _transactionRecords.value.take(
-            limit
-        )
+    suspend fun get(limit: Int): List<TransactionRecord> {
+        // Snapshot: capture current filter parameters at the start
+        val expectedType = transactionType
+        val expectedContact = contact
+        val expectedAddress = address
 
-        contact != null && address == null -> emptyList()
-        else -> {
-            val currentRecords = _transactionRecords.value
-            val numberOfRecordsToRequest = limit - currentRecords.size
-            val receivedRecords = transactionsAdapter.getTransactions(
-                from = currentRecords.lastOrNull(),
-                token = transactionWallet.token,
-                limit = numberOfRecordsToRequest,
-                transactionType = transactionType,
-                address = address
-            )
+        return when {
+            _transactionRecords.value.size >= limit || _allLoaded.value -> {
+                _transactionRecords.value.take(limit)
+            }
 
-            // Use StateFlow's value setter for atomic update
-            _allLoaded.value = receivedRecords.size < numberOfRecordsToRequest
+            expectedContact != null && expectedAddress == null -> {
+                emptyList()
+            }
 
-            // Merge with pending transactions
-            val mergedRecords = mergePendingAndReal(currentRecords + receivedRecords)
-            _transactionRecords.value = mergedRecords
+            else -> {
+                val currentRecords = _transactionRecords.value
+                val numberOfRecordsToRequest = limit - currentRecords.size
 
-            mergedRecords
+                // Load data using snapshot parameters
+                val receivedRecords = transactionsAdapter.getTransactions(
+                    from = currentRecords.lastOrNull(),
+                    token = transactionWallet.token,
+                    limit = numberOfRecordsToRequest,
+                    transactionType = expectedType,  // Use snapshot!
+                    address = expectedAddress        // Use snapshot!
+                )
+
+                // Validation: check if parameters haven't changed during the load
+                if (transactionType != expectedType ||
+                    contact != expectedContact ||
+                    address != expectedAddress
+                ) {
+                    return _transactionRecords.value.take(limit)
+                }
+
+                // Parameters still match - safe to save the results
+                _allLoaded.value = receivedRecords.size < numberOfRecordsToRequest
+
+                // Merge with pending transactions
+                val mergedRecords = mergePendingAndReal(currentRecords + receivedRecords)
+                _transactionRecords.value = mergedRecords
+
+                mergedRecords
+            }
         }
     }
 
@@ -162,6 +193,14 @@ class TransactionAdapterWrapper(
     }
 
     private suspend fun mergePendingAndReal(realRecords: List<TransactionRecord>): List<TransactionRecord> {
+        if (
+            transactionType != FilterTransactionType.All &&
+            transactionType != FilterTransactionType.Outgoing
+        ) {
+            // Pending transactions are always for outgoing transactions
+            return realRecords
+        }
+
         val walletId = transactionWallet.source.account.id
 
         return try {

@@ -129,5 +129,5 @@ val managerModule = module {
     singleOf(::PendingTransactionRegistrarImpl) bind PendingTransactionRegistrar::class
     singleOf(::PendingTransactionMatcher)
     singleOf(::PendingAccountProviderImpl) bind PendingAccountProvider::class
-    factoryOf(::PendingTransactionConverter)
+    singleOf(::PendingTransactionConverter)
 }

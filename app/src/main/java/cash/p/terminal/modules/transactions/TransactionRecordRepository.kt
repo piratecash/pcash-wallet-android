@@ -11,6 +11,7 @@ import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,6 +19,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -28,6 +30,7 @@ class TransactionRecordRepository(
     private val pendingConverter: PendingTransactionConverter
 ) : ITransactionRecordRepository {
 
+    @Volatile
     private var selectedFilterTransactionType: FilterTransactionType = FilterTransactionType.All
 
     private var selectedWallet: TransactionWallet? = null
@@ -39,7 +42,6 @@ class TransactionRecordRepository(
 
     @Volatile
     private var loadedPageNumber = 0
-    private val loading = AtomicBoolean(false)
 
     private var allNormalLoaded = AtomicBoolean(false)
     private var allExtraLoaded = AtomicBoolean(false)
@@ -49,6 +51,11 @@ class TransactionRecordRepository(
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
     private var updatesJob: Job? = null
+    private var loadingJob: Job? = null
+
+    // Cache of last load request to avoid duplicate work
+    @Volatile
+    private var lastLoadRequest: Pair<Int, FilterContext>? = null
 
     private var transactionWallets: List<TransactionWallet> = listOf()
     private var walletsGroupedBySource: List<TransactionWallet> = listOf()
@@ -83,6 +90,17 @@ class TransactionRecordRepository(
             }
             return activeWallets.mapNotNull { extraSwapAdaptersMap[it] }
         }
+
+    /**
+     * Captures current filter context for snapshot comparison.
+     * Thread-safe: creates new instance with current values.
+     */
+    private fun getCurrentFilterContext() = FilterContext(
+        transactionType = selectedFilterTransactionType,
+        wallet = selectedWallet,
+        blockchain = selectedBlockchain,
+        contact = contact
+    )
 
     private fun groupWalletsBySource(transactionWallets: List<TransactionWallet>): List<TransactionWallet> {
         val mergedWallets = mutableListOf<TransactionWallet>()
@@ -198,7 +216,8 @@ class TransactionRecordRepository(
             unsubscribeFromUpdates()
             allNormalLoaded.set(false)
             allExtraLoaded.set(false)
-            loadItems(1)
+            loadedPageNumber = 1
+            loadItems(loadedPageNumber)
             subscribeForUpdates()
         }
     }
@@ -281,55 +300,77 @@ class TransactionRecordRepository(
     }
 
     private fun loadItems(page: Int) {
-        if (loading.get()) return
-        loading.set(true)
+        // Capture current filter context for validation
+        val requestContext = getCurrentFilterContext()
+        val currentRequest = Pair(page, requestContext)
+
+        // Optimization: Skip if exact same request is already in progress
+        // This commonly happens when handleUpdates() is triggered by adapter updates
+        // but filter parameters haven't actually changed
+        if (loadingJob?.isActive == true && lastLoadRequest == currentRequest) {
+            return
+        }
+
+        // Cache this request for future comparison
+        lastLoadRequest = currentRequest
+
+        // Cancel previous load if it's a different request
+        // This avoids wasted work and race conditions
+        loadingJob?.cancel()
 
         val itemsCount = page * itemsPerPage
 
-        coroutineScope.launch {
+        loadingJob = coroutineScope.launch {
             try {
                 val records = activeAdapters
                     .map { async { it.get(itemsCount) } }
                     .awaitAll()
                     .flatten()
+
+                if (!isActive || requestContext != getCurrentFilterContext()) {
+                    return@launch
+                }
                 var extraRecordsCount = 0
-                val extraRecords =
-                    if (selectedFilterTransactionType == FilterTransactionType.Swap) {
-                        activeSwapExtraAdapters
-                            .map { async { it.get(itemsCount) } }
-                            .awaitAll()
-                            .map { transactionRecords ->
-                                extraRecordsCount += transactionRecords.size
-                                transactionRecords.map { record ->
-                                    val shortOutgoingTransactionRecord =
-                                        record.getShortOutgoingTransactionRecord()
-                                    if (shortOutgoingTransactionRecord?.token != null &&
-                                        changeNowTransactionsStorage.getByCoinUidIn(
-                                            coinUid = shortOutgoingTransactionRecord.token.coin.uid,
-                                            blockchainType = shortOutgoingTransactionRecord.token.blockchainType.uid,
-                                            amountIn = shortOutgoingTransactionRecord.amountOut,
-                                            timestamp = shortOutgoingTransactionRecord.timestamp
-                                        ) != null
-                                    ) {
-                                        record
-                                    } else {
-                                        null
-                                    }
+                val extraRecords = if (requestContext.transactionType == FilterTransactionType.Swap) {
+                    activeSwapExtraAdapters
+                        .map { async { it.get(itemsCount) } }
+                        .awaitAll()
+                        .map { transactionRecords ->
+                            extraRecordsCount += transactionRecords.size
+                            transactionRecords.mapNotNull { record ->
+                                val shortOutgoingTransactionRecord = record.getShortOutgoingTransactionRecord()
+
+                                if (shortOutgoingTransactionRecord?.token != null &&
+                                    changeNowTransactionsStorage.getByCoinUidIn(
+                                        coinUid = shortOutgoingTransactionRecord.token.coin.uid,
+                                        blockchainType = shortOutgoingTransactionRecord.token.blockchainType.uid,
+                                        amountIn = shortOutgoingTransactionRecord.amountOut,
+                                        timestamp = shortOutgoingTransactionRecord.timestamp
+                                    ) != null
+                                ) {
+                                    record
+                                } else {
+                                    null
                                 }
                             }
-                            .flatten().filterNotNull()
-                    } else {
-                        emptyList()
-                    }
+                        }
+                        .flatten()
+                } else {
+                    emptyList()
+                }
+
+                if (!isActive || requestContext != getCurrentFilterContext()) {
+                    return@launch
+                }
+
                 if (extraRecordsCount < page * itemsPerPage) {
                     allExtraLoaded.set(true)
                 }
 
                 handleRecords(records, extraRecords, page)
-            } catch (e: Throwable) {
 
-            } finally {
-                loading.set(false)
+            } catch (e: Throwable) {
+                e.printStackTrace()
             }
         }
     }
@@ -371,3 +412,14 @@ class TransactionRecordRepository(
     }
 
 }
+
+/**
+ * Snapshot of filter context at the time of load request.
+ * Used to detect filter changes during async loading and discard stale results.
+ */
+private data class FilterContext(
+    val transactionType: FilterTransactionType,
+    val wallet: TransactionWallet?,
+    val blockchain: Blockchain?,
+    val contact: Contact?
+)
