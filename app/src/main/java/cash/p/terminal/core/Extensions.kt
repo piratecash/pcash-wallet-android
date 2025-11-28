@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.Clipboard
 import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -359,10 +360,24 @@ fun NavController.premiumAction(block: () -> Unit) {
                             super.onResume(owner)
                             backStackEntry.lifecycle.removeObserver(this)
                             job.cancel()
-                            block.invoke()
+
+                            if (backStackEntry.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+                                block.invoke()
+                            }
+                        }
+
+                        override fun onDestroy(owner: LifecycleOwner) {
+                            super.onDestroy(owner)
+                            backStackEntry.lifecycle.removeObserver(this)
+                            job.cancel()
                         }
                     }
-                    backStackEntry.lifecycle.addObserver(observer)
+
+                    if (backStackEntry.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
+                        backStackEntry.lifecycle.addObserver(observer)
+                    } else {
+                        job.cancel()
+                    }
                 }
             } else {
                 block.invoke()
