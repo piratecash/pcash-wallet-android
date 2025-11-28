@@ -165,9 +165,9 @@ fun EvmSettingsInput(
     onClickDecrement: () -> Unit
 ) {
     val borderColor = when {
-        errors.isNotEmpty() -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.red50
-        warnings.isNotEmpty() -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.yellow50
-        else -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel20
+        errors.isNotEmpty() -> ComposeAppTheme.colors.red50
+        warnings.isNotEmpty() -> ComposeAppTheme.colors.yellow50
+        else -> ComposeAppTheme.colors.steel20
     }
 
     EvmSettingsInput(
@@ -196,9 +196,9 @@ fun EvmSettingsInput(
     onClickDecrement: () -> Unit
 ) {
     val borderColor = when (caution?.type) {
-        HSCaution.Type.Error -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.red50
-        HSCaution.Type.Warning -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.yellow50
-        else -> cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.steel20
+        HSCaution.Type.Error -> ComposeAppTheme.colors.red50
+        HSCaution.Type.Warning -> ComposeAppTheme.colors.yellow50
+        else -> ComposeAppTheme.colors.steel20
     }
 
     EvmSettingsInput(
