@@ -123,18 +123,28 @@ class TransactionAdapterWrapper(
         }
     }
 
-    suspend fun get(limit: Int): List<TransactionRecord> {
-        // Snapshot: capture current filter parameters at the start
-        val expectedType = transactionType
-        val expectedContact = contact
-        val expectedAddress = address
+    suspend fun get(
+        limit: Int,
+        requestedFilterType: FilterTransactionType,
+        requestedContact: Contact?
+    ): List<TransactionRecord> {
+        // Check if cache is valid for the requested filter
+        if (transactionType != requestedFilterType || contact != requestedContact) {
+            // Cache is stale for the requested filter - return empty list
+            return emptyList()
+        }
+
+        val requestedAddress = requestedContact
+            ?.addresses
+            ?.find { it.blockchain == transactionWallet.source.blockchain }
+            ?.address
 
         return when {
             _transactionRecords.value.size >= limit || _allLoaded.value -> {
                 _transactionRecords.value.take(limit)
             }
 
-            expectedContact != null && expectedAddress == null -> {
+            requestedContact != null && requestedAddress == null -> {
                 emptyList()
             }
 
@@ -142,21 +152,18 @@ class TransactionAdapterWrapper(
                 val currentRecords = _transactionRecords.value
                 val numberOfRecordsToRequest = limit - currentRecords.size
 
-                // Load data using snapshot parameters
+                // Load data using requested parameters
                 val receivedRecords = transactionsAdapter.getTransactions(
                     from = currentRecords.lastOrNull(),
                     token = transactionWallet.token,
                     limit = numberOfRecordsToRequest,
-                    transactionType = expectedType,  // Use snapshot!
-                    address = expectedAddress        // Use snapshot!
+                    transactionType = requestedFilterType,
+                    address = requestedAddress
                 )
 
                 // Validation: check if parameters haven't changed during the load
-                if (transactionType != expectedType ||
-                    contact != expectedContact ||
-                    address != expectedAddress
-                ) {
-                    return _transactionRecords.value.take(limit)
+                if (transactionType != requestedFilterType || contact != requestedContact) {
+                    return emptyList()
                 }
 
                 // Parameters still match - safe to save the results
@@ -166,7 +173,7 @@ class TransactionAdapterWrapper(
                 val mergedRecords = mergePendingAndReal(currentRecords + receivedRecords)
                 _transactionRecords.value = mergedRecords
 
-                mergedRecords
+                mergedRecords.take(limit)
             }
         }
     }

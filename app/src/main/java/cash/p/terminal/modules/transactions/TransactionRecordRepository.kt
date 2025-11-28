@@ -323,7 +323,13 @@ class TransactionRecordRepository(
         loadingJob = coroutineScope.launch {
             try {
                 val records = activeAdapters
-                    .map { async { it.get(itemsCount) } }
+                    .map { async {
+                        it.get(
+                            limit = itemsCount,
+                            requestedFilterType = requestContext.transactionType,
+                            requestedContact = requestContext.contact
+                        )
+                    } }
                     .awaitAll()
                     .flatten()
 
@@ -333,7 +339,13 @@ class TransactionRecordRepository(
                 var extraRecordsCount = 0
                 val extraRecords = if (requestContext.transactionType == FilterTransactionType.Swap) {
                     activeSwapExtraAdapters
-                        .map { async { it.get(itemsCount) } }
+                        .map { async {
+                            it.get(
+                                limit = itemsCount,
+                                requestedFilterType = FilterTransactionType.Outgoing,
+                                requestedContact = requestContext.contact
+                            )
+                        } }
                         .awaitAll()
                         .map { transactionRecords ->
                             extraRecordsCount += transactionRecords.size
