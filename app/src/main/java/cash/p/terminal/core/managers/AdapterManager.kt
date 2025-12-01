@@ -141,7 +141,7 @@ class AdapterManager(
         }
 
         for (blockchain in evmBlockchainManager.allBlockchains) {
-            evmBlockchainManager.getEvmKitManager(blockchain.type).evmKitWrapper?.evmKit?.refresh()
+            evmBlockchainManager.getEvmKitManager(blockchain.type).refresh()
         }
 
         solanaKitManager.solanaKitWrapper?.solanaKit?.refresh()

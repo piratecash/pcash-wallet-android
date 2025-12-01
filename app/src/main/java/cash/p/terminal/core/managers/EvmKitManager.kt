@@ -10,6 +10,7 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.entities.TokenType
@@ -172,7 +173,8 @@ class EvmKitManager(
             chain = chain,
             rpcSource = syncSource.rpcSource,
             transactionSource = syncSource.transactionSource,
-            walletId = account.id
+            walletId = account.id,
+            scanHistoricalEip20 = account.origin == AccountOrigin.Restored
         )
 
         Erc20Kit.addTransactionSyncer(evmKit)
@@ -246,9 +248,12 @@ class EvmKitManager(
                 if (state == BackgroundManagerState.EnterForeground) {
                     evmKitWrapper?.evmKit?.let { kit ->
                         Handler(Looper.getMainLooper()).postDelayed({
+                            kit.start()
                             kit.refresh()
                         }, 1000)
                     }
+                } else if (state == BackgroundManagerState.EnterBackground) {
+                    evmKitWrapper?.evmKit?.stop()
                 }
             }
         }
@@ -259,6 +264,10 @@ class EvmKitManager(
         evmKitWrapper?.evmKit?.stop()
         evmKitWrapper = null
         currentAccount = null
+    }
+
+    fun refresh() {
+        evmKitWrapper?.evmKit?.refresh()
     }
 }
 
