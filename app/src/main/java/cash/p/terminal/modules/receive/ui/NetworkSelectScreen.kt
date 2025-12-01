@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.description
+import cash.p.terminal.core.title
 import cash.p.terminal.modules.receive.viewmodels.NetworkSelectViewModel
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -29,6 +30,8 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.FullCoin
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.imageUrl
@@ -37,11 +40,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun NetworkSelectScreen(
     navController: NavController,
-    activeAccount: cash.p.terminal.wallet.Account,
+    activeAccount: Account,
     fullCoin: FullCoin,
-    onSelect: (cash.p.terminal.wallet.Wallet) -> Unit
+    onSelect: (Wallet) -> Unit
 ) {
-    val viewModel = viewModel<NetworkSelectViewModel>(factory = NetworkSelectViewModel.Factory(activeAccount, fullCoin))
+    val viewModel = viewModel<NetworkSelectViewModel>(
+        factory = NetworkSelectViewModel.Factory(
+            activeAccount,
+            fullCoin
+        )
+    )
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -68,10 +76,15 @@ fun NetworkSelectScreen(
                 VSpacer(20.dp)
                 CellUniversalLawrenceSection(viewModel.eligibleTokens) { token ->
                     val blockchain = token.blockchain
+                    val description = if (token.type.title.isNotBlank()) {
+                        "${blockchain.description} ${token.type.title}"
+                    } else {
+                        blockchain.description
+                    }
                     SectionUniversalItem {
                         NetworkCell(
                             title = blockchain.name,
-                            subtitle = blockchain.description,
+                            subtitle = description,
                             imageUrl = blockchain.type.imageUrl,
                             onClick = {
                                 coroutineScope.launch {
