@@ -2,13 +2,14 @@ package cash.p.terminal.modules.manageaccount.evmaddress
 
 import android.os.Parcelable
 import androidx.annotation.StringRes
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -25,10 +26,10 @@ import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.parcelize.Parcelize
 
 class PublicViewKeyFragment : BaseComposeFragment(screenshotEnabled = false) {
@@ -51,39 +52,42 @@ class PublicViewKeyFragment : BaseComposeFragment(screenshotEnabled = false) {
 @Composable
 private fun PublicViewKeyScreen(input: Input, navController: NavController) {
     val view = LocalView.current
-    Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
-        AppBar(
-            title = stringResource(input.titleResId),
-            navigationIcon = {
-                HsBackButton(onClick = navController::popBackStack)
-            },
-            menuItems = if (input.showInfo) {
-                listOf(
-                    MenuItem(
-                        title = TranslatableString.ResString(R.string.Info_Title),
-                        icon = R.drawable.ic_info_24,
-                        onClick = {
-                            FaqManager.showFaqPage(navController, FaqManager.faqPathPrivateKeys)
-                        }
+    Scaffold(
+        containerColor = ComposeAppTheme.colors.tyler,
+        topBar = {
+            AppBar(
+                title = stringResource(input.titleResId),
+                navigationIcon = {
+                    HsBackButton(onClick = navController::popBackStack)
+                },
+                menuItems = if (input.showInfo) {
+                    listOf(
+                        MenuItem(
+                            title = TranslatableString.ResString(R.string.Info_Title),
+                            icon = R.drawable.ic_info_24,
+                            onClick = {
+                                FaqManager.showFaqPage(navController, FaqManager.faqPathPrivateKeys)
+                            }
+                        )
                     )
-                )
-            } else {
-                emptyList()
-            }
-        )
+                } else {
+                    emptyList()
+                }
+            )
+        }) { innerPaddings ->
         Column(
             modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top
+                .fillMaxSize()
+                .padding(innerPaddings)
+                .verticalScroll(rememberScrollState())
         ) {
             Spacer(Modifier.height(12.dp))
             HidableContent(input.viewKey)
-            Spacer(Modifier.height(24.dp))
-        }
-        ActionButton(R.string.Alert_Copy) {
-            TextHelper.copyText(input.viewKey)
-            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
+            Spacer(Modifier.weight(1f))
+            ActionButton(R.string.Alert_Copy) {
+                TextHelper.copyText(input.viewKey)
+                HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
+            }
         }
     }
 }
