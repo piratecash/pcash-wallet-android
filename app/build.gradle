@@ -149,9 +149,6 @@ android {
             pickFirsts += ['META-INF/atomicfu.kotlin_module']
             excludes += ['META-INF/INDEX.LIST', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE.md', 'META-INF/NOTICE.md']
         }
-        jniLibs {
-            useLegacyPackaging true
-        }
     }
 
     kotlinOptions {
@@ -381,6 +378,7 @@ dependencies {
 
     def coil_version = "2.6.0"
     implementation "io.coil-kt:coil-compose:$coil_version"
+    implementation 'com.getkeepsafe.relinker:relinker:1.4.5'
     implementation "io.coil-kt:coil-svg:$coil_version"
     implementation("io.coil-kt:coil-gif:$coil_version")
 

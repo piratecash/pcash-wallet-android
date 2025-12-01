@@ -104,6 +104,7 @@ import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
 import cash.p.terminal.wallet.IAccountCleaner
 import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.CoreApp
+import com.getkeepsafe.relinker.ReLinker
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.ICoreApp
@@ -204,6 +205,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+
+        preloadSqlCipher()
 
         startKoin {
             androidContext(this@App)
@@ -386,6 +389,26 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled =
             localStorage.shareCrashDataEnabled
+    }
+
+    /**
+     * Preload sqlcipher library to avoid issues with loading it in some devices
+     * (Fatal Exception: java.lang.UnsatisfiedLinkError
+     * dlopen failed: library "libsqlcipher.so" not found)
+     */
+    private fun preloadSqlCipher() {
+        try {
+            System.loadLibrary("sqlcipher")
+            Timber.i("sqlcipher library loaded via System.loadLibrary")
+        } catch (error: Throwable) {
+            Timber.w(error, "System.loadLibrary(sqlcipher) failed, attempting ReLinker")
+            try {
+                ReLinker.force().loadLibrary(this, "sqlcipher")
+                Timber.i("sqlcipher library loaded via ReLinker")
+            } catch (fallbackError: Throwable) {
+                Timber.e(fallbackError, "Error loading sqlcipher library")
+            }
+        }
     }
 
     private fun initCipherForMonero() {
