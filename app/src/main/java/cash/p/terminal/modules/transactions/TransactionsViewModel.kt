@@ -56,6 +56,7 @@ class TransactionsViewModel(
     private var viewState: ViewState = ViewState.Loading
     private var syncing = false
     private var hasHiddenTransactions: Boolean = false
+    private var filterVersion = 0
 
     val balanceHidden: Boolean
         get() = balanceHiddenManager.balanceHidden
@@ -83,6 +84,20 @@ class TransactionsViewModel(
                 val selectedTransactionWallet = state.selectedToken?.let {
                     TransactionWallet(it.token, it.source, it.token.badge)
                 }
+
+                val newTransactionListId = (selectedTransactionWallet?.hashCode() ?: 0).toString() +
+                        state.selectedTransactionType.name +
+                        state.selectedBlockchain?.uid
+
+                // If filter changed, reset state to show loading and increment version
+                if (transactionListId != newTransactionListId) {
+                    transactionListId = newTransactionListId
+                    filterVersion++
+                    viewState = ViewState.Loading
+                    transactions = null
+                    emitState()
+                }
+
                 service.set(
                     transactionWallets.filterNotNull(),
                     selectedTransactionWallet,
@@ -114,10 +129,6 @@ class TransactionsViewModel(
                     service.reload()
                 }
                 filterHideSuspiciousTx.postValue(state.hideSuspiciousTx)
-
-                transactionListId = selectedTransactionWallet.hashCode().toString() +
-                        state.selectedTransactionType.name +
-                        state.selectedBlockchain?.uid
             }
         }
 
@@ -153,6 +164,9 @@ class TransactionsViewModel(
     private fun handleUpdatedItems(items: List<TransactionItem>) {
         refreshViewItemsJob?.cancel()
         refreshViewItemsJob = viewModelScope.launch(Dispatchers.Default) {
+            // Capture current filter version to detect if filter changes during processing
+            val capturedFilterVersion = filterVersion
+
             val viewItems =
                 if (transactionHiddenManager.transactionHiddenFlow.value.transactionHidden) {
                     when (transactionHiddenManager.transactionHiddenFlow.value.transactionDisplayLevel) {
@@ -171,11 +185,14 @@ class TransactionsViewModel(
                     it.formattedDate
                 }
 
-            transactions = viewItems
-            viewState = ViewState.Success
-
             ensureActive()
-            emitState()
+
+            // Only update state if filter version hasn't changed (ignore stale data)
+            if (capturedFilterVersion == filterVersion) {
+                transactions = viewItems
+                viewState = ViewState.Success
+                emitState()
+            }
         }
     }
 

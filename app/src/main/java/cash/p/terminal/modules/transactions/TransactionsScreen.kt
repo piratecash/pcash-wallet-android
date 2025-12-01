@@ -122,64 +122,75 @@ fun TransactionsScreen(
             }
 
             Crossfade(uiState.viewState, label = "") { viewState ->
-                if (viewState == ViewState.Success) {
-                    transactions?.let { transactionItems ->
-                        if (transactionItems.isEmpty() && !uiState.hasHiddenTransactions) {
-                            if (syncing) {
-                                ListEmptyView(
-                                    text = stringResource(R.string.Transactions_WaitForSync),
-                                    icon = R.drawable.ic_clock
-                                )
-                            } else {
-                                ListEmptyView(
-                                    text = stringResource(R.string.Transactions_EmptyList),
-                                    icon = R.drawable.ic_outgoingraw
-                                )
-                            }
-                        } else {
-                            val listState = rememberSaveable(
-                                uiState.transactionListId,
-                                (accountsViewModel.balanceScreenState as? BalanceScreenState.HasAccount)?.accountViewItem?.id,
-                                saver = LazyListState.Saver
-                            ) {
-                                LazyListState(0, 0)
-                            }
-
-                            val onClick: (TransactionViewItem) -> Unit = remember {
-                                {
-                                    onTransactionClick(
-                                        it,
-                                        viewModel,
-                                        navController
+                when (viewState) {
+                    ViewState.Loading -> {
+                        ListEmptyView(
+                            text = stringResource(R.string.Transactions_WaitForSync),
+                            icon = R.drawable.ic_clock
+                        )
+                    }
+                    ViewState.Success -> {
+                        transactions?.let { transactionItems ->
+                            if (transactionItems.isEmpty() && !uiState.hasHiddenTransactions) {
+                                if (uiState.syncing) {
+                                    ListEmptyView(
+                                        text = stringResource(R.string.Transactions_WaitForSync),
+                                        icon = R.drawable.ic_clock
+                                    )
+                                } else {
+                                    ListEmptyView(
+                                        text = stringResource(R.string.Transactions_EmptyList),
+                                        icon = R.drawable.ic_outgoingraw
                                     )
                                 }
-                            }
+                            } else {
+                                val listState = rememberSaveable(
+                                    uiState.transactionListId,
+                                    (accountsViewModel.balanceScreenState as? BalanceScreenState.HasAccount)?.accountViewItem?.id,
+                                    saver = LazyListState.Saver
+                                ) {
+                                    LazyListState(0, 0)
+                                }
 
-                            val itemsBalanceHidden =
-                                remember(viewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
-                            LazyColumn(state = listState) {
-                                transactionList(
-                                    transactionsMap = transactionItems,
-                                    willShow = viewModel::willShow,
-                                    isItemBalanceHidden = {
-                                        itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden
-                                    },
-                                    onSensitiveValueClick = {
-                                        HudHelper.vibrate(App.instance)
-                                        itemsBalanceHidden[it.uid] =
-                                            !(itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden)
-                                    },
-                                    onClick = onClick,
-                                    onBottomReached = viewModel::onBottomReached
-                                )
-                                if (uiState.hasHiddenTransactions) {
-                                    transactionsHiddenBlock(
-                                        shortBlock = transactionItems.isNotEmpty(),
-                                        onShowAllTransactionsClicked = onShowAllTransactionsClicked
+                                val onClick: (TransactionViewItem) -> Unit = remember {
+                                    {
+                                        onTransactionClick(
+                                            it,
+                                            viewModel,
+                                            navController
+                                        )
+                                    }
+                                }
+
+                                val itemsBalanceHidden =
+                                    remember(viewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
+                                LazyColumn(state = listState) {
+                                    transactionList(
+                                        transactionsMap = transactionItems,
+                                        willShow = viewModel::willShow,
+                                        isItemBalanceHidden = {
+                                            itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden
+                                        },
+                                        onSensitiveValueClick = {
+                                            HudHelper.vibrate(App.instance)
+                                            itemsBalanceHidden[it.uid] =
+                                                !(itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden)
+                                        },
+                                        onClick = onClick,
+                                        onBottomReached = viewModel::onBottomReached
                                     )
+                                    if (uiState.hasHiddenTransactions) {
+                                        transactionsHiddenBlock(
+                                            shortBlock = transactionItems.isNotEmpty(),
+                                            onShowAllTransactionsClicked = onShowAllTransactionsClicked
+                                        )
+                                    }
                                 }
                             }
                         }
+                    }
+                    is ViewState.Error -> {
+                        // Show error state if needed
                     }
                 }
             }
