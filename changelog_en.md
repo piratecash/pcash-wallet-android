@@ -1,3 +1,23 @@
+## 🚀 Main Changes in Version 0.49.3
+_Release Date: December 1, 2025_
+
+### 🛠 Fixes & Improvements
+
+- **Correct display of outgoing ZEC and TON transactions**
+  Fixed an issue where outgoing **ZEC / TON** transactions might not appear in the main transaction list.
+
+- **New BNB token synchronization mechanism**
+  Completely rewritten the synchronization logic for **BNB Smart Chain** tokens, as **Etherscan no longer supports the old API method**.
+  The app now uses a new stable mechanism compatible with current infrastructure.
+
+- **Reduced SQLiteConnection.nativeOpen crashes**
+  Added a protective mechanism and optimizations that significantly reduce the likelihood of `SQLiteConnection.nativeOpen` crashes on certain devices (especially older or low-memory ones).
+
+- **Fixed NavigationExtensionKt.slideFromBottom crash**
+  Resolved a bug that could cause the app to crash when opening screens using the `slideFromBottom` animation.
+
+
+
 ## 🚀 Key Changes in Version 0.49.2
 _Release date: November 22, 2025_
 
