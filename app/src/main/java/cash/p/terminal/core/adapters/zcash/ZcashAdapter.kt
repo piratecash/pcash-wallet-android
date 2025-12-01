@@ -270,9 +270,8 @@ class ZcashAdapter(
         subscribeToStatus()
     }
 
-
     suspend fun getFirstAccount(): Account {
-        return synchronizer.getAccounts().firstOrNull() ?: throw Exception("No account found")
+        return zcashAccount ?: synchronizer.getAccounts().firstOrNull() ?: throw Exception("No account found")
     }
 
     private var syncState: AdapterState = AdapterState.Syncing()

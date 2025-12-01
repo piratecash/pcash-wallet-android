@@ -75,7 +75,7 @@ class PublicKeysViewModel(
             null
         }
 
-        viewModelScope.launch(Dispatchers.Default + CoroutineExceptionHandler { _, _ -> }) {
+        viewModelScope.launch(Dispatchers.IO + CoroutineExceptionHandler { _, _ -> }) {
             requestZCashUfvk()
         }
 
