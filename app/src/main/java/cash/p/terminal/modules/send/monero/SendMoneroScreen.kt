@@ -22,6 +22,7 @@ import cash.p.terminal.modules.address.HSAddressInput
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.availablebalance.AvailableBalance
+import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.fee.HSFee
 import cash.p.terminal.modules.memo.HSMemoInput
 import cash.p.terminal.modules.send.SendConfirmationFragment
@@ -166,6 +167,10 @@ fun SendMoneroScreen(
                 addressCheckerControl = addressCheckerControl,
                 modifier = Modifier.padding(top = 8.dp)
             )
+
+            if (uiState.cautions.isNotEmpty() && amountCaution == null && addressError == null) {
+                Cautions(uiState.cautions)
+            }
 
             ButtonPrimaryYellow(
                 modifier = Modifier

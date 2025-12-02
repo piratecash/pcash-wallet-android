@@ -9,6 +9,8 @@ import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendMoneroAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.ethereum.CautionViewItem
+import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
@@ -25,6 +27,7 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.ViewModelUiState
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -64,6 +67,9 @@ class SendMoneroViewModel(
     var fee by mutableStateOf<BigDecimal?>(null)
         private set
 
+    var cautions by mutableStateOf<List<CautionViewItem>>(emptyList())
+        private set
+
     private val decimalAmount: BigDecimal
         get() = amountState.amount ?: BigDecimal.ZERO
 
@@ -93,7 +99,8 @@ class SendMoneroViewModel(
         amountCaution = amountState.amountCaution,
         canBeSend = amountState.canBeSend && addressState.canBeSend,
         showAddressInput = showAddressInput,
-        address = addressState.address
+        address = addressState.address,
+        cautions = cautions
     )
 
     fun onEnterAmount(amount: BigDecimal?) {
@@ -154,11 +161,19 @@ class SendMoneroViewModel(
     }
 
     private fun recalculateFee() {
-        if (addressState.address?.hex == null || decimalAmount == BigDecimal.ZERO) return
+        if (addressState.address?.hex == null || decimalAmount == BigDecimal.ZERO) {
+            cautions = emptyList()
+            return
+        }
 
         feeInProgress = true
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.Default + CoroutineExceptionHandler { _, error ->
+            fee = null
+            cautions = listOf(createCaution(error).toCautionViewItem())
+            feeInProgress = false
+        }) {
             fee = adapter.estimateFee(decimalAmount, addressState.address!!.hex, memo)
+            cautions = emptyList()
             feeInProgress = false
         }
     }
