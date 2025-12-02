@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.walletconnect
 
+import cash.p.terminal.core.utils.Utils
 import com.reown.walletkit.client.Wallet
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.ActiveAccountState
@@ -37,8 +38,17 @@ class WCSessionManager(
 
     private var requestsQueue = listOf<Wallet.Model.SessionRequest>()
 
-    fun start() {
-        syncSessions()
+    suspend fun start() {
+        // Waiting for WalletKit to be initialized in App
+        Utils.waitUntil(5_000, 100) {
+            try {
+                syncSessions()
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+
 
         coroutineScope.launch {
             accountManager.activeAccountStateFlow.collect { activeAccountState ->

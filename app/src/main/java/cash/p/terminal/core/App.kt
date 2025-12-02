@@ -17,6 +17,7 @@ import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BaseTokenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.managers.EvmSyncSourceManager
@@ -43,7 +44,6 @@ import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TronAccountManager
 import cash.p.terminal.core.managers.TronKitManager
-import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
@@ -69,11 +69,14 @@ import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.settings.appearance.LaunchScreenService
 import cash.p.terminal.modules.theme.ThemeService
 import cash.p.terminal.modules.theme.ThemeType
+import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.WCWalletRequestHandler
 import cash.p.terminal.modules.walletconnect.handler.WCHandlerEvm
+import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
 import cash.p.terminal.modules.walletconnect.storage.WCSessionStorage
+import cash.p.terminal.wallet.IAccountCleaner
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IEnabledWalletStorage
@@ -92,6 +95,7 @@ import coil.ImageLoaderFactory
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
+import com.getkeepsafe.relinker.ReLinker
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.m2049r.levin.util.NetCipherHelper
 import com.m2049r.levin.util.NetCipherHelper.OnStatusChangedListener
@@ -100,11 +104,8 @@ import com.reown.android.Core
 import com.reown.android.CoreClient
 import com.reown.android.relay.ConnectionType
 import com.reown.walletkit.client.Wallet
-import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
-import cash.p.terminal.wallet.IAccountCleaner
 import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.CoreApp
-import com.getkeepsafe.relinker.ReLinker
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.ICoreApp
@@ -340,6 +341,8 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
         wcSessionManager = WCSessionManager(accountManager, WCSessionStorage(appDatabase))
 
+        WCDelegate.initialize()
+
         baseTokenManager = BaseTokenManager(coinManager, localStorage)
         balanceViewTypeManager = BalanceViewTypeManager(localStorage)
 
@@ -470,11 +473,11 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             connectionType = connectionType,
             application = this,
             onError = { error ->
-                Log.w("AAA", "error", error.throwable)
+                logError(error.throwable, "CoreClient.initialize error")
             },
         )
         WalletKit.initialize(Wallet.Params.Init(core = CoreClient)) { error ->
-            Log.e("AAA", "error", error.throwable)
+            logError(error.throwable, "WalletKit.initialize error")
         }
     }
 

@@ -5,6 +5,7 @@ import com.reown.android.CoreClient
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import cash.p.terminal.core.App
+import cash.p.terminal.core.utils.Utils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,9 +38,18 @@ object WCDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
     var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.VerifyContext>? = null
     var sessionRequestEvent: Wallet.Model.SessionRequest? = null
 
-    init {
-        CoreClient.setDelegate(this)
-        WalletKit.setWalletDelegate(this)
+    fun initialize() {
+        scope.launch {
+            Utils.waitUntil(5_000, 100) {
+                try {
+                    CoreClient.setDelegate(this@WCDelegate)
+                    WalletKit.setWalletDelegate(this@WCDelegate)
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+        }
     }
 
     override val onSessionAuthenticate: ((Wallet.Model.SessionAuthenticate, Wallet.Model.VerifyContext) -> Unit)?
