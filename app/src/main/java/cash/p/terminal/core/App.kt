@@ -420,17 +420,17 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
         NetCipherHelper.register(object : OnStatusChangedListener {
             override fun connected() {
                 Timber.tag(cipherTag).d("CONNECTED")
-                WalletManager.getInstance().setProxy(NetCipherHelper.getProxy())
+                tryOrNull { WalletManager.getInstance().setProxy(NetCipherHelper.getProxy()) }
             }
 
             override fun disconnected() {
                 Timber.tag(cipherTag).d("DISCONNECTED")
-                WalletManager.getInstance().setProxy("")
+                tryOrNull { WalletManager.getInstance().setProxy("") }
             }
 
             override fun notInstalled() {
                 Timber.tag(cipherTag).d("NOT INSTALLED")
-                WalletManager.getInstance().setProxy("")
+                tryOrNull { WalletManager.getInstance().setProxy("") }
             }
 
             override fun notEnabled() {
