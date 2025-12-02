@@ -11,8 +11,6 @@ plugins {
     id 'kotlin-parcelize'
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.compose' version('2.2.0')
-    id 'com.google.firebase.crashlytics'
-    id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'androidx.navigation.safeargs.kotlin'
 }
@@ -220,8 +218,6 @@ dependencies {
     implementation libs.appcompat
     implementation "androidx.constraintlayout:constraintlayout:$constraint_version"
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
     implementation(libs.kotlinx.serialization.json)
 
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
@@ -414,9 +410,6 @@ dependencies {
 
     api 'com.jaredrummler:android-shell:1.0.0'
     api 'com.offbynull.portmapper:portmapper:2.0.5'
-
-    implementation libs.google.play.app.update
-    implementation libs.google.play.app.update.ktx
 
     implementation libs.tangem.sdk
 }
