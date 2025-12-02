@@ -1,3 +1,32 @@
+## 🚀 Main Changes in Version 0.49.4
+_Release Date: December 2, 2025_
+
+### 🛠 Fixes & Improvements
+
+- **Fixed copy button layout**
+  The Copy button now fits correctly in the menu for EVM addresses and Zcash Unified Full Viewing Key.
+
+- **Added Zcash address types**
+  In the Receive mode, the app now shows address types:
+  **Transparent / Unified / Shielded**, depending on the selected network.
+
+- **Fixed minor price change update issue**
+  Corrected a bug where asset prices were not updated if the change was too small.
+
+- **Fixed WalletManager Monero crash on Pixel 6 Pro**
+  Resolved a crash affecting some Pixel 6 Pro devices when using the Monero wallet.
+
+- **Fixed QR scan crash on the Swap screen**
+  QR scanner now works reliably without causing a crash.
+
+- **Fixed Monero fee crash on some devices**
+  Improved Monero fee handling to prevent app crashes.
+
+- **Improved WalletKit initialization**
+  Enhanced initialization logic, preventing crashes related to WalletKit on certain devices.
+
+
+
 ## 🚀 Main Changes in Version 0.49.3
 _Release Date: December 1, 2025_
 
