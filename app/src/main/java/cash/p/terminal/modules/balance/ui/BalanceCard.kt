@@ -240,6 +240,7 @@ fun BalanceCardInner(
                                                     modifier = Modifier.oneLineHeight(
                                                         ComposeAppTheme.typography.subhead2
                                                     ),
+                                                    overflow = TextOverflow.Ellipsis,
                                                     maxLines = 1,
                                                 )
                                                 if (viewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
@@ -250,6 +251,7 @@ fun BalanceCardInner(
                                                         modifier = Modifier.oneLineHeight(
                                                             ComposeAppTheme.typography.subhead2
                                                         ),
+                                                        overflow = TextOverflow.Ellipsis,
                                                         maxLines = 1,
                                                     )
                                                 }
