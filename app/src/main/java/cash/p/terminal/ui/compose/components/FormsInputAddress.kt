@@ -31,21 +31,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.navigation.slideFromRightForResult
 import cash.p.terminal.entities.Address
-import cash.p.terminal.modules.address.AddressParserViewModel
-import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.contacts.ChooseContactFragment
-import cash.p.terminal.core.openQrScanner
+import cash.p.terminal.navigation.slideFromRightForResult
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSpacer
+import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.entities.FormsInputStateWarning
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
-import java.math.BigDecimal
 
 @Composable
 fun FormsInputAddress(
@@ -58,8 +55,8 @@ fun FormsInputAddress(
     navController: NavController,
     chooseContactEnable: Boolean,
     blockchainType: BlockchainType?,
-    onValueChange: (String) -> Unit,
-    onAmountChange: (BigDecimal) -> Unit,
+    onQrScanClick: () -> Unit,
+    onValueChange: (String) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
     val borderColor = when (state) {
@@ -70,6 +67,7 @@ fun FormsInputAddress(
                 ComposeAppTheme.colors.red50
             }
         }
+
         else -> ComposeAppTheme.colors.steel20
     }
 
@@ -127,8 +125,9 @@ fun FormsInputAddress(
                 is DataState.Loading -> {
                     HSCircularProgressIndicator()
                 }
+
                 is DataState.Error -> {
-                    if(showStateIcon) {
+                    if (showStateIcon) {
                         Icon(
                             modifier = Modifier.padding(end = 8.dp),
                             painter = painterResource(id = R.drawable.ic_attention_20),
@@ -139,8 +138,9 @@ fun FormsInputAddress(
                         HSpacer(28.dp)
                     }
                 }
+
                 is DataState.Success -> {
-                    if(showStateIcon) {
+                    if (showStateIcon) {
                         Icon(
                             modifier = Modifier.padding(end = 8.dp),
                             painter = painterResource(id = R.drawable.ic_check_20),
@@ -151,6 +151,7 @@ fun FormsInputAddress(
                         HSpacer(28.dp)
                     }
                 }
+
                 else -> {
                     Spacer(modifier = Modifier.width(28.dp))
                 }
@@ -185,15 +186,7 @@ fun FormsInputAddress(
                 ButtonSecondaryCircle(
                     modifier = Modifier.padding(end = 8.dp),
                     icon = R.drawable.ic_qr_scan_20,
-                    onClick = {
-                        navController.openQrScanner { scannedText ->
-                            val textProcessed = textPreprocessor.process(scannedText)
-                            (textPreprocessor as? AddressParserViewModel)?.amountUnique?.amount?.let {
-                                onAmountChange(it)
-                            }
-                            onValueChange.invoke(textProcessed)
-                        }
-                    }
+                    onClick = onQrScanClick
                 )
 
                 val clipboardManager = LocalClipboardManager.current
@@ -205,9 +198,6 @@ fun FormsInputAddress(
                     onClick = {
                         clipboardManager.getText()?.text?.let { textInClipboard ->
                             val textProcessed = textPreprocessor.process(textInClipboard)
-                            (textPreprocessor as? AddressParserViewModel)?.amountUnique?.amount?.let {
-                                onAmountChange(it)
-                            }
                             onValueChange.invoke(textProcessed)
                         }
                     },

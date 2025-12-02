@@ -8,6 +8,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui.compose.components.FormsInputAddress
@@ -80,9 +81,14 @@ fun HSAddressInput(
         navController = navController,
         chooseContactEnable = viewModel.hasContacts(),
         blockchainType = viewModel.blockchainType,
+        onQrScanClick = {
+            navController.openQrScanner { scannedText ->
+                val textProcessed = textPreprocessor.process(scannedText)
+                viewModel.parseText(textProcessed)
+            }
+        },
         onValueChange = {
             viewModel.parseText(it)
-        },
-        onAmountChange = {}
+        }
     )
 }

@@ -209,7 +209,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             )
         }
         composablePage<SwapSettingsPage> {
-            SwapSettingsScreen(navController = swapNavController, swapViewModel = viewModel)
+            SwapSettingsScreen(navController = navController, swapViewModel = viewModel)
         }
         composablePage<SwapTransactionSettingsPage> {
             SwapTransactionSettingsScreen(navController = swapNavController)
