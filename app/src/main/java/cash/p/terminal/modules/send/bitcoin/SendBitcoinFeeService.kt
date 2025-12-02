@@ -85,18 +85,22 @@ class SendBitcoinFeeService(private val adapter: ISendBitcoinAdapter) {
         emitState()
     }
 
-    fun setMemo(memo: String?) {
+    fun setMemo(memo: String?, forceEmit: Boolean = true) {
         this.memo = memo
 
         refreshFeeInfo()
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
-    fun setChangeToFirstInput(changeToFirstInput: Boolean) {
+    fun setChangeToFirstInput(changeToFirstInput: Boolean, forceEmit: Boolean = true) {
         this.changeToFirstInput = changeToFirstInput
 
         refreshFeeInfo()
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
     fun setUtxoFilters(utxoFilters: UtxoFilters) {

@@ -90,12 +90,14 @@ class SendBitcoinAmountService(
         }
     }
 
-    fun setAmount(amount: BigDecimal?) {
+    fun setAmount(amount: BigDecimal?, forceEmit: Boolean = true) {
         this.amount = amount
 
         validateAmount()
 
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
     fun setValidAddress(validAddress: Address?) {
@@ -126,32 +128,38 @@ class SendBitcoinAmountService(
         emitState()
     }
 
-    fun setUserMinimumSendAmount(userMinimumSendAmount: Int?) {
+    fun setUserMinimumSendAmount(userMinimumSendAmount: Int?, forceEmit: Boolean = true) {
         this.userMinimumSendAmount = userMinimumSendAmount?.let {
             adapter.satoshiToBTC(it.toLong())
         }
 
         validateAmount()
 
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
-    fun setChangeToFirstInput(changeToFirstInput: Boolean) {
+    fun setChangeToFirstInput(changeToFirstInput: Boolean, forceEmit: Boolean = true) {
         this.changeToFirstInput = changeToFirstInput
 
         refreshAvailableBalance()
         validateAmount()
 
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
-    fun setUtxoFilters(utxoFilters: UtxoFilters) {
+    fun setUtxoFilters(utxoFilters: UtxoFilters, forceEmit: Boolean = true) {
         this.utxoFilters = utxoFilters
 
         refreshAvailableBalance()
         validateAmount()
 
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
     fun setCustomUnspentOutputs(customUnspentOutputs: List<UnspentOutputInfo>?) {
@@ -161,13 +169,15 @@ class SendBitcoinAmountService(
         emitState()
     }
 
-    fun setMemo(memo: String?) {
+    fun setMemo(memo: String?, forceEmit: Boolean = true) {
         this.memo = memo
 
         refreshAvailableBalance()
         validateAmount()
 
-        emitState()
+        if (forceEmit) {
+            emitState()
+        }
     }
 
     data class State(

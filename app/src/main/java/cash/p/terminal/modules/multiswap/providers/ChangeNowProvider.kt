@@ -439,15 +439,8 @@ class ChangeNowProvider(
                     amount = amountIn,
                     recommendedGasRate = null,
                     minimumSendAmount = null,
-                    changeToFirstInput = true,
-                    utxoFilters = UtxoFilters(
-                        scriptTypes = listOf(
-                            ScriptType.P2PKH,
-                            ScriptType.P2WPKHSH,
-                            ScriptType.P2WPKH
-                        ),
-                        maxOutputsCountForInputs = 10
-                    ),
+                    changeToFirstInput = false,
+                    utxoFilters = UtxoFilters(),
                     feesMap = emptyMap()
                 )
             }

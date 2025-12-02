@@ -135,7 +135,7 @@ fun SwapConfirmScreen(
                 ButtonPrimaryYellow(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap),
-                    enabled = buttonEnabled,
+                    enabled = buttonEnabled && uiState.amountOut != null,
                     onClick = {
                         coroutineScope.launch {
                             buttonEnabled = false
