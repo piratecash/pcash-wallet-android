@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.FaqManager
@@ -241,10 +242,11 @@ private fun KeyActions(
                     ) {
                         navController.authorizedAction {
                             navController.slideFromRight(
-                                R.id.recoveryPhraseFragment,
-                                RecoveryPhraseFragment.Input(
-                                    account = account,
-                                    recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Mnemonic
+                                MainGraphDirections.actionGlobalToRecoveryPhraseFragment(
+                                    RecoveryPhraseFragment.Input(
+                                        account = account,
+                                        recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Mnemonic
+                                    )
                                 )
                             )
                         }
@@ -262,10 +264,11 @@ private fun KeyActions(
                         navController.authorizedAction {
                             navController.premiumAction {
                                 navController.slideFromRight(
-                                    R.id.recoveryPhraseFragment,
-                                    RecoveryPhraseFragment.Input(
-                                        account = account,
-                                        recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                    MainGraphDirections.actionGlobalToRecoveryPhraseFragment(
+                                        RecoveryPhraseFragment.Input(
+                                            account = account,
+                                            recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                        )
                                     )
                                 )
                             }
