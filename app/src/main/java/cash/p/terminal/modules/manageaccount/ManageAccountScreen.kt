@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.ripple
 import androidx.compose.runtime.Composable
@@ -80,7 +82,7 @@ internal fun ManageAccountScreen(
         onCloseClicked()
     }
 
-    Column(modifier = Modifier.Companion.background(color = ComposeAppTheme.colors.tyler)) {
+    Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
         AppBar(
             title = viewState.title,
             navigationIcon = {
@@ -95,11 +97,13 @@ internal fun ManageAccountScreen(
             )
         )
 
-        Column {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState())
+        ) {
             HeaderText(stringResource(id = R.string.ManageAccount_Name))
 
             FormsInput(
-                modifier = Modifier.Companion.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 initial = viewState.title,
                 hint = "",
                 onValueChange = onNameChanged
@@ -124,7 +128,7 @@ internal fun ManageAccountScreen(
             when (viewState.headerNote) {
                 HeaderNote.NonStandardAccount -> {
                     NoteError(
-                        modifier = Modifier.Companion.padding(
+                        modifier = Modifier.padding(
                             start = 16.dp,
                             end = 16.dp,
                             top = 32.dp
@@ -141,7 +145,7 @@ internal fun ManageAccountScreen(
 
                 HeaderNote.NonRecommendedAccount -> {
                     NoteWarning(
-                        modifier = Modifier.Companion.padding(
+                        modifier = Modifier.padding(
                             start = 16.dp,
                             end = 16.dp,
                             top = 32.dp
