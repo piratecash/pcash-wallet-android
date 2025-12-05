@@ -3,7 +3,7 @@ package cash.p.terminal.modules.transactionInfo
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.PendingTransactionMatcher
-import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
+import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
@@ -39,12 +39,12 @@ import java.math.BigDecimal
 
 class TransactionInfoService(
     initialTransactionRecord: TransactionRecord,
-    private val changeNowTransactionId: String?,
+    private val userSwapTransactionId: String?,
     private val adapter: ITransactionsAdapter,
     private val marketKit: MarketKitWrapper,
     private val currencyManager: CurrencyManager,
     private val nftMetadataService: NftMetadataService,
-    private val updateChangeNowStatusesUseCase: UpdateChangeNowStatusesUseCase,
+    private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase,
     transactionStatusUrl: Pair<String, String>?
 ) {
     private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
@@ -264,7 +264,7 @@ class TransactionInfoService(
     }
 
     suspend fun start() = withContext(Dispatchers.IO) {
-        handleLastBlockUpdate(getChangeNowTransactionStatus())
+        handleLastBlockUpdate(getUserSwapTransactionStatus())
         _transactionInfoItemFlow.update { transactionInfoItem }
 
         launch {
@@ -292,7 +292,7 @@ class TransactionInfoService(
         launch {
             adapter.lastBlockUpdatedFlowable.asFlow()
                 .collect {
-                    handleLastBlockUpdate(getChangeNowTransactionStatus())
+                    handleLastBlockUpdate(getUserSwapTransactionStatus())
                 }
         }
 
@@ -325,9 +325,9 @@ class TransactionInfoService(
     }
 
 
-    private suspend fun getChangeNowTransactionStatus(): TransactionStatus? =
-        changeNowTransactionId?.let { changeNowTransactionId ->
-            updateChangeNowStatusesUseCase.updateTransactionStatus(changeNowTransactionId)
+    private suspend fun getUserSwapTransactionStatus(): TransactionStatus? =
+        userSwapTransactionId?.let { userSwapTransactionId ->
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus(userSwapTransactionId)
                 .toUniversalStatus()
         }
 

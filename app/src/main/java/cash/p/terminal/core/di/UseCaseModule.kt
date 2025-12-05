@@ -5,7 +5,7 @@ import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
 import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
 import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
-import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
+import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
@@ -21,7 +21,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val useCaseModule = module {
-    factoryOf(::UpdateChangeNowStatusesUseCase)
+    singleOf(::UpdateSwapProviderTransactionsStatusUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
     factoryOf(::ValidateMoneroHeightUseCase)
     factoryOf(::GetLocalizedAssetUseCase)

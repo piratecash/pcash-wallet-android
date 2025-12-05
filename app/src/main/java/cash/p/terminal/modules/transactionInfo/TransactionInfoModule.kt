@@ -26,13 +26,13 @@ object TransactionInfoModule {
             val adapter: ITransactionsAdapter = App.transactionAdapterManager.getAdapter(transactionSource)!!
             val service = TransactionInfoService(
                 initialTransactionRecord = transactionItem.record,
-                changeNowTransactionId = transactionItem.changeNowTransactionId,
+                userSwapTransactionId = transactionItem.changeNowTransactionId,
                 adapter = adapter,
                 marketKit = App.marketKit,
                 currencyManager = App.currencyManager,
                 nftMetadataService = NftMetadataService(App.nftMetadataManager),
                 transactionStatusUrl = transactionItem.transactionStatusUrl,
-                updateChangeNowStatusesUseCase = getKoinInstance()
+                updateSwapProviderTransactionsStatusUseCase = getKoinInstance()
             )
             val factory = TransactionInfoViewItemFactory(
                 transactionSource.blockchain.type.resendable,

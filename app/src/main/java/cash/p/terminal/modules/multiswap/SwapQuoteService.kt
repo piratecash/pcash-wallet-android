@@ -1,6 +1,9 @@
 package cash.p.terminal.modules.multiswap
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import cash.p.terminal.modules.multiswap.providers.AllBridgeProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.MayaProvider
@@ -13,6 +16,7 @@ import cash.p.terminal.modules.multiswap.providers.ThorChainProvider
 import cash.p.terminal.modules.multiswap.providers.UniswapProvider
 import cash.p.terminal.modules.multiswap.providers.UniswapV3Provider
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
+import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.wallet.Token
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +34,10 @@ import kotlinx.coroutines.withTimeout
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
-class SwapQuoteService {
-    private val changeNowProvider: ChangeNowProvider by inject(ChangeNowProvider::class.java)
+class SwapQuoteService(
+    changeNowProvider: ChangeNowProvider,
+    quickexProvider: QuickexProvider
+) {
     private val stonFiProvider: StonFiProvider by inject(StonFiProvider::class.java)
 
     private companion object {
@@ -47,6 +53,7 @@ class SwapQuoteService {
         UniswapProvider,
         UniswapV3Provider,
         changeNowProvider,
+        quickexProvider,
         ThorChainProvider,
         MayaProvider,
         AllBridgeProvider,
@@ -59,7 +66,7 @@ class SwapQuoteService {
     private var quoting = false
     private var quotes: List<SwapProviderQuote> = listOf()
     private var preferredProvider: IMultiSwapProvider? = null
-    private var error: Throwable? = null
+    private var error by mutableStateOf<Throwable?>(null)
     private var quote: SwapProviderQuote? = null
 
     private val _stateFlow = MutableStateFlow(
@@ -175,7 +182,10 @@ class SwapQuoteService {
                             SwapProviderQuote(provider = provider, swapQuote = quote)
                         }
                     } catch (e: SwapDepositTooSmall) {
-                        error = e
+                        // Save only lowest min value error
+                        if (error == null || ((error as? SwapDepositTooSmall)?.minValue?.let { it > e.minValue } == true)) {
+                            error = e
+                        }
                         null
                     } catch (e: Throwable) {
                         Log.d("AAA", "fetchQuoteError: ${provider.id}", e)

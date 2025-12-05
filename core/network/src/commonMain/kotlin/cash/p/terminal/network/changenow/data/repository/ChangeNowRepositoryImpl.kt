@@ -3,7 +3,9 @@ package cash.p.terminal.network.changenow.data.repository
 import cash.p.terminal.network.changenow.api.ChangeNowApi
 import cash.p.terminal.network.changenow.data.entity.request.NewTransactionRequest
 import cash.p.terminal.network.changenow.data.mapper.ChangeNowMapper
+import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.repository.ChangeNowRepository
+import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -11,7 +13,7 @@ import java.math.BigDecimal
 internal class ChangeNowRepositoryImpl(
     private val changeNowApi: ChangeNowApi,
     private val changeNowMapper: ChangeNowMapper
-) : ChangeNowRepository {
+) : ChangeNowRepository, SwapProviderTransactionStatusRepository {
     override suspend fun getAvailableCurrencies() = withContext(Dispatchers.IO) {
         changeNowApi.getAvailableCurrencies().let(changeNowMapper::mapCurrencyDtoToCurrency)
     }
@@ -41,9 +43,10 @@ internal class ChangeNowRepositoryImpl(
     }
 
     override suspend fun getTransactionStatus(
-        transactionId: String
-    ) = withContext(Dispatchers.IO) {
+        transactionId: String,
+        destinationAddress: String
+    ): TransactionStatusEnum = withContext(Dispatchers.IO) {
         changeNowApi.getTransactionStatus(transactionId)
-            .let(changeNowMapper::mapTransactionStatusDto)
+            .let(changeNowMapper::mapTransactionStatusDto).status
     }
 }

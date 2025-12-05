@@ -4,17 +4,17 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import cash.p.terminal.entities.ChangeNowTransaction
+import cash.p.terminal.entities.SwapProviderTransaction
 import java.math.BigDecimal
 
 @Dao
-interface ChangeNowTransactionsDao {
+interface SwapProviderTransactionsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(changeNowTransaction: ChangeNowTransaction)
+    fun insert(swapProviderTransaction: SwapProviderTransaction)
 
     @Query(
-        "SELECT * FROM ChangeNowTransaction WHERE " +
+        "SELECT * FROM SwapProviderTransaction WHERE " +
                 "((coinUidIn = :coinUid AND blockchainTypeIn = :blockchainType AND addressIn = :address) OR " +
                 "(coinUidOut = :coinUid AND blockchainTypeOut = :blockchainType AND addressOut = :address)) AND " +
                 "status not in (:statusesExcluded) ORDER BY date DESC LIMIT :limit"
@@ -25,13 +25,13 @@ interface ChangeNowTransactionsDao {
         address: String,
         statusesExcluded: List<String>,
         limit: Int
-    ): List<ChangeNowTransaction>
+    ): List<SwapProviderTransaction>
 
-    @Query("SELECT * FROM ChangeNowTransaction WHERE transactionId = :transactionId")
-    fun getTransaction(transactionId: String): ChangeNowTransaction?
+    @Query("SELECT * FROM SwapProviderTransaction WHERE transactionId = :transactionId")
+    fun getTransaction(transactionId: String): SwapProviderTransaction?
 
     @Query(
-        "SELECT * FROM ChangeNowTransaction WHERE " +
+        "SELECT * FROM SwapProviderTransaction WHERE " +
                 "(coinUidIn = :coinUid AND blockchainTypeIn = :blockchainType AND date >= :dateFrom AND date <= :dateTo) " +
                 "AND (:amountIn is NULL OR amountIn == :amountIn) ORDER BY date DESC LIMIT 1"
     )
@@ -41,15 +41,15 @@ interface ChangeNowTransactionsDao {
         blockchainType: String,
         dateFrom: Long,
         dateTo: Long
-    ): ChangeNowTransaction?
+    ): SwapProviderTransaction?
 
-    @Query("SELECT * FROM ChangeNowTransaction WHERE outgoingRecordUid = :outgoingRecordUid")
+    @Query("SELECT * FROM SwapProviderTransaction WHERE outgoingRecordUid = :outgoingRecordUid")
     fun getByOutgoingRecordUid(
         outgoingRecordUid: String
-    ): ChangeNowTransaction?
+    ): SwapProviderTransaction?
 
     @Query(
-        "SELECT * FROM ChangeNowTransaction WHERE " +
+        "SELECT * FROM SwapProviderTransaction WHERE " +
                 "(coinUidOut = :coinUid AND blockchainTypeOut = :blockchainType AND date >= :dateFrom AND date <= :dateTo) ORDER BY date DESC LIMIT 1"
     )
     fun getByTokenOut(
@@ -57,5 +57,5 @@ interface ChangeNowTransactionsDao {
         blockchainType: String,
         dateFrom: Long,
         dateTo: Long
-    ): ChangeNowTransaction?
+    ): SwapProviderTransaction?
 }

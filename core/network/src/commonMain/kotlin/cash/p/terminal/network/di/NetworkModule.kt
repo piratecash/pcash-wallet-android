@@ -10,13 +10,19 @@ import cash.p.terminal.network.binance.api.TonRpcApi
 import cash.p.terminal.network.binance.api.TonRpcApiImpl
 import cash.p.terminal.network.binance.api.TronRpcApi
 import cash.p.terminal.network.binance.api.TronRpcApiImpl
+import cash.p.terminal.network.changenow.data.repository.ChangeNowRepositoryImpl
 import cash.p.terminal.network.changenow.di.networkChangeNowModule
 import cash.p.terminal.network.data.buildNetworkClient
 import cash.p.terminal.network.pirate.di.networkPirateModule
 import cash.p.terminal.network.piratenews.di.networkPirateNewsModule
+import cash.p.terminal.network.quickex.data.repository.QuickexRepositoryImpl
+import cash.p.terminal.network.quickex.di.networkQuickexModule
 import cash.p.terminal.network.stonfi.di.networkStonFiModule
+import cash.p.terminal.network.swaprepository.SwapProvider
+import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.zcash.di.networkZcashModule
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -30,9 +36,23 @@ val networkModule = module {
     factoryOf(::TronRpcApiImpl) bind TronRpcApi::class
     factoryOf(::TonRpcApiImpl) bind TonRpcApi::class
 
+    single<SwapProviderTransactionStatusRepository>(named(SwapProvider.CHANGENOW)) {
+        ChangeNowRepositoryImpl(
+            get(),
+            get()
+        )
+    }
+    single<SwapProviderTransactionStatusRepository>(named(SwapProvider.QUICKEX)) {
+        QuickexRepositoryImpl(
+            get(),
+            get()
+        )
+    }
+
     includes(
         networkPirateModule,
         networkChangeNowModule,
+        networkQuickexModule,
         networkPirateNewsModule,
         networkStonFiModule,
         networkZcashModule,

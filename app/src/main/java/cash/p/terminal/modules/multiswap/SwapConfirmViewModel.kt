@@ -15,6 +15,7 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
@@ -221,10 +222,14 @@ class SwapConfirmViewModel(
     }
 
     private fun isSendable(): Boolean {
-        return swapProvider is ChangeNowProvider || sendTransactionState.sendable
+        return swapProvider is ChangeNowProvider ||
+                swapProvider is QuickexProvider ||
+                sendTransactionState.sendable
     }
 
-    private fun needUseTimer() = swapProvider !is ChangeNowProvider
+    private fun needUseTimer() =
+        swapProvider !is ChangeNowProvider &&
+        swapProvider !is QuickexProvider
 
     override fun onCleared() {
         timerService.stop()
@@ -302,6 +307,8 @@ class SwapConfirmViewModel(
 
     fun onTransactionCompleted(result: SendTransactionResult) {
         if (swapProvider is ChangeNowProvider) {
+            swapProvider.onTransactionCompleted(result)
+        } else if (swapProvider is QuickexProvider) {
             swapProvider.onTransactionCompleted(result)
         }
     }

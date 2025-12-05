@@ -3,7 +3,7 @@ package cash.p.terminal.modules.transactions
 import cash.p.terminal.core.converters.PendingTransactionConverter
 import cash.p.terminal.core.managers.PendingTransactionRepository
 import cash.p.terminal.core.managers.TransactionAdapterManager
-import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.getShortOutgoingTransactionRecord
 import cash.p.terminal.modules.contacts.model.Contact
@@ -11,7 +11,6 @@ import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class TransactionRecordRepository(
     private val adapterManager: TransactionAdapterManager,
-    private val changeNowTransactionsStorage: ChangeNowTransactionsStorage,
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val pendingRepository: PendingTransactionRepository,
     private val pendingConverter: PendingTransactionConverter
 ) : ITransactionRecordRepository {
@@ -353,7 +352,7 @@ class TransactionRecordRepository(
                                 val shortOutgoingTransactionRecord = record.getShortOutgoingTransactionRecord()
 
                                 if (shortOutgoingTransactionRecord?.token != null &&
-                                    changeNowTransactionsStorage.getByCoinUidIn(
+                                    swapProviderTransactionsStorage.getByCoinUidIn(
                                         coinUid = shortOutgoingTransactionRecord.token.coin.uid,
                                         blockchainType = shortOutgoingTransactionRecord.token.blockchainType.uid,
                                         amountIn = shortOutgoingTransactionRecord.amountOut,
