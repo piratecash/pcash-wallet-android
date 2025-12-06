@@ -32,6 +32,10 @@
         android:id="@+id/actionGlobalToAccountTypeNotSupportedDialog"
         app:destination="@id/accountTypeNotSupportedDialog" />
 
+    <action
+        android:id="@+id/actionGlobalToRecoveryPhraseFragment"
+        app:destination="@id/recoveryPhraseFragment" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="cash.p.terminal.modules.main.MainFragment">
@@ -89,7 +93,11 @@
         android:name="cash.p.terminal.modules.manageaccount.evmaddress.PublicViewKeyFragment"/>
     <fragment
         android:id="@+id/recoveryPhraseFragment"
-        android:name="cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment"/>
+        android:name="cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment$Input" />
+    </fragment>
     <fragment
         android:id="@+id/evmPrivateKeyFragment"
         android:name="cash.p.terminal.modules.manageaccount.evmprivatekey.EvmPrivateKeyFragment"/>

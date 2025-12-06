@@ -1,20 +1,20 @@
 package cash.p.terminal.core.storage
 
-import cash.p.terminal.entities.ChangeNowTransaction
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.wallet.Token
 import java.math.BigDecimal
 
 class LocalTransactionsStorage(appDatabase: AppDatabase) {
 
-    private val dao by lazy { appDatabase.changeNowTransactionsDao() }
+    private val dao by lazy { appDatabase.swapProviderTransactionsDao() }
 
     private companion object {
         const val THRESHOLD_MSEC = 30000
     }
 
     fun save(
-        changeNowTransaction: ChangeNowTransaction
-    ) = dao.insert(changeNowTransaction)
+        swapProviderTransaction: SwapProviderTransaction
+    ) = dao.insert(swapProviderTransaction)
 
     fun getAll(
         token: Token,

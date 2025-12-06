@@ -30,7 +30,6 @@ import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
 import kotlin.getValue
-import kotlin.math.abs
 
 class SendTonViewModel(
     val wallet: Wallet,
@@ -52,14 +51,6 @@ class SendTonViewModel(
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
-
-    // Calculate the decimal rate between the send token and the fee token
-    private val decimalDiff = sendToken.decimals - feeToken.decimals
-    private val decimalRate = if(decimalDiff < 0) {
-        1.toBigDecimal().divide(BigDecimal.TEN.pow(abs(decimalDiff)))
-    } else {
-        BigDecimal.TEN.pow(decimalDiff)
-    }
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -118,7 +109,7 @@ class SendTonViewModel(
         addressError = addressState.addressError,
         canBeSend = (feeState.feeStatus is FeeStatus.Success) && amountState.canBeSend && addressState.canBeSend,
         showAddressInput = showAddressInput,
-        fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
+        fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
         feeInProgress = feeState.inProgress,
         address = addressState.address
     )
@@ -139,7 +130,7 @@ class SendTonViewModel(
         ).firstOrNull()
         return SendConfirmationData(
             amount = amountState.amount!!,
-            fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
+            fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
             address = address,
             contact = contact,
             coin = wallet.coin,
@@ -173,7 +164,7 @@ class SendTonViewModel(
                 wallet = wallet,
                 token = sendToken,
                 amount = amountState.amount!!,
-                fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
+                fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
                 fromAddress = "",  // TON doesn't require from address
                 toAddress = addressState.address!!.hex,
                 memo = memo,

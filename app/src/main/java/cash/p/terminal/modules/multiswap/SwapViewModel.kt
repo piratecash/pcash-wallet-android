@@ -263,7 +263,7 @@ class SwapViewModel(
         ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val swapQuoteService = SwapQuoteService()
+            val swapQuoteService: SwapQuoteService by inject(SwapQuoteService::class.java)
             val tokenBalanceService = TokenBalanceService(App.adapterManager)
             val priceImpactService = PriceImpactService()
 

@@ -55,10 +55,11 @@ import cash.p.terminal.core.storage.migrations.Migration_77_78
 import cash.p.terminal.core.storage.migrations.Migration_78_79
 import cash.p.terminal.core.storage.migrations.Migration_79_80
 import cash.p.terminal.core.storage.migrations.Migration_80_81
+import cash.p.terminal.core.storage.migrations.Migration_81_82
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
-import cash.p.terminal.entities.ChangeNowTransaction
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.EnabledWalletCache
 import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
@@ -91,7 +92,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 81,
+    version = 82,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -115,7 +116,7 @@ import io.horizontalsystems.core.storage.LogsDao
         TokenAutoEnabledBlockchain::class,
         ChartIndicatorSetting::class,
         Pin::class,
-        ChangeNowTransaction::class,
+        SwapProviderTransaction::class,
         HardwarePublicKey::class,
         RecentAddress::class,
         SpamAddress::class,
@@ -146,7 +147,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun tokenAutoEnabledBlockchainDao(): TokenAutoEnabledBlockchainDao
     abstract fun spamAddressDao(): SpamAddressDao
     abstract fun pinDao(): PinDao
-    abstract fun changeNowTransactionsDao(): ChangeNowTransactionsDao
+    abstract fun swapProviderTransactionsDao(): SwapProviderTransactionsDao
     abstract fun hardwarePublicKeyDao(): HardwarePublicKeyDao
     abstract fun recentAddressDao(): RecentAddressDao
     abstract fun moneroFileDao(): MoneroFileDao
@@ -218,7 +219,8 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_77_78,
                     Migration_78_79,
                     Migration_79_80,
-                    Migration_80_81
+                    Migration_80_81,
+                    Migration_81_82
                 )
                 .build()
         }

@@ -237,17 +237,17 @@ class SendTransactionServiceBitcoin(
             feeRateService.setRecommendedAndMin(data.recommendedGasRate, data.recommendedGasRate)
         }
 
-        feeService.setMemo(memo)
-        feeService.setChangeToFirstInput(changeToFirstInput)
-        feeService.setUtxoFilters(utxoFilters)
+        feeService.setMemo(memo, false)
+        feeService.setChangeToFirstInput(changeToFirstInput, false)
+        feeService.setUtxoFilters(utxoFilters) // emitState called inside feeService
 
-        amountService.setMemo(memo)
-        amountService.setUserMinimumSendAmount(data.minimumSendAmount)
-        amountService.setChangeToFirstInput(changeToFirstInput)
-        amountService.setUtxoFilters(utxoFilters)
-        amountService.setAmount(data.amount)
+        amountService.setMemo(memo, false)
+        amountService.setUserMinimumSendAmount(data.minimumSendAmount, false)
+        amountService.setChangeToFirstInput(changeToFirstInput, false)
+        amountService.setUtxoFilters(utxoFilters, false)
+        amountService.setAmount(data.amount, false)
 
-        addressService.setAddress(Address(data.address))
+        addressService.setAddress(Address(data.address)) // emitState called inside addressService
 
         setExtraFeesMap(data.feesMap)
     }

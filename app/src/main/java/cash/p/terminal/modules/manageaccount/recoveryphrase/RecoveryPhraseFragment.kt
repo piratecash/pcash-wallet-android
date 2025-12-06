@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.manageaccount.ui.ActionButton
@@ -37,7 +38,6 @@ import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
-import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -46,13 +46,14 @@ import kotlinx.parcelize.Parcelize
 
 class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
 
+    private val args: RecoveryPhraseFragmentArgs by navArgs()
+
     @Composable
     override fun GetContent(navController: NavController) {
-        val input: Input = navController.requireInput()
         RecoveryPhraseScreen(
             navController = navController,
-            account = input.account,
-            recoveryPhraseType = input.recoveryPhraseType
+            account = args.input.account,
+            recoveryPhraseType = args.input.recoveryPhraseType
         )
     }
 

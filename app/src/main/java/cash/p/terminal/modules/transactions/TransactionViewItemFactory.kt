@@ -5,8 +5,8 @@ import cash.p.terminal.core.App
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.EvmLabelManager
-import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
-import cash.p.terminal.entities.ChangeNowTransaction
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
@@ -24,6 +24,8 @@ import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.network.changenow.api.ChangeNowHelper
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.entity.toStatus
+import cash.p.terminal.network.quickex.api.QuickexHelper
+import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui_compose.ColorName
@@ -41,14 +43,13 @@ import kotlinx.coroutines.sync.withLock
 import java.math.BigDecimal
 import java.util.Date
 import kotlin.collections.firstOrNull
-import kotlin.times
 import kotlin.to
 
 class TransactionViewItemFactory(
     private val evmLabelManager: EvmLabelManager,
     private val contactsRepository: ContactsRepository,
     private val balanceHiddenManager: BalanceHiddenManager,
-    private val changeNowTransactionsStorage: ChangeNowTransactionsStorage,
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val walletUseCase: WalletUseCase,
     private val numberFormatter: IAppNumberFormatter
 ) {
@@ -290,7 +291,7 @@ class TransactionViewItemFactory(
         )
 
         TransactionRecordType.EVM_INCOMING ->
-            tryConvertToChangeNowViewItemSwap(
+            tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = record.token,
                 isIncoming = true
@@ -307,7 +308,7 @@ class TransactionViewItemFactory(
             )
 
         TransactionRecordType.EVM_OUTGOING ->
-            tryConvertToChangeNowViewItemSwap(
+            tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = (record.mainValue as? TransactionValue.CoinValue)?.token,
                 isIncoming = false
@@ -408,7 +409,7 @@ class TransactionViewItemFactory(
             )
 
             is TonTransactionRecord -> {
-                tryConvertToChangeNowViewItemSwap(
+                tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = record.actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Receive
@@ -420,7 +421,7 @@ class TransactionViewItemFactory(
             }
 
             is StellarTransactionRecord -> {
-                tryConvertToChangeNowViewItemSwap(
+                tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = record.type is StellarTransactionRecord.Type.Receive
@@ -810,7 +811,7 @@ class TransactionViewItemFactory(
     ): TransactionViewItem {
         return when (record.transactionRecordType) {
             TransactionRecordType.SOLANA_INCOMING -> {
-                tryConvertToChangeNowViewItemSwap(
+                tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = true
@@ -824,7 +825,7 @@ class TransactionViewItemFactory(
             }
 
             TransactionRecordType.SOLANA_OUTGOING -> {
-                tryConvertToChangeNowViewItemSwap(
+                tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
                     isIncoming = false
@@ -1183,7 +1184,7 @@ class TransactionViewItemFactory(
         lastBlockTimestamp: Long?,
         icon: TransactionViewItem.Icon?
     ): TransactionViewItem {
-        return tryConvertToChangeNowViewItemSwap(
+        return tryConvertToUserSwapProviderViewItemSwap(
             transactionItem = transactionItem,
             token = record.token,
             isIncoming = record.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING
@@ -1297,35 +1298,35 @@ class TransactionViewItemFactory(
         )
     }
 
-    private fun tryConvertToChangeNowViewItemSwap(
+    private fun tryConvertToUserSwapProviderViewItemSwap(
         transactionItem: TransactionItem,
         token: Token?,
         isIncoming: Boolean
     ) = if (token == null) {
         null
     } else if (isIncoming) {
-        changeNowTransactionsStorage.getByTokenOut(
+        swapProviderTransactionsStorage.getByTokenOut(
             token = token,
             timestamp = transactionItem.record.timestamp * 1000
         )
     } else {
-        changeNowTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
-            ?: changeNowTransactionsStorage.getByCoinUidIn(
+        swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
+            ?: swapProviderTransactionsStorage.getByCoinUidIn(
                 coinUid = transactionItem.record.mainValue?.coinUid ?: token.coin.uid,
                 blockchainType = token.blockchainType.uid,
                 amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
                 timestamp = transactionItem.record.timestamp * 1000
             )
     }?.let {
-        createViewItemFromChangeNowRecord(
+        createViewItemFromUserSwapProviderRecord(
             transaction = it,
             transactionItem = transactionItem,
             direct = !isIncoming
         )
     }
 
-    private fun createViewItemFromChangeNowRecord(
-        transaction: ChangeNowTransaction,
+    private fun createViewItemFromUserSwapProviderRecord(
+        transaction: SwapProviderTransaction,
         transactionItem: TransactionItem,
         direct: Boolean
     ): TransactionViewItem {
@@ -1380,6 +1381,19 @@ class TransactionViewItemFactory(
             TransactionStatusEnum.VERIFYING -> R.string.transaction_swap_status_verifying
             TransactionStatusEnum.UNKNOWN -> R.string.transaction_swap_status_unknown
         }
+        val transactionStatusUrl = when(transaction.provider) {
+            SwapProvider.CHANGENOW -> {
+                ChangeNowHelper.CHANGE_NOW_URL to ChangeNowHelper.getViewTransactionUrl(
+                    transaction.transactionId
+                )
+            }
+            SwapProvider.QUICKEX -> {
+                QuickexHelper.QUICKEX_URL to QuickexHelper.getViewTransactionUrl(
+                    transaction.transactionId,
+                    transaction.addressOut
+                )
+            }
+        }
 
         return TransactionViewItem(
             uid = transactionItem.record.uid,
@@ -1389,7 +1403,7 @@ class TransactionViewItemFactory(
                 (status.ordinal + 1) * (1f / (TransactionStatusEnum.FINISHED.ordinal + 1))
             },
             title = Translator.getString(titleStringRes),
-            subtitle = "ChangeNow",
+            subtitle = transaction.provider.title,
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
             showAmount = showAmount,
@@ -1397,9 +1411,7 @@ class TransactionViewItemFactory(
             spam = false,
             icon = transactionIcon,
             changeNowTransactionId = transaction.transactionId,
-            transactionStatusUrl = ChangeNowHelper.CHANGE_NOW_URL to ChangeNowHelper.getViewTransactionUrl(
-                transaction.transactionId
-            )
+            transactionStatusUrl = transactionStatusUrl
         )
     }
 
@@ -1497,7 +1509,7 @@ class TransactionViewItemFactory(
         }
 
         TransactionRecordType.TRON_INCOMING -> {
-            tryConvertToChangeNowViewItemSwap(
+            tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = baseToken,
                 isIncoming = true
@@ -1515,7 +1527,7 @@ class TransactionViewItemFactory(
         }
 
         TransactionRecordType.TRON_OUTGOING -> {
-            tryConvertToChangeNowViewItemSwap(
+            tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = baseToken,
                 isIncoming = false

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.ripple
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.FaqManager
@@ -79,7 +82,7 @@ internal fun ManageAccountScreen(
         onCloseClicked()
     }
 
-    Column(modifier = Modifier.Companion.background(color = ComposeAppTheme.colors.tyler)) {
+    Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
         AppBar(
             title = viewState.title,
             navigationIcon = {
@@ -94,11 +97,13 @@ internal fun ManageAccountScreen(
             )
         )
 
-        Column {
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState())
+        ) {
             HeaderText(stringResource(id = R.string.ManageAccount_Name))
 
             FormsInput(
-                modifier = Modifier.Companion.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = 16.dp),
                 initial = viewState.title,
                 hint = "",
                 onValueChange = onNameChanged
@@ -123,7 +128,7 @@ internal fun ManageAccountScreen(
             when (viewState.headerNote) {
                 HeaderNote.NonStandardAccount -> {
                     NoteError(
-                        modifier = Modifier.Companion.padding(
+                        modifier = Modifier.padding(
                             start = 16.dp,
                             end = 16.dp,
                             top = 32.dp
@@ -140,7 +145,7 @@ internal fun ManageAccountScreen(
 
                 HeaderNote.NonRecommendedAccount -> {
                     NoteWarning(
-                        modifier = Modifier.Companion.padding(
+                        modifier = Modifier.padding(
                             start = 16.dp,
                             end = 16.dp,
                             top = 32.dp
@@ -241,10 +246,11 @@ private fun KeyActions(
                     ) {
                         navController.authorizedAction {
                             navController.slideFromRight(
-                                R.id.recoveryPhraseFragment,
-                                RecoveryPhraseFragment.Input(
-                                    account = account,
-                                    recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Mnemonic
+                                MainGraphDirections.actionGlobalToRecoveryPhraseFragment(
+                                    RecoveryPhraseFragment.Input(
+                                        account = account,
+                                        recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Mnemonic
+                                    )
                                 )
                             )
                         }
@@ -262,10 +268,11 @@ private fun KeyActions(
                         navController.authorizedAction {
                             navController.premiumAction {
                                 navController.slideFromRight(
-                                    R.id.recoveryPhraseFragment,
-                                    RecoveryPhraseFragment.Input(
-                                        account = account,
-                                        recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                    MainGraphDirections.actionGlobalToRecoveryPhraseFragment(
+                                        RecoveryPhraseFragment.Input(
+                                            account = account,
+                                            recoveryPhraseType = RecoveryPhraseFragment.RecoveryPhraseType.Monero
+                                        )
                                     )
                                 )
                             }

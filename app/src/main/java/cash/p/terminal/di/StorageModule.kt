@@ -12,14 +12,13 @@ import cash.p.terminal.core.providers.EvmLabelProvider
 import cash.p.terminal.core.storage.AccountsStorage
 import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.core.storage.BlockchainSettingsStorage
-import cash.p.terminal.core.storage.ChangeNowTransactionsStorage
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.storage.EnabledWalletsStorage
 import cash.p.terminal.core.storage.EvmSyncSourceStorage
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.core.storage.PendingTransactionStorage
 import cash.p.terminal.core.storage.RestoreSettingsStorage
 import cash.p.terminal.core.storage.SpamAddressStorage
-import cash.p.terminal.core.storage.ZcashSingleUseAddressDao
 import cash.p.terminal.core.storage.ZcashSingleUseAddressStorage
 import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.modules.balance.DefaultBalanceService
@@ -54,7 +53,7 @@ val storageModule = module {
     singleOf(::HardwarePublicKeyStorage) bind IHardwarePublicKeyStorage::class
     singleOf(::BlockchainSettingsStorage)
     singleOf(::SpamAddressStorage)
-    factoryOf(::ChangeNowTransactionsStorage)
+    factoryOf(::SwapProviderTransactionsStorage)
     singleOf(::EvmSyncSourceStorage)
     singleOf(::ContactsRepository)
     singleOf(::ZcashBirthdayProvider)
@@ -86,6 +85,7 @@ val storageModule = module {
     factory { get<AppDatabase>().zcashSingleUseAddressDao() }
     single { get<AppDatabase>().spamAddressDao() }
     factory { get<AppDatabase>().pendingTransactionDao() }
+    factory { get<AppDatabase>().swapProviderTransactionsDao() }
     singleOf(::PendingTransactionStorage)
     single {
         ZcashSingleUseAddressStorage(

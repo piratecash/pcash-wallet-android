@@ -40,9 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
-import java.math.BigDecimal
 import kotlin.getValue
-import kotlin.math.abs
 
 class SendTransactionServiceTon(
     token: Token
@@ -71,12 +69,6 @@ class SendTransactionServiceTon(
 
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
     private var pendingTxId: String? = null
-    private val decimalDiff = token.decimals - feeToken.decimals
-    private val decimalRate = if(decimalDiff < 0) {
-        1.toBigDecimal().divide(BigDecimal.TEN.pow(abs(decimalDiff)))
-    } else {
-        BigDecimal.TEN.pow(decimalDiff)
-    }
 
     var coinRate by mutableStateOf(xRateService.getRate(token.coin.uid))
         private set
@@ -200,7 +192,7 @@ class SendTransactionServiceTon(
                 wallet = wallet,
                 token = token,
                 amount = amountState.amount!!,
-                fee = (feeState.feeStatus as? FeeStatus.Success)?.fee?.multiply(decimalRate),
+                fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
                 fromAddress = "",  // TON doesn't require from address
                 toAddress = addressState.address!!.hex,
                 memo = memo,

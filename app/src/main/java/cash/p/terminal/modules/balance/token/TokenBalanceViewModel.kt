@@ -11,7 +11,7 @@ import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.swappable
-import cash.p.terminal.core.usecase.UpdateChangeNowStatusesUseCase
+import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewItemFactory
@@ -61,7 +61,7 @@ class TokenBalanceViewModel(
 ) : ViewModelUiState<TokenBalanceUiState>() {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
-    private val updateChangeNowStatusesUseCase: UpdateChangeNowStatusesUseCase = getKoinInstance()
+    private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase = getKoinInstance()
     private val adapterManager: IAdapterManager = getKoinInstance()
 
     private val title = wallet.token.coin.code + wallet.token.badge?.let { " ($it)" }.orEmpty()
@@ -171,7 +171,7 @@ class TokenBalanceViewModel(
         statusCheckerJob = viewModelScope.launch(dedicatedDispatcher) {
             while (isActive) {
                 adapterManager.getReceiveAdapterForWallet(wallet)?.let { adapter ->
-                    if (updateChangeNowStatusesUseCase(wallet.token, adapter.receiveAddress)) {
+                    if (updateSwapProviderTransactionsStatusUseCase(wallet.token, adapter.receiveAddress)) {
                         transactionsService.refreshList(true)
                     }
                 }

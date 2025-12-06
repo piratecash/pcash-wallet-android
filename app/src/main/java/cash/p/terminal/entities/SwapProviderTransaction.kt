@@ -3,15 +3,17 @@ package cash.p.terminal.entities
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
+import cash.p.terminal.network.swaprepository.SwapProvider
 import java.math.BigDecimal
 
 @Entity
-data class ChangeNowTransaction(
+data class SwapProviderTransaction(
     @PrimaryKey
     val date: Long = System.currentTimeMillis(),
     val outgoingRecordUid: String?,
     val transactionId: String,
     val status: String,
+    val provider: SwapProvider,
 
     val coinUidIn: String,
     val blockchainTypeIn: String,

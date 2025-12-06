@@ -3,13 +3,11 @@ package cash.p.terminal.modules.multiswap.providers
 import androidx.collection.LruCache
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendEthereumAdapter
-import cash.p.terminal.core.extractBigDecimal
 import cash.p.terminal.core.isEvm
 import cash.p.terminal.core.isUtxoBased
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.Address
-import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
@@ -21,17 +19,19 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.ui.DataFieldRecipientExtended
-import cash.p.terminal.network.changenow.data.entity.BackendChangeNowResponseError
-import cash.p.terminal.network.changenow.data.entity.request.NewTransactionRequest
-import cash.p.terminal.network.changenow.domain.entity.ChangeNowCurrency
-import cash.p.terminal.network.changenow.domain.entity.NewTransactionResponse
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
-import cash.p.terminal.network.changenow.domain.repository.ChangeNowRepository
-import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
+import cash.p.terminal.network.quickex.data.entity.BackendQuickexResponseError
+import cash.p.terminal.network.quickex.data.entity.request.InstrumentRequest
+import cash.p.terminal.network.quickex.data.entity.request.NewTransactionQuickexRequest
+import cash.p.terminal.network.quickex.domain.entity.NewTransactionQuickexResponse
+import cash.p.terminal.network.quickex.domain.entity.QuickexInstrument
+import cash.p.terminal.network.quickex.domain.repository.QuickexRepository
+import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
@@ -47,23 +47,22 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent
-import java.lang.System
+import timber.log.Timber
 import java.math.BigDecimal
 
-class ChangeNowProvider(
+class QuickexProvider(
     override val walletUseCase: WalletUseCase,
-    private val changeNowRepository: ChangeNowRepository,
-    private val getChangeNowAssociatedCoinTickerUseCase: GetChangeNowAssociatedCoinTickerUseCase,
+    private val quickexRepository: QuickexRepository,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage
 ) : IMultiSwapProvider {
-    override val id = "changenow"
-    override val title = "ChangeNow"
-    override val icon = R.drawable.ic_change_now
+    override val id = "quickex"
+    override val title = "Quickex"
+    override val icon = R.drawable.ic_quickex
     override val priority = 0
 
     override val mevProtectionAvailable: Boolean = false
     private val marketKit: MarketKitWrapper by KoinJavaComponent.inject(MarketKitWrapper::class.java)
-    private val currencies = mutableListOf<ChangeNowCurrency>()
+    private val currencies = mutableListOf<QuickexInstrument>()
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         throwable.printStackTrace()
     }
@@ -73,7 +72,8 @@ class ChangeNowProvider(
     private var minAmountTimestamp = LruCache<String, Long>(10)
 
     // SwapConfirmViewModel calls final quote too many times, so cache results
-    private var cachedFinalQuote: Pair<NewTransactionRequest, NewTransactionResponse>? = null
+    private var cachedFinalQuote: Pair<NewTransactionQuickexRequest, NewTransactionQuickexResponse>? =
+        null
     private var cacheUpdateTimestamp = 0L
     private val mutex = Mutex()
     private val zcashAddressMutex = Mutex()
@@ -90,61 +90,93 @@ class ChangeNowProvider(
         loadCurrencies()
     }
 
-    override suspend fun supports(tokenFrom: Token, tokenTo: Token) =
-        supports(tokenFrom) && supports(tokenTo)
-
     private fun loadCurrencies() {
-        coroutineScope.launch {
+        coroutineScope.launch(CoroutineExceptionHandler { _, throwable ->
+            Timber.d("QuickexProvider: loadCurrencies error: ${throwable.message}")
+        }) {
             currencies.clear()
-            currencies.addAll(changeNowRepository.getAvailableCurrencies().sortedBy { it.ticker })
+            currencies.addAll(quickexRepository.getAvailablePairs())
         }
     }
 
+    override suspend fun supports(tokenFrom: Token, tokenTo: Token) =
+        supports(tokenFrom) && supports(tokenTo)
+
+
     override suspend fun supports(token: Token): Boolean =
         withContext(coroutineScope.coroutineContext) {
-            try {
-                getChangeNowTicker(token)?.let {
-                    isChangeNowTickerActive(it)
-                } ?: false
-            } catch (e: Exception) {
-                e.printStackTrace()
-                false
-            }
+            currencies.find {
+                isSameToken(it, token) ||
+                        isSameContract(it, token)
+            } != null
         }
 
-    private suspend fun getChangeNowTicker(token: Token): String? =
-        getChangeNowAssociatedCoinTickerUseCase(
-            token.coin.uid,
-            token.blockchainType.uid
-        )
+    private fun isSameToken(quickexInstrument: QuickexInstrument, token: Token): Boolean {
+        val tokenTicker = getQuickexTicker(token) ?: return false
+        val tokenNetwork = getQuickexNetwork(token) ?: return false
+        return quickexInstrument.currencyTitle.equals(tokenTicker, true) &&
+                quickexInstrument.networkTitle.equals(tokenNetwork, true)
+    }
 
-    private fun isChangeNowTickerActive(ticker: String): Boolean = currencies.find {
-        it.ticker == ticker
-    } != null
+    private fun isSameContract(quickexInstrument: QuickexInstrument, token: Token): Boolean {
+        val contractAddress = when (token.type) {
+            is TokenType.Eip20 -> (token.type as? TokenType.Eip20)?.address
+            is TokenType.Spl -> (token.type as? TokenType.Spl)?.address
+            is TokenType.Jetton -> (token.type as? TokenType.Jetton)?.address
+            else -> null
+        }.orEmpty()
+        if (contractAddress.isEmpty()) return false
+
+        return quickexInstrument.contractAddress == contractAddress
+    }
+
+    private fun getQuickexTicker(token: Token): String? =
+        currencies.find {
+            isSameContract(it, token)
+        }?.currencyTitle ?: token.coin.code
+
+    /***
+     * Return badge (network) if exists, or ticker if native
+     */
+    private fun getQuickexNetwork(token: Token): String? =
+        currencies.find {
+            isSameContract(it, token)
+        }?.networkTitle ?: token.badge ?: getQuickexTicker(token)
 
     private suspend fun getExchangeAmountOrThrow(
         tickerFrom: String,
+        networkFrom: String,
         tickerTo: String,
+        networkTo: String,
         amountIn: BigDecimal
     ): BigDecimal? {
         return try {
-            changeNowRepository.getExchangeAmount(
-                tickerFrom = tickerFrom,
-                tickerTo = tickerTo,
-                amount = amountIn
-            ).estimatedAmount
-        } catch (e: BackendChangeNowResponseError) {
+            quickexRepository.getRates(
+                fromCurrency = tickerFrom,
+                fromNetwork = networkFrom,
+                toCurrency = tickerTo,
+                toNetwork = networkTo,
+                claimedDepositAmount = amountIn
+            ).amountToGet
+        } catch (e: BackendQuickexResponseError) {
             //extract decimal from message
-            if (e.error == BackendChangeNowResponseError.Companion.DEPOSIT_TOO_SMALL) {
-                val amount = e.message.extractBigDecimal() ?: throw e
+            if (e.status == BackendQuickexResponseError.DEPOSIT_TOO_SMALL) {
+                val amount = e.data?.details?.expected?.toBigDecimalOrNull() ?: throw e
                 throw SwapDepositTooSmall(amount)
             } else {
                 throw e
             }
         } catch (e: Exception) {
-            throw IllegalStateException("ChangeNowProvider: error fetching amount", e)
+            throw IllegalStateException("QuickexProvider: error fetching amount", e)
         }
     }
+
+    private fun getCacheKey(
+        tickerFrom: String,
+        networkFrom: String,
+        tickerTo: String,
+        networkTo: String
+    ) = "$tickerFrom-$networkFrom-$tickerTo-$networkTo"
 
     override suspend fun fetchQuote(
         tokenIn: Token,
@@ -154,35 +186,54 @@ class ChangeNowProvider(
     ): ISwapQuote = withContext(coroutineScope.coroutineContext) {
         mutex.withLock {
             val (tickerIn, tickerOut) = awaitAll(
-                async { getChangeNowTicker(tokenIn) },
-                async { getChangeNowTicker(tokenOut) }
+                async { getQuickexTicker(tokenIn) },
+                async { getQuickexTicker(tokenOut) }
             )
 
-            val tickerFrom = tickerIn
-                ?: throw IllegalStateException("ChangeNowProvider: ticker for $tokenIn is not found")
-            val tickerTo = tickerOut
-                ?: throw IllegalStateException("ChangeNowProvider: ticker for $tokenOut is not found")
-            val key = "$tickerFrom $tickerTo"
+            val (networkIn, networkOut) = awaitAll(
+                async { getQuickexNetwork(tokenIn) },
+                async { getQuickexNetwork(tokenOut) }
+            )
+
+            val tickerFrom =
+                requireNotNull(tickerIn) { "QuickexProvider: ticker for $tokenIn is not found" }
+            val tickerTo =
+                requireNotNull(tickerOut) { "QuickexProvider: ticker for $tokenOut is not found" }
+            val networkFrom =
+                requireNotNull(networkIn) { "QuickexProvider: network for $tokenIn is not found" }
+            val networkTo =
+                requireNotNull(networkOut) { "QuickexProvider: network for $tokenOut is not found" }
+
+            val key = getCacheKey(
+                tickerFrom = tickerFrom,
+                networkFrom = networkFrom,
+                tickerTo = tickerTo,
+                networkTo = networkTo
+            )
             val cachedValue = minAmount[key]
             val cachedTimestamp = minAmountTimestamp[key] ?: 0L
-            if (cachedValue != null && System.currentTimeMillis() - cachedTimestamp < CACHE_MIN_AMOUNT_DURATION) {
-                cachedValue
-            } else {
-                changeNowRepository.getMinAmount(
-                    tickerFrom = tickerFrom,
-                    tickerTo = tickerTo
-                ).also {
-                    minAmount.put(key, it)
-                    minAmountTimestamp.put(key, System.currentTimeMillis())
-                }
-            }.also {
-                if (it > amountIn) {
-                    throw SwapDepositTooSmall(it)
-                }
+            if (cachedValue != null &&
+                (System.currentTimeMillis() - cachedTimestamp < CACHE_MIN_AMOUNT_DURATION) &&
+                cachedValue > amountIn
+            ) {
+                throw SwapDepositTooSmall(cachedValue)
             }
 
-            val amountOut = getExchangeAmountOrThrow(tickerFrom, tickerTo, amountIn)
-                ?: throw IllegalStateException("ChangeNowProvider: amount is not found")
+            val amountOut = try {
+                getExchangeAmountOrThrow(
+                    tickerFrom = tickerFrom,
+                    networkFrom = networkFrom,
+                    tickerTo = tickerTo,
+                    networkTo = networkTo,
+                    amountIn = amountIn
+                ) ?: throw IllegalStateException("QuickexProvider: amount is not found")
+            } catch (e: SwapDepositTooSmall) {
+                minAmount.put(key, e.minValue)
+                minAmountTimestamp.put(key, System.currentTimeMillis())
+                throw e
+            } catch (e: Exception) {
+                throw IllegalStateException("QuickexProvider: amount is not found")
+            }
 
             val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut)
 
@@ -286,11 +337,25 @@ class ChangeNowProvider(
         swapQuote: ISwapQuote
     ): ISwapFinalQuote = withContext(coroutineScope.coroutineContext) {
         mutex.withLock {
-            val transaction: NewTransactionResponse = try {
+            val transaction: NewTransactionQuickexResponse = try {
                 val (tickerIn, tickerOut) = awaitAll(
-                    async { getChangeNowTicker(tokenIn) },
-                    async { getChangeNowTicker(tokenOut) }
+                    async { getQuickexTicker(tokenIn) },
+                    async { getQuickexTicker(tokenOut) }
                 )
+
+                val (networkIn, networkOut) = awaitAll(
+                    async { getQuickexNetwork(tokenIn) },
+                    async { getQuickexNetwork(tokenOut) }
+                )
+
+                val tickerFrom =
+                    requireNotNull(tickerIn) { "QuickexProvider: ticker for $tokenIn is not found" }
+                val tickerTo =
+                    requireNotNull(tickerOut) { "QuickexProvider: ticker for $tokenOut is not found" }
+                val networkFrom =
+                    requireNotNull(networkIn) { "QuickexProvider: network for $tokenIn is not found" }
+                val networkTo =
+                    requireNotNull(networkOut) { "QuickexProvider: network for $tokenOut is not found" }
 
                 var refundAddress = walletUseCase.getReceiveAddress(tokenIn)
                 // For ZCash unified or shielded we need to use transparent address as refund address
@@ -300,60 +365,39 @@ class ChangeNowProvider(
                     } ?: throw IllegalStateException("Can't find ZCASH transparent wallet")
                 }
 
-                val request = NewTransactionRequest(
-                    from = tickerIn!!,
-                    to = tickerOut!!,
-                    amount = amountIn.toPlainString(),
-                    address = walletUseCase.getReceiveAddress(tokenOut),
-                    refundAddress = refundAddress
+                val request = NewTransactionQuickexRequest(
+                    instrumentFrom = InstrumentRequest(
+                        currencyTitle = tickerFrom,
+                        networkTitle = networkFrom
+                    ),
+                    instrumentTo = InstrumentRequest(
+                        currencyTitle = tickerTo,
+                        networkTitle = networkTo
+                    ),
+                    destinationAddress = walletUseCase.getReceiveAddress(tokenOut),
+                    refundAddress = refundAddress,
+                    claimedDepositAmount = amountIn.toPlainString()
                 )
                 if (System.currentTimeMillis() - cacheUpdateTimestamp < CACHE_FINAL_QUOTE_DURATION &&
                     cachedFinalQuote?.first == request
                 ) {
                     cachedFinalQuote?.second!!
                 } else {
-                    changeNowRepository.createTransaction(
+                    quickexRepository.createTransaction(
                         newTransactionRequest = request
                     ).also {
                         cachedFinalQuote = request to it
                         cacheUpdateTimestamp = System.currentTimeMillis()
                     }
                 }
-            } catch (e: BackendChangeNowResponseError) {
-                //extract decimal from message
-                if (e.error == BackendChangeNowResponseError.Companion.OUT_OF_RANGE) {
-                    val amount = e.message.extractBigDecimal() ?: throw e
-                    return@withContext SwapFinalQuoteEvm(
-                        tokenIn = tokenIn,
-                        tokenOut = tokenOut,
-                        amountIn = amountIn,
-                        amountOut = BigDecimal.ZERO,
-                        amountOutMin = amount,
-                        // Placeholder transaction data because out of range error
-                        sendTransactionData = SendTransactionData.Btc(
-                            amount = amountIn,
-                            address = "",
-                            changeToFirstInput = false,
-                            utxoFilters = UtxoFilters(),
-                            memo = "",
-                            recommendedGasRate = null,
-                            minimumSendAmount = null,
-                            feesMap = emptyMap()
-                        ),
-                        priceImpact = null,
-                        fields = emptyList(),
-                    )
-                } else {
-                    throw e
-                }
             } catch (e: Exception) {
-                throw IllegalStateException("ChangeNowProvider: error fetchFinalQuote", e)
+                throw IllegalStateException("QuickexProvider: error fetchFinalQuote", e)
             }
 
             val fields = buildList {
                 add(
                     DataFieldRecipientExtended(
-                        address = Address(transaction.payinAddress),
+                        address = Address(transaction.depositAddress.depositAddress),
                         blockchainType = tokenOut.blockchainType
                     )
                 )
@@ -362,16 +406,16 @@ class ChangeNowProvider(
             swapProviderTransaction = SwapProviderTransaction(
                 date = System.currentTimeMillis(),
                 outgoingRecordUid = null, //set later
-                transactionId = transaction.id,
+                transactionId = transaction.orderId.toString(),
                 status = TransactionStatusEnum.NEW.name.lowercase(),
-                provider = SwapProvider.CHANGENOW,
+                provider = SwapProvider.QUICKEX,
                 coinUidIn = tokenIn.coin.uid,
                 blockchainTypeIn = tokenIn.blockchainType.uid,
                 amountIn = amountIn,
                 addressIn = walletUseCase.getReceiveAddress(tokenIn),
                 coinUidOut = tokenOut.coin.uid,
                 blockchainTypeOut = tokenOut.blockchainType.uid,
-                amountOut = transaction.amount,
+                amountOut = transaction.amountToGet,
                 addressOut = walletUseCase.getReceiveAddress(tokenOut)
             )
 
@@ -379,8 +423,8 @@ class ChangeNowProvider(
                 tokenIn = tokenIn,
                 tokenOut = tokenOut,
                 amountIn = amountIn,
-                amountOut = transaction.amount,
-                amountOutMin = transaction.amount,
+                amountOut = transaction.amountToGet,
+                amountOutMin = transaction.amountToGet,
                 sendTransactionData = buildTransactionData(
                     tokenIn = tokenIn,
                     amountIn = amountIn,
@@ -395,7 +439,7 @@ class ChangeNowProvider(
     private fun buildTransactionData(
         tokenIn: Token,
         amountIn: BigDecimal,
-        transaction: NewTransactionResponse
+        transaction: NewTransactionQuickexResponse
     ): SendTransactionData {
         return when {
             tokenIn.blockchainType.isEvm -> {
@@ -406,7 +450,7 @@ class ChangeNowProvider(
                 val transactionData =
                     adapter.getTransactionData(
                         amountIn,
-                        io.horizontalsystems.ethereumkit.models.Address(transaction.payinAddress)
+                        io.horizontalsystems.ethereumkit.models.Address(transaction.depositAddress.depositAddress)
                     )
                 SendTransactionData.Evm(transactionData, null)
             }
@@ -414,29 +458,29 @@ class ChangeNowProvider(
             tokenIn.blockchainType == BlockchainType.Tron -> {
                 SendTransactionData.Tron.Regular(
                     amount = amountIn,
-                    address = transaction.payinAddress
+                    address = transaction.depositAddress.depositAddress
                 )
             }
 
             tokenIn.blockchainType == BlockchainType.Stellar -> {
                 SendTransactionData.Stellar.Regular(
                     amount = amountIn,
-                    address = transaction.payinAddress,
-                    memo = transaction.mandatoryMemo
+                    address = transaction.depositAddress.depositAddress,
+                    memo = transaction.depositAddress.depositAddressMemo.orEmpty()
                 )
             }
 
             tokenIn.blockchainType == BlockchainType.Solana -> {
                 SendTransactionData.Solana.Regular(
                     amount = amountIn,
-                    address = transaction.payinAddress
+                    address = transaction.depositAddress.depositAddress
                 )
             }
 
             tokenIn.blockchainType.isUtxoBased -> {
                 SendTransactionData.Btc(
-                    address = transaction.payinAddress,
-                    memo = transaction.mandatoryMemo,
+                    address = transaction.depositAddress.depositAddress,
+                    memo = transaction.depositAddress.depositAddressMemo.orEmpty(),
                     amount = amountIn,
                     recommendedGasRate = null,
                     minimumSendAmount = null,
@@ -449,13 +493,13 @@ class ChangeNowProvider(
             tokenIn.blockchainType == BlockchainType.Ton ->
                 SendTransactionData.Ton(
                     amount = amountIn,
-                    address = transaction.payinAddress
+                    address = transaction.depositAddress.depositAddress
                 )
 
             tokenIn.blockchainType == BlockchainType.Monero ->
                 SendTransactionData.Monero(
                     amount = amountIn,
-                    address = transaction.payinAddress
+                    address = transaction.depositAddress.depositAddress
                 )
 
             else -> SendTransactionData.Unsupported
