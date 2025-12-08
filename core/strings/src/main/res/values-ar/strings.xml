@@ -994,6 +994,25 @@
 </string>
     <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">شروط عبارة المرور</string>
+    <string name="passphrase_terms_warning">قبل تفعيل عبارة المرور (BIP-39 Passphrase)، يرجى التأكيد على أنك تفهم:</string>
+    <string name="passphrase_terms_term1">أفهم أنه للوصول إلى الأموال، يجب علي إدخال عبارة المرور بالضبط كما تم إنشاؤها، بنفس الأحرف والمسافات وحالة الأحرف.</string>
+    <string name="passphrase_terms_term2">أفهم أنه إذا فقدت عبارة المرور أو تم إدخالها بشكل غير صحيح، لن أتمكن من استرداد محفظتي بدون قيمتها الدقيقة.</string>
+    <string name="passphrase_terms_term3">أفهم أنه عند استعادة محفظة بعبارة مرور غير صحيحة، لن يعرض التطبيق خطأ، بل سينشئ محفظة جديدة (فارغة).</string>
+    <string name="passphrase_terms_term4">أفهم أن مثل هذه المحفظة يمكن استعادتها فقط في التطبيقات التي تدعم معيار BIP-39 مع عبارة المرور (مثل Trezor)، ومعظم التطبيقات لا تدعم هذه الميزة.</string>
+    <string name="passphrase_terms_term5">أفهم أن المطورين ليس لديهم حق الوصول إلى بياناتي ولا يمكنهم مساعدتي في استعادة محفظتي، لأن التطبيق غير حفظي.</string>
+    <string name="passphrase_terms_term6">أفهم المخاطر وأريد استخدام عبارة المرور</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>أفهم أنه &lt;b>للوصول إلى الأموال، يجب علي إدخال عبارة المرور&lt;/b> بالضبط كما تم إنشاؤها، بنفس الأحرف والمسافات وحالة الأحرف.</item>
+        <item>أفهم أنه &lt;b>إذا فقدت عبارة المرور أو تم إدخالها بشكل غير صحيح&lt;/b>، &lt;b>لن أتمكن من استرداد محفظتي&lt;/b> بدون قيمتها الدقيقة.</item>
+        <item>أفهم أنه &lt;b>عند استعادة محفظة بعبارة مرور غير صحيحة&lt;/b>، لن يعرض التطبيق خطأ، بل &lt;b>سينشئ محفظة جديدة (فارغة)&lt;/b>.</item>
+        <item>أفهم أن &lt;b>مثل هذه المحفظة يمكن استعادتها فقط في التطبيقات التي تدعم معيار BIP-39 مع عبارة المرور&lt;/b> (مثل Trezor)، ومعظم التطبيقات &lt;b>لا تدعم هذه الميزة&lt;/b>.</item>
+        <item>أفهم أن &lt;b>المطورين ليس لديهم حق الوصول إلى بياناتي&lt;/b> ولا يمكنهم مساعدتي في استعادة محفظتي، لأن التطبيق &lt;b>غير حفظي&lt;/b>.</item>
+        <item>&lt;b>أفهم المخاطر وأريد استخدام عبارة المرور&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">كلمات الاسترجاع</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>

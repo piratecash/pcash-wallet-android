@@ -1,6 +1,8 @@
 package cash.p.terminal.di
 
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
+import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
+import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
@@ -78,4 +80,8 @@ val viewModelModule = module {
     viewModelOf(::AdvancedSecurityViewModel)
     viewModelOf(::HiddenWalletTermsViewModel)
     viewModelOf(::SecureResetTermsViewModel)
+    viewModelOf(::CreateAdvancedAccountViewModel)
+    viewModel { (termTitles: Array<String>) ->
+        PassphraseTermsViewModel(termTitles = termTitles, localStorage = get())
+    }
 }

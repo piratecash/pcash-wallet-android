@@ -1360,6 +1360,24 @@ Proceed only if you\'re sure.</string>
     <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
 
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Passphrase Terms</string>
+    <string name="passphrase_terms_warning">Before activating the passphrase (BIP-39 Passphrase), please confirm that you understand:</string>
+    <string name="passphrase_terms_term1">I understand that to access the funds, I must enter the passphrase exactly as it was created, with the same characters, spaces, and case.</string>
+    <string name="passphrase_terms_term2">I understand that if the passphrase is lost or entered incorrectly, I will not be able to recover my wallet without its exact value.</string>
+    <string name="passphrase_terms_term3">I understand that when restoring a wallet with an incorrect passphrase, the application will not display an error, but will create a new (empty) wallet.</string>
+    <string name="passphrase_terms_term4">I understand that such a wallet can only be restored in applications that support the BIP-39 standard with a passphrase (e.g., Trezor), and most applications do not support this feature.</string>
+    <string name="passphrase_terms_term5">I understand that developers do not have access to my data and cannot help me recover my wallet, as the application is non-custodial.</string>
+    <string name="passphrase_terms_term6">I understand the risks and want to use the passphrase</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>I understand that &lt;b>to access the funds, I must enter the passphrase&lt;/b> exactly as it was created, with the same characters, spaces, and case.</item>
+        <item>I understand that &lt;b>if the passphrase is lost or entered incorrectly&lt;/b>, I will &lt;b>not be able to recover my wallet&lt;/b> without its exact value.</item>
+        <item>I understand that &lt;b>when restoring a wallet with an incorrect passphrase&lt;/b>, the application will not display an error, but will &lt;b>create a new (empty) wallet&lt;/b>.</item>
+        <item>I understand that &lt;b>such a wallet can only be restored in applications that support the BIP-39 standard with a passphrase&lt;/b> (e.g., Trezor), and most applications &lt;b>do not support this feature&lt;/b>.</item>
+        <item>I understand that &lt;b>developers do not have access to my data&lt;/b> and cannot help me recover my wallet, as the application is &lt;b>non-custodial&lt;/b>.</item>
+        <item>&lt;b>I understand the risks and want to use the passphrase&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_monero_Title">Monero 25-word Export</string>
     <string name="RecoveryPhrase_Title">Recovery Phrase</string>

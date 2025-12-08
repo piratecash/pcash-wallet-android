@@ -686,4 +686,9 @@ class LocalStorageManager(
         key = "display_diff_options_type",
         default = DisplayDiffOptionType.BOTH
     )
+
+    override var passphraseTermsAgreed by preferences.delegate(
+        key = "passphrase_terms_agreed",
+        default = false
+    )
 }

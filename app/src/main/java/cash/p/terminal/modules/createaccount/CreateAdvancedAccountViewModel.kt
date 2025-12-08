@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.WalletActivator
@@ -36,11 +37,15 @@ class CreateAdvancedAccountViewModel(
     private val walletActivator: WalletActivator,
     private val passphraseValidator: PassphraseValidator,
     private val predefinedBlockchainSettingsProvider: PredefinedBlockchainSettingsProvider,
-    private val restoreSettingsManager: RestoreSettingsManager
+    private val restoreSettingsManager: RestoreSettingsManager,
+    private val localStorage: ILocalStorage
 ) : ViewModel() {
 
     private var passphrase = ""
     private var passphraseConfirmation = ""
+
+    val passphraseTermsAgreed: Boolean
+        get() = localStorage.passphraseTermsAgreed
 
     var loading by mutableStateOf(false)
         private set

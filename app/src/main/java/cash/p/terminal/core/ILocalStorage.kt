@@ -106,6 +106,8 @@ interface ILocalStorage {
     var displayDiffPricePeriod: DisplayPricePeriod
     var displayDiffOptionType: DisplayDiffOptionType
 
+    var passphraseTermsAgreed: Boolean
+
     fun getStackingUpdateTimestamp(wallet: Wallet): Long
     fun setStackingUnpaid(wallet: Wallet, unpaid: BigDecimal)
     fun getStackingUnpaid(wallet: Wallet): BigDecimal?

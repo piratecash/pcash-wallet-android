@@ -1365,6 +1365,27 @@ fun subhead2_grey(
 }
 
 @Composable
+fun subhead2_grey(
+    text: AnnotatedString,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {}
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        textAlign = textAlign,
+        overflow = overflow,
+        maxLines = maxLines,
+        onTextLayout = onTextLayout,
+        style = ComposeAppTheme.typography.subhead2,
+        color = ComposeAppTheme.colors.grey,
+    )
+}
+
+@Composable
 fun D2(
     text: String,
     modifier: Modifier = Modifier,

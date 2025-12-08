@@ -981,6 +981,25 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
 </string>
     <string name="LocalBackup_TermsWarningText">Los dispositivos de almacenamiento, como los discos duros, los discos USB y el almacenamiento en smartphones, son todos vulnerables a pérdidas debido a daños físicos, robos u otras circunstancias imprevisibles.</string>
     <string name="LocalBackup_Term1">Entiendo que el robo o daño de un dispositivo de copia de seguridad resultará en la pérdida de una copia de seguridad a una cartera respectiva.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Términos de la Frase de Contraseña</string>
+    <string name="passphrase_terms_warning">Antes de activar la frase de contraseña (BIP-39 Passphrase), confirme que entiende:</string>
+    <string name="passphrase_terms_term1">Entiendo que para acceder a los fondos, debo ingresar la frase de contraseña exactamente como fue creada, con los mismos caracteres, espacios y mayúsculas/minúsculas.</string>
+    <string name="passphrase_terms_term2">Entiendo que si la frase de contraseña se pierde o se ingresa incorrectamente, no podré recuperar mi cartera sin su valor exacto.</string>
+    <string name="passphrase_terms_term3">Entiendo que al restaurar una cartera con una frase de contraseña incorrecta, la aplicación no mostrará un error, sino que creará una nueva cartera (vacía).</string>
+    <string name="passphrase_terms_term4">Entiendo que dicha cartera solo se puede restaurar en aplicaciones que admitan el estándar BIP-39 con frase de contraseña (por ejemplo, Trezor), y la mayoría de las aplicaciones no admiten esta función.</string>
+    <string name="passphrase_terms_term5">Entiendo que los desarrolladores no tienen acceso a mis datos y no pueden ayudarme a recuperar mi cartera, ya que la aplicación es no custodia.</string>
+    <string name="passphrase_terms_term6">Entiendo los riesgos y quiero usar la frase de contraseña</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>Entiendo que &lt;b>para acceder a los fondos, debo ingresar la frase de contraseña&lt;/b> exactamente como fue creada, con los mismos caracteres, espacios y mayúsculas/minúsculas.</item>
+        <item>Entiendo que &lt;b>si la frase de contraseña se pierde o se ingresa incorrectamente&lt;/b>, &lt;b>no podré recuperar mi cartera&lt;/b> sin su valor exacto.</item>
+        <item>Entiendo que &lt;b>al restaurar una cartera con una frase de contraseña incorrecta&lt;/b>, la aplicación no mostrará un error, sino que &lt;b>creará una nueva cartera (vacía)&lt;/b>.</item>
+        <item>Entiendo que &lt;b>dicha cartera solo se puede restaurar en aplicaciones que admitan el estándar BIP-39 con frase de contraseña&lt;/b> (por ejemplo, Trezor), y la mayoría de las aplicaciones &lt;b>no admiten esta función&lt;/b>.</item>
+        <item>Entiendo que &lt;b>los desarrolladores no tienen acceso a mis datos&lt;/b> y no pueden ayudarme a recuperar mi cartera, ya que la aplicación es &lt;b>no custodia&lt;/b>.</item>
+        <item>&lt;b>Entiendo los riesgos y quiero usar la frase de contraseña&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">Frase de Recuperación</string>
     <string name="RecoveryPhrase_Description">Escriba estas palabras en el orden correcto y guárdelas en un lugar seguro</string>

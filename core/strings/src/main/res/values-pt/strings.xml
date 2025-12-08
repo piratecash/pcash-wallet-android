@@ -989,6 +989,25 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">Para garantir a segurança dos dados, recomendamos usar uma senha forte para o seu backup — combinando letras, números e caracteres especiais.\nO aplicativo permite que você crie um backup com uma senha simples para sua conveniência, mas você concorda que o backup pode ser comprometido se uma senha simples for usada.</string>
     <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Termos da Frase-Senha</string>
+    <string name="passphrase_terms_warning">Antes de ativar a frase-senha (BIP-39 Passphrase), confirme que compreende:</string>
+    <string name="passphrase_terms_term1">Compreendo que para aceder aos fundos, devo introduzir a frase-senha exatamente como foi criada, com os mesmos caracteres, espaços e maiúsculas/minúsculas.</string>
+    <string name="passphrase_terms_term2">Compreendo que se a frase-senha for perdida ou introduzida incorretamente, não poderei recuperar a minha carteira sem o seu valor exato.</string>
+    <string name="passphrase_terms_term3">Compreendo que ao restaurar uma carteira com uma frase-senha incorreta, a aplicação não mostrará um erro, mas criará uma nova carteira (vazia).</string>
+    <string name="passphrase_terms_term4">Compreendo que tal carteira só pode ser restaurada em aplicações que suportam o padrão BIP-39 com frase-senha (por exemplo, Trezor), e a maioria das aplicações não suporta esta funcionalidade.</string>
+    <string name="passphrase_terms_term5">Compreendo que os programadores não têm acesso aos meus dados e não podem ajudar-me a recuperar a minha carteira, pois a aplicação é não-custodial.</string>
+    <string name="passphrase_terms_term6">Compreendo os riscos e quero usar a frase-senha</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>Compreendo que &lt;b>para aceder aos fundos, devo introduzir a frase-senha&lt;/b> exatamente como foi criada, com os mesmos caracteres, espaços e maiúsculas/minúsculas.</item>
+        <item>Compreendo que &lt;b>se a frase-senha for perdida ou introduzida incorretamente&lt;/b>, &lt;b>não poderei recuperar a minha carteira&lt;/b> sem o seu valor exato.</item>
+        <item>Compreendo que &lt;b>ao restaurar uma carteira com uma frase-senha incorreta&lt;/b>, a aplicação não mostrará um erro, mas &lt;b>criará uma nova carteira (vazia)&lt;/b>.</item>
+        <item>Compreendo que &lt;b>tal carteira só pode ser restaurada em aplicações que suportam o padrão BIP-39 com frase-senha&lt;/b> (por exemplo, Trezor), e a maioria das aplicações &lt;b>não suporta esta funcionalidade&lt;/b>.</item>
+        <item>Compreendo que &lt;b>os programadores não têm acesso aos meus dados&lt;/b> e não podem ajudar-me a recuperar a minha carteira, pois a aplicação é &lt;b>não-custodial&lt;/b>.</item>
+        <item>&lt;b>Compreendo os riscos e quero usar a frase-senha&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">Frase de Recuperação</string>
     <string name="RecoveryPhrase_Description">Escreva essas palavras na ordem correta e mantenha-as em um lugar seguro</string>

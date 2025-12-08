@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cash.p.terminal.ui_compose.AnnotatedResourceString
 import cash.p.terminal.ui_compose.entities.TermItem
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
@@ -41,12 +43,18 @@ fun TermsList(
                 )
                 Spacer(Modifier.width(16.dp))
                 Column {
+                    val annotatedTitle = remember(item.title) {
+                        AnnotatedResourceString.htmlToAnnotatedString(item.title)
+                    }
                     subhead2_leah(
-                        text = item.title
+                        text = annotatedTitle
                     )
                     item.description?.let { description ->
+                        val annotatedDescription = remember(description) {
+                            AnnotatedResourceString.htmlToAnnotatedString(description)
+                        }
                         subhead2_grey(
-                            text = description,
+                            text = annotatedDescription,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                     }

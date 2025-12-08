@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.createaccount
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -25,13 +27,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cash.p.terminal.R
 import cash.p.terminal.core.displayNameStringRes
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
-import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui.compose.components.SelectorDialogCompose
 import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui_compose.blockClicksBehind
@@ -42,27 +42,28 @@ import cash.p.terminal.ui_compose.components.D1
 import cash.p.terminal.ui_compose.components.FormsInputPassword
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.data.MnemonicKind
-import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.delay
 
 @Composable
 fun CreateAccountAdvancedScreen(
+    viewModel: CreateAdvancedAccountViewModel,
     preselectMonero: Boolean,
+    passphraseTermsAccepted: Boolean,
     onBackClick: () -> Unit,
-    onFinish: () -> Unit
+    onFinish: () -> Unit,
+    onOpenTerms: () -> Unit
 ) {
-    val viewModel =
-        viewModel<CreateAdvancedAccountViewModel>(factory = CreateAccountModule.Factory())
-
     LaunchedEffect(Unit) {
-        if(preselectMonero) {
+        if (preselectMonero) {
             viewModel.setMnemonicKind(MnemonicKind.Mnemonic25)
         }
     }
@@ -147,13 +148,41 @@ fun CreateAccountAdvancedScreen(
 
                     if (viewModel.showPassphraseBlock) {
                         Spacer(Modifier.height(32.dp))
+                        if (passphraseTermsAccepted) {
+                            CellUniversalLawrenceSection(
+                                listOf {
+                                    RowUniversal(
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                        onClick = onOpenTerms
+                                    ) {
+                                        body_leah(
+                                            text = stringResource(R.string.passphrase_terms_title),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Image(
+                                            modifier = Modifier.size(20.dp),
+                                            painter = painterResource(id = R.drawable.ic_arrow_right),
+                                            contentDescription = null,
+                                        )
+                                    }
+                                }
+                            )
+                            Spacer(Modifier.height(24.dp))
+                        }
                         CellUniversalLawrenceSection(listOf {
                             PassphraseCell(
                                 enabled = viewModel.passphraseEnabled,
-                                onCheckedChange = { viewModel.setPassphraseEnabledState(it) }
+                                onCheckedChange = {
+                                    if (passphraseTermsAccepted) {
+                                        viewModel.setPassphraseEnabledState(it)
+                                    } else {
+                                        onOpenTerms()
+                                    }
+                                }
                             )
                         })
-
                         if (viewModel.passphraseEnabled) {
                             Spacer(Modifier.height(24.dp))
                             FormsInputPassword(

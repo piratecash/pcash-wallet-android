@@ -981,6 +981,25 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
 </string>
     <string name="LocalBackup_TermsWarningText">Speichergeräte wie Festplatten, USB-Laufwerke und Smartphone-Speicher sind alle anfällig für Datenverlust aufgrund von physischen Schäden, Diebstahl oder anderen unvorhergesehenen Umständen.</string>
     <string name="LocalBackup_Term1">Ich verstehe, dass ein Diebstahl oder eine Beschädigung eines Sicherungsgeräts zum Verlust des Sicherungskopfes an eine entsprechende Brieftasche führen wird.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Passphrase-Bedingungen</string>
+    <string name="passphrase_terms_warning">Bevor Sie die Passphrase (BIP-39 Passphrase) aktivieren, bestätigen Sie bitte, dass Sie Folgendes verstehen:</string>
+    <string name="passphrase_terms_term1">Ich verstehe, dass ich für den Zugriff auf die Mittel die Passphrase genau so eingeben muss, wie sie erstellt wurde, mit denselben Zeichen, Leerzeichen und Groß-/Kleinschreibung.</string>
+    <string name="passphrase_terms_term2">Ich verstehe, dass wenn die Passphrase verloren geht oder falsch eingegeben wird, ich meine Brieftasche nicht wiederherstellen kann ohne ihren genauen Wert.</string>
+    <string name="passphrase_terms_term3">Ich verstehe, dass bei der Wiederherstellung einer Brieftasche mit einer falschen Passphrase die Anwendung keinen Fehler anzeigt, sondern eine neue (leere) Brieftasche erstellt.</string>
+    <string name="passphrase_terms_term4">Ich verstehe, dass eine solche Brieftasche nur in Anwendungen wiederhergestellt werden kann, die den BIP-39-Standard mit Passphrase unterstützen (z.B. Trezor), und die meisten Anwendungen diese Funktion nicht unterstützen.</string>
+    <string name="passphrase_terms_term5">Ich verstehe, dass Entwickler keinen Zugriff auf meine Daten haben und mir nicht helfen können, meine Brieftasche wiederherzustellen, da die Anwendung nicht-verwahrend ist.</string>
+    <string name="passphrase_terms_term6">Ich verstehe die Risiken und möchte die Passphrase verwenden</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>Ich verstehe, dass &lt;b>ich für den Zugriff auf die Mittel die Passphrase eingeben muss&lt;/b> genau so, wie sie erstellt wurde, mit denselben Zeichen, Leerzeichen und Groß-/Kleinschreibung.</item>
+        <item>Ich verstehe, dass &lt;b>wenn die Passphrase verloren geht oder falsch eingegeben wird&lt;/b>, ich &lt;b>meine Brieftasche nicht wiederherstellen kann&lt;/b> ohne ihren genauen Wert.</item>
+        <item>Ich verstehe, dass &lt;b>bei der Wiederherstellung einer Brieftasche mit einer falschen Passphrase&lt;/b> die Anwendung keinen Fehler anzeigt, sondern &lt;b>eine neue (leere) Brieftasche erstellt&lt;/b>.</item>
+        <item>Ich verstehe, dass &lt;b>eine solche Brieftasche nur in Anwendungen wiederhergestellt werden kann, die den BIP-39-Standard mit Passphrase unterstützen&lt;/b> (z.B. Trezor), und die meisten Anwendungen &lt;b>diese Funktion nicht unterstützen&lt;/b>.</item>
+        <item>Ich verstehe, dass &lt;b>Entwickler keinen Zugriff auf meine Daten haben&lt;/b> und mir nicht helfen können, meine Brieftasche wiederherzustellen, da die Anwendung &lt;b>nicht-verwahrend&lt;/b> ist.</item>
+        <item>&lt;b>Ich verstehe die Risiken und möchte die Passphrase verwenden&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">Wiederherstellungsphrase</string>
     <string name="RecoveryPhrase_Description">Schreibe diese Wörter in die richtige Reihenfolge und halte sie an einem sicheren Ort</string>

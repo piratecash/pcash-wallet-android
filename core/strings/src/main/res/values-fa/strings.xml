@@ -993,6 +993,25 @@
 </string>
     <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">شرایط عبارت عبور</string>
+    <string name="passphrase_terms_warning">قبل از فعال‌سازی عبارت عبور (BIP-39 Passphrase)، لطفاً تأیید کنید که موارد زیر را درک می‌کنید:</string>
+    <string name="passphrase_terms_term1">من درک می‌کنم که برای دسترسی به وجوه، باید عبارت عبور را دقیقاً همان‌طور که ایجاد شده وارد کنم، با همان کاراکترها، فاصله‌ها و بزرگ/کوچکی حروف.</string>
+    <string name="passphrase_terms_term2">من درک می‌کنم که اگر عبارت عبور گم شود یا اشتباه وارد شود، بدون مقدار دقیق آن نمی‌توانم کیف پول خود را بازیابی کنم.</string>
+    <string name="passphrase_terms_term3">من درک می‌کنم که هنگام بازیابی کیف پول با عبارت عبور نادرست، برنامه خطایی نشان نمی‌دهد، بلکه یک کیف پول جدید (خالی) ایجاد می‌کند.</string>
+    <string name="passphrase_terms_term4">من درک می‌کنم که چنین کیف پولی فقط در برنامه‌هایی که استاندارد BIP-39 با عبارت عبور را پشتیبانی می‌کنند قابل بازیابی است (مثلاً Trezor)، و بیشتر برنامه‌ها این ویژگی را پشتیبانی نمی‌کنند.</string>
+    <string name="passphrase_terms_term5">من درک می‌کنم که توسعه‌دهندگان به داده‌های من دسترسی ندارند و نمی‌توانند به من در بازیابی کیف پولم کمک کنند، زیرا برنامه غیر امانی است.</string>
+    <string name="passphrase_terms_term6">من ریسک‌ها را درک می‌کنم و می‌خواهم از عبارت عبور استفاده کنم</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>من درک می‌کنم که &lt;b>برای دسترسی به وجوه، باید عبارت عبور را وارد کنم&lt;/b> دقیقاً همان‌طور که ایجاد شده، با همان کاراکترها، فاصله‌ها و بزرگ/کوچکی حروف.</item>
+        <item>من درک می‌کنم که &lt;b>اگر عبارت عبور گم شود یا اشتباه وارد شود&lt;/b>، بدون مقدار دقیق آن &lt;b>نمی‌توانم کیف پول خود را بازیابی کنم&lt;/b>.</item>
+        <item>من درک می‌کنم که &lt;b>هنگام بازیابی کیف پول با عبارت عبور نادرست&lt;/b>، برنامه خطایی نشان نمی‌دهد، بلکه &lt;b>یک کیف پول جدید (خالی) ایجاد می‌کند&lt;/b>.</item>
+        <item>من درک می‌کنم که &lt;b>چنین کیف پولی فقط در برنامه‌هایی که استاندارد BIP-39 با عبارت عبور را پشتیبانی می‌کنند قابل بازیابی است&lt;/b> (مثلاً Trezor)، و بیشتر برنامه‌ها &lt;b>این ویژگی را پشتیبانی نمی‌کنند&lt;/b>.</item>
+        <item>من درک می‌کنم که &lt;b>توسعه‌دهندگان به داده‌های من دسترسی ندارند&lt;/b> و نمی‌توانند به من در بازیابی کیف پولم کمک کنند، زیرا برنامه &lt;b>غیر امانی&lt;/b> است.</item>
+        <item>&lt;b>من ریسک‌ها را درک می‌کنم و می‌خواهم از عبارت عبور استفاده کنم&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">عبارت بازیابی</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>

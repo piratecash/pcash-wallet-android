@@ -980,6 +980,25 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">为了确保数据安全，我们建议您为备份使用强密码——结合字母、数字和特殊字符。该应用允许您为了方便使用简单密码创建备份，但您需同意，如果使用简单密码，备份可能会被泄露</string>
     <string name="LocalBackup_TermsWarningText">存储设备包括硬盘驱动器、USB驱动器以及智能手机上的存储等。由于有形损害、盗窃或其他无法预见的情况，所有人都容易遭受损失。</string>
     <string name="LocalBackup_Term1">我的理解是，备份设备被盗或损坏将导致备份丢失，进而导致钱包丢失。</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">密码短语条款</string>
+    <string name="passphrase_terms_warning">在激活密码短语 (BIP-39 Passphrase) 之前，请确认您理解：</string>
+    <string name="passphrase_terms_term1">我理解要访问资金，我必须输入密码短语，与创建时完全一致，包括相同的字符、空格和大小写。</string>
+    <string name="passphrase_terms_term2">我理解如果密码短语丢失或输入错误，没有其确切值我将无法恢复我的钱包。</string>
+    <string name="passphrase_terms_term3">我理解使用错误的密码短语恢复钱包时，应用程序不会显示错误，而是会创建一个新的（空的）钱包。</string>
+    <string name="passphrase_terms_term4">我理解这样的钱包只能在支持 BIP-39 标准和密码短语的应用程序中恢复（例如 Trezor），大多数应用程序不支持此功能。</string>
+    <string name="passphrase_terms_term5">我理解开发者无法访问我的数据，也无法帮助我恢复钱包，因为该应用程序是非托管的。</string>
+    <string name="passphrase_terms_term6">我理解风险并希望使用密码短语</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>我理解&lt;b>要访问资金，我必须输入密码短语&lt;/b>，与创建时完全一致，包括相同的字符、空格和大小写。</item>
+        <item>我理解&lt;b>如果密码短语丢失或输入错误&lt;/b>，没有其确切值&lt;b>我将无法恢复我的钱包&lt;/b>。</item>
+        <item>我理解&lt;b>使用错误的密码短语恢复钱包时&lt;/b>，应用程序不会显示错误，而是会&lt;b>创建一个新的（空的）钱包&lt;/b>。</item>
+        <item>我理解&lt;b>这样的钱包只能在支持 BIP-39 标准和密码短语的应用程序中恢复&lt;/b>（例如 Trezor），大多数应用程序&lt;b>不支持此功能&lt;/b>。</item>
+        <item>我理解&lt;b>开发者无法访问我的数据&lt;/b>，也无法帮助我恢复钱包，因为该应用程序是&lt;b>非托管的&lt;/b>。</item>
+        <item>&lt;b>我理解风险并希望使用密码短语&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">恢复码</string>
     <string name="RecoveryPhrase_Description">按正确顺序写下这些单词，并将其保留在一个安全的地方</string>

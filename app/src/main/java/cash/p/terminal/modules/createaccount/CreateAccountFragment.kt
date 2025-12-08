@@ -13,20 +13,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
+import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsScreen
+import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -34,13 +38,15 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellSingleLineLawrenceSection
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.HudHelper
 import kotlinx.coroutines.delay
 import kotlinx.parcelize.Parcelize
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 class CreateAccountFragment : BaseComposeFragment() {
 
@@ -72,24 +78,58 @@ private fun CreateAccountNavHost(
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = if(!preselectMonero) "create_account_intro" else "create_account_advanced",
+        startDestination = if (!preselectMonero) "create_account_intro" else "create_account_advanced",
     ) {
         composable("create_account_intro") {
+            val viewModel: CreateAdvancedAccountViewModel = koinViewModel()
             CreateAccountIntroScreen(
+                viewModel = viewModel,
                 openCreateAdvancedScreen = { navController.navigate("create_account_advanced") },
                 onBackClick = fragmentNavController::popBackStack,
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
             )
         }
-        composablePage("create_account_advanced") {
+        composablePage("create_account_advanced") { backStackEntry ->
+            val viewModel: CreateAdvancedAccountViewModel = koinViewModel()
+
+            val passphraseTermsAgreed by backStackEntry.savedStateHandle
+                .getStateFlow("passphrase_terms_agreed", false)
+                .collectAsStateWithLifecycle()
+            if (passphraseTermsAgreed) {
+                viewModel.setPassphraseEnabledState(true)
+            }
+
             CreateAccountAdvancedScreen(
+                viewModel = viewModel,
                 preselectMonero = preselectMonero,
+                passphraseTermsAccepted = viewModel.passphraseTermsAgreed,
                 onBackClick = {
-                    if(!navController.popBackStack()) {
+                    if (!navController.popBackStack()) {
                         fragmentNavController.popBackStack()
                     }
                 },
-                onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
+                onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
+                onOpenTerms = {
+                    navController.navigate("passphrase_terms")
+                }
+            )
+        }
+        composablePage("passphrase_terms") {
+            val context = LocalContext.current
+            val termTitles = context.resources.getStringArray(R.array.passphrase_terms_checkboxes)
+            val viewModel = koinViewModel<PassphraseTermsViewModel> { parametersOf(termTitles) }
+
+            PassphraseTermsScreen(
+                uiState = viewModel.uiState,
+                onCheckboxToggle = viewModel::toggleCheckbox,
+                onAgreeClick = {
+                    viewModel.agree()
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("passphrase_terms_agreed", true)
+                    navController.navigateUp()
+                },
+                onBackClick = navController::navigateUp
             )
         }
     }
@@ -97,12 +137,11 @@ private fun CreateAccountNavHost(
 
 @Composable
 private fun CreateAccountIntroScreen(
+    viewModel: CreateAdvancedAccountViewModel,
     openCreateAdvancedScreen: () -> Unit,
     onBackClick: () -> Unit,
     onFinish: () -> Unit
 ) {
-    val viewModel =
-        viewModel<CreateAdvancedAccountViewModel>(factory = CreateAccountModule.Factory())
     val view = LocalView.current
 
     LaunchedEffect(viewModel.success) {

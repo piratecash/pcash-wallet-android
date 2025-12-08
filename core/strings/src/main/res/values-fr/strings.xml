@@ -987,6 +987,25 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
 </string>
     <string name="LocalBackup_TermsWarningText">Les dispositifs de stockage tels que les disques durs, les disques USB et le stockage sur smartphone sont tous vulnérables aux pertes dues à des dommages physiques, des vols ou d\'autres circonstances imprévues.</string>
     <string name="LocalBackup_Term1">Je comprends que la perte ou l\'endommagement d\'un périphérique de sauvegarde entraînera la perte des données de sauvegarde correspondantes.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Conditions de la Phrase Secrète</string>
+    <string name="passphrase_terms_warning">Avant d\'activer la phrase secrète (BIP-39 Passphrase), veuillez confirmer que vous comprenez :</string>
+    <string name="passphrase_terms_term1">Je comprends que pour accéder aux fonds, je dois entrer la phrase secrète exactement comme elle a été créée, avec les mêmes caractères, espaces et casse.</string>
+    <string name="passphrase_terms_term2">Je comprends que si la phrase secrète est perdue ou entrée incorrectement, je ne pourrai pas récupérer mon portefeuille sans sa valeur exacte.</string>
+    <string name="passphrase_terms_term3">Je comprends que lors de la restauration d\'un portefeuille avec une phrase secrète incorrecte, l\'application n\'affichera pas d\'erreur, mais créera un nouveau portefeuille (vide).</string>
+    <string name="passphrase_terms_term4">Je comprends que un tel portefeuille ne peut être restauré que dans des applications prenant en charge la norme BIP-39 avec phrase secrète (par exemple, Trezor), et la plupart des applications ne prennent pas en charge cette fonctionnalité.</string>
+    <string name="passphrase_terms_term5">Je comprends que les développeurs n\'ont pas accès à mes données et ne peuvent pas m\'aider à récupérer mon portefeuille, car l\'application est non-custodiale.</string>
+    <string name="passphrase_terms_term6">Je comprends les risques et je souhaite utiliser la phrase secrète</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>Je comprends que &lt;b>pour accéder aux fonds, je dois entrer la phrase secrète&lt;/b> exactement comme elle a été créée, avec les mêmes caractères, espaces et casse.</item>
+        <item>Je comprends que &lt;b>si la phrase secrète est perdue ou entrée incorrectement&lt;/b>, je &lt;b>ne pourrai pas récupérer mon portefeuille&lt;/b> sans sa valeur exacte.</item>
+        <item>Je comprends que &lt;b>lors de la restauration d\'un portefeuille avec une phrase secrète incorrecte&lt;/b>, l\'application n\'affichera pas d\'erreur, mais &lt;b>créera un nouveau portefeuille (vide)&lt;/b>.</item>
+        <item>Je comprends que &lt;b>un tel portefeuille ne peut être restauré que dans des applications prenant en charge la norme BIP-39 avec phrase secrète&lt;/b> (par exemple, Trezor), et la plupart des applications &lt;b>ne prennent pas en charge cette fonctionnalité&lt;/b>.</item>
+        <item>Je comprends que &lt;b>les développeurs n\'ont pas accès à mes données&lt;/b> et ne peuvent pas m\'aider à récupérer mon portefeuille, car l\'application est &lt;b>non-custodiale&lt;/b>.</item>
+        <item>&lt;b>Je comprends les risques et je souhaite utiliser la phrase secrète&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">Phrase de récupération</string>
     <string name="RecoveryPhrase_Description">Écrivez ces mots dans le bon ordre et conservez-les dans un endroit sûr</string>

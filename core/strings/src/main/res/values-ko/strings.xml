@@ -990,6 +990,25 @@
 </string>
     <string name="LocalBackup_TermsWarningText">하드 드라이브, USB 드라이브, 스마트폰 저장소 등의 저장 장치는 물리적인 손상, 도난 또는 예기치 않은 사건으로 인해 모두 손실의 위험이 있습니다.</string>
     <string name="LocalBackup_Term1">백업 장치의 도난 또는 손상은 해당 지갑의 백업을 손실할 수 있음을 이해합니다.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">암호문 약관</string>
+    <string name="passphrase_terms_warning">암호문 (BIP-39 Passphrase) 활성화 전에 다음 사항을 이해하셨는지 확인해 주세요:</string>
+    <string name="passphrase_terms_term1">자금에 접근하려면 암호문을 생성할 때와 정확히 동일한 문자, 공백, 대소문자로 입력해야 함을 이해합니다.</string>
+    <string name="passphrase_terms_term2">암호문을 분실하거나 잘못 입력하면 정확한 값 없이는 지갑을 복구할 수 없음을 이해합니다.</string>
+    <string name="passphrase_terms_term3">잘못된 암호문으로 지갑을 복원할 경우 앱은 오류를 표시하지 않고 새로운 (빈) 지갑을 생성함을 이해합니다.</string>
+    <string name="passphrase_terms_term4">이러한 지갑은 BIP-39 표준과 암호문을 지원하는 앱(예: Trezor)에서만 복원 가능하며, 대부분의 앱은 이 기능을 지원하지 않음을 이해합니다.</string>
+    <string name="passphrase_terms_term5">개발자는 제 데이터에 접근할 수 없으며 앱이 비수탁형이기 때문에 지갑 복구를 도와줄 수 없음을 이해합니다.</string>
+    <string name="passphrase_terms_term6">위험을 이해하고 암호문을 사용하고 싶습니다</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>&lt;b>자금에 접근하려면 암호문을 입력해야 함&lt;/b>을 이해하며, 생성할 때와 정확히 동일한 문자, 공백, 대소문자로 입력해야 합니다.</item>
+        <item>&lt;b>암호문을 분실하거나 잘못 입력하면&lt;/b> 정확한 값 없이는 &lt;b>지갑을 복구할 수 없음&lt;/b>을 이해합니다.</item>
+        <item>&lt;b>잘못된 암호문으로 지갑을 복원할 경우&lt;/b> 앱은 오류를 표시하지 않고 &lt;b>새로운 (빈) 지갑을 생성함&lt;/b>을 이해합니다.</item>
+        <item>&lt;b>이러한 지갑은 BIP-39 표준과 암호문을 지원하는 앱에서만 복원 가능&lt;/b>하며(예: Trezor), 대부분의 앱은 &lt;b>이 기능을 지원하지 않음&lt;/b>을 이해합니다.</item>
+        <item>&lt;b>개발자는 제 데이터에 접근할 수 없으며&lt;/b> 앱이 &lt;b>비수탁형&lt;/b>이기 때문에 지갑 복구를 도와줄 수 없음을 이해합니다.</item>
+        <item>&lt;b>위험을 이해하고 암호문을 사용하고 싶습니다&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">복구 문구</string>
     <string name="RecoveryPhrase_Description">이 단어들을 올바른 순서로 기록하고 안전한 장소에 보관하십시오</string>

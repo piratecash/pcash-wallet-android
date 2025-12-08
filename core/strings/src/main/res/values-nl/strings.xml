@@ -995,6 +995,25 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
 </string>
     <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Passphrase Voorwaarden</string>
+    <string name="passphrase_terms_warning">Bevestig voordat u de passphrase (BIP-39 Passphrase) activeert dat u het volgende begrijpt:</string>
+    <string name="passphrase_terms_term1">Ik begrijp dat om toegang te krijgen tot de fondsen, ik de passphrase moet invoeren precies zoals deze is aangemaakt, met dezelfde tekens, spaties en hoofdletters.</string>
+    <string name="passphrase_terms_term2">Ik begrijp dat als de passphrase verloren gaat of onjuist wordt ingevoerd, ik mijn portemonnee niet kan herstellen zonder de exacte waarde.</string>
+    <string name="passphrase_terms_term3">Ik begrijp dat bij het herstellen van een portemonnee met een onjuiste passphrase, de applicatie geen foutmelding geeft, maar een nieuwe (lege) portemonnee aanmaakt.</string>
+    <string name="passphrase_terms_term4">Ik begrijp dat zo\'n portemonnee alleen kan worden hersteld in applicaties die de BIP-39-standaard met passphrase ondersteunen (bijv. Trezor), en de meeste applicaties ondersteunen deze functie niet.</string>
+    <string name="passphrase_terms_term5">Ik begrijp dat ontwikkelaars geen toegang hebben tot mijn gegevens en mij niet kunnen helpen mijn portemonnee te herstellen, aangezien de applicatie non-custodial is.</string>
+    <string name="passphrase_terms_term6">Ik begrijp de risico\'s en wil de passphrase gebruiken</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>Ik begrijp dat &lt;b>om toegang te krijgen tot de fondsen, ik de passphrase moet invoeren&lt;/b> precies zoals deze is aangemaakt, met dezelfde tekens, spaties en hoofdletters.</item>
+        <item>Ik begrijp dat &lt;b>als de passphrase verloren gaat of onjuist wordt ingevoerd&lt;/b>, &lt;b>ik mijn portemonnee niet kan herstellen&lt;/b> zonder de exacte waarde.</item>
+        <item>Ik begrijp dat &lt;b>bij het herstellen van een portemonnee met een onjuiste passphrase&lt;/b>, de applicatie geen foutmelding geeft, maar &lt;b>een nieuwe (lege) portemonnee aanmaakt&lt;/b>.</item>
+        <item>Ik begrijp dat &lt;b>zo\'n portemonnee alleen kan worden hersteld in applicaties die de BIP-39-standaard met passphrase ondersteunen&lt;/b> (bijv. Trezor), en de meeste applicaties &lt;b>ondersteunen deze functie niet&lt;/b>.</item>
+        <item>Ik begrijp dat &lt;b>ontwikkelaars geen toegang hebben tot mijn gegevens&lt;/b> en mij niet kunnen helpen mijn portemonnee te herstellen, aangezien de applicatie &lt;b>non-custodial&lt;/b> is.</item>
+        <item>&lt;b>Ik begrijp de risico\'s en wil de passphrase gebruiken&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">Recovery Phrase</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>

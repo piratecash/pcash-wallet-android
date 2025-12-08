@@ -991,6 +991,25 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
 </string>
     <string name="LocalBackup_TermsWarningText">Depolama cihazları, yani sabit sürücüler, USB sürücüler , akıllı telefondaki depolama vb. fiziksel hasar, hırsızlık veya diğer öngörülemeyen durumlar nedeniyle kayba karşı savunmasızdır.</string>
     <string name="LocalBackup_Term1">Bir yedekleme cihazının çalınmasının veya hasar görmesinin, ilgili cüzdanın yedeğinin kaybolmasına neden olacağını anlıyorum.</string>
+
+    <!-- Passphrase Terms -->
+    <string name="passphrase_terms_title">Parola Koşulları</string>
+    <string name="passphrase_terms_warning">Parolayı (BIP-39 Passphrase) etkinleştirmeden önce aşağıdakileri anladığınızı lütfen onaylayın:</string>
+    <string name="passphrase_terms_term1">Fonlara erişmek için parolayı oluşturulduğu şekliyle, aynı karakterler, boşluklar ve büyük/küçük harflerle girmem gerektiğini anlıyorum.</string>
+    <string name="passphrase_terms_term2">Parola kaybolursa veya yanlış girilirse, tam değeri olmadan cüzdanımı kurtaramayacağımı anlıyorum.</string>
+    <string name="passphrase_terms_term3">Yanlış bir parola ile cüzdan geri yüklenirken uygulamanın hata göstermeyeceğini, bunun yerine yeni bir (boş) cüzdan oluşturacağını anlıyorum.</string>
+    <string name="passphrase_terms_term4">Bu tür bir cüzdanın yalnızca BIP-39 standardını parola ile destekleyen uygulamalarda geri yüklenebileceğini (örn. Trezor) ve çoğu uygulamanın bu özelliği desteklemediğini anlıyorum.</string>
+    <string name="passphrase_terms_term5">Geliştiricilerin verilerime erişiminin olmadığını ve uygulama gözetim dışı olduğu için cüzdanımı kurtarmama yardımcı olamayacaklarını anlıyorum.</string>
+    <string name="passphrase_terms_term6">Riskleri anlıyorum ve parolayı kullanmak istiyorum</string>
+    <string-array name="passphrase_terms_checkboxes">
+        <item>&lt;b>Fonlara erişmek için parolayı girmem gerektiğini&lt;/b> anlıyorum, oluşturulduğu şekliyle, aynı karakterler, boşluklar ve büyük/küçük harflerle.</item>
+        <item>&lt;b>Parola kaybolursa veya yanlış girilirse&lt;/b>, tam değeri olmadan &lt;b>cüzdanımı kurtaramayacağımı&lt;/b> anlıyorum.</item>
+        <item>&lt;b>Yanlış bir parola ile cüzdan geri yüklenirken&lt;/b> uygulamanın hata göstermeyeceğini, bunun yerine &lt;b>yeni bir (boş) cüzdan oluşturacağını&lt;/b> anlıyorum.</item>
+        <item>&lt;b>Bu tür bir cüzdanın yalnızca BIP-39 standardını parola ile destekleyen uygulamalarda geri yüklenebileceğini&lt;/b> (örn. Trezor) ve çoğu uygulamanın &lt;b>bu özelliği desteklemediğini&lt;/b> anlıyorum.</item>
+        <item>&lt;b>Geliştiricilerin verilerime erişiminin olmadığını&lt;/b> ve uygulama &lt;b>gözetim dışı&lt;/b> olduğu için cüzdanımı kurtarmama yardımcı olamayacaklarını anlıyorum.</item>
+        <item>&lt;b>Riskleri anlıyorum ve parolayı kullanmak istiyorum&lt;/b></item>
+    </string-array>
+
     <!-- Recovery Phrase -->
     <string name="RecoveryPhrase_Title">Kurtarma cümlesi</string>
     <string name="RecoveryPhrase_Description">Bu kelimeleri doğru sırayla yazın ve güvenli bir yerde saklayın</string>
