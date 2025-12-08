@@ -3,6 +3,7 @@ package cash.p.terminal.core.di
 import android.app.Application
 import android.content.Context
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
+import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
@@ -45,6 +46,7 @@ class KoinGraphTest : KoinTest {
                 definition<AdvancedSecurityViewModel>(IPinComponent::class),
                 definition<SecureResetTermsViewModel>(Array<String>::class),
                 definition<HiddenWalletTermsViewModel>(Array<String>::class),
+                definition<PassphraseTermsViewModel>(Array<String>::class),
                 definition<ConfiguredTokenInfoViewModel>(Token::class),
             )
         )
