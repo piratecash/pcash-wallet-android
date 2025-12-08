@@ -74,7 +74,8 @@ val viewModelModule = module {
             moneroWalletUseCase = get(),
             enabledWalletStorage = get(),
             walletManager = get(),
-            restoreSettingsManager = get()
+            restoreSettingsManager = get(),
+            localStorage = get()
         )
     }
     viewModelOf(::AdvancedSecurityViewModel)

@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
@@ -45,6 +46,7 @@ class DuplicateWalletViewModel(
     private val enabledWalletStorage: IEnabledWalletStorage,
     private val walletManager: IWalletManager,
     private val restoreSettingsManager: RestoreSettingsManager,
+    private val localStorage: ILocalStorage,
 ) : ViewModel() {
 
     private val passphraseValidator = PassphraseValidator()
@@ -61,6 +63,15 @@ class DuplicateWalletViewModel(
         )
     )
         private set
+
+    val passphraseTermsAgreed: Boolean
+        get() = localStorage.passphraseTermsAgreed
+
+    fun onPassphraseTermsAgreed() {
+        if (!uiState.passphraseEnabled) {
+            onTogglePassphrase(true)
+        }
+    }
 
 
     fun onEnterName(name: String) {

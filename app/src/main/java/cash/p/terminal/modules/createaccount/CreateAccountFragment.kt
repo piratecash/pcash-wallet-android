@@ -95,8 +95,11 @@ private fun CreateAccountNavHost(
             val passphraseTermsAgreed by backStackEntry.savedStateHandle
                 .getStateFlow("passphrase_terms_agreed", false)
                 .collectAsStateWithLifecycle()
-            if (passphraseTermsAgreed) {
-                viewModel.setPassphraseEnabledState(true)
+            LaunchedEffect(passphraseTermsAgreed) {
+                if (passphraseTermsAgreed) {
+                    viewModel.setPassphraseEnabledState(true)
+                    backStackEntry.savedStateHandle["passphrase_terms_agreed"] = false
+                }
             }
 
             CreateAccountAdvancedScreen(

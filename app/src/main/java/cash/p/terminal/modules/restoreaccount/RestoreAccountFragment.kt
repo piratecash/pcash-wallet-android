@@ -2,8 +2,11 @@ package cash.p.terminal.modules.restoreaccount
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -12,6 +15,8 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
+import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsScreen
+import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureScreen
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
@@ -98,7 +103,7 @@ private fun RestoreAccountNavHost(
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
             )
         }
-        composablePage(RestoreAccountFragment.ROUTE_DUPLICATE) {
+        composablePage(RestoreAccountFragment.ROUTE_DUPLICATE) { backStackEntry ->
             val accountManager: IAccountManager by inject(IAccountManager::class.java)
             val accountToCopy = remember { accountManager.account(accountId) }
             if (accountToCopy == null) {
@@ -113,15 +118,47 @@ private fun RestoreAccountNavHost(
             val viewModel: DuplicateWalletViewModel = koinViewModel(
                 parameters = { parametersOf(accountToCopy) }
             )
+            val passphraseTermsAgreed by backStackEntry.savedStateHandle
+                .getStateFlow("passphrase_terms_agreed", false)
+                .collectAsStateWithLifecycle()
+
+            LaunchedEffect(passphraseTermsAgreed) {
+                if (passphraseTermsAgreed) {
+                    viewModel.onPassphraseTermsAgreed()
+                    backStackEntry.savedStateHandle["passphrase_terms_agreed"] = false
+                }
+            }
             DuplicateWalletScreen(
                 uiState = viewModel.uiState,
+                passphraseTermsAccepted = viewModel.passphraseTermsAgreed,
                 onEnterName = viewModel::onEnterName,
                 onTogglePassphrase = viewModel::onTogglePassphrase,
                 onChangePassphrase = viewModel::onChangePassphrase,
                 onChangePassphraseConfirmation = viewModel::onChangePassphraseConfirmation,
                 onCreate = viewModel::createAccount,
                 onBackClick = { fragmentNavController.popBackStack() },
+                onOpenTerms = {
+                    navController.navigate("passphrase_terms")
+                },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
+            )
+        }
+        composablePage("passphrase_terms") {
+            val context = LocalContext.current
+            val termTitles = context.resources.getStringArray(R.array.passphrase_terms_checkboxes)
+            val viewModel = koinViewModel<PassphraseTermsViewModel> { parametersOf(termTitles) }
+
+            PassphraseTermsScreen(
+                uiState = viewModel.uiState,
+                onCheckboxToggle = viewModel::toggleCheckbox,
+                onAgreeClick = {
+                    viewModel.agree()
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("passphrase_terms_agreed", true)
+                    navController.navigateUp()
+                },
+                onBackClick = navController::navigateUp
             )
         }
         composablePage("restore_select_coins") {
