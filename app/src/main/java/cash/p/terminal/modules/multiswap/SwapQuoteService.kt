@@ -112,11 +112,13 @@ class SwapQuoteService(
         }
     }
 
-    private fun runQuotation() {
+    private fun runQuotation(clearQuotes: Boolean = false) {
         quotingJob?.cancel()
         quoting = false
-        quotes = listOf()
-        quote = null
+        if (clearQuotes) {
+            quotes = listOf()
+            quote = null
+        }
         error = null
 
         val tokenIn = tokenIn
@@ -159,10 +161,16 @@ class SwapQuoteService(
                     quoting = false
                     emitState()
                 } else {
+                    // Amount is null or zero - clear quotes
+                    quotes = listOf()
+                    quote = null
                     emitState()
                 }
             }
         } else {
+            // Tokens are null - clear quotes
+            quotes = listOf()
+            quote = null
             emitState()
         }
     }
@@ -218,8 +226,7 @@ class SwapQuoteService(
 
         quotingJob?.cancel()
         quoting = false
-        quotes = listOf()
-        quote = null
+        // Keep previous quotes during requoting to prevent choose provider from closing
         error = null
         emitState()
 
@@ -238,7 +245,7 @@ class SwapQuoteService(
             tokenOut = null
         }
 
-        runQuotation()
+        runQuotation(clearQuotes = true)
     }
 
     fun setTokenOut(token: Token) {
@@ -250,7 +257,7 @@ class SwapQuoteService(
             tokenIn = null
         }
 
-        runQuotation()
+        runQuotation(clearQuotes = true)
     }
 
     fun switchPairs() {
@@ -261,7 +268,7 @@ class SwapQuoteService(
 
         amountIn = quote?.amountOut
 
-        runQuotation()
+        runQuotation(clearQuotes = true)
     }
 
     fun selectQuote(quote: SwapProviderQuote) {
