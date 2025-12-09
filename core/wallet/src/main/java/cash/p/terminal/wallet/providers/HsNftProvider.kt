@@ -1,14 +1,17 @@
 package cash.p.terminal.wallet.providers
 
 import com.google.gson.annotations.SerializedName
+import org.koin.java.KoinJavaComponent.inject
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.math.BigDecimal
 
 class HsNftProvider(baseUrl: String, apiKey: String) {
 
+    private val retrofitUtils: RetrofitUtils by inject(RetrofitUtils::class.java)
+
     private val service by lazy {
-        RetrofitUtils.build("${baseUrl}/v1/nft/", mapOf("apikey" to apiKey))
+        retrofitUtils.build("${baseUrl}/v1/nft/", mapOf("apikey" to apiKey))
             .create(HsNftApiV1::class.java)
     }
 

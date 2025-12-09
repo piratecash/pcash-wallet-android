@@ -60,15 +60,16 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
     private val piratePlaceRepository: PiratePlaceRepository by inject(PiratePlaceRepository::class.java)
     private val pirateCoinInfoMapper: PirateCoinInfoMapper by inject(PirateCoinInfoMapper::class.java)
+    private val retrofitUtils: RetrofitUtils by inject(RetrofitUtils::class.java)
 
     // TODO Remove old base URL https://api-dev.blocksdecoded.com/v1 and switch it to new servers
     private val pirateService by lazy {
-        RetrofitUtils.build("https://pirate.cash/s1/", mapOf("apikey" to apiKey))
+        retrofitUtils.build("https://pirate.cash/s1/", mapOf("apikey" to apiKey))
             .create(MarketService::class.java)
     }
 
     private val service by lazy {
-        RetrofitUtils.build("${baseUrl}/v1/", mapOf("apikey" to apiKey))
+        retrofitUtils.build("${baseUrl}/v1/", mapOf("apikey" to apiKey))
             .create(MarketService::class.java)
     }
 

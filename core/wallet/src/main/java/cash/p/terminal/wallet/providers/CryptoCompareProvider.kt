@@ -9,7 +9,8 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 class CryptoCompareProvider(
-    private val pirateNewsRepository: PirateNewsRepository
+    private val pirateNewsRepository: PirateNewsRepository,
+    private val retrofitUtils: RetrofitUtils
 ) {
     private val baseUrl = "https://min-api.cryptocompare.com/"
     private val newsFeeds = "cointelegraph,theblock,decrypt"
@@ -17,7 +18,7 @@ class CryptoCompareProvider(
     private val excludeCategories = "Sponsored"
 
     private val cryptoCompareService: CryptoCompareService by lazy {
-        RetrofitUtils.build(baseUrl).create(CryptoCompareService::class.java)
+        retrofitUtils.build(baseUrl).create(CryptoCompareService::class.java)
     }
 
     fun postsSingle() = Single.merge(

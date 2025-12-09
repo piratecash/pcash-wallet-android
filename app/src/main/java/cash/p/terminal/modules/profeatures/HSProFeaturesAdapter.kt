@@ -3,6 +3,7 @@ package cash.p.terminal.modules.profeatures
 import cash.p.terminal.wallet.providers.RetrofitUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -10,8 +11,10 @@ import retrofit2.http.Query
 
 class HSProFeaturesAdapter(baseUrl: String, apiKey: String) {
 
+    private val retrofitUtils: RetrofitUtils by inject(RetrofitUtils::class.java)
+
     private val service by lazy {
-        RetrofitUtils.build("${baseUrl}/v1/", mapOf("apikey" to apiKey)).create(HsService::class.java)
+        retrofitUtils.build("${baseUrl}/v1/", mapOf("apikey" to apiKey)).create(HsService::class.java)
     }
 
     suspend fun getMessage(address: String): String = withContext(Dispatchers.IO) {
