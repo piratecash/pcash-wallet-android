@@ -91,6 +91,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import cash.p.terminal.core.App
 import io.horizontalsystems.core.toBigDecimalOrNullExt
 import java.math.BigDecimal
 import java.net.UnknownHostException
@@ -195,6 +196,10 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 onClickClose = swapNavController::popBackStack,
                 quotes = selectProviderViewModel.uiState.quoteViewItems,
                 currentQuote = viewModel.uiState.quote,
+                swapRates ={
+                    HudHelper.vibrate(App.instance)
+                    selectProviderViewModel.swapRates()
+                }
             ) {
                 viewModel.onSelectQuote(it)
                 swapNavController.popBackStack()
