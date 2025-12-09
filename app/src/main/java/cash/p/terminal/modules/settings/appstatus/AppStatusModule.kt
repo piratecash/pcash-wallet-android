@@ -12,5 +12,6 @@ object AppStatusModule {
     data class UiState(
         val appStatusAsText: String?,
         val blockViewItems: List<BlockData>,
+        val loading: Boolean,
     )
 }

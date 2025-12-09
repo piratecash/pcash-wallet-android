@@ -3,6 +3,7 @@ package cash.p.terminal.modules.settings.appstatus
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
@@ -22,19 +23,20 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import io.horizontalsystems.core.ISystemInfoManager
-import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.logger.AppLog
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.Date
 
 class AppStatusViewModel(
     private val moneroKitManager: MoneroKitManager,
     private val stellarKitManager: StellarKitManager,
-) : ViewModelUiState<AppStatusModule.UiState>() {
+) : ViewModel() {
 
     private val systemInfoManager: ISystemInfoManager = App.systemInfoManager
     private val localStorage: ILocalStorage = App.localStorage
@@ -48,13 +50,22 @@ class AppStatusViewModel(
     private val solanaKitManager: SolanaKitManager = App.solanaKitManager
     private val btcBlockchainManager: BtcBlockchainManager = App.btcBlockchainManager
 
-    private var blockViewItems: List<AppStatusModule.BlockData> = emptyList()
-    private var appStatusAsText: String? = null
-    private val appLogs = AppLog.getLog()
+    private var appLogs: Map<String, Any> = emptyMap()
+
+    private val _uiState = MutableStateFlow(
+        AppStatusModule.UiState(
+            appStatusAsText = null,
+            blockViewItems = emptyList(),
+            loading = true,
+        )
+    )
+    val uiState: StateFlow<AppStatusModule.UiState> = _uiState.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            blockViewItems = listOf<AppStatusModule.BlockData>()
+        viewModelScope.launch(Dispatchers.IO) {
+            appLogs = AppLog.getLog()
+
+            val blockViewItems = listOf<AppStatusModule.BlockData>()
                 .asSequence()
                 .plus(getAppInfoBlock())
                 .plus(getVersionHistoryBlock())
@@ -64,15 +75,13 @@ class AppStatusViewModel(
                 .plus(getAppLogBlocks())
                 .toList()
 
-            emitState()
-        }
+            val appStatusAsText = formatMapToString(getStatusMap())
 
-        viewModelScope.launch(Dispatchers.IO) {
-            appStatusAsText = formatMapToString(getStatusMap())
-
-            withContext(Dispatchers.Main) {
-                emitState()
-            }
+            _uiState.value = AppStatusModule.UiState(
+                appStatusAsText = appStatusAsText,
+                blockViewItems = blockViewItems,
+                loading = false,
+            )
         }
     }
 
@@ -89,11 +98,6 @@ class AppStatusViewModel(
                 BlockchainType.PirateCash,
             )
     }
-
-    override fun createState() = AppStatusModule.UiState(
-        appStatusAsText = appStatusAsText,
-        blockViewItems = blockViewItems
-    )
 
     private fun getStatusMap(): LinkedHashMap<String, Any> {
         val status = LinkedHashMap<String, Any>()
