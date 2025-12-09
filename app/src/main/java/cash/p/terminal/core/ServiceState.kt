@@ -1,24 +1,37 @@
 package cash.p.terminal.core
 
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 abstract class ServiceState<T> {
 
     private val _stateFlow by lazy {
-        MutableStateFlow(createState())
-    }
-
-    val stateFlow: StateFlow<T>
-        get() = _stateFlow.asStateFlow()
-
-    protected abstract fun createState() : T
-
-    protected fun emitState() {
-        _stateFlow.update {
-            createState()
+        MutableSharedFlow<T>(
+            replay = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        ).also {
+            // Emit initial state to avoid exception in ServiceStateFlow.value
+            it.tryEmit(createState())
         }
     }
+
+    val stateFlow: ServiceStateFlow<T>
+        get() = ServiceStateFlow(_stateFlow.asSharedFlow())
+
+    protected abstract fun createState(): T
+
+    protected fun emitState() {
+        _stateFlow.tryEmit(createState())
+    }
+}
+
+@OptIn(ExperimentalForInheritanceCoroutinesApi::class)
+class ServiceStateFlow<T>(
+    private val sharedFlow: SharedFlow<T>
+) : SharedFlow<T> by sharedFlow {
+    val value: T
+        get() = sharedFlow.replayCache.first()
 }
