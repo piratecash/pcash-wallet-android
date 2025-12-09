@@ -50,7 +50,7 @@ class TonTransactionsAdapter(
         address: String?,
     ): List<TransactionRecord> = try {
         val tagQuery = getTagQuery(token, transactionType, address)
-        val beforeLt = (from as TonTransactionRecord?)?.lt
+        val beforeLt = (from as? TonTransactionRecord)?.lt
 
         tonKit.events(tagQuery, beforeLt, limit = limit)
             .map {

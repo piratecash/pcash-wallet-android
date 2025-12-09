@@ -45,7 +45,7 @@ class StellarTransactionsAdapter(
         address: String?
     ): List<TransactionRecord> = try {
         val tagQuery = getTagQuery(token, transactionType, address)
-        val beforeId = (from as StellarTransactionRecord?)?.operation?.id
+        val beforeId = (from as? StellarTransactionRecord)?.operation?.id
 
         stellarKit.operationsBefore(tagQuery, fromId = beforeId, limit = limit)
             .map {
