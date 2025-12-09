@@ -3,6 +3,7 @@ package cash.p.terminal.network.data
 import cash.p.terminal.network.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
@@ -15,6 +16,12 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 internal fun buildNetworkClient() = HttpClient(OkHttp) {
+    install(HttpTimeout) {
+        connectTimeoutMillis = 5_000
+        requestTimeoutMillis = 60_000
+        socketTimeoutMillis = 60_000
+    }
+
     install(ContentNegotiation) {
         json(Json {
             ignoreUnknownKeys = true
