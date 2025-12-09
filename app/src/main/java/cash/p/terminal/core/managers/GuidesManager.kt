@@ -26,7 +26,7 @@ object GuidesManager {
                     .url(guidesUrl)
                     .build()
 
-            val response = OkHttpClient().newCall(request).execute()
+            val response = APIClient.okHttpClient.newCall(request).execute()
             val categories = gson.fromJson(response.body?.charStream(), Array<GuideCategoryMultiLang>::class.java)
             response.close()
 

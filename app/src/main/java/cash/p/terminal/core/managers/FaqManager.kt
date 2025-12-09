@@ -16,7 +16,6 @@ import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.markdown.localreader.MarkdownLocalFragment
 import cash.p.terminal.navigation.slideFromBottom
 import io.reactivex.Single
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.lang.reflect.Type
 import java.net.URL
@@ -28,7 +27,6 @@ object FaqManager {
     const val faqPathMigrationRequired = "management/migration_required.md"
     const val faqPathMigrationRecommended = "management/migration_recommended.md"
     const val faqPathPrivateKeys = "management/what-are-private-keys-mnemonic-phrase-wallet-seed.md"
-    const val faqPathDefiRisks = "defi/defi-risks.md"
 
     private fun getFaqUrl(faqPath: String, language: String): String =
         URL(URL(faqListUrl), "faq/$language/$faqPath").toString()
@@ -59,7 +57,7 @@ object FaqManager {
                 .url(faqListUrl)
                 .build()
 
-            val response = OkHttpClient().newCall(request).execute()
+            val response = APIClient.okHttpClient.newCall(request).execute()
 
             val listType = object : TypeToken<List<FaqMap>>() {}.type
             val list: List<FaqMap> = gson.fromJson(response.body?.charStream(), listType)
