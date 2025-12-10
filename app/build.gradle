@@ -149,6 +149,9 @@ android {
             pickFirsts += ['META-INF/atomicfu.kotlin_module']
             excludes += ['META-INF/INDEX.LIST', 'META-INF/DEPENDENCIES', 'META-INF/LICENSE.md', 'META-INF/NOTICE.md']
         }
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 
     kotlinOptions {
