@@ -10,6 +10,14 @@ import io.horizontalsystems.hdwalletkit.Base58
 import io.horizontalsystems.tronkit.toBigInteger
 
 object BackupLocalModule {
+    const val BACKUP_VERSION = 3
+
+    // V3 backup wrapper - entire content encrypted
+    data class BackupV3(
+        val version: Int,
+        val encrypted: String // Base64 encoded BackupCrypto JSON
+    )
+
     private const val MNEMONIC = "mnemonic"
     private const val MNEMONIC_MONERO = "mnemonic_monero"
     private const val PRIVATE_KEY = "private_key"
@@ -131,6 +139,22 @@ object BackupLocalModule {
 
             HD_EXTENDED_KEY -> AccountType.HdExtendedKey(Base58.encode(data))
             UFVK -> AccountType.ZCashUfvKey(String(data, Charsets.UTF_8))
+            HARDWARE_CARD -> {
+                val parts = String(data, Charsets.UTF_8).split("@")
+                if (parts.size < 2) {
+                    throw IllegalStateException("Wrong hardware card backup format")
+                }
+                val cardId = parts[0]
+                val walletPublicKey = parts[1]
+                val backupCardsCount = parts.getOrNull(2)?.toIntOrNull() ?: 0
+                val signedHashes = parts.getOrNull(3)?.toIntOrNull() ?: 0
+                AccountType.HardwareCard(
+                    cardId = cardId,
+                    backupCardsCount = backupCardsCount,
+                    signedHashes = signedHashes,
+                    walletPublicKey = walletPublicKey
+                )
+            }
 
             else -> throw IllegalStateException("Unknown account type")
         }
@@ -166,7 +190,7 @@ object BackupLocalModule {
         is AccountType.HdExtendedKey -> Base58.decode(accountType.keySerialized)
         is AccountType.ZCashUfvKey -> accountType.key.toByteArray(Charsets.UTF_8)
         is AccountType.HardwareCard -> {
-            (accountType.cardId + "@" + accountType.walletPublicKey).toByteArray(Charsets.UTF_8)
+            ("${accountType.cardId}@${accountType.walletPublicKey}@${accountType.backupCardsCount}@${accountType.signedHashes}").toByteArray(Charsets.UTF_8)
         }
     }
 

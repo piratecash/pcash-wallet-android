@@ -50,6 +50,7 @@ import io.horizontalsystems.core.toHexString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
+import java.util.Random
 import java.util.UUID
 
 class BackupFileValidator {
@@ -61,6 +62,17 @@ class BackupFileValidator {
     }
 
     fun validate(json: String) {
+        // Check for V3 format - no validation needed, will be validated after decryption
+        val backupV3 = try {
+            gson.fromJson(json, BackupLocalModule.BackupV3::class.java)
+        } catch (e: Exception) {
+            null
+        }
+        if (backupV3?.version == BackupLocalModule.BACKUP_VERSION && backupV3.encrypted.isNotEmpty()) {
+            return
+        }
+
+        // Legacy format validation
         val fullBackup = gson.fromJson(json, FullBackup::class.java)
         val walletBackup = gson.fromJson(json, BackupLocalModule.WalletBackup::class.java)
 
@@ -103,6 +115,7 @@ class BackupProvider(
 ) {
     private val encryptDecryptManager by lazy { EncryptDecryptManager() }
     private val version = 2
+    private val versionV3 = BackupLocalModule.BACKUP_VERSION
 
     private val gson: Gson by lazy {
         GsonBuilder()
@@ -114,12 +127,24 @@ class BackupProvider(
     private fun decrypted(crypto: BackupLocalModule.BackupCrypto, passphrase: String): ByteArray {
         val kdfParams = crypto.kdfparams
         val key = EncryptDecryptManager.getKey(passphrase, kdfParams) ?: throw RestoreException.EncryptionKeyException
+        return decryptedWithKey(crypto, key)
+    }
 
+    private fun decryptedWithKey(crypto: BackupLocalModule.BackupCrypto, key: ByteArray): ByteArray {
         if (EncryptDecryptManager.passwordIsCorrect(crypto.mac, crypto.ciphertext, key)) {
             return encryptDecryptManager.decrypt(crypto.ciphertext, key, crypto.cipherparams.iv)
         } else {
             throw RestoreException.InvalidPasswordException
         }
+    }
+
+    /**
+     * Derives the encryption key from passphrase using Scrypt KDF.
+     * This is expensive (~1 second), so the result should be cached and reused.
+     */
+    fun deriveKey(passphrase: String, kdfParams: BackupLocalModule.KdfParams = BackupLocalModule.kdfDefault): ByteArray {
+        val key = EncryptDecryptManager.getKey(passphrase, kdfParams) ?: throw RestoreException.EncryptionKeyException
+        return key
     }
 
     @Throws
@@ -128,9 +153,31 @@ class BackupProvider(
         return BackupLocalModule.getAccountTypeFromData(backup.type, decrypted)
     }
 
-    fun restoreCexAccount(accountType: AccountType, accountName: String) {
-        val account = accountFactory.account(accountName, accountType, AccountOrigin.Restored, true, true)
-        accountManager.save(account)
+    /**
+     * Decrypts wallet backup using a pre-derived key (avoids expensive Scrypt call).
+     * Only uses cached key if wallet's kdfparams match; otherwise derives a new key.
+     */
+    @Throws
+    suspend fun accountTypeWithKey(backup: BackupLocalModule.WalletBackup, cachedKey: ByteArray, cachedKdfParams: BackupLocalModule.KdfParams, passphrase: String): AccountType {
+        val walletKdfParams = backup.crypto.kdfparams
+        val decrypted = if (kdfParamsMatch(cachedKdfParams, walletKdfParams)) {
+            decryptedWithKey(backup.crypto, cachedKey)
+        } else {
+            // KDF params differ, derive key specifically for this wallet
+            decrypted(backup.crypto, passphrase)
+        }
+        return BackupLocalModule.getAccountTypeFromData(backup.type, decrypted)
+    }
+
+    /**
+     * Checks if two KdfParams are equivalent (same derivation would produce same key).
+     */
+    private fun kdfParamsMatch(a: BackupLocalModule.KdfParams, b: BackupLocalModule.KdfParams): Boolean {
+        return a.dklen == b.dklen &&
+               a.n == b.n &&
+               a.p == b.p &&
+               a.r == b.r &&
+               a.salt == b.salt
     }
 
     fun restoreSingleWalletBackup(
@@ -346,11 +393,29 @@ class BackupProvider(
     }
 
     suspend fun decryptedFullBackup(fullBackup: FullBackup, passphrase: String): DecryptedFullBackup {
+        return decryptedFullBackupWithKey(fullBackup, null, null, passphrase)
+    }
+
+    /**
+     * Decrypts full backup using a pre-derived key (avoids expensive Scrypt calls for each wallet).
+     * If cachedKey is null, falls back to deriving key from passphrase for each wallet.
+     * The cachedKdfParams are used to verify the cached key is valid for each inner wallet's encryption.
+     */
+    suspend fun decryptedFullBackupWithKey(
+        fullBackup: FullBackup,
+        cachedKey: ByteArray?,
+        cachedKdfParams: BackupLocalModule.KdfParams?,
+        passphrase: String
+    ): DecryptedFullBackup {
         val walletBackupItems = mutableListOf<WalletBackupItem>()
 
         fullBackup.wallets?.forEach { walletBackup2 ->
             val backup = walletBackup2.backup
-            val type = accountType(backup, passphrase)
+            val type = if (cachedKey != null && cachedKdfParams != null) {
+                accountTypeWithKey(backup, cachedKey, cachedKdfParams, passphrase)
+            } else {
+                accountType(backup, passphrase)
+            }
             val name = walletBackup2.name
 
             val account = if (type.isWatchAccountType) {
@@ -368,8 +433,17 @@ class BackupProvider(
         }
 
         var contacts = listOf<Contact>()
-        fullBackup.contacts?.let {
-            val decrypted = decrypted(it, passphrase)
+        fullBackup.contacts?.let { contactsCrypto ->
+            val decrypted = if (cachedKey != null && cachedKdfParams != null) {
+                // Check if cached key can be used for contacts decryption
+                if (kdfParamsMatch(cachedKdfParams, contactsCrypto.kdfparams)) {
+                    decryptedWithKey(contactsCrypto, cachedKey)
+                } else {
+                    decrypted(contactsCrypto, passphrase)
+                }
+            } else {
+                decrypted(contactsCrypto, passphrase)
+            }
             val contactsBackupJson = String(decrypted, Charsets.UTF_8)
 
             contacts = contactsRepository.parseFromJson(contactsBackupJson)
@@ -423,15 +497,19 @@ class BackupProvider(
     @Throws
     fun createWalletBackup(account: Account, passphrase: String): String {
         val backup = walletBackup(account, passphrase)
-        return gson.toJson(backup)
+        val innerJson = gson.toJson(backup)
+        return wrapInV3Format(innerJson, passphrase)
     }
 
     @Throws
     fun createFullBackup(accountIds: List<String>, passphrase: String): String {
+        // Derive key once and reuse for all encryptions
+        val cachedKey = deriveBackupKey(passphrase)
+
         val wallets = accountManager.accounts
             .filter { it.isWatchAccount || accountIds.contains(it.id) }
             .map {
-                val accountBackup = walletBackup(it, passphrase)
+                val accountBackup = walletBackupWithKey(it, cachedKey, passphrase)
                 WalletBackup2(it.name, accountBackup)
             }
 
@@ -451,7 +529,7 @@ class BackupProvider(
         val customEvmSyncSources = evmBlockchainManager.allBlockchains.map { blockchain ->
             val customEvmSyncSources = evmSyncSourceManager.customSyncSources(blockchain.type)
             customEvmSyncSources.map { syncSource ->
-                val auth = syncSource.auth?.let { encrypted(it, passphrase) }
+                val auth = syncSource.auth?.let { encryptedWithKey(it, cachedKey, passphrase) }
                 EvmSyncSourceBackup(blockchain.uid, syncSource.uri.toString(), auth)
             }
         }.flatten()
@@ -482,7 +560,7 @@ class BackupProvider(
         )
 
         val contacts = if (contactsRepository.contacts.isNotEmpty())
-            encrypted(contactsRepository.asJsonString, passphrase)
+            encryptedWithKey(contactsRepository.asJsonString, cachedKey, passphrase)
         else
             null
 
@@ -496,7 +574,115 @@ class BackupProvider(
             id = UUID.randomUUID().toString()
         )
 
-        return gson.toJson(fullBackup)
+        val innerJson = gson.toJson(fullBackup)
+        return wrapInV3FormatWithKey(innerJson, cachedKey, passphrase)
+    }
+
+    private fun wrapInV3Format(innerJson: String, passphrase: String): String {
+        return wrapInV3FormatWithKey(innerJson, null, passphrase)
+    }
+
+    private fun wrapInV3FormatWithKey(innerJson: String, cachedKey: ByteArray?, passphrase: String): String {
+        // Add padding to reach uniform ~100KB file size for privacy
+        val alignedInnerJson = addAlignmentPadding(innerJson)
+
+        val crypto = encryptedWithKey(alignedInnerJson, cachedKey, passphrase)
+        val cryptoJson = gson.toJson(crypto)
+        val base64Encoded = android.util.Base64.encodeToString(
+            cryptoJson.toByteArray(Charsets.UTF_8),
+            android.util.Base64.NO_WRAP
+        )
+
+        val backupV3 = BackupLocalModule.BackupV3(
+            version = versionV3,
+            encrypted = base64Encoded
+        )
+        return gson.toJson(backupV3)
+    }
+
+    companion object {
+        // Target size for inner JSON before encryption to achieve ~100KB final file
+        // Measured expansion ratio: ~1.78x (innerJson → final file)
+        // 56KB inner → ~100KB final
+        private const val TARGET_INNER_JSON_SIZE = 56_000
+
+        // Characters safe for JSON string values (alphanumeric)
+        private const val PADDING_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    }
+
+    /**
+     * Adds random padding to JSON to reach uniform file size (~100KB).
+     * This prevents attackers from determining wallet count based on file size.
+     * The padding is added as "align_payload" field which is ignored during deserialization.
+     */
+    private fun addAlignmentPadding(json: String, targetSize: Int = TARGET_INNER_JSON_SIZE): String {
+        val currentSize = json.length
+
+        // If already at or above target, return as-is
+        if (currentSize >= targetSize) {
+            return json
+        }
+
+        // Calculate padding needed
+        // Account for wrapper: ,"align_payload":"" (20 chars overhead)
+        val wrapperOverhead = 20
+        val paddingLength = targetSize - currentSize - wrapperOverhead
+
+        if (paddingLength <= 0) {
+            return json
+        }
+
+        // Generate cryptographically random padding
+        val padding = generateRandomPadding(paddingLength)
+
+        // Insert before closing brace: {...,"align_payload":"xxxxx"}
+        val insertPosition = json.lastIndexOf('}')
+        if (insertPosition == -1) {
+            return json // Invalid JSON, return as-is
+        }
+
+        return json.substring(0, insertPosition) +
+               ",\"align_payload\":\"$padding\"" +
+               json.substring(insertPosition)
+    }
+
+    /**
+     * Generates a random string of specified length.
+     * Uses regular Random (not SecureRandom) since padding is just filler data
+     * that will be encrypted anyway - no cryptographic strength needed.
+     */
+    private fun generateRandomPadding(length: Int): String {
+        val random = Random()
+        val sb = StringBuilder(length)
+        repeat(length) {
+            sb.append(PADDING_CHARS[random.nextInt(PADDING_CHARS.length)])
+        }
+        return sb.toString()
+    }
+
+    /**
+     * Unwraps V3 format and returns the inner JSON along with cached key info.
+     * The cached key can be reused for decrypting inner wallet backups if their kdfparams match.
+     */
+    fun unwrapV3FormatWithKey(backupV3: BackupLocalModule.BackupV3, passphrase: String): Triple<String, ByteArray, BackupLocalModule.KdfParams> {
+        val cryptoJsonBytes = android.util.Base64.decode(backupV3.encrypted, android.util.Base64.NO_WRAP)
+        val cryptoJson = String(cryptoJsonBytes, Charsets.UTF_8)
+        val crypto = gson.fromJson(cryptoJson, BackupLocalModule.BackupCrypto::class.java)
+
+        // Derive key once and return it with kdfparams for reuse
+        val kdfParams = crypto.kdfparams
+        val key = deriveKey(passphrase, kdfParams)
+        val decryptedBytes = decryptedWithKey(crypto, key)
+        return Triple(String(decryptedBytes, Charsets.UTF_8), key, kdfParams)
+    }
+
+    fun parseV3Backup(json: String): BackupLocalModule.BackupV3? {
+        return try {
+            val backupV3 = gson.fromJson(json, BackupLocalModule.BackupV3::class.java)
+            if (backupV3.version == versionV3 && backupV3.encrypted.isNotEmpty()) backupV3 else null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     private fun chartIndicators(): ChartIndicators {
@@ -539,11 +725,16 @@ class BackupProvider(
         val digest = md.digest(value)
         return digest.toHexString()
     }
-
-    private fun encrypted(data: String, passphrase: String): BackupLocalModule.BackupCrypto {
+    
+    /**
+     * Encrypts data using a pre-derived key to avoid repeated Scrypt calls.
+     */
+    private fun encryptedWithKey(data: String, cachedKey: ByteArray?, passphrase: String): BackupLocalModule.BackupCrypto {
         val kdfParams = BackupLocalModule.kdfDefault
         val secretText = data.toByteArray(Charsets.UTF_8)
-        val key = EncryptDecryptManager.getKey(passphrase, kdfParams) ?: throw Exception("Couldn't get encryption key")
+
+        val key = cachedKey
+            ?: (EncryptDecryptManager.getKey(passphrase, kdfParams) ?: throw Exception("Couldn't get encryption key"))
 
         val iv = EncryptDecryptManager.generateRandomBytes(16).toHexString()
         val encrypted = encryptDecryptManager.encrypt(secretText, key, iv)
@@ -559,12 +750,28 @@ class BackupProvider(
         )
     }
 
+    /**
+     * Derives encryption key from passphrase. Should be called once and reused.
+     */
+    private fun deriveBackupKey(passphrase: String): ByteArray {
+        return EncryptDecryptManager.getKey(passphrase, BackupLocalModule.kdfDefault)
+            ?: throw Exception("Couldn't get encryption key")
+    }
+
     @Throws
     private fun walletBackup(account: Account, passphrase: String): BackupLocalModule.WalletBackup {
+        return walletBackupWithKey(account, null, passphrase)
+    }
+
+    /**
+     * Creates wallet backup using a pre-derived key to avoid repeated Scrypt calls.
+     */
+    @Throws
+    private fun walletBackupWithKey(account: Account, cachedKey: ByteArray?, passphrase: String): BackupLocalModule.WalletBackup {
         val kdfParams = BackupLocalModule.kdfDefault
         val secretText = BackupLocalModule.getDataForEncryption(account.type)
         val id = getId(secretText)
-        val key = EncryptDecryptManager.getKey(passphrase, kdfParams) ?: throw Exception("Couldn't get encryption key")
+        val key = cachedKey ?: (EncryptDecryptManager.getKey(passphrase, kdfParams) ?: throw Exception("Couldn't get encryption key"))
 
         val iv = EncryptDecryptManager.generateRandomBytes(16).toHexString()
         val encrypted = encryptDecryptManager.encrypt(secretText, key, iv)

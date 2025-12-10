@@ -6,6 +6,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.IAccountFactory
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.ui_compose.entities.DataState
+import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.modules.backuplocal.BackupLocalModule.WalletBackup
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupProvider
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupViewItemFactory
@@ -34,6 +35,7 @@ class RestoreLocalViewModel(
     private var showButtonSpinner = false
     private var walletBackup: WalletBackup? = null
     private var fullBackup: FullBackup? = null
+    private var backupV3: BackupLocalModule.BackupV3? = null
     private var parseError: Exception? = null
     private var showSelectCoins: cash.p.terminal.wallet.AccountType? = null
     private var manualBackup = false
@@ -62,16 +64,22 @@ class RestoreLocalViewModel(
                     .enableComplexMapKeySerialization()
                     .create()
 
-                fullBackup = try {
-                    val backup = gson.fromJson(backupJsonString, FullBackup::class.java)
-                    backup.settings.language // if single walletBackup it will throw exception
-                    backup
-                } catch (ex: Exception) {
-                    null
-                }
+                // Check for V3 format first
+                backupV3 = backupJsonString?.let { backupProvider.parseV3Backup(it) }
 
-                walletBackup = gson.fromJson(backupJsonString, WalletBackup::class.java)
-                manualBackup = walletBackup?.manualBackup ?: false
+                if (backupV3 == null) {
+                    // Legacy format parsing
+                    fullBackup = try {
+                        val backup = gson.fromJson(backupJsonString, FullBackup::class.java)
+                        backup.settings.language // if single walletBackup it will throw exception
+                        backup
+                    } catch (ex: Exception) {
+                        null
+                    }
+
+                    walletBackup = gson.fromJson(backupJsonString, WalletBackup::class.java)
+                    manualBackup = walletBackup?.manualBackup ?: false
+                }
             } catch (e: Exception) {
                 parseError = e
                 emitState()
@@ -99,12 +107,80 @@ class RestoreLocalViewModel(
 
     fun onImportClick() {
         when {
+            backupV3 != null -> {
+                backupV3?.let { restoreV3Backup(it) }
+            }
+
             fullBackup != null -> {
                 fullBackup?.let { showFullBackupItems(it) }
             }
 
             walletBackup != null -> {
                 walletBackup?.let { restoreSingleWallet(it, accountName) }
+            }
+        }
+    }
+
+    private fun restoreV3Backup(backup: BackupLocalModule.BackupV3): Job {
+        showButtonSpinner = true
+        emitState()
+
+        return viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val gson = GsonBuilder()
+                    .disableHtmlEscaping()
+                    .enableComplexMapKeySerialization()
+                    .create()
+
+                // Get inner JSON, cached key, and kdfParams (single Scrypt call)
+                val (innerJson, cachedKey, cachedKdfParams) = backupProvider.unwrapV3FormatWithKey(backup, passphrase)
+
+                // Try to parse as FullBackup first
+                val parsedFullBackup = try {
+                    val fb = gson.fromJson(innerJson, FullBackup::class.java)
+                    fb.settings.language // throws if not FullBackup
+                    fb
+                } catch (ex: Exception) {
+                    null
+                }
+
+                if (parsedFullBackup != null) {
+                    // Use cached key to avoid Scrypt calls for each wallet
+                    val decrypted = backupProvider.decryptedFullBackupWithKey(parsedFullBackup, cachedKey, cachedKdfParams, passphrase)
+
+                    val backupItems = backupProvider.fullBackupItems(decrypted)
+                    val backupViewItems = backupViewItemFactory.backupViewItems(backupItems)
+
+                    walletBackupViewItems = backupViewItems.first
+                    otherBackupViewItems = backupViewItems.second
+                    decryptedFullBackup = decrypted
+                    showBackupItems = true
+                } else {
+                    // Parse as single wallet backup
+                    val parsedWalletBackup = gson.fromJson(innerJson, WalletBackup::class.java)
+                    manualBackup = parsedWalletBackup.manualBackup
+
+                    // Use cached key to avoid another Scrypt call (with kdfParams check)
+                    val type = backupProvider.accountTypeWithKey(parsedWalletBackup, cachedKey, cachedKdfParams, passphrase)
+
+                    if (parsedWalletBackup.enabledWallets.isNullOrEmpty()) {
+                        showSelectCoins = type
+                    } else {
+                        backupProvider.restoreSingleWalletBackup(type, accountName, parsedWalletBackup)
+                        restored = true
+                    }
+                }
+            } catch (keyException: RestoreException.EncryptionKeyException) {
+                parseError = keyException
+            } catch (invalidPassword: RestoreException.InvalidPasswordException) {
+                passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+            } catch (e: Exception) {
+                parseError = e
+            }
+
+            withContext(Dispatchers.Main) {
+                showButtonSpinner = false
+                emitState()
             }
         }
     }
