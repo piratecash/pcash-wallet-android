@@ -42,7 +42,7 @@ class WalletManager(
     }
 
     override val activeWallets: List<Wallet>
-        get() = synchronized(walletsSet) { walletsSet.toList() }
+        get() = _activeWalletsState.value
 
     override suspend fun saveSuspended(wallets: List<Wallet>) {
         handleSuspended(wallets, emptyList())
