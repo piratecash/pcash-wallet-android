@@ -68,6 +68,8 @@ bitcoinj = "0.16.2"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.7.0"
+camerax = "1.4.0"
+zxing = "3.5.4"
 
 tor-android = "0.4.8.17.2"
 
@@ -170,6 +172,14 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 tor-android = { group = "info.guardianproject", name = "tor-android", version.ref = "tor-android" }
+
+# CameraX for QR scanning
+camerax-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camerax-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+
+# ZXing for QR code decoding
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }

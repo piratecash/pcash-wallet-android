@@ -7,6 +7,7 @@ import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import cash.p.terminal.navigation.setNavigationResultX
@@ -22,7 +23,10 @@ class QRScannerFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val input = navController.getInput<Input>()
+        // Cache input to survive configuration changes and returning from gallery picker
+        val showPasteButton = rememberSaveable {
+            navController.getInput<Input>()?.showPasteButton ?: false
+        }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
         LaunchedEffect(viewModel) {
@@ -35,7 +39,7 @@ class QRScannerFragment : BaseComposeFragment() {
         QRScannerScreen(
             uiState = uiState,
             navController = navController,
-            showPasteButton = input?.showPasteButton ?: false,
+            showPasteButton = showPasteButton,
             onScan = { decoded ->
                 navController.setNavigationResultX(Result(decoded))
                 navController.popBackStack()

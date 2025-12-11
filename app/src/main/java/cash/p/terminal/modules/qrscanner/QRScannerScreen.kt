@@ -2,8 +2,24 @@ package cash.p.terminal.modules.qrscanner
 
 import android.Manifest
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,25 +42,31 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.premiumAction
@@ -65,8 +87,8 @@ import cash.p.terminal.ui_compose.theme.YellowD
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
-import com.journeyapps.barcodescanner.CompoundBarcodeView
-import com.journeyapps.barcodescanner.ScanOptions
+import java.util.concurrent.Executors
+import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -211,33 +233,178 @@ private fun LoadingOverlay() {
 @Composable
 private fun ScannerView(onScan: (String) -> Unit) {
     val context = LocalContext.current
-    val latestOnScan = rememberUpdatedState(onScan)
-    val scanIntent = remember(context) {
-        ScanOptions()
-            .setOrientationLocked(true)
-            .setPrompt("")
-            .setBeepEnabled(false)
-            .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-            .createScanIntent(context)
-    }
-    val barcodeView = remember(scanIntent) {
-        CompoundBarcodeView(context).apply {
-            initializeFromIntent(scanIntent)
-            setStatusText("")
-            decodeSingle { result ->
-                result.text?.let { decoded ->
-                    latestOnScan.value(decoded)
-                }
-            }
-        }
-    }
-    AndroidView(factory = { barcodeView })
-    LifecycleResumeEffect(barcodeView) {
-        barcodeView.resume()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-        onPauseOrDispose {
-            barcodeView.pause()
+    val previewView = remember { PreviewView(context) }
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+    val hasScanned = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            cameraExecutor.shutdown()
         }
+    }
+
+    LaunchedEffect(previewView) {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+
+            val resolutionSelector = ResolutionSelector.Builder()
+                .setResolutionStrategy(
+                    ResolutionStrategy(
+                        Size(1920, 1080),
+                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                    )
+                )
+                .build()
+
+            val preview = Preview.Builder()
+                .setResolutionSelector(resolutionSelector)
+                .build()
+                .also { it.surfaceProvider = previewView.surfaceProvider }
+
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setResolutionSelector(resolutionSelector)
+                .setHighResolutionDisabled(false)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+                .also { analysis ->
+                    analysis.setAnalyzer(cameraExecutor, QrCodeAnalyzer { result ->
+                        if (hasScanned.compareAndSet(false, true)) {
+                            mainHandler.post {
+                                onScan(result)
+                            }
+                        }
+                    })
+                }
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    preview,
+                    imageAnalyzer
+                )
+            } catch (_: Exception) {
+                // Camera binding failed
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AndroidView(
+            factory = { previewView },
+            modifier = Modifier.fillMaxSize()
+        )
+        ScannerOverlay()
+    }
+}
+
+@Composable
+private fun ScannerOverlay() {
+    val density = LocalDensity.current
+    val scanWindowSize = with(density) { 250.dp.toPx() }
+    val cornerLength = with(density) { 30.dp.toPx() }
+    val strokeWidth = with(density) { 4.dp.toPx() }
+    val cornerColor = ComposeAppTheme.colors.yellowD
+
+    // Animated scan line
+    val infiniteTransition = rememberInfiniteTransition(label = "scanLine")
+    val scanLinePosition by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scanLinePosition"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        // Calculate scan window position (centered)
+        val scanLeft = (canvasWidth - scanWindowSize) / 2
+        val scanTop = (canvasHeight - scanWindowSize) / 2
+        val scanRight = scanLeft + scanWindowSize
+        val scanBottom = scanTop + scanWindowSize
+
+        val overlayColor = Color.Black.copy(alpha = 0.6f)
+
+        // Create cutout path for the scan window
+        val cutoutPath = Path().apply {
+            addRect(androidx.compose.ui.geometry.Rect(scanLeft, scanTop, scanRight, scanBottom))
+        }
+
+        // Draw overlay with cutout using clipPath with Difference operation
+        clipPath(cutoutPath, clipOp = androidx.compose.ui.graphics.ClipOp.Difference) {
+            drawRect(color = overlayColor)
+        }
+
+        // Draw corner brackets (orange) - L-shapes with rounded corners
+        val halfStroke = strokeWidth / 2
+
+        // Top-left corner bracket
+        val topLeftPath = Path().apply {
+            moveTo(scanLeft + halfStroke, scanTop + cornerLength)
+            lineTo(scanLeft + halfStroke, scanTop + halfStroke)
+            quadraticTo(
+                scanLeft + halfStroke, scanTop + halfStroke,
+                scanLeft + halfStroke, scanTop + halfStroke
+            )
+            lineTo(scanLeft + cornerLength, scanTop + halfStroke)
+        }
+        drawPath(topLeftPath, cornerColor, style = Stroke(width = strokeWidth))
+
+        // Top-right corner bracket
+        val topRightPath = Path().apply {
+            moveTo(scanRight - cornerLength, scanTop + halfStroke)
+            lineTo(scanRight - halfStroke, scanTop + halfStroke)
+            quadraticTo(
+                scanRight - halfStroke, scanTop + halfStroke,
+                scanRight - halfStroke, scanTop + halfStroke
+            )
+            lineTo(scanRight - halfStroke, scanTop + cornerLength)
+        }
+        drawPath(topRightPath, cornerColor, style = Stroke(width = strokeWidth))
+
+        // Bottom-left corner bracket
+        val bottomLeftPath = Path().apply {
+            moveTo(scanLeft + halfStroke, scanBottom - cornerLength)
+            lineTo(scanLeft + halfStroke, scanBottom - halfStroke)
+            quadraticTo(
+                scanLeft + halfStroke, scanBottom - halfStroke,
+                scanLeft + halfStroke, scanBottom - halfStroke
+            )
+            lineTo(scanLeft + cornerLength, scanBottom - halfStroke)
+        }
+        drawPath(bottomLeftPath, cornerColor, style = Stroke(width = strokeWidth))
+
+        // Bottom-right corner bracket
+        val bottomRightPath = Path().apply {
+            moveTo(scanRight - cornerLength, scanBottom - halfStroke)
+            lineTo(scanRight - halfStroke, scanBottom - halfStroke)
+            quadraticTo(
+                scanRight - halfStroke, scanBottom - halfStroke,
+                scanRight - halfStroke, scanBottom - halfStroke
+            )
+            lineTo(scanRight - halfStroke, scanBottom - cornerLength)
+        }
+        drawPath(bottomRightPath, cornerColor, style = Stroke(width = strokeWidth))
+
+        // Draw animated red scan line
+        val padding = 16.dp.toPx()
+        val lineY = scanTop + padding + (scanWindowSize - 2 * padding) * scanLinePosition
+        drawLine(
+            color = Color.Red,
+            start = Offset(scanLeft + padding, lineY),
+            end = Offset(scanRight - padding, lineY),
+            strokeWidth = 2.dp.toPx()
+        )
     }
 }
 
@@ -332,7 +499,7 @@ private fun PermissionNeededDialog(
     }
 }
 
-@Preview
+@ComposePreview
 @Composable
 private fun PermissionNeededDialogPreview() {
     ComposeAppTheme {
