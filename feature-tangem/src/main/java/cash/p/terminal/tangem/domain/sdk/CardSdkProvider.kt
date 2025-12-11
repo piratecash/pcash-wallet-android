@@ -152,7 +152,6 @@ class CardSdkProvider(
 
         val config = Config(
             linkedTerminal = true,
-            allowUntrustedCards = true,
             filter = CardFilter(
                 allowedCardTypes = FirmwareVersion.FirmwareType.entries.toList(),
                 maxFirmwareVersion = FirmwareVersion(major = 6, minor = 33),
