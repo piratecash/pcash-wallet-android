@@ -149,6 +149,7 @@ class CardSdkProvider(
     )
 
     private companion object {
+        private const val TANGEM_API_BASE_URL = "https://api.tangem.org/"
 
         val config = Config(
             linkedTerminal = true,
@@ -159,6 +160,7 @@ class CardSdkProvider(
                     items = setOf("0027", "0030", "0031", "0035"),
                 ),
             ),
+            tangemApiBaseUrl = TANGEM_API_BASE_URL,
         )
     }
 }
