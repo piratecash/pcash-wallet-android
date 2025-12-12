@@ -141,7 +141,13 @@ class QuickexProvider(
     private fun getQuickexNetwork(token: Token): String? =
         currencies.find {
             isSameContract(it, token)
-        }?.networkTitle ?: token.badge ?: getQuickexTicker(token)
+        }?.networkTitle
+            ?: if (token.type !is TokenType.Native && (token.type !is TokenType.AddressSpecTyped)) {
+                token.badge
+            } else {
+                null
+            }
+            ?: getQuickexTicker(token)
 
     private suspend fun getExchangeAmountOrThrow(
         tickerFrom: String,
