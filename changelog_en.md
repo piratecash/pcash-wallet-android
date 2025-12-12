@@ -1,3 +1,49 @@
+## 🚀 Version 0.50.0 — Major Updates
+_Release date: December 12, 2025_
+
+### 🏴‍☠️ Key Features
+
+- **Support for branded Tangem cards**
+  Added full support for **Semiconductor Smart Card Tangem x P Cash**, enabling seamless use of branded Tangem hardware cards.
+
+- **Quickex.io CEX integration**
+  Integrated **Quickex.io** as a new centralized exchange provider for currency swaps, expanding provider options and improving swap reliability.
+
+### 🔄 Swaps & Fees
+
+- **Fixed BTC amount reduction during ChangeNow swaps**
+  Resolved a rare issue where the final BTC amount could be lower than expected when exchanging via ChangeNow.
+
+- **Fixed incorrect Jetton transfer fee calculation**
+  Jetton network fees are now calculated correctly and match actual network costs.
+
+- **Improved swap provider comparison details**
+  The swap provider selection screen now shows more data:
+    - current exchange rate
+    - comparison with the best available offer
+    - how much worse or better the selected provider is versus the best one
+
+### 🔐 Security & UX
+
+- **Additional protection layer during wallet creation**
+  Improved wallet creation flow when users are setting a password for the seed phrase, reducing confusion and preventing unintended actions.
+
+- **Fixed UI issues with large system font sizes**
+  Resolved an issue where control elements (including wallet deletion) were not visible when large font sizes were enabled.
+
+- **Enhanced QR code scanning mechanism**
+  Improved scanning logic and animations, allowing the app to correctly read partially damaged or non-standard QR codes.
+
+### 🛠 Stability & Fixes
+
+- **Fixed crash in `WalletManager.getActiveWallets`**
+  Eliminated an application crash when retrieving active wallets.
+
+- **Fixed crash in `SQLiteConnection.nativeOpen`**
+  Improved stability of local database operations.
+
+
+
 ## 🚀 Main Changes in Version 0.49.4
 _Release Date: December 2, 2025_
 
