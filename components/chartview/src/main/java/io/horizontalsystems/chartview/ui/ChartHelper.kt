@@ -63,15 +63,17 @@ class ChartHelper(
 
         if (hasVolumes) {
             val volumeByTimestamp = target.volumeByTimestamp()
-            val volumeMin = volumeByTimestamp.minOf { it.value }
-            val volumeMax = volumeByTimestamp.maxOf { it.value }
-            volumeBars = CurveAnimatorBars(
-                volumeByTimestamp,
-                minKey,
-                maxKey,
-                volumeMin,
-                volumeMax
-            )
+            if (volumeByTimestamp.isNotEmpty()) {
+                val volumeMin = volumeByTimestamp.minOf { it.value }
+                val volumeMax = volumeByTimestamp.maxOf { it.value }
+                volumeBars = CurveAnimatorBars(
+                    volumeByTimestamp,
+                    minKey,
+                    maxKey,
+                    volumeMin,
+                    volumeMax
+                )
+            }
         }
 
         defineColors()
