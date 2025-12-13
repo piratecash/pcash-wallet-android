@@ -1,3 +1,19 @@
+## 🛠 Version 0.50.1 Update
+_Release date: December 13, 2025_
+
+### 🐞 Fixes and stability improvements
+
+- **Fixed missing exchange options for native coins in Quickex**
+  Previously, for native coins (including **ZEC**), the **Quickex.io** provider could return no available exchange options. This issue has been resolved.
+
+- **Fixed crash when volume data is missing**
+  The app no longer crashes in cases where trading volume data is unavailable or equals zero.
+
+- **Fixed a rare crash in the Bitcoin Kit**
+  Improved stability of the Bitcoin wallet in rare edge-case scenarios.
+
+
+
 ## 🚀 Version 0.50.0 — Major Updates
 _Release date: December 12, 2025_
 
