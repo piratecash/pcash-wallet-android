@@ -13,13 +13,13 @@ import io.horizontalsystems.core.BackgroundManagerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ConnectivityManager(
@@ -47,13 +47,35 @@ class ConnectivityManager(
 
     private var callback: ConnectionStatusCallback? = null
     private val isCallbackRegistered = AtomicBoolean(false)
-    private val connectionStateMutex = Mutex()
-    private var hasValidInternet = false
-    private var hasConnection = false
+
+    // Actor pattern: single channel ensures FIFO processing of network events
+    private val eventChannel = Channel<NetworkEvent>(Channel.UNLIMITED)
+
+    // State managed only by the event processor (no mutex needed)
+    private val activeNetworks = mutableSetOf<Network>()
+    private val networkValidationMap = mutableMapOf<Network, Boolean>()
+
+    private sealed class NetworkEvent {
+        data class Available(val network: Network) : NetworkEvent()
+        data class Lost(val network: Network) : NetworkEvent()
+        data class CapabilitiesChanged(
+            val network: Network,
+            val capabilities: NetworkCapabilities
+        ) : NetworkEvent()
+        data object Unavailable : NetworkEvent()
+        data class Initialize(
+            val network: Network?,
+            val hasValidInternet: Boolean,
+            val forceEmit: Boolean
+        ) : NetworkEvent()
+    }
 
     init {
+        // Single coroutine processes all events in order - no races possible
         scope.launch {
-            setInitialValues()
+            eventChannel.receiveAsFlow().collect { event ->
+                processEvent(event)
+            }
         }
 
         scope.launch {
@@ -74,16 +96,65 @@ class ConnectivityManager(
                 }
             }
         }
+
+        setInitialValues()
     }
 
-    private suspend fun willEnterForeground() {
-        setInitialValues()
+    private fun processEvent(event: NetworkEvent) {
+        when (event) {
+            is NetworkEvent.Available -> {
+                activeNetworks.add(event.network)
+                // Initialize validation state as false until capabilities callback arrives
+                networkValidationMap[event.network] = false
+            }
+            is NetworkEvent.Lost -> {
+                activeNetworks.remove(event.network)
+                networkValidationMap.remove(event.network)
+            }
+            is NetworkEvent.CapabilitiesChanged -> {
+                // Only process if network is still active (prevents resurrection after onLost)
+                if (activeNetworks.contains(event.network)) {
+                    val isValidated = event.capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                            event.capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+                    networkValidationMap[event.network] = isValidated
+                }
+            }
+            is NetworkEvent.Unavailable -> {
+                activeNetworks.clear()
+                networkValidationMap.clear()
+            }
+            is NetworkEvent.Initialize -> {
+                activeNetworks.clear()
+                networkValidationMap.clear()
 
+                event.network?.let { network ->
+                    activeNetworks.add(network)
+                    networkValidationMap[network] = event.hasValidInternet
+                }
+            }
+        }
+        updateConnectionState(forceEmit = (event as? NetworkEvent.Initialize)?.forceEmit == true)
+    }
+
+    private fun updateConnectionState(forceEmit: Boolean = false) {
+        val hasConnection = activeNetworks.isNotEmpty()
+        val hasValidInternet = networkValidationMap.values.any { it }
+        val newValue = hasConnection && hasValidInternet
+
+        val oldValue = _isConnected.value
+        _isConnected.value = newValue
+        if (forceEmit || oldValue != newValue) {
+            _networkAvailabilityFlow.tryEmit(newValue)
+        }
+    }
+
+    private fun willEnterForeground() {
         if (callback == null) {
             callback = ConnectionStatusCallback()
         }
 
         unregisterCallbackSafely()
+        setInitialValues()
         registerCallback()
     }
 
@@ -120,59 +191,34 @@ class ConnectivityManager(
         }
     }
 
-    private suspend fun setInitialValues() {
-        connectionStateMutex.withLock {
-            hasConnection = false
-            hasValidInternet = false
-        }
-
-        val initialStatus = getInitialConnectionStatus()
-        _isConnected.value = initialStatus
-        _networkAvailabilityFlow.tryEmit(initialStatus)
-    }
-
-    private suspend fun getInitialConnectionStatus(): Boolean {
-        val network = systemConnectivityManager.activeNetwork ?: return false
-
-        return connectionStateMutex.withLock {
-            hasConnection = true
-            hasValidInternet = systemConnectivityManager.getNetworkCapabilities(network)?.let {
-                it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                        it.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+    private fun setInitialValues() {
+        val network = systemConnectivityManager.activeNetwork
+        val hasValidInternet = network?.let { activeNetwork ->
+            systemConnectivityManager.getNetworkCapabilities(activeNetwork)?.let { caps ->
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                        caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
             } ?: false
+        } ?: false
 
-            hasValidInternet
-        }
+        eventChannel.trySend(
+            NetworkEvent.Initialize(
+                network = network,
+                hasValidInternet = hasValidInternet,
+                forceEmit = true
+            )
+        )
     }
 
     inner class ConnectionStatusCallback : ConnectivityManager.NetworkCallback() {
 
-        private val activeNetworks = mutableSetOf<Network>()
-
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
-
-            scope.launch {
-                connectionStateMutex.withLock {
-                    activeNetworks.add(network)
-                    hasConnection = activeNetworks.isNotEmpty()
-                }
-
-                updatedConnectionState()
-            }
+            eventChannel.trySend(NetworkEvent.Available(network))
         }
 
         override fun onLost(network: Network) {
             super.onLost(network)
-
-            scope.launch {
-                connectionStateMutex.withLock {
-                    activeNetworks.remove(network)
-                    hasConnection = activeNetworks.isNotEmpty()
-                }
-
-                updatedConnectionState()
-            }
+            eventChannel.trySend(NetworkEvent.Lost(network))
         }
 
         override fun onCapabilitiesChanged(
@@ -180,39 +226,12 @@ class ConnectivityManager(
             networkCapabilities: NetworkCapabilities
         ) {
             super.onCapabilitiesChanged(network, networkCapabilities)
-
-            scope.launch {
-                connectionStateMutex.withLock {
-                    hasValidInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
-                            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-                }
-
-                updatedConnectionState()
-            }
+            eventChannel.trySend(NetworkEvent.CapabilitiesChanged(network, networkCapabilities))
         }
 
         override fun onUnavailable() {
             super.onUnavailable()
-
-            scope.launch {
-                connectionStateMutex.withLock {
-                    hasConnection = false
-                }
-
-                updatedConnectionState()
-            }
-        }
-    }
-
-    private suspend fun updatedConnectionState() {
-        val oldValue = _isConnected.value
-        val newValue = connectionStateMutex.withLock {
-            hasConnection && hasValidInternet
-        }
-
-        if (oldValue != newValue) {
-            _isConnected.value = newValue
-            _networkAvailabilityFlow.tryEmit(newValue)
+            eventChannel.trySend(NetworkEvent.Unavailable)
         }
     }
 }
