@@ -116,7 +116,6 @@ class TokenBalanceViewModel(
 
         viewModelScope.launch(dedicatedDispatcher) {
             balanceService.start()
-//            delay(300)
             transactionsService.start()
         }
 

@@ -56,9 +56,7 @@ class TokenTransactionsService(
 
     fun start() {
         coroutineScope.launch {
-            Timber.d("TokenTransactionsService start")
             transactionRecordRepository.itemsObservable.asFlow().collect {
-                Timber.d("TokenTransactionsService handleUpdatedRecords ${it.size}")
                 handleUpdatedRecords(it)
             }
         }
@@ -115,6 +113,8 @@ class TokenTransactionsService(
 
     @Synchronized
     private fun handleContactsUpdate() {
+        if (transactionItems.isEmpty()) return
+
         val tmpList = mutableListOf<TransactionItem>()
         transactionItems.forEach {
             tmpList.add(it.copy())
@@ -253,6 +253,8 @@ class TokenTransactionsService(
     private val executorService = Executors.newCachedThreadPool()
 
     fun refreshList(forceLoadData: Boolean = false) {
+        if (transactionItems.isEmpty()) return
+
         if (forceLoadData) {
             val tmpList = mutableListOf<TransactionItem>()
             transactionItems.forEach {
