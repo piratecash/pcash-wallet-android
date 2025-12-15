@@ -27,6 +27,7 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.releasenotes.ReleaseNotesScreen
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
+import cash.p.terminal.modules.settings.appcache.AppCacheScreen
 import cash.p.terminal.modules.settings.appstatus.AppStatusScreen
 import cash.p.terminal.modules.settings.main.HsSettingCell
 import cash.p.terminal.modules.settings.privacy.PrivacyScreen
@@ -56,6 +57,7 @@ class AboutFragment : BaseComposeFragment() {
 private const val AboutPage = "about"
 private const val ReleaseNotesPage = "release_notes"
 private const val AppStatusPage = "app_status"
+private const val AppCachePage = "app_cache"
 private const val PrivacyPage = "privacy"
 private const val TermsPage = "terms"
 
@@ -87,6 +89,7 @@ private fun AboutNavHost(fragmentNavController: NavController) {
             }
         }
         composablePage(AppStatusPage) { AppStatusScreen(navController) }
+        composablePage(AppCachePage) { AppCacheScreen(navController) }
         composablePage(PrivacyPage) {
             val viewModel = koinViewModel<PrivacyViewModel>()
             PrivacyScreen(

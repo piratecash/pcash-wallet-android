@@ -968,6 +968,19 @@ Proceed only if you\'re sure.</string>
     <string name="Settings_CompanyName" translatable="false">PirateCash and Cosanta Foundation</string>
     <string name="Settings_Faq" translatable="false">FAQ</string>
     <string name="Settings_AppStatus">App Status</string>
+    <string name="settings_app_cache_title">App Cache</string>
+    <string name="settings_app_cache_clear_all">Clear All Caches</string>
+    <string name="settings_app_cache_clear">Clear</string>
+    <string name="settings_app_cache_cleared">Cache cleared</string>
+    <string name="settings_app_cache_description">Clearing caches may temporarily slow down the app while data is re-downloaded.</string>
+    <string name="settings_app_cache_http_title">Network Cache</string>
+    <string name="settings_app_cache_http_description">Cached API responses</string>
+    <string name="settings_app_cache_image_title">Image Cache</string>
+    <string name="settings_app_cache_image_description">Cached coin icons and images</string>
+    <string name="settings_app_cache_database_title">Database Cache</string>
+    <string name="settings_app_cache_database_description">Cached coin associations</string>
+    <string name="settings_app_cache_market_title">Market Prices Cache</string>
+    <string name="settings_app_cache_market_description">Cached coin prices and market data</string>
     <string name="Settings_WalletConnect" translatable="false">WalletConnect</string>
     <string name="Settings_TonConnect" translatable="false">Ton Connect</string>
     <string name="Settings_RateUs">Rate Us</string>

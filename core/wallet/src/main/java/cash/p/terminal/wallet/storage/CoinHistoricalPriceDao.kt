@@ -13,4 +13,7 @@ interface CoinHistoricalPriceDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(coinHistoricalPrice: CoinHistoricalPrice)
+
+    @Query("DELETE FROM CoinHistoricalPrice")
+    fun deleteAll()
 }

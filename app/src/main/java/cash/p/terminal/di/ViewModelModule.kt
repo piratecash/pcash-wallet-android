@@ -18,6 +18,7 @@ import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicVie
 import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
+import cash.p.terminal.modules.settings.appcache.AppCacheViewModel
 import cash.p.terminal.modules.settings.appstatus.AppStatusViewModel
 import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
@@ -49,6 +50,7 @@ val viewModelModule = module {
     viewModelOf(::ReleaseNotesViewModel)
     viewModelOf(::RestoreMnemonicViewModel)
     viewModelOf(::AppStatusViewModel)
+    viewModelOf(::AppCacheViewModel)
     viewModelOf(::MoneroConfigureViewModel)
     viewModelOf(::AboutPremiumViewModel)
     viewModelOf(::PremiumSettingsViewModel)

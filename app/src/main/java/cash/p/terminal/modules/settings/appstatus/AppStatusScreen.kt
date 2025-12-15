@@ -43,6 +43,8 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import org.koin.compose.viewmodel.koinViewModel
 
+private const val AppCachePage = "app_cache"
+
 @Composable
 fun AppStatusScreen(
     navController: NavController
@@ -114,6 +116,16 @@ fun AppStatusScreen(
                             }
                         )
                     }
+                }
+                item {
+                    VSpacer(8.dp)
+                    ButtonPrimaryDefault(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        title = stringResource(R.string.settings_app_cache_title),
+                        onClick = { navController.navigate(AppCachePage) }
+                    )
                 }
                 items(uiState.blockViewItems) { blockData ->
                     StatusBlock(
