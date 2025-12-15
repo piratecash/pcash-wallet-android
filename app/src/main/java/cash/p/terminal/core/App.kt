@@ -276,19 +276,26 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
             walletManager,
             marketKit,
             tronKitManager,
-            tokenAutoEnableManager
+            tokenAutoEnableManager,
+            get()
         )
         tronAccountManager.start()
 
-        val tonAccountManager =
-            TonAccountManager(accountManager, walletManager, tonKitManager, tokenAutoEnableManager)
+        val tonAccountManager = TonAccountManager(
+            accountManager,
+            walletManager,
+            tonKitManager,
+            tokenAutoEnableManager,
+            get()
+        )
         tonAccountManager.start()
 
         val stellarAccountManager = StellarAccountManager(
             accountManager = accountManager,
             walletManager = walletManager,
             stellarKitManager = get(),
-            tokenAutoEnableManager = tokenAutoEnableManager
+            tokenAutoEnableManager = tokenAutoEnableManager,
+            userDeletedWalletManager = get()
         )
         stellarAccountManager.start()
 

@@ -17,16 +17,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
-import kotlin.collections.filter
-import kotlin.collections.forEach
-import kotlin.collections.map
-import kotlin.let
 
 class StellarAccountManager(
     private val accountManager: IAccountManager,
     private val walletManager: IWalletManager,
     private val stellarKitManager: StellarKitManager,
     private val tokenAutoEnableManager: TokenAutoEnableManager,
+    private val userDeletedWalletManager: UserDeletedWalletManager,
 ) {
     private val blockchainType: BlockchainType = BlockchainType.Stellar
     private val logger = AppLogger("stellar-account-manager")
@@ -43,7 +40,7 @@ class StellarAccountManager(
         }
     }
 
-    private suspend fun handleStarted(started: Boolean) {
+    private fun handleStarted(started: Boolean) {
         try {
             if (started) {
                 subscribeToTransactions()
@@ -59,22 +56,21 @@ class StellarAccountManager(
         transactionSubscriptionJob?.cancel()
     }
 
-    private suspend fun subscribeToTransactions() {
+    private fun subscribeToTransactions() {
         val stellarKitWrapper = stellarKitManager.stellarKitWrapper ?: return
         val account = accountManager.activeAccount ?: return
 
         transactionSubscriptionJob = coroutineScope.launch {
             stellarKitWrapper.stellarKit.operationFlow(TagQuery(null, null, null))
                 .collect { (operations, initial) ->
-                    handle(operations, account, stellarKitWrapper, initial)
+                    handle(operations, account, initial)
                 }
         }
     }
 
-    private fun handle(
+    private suspend fun handle(
         operations: List<Operation>,
         account: Account,
-        stellarKitWrapper: StellarKitWrapper,
         initial: Boolean,
     ) {
         val shouldAutoEnableTokens = tokenAutoEnableManager.isAutoEnabled(account, blockchainType)
@@ -97,7 +93,7 @@ class StellarAccountManager(
         handle(assets, account)
     }
 
-    private fun handle(assets: Set<StellarAsset.Asset>, account: Account) {
+    private suspend fun handle(assets: Set<StellarAsset.Asset>, account: Account) {
         if (assets.isEmpty()) return
 
         val existingWallets = walletManager.activeWallets
@@ -106,19 +102,25 @@ class StellarAccountManager(
 
         if (newAssets.isEmpty()) return
 
-        val enabledWallets = newAssets.map { asset ->
-            val tokenQuery = TokenQuery(BlockchainType.Stellar, asset.tokenType)
+        val enabledWallets = newAssets
+            .mapNotNull { asset ->
+                val tokenQuery = TokenQuery(BlockchainType.Stellar, asset.tokenType)
+                if (userDeletedWalletManager.isDeletedByUser(account.id, tokenQuery.id)) {
+                    return@mapNotNull null
+                }
 
-            EnabledWallet(
-                tokenQueryId = tokenQuery.id,
-                accountId = account.id,
-                coinName = null,
-                coinCode = asset.code,
-                coinDecimals = null,
-                coinImage = null
-            )
+                EnabledWallet(
+                    tokenQueryId = tokenQuery.id,
+                    accountId = account.id,
+                    coinName = null,
+                    coinCode = asset.code,
+                    coinDecimals = null,
+                    coinImage = null
+                )
+            }
+
+        if (enabledWallets.isNotEmpty()) {
+            walletManager.saveEnabledWallets(enabledWallets)
         }
-
-        walletManager.saveEnabledWallets(enabledWallets)
     }
 }

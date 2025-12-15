@@ -7,6 +7,7 @@ import cash.p.terminal.core.factories.EvmAccountManagerFactory
 import cash.p.terminal.core.managers.AccountCleaner
 import cash.p.terminal.core.managers.CoinManager
 import cash.p.terminal.core.managers.NumberFormatter
+import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
 import cash.p.terminal.core.providers.EvmLabelProvider
 import cash.p.terminal.core.storage.AccountsStorage
@@ -81,6 +82,8 @@ val storageModule = module {
     factory { get<AppDatabase>().syncerStateDao() }
     factory { get<AppDatabase>().recentAddressDao() }
     factory { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
+    factory { get<AppDatabase>().userDeletedWalletDao() }
+    singleOf(::UserDeletedWalletManager)
     factory { get<AppDatabase>().moneroFileDao() }
     factory { get<AppDatabase>().zcashSingleUseAddressDao() }
     single { get<AppDatabase>().spamAddressDao() }

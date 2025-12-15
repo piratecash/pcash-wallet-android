@@ -56,6 +56,7 @@ import cash.p.terminal.core.storage.migrations.Migration_78_79
 import cash.p.terminal.core.storage.migrations.Migration_79_80
 import cash.p.terminal.core.storage.migrations.Migration_80_81
 import cash.p.terminal.core.storage.migrations.Migration_81_82
+import cash.p.terminal.core.storage.migrations.Migration_82_83
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
@@ -72,6 +73,7 @@ import cash.p.terminal.entities.SpamAddress
 import cash.p.terminal.entities.SpamScanState
 import cash.p.terminal.entities.SyncerState
 import cash.p.terminal.entities.TokenAutoEnabledBlockchain
+import cash.p.terminal.entities.UserDeletedWallet
 import cash.p.terminal.entities.ZcashSingleUseAddress
 import cash.p.terminal.entities.nft.NftAssetBriefMetadataRecord
 import cash.p.terminal.entities.nft.NftAssetRecord
@@ -92,7 +94,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 82,
+    version = 83,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -123,7 +125,8 @@ import io.horizontalsystems.core.storage.LogsDao
         SpamScanState::class,
         MoneroFileRecord::class,
         PendingTransactionEntity::class,
-        ZcashSingleUseAddress::class
+        ZcashSingleUseAddress::class,
+        UserDeletedWallet::class
     ]
 )
 @TypeConverters(DatabaseConverters::class)
@@ -153,6 +156,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun moneroFileDao(): MoneroFileDao
     abstract fun pendingTransactionDao(): PendingTransactionDao
     abstract fun zcashSingleUseAddressDao(): ZcashSingleUseAddressDao
+    abstract fun userDeletedWalletDao(): UserDeletedWalletDao
 
     companion object {
 
@@ -220,7 +224,8 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_78_79,
                     Migration_79_80,
                     Migration_80_81,
-                    Migration_81_82
+                    Migration_81_82,
+                    Migration_82_83
                 )
                 .build()
         }

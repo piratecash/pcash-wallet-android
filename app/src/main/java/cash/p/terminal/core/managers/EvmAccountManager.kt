@@ -1,15 +1,15 @@
 package cash.p.terminal.core.managers
 
-import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.IAccountManager
-import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.erc20kit.core.DataProvider
 import io.horizontalsystems.erc20kit.events.TransferEventInstance
 import io.horizontalsystems.ethereumkit.core.EthereumKit
@@ -43,7 +43,8 @@ class EvmAccountManager(
     private val walletManager: IWalletManager,
     private val marketKit: MarketKitWrapper,
     private val evmKitManager: EvmKitManager,
-    private val tokenAutoEnableManager: TokenAutoEnableManager
+    private val tokenAutoEnableManager: TokenAutoEnableManager,
+    private val userDeletedWalletManager: UserDeletedWalletManager
 ) {
     private val logger = AppLogger("evm-account-manager")
     private val singleDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
@@ -89,7 +90,12 @@ class EvmAccountManager(
         }
     }
 
-    private fun handle(fullTransactions: List<FullTransaction>, account: Account, evmKitWrapper: EvmKitWrapper, initial: Boolean) {
+    private fun handle(
+        fullTransactions: List<FullTransaction>,
+        account: Account,
+        evmKitWrapper: EvmKitWrapper,
+        initial: Boolean
+    ) {
         val shouldAutoEnableTokens = tokenAutoEnableManager.isAutoEnabled(account, blockchainType)
 
         if (initial && account.origin == AccountOrigin.Restored && !account.isWatchAccount && !shouldAutoEnableTokens) {
@@ -164,7 +170,8 @@ class EvmAccountManager(
                         if (eventInstance !is TransferEventInstance) continue
 
                         if (eventInstance.to == address) {
-                            val tokenType = TokenType.Eip20(eventInstance.contractAddress.hex.lowercase())
+                            val tokenType =
+                                TokenType.Eip20(eventInstance.contractAddress.hex.lowercase())
 
                             if (decoration.fromAddress == address) {
                                 foundTokens.add(FoundToken(tokenType, eventInstance.tokenInfo))
@@ -179,7 +186,8 @@ class EvmAccountManager(
 
         handle(
             foundTokens = foundTokens.toList(),
-            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokens.map { it.tokenType }.toSet()).toList(),
+            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokens.map { it.tokenType }
+                .toSet()).toList(),
             account = account,
             evmKit = evmKitWrapper.evmKit
         )
@@ -203,7 +211,12 @@ class EvmAccountManager(
         )*/
 
         try {
-            val queries = (foundTokens.map { it.tokenType } + suspiciousTokenTypes).map { TokenQuery(blockchainType, it) }
+            val queries = (foundTokens.map { it.tokenType } + suspiciousTokenTypes).map {
+                TokenQuery(
+                    blockchainType,
+                    it
+                )
+            }
             val tokens =
                 if (queries.size >= 1000) {
                     // 1000 is max number of arguments in sqlite
@@ -259,62 +272,72 @@ class EvmAccountManager(
         }
     }
 
-    private suspend fun handle(tokenInfos: List<TokenInfo>, account: Account, evmKit: EthereumKit) = withContext(Dispatchers.IO) {
+    private suspend fun handle(tokenInfos: List<TokenInfo>, account: Account, evmKit: EthereumKit) =
+        withContext(Dispatchers.IO) {
 //        Log.e("AAA", "handle tokens ${tokenInfos.size} \n ${tokenInfos.joinToString(separator = " ") { it.type.id }}")
 
-        val existingWallets = walletManager.activeWallets
-        val existingTokenTypeIds = existingWallets.map { it.token.type.id }
-        val newTokenInfos = tokenInfos.filter { !existingTokenTypeIds.contains(it.type.id) }
+            val existingWallets = walletManager.activeWallets
+            val existingTokenTypeIds = existingWallets.map { it.token.type.id }
+            val newTokenInfos = tokenInfos.filter { !existingTokenTypeIds.contains(it.type.id) }
 
 //        Log.e("AAA", "New Tokens: ${newTokenInfos.size}")
 
-        if (newTokenInfos.isEmpty()) return@withContext
+            if (newTokenInfos.isEmpty()) return@withContext
 
-        val userAddress = evmKit.receiveAddress
-        val dataProvider = DataProvider(evmKit)
+            val userAddress = evmKit.receiveAddress
+            val dataProvider = DataProvider(evmKit)
 
-        val requests = newTokenInfos.map { tokenInfo ->
-            val contractAddress = (tokenInfo.type as? TokenType.Eip20)?.let {
-                try {
-                    Address(it.address)
-                } catch (ex: Exception) {
-                    null
-                }
-            }
-
-            async {
-                if (contractAddress != null) {
-                    val balance = try {
-                        dataProvider.getBalance(contractAddress, userAddress).await()
-                    } catch (error: Throwable) {
+            val requests = newTokenInfos.map { tokenInfo ->
+                val contractAddress = (tokenInfo.type as? TokenType.Eip20)?.let {
+                    try {
+                        Address(it.address)
+                    } catch (ex: Exception) {
                         null
                     }
+                }
 
-                    if (balance == null || balance > BigInteger.ZERO) {
-                        tokenInfo
+                async {
+                    if (contractAddress != null) {
+                        val balance = try {
+                            dataProvider.getBalance(contractAddress, userAddress).await()
+                        } catch (error: Throwable) {
+                            null
+                        }
+
+                        if (balance == null || balance > BigInteger.ZERO) {
+                            tokenInfo
+                        } else {
+                            null
+                        }
                     } else {
                         null
                     }
-                } else {
-                    null
                 }
             }
-        }
 
-        val enabledWallets = requests.awaitAll().filterNotNull().map { tokenInfo -> EnabledWallet(
-                tokenQueryId = TokenQuery(blockchainType, tokenInfo.type).id,
-                accountId = account.id,
-                coinName = tokenInfo.coinName,
-                coinCode = tokenInfo.coinCode,
-                coinDecimals = tokenInfo.tokenDecimals,
-                coinImage = null
-            )
-        }
+            val enabledWallets = requests.awaitAll().filterNotNull()
+                .mapNotNull { tokenInfo ->
+                    val tokenQueryId = TokenQuery(blockchainType, tokenInfo.type).id
+                    if (userDeletedWalletManager.isDeletedByUser(
+                            account.id,
+                            tokenQueryId
+                        )
+                    ) return@mapNotNull null
 
-        if (enabledWallets.isNotEmpty()) {
-            walletManager.saveEnabledWallets(enabledWallets)
+                    EnabledWallet(
+                        tokenQueryId = tokenQueryId,
+                        accountId = account.id,
+                        coinName = tokenInfo.coinName,
+                        coinCode = tokenInfo.coinCode,
+                        coinDecimals = tokenInfo.tokenDecimals,
+                        coinImage = null
+                    )
+                }
+
+            if (enabledWallets.isNotEmpty()) {
+                walletManager.saveEnabledWallets(enabledWallets)
+            }
         }
-    }
 
     data class TokenInfo(
         val type: TokenType,

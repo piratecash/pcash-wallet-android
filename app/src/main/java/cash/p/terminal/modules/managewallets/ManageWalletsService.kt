@@ -2,6 +2,7 @@ package cash.p.terminal.modules.managewallets
 
 import cash.p.terminal.core.eligibleTokens
 import cash.p.terminal.core.managers.RestoreSettings
+import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.restoreSettingTypes
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
@@ -35,7 +36,8 @@ class ManageWalletsService(
     private val walletManager: IWalletManager,
     private val restoreSettingsService: RestoreSettingsService,
     private val fullCoinsProvider: FullCoinsProvider?,
-    private val account: Account?
+    private val account: Account?,
+    private val userDeletedWalletManager: UserDeletedWalletManager
 ) : Clearable {
 
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
@@ -216,6 +218,7 @@ class ManageWalletsService(
             walletManager.activeWallets
                 .firstOrNull { it.token == token }
                 ?.let {
+                    userDeletedWalletManager.markAsDeleted(it)
                     walletManager.delete(listOf(it))
                     updateSortedItems(token, false)
                     syncState()

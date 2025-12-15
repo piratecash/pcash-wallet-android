@@ -1,13 +1,13 @@
 package cash.p.terminal.core.managers
 
-import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
-import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.tonkit.models.Event
 import io.horizontalsystems.tonkit.models.Jetton
 import io.horizontalsystems.tonkit.models.TagQuery
@@ -23,6 +23,7 @@ class TonAccountManager(
     private val walletManager: IWalletManager,
     private val tonKitManager: TonKitManager,
     private val tokenAutoEnableManager: TokenAutoEnableManager,
+    private val userDeletedWalletManager: UserDeletedWalletManager,
 ) {
     private val blockchainType: BlockchainType = BlockchainType.Ton
     private val logger = AppLogger("evm-account-manager")
@@ -67,7 +68,7 @@ class TonAccountManager(
         }
     }
 
-    private fun handle(
+    private suspend fun handle(
         events: List<Event>,
         account: Account,
         tonKitWrapper: TonKitWrapper,
@@ -106,7 +107,7 @@ class TonAccountManager(
         handle(jettons, account)
     }
 
-    private fun handle(jettons: Set<Jetton>, account: Account) {
+    private suspend fun handle(jettons: Set<Jetton>, account: Account) {
         if (jettons.isEmpty()) return
 
         val existingWallets = walletManager.activeWallets
@@ -115,17 +116,25 @@ class TonAccountManager(
 
         if (newJettons.isEmpty()) return
 
-        val enabledWallets = newJettons.map { jetton ->
-            EnabledWallet(
-                tokenQueryId = TokenQuery(BlockchainType.Ton, jetton.tokenType).id,
-                accountId = account.id,
-                coinName = jetton.name,
-                coinCode = jetton.symbol,
-                coinDecimals = jetton.decimals,
-                coinImage = jetton.image
-            )
-        }
+        val enabledWallets = newJettons
+            .mapNotNull { jetton ->
+                val tokenQueryId = TokenQuery(BlockchainType.Ton, jetton.tokenType).id
+                if (userDeletedWalletManager.isDeletedByUser(account.id, tokenQueryId)) {
+                    return@mapNotNull null
+                }
 
-        walletManager.saveEnabledWallets(enabledWallets)
+                EnabledWallet(
+                    tokenQueryId = tokenQueryId,
+                    accountId = account.id,
+                    coinName = jetton.name,
+                    coinCode = jetton.symbol,
+                    coinDecimals = jetton.decimals,
+                    coinImage = jetton.image
+                )
+            }
+
+        if (enabledWallets.isNotEmpty()) {
+            walletManager.saveEnabledWallets(enabledWallets)
+        }
     }
 }
