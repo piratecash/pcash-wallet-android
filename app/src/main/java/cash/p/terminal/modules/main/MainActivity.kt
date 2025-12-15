@@ -64,6 +64,13 @@ class MainActivity : BaseActivity() {
         val navController = navHost.navController
 
         navController.setGraph(R.navigation.main_graph, intent.extras)
+
+        // Clear navigation state on process death when PIN is set.
+        // This prevents crashes from ViewModels accessing authenticated state
+        if (savedInstanceState != null && App.pinComponent.isPinSet) {
+            navController.popBackStack(navController.graph.startDestinationId, false)
+        }
+
         navController.addOnDestinationChangedListener { _, _, _ ->
             currentFocus?.hideKeyboard(this)
         }
