@@ -172,7 +172,13 @@ class BackupLocalPasswordViewModel(
                 }
 
                 is BackupType.FullBackup -> {
-                    // FullBackup doesn't change account's backup state
+                    type.accountIds.forEach { accountId ->
+                        accountManager.account(accountId)?.let { account ->
+                            if (!account.isFileBackedUp) {
+                                accountManager.update(account.copy(isFileBackedUp = true))
+                            }
+                        }
+                    }
                 }
             }
             delay(1700) //Wait for showing Snackbar (SHORT duration ~ 1500ms)
