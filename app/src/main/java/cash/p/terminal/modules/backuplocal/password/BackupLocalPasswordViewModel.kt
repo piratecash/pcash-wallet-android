@@ -172,8 +172,18 @@ class BackupLocalPasswordViewModel(
                 }
 
                 is BackupType.FullBackup -> {
+                    // Mark main accounts as backed up
                     type.accountIds.forEach { accountId ->
                         accountManager.account(accountId)?.let { account ->
+                            if (!account.isFileBackedUp) {
+                                accountManager.update(account.copy(isFileBackedUp = true))
+                            }
+                        }
+                    }
+                    // Mark duress accounts as backed up
+                    if (duressBackupEnabled) {
+                        val duressLevel = pinComponent.getDuressLevel()
+                        accountManager.accountsAtLevel(duressLevel).forEach { account ->
                             if (!account.isFileBackedUp) {
                                 accountManager.update(account.copy(isFileBackedUp = true))
                             }
