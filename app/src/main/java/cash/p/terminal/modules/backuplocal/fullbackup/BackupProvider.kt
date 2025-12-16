@@ -514,7 +514,7 @@ class BackupProvider(
                     type,
                     AccountOrigin.Restored,
                     backup.manualBackup,
-                    backup.fileBackup
+                    true // Restoring from file proves file backup exists
                 )
             }
 
