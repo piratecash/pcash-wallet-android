@@ -1,3 +1,42 @@
+## 🚀 Version 0.50.2 Update
+_Release date: December 16, 2025_
+
+### ✨ New Features
+
+- **Duress Backup (Premium Feature)**
+  Introduced a backup mechanism with encryption and plausible deniability. From the backup file itself, it is impossible to determine:
+    - how many wallets it contains;
+    - whether it includes hidden data.
+      The same backup file is decrypted differently depending on the password:
+    - the **duress password** unlocks only duress wallets;
+    - the **main password** unlocks all wallets.
+
+- **App Cache Cleanup**
+  Added the ability to clear:
+    - network cache;
+    - image cache;
+    - database cache;
+    - market price cache.
+      Path: **Settings → About → App status → App cache**.
+
+### 🧭 UX Improvements
+
+- **Added loading state for the transactions screen**
+  Previously, users could see a “no transactions” message while data was still loading due to limited device resources.
+  Now:
+    - the “No transactions” message is shown only when there are truly no transactions;
+    - a loading indicator or skeleton is displayed during data loading to prevent unnecessary concern.
+
+### 🔧 Fixes and Improvements
+
+- **Improved ticker mapping for Quickex**
+  Fixed an issue where **Bitcoin (BTC)** could not be found.
+
+- **Fixed wallet restoration after deletion**
+  Resolved a rare issue where deleted wallets could reappear if there were unfinished synchronization operations.
+
+
+
 ## 🛠 Version 0.50.1 Update
 _Release date: December 13, 2025_
 
