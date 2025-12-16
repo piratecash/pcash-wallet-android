@@ -83,7 +83,7 @@ class PinComponent(
     override val isPinSet: Boolean
         get() = pinManager.isPinSet
 
-    private fun getDuressLevel(): Int {
+    override fun getDuressLevel(): Int {
         var level = userManager.getUserLevel() + 1
         // Skip reserved level for Secure Reset PIN
         if (level == PinLevels.SECURE_RESET) {

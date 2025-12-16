@@ -200,6 +200,10 @@ class AccountManager(
 
     override fun getDeletedAccountIds() = storage.getDeletedAccountIds()
     override fun clearDeleted() = storage.clearDeleted()
+
+    override fun accountsAtLevel(level: Int): List<Account> {
+        return storage.allAccounts(level)
+    }
 }
 
 class NoActiveAccount : Exception()

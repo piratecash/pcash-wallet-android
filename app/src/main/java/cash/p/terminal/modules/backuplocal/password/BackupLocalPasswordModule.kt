@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.wallet.PassphraseValidator
 import cash.p.terminal.ui_compose.entities.DataState
+import io.horizontalsystems.core.CoreApp
 
 object BackupLocalPasswordModule {
 
@@ -16,6 +17,7 @@ object BackupLocalPasswordModule {
                 PassphraseValidator(),
                 App.accountManager,
                 App.backupProvider,
+                CoreApp.pinComponent,
             ) as T
         }
     }
@@ -24,8 +26,14 @@ object BackupLocalPasswordModule {
         val passphraseState: DataState.Error?,
         val passphraseConfirmState: DataState.Error?,
         val showButtonSpinner: Boolean,
-        val backupJson: String?,
+        val backupData: ByteArray?,
         val closeScreen: Boolean,
-        val error: String?
+        val error: String?,
+        // Duress backup fields
+        val duressBackupEnabled: Boolean = false,
+        val duressBackupAvailable: Boolean = false,
+        val pinEnabled: Boolean = false,
+        val duressPassphraseState: DataState.Error? = null,
+        val duressPassphraseConfirmState: DataState.Error? = null
     )
 }

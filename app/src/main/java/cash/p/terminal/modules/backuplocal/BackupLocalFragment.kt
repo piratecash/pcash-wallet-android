@@ -69,6 +69,7 @@ private fun FullBackupNavHost(fragmentNavController: NavController) {
             val accountIds = backStackEntry.arguments?.getString("accountIds")?.split(",") ?: listOf()
             LocalBackupPasswordScreen(
                 backupType = BackupType.FullBackup(accountIds),
+                navController = fragmentNavController,
                 onBackClick = {
                     navController.popBackStack()
                 },
@@ -100,6 +101,7 @@ private fun SingleWalletBackupNavHost(fragmentNavController: NavController, acco
         composablePage("password_page") {
             LocalBackupPasswordScreen(
                 backupType = BackupType.SingleWalletBackup(accountId),
+                navController = fragmentNavController,
                 onBackClick = {
                     navController.popBackStack()
                 },

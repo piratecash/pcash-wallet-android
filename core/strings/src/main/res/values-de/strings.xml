@@ -994,6 +994,14 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
 </string>
     <string name="LocalBackup_TermsWarningText">Speichergeräte wie Festplatten, USB-Laufwerke und Smartphone-Speicher sind alle anfällig für Datenverlust aufgrund von physischen Schäden, Diebstahl oder anderen unvorhergesehenen Umständen.</string>
     <string name="LocalBackup_Term1">Ich verstehe, dass ein Diebstahl oder eine Beschädigung eines Sicherungsgeräts zum Verlust des Sicherungskopfes an eine entsprechende Brieftasche führen wird.</string>
+    <string name="local_backup_duress_toggle">Notfall-Backup</string>
+    <string name="local_backup_duress_info_title">Notfall-Backup</string>
+    <string name="local_backup_duress_info_description">Das Notfall-Backup verwendet abstreitbare Verschlüsselung. Die Backup-Datei kann nicht verraten, wie viele Wallets sie enthält oder ob versteckte Daten vorhanden sind. Dasselbe Backup wird je nach Passwort unterschiedlich entschlüsselt: Ein Notfall-Passwort öffnet nur Notfall-Wallets, das Hauptpasswort öffnet alle Wallets.</string>
+    <string name="local_backup_configure_duress_first">Um diese Funktion zu nutzen, konfigurieren Sie zuerst den Notfall-Modus.</string>
+    <string name="local_backup_duress_password">Notfall-Passwort</string>
+    <string name="local_backup_confirm_duress_password">Notfall-Passwort bestätigen</string>
+    <string name="local_backup_password_collision">Hauptpasswort und Notfall-Passwort dürfen nicht identisch sein.</string>
+    <string name="local_backup_error_empty_password">Das Passwort darf nicht leer sein.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase-Bedingungen</string>

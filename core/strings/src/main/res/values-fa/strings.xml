@@ -1004,8 +1004,16 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">برای حفظ امنیت داده�ها، توصیه می�کنیم از یک رمز عبور قوی برای پشتیبان�گیری خود استفاده کنید — ترکیبی از حروف، اعداد و کاراکترهای ویژه.
 اپلیکیشن به شما امکان می�دهد به�خاطر راحتی، با یک رمز عبور ساده پشتیبان�گیری کنید، اما شما قبول دارید که در صورت استفاده از رمز عبور ساده، پشتیبان�گیری ممکن است در معرض خطر قرار گیرد.
 </string>
-    <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
-    <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+    <string name="LocalBackup_TermsWarningText">دستگاه‌های ذخیره‌سازی مانند هارد دیسک‌ها، درایوهای USB، حافظه گوشی هوشمند و غیره همگی در معرض از دست رفتن به دلیل آسیب فیزیکی، سرقت یا شرایط پیش‌بینی نشده دیگر هستند.</string>
+    <string name="LocalBackup_Term1">می‌فهمم که سرقت یا آسیب به دستگاه پشتیبان‌گیری منجر به از دست رفتن نسخه پشتیبان کیف پول مربوطه خواهد شد.</string>
+    <string name="local_backup_duress_toggle">پشتیبان‌گیری اضطراری</string>
+    <string name="local_backup_duress_info_title">پشتیبان‌گیری اضطراری</string>
+    <string name="local_backup_duress_info_description">پشتیبان‌گیری اضطراری از رمزنگاری قابل انکار استفاده می‌کند. فایل پشتیبان نمی‌تواند فاش کند که چند کیف پول دارد یا آیا داده‌های پنهانی وجود دارد. همان پشتیبان بسته به رمز عبور به طور متفاوت رمزگشایی می‌شود: رمز عبور اضطراری فقط کیف پول‌های اضطراری را باز می‌کند، رمز عبور اصلی همه کیف پول‌ها را باز می‌کند.</string>
+    <string name="local_backup_configure_duress_first">برای استفاده از این ویژگی، ابتدا حالت اضطراری را پیکربندی کنید.</string>
+    <string name="local_backup_duress_password">رمز عبور اضطراری</string>
+    <string name="local_backup_confirm_duress_password">تأیید رمز عبور اضطراری</string>
+    <string name="local_backup_password_collision">رمز عبور اصلی و رمز عبور اضطراری نمی‌توانند یکسان باشند.</string>
+    <string name="local_backup_error_empty_password">رمز عبور نمی‌تواند خالی باشد.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">شرایط عبارت عبور</string>

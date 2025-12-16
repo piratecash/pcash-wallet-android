@@ -4,6 +4,7 @@ import cash.p.terminal.wallet.AccountType
 import com.google.gson.GsonBuilder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
@@ -60,7 +61,7 @@ class BackupLocalModuleTest {
         val accountType = AccountType.Mnemonic(validMnemonicWords, "")
         val data = BackupLocalModule.getDataForEncryption(accountType)
         val expected = validMnemonicWords.joinToString(" ")
-        assertEquals(expected, String(data, Charsets.UTF_8))
+        assertEquals(expected, String(data!!, Charsets.UTF_8))
     }
 
     @Test
@@ -69,7 +70,7 @@ class BackupLocalModuleTest {
         val accountType = AccountType.Mnemonic(validMnemonicWords, passphrase)
         val data = BackupLocalModule.getDataForEncryption(accountType)
         val expected = validMnemonicWords.joinToString(" ") + "@$passphrase"
-        assertEquals(expected, String(data, Charsets.UTF_8))
+        assertEquals(expected, String(data!!, Charsets.UTF_8))
     }
 
     @Test
@@ -104,7 +105,7 @@ class BackupLocalModuleTest {
     // region HardwareCard Encoding/Decoding
 
     @Test
-    fun `getDataForEncryption encodes HardwareCard with all fields`() {
+    fun `getDataForEncryption returns null for HardwareCard`() {
         val accountType = AccountType.HardwareCard(
             cardId = "card123",
             backupCardsCount = 2,
@@ -112,50 +113,20 @@ class BackupLocalModuleTest {
             signedHashes = 10
         )
         val data = BackupLocalModule.getDataForEncryption(accountType)
-        val expected = "card123@pubKeyABC@2@10"
-        assertEquals(expected, String(data, Charsets.UTF_8))
+        // Hardware wallets cannot be backed up
+        assertNull(data)
     }
 
     @Test
-    fun `getAccountTypeFromData decodes HardwareCard with all fields`() = runBlockingSuspend {
+    fun `getAccountTypeFromData returns null for HardwareCard`() = runBlockingSuspend {
+        // Hardware wallets cannot be restored from backup (private keys are on hardware)
+        // getAccountTypeFromData returns null so restore flow skips them
         val dataString = "card123@pubKeyABC@2@10"
         val data = dataString.toByteArray(Charsets.UTF_8)
 
         val result = BackupLocalModule.getAccountTypeFromData("hardware_card", data)
 
-        assertTrue(result is AccountType.HardwareCard)
-        val hardwareCard = result as AccountType.HardwareCard
-        assertEquals("card123", hardwareCard.cardId)
-        assertEquals("pubKeyABC", hardwareCard.walletPublicKey)
-        assertEquals(2, hardwareCard.backupCardsCount)
-        assertEquals(10, hardwareCard.signedHashes)
-    }
-
-    @Test
-    fun `getAccountTypeFromData decodes old HardwareCard format without backupCardsCount and signedHashes`() = runBlockingSuspend {
-        // Old format: cardId@walletPublicKey (only 2 parts)
-        val dataString = "card123@pubKeyABC"
-        val data = dataString.toByteArray(Charsets.UTF_8)
-
-        val result = BackupLocalModule.getAccountTypeFromData("hardware_card", data)
-
-        assertTrue(result is AccountType.HardwareCard)
-        val hardwareCard = result as AccountType.HardwareCard
-        assertEquals("card123", hardwareCard.cardId)
-        assertEquals("pubKeyABC", hardwareCard.walletPublicKey)
-        assertEquals(0, hardwareCard.backupCardsCount) // defaults to 0
-        assertEquals(0, hardwareCard.signedHashes) // defaults to 0
-    }
-
-    @Test(expected = IllegalStateException::class)
-    fun `getAccountTypeFromData throws for invalid HardwareCard format`() {
-        runBlockingSuspend {
-            // Invalid format: only 1 part
-            val dataString = "card123"
-            val data = dataString.toByteArray(Charsets.UTF_8)
-
-            BackupLocalModule.getAccountTypeFromData("hardware_card", data)
-        }
+        assertNull("HardwareCard should return null (cannot restore)", result)
     }
 
     // endregion
@@ -168,7 +139,8 @@ class BackupLocalModuleTest {
         val accountType = AccountType.EvmPrivateKey(key)
         val data = BackupLocalModule.getDataForEncryption(accountType)
         // Verify data is not empty and matches expected byte array from BigInteger
-        assertTrue(data.isNotEmpty())
+        assertNotNull(data)
+        assertTrue(data!!.isNotEmpty())
         assertTrue(data.contentEquals(key.toByteArray()))
     }
 
@@ -181,7 +153,7 @@ class BackupLocalModuleTest {
         val address = "0x1234567890abcdef1234567890abcdef12345678"
         val accountType = AccountType.EvmAddress(address)
         val data = BackupLocalModule.getDataForEncryption(accountType)
-        assertEquals(address, String(data, Charsets.UTF_8))
+        assertEquals(address, String(data!!, Charsets.UTF_8))
     }
 
     @Test
@@ -200,7 +172,7 @@ class BackupLocalModuleTest {
         val address = "SolanaAddress123"
         val accountType = AccountType.SolanaAddress(address)
         val data = BackupLocalModule.getDataForEncryption(accountType)
-        assertEquals(address, String(data, Charsets.UTF_8))
+        assertEquals(address, String(data!!, Charsets.UTF_8))
     }
 
     @Test
@@ -219,7 +191,7 @@ class BackupLocalModuleTest {
         val address = "TronAddress123"
         val accountType = AccountType.TronAddress(address)
         val data = BackupLocalModule.getDataForEncryption(accountType)
-        assertEquals(address, String(data, Charsets.UTF_8))
+        assertEquals(address, String(data!!, Charsets.UTF_8))
     }
 
     @Test
@@ -238,7 +210,7 @@ class BackupLocalModuleTest {
         val address = "TonAddress123"
         val accountType = AccountType.TonAddress(address)
         val data = BackupLocalModule.getDataForEncryption(accountType)
-        assertEquals(address, String(data, Charsets.UTF_8))
+        assertEquals(address, String(data!!, Charsets.UTF_8))
     }
 
     @Test
@@ -270,7 +242,7 @@ class BackupLocalModuleTest {
         val original = AccountType.Mnemonic(validMnemonicWords, "")
         val typeString = BackupLocalModule.getAccountTypeString(original)
         val data = BackupLocalModule.getDataForEncryption(original)
-        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data)
+        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data!!)
 
         assertTrue(decoded is AccountType.Mnemonic)
         val decodedMnemonic = decoded as AccountType.Mnemonic
@@ -283,7 +255,7 @@ class BackupLocalModuleTest {
         val original = AccountType.Mnemonic(validMnemonicWords, "secretPass123")
         val typeString = BackupLocalModule.getAccountTypeString(original)
         val data = BackupLocalModule.getDataForEncryption(original)
-        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data)
+        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data!!)
 
         assertTrue(decoded is AccountType.Mnemonic)
         val decodedMnemonic = decoded as AccountType.Mnemonic
@@ -292,31 +264,11 @@ class BackupLocalModuleTest {
     }
 
     @Test
-    fun `HardwareCard encode and decode round-trip`() = runBlockingSuspend {
-        val original = AccountType.HardwareCard(
-            cardId = "myCard",
-            backupCardsCount = 3,
-            walletPublicKey = "publicKey123",
-            signedHashes = 15
-        )
-        val typeString = BackupLocalModule.getAccountTypeString(original)
-        val data = BackupLocalModule.getDataForEncryption(original)
-        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data)
-
-        assertTrue(decoded is AccountType.HardwareCard)
-        val decodedCard = decoded as AccountType.HardwareCard
-        assertEquals(original.cardId, decodedCard.cardId)
-        assertEquals(original.walletPublicKey, decodedCard.walletPublicKey)
-        assertEquals(original.backupCardsCount, decodedCard.backupCardsCount)
-        assertEquals(original.signedHashes, decodedCard.signedHashes)
-    }
-
-    @Test
     fun `EvmAddress encode and decode round-trip`() = runBlockingSuspend {
         val original = AccountType.EvmAddress("0xABCDEF123456")
         val typeString = BackupLocalModule.getAccountTypeString(original)
         val data = BackupLocalModule.getDataForEncryption(original)
-        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data)
+        val decoded = BackupLocalModule.getAccountTypeFromData(typeString, data!!)
 
         assertTrue(decoded is AccountType.EvmAddress)
         assertEquals(original.address, (decoded as AccountType.EvmAddress).address)

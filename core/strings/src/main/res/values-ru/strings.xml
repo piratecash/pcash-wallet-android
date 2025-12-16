@@ -1030,6 +1030,14 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">Для обеспечения безопасности данных рекомендуем использовать надёжный пароль для резервной копии — с сочетанием букв, цифр и специальных символов.\nПриложение позволяет создать резервную копию с простым паролем для вашего удобства, но вы соглашаетесь с тем, что резервная копия может быть скомпрометирована при использовании простого пароля.</string>
     <string name="LocalBackup_TermsWarningText">Устройства хранения, такие как жесткие диски, USB-накопители, накопители на смартфоне и т.д., все они подвержены потерям вследствие физических повреждений, кражи или других непредвиденных обстоятельств.</string>
     <string name="LocalBackup_Term1">Я понимаю, что кража или повреждение устройства резервного копирования приведет к потере резервной копии в соответствующем кошельке.</string>
+    <string name="local_backup_duress_toggle">Duress Backup</string>
+    <string name="local_backup_duress_info_title">Duress Backup</string>
+    <string name="local_backup_duress_info_description">Duress backup использует шифрование с правдоподобным отрицанием. По файлу резервной копии невозможно определить, сколько кошельков он содержит и есть ли в нём скрытые данные. Один и тот же backup расшифровывается по-разному в зависимости от пароля: duress-пароль открывает только duress-кошельки, основной пароль - все кошельки.</string>
+    <string name="local_backup_configure_duress_first">Для того чтобы воспользоваться функцией настройте duress mode.</string>
+    <string name="local_backup_duress_password">Duress пароль</string>
+    <string name="local_backup_confirm_duress_password">Подтвердите Duress пароль</string>
+    <string name="local_backup_password_collision">Основной пароль и duress пароль не могут совпадать.</string>
+    <string name="local_backup_error_empty_password">Пароль не может быть пустым.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Условия использования кодовой фразы</string>

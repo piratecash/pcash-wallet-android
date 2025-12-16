@@ -1005,8 +1005,16 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">لضمان أمان البيانات، نوصي باستخدام كلمة مرور قوية لنسختك الاحتياطية — تجمع بين الأحرف والأرقام والرموز الخاصة.
 يسمح لك التطبيق بإنشاء نسخة احتياطية بكلمة مرور بسيطة لراحتك، ولكنك توافق على أن النسخة الاحتياطية قد تتعرض للخطر إذا تم استخدام كلمة مرور بسيطة.
 </string>
-    <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
-    <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+    <string name="LocalBackup_TermsWarningText">أجهزة التخزين مثل الأقراص الصلبة ومحركات USB والتخزين على الهاتف الذكي وما إلى ذلك، جميعها معرضة للفقدان بسبب التلف المادي أو السرقة أو ظروف أخرى غير متوقعة.</string>
+    <string name="LocalBackup_Term1">أفهم أن سرقة أو تلف جهاز النسخ الاحتياطي سيؤدي إلى فقدان النسخة الاحتياطية للمحفظة المعنية.</string>
+    <string name="local_backup_duress_toggle">النسخ الاحتياطي القسري</string>
+    <string name="local_backup_duress_info_title">النسخ الاحتياطي القسري</string>
+    <string name="local_backup_duress_info_description">يستخدم النسخ الاحتياطي القسري التشفير القابل للإنكار. لا يمكن لملف النسخ الاحتياطي الكشف عن عدد المحافظ التي يحتويها أو ما إذا كانت هناك بيانات مخفية. يتم فك تشفير نفس النسخة الاحتياطية بشكل مختلف حسب كلمة المرور: كلمة المرور القسرية تفتح المحافظ القسرية فقط، وكلمة المرور الرئيسية تفتح جميع المحافظ.</string>
+    <string name="local_backup_configure_duress_first">لاستخدام هذه الميزة، قم بتكوين وضع الإكراه أولاً.</string>
+    <string name="local_backup_duress_password">كلمة المرور القسرية</string>
+    <string name="local_backup_confirm_duress_password">تأكيد كلمة المرور القسرية</string>
+    <string name="local_backup_password_collision">لا يمكن أن تكون كلمة المرور الرئيسية وكلمة المرور القسرية متطابقتين.</string>
+    <string name="local_backup_error_empty_password">لا يمكن أن تكون كلمة المرور فارغة.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">شروط عبارة المرور</string>

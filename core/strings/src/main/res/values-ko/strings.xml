@@ -1003,6 +1003,14 @@
 </string>
     <string name="LocalBackup_TermsWarningText">하드 드라이브, USB 드라이브, 스마트폰 저장소 등의 저장 장치는 물리적인 손상, 도난 또는 예기치 않은 사건으로 인해 모두 손실의 위험이 있습니다.</string>
     <string name="LocalBackup_Term1">백업 장치의 도난 또는 손상은 해당 지갑의 백업을 손실할 수 있음을 이해합니다.</string>
+    <string name="local_backup_duress_toggle">긴급 백업</string>
+    <string name="local_backup_duress_info_title">긴급 백업</string>
+    <string name="local_backup_duress_info_description">긴급 백업은 부인 가능한 암호화를 사용합니다. 백업 파일은 몇 개의 지갑이 포함되어 있는지 또는 숨겨진 데이터가 있는지 공개할 수 없습니다. 동일한 백업이 비밀번호에 따라 다르게 복호화됩니다: 긴급 비밀번호는 긴급 지갑만 열고, 기본 비밀번호는 모든 지갑을 엽니다.</string>
+    <string name="local_backup_configure_duress_first">이 기능을 사용하려면 먼저 긴급 모드를 설정하세요.</string>
+    <string name="local_backup_duress_password">긴급 비밀번호</string>
+    <string name="local_backup_confirm_duress_password">긴급 비밀번호 확인</string>
+    <string name="local_backup_password_collision">기본 비밀번호와 긴급 비밀번호는 같을 수 없습니다.</string>
+    <string name="local_backup_error_empty_password">비밀번호는 비어 있을 수 없습니다.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">암호문 약관</string>

@@ -11,12 +11,72 @@ import io.horizontalsystems.tronkit.toBigInteger
 
 object BackupLocalModule {
     const val BACKUP_VERSION = 3
+    const val BACKUP_VERSION_V4 = 4
 
     // V3 backup wrapper - entire content encrypted
     data class BackupV3(
         val version: Int,
         val encrypted: String // Base64 encoded BackupCrypto JSON
     )
+
+    /**
+     * V4 Binary format for more efficient storage.
+     * File structure: [4B magic][1B version][container bytes]
+     *
+     * Benefits over JSON+Hex format:
+     * - 50% smaller files (no hex encoding overhead)
+     * - Faster parsing (no JSON/hex conversion)
+     */
+    object BackupV4Binary {
+        // Magic bytes: "PW4B" (PCash Wallet V4 Binary)
+        val MAGIC = byteArrayOf(0x50, 0x57, 0x34, 0x42)
+        const val VERSION: Byte = 0x04
+        const val HEADER_SIZE = 5 // 4 magic + 1 version
+
+        /**
+         * Creates binary backup from container bytes.
+         * @param container Raw deniable encryption container
+         * @return Complete binary backup file contents
+         */
+        fun create(container: ByteArray): ByteArray {
+            val result = ByteArray(HEADER_SIZE + container.size)
+            System.arraycopy(MAGIC, 0, result, 0, MAGIC.size)
+            result[4] = VERSION
+            System.arraycopy(container, 0, result, HEADER_SIZE, container.size)
+            return result
+        }
+
+        /**
+         * Checks if data starts with V4 binary magic bytes.
+         */
+        fun isBinaryFormat(data: ByteArray): Boolean {
+            if (data.size < HEADER_SIZE) return false
+            return data[0] == MAGIC[0] &&
+                   data[1] == MAGIC[1] &&
+                   data[2] == MAGIC[2] &&
+                   data[3] == MAGIC[3]
+        }
+
+        /**
+         * Extracts container bytes from binary backup.
+         * @param data Complete binary backup file contents
+         * @return Container bytes, or null if invalid format
+         */
+        fun extractContainer(data: ByteArray): ByteArray? {
+            if (!isBinaryFormat(data)) return null
+            if (data[4] != VERSION) return null
+            return data.copyOfRange(HEADER_SIZE, data.size)
+        }
+
+        /**
+         * Gets version byte from binary backup.
+         */
+        fun getVersion(data: ByteArray): Byte? {
+            if (data.size < HEADER_SIZE) return null
+            if (!isBinaryFormat(data)) return null
+            return data[4]
+        }
+    }
 
     private const val MNEMONIC = "mnemonic"
     private const val MNEMONIC_MONERO = "mnemonic_monero"
@@ -97,7 +157,7 @@ object BackupLocalModule {
     }
 
     @Throws(IllegalStateException::class)
-    suspend fun getAccountTypeFromData(accountType: String, data: ByteArray): AccountType {
+    suspend fun getAccountTypeFromData(accountType: String, data: ByteArray): AccountType? {
         return when (accountType) {
             MNEMONIC -> {
                 val parts = String(data, Charsets.UTF_8).split("@", limit = 2)
@@ -139,28 +199,13 @@ object BackupLocalModule {
 
             HD_EXTENDED_KEY -> AccountType.HdExtendedKey(Base58.encode(data))
             UFVK -> AccountType.ZCashUfvKey(String(data, Charsets.UTF_8))
-            HARDWARE_CARD -> {
-                val parts = String(data, Charsets.UTF_8).split("@")
-                if (parts.size < 2) {
-                    throw IllegalStateException("Wrong hardware card backup format")
-                }
-                val cardId = parts[0]
-                val walletPublicKey = parts[1]
-                val backupCardsCount = parts.getOrNull(2)?.toIntOrNull() ?: 0
-                val signedHashes = parts.getOrNull(3)?.toIntOrNull() ?: 0
-                AccountType.HardwareCard(
-                    cardId = cardId,
-                    backupCardsCount = backupCardsCount,
-                    signedHashes = signedHashes,
-                    walletPublicKey = walletPublicKey
-                )
-            }
+            HARDWARE_CARD -> null
 
             else -> throw IllegalStateException("Unknown account type")
         }
     }
 
-    fun getDataForEncryption(accountType: AccountType): ByteArray = when (accountType) {
+    fun getDataForEncryption(accountType: AccountType): ByteArray? = when (accountType) {
         is AccountType.Mnemonic -> {
             val passphrasePart = if (accountType.passphrase.isNotBlank()) {
                 "@" + accountType.passphrase
@@ -189,9 +234,7 @@ object BackupLocalModule {
         is AccountType.BitcoinAddress -> accountType.serialized.toByteArray(Charsets.UTF_8)
         is AccountType.HdExtendedKey -> Base58.decode(accountType.keySerialized)
         is AccountType.ZCashUfvKey -> accountType.key.toByteArray(Charsets.UTF_8)
-        is AccountType.HardwareCard -> {
-            ("${accountType.cardId}@${accountType.walletPublicKey}@${accountType.backupCardsCount}@${accountType.signedHashes}").toByteArray(Charsets.UTF_8)
-        }
+        is AccountType.HardwareCard -> null
     }
 
     val kdfDefault = KdfParams(

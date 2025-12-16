@@ -993,6 +993,14 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">为了确保数据安全，我们建议您为备份使用强密码——结合字母、数字和特殊字符。该应用允许您为了方便使用简单密码创建备份，但您需同意，如果使用简单密码，备份可能会被泄露</string>
     <string name="LocalBackup_TermsWarningText">存储设备包括硬盘驱动器、USB驱动器以及智能手机上的存储等。由于有形损害、盗窃或其他无法预见的情况，所有人都容易遭受损失。</string>
     <string name="LocalBackup_Term1">我的理解是，备份设备被盗或损坏将导致备份丢失，进而导致钱包丢失。</string>
+    <string name="local_backup_duress_toggle">紧急备份</string>
+    <string name="local_backup_duress_info_title">紧急备份</string>
+    <string name="local_backup_duress_info_description">紧急备份使用可否认加密。备份文件无法透露它包含多少钱包或是否有隐藏数据。同一备份根据密码的不同会有不同的解密结果：紧急密码仅打开紧急钱包，主密码打开所有钱包。</string>
+    <string name="local_backup_configure_duress_first">要使用此功能，请先配置紧急模式。</string>
+    <string name="local_backup_duress_password">紧急密码</string>
+    <string name="local_backup_confirm_duress_password">确认紧急密码</string>
+    <string name="local_backup_password_collision">主密码和紧急密码不能相同。</string>
+    <string name="local_backup_error_empty_password">密码不能为空。</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">密码短语条款</string>

@@ -1000,6 +1000,14 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
 </string>
     <string name="LocalBackup_TermsWarningText">Les dispositifs de stockage tels que les disques durs, les disques USB et le stockage sur smartphone sont tous vulnérables aux pertes dues à des dommages physiques, des vols ou d\'autres circonstances imprévues.</string>
     <string name="LocalBackup_Term1">Je comprends que la perte ou l\'endommagement d\'un périphérique de sauvegarde entraînera la perte des données de sauvegarde correspondantes.</string>
+    <string name="local_backup_duress_toggle">Sauvegarde d\'Urgence</string>
+    <string name="local_backup_duress_info_title">Sauvegarde d\'Urgence</string>
+    <string name="local_backup_duress_info_description">La sauvegarde d\'urgence utilise un chiffrement niable. Le fichier de sauvegarde ne peut pas révéler combien de portefeuilles il contient ni s\'il y a des données cachées. La même sauvegarde se déchiffre différemment selon le mot de passe : un mot de passe d\'urgence n\'ouvre que les portefeuilles d\'urgence, le mot de passe principal ouvre tous les portefeuilles.</string>
+    <string name="local_backup_configure_duress_first">Pour utiliser cette fonctionnalité, configurez d\'abord le mode d\'urgence.</string>
+    <string name="local_backup_duress_password">Mot de Passe d\'Urgence</string>
+    <string name="local_backup_confirm_duress_password">Confirmer le Mot de Passe d\'Urgence</string>
+    <string name="local_backup_password_collision">Le mot de passe principal et le mot de passe d\'urgence ne peuvent pas être identiques.</string>
+    <string name="local_backup_error_empty_password">Le mot de passe ne peut pas être vide.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Conditions de la Phrase Secrète</string>

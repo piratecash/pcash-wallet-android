@@ -1004,6 +1004,14 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
 </string>
     <string name="LocalBackup_TermsWarningText">Depolama cihazları, yani sabit sürücüler, USB sürücüler , akıllı telefondaki depolama vb. fiziksel hasar, hırsızlık veya diğer öngörülemeyen durumlar nedeniyle kayba karşı savunmasızdır.</string>
     <string name="LocalBackup_Term1">Bir yedekleme cihazının çalınmasının veya hasar görmesinin, ilgili cüzdanın yedeğinin kaybolmasına neden olacağını anlıyorum.</string>
+    <string name="local_backup_duress_toggle">Acil Durum Yedeği</string>
+    <string name="local_backup_duress_info_title">Acil Durum Yedeği</string>
+    <string name="local_backup_duress_info_description">Acil durum yedeği inkâr edilebilir şifreleme kullanır. Yedek dosyası kaç cüzdan içerdiğini veya gizli veri olup olmadığını açığa çıkaramaz. Aynı yedek, şifreye bağlı olarak farklı şekilde çözülür: acil durum şifresi yalnızca acil durum cüzdanlarını açar, ana şifre tüm cüzdanları açar.</string>
+    <string name="local_backup_configure_duress_first">Bu özelliği kullanmak için önce acil durum modunu yapılandırın.</string>
+    <string name="local_backup_duress_password">Acil Durum Şifresi</string>
+    <string name="local_backup_confirm_duress_password">Acil Durum Şifresini Onayla</string>
+    <string name="local_backup_password_collision">Ana şifre ve acil durum şifresi aynı olamaz.</string>
+    <string name="local_backup_error_empty_password">Şifre boş olamaz.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Parola Koşulları</string>

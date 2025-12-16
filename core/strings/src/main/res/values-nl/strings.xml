@@ -1006,8 +1006,16 @@
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">Om de gegevensbeveiliging te waarborgen, raden we aan een sterk wachtwoord te gebruiken voor uw back-up — een combinatie van letters, cijfers en speciale tekens.
 De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor uw gemak, maar u gaat ermee akkoord dat de back-up mogelijk gecompromitteerd kan worden als er een eenvoudig wachtwoord wordt gebruikt.
 </string>
-    <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
-    <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+    <string name="LocalBackup_TermsWarningText">Opslagapparaten zoals harde schijven, USB-stations en smartphoneopslag zijn allemaal kwetsbaar voor verlies door fysieke schade, diefstal of andere onvoorziene omstandigheden.</string>
+    <string name="LocalBackup_Term1">Ik begrijp dat diefstal of beschadiging van een back-upapparaat zal resulteren in verlies van de back-up van de betreffende portemonnee.</string>
+    <string name="local_backup_duress_toggle">Noodback-up</string>
+    <string name="local_backup_duress_info_title">Noodback-up</string>
+    <string name="local_backup_duress_info_description">Noodback-up gebruikt ontkenbare versleuteling. Het back-upbestand kan niet onthullen hoeveel portemonnees het bevat of of er verborgen gegevens zijn. Dezelfde back-up wordt anders ontsleuteld afhankelijk van het wachtwoord: een noodwachtwoord opent alleen noodportemonnees, het hoofdwachtwoord opent alle portemonnees.</string>
+    <string name="local_backup_configure_duress_first">Om deze functie te gebruiken, configureer eerst de noodmodus.</string>
+    <string name="local_backup_duress_password">Noodwachtwoord</string>
+    <string name="local_backup_confirm_duress_password">Bevestig Noodwachtwoord</string>
+    <string name="local_backup_password_collision">Hoofdwachtwoord en noodwachtwoord mogen niet hetzelfde zijn.</string>
+    <string name="local_backup_error_empty_password">Wachtwoord mag niet leeg zijn.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase Voorwaarden</string>

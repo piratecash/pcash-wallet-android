@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.backuplocal.fullbackup
 
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,7 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.navigateWithTermsAccepted
+import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.importwallet.getFileName
@@ -85,16 +87,26 @@ private fun BackupManagerScreen(
         uri?.let { uriNonNull ->
             context.contentResolver.openInputStream(uriNonNull)?.use { inputStream ->
                 try {
-                    inputStream.bufferedReader().use { br ->
-                        val jsonString = br.readText()
-                        //validate json format
-                        BackupFileValidator().validate(jsonString)
+                    // Read as bytes to detect format
+                    val bytes = inputStream.readBytes()
+                    val validator = BackupFileValidator()
 
-                        val fileName = context.getFileName(uriNonNull)
-                        onRestoreBackup(jsonString, fileName)
+                    val backupData: String
+                    if (BackupLocalModule.BackupV4Binary.isBinaryFormat(bytes)) {
+                        // Binary V4 format - validate and encode to Base64 for transport
+                        validator.validateBinary(bytes)
+                        backupData = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                    } else {
+                        // JSON format - validate as before
+                        val jsonString = String(bytes, Charsets.UTF_8)
+                        validator.validate(jsonString)
+                        backupData = jsonString
                     }
+
+                    val fileName = context.getFileName(uriNonNull)
+                    onRestoreBackup(backupData, fileName)
                 } catch (e: Throwable) {
-                    //show json parsing error
+                    //show backup file parsing error
                     coroutineScope.launch {
                         delay(300)
                         bottomSheetState.show()
@@ -117,7 +129,7 @@ private fun BackupManagerScreen(
                 cautionType = Caution.Type.Warning,
                 cancelText = stringResource(R.string.Button_Cancel),
                 onConfirm = {
-                    restoreLauncher.launch(arrayOf("application/json"))
+                    restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
                     coroutineScope.launch { bottomSheetState.hide() }
                 },
                 onClose = {
@@ -142,7 +154,7 @@ private fun BackupManagerScreen(
                 CellUniversalLawrenceSection(
                     buildList {
                         add {
-                            RowUniversal(onClick = { restoreLauncher.launch(arrayOf("application/json")) }) {
+                            RowUniversal(onClick = { restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*")) }) {
                                 Icon(
                                     modifier = Modifier.padding(horizontal = 16.dp),
                                     painter = painterResource(R.drawable.ic_download_20),

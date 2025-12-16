@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.restorelocal
 
+import android.util.Base64
 import androidx.lifecycle.viewModelScope
 import com.google.gson.GsonBuilder
 import cash.p.terminal.R
@@ -36,6 +37,7 @@ class RestoreLocalViewModel(
     private var walletBackup: WalletBackup? = null
     private var fullBackup: FullBackup? = null
     private var backupV3: BackupLocalModule.BackupV3? = null
+    private var backupV4Binary: ByteArray? = null  // V4 binary format
     private var parseError: Exception? = null
     private var showSelectCoins: cash.p.terminal.wallet.AccountType? = null
     private var manualBackup = false
@@ -59,31 +61,57 @@ class RestoreLocalViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val gson = GsonBuilder()
-                    .disableHtmlEscaping()
-                    .enableComplexMapKeySerialization()
-                    .create()
+                // First, try to detect binary format (Base64 encoded from ImportWalletFragment)
+                val binaryData = tryDecodeAsBinary(backupJsonString)
+                if (binaryData != null) {
+                    backupV4Binary = binaryData
+                } else {
+                    // Not binary, proceed with JSON parsing
+                    val gson = GsonBuilder()
+                        .disableHtmlEscaping()
+                        .enableComplexMapKeySerialization()
+                        .create()
 
-                // Check for V3 format first
-                backupV3 = backupJsonString?.let { backupProvider.parseV3Backup(it) }
+                    // Check for V3 format
+                    backupV3 = backupJsonString?.let { backupProvider.parseV3Backup(it) }
 
-                if (backupV3 == null) {
-                    // Legacy format parsing
-                    fullBackup = try {
-                        val backup = gson.fromJson(backupJsonString, FullBackup::class.java)
-                        backup.settings.language // if single walletBackup it will throw exception
-                        backup
-                    } catch (ex: Exception) {
-                        null
+                    if (backupV3 == null) {
+                        // Legacy format parsing
+                        fullBackup = try {
+                            val backup = gson.fromJson(backupJsonString, FullBackup::class.java)
+                            backup.version // if single walletBackup it will throw exception
+                            backup
+                        } catch (ex: Exception) {
+                            null
+                        }
+
+                        walletBackup = gson.fromJson(backupJsonString, WalletBackup::class.java)
+                        manualBackup = walletBackup?.manualBackup ?: false
                     }
-
-                    walletBackup = gson.fromJson(backupJsonString, WalletBackup::class.java)
-                    manualBackup = walletBackup?.manualBackup ?: false
                 }
             } catch (e: Exception) {
                 parseError = e
                 emitState()
             }
+        }
+    }
+
+    /**
+     * Attempts to decode input as Base64 and check for V4 binary format.
+     * Returns the binary data if valid, null otherwise.
+     */
+    private fun tryDecodeAsBinary(input: String?): ByteArray? {
+        if (input == null) return null
+        return try {
+            val decoded = Base64.decode(input, Base64.NO_WRAP)
+            if (BackupLocalModule.BackupV4Binary.isBinaryFormat(decoded)) {
+                decoded
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            // Not valid Base64 or not binary format
+            null
         }
     }
 
@@ -107,6 +135,10 @@ class RestoreLocalViewModel(
 
     fun onImportClick() {
         when {
+            backupV4Binary != null -> {
+                backupV4Binary?.let { restoreV4BinaryBackup(it) }
+            }
+
             backupV3 != null -> {
                 backupV3?.let { restoreV3Backup(it) }
             }
@@ -119,6 +151,69 @@ class RestoreLocalViewModel(
                 walletBackup?.let { restoreSingleWallet(it, accountName) }
             }
         }
+    }
+
+    /**
+     * Restore V4 binary backup with deniable encryption.
+     * The password determines which payload is decrypted from the container.
+     * Wrong password returns null (no data found), not an error - this is by design
+     * to support plausible deniability.
+     */
+    private fun restoreV4BinaryBackup(binaryData: ByteArray): Job {
+        showButtonSpinner = true
+        emitState()
+
+        return viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val decrypted = backupProvider.restoreFromV4BinaryBackup(binaryData, passphrase)
+
+                if (decrypted == null) {
+                    // No data found for this password - could be wrong password
+                    // or this password's slot is empty (deniable encryption)
+                    passphraseState = DataState.Error(Exception(Translator.getString(R.string.ImportBackupFile_Error_InvalidPassword)))
+                } else if (isSingleWalletBackup(decrypted)) {
+                    // Single wallet backup - restore directly like V3
+                    val walletItem = decrypted.wallets.first()
+                    manualBackup = walletItem.enabledWallets.any { it.settings?.isNotEmpty() == true }
+
+                    if (walletItem.enabledWallets.isEmpty()) {
+                        showSelectCoins = walletItem.account.type
+                    } else {
+                        backupProvider.restoreSingleWalletBackup(walletItem)
+                        restored = true
+                    }
+                } else {
+                    // Full backup - show preview screen
+                    val backupItems = backupProvider.fullBackupItems(decrypted)
+                    val backupViewItems = backupViewItemFactory.backupViewItems(backupItems)
+
+                    walletBackupViewItems = backupViewItems.first
+                    otherBackupViewItems = backupViewItems.second
+                    decryptedFullBackup = decrypted
+                    showBackupItems = true
+                }
+            } catch (keyException: RestoreException.EncryptionKeyException) {
+                parseError = keyException
+            } catch (e: Exception) {
+                parseError = e
+            }
+
+            withContext(Dispatchers.Main) {
+                showButtonSpinner = false
+                emitState()
+            }
+        }
+    }
+
+    /**
+     * Checks if decrypted backup is a single wallet backup (not full backup).
+     * Single wallet: 1 wallet, no settings, no contacts, no watchlist.
+     */
+    private fun isSingleWalletBackup(backup: DecryptedFullBackup): Boolean {
+        return backup.wallets.size == 1 &&
+                backup.settings == null &&
+                backup.contacts.isEmpty() &&
+                backup.watchlist.isEmpty()
     }
 
     private fun restoreV3Backup(backup: BackupLocalModule.BackupV3): Job {
@@ -138,7 +233,7 @@ class RestoreLocalViewModel(
                 // Try to parse as FullBackup first
                 val parsedFullBackup = try {
                     val fb = gson.fromJson(innerJson, FullBackup::class.java)
-                    fb.settings.language // throws if not FullBackup
+                    fb.version // throws if not FullBackup
                     fb
                 } catch (ex: Exception) {
                     null
@@ -166,6 +261,9 @@ class RestoreLocalViewModel(
                     if (parsedWalletBackup.enabledWallets.isNullOrEmpty()) {
                         showSelectCoins = type
                     } else {
+                        requireNotNull(type) {
+                            "This account type is not supported for restoration."
+                        }
                         backupProvider.restoreSingleWalletBackup(type, accountName, parsedWalletBackup)
                         restored = true
                     }
@@ -255,6 +353,9 @@ class RestoreLocalViewModel(
                 if (backup.enabledWallets.isNullOrEmpty()) {
                     showSelectCoins = type
                 } else {
+                    requireNotNull(type) {
+                        "This account type is not supported for restoration."
+                    }
                     backupProvider.restoreSingleWalletBackup(type, accountName, backup)
                     restored = true
                 }

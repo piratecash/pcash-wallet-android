@@ -42,6 +42,7 @@ interface IPinComponent {
     fun didEnterBackground()
     fun setPin(pin: String)
     fun setDuressPin(pin: String)
+    fun getDuressLevel(): Int
     fun disablePin()
     fun disableDuressPin()
     fun isDuressPinSet(): Boolean

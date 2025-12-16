@@ -31,6 +31,8 @@ import cash.p.terminal.core.Caution
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.navigation.slideFromBottom
+import android.util.Base64
+import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupFileValidator
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
@@ -46,6 +48,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
 
 
@@ -74,12 +77,24 @@ private fun ImportWalletScreen(
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { uriNonNull ->
-            context.contentResolver.openInputStream(uriNonNull)?.use { inputStream ->
-                try {
-                    inputStream.bufferedReader().use { br ->
-                        val jsonString = br.readText()
-                        //validate json format
-                        BackupFileValidator().validate(jsonString)
+            try {
+                context.contentResolver.openInputStream(uriNonNull)?.use { inputStream ->
+                    try {
+                        // Read as bytes to detect format
+                        val bytes = inputStream.readBytes()
+                        val validator = BackupFileValidator()
+
+                        val backupData: String
+                        if (BackupLocalModule.BackupV4Binary.isBinaryFormat(bytes)) {
+                            // Binary V4 format - validate and encode to Base64 for transport
+                            validator.validateBinary(bytes)
+                            backupData = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                        } else {
+                            // JSON format - validate as before
+                            val jsonString = String(bytes, Charsets.UTF_8)
+                            validator.validate(jsonString)
+                            backupData = jsonString
+                        }
 
                         navController.navigateWithTermsAccepted {
                             val fileName = context.getFileName(uriNonNull)
@@ -88,19 +103,26 @@ private fun ImportWalletScreen(
                                 RestoreLocalFragment.Input(
                                     popUpToInclusiveId,
                                     inclusive,
-                                    jsonString,
+                                    backupData,
                                     fileName
                                 )
                             )
                         }
+                    } catch (e: Throwable) {
+                        Log.e("TAG", "ImportWalletScreen: ", e)
+                        //show backup file parsing error
+                        coroutineScope.launch {
+                            delay(300)
+                            bottomSheetState.show()
+                        }
                     }
-                } catch (e: Throwable) {
-                    Log.e("TAG", "ImportWalletScreen: ", e)
-                    //show json parsing error
-                    coroutineScope.launch {
-                        delay(300)
-                        bottomSheetState.show()
-                    }
+                }
+            } catch (e: Throwable) {
+                Timber.d("Not able to open input stream: ${e.localizedMessage}")
+                //show backup file parsing error
+                coroutineScope.launch {
+                    delay(300)
+                    bottomSheetState.show()
                 }
             }
         }
@@ -119,7 +141,7 @@ private fun ImportWalletScreen(
                 cautionType = Caution.Type.Warning,
                 cancelText = stringResource(R.string.Button_Cancel),
                 onConfirm = {
-                    restoreLauncher.launch(arrayOf("application/json"))
+                    restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
                     coroutineScope.launch { bottomSheetState.hide() }
                 },
                 onClose = {
@@ -162,7 +184,7 @@ private fun ImportWalletScreen(
                     description = stringResource(R.string.ImportWallet_BackupFile_Description),
                     icon = R.drawable.ic_download_24,
                     onClick = {
-                        restoreLauncher.launch(arrayOf("application/json"))
+                        restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
                     }
                 )
                 VSpacer(12.dp)

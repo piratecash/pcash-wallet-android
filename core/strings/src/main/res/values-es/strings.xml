@@ -994,6 +994,14 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
 </string>
     <string name="LocalBackup_TermsWarningText">Los dispositivos de almacenamiento, como los discos duros, los discos USB y el almacenamiento en smartphones, son todos vulnerables a pérdidas debido a daños físicos, robos u otras circunstancias imprevisibles.</string>
     <string name="LocalBackup_Term1">Entiendo que el robo o daño de un dispositivo de copia de seguridad resultará en la pérdida de una copia de seguridad a una cartera respectiva.</string>
+    <string name="local_backup_duress_toggle">Copia de Seguridad de Emergencia</string>
+    <string name="local_backup_duress_info_title">Copia de Seguridad de Emergencia</string>
+    <string name="local_backup_duress_info_description">La copia de seguridad de emergencia utiliza cifrado negable. El archivo de copia de seguridad no puede revelar cuántas carteras contiene ni si hay datos ocultos. La misma copia de seguridad se descifra de forma diferente según la contraseña: una contraseña de emergencia abre solo las carteras de emergencia, la contraseña principal abre todas las carteras.</string>
+    <string name="local_backup_configure_duress_first">Para usar esta función, configure primero el modo de emergencia.</string>
+    <string name="local_backup_duress_password">Contraseña de Emergencia</string>
+    <string name="local_backup_confirm_duress_password">Confirmar Contraseña de Emergencia</string>
+    <string name="local_backup_password_collision">La contraseña principal y la contraseña de emergencia no pueden ser iguales.</string>
+    <string name="local_backup_error_empty_password">La contraseña no puede estar vacía.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Términos de la Frase de Contraseña</string>

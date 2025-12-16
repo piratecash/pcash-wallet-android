@@ -28,4 +28,5 @@ interface IAccountManager {
     fun setLevel(level: Int)
     fun updateAccountLevels(accountIds: List<String>, level: Int)
     fun updateMaxLevel(level: Int)
+    fun accountsAtLevel(level: Int): List<Account>
 }

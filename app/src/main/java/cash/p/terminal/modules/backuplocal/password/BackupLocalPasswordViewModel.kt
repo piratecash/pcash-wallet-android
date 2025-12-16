@@ -2,13 +2,14 @@ package cash.p.terminal.modules.backuplocal.password
 
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-
-import cash.p.terminal.ui_compose.entities.DataState
+import cash.p.terminal.core.managers.DeniableEncryptionManager
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupProvider
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.IAccountManager
-import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.wallet.PassphraseValidator
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,6 +27,7 @@ class BackupLocalPasswordViewModel(
     private val passphraseValidator: PassphraseValidator,
     private val accountManager: IAccountManager,
     private val backupProvider: BackupProvider,
+    private val pinComponent: IPinComponent,
 ) : ViewModelUiState<BackupLocalPasswordModule.UiState>() {
 
     private var passphrase = ""
@@ -37,7 +39,18 @@ class BackupLocalPasswordViewModel(
     private var closeScreen = false
     private var error: String? = null
 
-    private var backupJson: String? = null
+    private var backupData: ByteArray? = null
+
+    // Duress backup state
+    private var duressBackupEnabled = false
+    private var duressPassphrase = ""
+    private var duressPassphraseConfirmation = ""
+    private var duressPassphraseState: DataState.Error? = null
+    private var duressPassphraseConfirmState: DataState.Error? = null
+
+    // Duress availability
+    val pinEnabled: Boolean get() = pinComponent.isPinSet
+    val duressBackupAvailable: Boolean get() = pinComponent.isDuressPinSet()
 
     var backupFileName: String = "PCash_wallet_backup.json"
         private set
@@ -51,7 +64,6 @@ class BackupLocalPasswordViewModel(
                 val account = accountManager.account(type.accountId)
                 if (account == null) {
                     error = "Account is NULL"
-
                 } else {
                     val walletName = account.name.replace(" ", "_")
                     backupFileName = "PCash_wallet_backup_${walletName}_${currentDateTime}.json"
@@ -70,9 +82,14 @@ class BackupLocalPasswordViewModel(
         passphraseState = passphraseState,
         passphraseConfirmState = passphraseConfirmState,
         showButtonSpinner = showButtonSpinner,
-        backupJson = backupJson,
+        backupData = backupData,
         closeScreen = closeScreen,
-        error = error
+        error = error,
+        duressBackupEnabled = duressBackupEnabled,
+        duressBackupAvailable = duressBackupAvailable,
+        pinEnabled = pinEnabled,
+        duressPassphraseState = duressPassphraseState,
+        duressPassphraseConfirmState = duressPassphraseConfirmState
     )
 
     fun onChangePassphrase(v: String) {
@@ -95,9 +112,45 @@ class BackupLocalPasswordViewModel(
         emitState()
     }
 
+    fun onChangeDuressPassphrase(v: String) {
+        if (passphraseValidator.containsValidCharacters(v)) {
+            duressPassphraseState = null
+            duressPassphrase = v
+        } else {
+            duressPassphraseState = DataState.Error(
+                Exception(
+                    Translator.getString(R.string.CreateWallet_Error_PassphraseForbiddenSymbols)
+                )
+            )
+        }
+        emitState()
+    }
+
+    fun onChangeDuressPassphraseConfirmation(v: String) {
+        duressPassphraseConfirmState = null
+        duressPassphraseConfirmation = v
+        emitState()
+    }
+
+    fun onDuressBackupToggle(enabled: Boolean) {
+        duressBackupEnabled = enabled
+        if (!enabled) {
+            // Clear duress fields when disabled
+            duressPassphrase = ""
+            duressPassphraseConfirmation = ""
+            duressPassphraseState = null
+            duressPassphraseConfirmState = null
+        }
+        emitState()
+    }
+
     fun onSaveClick() {
         validatePassword()
-        if (passphraseState == null && passphraseConfirmState == null) {
+        val mainValid = passphraseState == null && passphraseConfirmState == null
+        val duressValid = !duressBackupEnabled ||
+                (duressPassphraseState == null && duressPassphraseConfirmState == null)
+
+        if (mainValid && duressValid) {
             showButtonSpinner = true
             emitState()
             saveAccount()
@@ -105,7 +158,7 @@ class BackupLocalPasswordViewModel(
     }
 
     fun backupFinished() {
-        backupJson = null
+        backupData = null
         showButtonSpinner = false
         emitState()
         viewModelScope.launch {
@@ -139,7 +192,7 @@ class BackupLocalPasswordViewModel(
     }
 
     fun backupCanceled() {
-        backupJson = null
+        backupData = null
         showButtonSpinner = false
         emitState()
     }
@@ -147,22 +200,36 @@ class BackupLocalPasswordViewModel(
     private fun saveAccount() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                backupJson = when (type) {
+                backupData = when (type) {
                     is BackupType.FullBackup -> {
-                        backupProvider.createFullBackup(
-                            accountIds = type.accountIds,
-                            passphrase = passphrase
+                        val duressAccountIds = if (duressBackupEnabled) {
+                            val duressLevel = pinComponent.getDuressLevel()
+                            accountManager.accountsAtLevel(duressLevel).map { it.id }
+                        } else {
+                            null
+                        }
+                        val duressPassword = if (duressBackupEnabled) duressPassphrase else null
+
+                        backupProvider.createFullBackupV4Binary(
+                            accountIds1 = type.accountIds,
+                            passphrase1 = passphrase,
+                            accountIds2 = duressAccountIds,
+                            passphrase2 = duressPassword
                         )
                     }
 
                     is BackupType.SingleWalletBackup -> {
-                        val account = accountManager.account(type.accountId) ?: throw Exception("Account is NULL")
-                        backupProvider.createWalletBackup(
+                        val account = accountManager.account(type.accountId)
+                            ?: throw Exception("Account is NULL")
+
+                        backupProvider.createSingleWalletBackupV4Binary(
                             account = account.copy(isFileBackedUp = true),
                             passphrase = passphrase
                         )
                     }
                 }
+            } catch (collision: DeniableEncryptionManager.PasswordCollisionException) {
+                error = Translator.getString(R.string.local_backup_password_collision)
             } catch (t: Throwable) {
                 error = t.message ?: t.javaClass.simpleName
             }
@@ -177,10 +244,45 @@ class BackupLocalPasswordViewModel(
         passphraseState = null
         passphraseConfirmState = null
 
+        // Check main password is not empty
+        if (passphrase.isEmpty()) {
+            passphraseState = DataState.Error(
+                Exception(Translator.getString(R.string.local_backup_error_empty_password))
+            )
+        }
+
+        // Check confirmation matches
         if (passphrase != passphraseConfirmation) {
             passphraseConfirmState = DataState.Error(
                 Exception(Translator.getString(R.string.CreateWallet_Error_InvalidConfirmation))
             )
+        }
+
+        // Validate duress passwords if enabled
+        if (duressBackupEnabled) {
+            duressPassphraseState = null
+            duressPassphraseConfirmState = null
+
+            // Check duress password is not empty
+            if (duressPassphrase.isEmpty()) {
+                duressPassphraseState = DataState.Error(
+                    Exception(Translator.getString(R.string.local_backup_error_empty_password))
+                )
+            }
+
+            // Check duress password is not the same as main password
+            if (duressPassphrase.isNotEmpty() && duressPassphrase == passphrase) {
+                duressPassphraseState = DataState.Error(
+                    Exception(Translator.getString(R.string.local_backup_password_collision))
+                )
+            }
+
+            // Check duress confirmation matches
+            if (duressPassphrase != duressPassphraseConfirmation) {
+                duressPassphraseConfirmState = DataState.Error(
+                    Exception(Translator.getString(R.string.CreateWallet_Error_InvalidConfirmation))
+                )
+            }
         }
 
         emitState()

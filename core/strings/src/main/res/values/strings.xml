@@ -1372,6 +1372,14 @@ Proceed only if you\'re sure.</string>
     <string name="LocalBackup_ProtextBackupWithPasswordInfo">To ensure data security, we recommend using a strong password for your backup — combining letters, numbers, and special characters.\nThe app allows you to create a backup with a simple password for your convenience, but you agree that the backup may be compromised if a simple password is used.</string>
     <string name="LocalBackup_TermsWarningText">Storage devices i.e. hard drives, USB drives , storage on smartphone etc. are all vulnerable to loss due to physical damage, theft or other unforeseen circumstances.</string>
     <string name="LocalBackup_Term1">I understand that theft or damage of a backup device will result in loss of a backup to a respective wallet.</string>
+    <string name="local_backup_duress_toggle">Duress Backup</string>
+    <string name="local_backup_duress_info_title">Duress Backup</string>
+    <string name="local_backup_duress_info_description">Duress backup uses deniable encryption. The backup file cannot reveal how many wallets it contains or if there is hidden data. The same backup decrypts differently depending on the password: a duress password opens only duress wallets, the main password opens all wallets.</string>
+    <string name="local_backup_configure_duress_first">To use this feature, configure duress mode first.</string>
+    <string name="local_backup_duress_password">Duress Password</string>
+    <string name="local_backup_confirm_duress_password">Confirm Duress Password</string>
+    <string name="local_backup_password_collision">Main password and duress password cannot be the same.</string>
+    <string name="local_backup_error_empty_password">Password cannot be empty.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase Terms</string>

@@ -1002,6 +1002,14 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
 </string>
     <string name="LocalBackup_TermsWarningText">Dispositivos de armazenamento, ou seja, discos rígidos, discos USB, armazenamento em smartphone, etc. são todos vulneráveis a perdas devido a danos físicos, roubo ou outras circunstâncias imprevistas.</string>
     <string name="LocalBackup_Term1">Eu entendo que o roubo ou dano de um dispositivo de backup resultará na perda de um backup de uma respectiva carteira.</string>
+    <string name="local_backup_duress_toggle">Backup de Emergência</string>
+    <string name="local_backup_duress_info_title">Backup de Emergência</string>
+    <string name="local_backup_duress_info_description">O backup de emergência usa criptografia negável. O arquivo de backup não pode revelar quantas carteiras contém ou se há dados ocultos. O mesmo backup é descriptografado de forma diferente dependendo da senha: uma senha de emergência abre apenas as carteiras de emergência, a senha principal abre todas as carteiras.</string>
+    <string name="local_backup_configure_duress_first">Para usar este recurso, configure primeiro o modo de emergência.</string>
+    <string name="local_backup_duress_password">Senha de Emergência</string>
+    <string name="local_backup_confirm_duress_password">Confirmar Senha de Emergência</string>
+    <string name="local_backup_password_collision">A senha principal e a senha de emergência não podem ser iguais.</string>
+    <string name="local_backup_error_empty_password">A senha não pode estar vazia.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Termos da Frase-Senha</string>
