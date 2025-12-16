@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -286,7 +288,17 @@ private fun RestoreLocalScreen(
                     hint = stringResource(R.string.ImportBackupFile_BackupPassword),
                     state = uiState.passphraseState,
                     onValueChange = viewModel::onChangePassphrase,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            keyboardController?.hide()
+                            viewModel.onImportClick()
+                        }
+                    ),
+                    enabled = uiState.showButtonSpinner.not(),
                     hide = hidePassphrase,
                     onToggleHide = {
                         hidePassphrase = !hidePassphrase
@@ -303,9 +315,7 @@ private fun RestoreLocalScreen(
                     title = stringResource(R.string.Button_Restore),
                     showSpinner = uiState.showButtonSpinner,
                     enabled = uiState.showButtonSpinner.not(),
-                    onClick = {
-                        viewModel.onImportClick()
-                    },
+                    onClick = viewModel::onImportClick
                 )
             }
         }

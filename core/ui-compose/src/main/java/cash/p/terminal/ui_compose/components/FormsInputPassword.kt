@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -54,6 +55,7 @@ fun FormsInputPassword(
     maxLength: Int? = null,
     hide: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     enabled: Boolean = true,
     textState: MutableState<TextFieldValue> = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) },
     onValueChange: (String) -> Unit,
@@ -123,6 +125,7 @@ fun FormsInputPassword(
                 },
                 visualTransformation = if (hide) PasswordVisualTransformation() else VisualTransformation.None,
                 keyboardOptions = keyboardOptions,
+                keyboardActions = keyboardActions,
                 enabled = enabled,
             )
 

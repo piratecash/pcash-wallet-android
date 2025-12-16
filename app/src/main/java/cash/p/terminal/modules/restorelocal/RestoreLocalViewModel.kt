@@ -134,6 +134,8 @@ class RestoreLocalViewModel(
     }
 
     fun onImportClick() {
+        if (uiState.showButtonSpinner) return
+
         when {
             backupV4Binary != null -> {
                 backupV4Binary?.let { restoreV4BinaryBackup(it) }
