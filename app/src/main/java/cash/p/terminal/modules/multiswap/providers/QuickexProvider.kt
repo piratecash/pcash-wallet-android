@@ -138,16 +138,46 @@ class QuickexProvider(
     /***
      * Return badge (network) if exists, or ticker if native
      */
-    private fun getQuickexNetwork(token: Token): String? =
+    private fun getQuickexNetwork(token: Token): String? {
         currencies.find {
             isSameContract(it, token)
-        }?.networkTitle
-            ?: if (token.type !is TokenType.Native && (token.type !is TokenType.AddressSpecTyped)) {
-                token.badge
-            } else {
-                null
+        }?.networkTitle?.let { return it }
+
+        val ticker = getQuickexTicker(token)
+
+        if (token.type is TokenType.Native && ticker != null) {
+            val blockchainUid = token.blockchainType.uid.lowercase()
+            val networkOverride = when (blockchainUid) {
+                "base" if ticker.equals("ETH", true) -> "BASE"
+                "arbitrum-one" if ticker.equals("ETH", true) -> "ARBITRUM"
+                "optimistic-ethereum" if ticker.equals("ETH", true) -> "OPTIMISM"
+                "binance-smart-chain" if ticker.equals("BNB", true) -> "BEP20"
+                "polygon-pos" if ticker.equals("POL", true) -> "POLYGON"
+                "avalanche" if ticker.equals("AVAX", true) -> "AVAX C-Chain"
+                "polkadot" if ticker.equals("DOT", true) -> "Asset Hub(Polkadot)"
+                "kusama" if ticker.equals("KSM", true) -> "KUSAMA"
+                "kaspa" if ticker.equals("KAS", true) -> "KASPA"
+                "nem" if ticker.equals("XEM", true) -> "NEM"
+                "bittensor" if ticker.equals("TAO", true) -> "Bittensor"
+                "celestia" if ticker.equals("TIA", true) -> "CELESTIA"
+                "lukso-token-2" if ticker.equals("LYX", true) -> "LUKSO"
+                "hydra" if ticker.equals("HYDRA", true) -> "Hydragon"
+                "oasis-network" if ticker.equals("ROSE", true) -> "OASIS"
+                else -> null
             }
-            ?: getQuickexTicker(token)
+
+            if (networkOverride != null) return networkOverride
+        }
+
+        return when (token.type) {
+            is TokenType.Native,
+            is TokenType.Derived,
+            is TokenType.AddressTyped,
+            is TokenType.AddressSpecTyped -> ticker
+
+            else -> token.badge ?: ticker
+        }
+    }
 
     private suspend fun getExchangeAmountOrThrow(
         tickerFrom: String,
