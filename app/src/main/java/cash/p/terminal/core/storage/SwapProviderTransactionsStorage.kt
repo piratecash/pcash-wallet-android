@@ -51,6 +51,12 @@ class SwapProviderTransactionsStorage(private val dao: SwapProviderTransactionsD
         outgoingRecordUid = outgoingRecordUid
     )
 
+    fun getByIncomingRecordUid(
+        incomingRecordUid: String
+    ) = dao.getByIncomingRecordUid(
+        incomingRecordUid = incomingRecordUid
+    )
+
     fun getByTokenOut(
         token: Token,
         timestamp: Long

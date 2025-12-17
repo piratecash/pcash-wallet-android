@@ -48,6 +48,11 @@ interface SwapProviderTransactionsDao {
         outgoingRecordUid: String
     ): SwapProviderTransaction?
 
+    @Query("SELECT * FROM SwapProviderTransaction WHERE incomingRecordUid = :incomingRecordUid")
+    fun getByIncomingRecordUid(
+        incomingRecordUid: String
+    ): SwapProviderTransaction?
+
     @Query(
         "SELECT * FROM SwapProviderTransaction WHERE " +
                 "(coinUidOut = :coinUid AND blockchainTypeOut = :blockchainType AND date >= :dateFrom AND date <= :dateTo) ORDER BY date DESC LIMIT 1"

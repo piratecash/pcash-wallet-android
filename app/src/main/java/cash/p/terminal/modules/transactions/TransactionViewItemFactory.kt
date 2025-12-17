@@ -1305,37 +1305,41 @@ class TransactionViewItemFactory(
     ) = if (token == null) {
         null
     } else if (isIncoming) {
-        // Try to match by address, amount, and time window
-        val amount = transactionItem.record.mainValue?.decimalValue?.abs()
-        val timestamp = transactionItem.record.timestamp * 1000
-        val addresses = transactionItem.record.to  // Use actual receiving addresses from transaction
+        // First check if already matched by incomingRecordUid (fast lookup)
+        swapProviderTransactionsStorage.getByIncomingRecordUid(transactionItem.record.uid)
+            ?: run {
+                // Try to match by address, amount, and time window
+                val amount = transactionItem.record.mainValue?.decimalValue?.abs()
+                val timestamp = transactionItem.record.timestamp * 1000
+                val addresses = transactionItem.record.to  // Use actual receiving addresses from transaction
 
-        val matchedSwap = if (!addresses.isNullOrEmpty() && amount != null) {
-            // Try each receiving address to find a match
-            addresses.firstNotNullOfOrNull { address ->
-                swapProviderTransactionsStorage.getByAddressAndAmount(
-                    address = address,
-                    blockchainType = token.blockchainType.uid,
-                    coinUid = token.coin.uid,
-                    amount = amount,
+                val matchedSwap = if (!addresses.isNullOrEmpty() && amount != null) {
+                    // Try each receiving address to find a match
+                    addresses.firstNotNullOfOrNull { address ->
+                        swapProviderTransactionsStorage.getByAddressAndAmount(
+                            address = address,
+                            blockchainType = token.blockchainType.uid,
+                            coinUid = token.coin.uid,
+                            amount = amount,
+                            timestamp = timestamp
+                        )
+                    }?.also { swap ->
+                        // Mark as matched to prevent double-matching
+                        swapProviderTransactionsStorage.setIncomingRecordUid(
+                            date = swap.date,
+                            incomingRecordUid = transactionItem.record.uid
+                        )
+                    }
+                } else {
+                    null
+                }
+
+                // Fall back to timestamp-based matching if address/amount matching fails
+                matchedSwap ?: swapProviderTransactionsStorage.getByTokenOut(
+                    token = token,
                     timestamp = timestamp
                 )
-            }?.also { swap ->
-                // Mark as matched to prevent double-matching
-                swapProviderTransactionsStorage.setIncomingRecordUid(
-                    date = swap.date,
-                    incomingRecordUid = transactionItem.record.uid
-                )
             }
-        } else {
-            null
-        }
-
-        // Fall back to timestamp-based matching if address/amount matching fails
-        matchedSwap ?: swapProviderTransactionsStorage.getByTokenOut(
-            token = token,
-            timestamp = timestamp
-        )
     } else {
         swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
             ?: swapProviderTransactionsStorage.getByCoinUidIn(
