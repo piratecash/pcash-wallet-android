@@ -1371,8 +1371,8 @@ class TransactionViewItemFactory(
         )
 
         val transactionIcon = TransactionViewItem.Icon.Double(
-            back = if (direct) iconIn else iconOut,
-            front = if (direct) iconOut else iconIn
+            back = iconIn,
+            front = iconOut
         )
 
         val valueInFormatted = getFormattedAmount(
@@ -1392,12 +1392,12 @@ class TransactionViewItemFactory(
         val primaryValue = if (direct) {
             ColoredValue(valueInFormatted, ColorName.Lucian)
         } else {
-            ColoredValue(valueOutFormatted, ColorName.Lucian)
+            ColoredValue(valueOutFormatted, ColorName.Remus)  // Received = green
         }
         val secondaryValue = if (direct) {
             ColoredValue(valueOutFormatted, ColorName.Remus)
         } else {
-            ColoredValue(valueInFormatted, ColorName.Remus)
+            ColoredValue(valueInFormatted, ColorName.Lucian)  // Sent = red
         }
         val status = transaction.status.toStatus()
         val titleStringRes = when (status) {
