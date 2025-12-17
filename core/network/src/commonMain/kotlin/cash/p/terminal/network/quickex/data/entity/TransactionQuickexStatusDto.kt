@@ -8,10 +8,18 @@ internal class TransactionQuickexStatusDto(
     val createdAt: String,
     val orderEvents: List<OrderEventDto>,
     val completed: Boolean,
+    val withdrawals: List<WithdrawalDto>? = null
 )
 
 @Serializable
 internal class OrderEventDto(
     val kind: String,
     val createdAt: String
+)
+
+@Serializable
+internal class WithdrawalDto(
+    val amount: String,
+    val txId: String? = null,
+    val createdAt: String? = null
 )

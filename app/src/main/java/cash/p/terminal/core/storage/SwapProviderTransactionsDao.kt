@@ -58,4 +58,41 @@ interface SwapProviderTransactionsDao {
         dateFrom: Long,
         dateTo: Long
     ): SwapProviderTransaction?
+
+    @Query(
+        """
+        SELECT * FROM SwapProviderTransaction WHERE
+        addressOut = :address
+        AND blockchainTypeOut = :blockchainType
+        AND coinUidOut = :coinUid
+        AND incomingRecordUid IS NULL
+        AND amountOutReal IS NOT NULL
+        AND CAST(amountOutReal AS REAL) != 0
+        AND ABS(CAST(amountOutReal AS REAL) - :amount) / CAST(amountOutReal AS REAL) < :tolerance
+        AND (
+            (finishedAt IS NOT NULL AND :timestamp >= finishedAt - :timeWindowMs AND :timestamp <= finishedAt + :timeWindowMs)
+            OR
+            (finishedAt IS NULL AND date >= :dateFrom AND date <= :dateTo)
+        )
+        ORDER BY ABS(CAST(amountOutReal AS REAL) - :amount) ASC, date ASC
+        LIMIT 1
+        """
+    )
+    fun getByAddressAndAmount(
+        address: String,
+        blockchainType: String,
+        coinUid: String,
+        amount: Double,
+        tolerance: Double,
+        timestamp: Long,
+        timeWindowMs: Long,
+        dateFrom: Long,
+        dateTo: Long
+    ): SwapProviderTransaction?
+
+    @Query("UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid WHERE date = :date")
+    fun setIncomingRecordUid(date: Long, incomingRecordUid: String)
+
+    @Query("UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = :finishedAt WHERE transactionId = :transactionId")
+    fun updateStatusFields(transactionId: String, status: String, amountOutReal: BigDecimal?, finishedAt: Long?)
 }

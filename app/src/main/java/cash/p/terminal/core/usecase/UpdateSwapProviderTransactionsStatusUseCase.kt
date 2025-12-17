@@ -7,6 +7,7 @@ import cash.p.terminal.network.changenow.domain.entity.toStatus
 import cash.p.terminal.network.data.EncodedSecrets.getKoin
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
+import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import cash.p.terminal.wallet.Token
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -31,14 +32,9 @@ class UpdateSwapProviderTransactionsStatusUseCase(
             limit = 10
         ).map { transaction ->
             async {
-                getTransactionStatus(transaction)?.let { status ->
-                    if (status.name.lowercase() != transaction.status) {
+                getTransactionStatus(transaction)?.let { result ->
+                    if (updateIfChanged(transaction, result)) {
                         changed.set(true)
-                        swapProviderTransactionsStorage.save(
-                            transaction.copy(
-                                status = status.name.lowercase()
-                            )
-                        )
                     }
                 }
             }
@@ -51,23 +47,38 @@ class UpdateSwapProviderTransactionsStatusUseCase(
     ): TransactionStatusEnum? = withContext(Dispatchers.IO) {
         swapProviderTransactionsStorage.getTransaction(transactionId)?.let { transaction ->
             if (!transaction.isFinished()) {
-                getTransactionStatus(transaction)?.let { status ->
-                    if (status.name.lowercase() != transaction.status) {
-                        swapProviderTransactionsStorage.save(
-                            transaction.copy(
-                                status = status.name.lowercase()
-                            )
-                        )
-                    }
+                getTransactionStatus(transaction)?.let { result ->
+                    updateIfChanged(transaction, result)
                 }
             }
             swapProviderTransactionsStorage.getTransaction(transactionId)?.status?.toStatus()
         }
     }
 
+    private fun updateIfChanged(
+        transaction: SwapProviderTransaction,
+        result: SwapProviderTransactionStatusResult
+    ): Boolean {
+        val statusChanged = result.status.name.lowercase() != transaction.status
+        val amountOutRealChanged = result.amountOutReal != null && result.amountOutReal != transaction.amountOutReal
+        val finishedAtChanged = result.finishedAt != null && result.finishedAt != transaction.finishedAt
+
+        return if (statusChanged || amountOutRealChanged || finishedAtChanged) {
+            swapProviderTransactionsStorage.updateStatusFields(
+                transactionId = transaction.transactionId,
+                status = result.status.name.lowercase(),
+                amountOutReal = result.amountOutReal ?: transaction.amountOutReal,
+                finishedAt = result.finishedAt ?: transaction.finishedAt
+            )
+            true
+        } else {
+            false
+        }
+    }
+
     private suspend fun getTransactionStatus(
         transaction: SwapProviderTransaction
-    ): TransactionStatusEnum? = try {
+    ): SwapProviderTransactionStatusResult? = try {
         getSwapProviderTransactionStatusRepository(transaction.provider)
             ?.getTransactionStatus(
                 transactionId = transaction.transactionId,

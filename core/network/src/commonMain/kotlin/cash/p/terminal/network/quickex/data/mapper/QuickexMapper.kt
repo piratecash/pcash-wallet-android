@@ -94,7 +94,8 @@ internal class QuickexMapper {
                 createdAt = eventDto.createdAt
             )
         },
-        completed = dto.completed
+        completed = dto.completed,
+        withdrawalAmount = dto.withdrawals?.firstOrNull()?.amount?.toBigDecimalOrNull()
     )
 
     private fun mapOrderEventKind(kind: String): OrderEventKind? {

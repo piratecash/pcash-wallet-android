@@ -8,6 +8,9 @@ class SwapProviderTransactionsStorage(private val dao: SwapProviderTransactionsD
 
     private companion object Companion {
         const val THRESHOLD_MSEC = 40_000
+        const val AMOUNT_TOLERANCE = 0.005 // 0.5%
+        const val FINISHED_AT_WINDOW_MS = 1_800_000L // ±30 minutes
+        const val FALLBACK_WINDOW_MS = 21_600_000L // ±6 hours
     }
 
     fun save(
@@ -57,4 +60,32 @@ class SwapProviderTransactionsStorage(private val dao: SwapProviderTransactionsD
         dateFrom = timestamp - THRESHOLD_MSEC,
         dateTo = timestamp + THRESHOLD_MSEC
     )
+
+    fun getByAddressAndAmount(
+        address: String,
+        blockchainType: String,
+        coinUid: String,
+        amount: BigDecimal,
+        timestamp: Long
+    ): SwapProviderTransaction? = dao.getByAddressAndAmount(
+        address = address,
+        blockchainType = blockchainType,
+        coinUid = coinUid,
+        amount = amount.toDouble(),
+        tolerance = AMOUNT_TOLERANCE,
+        timestamp = timestamp,
+        timeWindowMs = FINISHED_AT_WINDOW_MS,
+        dateFrom = timestamp - FALLBACK_WINDOW_MS,
+        dateTo = timestamp + FALLBACK_WINDOW_MS
+    )
+
+    fun setIncomingRecordUid(date: Long, incomingRecordUid: String) =
+        dao.setIncomingRecordUid(date, incomingRecordUid)
+
+    fun updateStatusFields(
+        transactionId: String,
+        status: String,
+        amountOutReal: BigDecimal?,
+        finishedAt: Long?
+    ) = dao.updateStatusFields(transactionId, status, amountOutReal, finishedAt)
 }

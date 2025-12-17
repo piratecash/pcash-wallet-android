@@ -56,6 +56,7 @@ internal class ChangeNowMapper {
         fromCurrency = dto.fromCurrency,
         toCurrency = dto.toCurrency,
         id = dto.id,
-        updatedAt = dto.updatedAt
+        updatedAt = dto.updatedAt,
+        amountReceive = dto.amountReceive?.toBigDecimalOrNull()
     )
 }

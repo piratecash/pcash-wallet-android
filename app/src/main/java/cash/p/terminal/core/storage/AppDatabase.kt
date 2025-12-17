@@ -57,6 +57,8 @@ import cash.p.terminal.core.storage.migrations.Migration_79_80
 import cash.p.terminal.core.storage.migrations.Migration_80_81
 import cash.p.terminal.core.storage.migrations.Migration_81_82
 import cash.p.terminal.core.storage.migrations.Migration_82_83
+import cash.p.terminal.core.storage.migrations.Migration_83_84
+import cash.p.terminal.core.storage.migrations.Migration_84_85
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
@@ -94,7 +96,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 83,
+    version = 85,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -225,7 +227,9 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_79_80,
                     Migration_80_81,
                     Migration_81_82,
-                    Migration_82_83
+                    Migration_82_83,
+                    Migration_83_84,
+                    Migration_84_85
                 )
                 .build()
         }

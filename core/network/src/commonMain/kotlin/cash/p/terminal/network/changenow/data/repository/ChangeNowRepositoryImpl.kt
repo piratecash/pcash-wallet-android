@@ -6,6 +6,8 @@ import cash.p.terminal.network.changenow.data.mapper.ChangeNowMapper
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.repository.ChangeNowRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
+import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
+import cash.p.terminal.network.swaprepository.parseIsoTimestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -45,8 +47,20 @@ internal class ChangeNowRepositoryImpl(
     override suspend fun getTransactionStatus(
         transactionId: String,
         destinationAddress: String
-    ): TransactionStatusEnum = withContext(Dispatchers.IO) {
-        changeNowApi.getTransactionStatus(transactionId)
-            .let(changeNowMapper::mapTransactionStatusDto).status
+    ): SwapProviderTransactionStatusResult = withContext(Dispatchers.IO) {
+        val status = changeNowApi.getTransactionStatus(transactionId)
+            .let(changeNowMapper::mapTransactionStatusDto)
+
+        val finishedAt = if (status.status == TransactionStatusEnum.FINISHED) {
+            status.updatedAt.parseIsoTimestamp()
+        } else {
+            null
+        }
+
+        SwapProviderTransactionStatusResult(
+            status = status.status,
+            amountOutReal = status.amountReceive,
+            finishedAt = finishedAt
+        )
     }
 }

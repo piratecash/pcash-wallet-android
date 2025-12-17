@@ -7,6 +7,8 @@ import cash.p.terminal.network.quickex.data.mapper.QuickexMapper
 import cash.p.terminal.network.quickex.domain.entity.OrderEventKind
 import cash.p.terminal.network.quickex.domain.repository.QuickexRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
+import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
+import cash.p.terminal.network.swaprepository.parseIsoTimestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -53,12 +55,12 @@ internal class QuickexRepositoryImpl(
     override suspend fun getTransactionStatus(
         transactionId: String,
         destinationAddress: String
-    ): TransactionStatusEnum {
+    ): SwapProviderTransactionStatusResult {
         val transactionStatus = getTransactionStatus(
             destinationAddress,
             transactionId.toLong()
         )
-        return if (transactionStatus.completed) {
+        val status = if (transactionStatus.completed) {
             TransactionStatusEnum.FINISHED
         } else {
             when(transactionStatus.orderEvents.firstOrNull()?.kind) {
@@ -73,5 +75,18 @@ internal class QuickexRepositoryImpl(
                 null -> TransactionStatusEnum.NEW
             }
         }
+
+        val finishedAt = if (status == TransactionStatusEnum.FINISHED) {
+            transactionStatus.orderEvents
+                .find { it.kind == OrderEventKind.WITHDRAWAL_COMPLETED }
+                ?.createdAt
+                ?.parseIsoTimestamp()
+        } else null
+
+        return SwapProviderTransactionStatusResult(
+            status = status,
+            amountOutReal = transactionStatus.withdrawalAmount,
+            finishedAt = finishedAt
+        )
     }
 }

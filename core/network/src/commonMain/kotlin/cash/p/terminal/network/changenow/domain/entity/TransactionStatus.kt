@@ -1,5 +1,7 @@
 package cash.p.terminal.network.changenow.domain.entity
 
+import java.math.BigDecimal
+
 class TransactionStatus(
     val status: TransactionStatusEnum,
     val payinAddress: String,
@@ -7,7 +9,8 @@ class TransactionStatus(
     val fromCurrency: String,
     val toCurrency: String,
     val id: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val amountReceive: BigDecimal? = null
 )
 
 enum class TransactionStatusEnum {

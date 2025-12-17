@@ -10,5 +10,6 @@ class TransactionStatusDto(
     val fromCurrency: String,
     val toCurrency: String,
     val id: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val amountReceive: String? = null,
 )

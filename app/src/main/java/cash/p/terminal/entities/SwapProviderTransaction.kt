@@ -23,7 +23,11 @@ data class SwapProviderTransaction(
     val coinUidOut: String,
     val blockchainTypeOut: String,
     val amountOut: BigDecimal,
-    val addressOut: String
+    val addressOut: String,
+
+    val amountOutReal: BigDecimal? = null,
+    val finishedAt: Long? = null,
+    val incomingRecordUid: String? = null
 ) {
     fun isFinished() = status in FINISHED_STATUSES
 
