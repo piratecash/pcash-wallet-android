@@ -60,14 +60,21 @@ class UpdateSwapProviderTransactionsStatusUseCase(
         result: SwapProviderTransactionStatusResult
     ): Boolean {
         val statusChanged = result.status.name.lowercase() != transaction.status
-        val amountOutRealChanged = result.amountOutReal != null && result.amountOutReal != transaction.amountOutReal
+        // Don't consider amountOutReal changed if already matched (has actual blockchain amount)
+        val amountOutRealChanged = transaction.incomingRecordUid == null &&
+                result.amountOutReal != null && result.amountOutReal != transaction.amountOutReal
         val finishedAtChanged = result.finishedAt != null && result.finishedAt != transaction.finishedAt
 
         return if (statusChanged || amountOutRealChanged || finishedAtChanged) {
             swapProviderTransactionsStorage.updateStatusFields(
                 transactionId = transaction.transactionId,
                 status = result.status.name.lowercase(),
-                amountOutReal = result.amountOutReal ?: transaction.amountOutReal,
+                // Keep actual blockchain amount if already matched
+                amountOutReal = if (transaction.incomingRecordUid != null) {
+                    transaction.amountOutReal
+                } else {
+                    result.amountOutReal ?: transaction.amountOutReal
+                },
                 finishedAt = result.finishedAt ?: transaction.finishedAt
             )
             true

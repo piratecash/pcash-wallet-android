@@ -1324,10 +1324,11 @@ class TransactionViewItemFactory(
                             timestamp = timestamp
                         )
                     }?.also { swap ->
-                        // Mark as matched to prevent double-matching
+                        // Mark as matched and save actual blockchain amount
                         swapProviderTransactionsStorage.setIncomingRecordUid(
                             date = swap.date,
-                            incomingRecordUid = transactionItem.record.uid
+                            incomingRecordUid = transactionItem.record.uid,
+                            amountOutReal = amount
                         )
                     }
                 } else {

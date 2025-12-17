@@ -85,8 +85,8 @@ class SwapProviderTransactionsStorage(private val dao: SwapProviderTransactionsD
         dateTo = timestamp + FALLBACK_WINDOW_MS
     )
 
-    fun setIncomingRecordUid(date: Long, incomingRecordUid: String) =
-        dao.setIncomingRecordUid(date, incomingRecordUid)
+    fun setIncomingRecordUid(date: Long, incomingRecordUid: String, amountOutReal: BigDecimal) =
+        dao.setIncomingRecordUid(date, incomingRecordUid, amountOutReal)
 
     fun updateStatusFields(
         transactionId: String,

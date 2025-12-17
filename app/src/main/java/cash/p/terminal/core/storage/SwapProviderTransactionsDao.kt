@@ -95,8 +95,8 @@ interface SwapProviderTransactionsDao {
         dateTo: Long
     ): SwapProviderTransaction?
 
-    @Query("UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid WHERE date = :date")
-    fun setIncomingRecordUid(date: Long, incomingRecordUid: String)
+    @Query("UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid, amountOutReal = :amountOutReal WHERE date = :date")
+    fun setIncomingRecordUid(date: Long, incomingRecordUid: String, amountOutReal: BigDecimal)
 
     @Query("UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = :finishedAt WHERE transactionId = :transactionId")
     fun updateStatusFields(transactionId: String, status: String, amountOutReal: BigDecimal?, finishedAt: Long?)
