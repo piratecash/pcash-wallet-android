@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -74,12 +74,13 @@ fun SwapSelectProviderScreen(
         LazyColumn(
             modifier = Modifier.padding(it),
             contentPadding = PaddingValues(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             item {
-                VSpacer(height = 12.dp)
+                VSpacer(height = 4.dp)
             }
-            itemsIndexed(quotes) { i, viewItem ->
-                val borderColor = if (viewItem.quote == currentQuote) {
+            items(quotes) { viewItem ->
+                val borderColor = if (viewItem.quote.provider == currentQuote?.provider) {
                     ComposeAppTheme.colors.yellow50
                 } else {
                     ComposeAppTheme.colors.steel20
@@ -89,13 +90,12 @@ fun SwapSelectProviderScreen(
                     borderColor = borderColor,
                     onSelectQuote = onSelectQuote,
                     viewItem = viewItem,
-                    modifier = Modifier.padding(top = if (i == 0) 0.dp else 8.dp),
                     swapRates = swapRates
                 )
             }
 
             item {
-                VSpacer(height = 32.dp)
+                VSpacer(height = 24.dp)
             }
 
         }
@@ -107,15 +107,15 @@ private fun ProviderItem(
     borderColor: Color,
     onSelectQuote: (SwapProviderQuote) -> Unit,
     viewItem: QuoteViewItem,
-    modifier: Modifier,
     swapRates: () -> Unit
 ) {
+    val shape = RoundedCornerShape(12.dp)
     RowUniversal(
-        modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+        modifier = Modifier
+            .clip(shape)
+            .clickable { onSelectQuote.invoke(viewItem.quote) }
+            .border(1.dp, borderColor, shape)
             .padding(horizontal = 16.dp),
-        onClick = { onSelectQuote.invoke(viewItem.quote) }
     ) {
         val provider = viewItem.quote.provider
         Image(

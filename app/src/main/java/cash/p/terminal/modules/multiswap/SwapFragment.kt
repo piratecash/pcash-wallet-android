@@ -199,11 +199,9 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 swapRates ={
                     HudHelper.vibrate(App.instance)
                     selectProviderViewModel.swapRates()
-                }
-            ) {
-                viewModel.onSelectQuote(it)
-                swapNavController.popBackStack()
-            }
+                },
+                onSelectQuote = viewModel::onSelectQuote
+            )
         }
         composablePage<SwapConfirmPage> {
             SwapConfirmScreen(
