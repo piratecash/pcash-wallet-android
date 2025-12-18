@@ -876,6 +876,10 @@ Proceed only if you\'re sure.</string>
     <string name="TransactionInfo_DoubleSpendNote">Double Spend Risk!</string>
     <string name="TransactionInfo_ButtonViewOnExplorerName">View on %s</string>
     <string name="TransactionInfo_Price">Price</string>
+    <string name="TransactionInfo_AnnouncedAmount">Announced Amount</string>
+    <string name="transaction_info_executed_amount">Executed Amount</string>
+    <string name="TransactionInfo_PriceImpact">Price Impact</string>
+    <string name="TransactionInfo_ExecutedRate">Executed Rate</string>
     <string name="TransactionInfo_YouGot">You Got</string>
     <string name="TransactionInfo_YouSent">You Sent</string>
     <string name="TransactionInfo_Received">Received</string>

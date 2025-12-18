@@ -639,6 +639,10 @@
     <string name="TransactionInfo_UnlockedAt">Déverrouillé à %s</string>
     <string name="TransactionInfo_RecipientHash">Destinataire</string>
     <string name="TransactionInfo_HistoricalRate">Taux historique</string>
+    <string name="TransactionInfo_AnnouncedAmount">Montant annoncé</string>
+    <string name="transaction_info_executed_amount">Montant exécuté</string>
+    <string name="TransactionInfo_PriceImpact">Impact sur le prix</string>
+    <string name="TransactionInfo_ExecutedRate">Taux exécuté</string>
     <string name="TransactionInfo_Fee">Frais</string>
     <string name="TransactionInfo_FeeEstimated">Frais (est.)</string>
     <string name="TransactionInfo_SentToSelfNote">Cette transaction est envoyée à votre propre adresse</string>

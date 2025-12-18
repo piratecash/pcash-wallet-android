@@ -660,6 +660,10 @@
     <string name="TransactionInfo_UnlockedAt">Разблокировано %s</string>
     <string name="TransactionInfo_RecipientHash">Получатель</string>
     <string name="TransactionInfo_HistoricalRate">Исторический курс</string>
+    <string name="TransactionInfo_AnnouncedAmount">Объявленная сумма</string>
+    <string name="transaction_info_executed_amount">Реальная сумма</string>
+    <string name="TransactionInfo_PriceImpact">Влияние на цену</string>
+    <string name="TransactionInfo_ExecutedRate">Исполненный курс</string>
     <string name="TransactionInfo_Fee">Комиссия</string>
     <string name="TransactionInfo_FeeEstimated">Комиссия (прим.)</string>
     <string name="TransactionInfo_SentToSelfNote">Данная транзакция отправлена на собственный адрес</string>

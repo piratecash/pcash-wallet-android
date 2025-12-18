@@ -658,6 +658,10 @@
     <string name="TransactionInfo_UnlockedAt">Розблоковано %s</string>
     <string name="TransactionInfo_RecipientHash">Одержувач</string>
     <string name="TransactionInfo_HistoricalRate">Історичний курс</string>
+    <string name="TransactionInfo_AnnouncedAmount">Оголошена сума</string>
+    <string name="transaction_info_executed_amount">Виконана сума</string>
+    <string name="TransactionInfo_PriceImpact">Вплив на ціну</string>
+    <string name="TransactionInfo_ExecutedRate">Виконаний курс</string>
     <string name="TransactionInfo_Fee">Комісія</string>
     <string name="TransactionInfo_FeeEstimated">Комісія (прибл.)</string>
     <string name="TransactionInfo_SentToSelfNote">Ця транзакція надіслана на власну адресу</string>

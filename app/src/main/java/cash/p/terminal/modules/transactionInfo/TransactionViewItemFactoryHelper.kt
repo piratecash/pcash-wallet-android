@@ -4,6 +4,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.isCustom
 import cash.p.terminal.core.orHide
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
@@ -702,7 +703,13 @@ object TransactionViewItemFactoryHelper {
             }
         }
 
-        items.add(TransactionInfoViewItem.TransactionHash(transaction.transactionHash.orHide(hideSensitiveInfo)))
+        items.add(
+            TransactionInfoViewItem.TransactionHash(
+                transaction.transactionHash.orHide(
+                    hideSensitiveInfo
+                )
+            )
+        )
 
         return items
     }
@@ -717,5 +724,83 @@ object TransactionViewItemFactoryHelper {
                 explorerData.url
             )
         )
+
+    fun getSwapProviderAmountSectionItems(
+        amountOut: BigDecimal,
+        amountOutReal: BigDecimal?,
+        amountIn: BigDecimal,
+        coinCodeOut: String,
+        coinCodeIn: String,
+        hideAmount: Boolean
+    ): List<TransactionInfoViewItem> {
+        val items = mutableListOf<TransactionInfoViewItem>()
+
+        // Announced Amount - sensitive, clickable
+        val announcedAmountFormatted = if (hideAmount) {
+            "*****"
+        } else {
+            numberFormatter.formatCoinNotRounded(amountOut, coinCodeOut, 8)
+        }
+        items.add(
+            TransactionInfoViewItem.ValueClickable(
+                Translator.getString(R.string.TransactionInfo_AnnouncedAmount),
+                announcedAmountFormatted
+            )
+        )
+
+        // Expected Amount (only if available) - sensitive, clickable
+        amountOutReal?.let { real ->
+            val executedAmountFormatted = if (hideAmount) {
+                "*****"
+            } else {
+                numberFormatter.formatCoinNotRounded(real, coinCodeOut, 8)
+            }
+            items.add(
+                TransactionInfoViewItem.ValueClickable(
+                    Translator.getString(R.string.transaction_info_executed_amount),
+                    executedAmountFormatted
+                )
+            )
+
+            // Price Impact - not sensitive
+            if (amountOut > BigDecimal.ZERO) {
+                val impact = tryOrNull {
+                    (real - amountOut).divide(
+                        amountOut,
+                        4,
+                        RoundingMode.HALF_UP
+                    ) * BigDecimal(100)
+                } ?: BigDecimal.ZERO
+                val impactStr = "${if (impact >= BigDecimal.ZERO) "+" else ""}${
+                    impact.setScale(
+                        2,
+                        RoundingMode.HALF_UP
+                    )
+                }%"
+                val color = if (impact >= BigDecimal.ZERO) ColorName.Remus else ColorName.Lucian
+                items.add(
+                    TransactionInfoViewItem.ValueColored(
+                        Translator.getString(R.string.TransactionInfo_PriceImpact),
+                        impactStr,
+                        color
+                    )
+                )
+            }
+
+            // Executed Rate: 1 coinCodeIn = X coinCodeOut - not sensitive
+            if (amountIn > BigDecimal.ZERO) {
+                val executedRate = real.divide(amountIn, 8, RoundingMode.HALF_UP)
+                val formattedRate = numberFormatter.formatCoinFull(executedRate, coinCodeOut, 8)
+                items.add(
+                    TransactionInfoViewItem.Value(
+                        Translator.getString(R.string.TransactionInfo_ExecutedRate),
+                        "1 $coinCodeIn = $formattedRate"
+                    )
+                )
+            }
+        }
+
+        return items
+    }
 
 }

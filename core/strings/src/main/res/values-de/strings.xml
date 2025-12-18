@@ -636,6 +636,10 @@
     <string name="TransactionInfo_UnlockedAt">Freigegeben am %s</string>
     <string name="TransactionInfo_RecipientHash">Empfänger</string>
     <string name="TransactionInfo_HistoricalRate">Historischer Rate</string>
+    <string name="TransactionInfo_AnnouncedAmount">Angekündigter Betrag</string>
+    <string name="transaction_info_executed_amount">Ausgeführter Betrag</string>
+    <string name="TransactionInfo_PriceImpact">Preisauswirkung</string>
+    <string name="TransactionInfo_ExecutedRate">Ausgeführter Kurs</string>
     <string name="TransactionInfo_Fee">Gebühr</string>
     <string name="TransactionInfo_FeeEstimated">Gebühr (est.)</string>
     <string name="TransactionInfo_SentToSelfNote">Diese Transaktion wurde an die eigene Adresse gesendet</string>

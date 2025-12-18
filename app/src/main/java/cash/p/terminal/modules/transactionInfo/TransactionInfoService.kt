@@ -3,6 +3,7 @@ package cash.p.terminal.modules.transactionInfo
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.PendingTransactionMatcher
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
@@ -45,6 +46,7 @@ class TransactionInfoService(
     private val currencyManager: CurrencyManager,
     private val nftMetadataService: NftMetadataService,
     private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase,
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     transactionStatusUrl: Pair<String, String>?
 ) {
     private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
@@ -63,6 +65,15 @@ class TransactionInfoService(
     private val _transactionInfoItemFlow = MutableStateFlow<TransactionInfoItem?>(null)
     val transactionInfoItemFlow = _transactionInfoItemFlow.filterNotNull()
 
+    // Fetch swap provider transaction data
+    private val swapTransaction = userSwapTransactionId?.let {
+        swapProviderTransactionsStorage.getTransaction(it)
+    }
+
+    private fun getCoinCode(coinUid: String): String? {
+        return marketKit.allCoins().find { it.uid == coinUid }?.code
+    }
+
     var transactionInfoItem = TransactionInfoItem(
         record = transactionRecord,
         externalStatus = TransactionStatus.Pending,
@@ -74,7 +85,12 @@ class TransactionInfoService(
         rates = mapOf(),
         nftMetadata = mapOf(),
         hideAmount = balanceHiddenManager.balanceHidden,
-        transactionStatusUrl = transactionStatusUrl
+        transactionStatusUrl = transactionStatusUrl,
+        swapAmountOut = swapTransaction?.amountOut,
+        swapAmountOutReal = swapTransaction?.amountOutReal,
+        swapAmountIn = swapTransaction?.amountIn,
+        swapCoinCodeOut = swapTransaction?.coinUidOut?.let { getCoinCode(it) },
+        swapCoinCodeIn = swapTransaction?.coinUidIn?.let { getCoinCode(it) }
     )
         private set(value) {
             field = value

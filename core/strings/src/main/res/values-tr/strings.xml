@@ -643,6 +643,10 @@
     <string name="TransactionInfo_UnlockedAt">Kilid açıldı %s</string>
     <string name="TransactionInfo_RecipientHash">Alıcı</string>
     <string name="TransactionInfo_HistoricalRate">Geçmiş Kur</string>
+    <string name="TransactionInfo_AnnouncedAmount">Duyurulan miktar</string>
+    <string name="transaction_info_executed_amount">Gerçekleşen miktar</string>
+    <string name="TransactionInfo_PriceImpact">Fiyat etkisi</string>
+    <string name="TransactionInfo_ExecutedRate">Gerçekleşen kur</string>
     <string name="TransactionInfo_Fee">Masraf</string>
     <string name="TransactionInfo_FeeEstimated">Ücret (tahmini)</string>
     <string name="TransactionInfo_SentToSelfNote">Bu işlem kendi adresine gönderildi</string>

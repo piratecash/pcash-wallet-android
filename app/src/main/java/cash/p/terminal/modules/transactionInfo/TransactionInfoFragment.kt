@@ -49,6 +49,8 @@ import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.TitleAndValueCell
+import cash.p.terminal.ui_compose.components.TitleAndValueClickableCell
+import cash.p.terminal.ui_compose.components.TitleAndValueColoredCell
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 class TransactionInfoFragment : BaseComposeFragment() {
@@ -213,6 +215,26 @@ fun TransactionInfoSection(
                             TitleAndValueCell(
                                 title = viewItem.title,
                                 value = viewItem.value,
+                            )
+                        }
+                    }
+
+                    is TransactionInfoViewItem.ValueClickable -> {
+                        add {
+                            TitleAndValueClickableCell(
+                                title = viewItem.title,
+                                value = viewItem.value,
+                                onClick = onSensitiveValueClick,
+                            )
+                        }
+                    }
+
+                    is TransactionInfoViewItem.ValueColored -> {
+                        add {
+                            TitleAndValueColoredCell(
+                                title = viewItem.title,
+                                value = viewItem.value,
+                                color = viewItem.color,
                             )
                         }
                     }

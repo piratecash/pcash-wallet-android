@@ -643,6 +643,10 @@
     <string name="TransactionInfo_UnlockedAt">Unlocked at %s</string>
     <string name="TransactionInfo_RecipientHash">Recipient</string>
     <string name="TransactionInfo_HistoricalRate">Historical Rate</string>
+    <string name="TransactionInfo_AnnouncedAmount">Aangekondigd bedrag</string>
+    <string name="transaction_info_executed_amount">Uitgevoerd bedrag</string>
+    <string name="TransactionInfo_PriceImpact">Prijsimpact</string>
+    <string name="TransactionInfo_ExecutedRate">Uitgevoerde koers</string>
     <string name="TransactionInfo_Fee">Fee</string>
     <string name="TransactionInfo_FeeEstimated">Fee (est.)</string>
     <string name="TransactionInfo_SentToSelfNote">The transaction is sent to own address</string>

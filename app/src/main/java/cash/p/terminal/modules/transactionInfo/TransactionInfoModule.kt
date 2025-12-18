@@ -15,6 +15,7 @@ import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionStatus
 import io.horizontalsystems.core.entities.BlockchainType
+import java.math.BigDecimal
 
 object TransactionInfoModule {
 
@@ -31,8 +32,9 @@ object TransactionInfoModule {
                 marketKit = App.marketKit,
                 currencyManager = App.currencyManager,
                 nftMetadataService = NftMetadataService(App.nftMetadataManager),
-                transactionStatusUrl = transactionItem.transactionStatusUrl,
-                updateSwapProviderTransactionsStatusUseCase = getKoinInstance()
+                updateSwapProviderTransactionsStatusUseCase = getKoinInstance(),
+                swapProviderTransactionsStorage = getKoinInstance(),
+                transactionStatusUrl = transactionItem.transactionStatusUrl
             )
             val factory = TransactionInfoViewItemFactory(
                 transactionSource.blockchain.type.resendable,
@@ -64,7 +66,13 @@ data class TransactionInfoItem(
     val rates: Map<String, CurrencyValue>,
     val nftMetadata: Map<NftUid, NftAssetBriefMetadata>,
     val hideAmount: Boolean,
-    val transactionStatusUrl: Pair<String, String>? = null
+    val transactionStatusUrl: Pair<String, String>? = null,
+    // Swap provider amount fields
+    val swapAmountOut: BigDecimal? = null,
+    val swapAmountOutReal: BigDecimal? = null,
+    val swapAmountIn: BigDecimal? = null,
+    val swapCoinCodeOut: String? = null,
+    val swapCoinCodeIn: String? = null
 )
 
 val BlockchainType.resendable: Boolean

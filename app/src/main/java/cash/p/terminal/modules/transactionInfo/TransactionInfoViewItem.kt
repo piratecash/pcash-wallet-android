@@ -3,6 +3,7 @@ package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
 import io.horizontalsystems.core.entities.BlockchainType
 import java.util.Date
@@ -31,6 +32,10 @@ sealed class TransactionInfoViewItem {
     ) : TransactionInfoViewItem()
 
     class Value(val title: String, val value: String) : TransactionInfoViewItem()
+
+    class ValueClickable(val title: String, val value: String) : TransactionInfoViewItem()
+
+    class ValueColored(val title: String, val value: String, val color: ColorName) : TransactionInfoViewItem()
 
     class PriceWithToggle(val title: String, val valueOne: String, val valueTwo: String) : TransactionInfoViewItem()
 

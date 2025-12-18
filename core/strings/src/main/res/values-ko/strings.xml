@@ -643,6 +643,10 @@
     <string name="TransactionInfo_UnlockedAt">%s에서 잠금 해제됨</string>
     <string name="TransactionInfo_RecipientHash">수령인</string>
     <string name="TransactionInfo_HistoricalRate">과거 환율</string>
+    <string name="TransactionInfo_AnnouncedAmount">공시 금액</string>
+    <string name="transaction_info_executed_amount">체결 금액</string>
+    <string name="TransactionInfo_PriceImpact">가격 영향</string>
+    <string name="TransactionInfo_ExecutedRate">체결 환율</string>
     <string name="TransactionInfo_Fee">수수료</string>
     <string name="TransactionInfo_FeeEstimated">수수료 (추정)</string>
     <string name="TransactionInfo_SentToSelfNote">이 거래는 자신의 주소로 전송됩니다</string>

@@ -594,6 +594,24 @@ class TransactionInfoViewItemFactory(
             else -> {}
         }
 
+        // Add swap provider amount comparison section if available
+        if (transactionItem.swapAmountOut != null &&
+            transactionItem.swapCoinCodeOut != null &&
+            transactionItem.swapCoinCodeIn != null &&
+            transactionItem.swapAmountIn != null
+        ) {
+            itemSections.add(
+                TransactionViewItemFactoryHelper.getSwapProviderAmountSectionItems(
+                    amountOut = transactionItem.swapAmountOut,
+                    amountOutReal = transactionItem.swapAmountOutReal,
+                    amountIn = transactionItem.swapAmountIn,
+                    coinCodeOut = transactionItem.swapCoinCodeOut,
+                    coinCodeIn = transactionItem.swapCoinCodeIn,
+                    hideAmount = transactionItem.hideAmount
+                )
+            )
+        }
+
         if (sentToSelf) {
             miscItemsSection.add(SentToSelf)
         }

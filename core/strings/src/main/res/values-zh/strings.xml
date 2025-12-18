@@ -639,6 +639,10 @@
     <string name="TransactionInfo_UnlockedAt">在 %s 解锁了</string>
     <string name="TransactionInfo_RecipientHash">收款人</string>
     <string name="TransactionInfo_HistoricalRate">历史价格</string>
+    <string name="TransactionInfo_AnnouncedAmount">公布金额</string>
+    <string name="transaction_info_executed_amount">成交金额</string>
+    <string name="TransactionInfo_PriceImpact">价格影响</string>
+    <string name="TransactionInfo_ExecutedRate">执行汇率</string>
     <string name="TransactionInfo_Fee">费用</string>
     <string name="TransactionInfo_FeeEstimated">费用（预估）</string>
     <string name="TransactionInfo_SentToSelfNote">交易已发送至自有地址</string>

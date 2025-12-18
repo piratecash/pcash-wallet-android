@@ -638,6 +638,10 @@
     <string name="TransactionInfo_UnlockedAt">Desbloqueado en %s</string>
     <string name="TransactionInfo_RecipientHash">Destinatario</string>
     <string name="TransactionInfo_HistoricalRate">Estado histórico</string>
+    <string name="TransactionInfo_AnnouncedAmount">Monto anunciado</string>
+    <string name="transaction_info_executed_amount">Monto ejecutado</string>
+    <string name="TransactionInfo_PriceImpact">Impacto en el precio</string>
+    <string name="TransactionInfo_ExecutedRate">Tasa ejecutada</string>
     <string name="TransactionInfo_Fee">Comisión</string>
     <string name="TransactionInfo_FeeEstimated">Tarifa (est.)</string>
     <string name="TransactionInfo_SentToSelfNote">Esta transacción se envía a su propia dirección</string>
