@@ -32,10 +32,9 @@ class TransactionInfoViewModel(
         viewModelScope.launch {
             combine(
                 contactsRepository.contactsFlow,
-                service.transactionInfoItemFlow,
-                balanceHiddenManager.balanceHiddenFlow
-            ) { _, transactionInfoItem, balanceHidden ->
-                factory.getViewItemSections(transactionInfoItem, balanceHidden)
+                service.transactionInfoItemFlow
+            ) { _, transactionInfoItem ->
+                factory.getViewItemSections(transactionInfoItem)
             }.collect { items ->
                 viewItems = items
             }
