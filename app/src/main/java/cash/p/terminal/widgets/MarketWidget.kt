@@ -14,13 +14,13 @@ import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
@@ -142,7 +142,11 @@ class MarketWidget : GlanceAppWidget() {
                                         .height(60.dp)
                                         .background(ImageProvider(R.drawable.widget_list_item_background))
                                         .clickable(
-                                            actionStartActivity(Intent(Intent.ACTION_VIEW, deeplinkUri))
+                                            actionRunCallback<OpenDeepLinkAction>(
+                                                actionParametersOf(
+                                                    OpenDeepLinkAction.uriKey to deeplinkUri.toString()
+                                                )
+                                            )
                                         )
                                 ) {
                                     Item(item = item, state.type)
@@ -330,5 +334,24 @@ class UpdateMarketAction : ActionCallback {
         MarketWidget().update(context, glanceId)
 
         MarketWidgetManager().refresh(glanceId)
+    }
+}
+
+class OpenDeepLinkAction : ActionCallback {
+    companion object {
+        val uriKey = ActionParameters.Key<String>("deeplink_uri")
+    }
+
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        val uri = parameters[uriKey] ?: return
+        val intent = Intent(Intent.ACTION_VIEW, uri.toUri()).apply {
+            setPackage(context.packageName)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
     }
 }
