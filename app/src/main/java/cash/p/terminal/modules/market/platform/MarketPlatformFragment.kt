@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,28 +24,30 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.ui_compose.getInput
-import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui_compose.entities.ViewState
-import io.horizontalsystems.chartview.chart.ChartViewModel
-import cash.p.terminal.ui_compose.CoinFragmentInput
-import io.horizontalsystems.chartview.ui.Chart
 import cash.p.terminal.modules.coin.overview.ui.Loading
-import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.modules.market.topcoins.OptionController
 import cash.p.terminal.modules.market.topplatforms.Platform
-import cash.p.terminal.ui_compose.components.HSSwipeRefresh
-import cash.p.terminal.ui_compose.Select
+import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui.compose.components.CoinList
+import cash.p.terminal.ui.compose.components.ListErrorView
+import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.CoinFragmentInput
+import cash.p.terminal.ui_compose.Select
+import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HeaderSorting
-import cash.p.terminal.ui.compose.components.ListErrorView
-import cash.p.terminal.ui.compose.components.TopCloseButton
+import cash.p.terminal.ui_compose.components.ImageSource
+import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.title3_leah
+import cash.p.terminal.ui_compose.entities.ViewState
+import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import io.horizontalsystems.chartview.chart.ChartViewModel
+import io.horizontalsystems.chartview.ui.Chart
 
 class MarketPlatformFragment : BaseComposeFragment() {
 
@@ -86,10 +88,21 @@ private fun PlatformScreen(
     var scrollToTopAfterUpdate by rememberSaveable { mutableStateOf(false) }
     var openSortingSelector by rememberSaveable { mutableStateOf(false) }
 
-    Surface(color = ComposeAppTheme.colors.tyler) {
-        Column {
-            TopCloseButton(onCloseButtonClick)
-
+    Scaffold(
+        topBar = {
+            AppBar(
+                menuItems = listOf(
+                    MenuItem(
+                        title = TranslatableString.ResString(R.string.Button_Close),
+                        icon = R.drawable.ic_close,
+                        onClick = onCloseButtonClick
+                    )
+                )
+            )
+        },
+        containerColor = ComposeAppTheme.colors.tyler,
+    ) { paddingValues ->
+        Column(modifier = Modifier.padding(paddingValues)) {
             HSSwipeRefresh(
                 refreshing = uiState.isRefreshing,
                 onRefresh = {
@@ -131,7 +144,8 @@ private fun PlatformScreen(
                                             Chart(
                                                 uiState = chartViewModel.uiState,
                                                 getSelectedPointCallback = chartViewModel::getSelectedPoint,
-                                                onSelectChartInterval = chartViewModel::onSelectChartInterval)
+                                                onSelectChartInterval = chartViewModel::onSelectChartInterval
+                                            )
                                         }
                                         stickyHeader {
                                             HeaderSorting(borderTop = true, borderBottom = true) {
