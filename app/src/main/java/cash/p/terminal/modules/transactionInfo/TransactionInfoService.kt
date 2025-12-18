@@ -65,11 +65,6 @@ class TransactionInfoService(
     private val _transactionInfoItemFlow = MutableStateFlow<TransactionInfoItem?>(null)
     val transactionInfoItemFlow = _transactionInfoItemFlow.filterNotNull()
 
-    // Fetch swap provider transaction data
-    private val swapTransaction = userSwapTransactionId?.let {
-        swapProviderTransactionsStorage.getTransaction(it)
-    }
-
     private fun getCoinCode(coinUid: String): String? {
         return marketKit.allCoins().find { it.uid == coinUid }?.code
     }
@@ -86,11 +81,11 @@ class TransactionInfoService(
         nftMetadata = mapOf(),
         hideAmount = balanceHiddenManager.balanceHidden,
         transactionStatusUrl = transactionStatusUrl,
-        swapAmountOut = swapTransaction?.amountOut,
-        swapAmountOutReal = swapTransaction?.amountOutReal,
-        swapAmountIn = swapTransaction?.amountIn,
-        swapCoinCodeOut = swapTransaction?.coinUidOut?.let { getCoinCode(it) },
-        swapCoinCodeIn = swapTransaction?.coinUidIn?.let { getCoinCode(it) }
+        swapAmountOut = null,
+        swapAmountOutReal = null,
+        swapAmountIn = null,
+        swapCoinCodeOut = null,
+        swapCoinCodeIn = null
     )
         private set(value) {
             field = value
@@ -280,6 +275,19 @@ class TransactionInfoService(
     }
 
     suspend fun start() = withContext(Dispatchers.IO) {
+        // Load swap transaction data asynchronously
+        userSwapTransactionId?.let { id ->
+            swapProviderTransactionsStorage.getTransaction(id)?.let { swapTransaction ->
+                transactionInfoItem = transactionInfoItem.copy(
+                    swapAmountOut = swapTransaction.amountOut,
+                    swapAmountOutReal = swapTransaction.amountOutReal,
+                    swapAmountIn = swapTransaction.amountIn,
+                    swapCoinCodeOut = getCoinCode(swapTransaction.coinUidOut),
+                    swapCoinCodeIn = getCoinCode(swapTransaction.coinUidIn)
+                )
+            }
+        }
+
         handleLastBlockUpdate(getUserSwapTransactionStatus())
         _transactionInfoItemFlow.update { transactionInfoItem }
 
@@ -339,7 +347,6 @@ class TransactionInfoService(
                     pendingTransactionMatcher.calculateMatchScore(pending, real).isMatch
         }
     }
-
 
     private suspend fun getUserSwapTransactionStatus(): TransactionStatus? =
         userSwapTransactionId?.let { userSwapTransactionId ->

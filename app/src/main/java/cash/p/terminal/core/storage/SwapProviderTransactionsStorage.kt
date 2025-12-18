@@ -2,9 +2,14 @@ package cash.p.terminal.core.storage
 
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.core.DispatcherProvider
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
-class SwapProviderTransactionsStorage(private val dao: SwapProviderTransactionsDao) {
+class SwapProviderTransactionsStorage(
+    private val dao: SwapProviderTransactionsDao,
+    private val dispatcherProvider: DispatcherProvider
+) {
 
     private companion object Companion {
         const val THRESHOLD_MSEC = 40_000
@@ -30,7 +35,10 @@ class SwapProviderTransactionsStorage(private val dao: SwapProviderTransactionsD
         limit = limit
     )
 
-    fun getTransaction(transactionId: String) = dao.getTransaction(transactionId)
+    suspend fun getTransaction(transactionId: String) =
+        withContext(dispatcherProvider.io) {
+            dao.getTransaction(transactionId)
+        }
 
     fun getByCoinUidIn(
         coinUid: String,

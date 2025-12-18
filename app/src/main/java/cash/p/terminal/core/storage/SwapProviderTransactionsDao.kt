@@ -28,7 +28,7 @@ interface SwapProviderTransactionsDao {
     ): List<SwapProviderTransaction>
 
     @Query("SELECT * FROM SwapProviderTransaction WHERE transactionId = :transactionId")
-    fun getTransaction(transactionId: String): SwapProviderTransaction?
+    suspend fun getTransaction(transactionId: String): SwapProviderTransaction?
 
     @Query(
         "SELECT * FROM SwapProviderTransaction WHERE " +
