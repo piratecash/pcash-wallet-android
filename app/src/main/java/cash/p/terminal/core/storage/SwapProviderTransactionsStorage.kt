@@ -1,5 +1,6 @@
 package cash.p.terminal.core.storage
 
+import cash.p.terminal.core.utils.SwapTransactionMatcher
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.DispatcherProvider
@@ -15,7 +16,6 @@ class SwapProviderTransactionsStorage(
         const val THRESHOLD_MSEC = 40_000
         const val AMOUNT_TOLERANCE = 0.005 // 0.5%
         const val FINISHED_AT_WINDOW_MS = 1_800_000L // ±30 minutes
-        const val FALLBACK_WINDOW_MS = 21_600_000L // ±6 hours
     }
 
     fun save(
@@ -66,11 +66,12 @@ class SwapProviderTransactionsStorage(
     )
 
     fun getByTokenOut(
-        token: Token,
+        coinUid: String,
+        blockchainType: String,
         timestamp: Long
     ) = dao.getByTokenOut(
-        coinUid = token.coin.uid,
-        blockchainType = token.blockchainType.uid,
+        coinUid = coinUid,
+        blockchainType = blockchainType,
         dateFrom = timestamp - THRESHOLD_MSEC,
         dateTo = timestamp + THRESHOLD_MSEC
     )
@@ -89,12 +90,15 @@ class SwapProviderTransactionsStorage(
         tolerance = AMOUNT_TOLERANCE,
         timestamp = timestamp,
         timeWindowMs = FINISHED_AT_WINDOW_MS,
-        dateFrom = timestamp - FALLBACK_WINDOW_MS,
-        dateTo = timestamp + FALLBACK_WINDOW_MS
+        dateFrom = timestamp - SwapTransactionMatcher.TIME_WINDOW_MS,
+        dateTo = timestamp + SwapTransactionMatcher.TIME_WINDOW_MS
     )
 
     fun setIncomingRecordUid(date: Long, incomingRecordUid: String, amountOutReal: BigDecimal) =
         dao.setIncomingRecordUid(date, incomingRecordUid, amountOutReal)
+
+    fun setOutgoingRecordUid(date: Long, outgoingRecordUid: String) =
+        dao.setOutgoingRecordUid(date, outgoingRecordUid)
 
     fun updateStatusFields(
         transactionId: String,
@@ -102,4 +106,22 @@ class SwapProviderTransactionsStorage(
         amountOutReal: BigDecimal?,
         finishedAt: Long?
     ) = dao.updateStatusFields(transactionId, status, amountOutReal, finishedAt)
+
+    fun getUnmatchedSwapsByTokenOut(
+        coinUid: String,
+        blockchainType: String,
+        fromTimestamp: Long,
+        toTimestamp: Long,
+        amount: BigDecimal,
+        tolerance: Double,
+        limit: Int = 100
+    ): List<SwapProviderTransaction> = dao.getUnmatchedSwapsByTokenOut(
+        coinUid = coinUid,
+        blockchainType = blockchainType,
+        dateFrom = fromTimestamp,
+        dateTo = toTimestamp,
+        amount = amount.toDouble(),
+        tolerance = tolerance,
+        limit = limit
+    )
 }

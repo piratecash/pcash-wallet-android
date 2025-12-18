@@ -98,6 +98,33 @@ interface SwapProviderTransactionsDao {
     @Query("UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid, amountOutReal = :amountOutReal WHERE date = :date")
     fun setIncomingRecordUid(date: Long, incomingRecordUid: String, amountOutReal: BigDecimal)
 
+    @Query("UPDATE SwapProviderTransaction SET outgoingRecordUid = :outgoingRecordUid WHERE date = :date")
+    fun setOutgoingRecordUid(date: Long, outgoingRecordUid: String)
+
     @Query("UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = :finishedAt WHERE transactionId = :transactionId")
     fun updateStatusFields(transactionId: String, status: String, amountOutReal: BigDecimal?, finishedAt: Long?)
+
+    @Query(
+        """
+        SELECT * FROM SwapProviderTransaction
+        WHERE coinUidOut = :coinUid
+        AND blockchainTypeOut = :blockchainType
+        AND incomingRecordUid IS NULL
+        AND date >= :dateFrom
+        AND date <= :dateTo
+        AND CAST(amountOut AS REAL) != 0
+        AND ABS(CAST(amountOut AS REAL) - :amount) / CAST(amountOut AS REAL) < :tolerance
+        ORDER BY ABS(CAST(amountOut AS REAL) - :amount) ASC, date ASC
+        LIMIT :limit
+        """
+    )
+    fun getUnmatchedSwapsByTokenOut(
+        coinUid: String,
+        blockchainType: String,
+        dateFrom: Long,
+        dateTo: Long,
+        amount: Double,
+        tolerance: Double,
+        limit: Int
+    ): List<SwapProviderTransaction>
 }

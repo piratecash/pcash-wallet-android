@@ -5,6 +5,8 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.core.utils.IncomingTransaction
+import cash.p.terminal.core.utils.SwapTransactionMatcher
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
@@ -48,6 +50,7 @@ class TransactionViewItemFactory(
     private val contactsRepository: ContactsRepository,
     private val balanceHiddenManager: BalanceHiddenManager,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
+    private val swapTransactionMatcher: SwapTransactionMatcher,
     private val walletUseCase: WalletUseCase,
     private val numberFormatter: IAppNumberFormatter
 ) {
@@ -1319,7 +1322,12 @@ class TransactionViewItemFactory(
                 blockchainType = token.blockchainType.uid,
                 amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
                 timestamp = transactionItem.record.timestamp * 1000
-            )
+            )?.also { swap ->
+                swapProviderTransactionsStorage.setOutgoingRecordUid(
+                    date = swap.date,
+                    outgoingRecordUid = transactionItem.record.uid
+                )
+            }
     }?.let {
         createViewItemFromUserSwapProviderRecord(
             transaction = it,
@@ -1331,43 +1339,17 @@ class TransactionViewItemFactory(
     private fun getSwapProviderTransactionForIncoming(
         transactionItem: TransactionItem,
         token: Token
-    ): SwapProviderTransaction? =
-        (swapProviderTransactionsStorage.getByIncomingRecordUid(transactionItem.record.uid)
-            ?: run {
-                // Try to match by address, amount, and time window
-                val amount = transactionItem.record.mainValue?.decimalValue?.abs()
-                val timestamp = transactionItem.record.timestamp * 1000
-                val addresses =
-                    transactionItem.record.to  // Use actual receiving addresses from transaction
-
-                val matchedSwap = if (!addresses.isNullOrEmpty() && amount != null) {
-                    // Try each receiving address to find a match
-                    addresses.firstNotNullOfOrNull { address ->
-                        swapProviderTransactionsStorage.getByAddressAndAmount(
-                            address = address,
-                            blockchainType = token.blockchainType.uid,
-                            coinUid = token.coin.uid,
-                            amount = amount,
-                            timestamp = timestamp
-                        )
-                    }?.also { swap ->
-                        // Mark as matched and save actual blockchain amount
-                        swapProviderTransactionsStorage.setIncomingRecordUid(
-                            date = swap.date,
-                            incomingRecordUid = transactionItem.record.uid,
-                            amountOutReal = amount
-                        )
-                    }
-                } else {
-                    null
-                }
-
-                // Fall back to timestamp-based matching if address/amount matching fails
-                matchedSwap ?: swapProviderTransactionsStorage.getByTokenOut(
-                    token = token,
-                    timestamp = timestamp
-                )
-            })
+    ): SwapProviderTransaction? {
+        val incomingTransaction = IncomingTransaction(
+            uid = transactionItem.record.uid,
+            amount = transactionItem.record.mainValue?.decimalValue?.abs(),
+            timestamp = transactionItem.record.timestamp * 1000,
+            coinUid = token.coin.uid,
+            blockchainType = token.blockchainType.uid,
+            addresses = transactionItem.record.to
+        )
+        return swapTransactionMatcher.findMatchingSwap(incomingTransaction)
+    }
 
     private fun createViewItemFromUserSwapProviderRecord(
         transaction: SwapProviderTransaction,

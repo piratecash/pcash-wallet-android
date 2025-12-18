@@ -30,6 +30,7 @@ import cash.p.terminal.modules.send.address.AddressCheckerControlImpl
 import cash.p.terminal.modules.transactions.ITransactionRecordRepository
 import cash.p.terminal.modules.transactions.TransactionRecordRepository
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
+import cash.p.terminal.core.utils.SwapTransactionMatcher
 import cash.p.terminal.wallet.IAccountCleaner
 import cash.p.terminal.wallet.IAccountsStorage
 import cash.p.terminal.wallet.IEnabledWalletStorage
@@ -55,6 +56,7 @@ val storageModule = module {
     singleOf(::BlockchainSettingsStorage)
     singleOf(::SpamAddressStorage)
     factoryOf(::SwapProviderTransactionsStorage)
+    factoryOf(::SwapTransactionMatcher)
     singleOf(::EvmSyncSourceStorage)
     singleOf(::ContactsRepository)
     singleOf(::ZcashBirthdayProvider)
