@@ -49,13 +49,22 @@ import io.horizontalsystems.core.putParcelableExtra
 class KeyStoreActivity : BaseActivity() {
 
     private val mode by lazy {
-        intent.parcelable<KeyStoreModule.ModeType>(MODE)!!
+        intent.parcelable<KeyStoreModule.ModeType>(MODE)
     }
 
-    val viewModel by viewModels<KeyStoreViewModel> { KeyStoreModule.Factory(mode) }
+    val viewModel by viewModels<KeyStoreViewModel> {
+        KeyStoreModule.Factory(mode ?: KeyStoreModule.ModeType.NoSystemLock)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (mode == null) {
+            // Intent extras missing - redirect to MainActivity which will validate and restart if needed
+            MainModule.startAsNewTask(this)
+            finish()
+            return
+        }
 
         setContent {
             KeyStoreScreen(
