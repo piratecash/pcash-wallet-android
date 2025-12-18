@@ -270,7 +270,27 @@ class TransactionViewItemFactory(
                 incomingEvents = record.incomingEvents!!,
                 outgoingEvents = record.outgoingEvents!!
             )
-            createViewItemFromExternalContractCallTransactionRecord(
+            val transactionViewItem = if (outgoingValues.isEmpty() && incomingValues.isNotEmpty()) {
+                incomingValues.firstOrNull()?.let { firstIncomingValue ->
+                    getSwapProviderTransactionForIncoming(
+                        recordUid = transactionItem.record.uid,
+                        amount = firstIncomingValue.decimalValue,
+                        timestamp = record.timestamp,
+                        addressesTo = record.incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
+                        token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: record.token
+                    )?.let {
+                        createViewItemFromUserSwapProviderRecord(
+                            transaction = it,
+                            recordUid = transactionItem.record.uid,
+                            timestamp = record.timestamp,
+                            direct = false
+                        )
+                    }
+                }
+            } else {
+                null
+            }
+            transactionViewItem ?: createViewItemFromExternalContractCallTransactionRecord(
                 uid = record.uid,
                 incomingValues = incomingValues,
                 outgoingValues = outgoingValues,
@@ -1314,7 +1334,13 @@ class TransactionViewItemFactory(
         null
     } else if (isIncoming) {
         // First check if already matched by incomingRecordUid (fast lookup)
-        getSwapProviderTransactionForIncoming(transactionItem, token)
+        getSwapProviderTransactionForIncoming(
+            recordUid = transactionItem.record.uid,
+            amount = transactionItem.record.mainValue?.decimalValue,
+            timestamp = transactionItem.record.timestamp,
+            addressesTo = transactionItem.record.to,
+            token = token
+        )
     } else {
         swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
             ?: swapProviderTransactionsStorage.getByCoinUidIn(
@@ -1331,29 +1357,34 @@ class TransactionViewItemFactory(
     }?.let {
         createViewItemFromUserSwapProviderRecord(
             transaction = it,
-            transactionItem = transactionItem,
+            recordUid = transactionItem.record.uid,
+            timestamp = transactionItem.record.timestamp,
             direct = !isIncoming
         )
     }
 
     private fun getSwapProviderTransactionForIncoming(
-        transactionItem: TransactionItem,
+        recordUid: String,
+        amount: BigDecimal?,
+        timestamp: Long,
+        addressesTo: List<String>?,
         token: Token
     ): SwapProviderTransaction? {
         val incomingTransaction = IncomingTransaction(
-            uid = transactionItem.record.uid,
-            amount = transactionItem.record.mainValue?.decimalValue?.abs(),
-            timestamp = transactionItem.record.timestamp * 1000,
+            uid = recordUid,
+            amount = amount?.abs(),
+            timestamp = timestamp * 1000,
             coinUid = token.coin.uid,
             blockchainType = token.blockchainType.uid,
-            addresses = transactionItem.record.to
+            addresses = addressesTo
         )
         return swapTransactionMatcher.findMatchingSwap(incomingTransaction)
     }
 
     private fun createViewItemFromUserSwapProviderRecord(
         transaction: SwapProviderTransaction,
-        transactionItem: TransactionItem,
+        recordUid: String,
+        timestamp: Long,
         direct: Boolean
     ): TransactionViewItem {
         val iconIn = getIconForToken(
@@ -1423,7 +1454,7 @@ class TransactionViewItemFactory(
         }
 
         return TransactionViewItem(
-            uid = transactionItem.record.uid,
+            uid = recordUid,
             progress = if (transaction.isFinished()) {
                 0f
             } else {
@@ -1434,7 +1465,7 @@ class TransactionViewItemFactory(
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
             showAmount = showAmount,
-            date = Date(transactionItem.record.timestamp * 1000),
+            date = Date(timestamp * 1000),
             spam = false,
             icon = transactionIcon,
             changeNowTransactionId = transaction.transactionId,
@@ -1520,7 +1551,27 @@ class TransactionViewItemFactory(
                 incomingEvents!!,
                 outgoingEvents!!
             )
-            createViewItemFromExternalContractCallTransactionRecord(
+            val transactionViewItem = if (outgoingValues.isEmpty() && incomingValues.isNotEmpty() && baseToken != null) {
+                incomingValues.firstOrNull()?.let { firstIncomingValue ->
+                    getSwapProviderTransactionForIncoming(
+                        recordUid = transactionItem.record.uid,
+                        amount = firstIncomingValue.decimalValue,
+                        timestamp = timestamp,
+                        addressesTo = incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
+                        token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: baseToken
+                    )?.let {
+                        createViewItemFromUserSwapProviderRecord(
+                            transaction = it,
+                            recordUid = transactionItem.record.uid,
+                            timestamp = timestamp,
+                            direct = false
+                        )
+                    }
+                }
+            } else {
+                null
+            }
+            transactionViewItem ?: createViewItemFromExternalContractCallTransactionRecord(
                 uid = uid,
                 incomingValues = incomingValues,
                 outgoingValues = outgoingValues,
