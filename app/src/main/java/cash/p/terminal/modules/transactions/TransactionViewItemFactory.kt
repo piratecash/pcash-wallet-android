@@ -2,7 +2,6 @@ package cash.p.terminal.modules.transactions
 
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
@@ -18,6 +17,7 @@ import cash.p.terminal.entities.transactionrecords.evm.TransferEvent
 import cash.p.terminal.entities.transactionrecords.monero.MoneroTransactionRecord
 import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecord
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
+import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
@@ -42,8 +42,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.math.BigDecimal
 import java.util.Date
-import kotlin.collections.firstOrNull
-import kotlin.to
 
 class TransactionViewItemFactory(
     private val evmLabelManager: EvmLabelManager,
@@ -679,7 +677,10 @@ class TransactionViewItemFactory(
         when (val recordType = record.type) {
             is StellarTransactionRecord.Type.Send -> {
                 title = Translator.getString(R.string.Transactions_Send)
-                subtitle = Translator.getString(R.string.Transactions_To, mapped(recordType.to, record.blockchainType))
+                subtitle = Translator.getString(
+                    R.string.Transactions_To,
+                    mapped(recordType.to, record.blockchainType)
+                )
 
                 sentToSelf = recordType.sentToSelf
 
@@ -1021,7 +1022,11 @@ class TransactionViewItemFactory(
         }
     }
 
-    private fun getColoredValue(value: Any, color: ColorName, hideSign: Boolean = false): ColoredValue =
+    private fun getColoredValue(
+        value: Any,
+        color: ColorName,
+        hideSign: Boolean = false
+    ): ColoredValue =
         when (value) {
             is TransactionValue -> ColoredValue(
                 value = getCoinString(value, hideSign),
@@ -1306,12 +1311,34 @@ class TransactionViewItemFactory(
         null
     } else if (isIncoming) {
         // First check if already matched by incomingRecordUid (fast lookup)
-        swapProviderTransactionsStorage.getByIncomingRecordUid(transactionItem.record.uid)
+        getSwapProviderTransactionForIncoming(transactionItem, token)
+    } else {
+        swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
+            ?: swapProviderTransactionsStorage.getByCoinUidIn(
+                coinUid = transactionItem.record.mainValue?.coinUid ?: token.coin.uid,
+                blockchainType = token.blockchainType.uid,
+                amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
+                timestamp = transactionItem.record.timestamp * 1000
+            )
+    }?.let {
+        createViewItemFromUserSwapProviderRecord(
+            transaction = it,
+            transactionItem = transactionItem,
+            direct = !isIncoming
+        )
+    }
+
+    private fun getSwapProviderTransactionForIncoming(
+        transactionItem: TransactionItem,
+        token: Token
+    ): SwapProviderTransaction? =
+        (swapProviderTransactionsStorage.getByIncomingRecordUid(transactionItem.record.uid)
             ?: run {
                 // Try to match by address, amount, and time window
                 val amount = transactionItem.record.mainValue?.decimalValue?.abs()
                 val timestamp = transactionItem.record.timestamp * 1000
-                val addresses = transactionItem.record.to  // Use actual receiving addresses from transaction
+                val addresses =
+                    transactionItem.record.to  // Use actual receiving addresses from transaction
 
                 val matchedSwap = if (!addresses.isNullOrEmpty() && amount != null) {
                     // Try each receiving address to find a match
@@ -1340,22 +1367,7 @@ class TransactionViewItemFactory(
                     token = token,
                     timestamp = timestamp
                 )
-            }
-    } else {
-        swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
-            ?: swapProviderTransactionsStorage.getByCoinUidIn(
-                coinUid = transactionItem.record.mainValue?.coinUid ?: token.coin.uid,
-                blockchainType = token.blockchainType.uid,
-                amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
-                timestamp = transactionItem.record.timestamp * 1000
-            )
-    }?.let {
-        createViewItemFromUserSwapProviderRecord(
-            transaction = it,
-            transactionItem = transactionItem,
-            direct = !isIncoming
-        )
-    }
+            })
 
     private fun createViewItemFromUserSwapProviderRecord(
         transaction: SwapProviderTransaction,
@@ -1413,12 +1425,13 @@ class TransactionViewItemFactory(
             TransactionStatusEnum.VERIFYING -> R.string.transaction_swap_status_verifying
             TransactionStatusEnum.UNKNOWN -> R.string.transaction_swap_status_unknown
         }
-        val transactionStatusUrl = when(transaction.provider) {
+        val transactionStatusUrl = when (transaction.provider) {
             SwapProvider.CHANGENOW -> {
                 ChangeNowHelper.CHANGE_NOW_URL to ChangeNowHelper.getViewTransactionUrl(
                     transaction.transactionId
                 )
             }
+
             SwapProvider.QUICKEX -> {
                 QuickexHelper.QUICKEX_URL to QuickexHelper.getViewTransactionUrl(
                     transaction.transactionId,
