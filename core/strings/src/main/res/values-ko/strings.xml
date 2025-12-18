@@ -1572,4 +1572,5 @@
     <string name="Send_Address_AmlCheck_Info1">대상 주소가 alpha-aml.com에 등록되어 있는지 확인합니다.</string>
     <string name="Send_Address_AmlCheck_Info2">깨끗함: 블랙리스트 플래그 없음.</string>
     <string name="Send_Address_AmlCheck_Info3">감지됨: 주소가 alpha-aml.com에 등록되어 있으며 법적 또는 보안 위험과 관련이 있을 수 있습니다. 주의해서 진행하십시오. 많은 암호화폐 거래소는 블랙리스트 주소와 상호 작용한 지갑에서 자금을 입금하거나 출금하는 사용자를 제한합니다. 이 점을 염두에 두십시오.</string>
+    <string name="error_cannot_create_log_file">로그 파일을 생성할 수 없습니다. 저장 공간이 충분한지 확인하세요.</string>
 </resources>

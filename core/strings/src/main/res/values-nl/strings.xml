@@ -1579,4 +1579,5 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="Send_Address_AmlCheck_Info1">Controleert of het bestemmingsadres op alpha-aml.com staat.</string>
     <string name="Send_Address_AmlCheck_Info2">Schoon: Geen zwarte lijst vlaggen.</string>
     <string name="Send_Address_AmlCheck_Info3">Gedetecteerd: Het adres staat op alpha-aml.com en kan geassocieerd zijn met juridische of beveiligingsrisico\'s. Ga voorzichtig verder. Veel crypto-exchanges beperken gebruikers die geld storten of opnemen van wallets die interactie hebben gehad met adressen op de zwarte lijst. Houd daar rekening mee.</string>
+    <string name="error_cannot_create_log_file">Kan logbestand niet aanmaken. Zorg ervoor dat u voldoende opslagruimte heeft.</string>
 </resources>

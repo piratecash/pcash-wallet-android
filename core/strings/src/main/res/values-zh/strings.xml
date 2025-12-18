@@ -1562,4 +1562,5 @@
     <string name="Send_Address_AmlCheck_Info1">检查目标地址是否在 alpha-aml.com 列表中。</string>
     <string name="Send_Address_AmlCheck_Info2">清洁：无黑名单标记。</string>
     <string name="Send_Address_AmlCheck_Info3">检测到：该地址在 alpha-aml.com 上列出，可能与法律或安全风险相关。请谨慎操作。许多加密货币交易所会限制从与黑名单地址有交互的钱包存入或提取资金的用户。请记住这一点。</string>
+    <string name="error_cannot_create_log_file">无法创建日志文件。请确保您有足够的存储空间。</string>
 </resources>

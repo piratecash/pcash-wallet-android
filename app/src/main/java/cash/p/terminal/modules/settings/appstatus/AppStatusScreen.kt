@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.settings.appstatus
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +22,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ShareCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import cash.p.terminal.R
@@ -107,11 +107,21 @@ fun AppStatusScreen(
                             modifier = Modifier.weight(1f),
                             title = stringResource(R.string.Button_Share),
                             onClick = {
-                                uiState.appStatusAsText?.let {
-                                    ShareCompat.IntentBuilder(context)
-                                        .setType("text/plain")
-                                        .setText(it)
-                                        .startChooser()
+                                try {
+                                    val uri = viewModel.getShareFileUri(context)
+                                    if (uri != null) {
+                                        val intent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                            putExtra(Intent.EXTRA_TEXT, context.getString(R.string.Settings_AppStatus))
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(Intent.createChooser(intent, null))
+                                    } else {
+                                        HudHelper.showErrorMessage(localView, R.string.error_cannot_create_log_file)
+                                    }
+                                } catch (e: Exception) {
+                                    HudHelper.showErrorMessage(localView, e.message ?: context.getString(R.string.Error))
                                 }
                             }
                         )

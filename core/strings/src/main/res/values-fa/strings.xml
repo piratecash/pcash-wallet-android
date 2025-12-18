@@ -1577,4 +1577,5 @@
     <string name="Send_Address_AmlCheck_Info1">بررسی می‌کند که آیا آدرس مقصد در لیست alpha-aml.com قرار دارد.</string>
     <string name="Send_Address_AmlCheck_Info2">تمیز: بدون پرچم لیست سیاه.</string>
     <string name="Send_Address_AmlCheck_Info3">شناسایی شده: آدرس در لیست alpha-aml.com قرار دارد و ممکن است با خطرات قانونی یا امنیتی مرتبط باشد. با احتیاط ادامه دهید. بسیاری از صرافی‌های رمزنگاری کاربرانی را که از کیف پول‌هایی که با آدرس‌های لیست سیاه تعامل داشته‌اند، واریز یا برداشت می‌کنند، محدود می‌کنند. این را در نظر داشته باشید.</string>
+    <string name="error_cannot_create_log_file">فایل گزارش ایجاد نشد. لطفاً مطمئن شوید که فضای ذخیره‌سازی کافی دارید.</string>
 </resources>

@@ -1566,4 +1566,5 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="Send_Address_AmlCheck_Info1">Prüft, ob die Zieladresse auf alpha-aml.com gelistet ist.</string>
     <string name="Send_Address_AmlCheck_Info2">Sauber: Keine Blacklist-Flags.</string>
     <string name="Send_Address_AmlCheck_Info3">Erkannt: Die Adresse ist auf alpha-aml.com gelistet und kann mit rechtlichen oder Sicherheitsrisiken verbunden sein. Vorsichtig fortfahren. Viele Krypto-Börsen schränken Nutzer ein, die Gelder von oder zu Wallets einzahlen oder abheben, die mit Adressen auf der schwarzen Liste interagiert haben. Beachten Sie dies.</string>
+    <string name="error_cannot_create_log_file">Protokolldatei kann nicht erstellt werden. Bitte stellen Sie sicher, dass genügend Speicherplatz vorhanden ist.</string>
 </resources>

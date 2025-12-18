@@ -2,8 +2,12 @@ package cash.p.terminal.modules.settings.appstatus
 
 import android.app.ActivityManager
 import android.content.Context
+import android.net.Uri
 import android.os.Build
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
+import cash.p.terminal.BuildConfig
+import java.io.File
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
@@ -51,6 +55,7 @@ class AppStatusViewModel(
     private val btcBlockchainManager: BtcBlockchainManager = App.btcBlockchainManager
 
     private var appLogs: Map<String, Any> = emptyMap()
+    private var shareFile: File? = null
 
     private val _uiState = MutableStateFlow(
         AppStatusModule.UiState(
@@ -77,12 +82,32 @@ class AppStatusViewModel(
 
             val appStatusAsText = formatMapToString(getStatusMap())
 
+            // Pre-write the share file on IO thread
+            appStatusAsText?.let { text ->
+                try {
+                    val file = File(App.instance.cacheDir, "app_status_report.txt")
+                    file.writeText(text)
+                    shareFile = file
+                } catch (_: Exception) {
+                    // File write failed, share will be unavailable
+                }
+            }
+
             _uiState.value = AppStatusModule.UiState(
                 appStatusAsText = appStatusAsText,
                 blockViewItems = blockViewItems,
                 loading = false,
             )
         }
+    }
+
+    fun getShareFileUri(context: Context): Uri? {
+        val file = shareFile ?: return null
+        return FileProvider.getUriForFile(
+            context,
+            "${BuildConfig.APPLICATION_ID}.fileprovider",
+            file
+        )
     }
 
     private companion object {

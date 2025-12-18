@@ -1586,4 +1586,5 @@
     <string name="Send_Address_AmlCheck_Info1">يتحقق مما إذا كان عنوان الوجهة مدرجًا في alpha-aml.com.</string>
     <string name="Send_Address_AmlCheck_Info2">نظيف: لا توجد علامات قائمة سوداء.</string>
     <string name="Send_Address_AmlCheck_Info3">تم الكشف: العنوان مدرج في alpha-aml.com وقد يكون مرتبطًا بمخاطر قانونية أو أمنية. تابع بحذر. تقيد العديد من بورصات العملات المشفرة المستخدمين الذين يودعون أو يسحبون أموالاً من محافظ تفاعلت مع عناوين في القائمة السوداء. ضع ذلك في اعتبارك.</string>
+    <string name="error_cannot_create_log_file">تعذر إنشاء ملف السجل. يرجى التأكد من توفر مساحة تخزين كافية.</string>
 </resources>

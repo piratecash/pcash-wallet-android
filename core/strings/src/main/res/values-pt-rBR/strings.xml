@@ -1573,4 +1573,5 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="Send_Address_AmlCheck_Info1">Verifica se o endereço de destino está listado em alpha-aml.com.</string>
     <string name="Send_Address_AmlCheck_Info2">Limpo: Sem sinalizadores de lista negra.</string>
     <string name="Send_Address_AmlCheck_Info3">Detectado: O endereço está listado em alpha-aml.com e pode estar associado a riscos legais ou de segurança. Prossiga com cautela. Muitas exchanges de criptomoedas restringem usuários que depositam ou retiram fundos de carteiras que interagiram com endereços na lista negra. Tenha isso em mente.</string>
+    <string name="error_cannot_create_log_file">Não foi possível criar o arquivo de log. Certifique-se de ter espaço de armazenamento suficiente.</string>
 </resources>

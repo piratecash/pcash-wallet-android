@@ -1574,4 +1574,5 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="Send_Address_AmlCheck_Info1">Hedef adresin alpha-aml.com\'da listelenip listelenmediğini kontrol eder.</string>
     <string name="Send_Address_AmlCheck_Info2">Temiz: Kara liste işareti yok.</string>
     <string name="Send_Address_AmlCheck_Info3">Tespit edildi: Adres alpha-aml.com\'da listelenmiştir ve yasal veya güvenlik riskleriyle ilişkili olabilir. Dikkatli ilerleyin. Birçok kripto borsası, kara listedeki adreslerle etkileşime geçmiş cüzdanlardan para yatıran veya çeken kullanıcıları kısıtlar. Bunu aklınızda tutun.</string>
+    <string name="error_cannot_create_log_file">Günlük dosyası oluşturulamıyor. Lütfen yeterli depolama alanınız olduğundan emin olun.</string>
 </resources>

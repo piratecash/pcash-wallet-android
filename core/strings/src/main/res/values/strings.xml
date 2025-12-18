@@ -2025,4 +2025,7 @@ Proceed only if you\'re sure.</string>
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Sending</string>
+
+    <!-- App Status -->
+    <string name="error_cannot_create_log_file">Cannot create log file. Please ensure you have enough storage space.</string>
 </resources>

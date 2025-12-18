@@ -1571,4 +1571,5 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="Send_Address_AmlCheck_Info1">Vérifie si l\'adresse de destination est répertoriée sur alpha-aml.com.</string>
     <string name="Send_Address_AmlCheck_Info2">Clair : Aucun drapeau de liste noire.</string>
     <string name="Send_Address_AmlCheck_Info3">Détecté : L\'adresse est répertoriée sur alpha-aml.com et peut être associée à des risques juridiques ou de sécurité. Procédez avec prudence. De nombreux échanges de cryptomonnaies restreignent les utilisateurs qui déposent ou retirent des fonds de portefeuilles ayant interagi avec des adresses sur liste noire. Gardez cela à l\'esprit.</string>
+    <string name="error_cannot_create_log_file">Impossible de créer le fichier journal. Veuillez vous assurer que vous disposez de suffisamment d\'espace de stockage.</string>
 </resources>
