@@ -5,7 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import cash.p.terminal.R
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.navigation.slideFromBottom
 import kotlinx.coroutines.delay
 
@@ -26,7 +26,11 @@ fun BackupAlert(navController: NavController) {
         LaunchedEffect(account) {
             delay(300)
             viewModel.onHandled()
-            navController.slideFromBottom(R.id.backupRecoveryPhraseDialog, account)
+            navController.slideFromBottom(
+                MainGraphDirections.actionGlobalToBackupRecoveryPhraseDialog(
+                    account
+                )
+            )
         }
     }
 }

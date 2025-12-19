@@ -36,6 +36,10 @@
         android:id="@+id/actionGlobalToRecoveryPhraseFragment"
         app:destination="@id/recoveryPhraseFragment" />
 
+    <action
+        android:id="@+id/actionGlobalToBackupRecoveryPhraseDialog"
+        app:destination="@id/backupRecoveryPhraseDialog" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="cash.p.terminal.modules.main.MainFragment">
@@ -442,7 +446,11 @@
         android:name="cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog" />
     <dialog
         android:id="@+id/backupRecoveryPhraseDialog"
-        android:name="cash.p.terminal.modules.backupalert.BackupRecoveryPhraseDialog" />
+        android:name="cash.p.terminal.modules.backupalert.BackupRecoveryPhraseDialog">
+        <argument
+            android:name="account"
+            app:argType="cash.p.terminal.wallet.Account" />
+    </dialog>
     <dialog
         android:id="@+id/errorDisplayDialogFragment"
         android:name="cash.p.terminal.modules.info.ErrorDisplayDialogFragment" />

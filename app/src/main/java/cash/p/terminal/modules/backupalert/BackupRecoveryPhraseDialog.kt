@@ -15,6 +15,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
@@ -25,11 +26,12 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellowWithIcon
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.findNavController
-import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
 
 class BackupRecoveryPhraseDialog : BaseComposableBottomSheetFragment() {
+
+    private val args: BackupRecoveryPhraseDialogArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,7 +44,7 @@ class BackupRecoveryPhraseDialog : BaseComposableBottomSheetFragment() {
             )
             setContent {
                 val navController = findNavController()
-                BackupRecoveryPhraseScreen(navController, navController.requireInput())
+                BackupRecoveryPhraseScreen(navController, args.account)
             }
         }
     }
