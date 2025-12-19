@@ -29,20 +29,16 @@ class EvmSyncSourceManager(
 
     private fun defaultTransactionSource(blockchainType: BlockchainType): TransactionSource {
         return when (blockchainType) {
-            BlockchainType.Ethereum -> TransactionSource.etherscanApi(AppConfigProvider.etherscanApiKey)
-            BlockchainType.BinanceSmartChain -> TransactionSource.etherscanApi(
-                apiKeys = AppConfigProvider.bscscanApiKey,
-                name = "bscscan.com",
-                txBaseUrl = "https://bscscan.com"
-            )
-            BlockchainType.Polygon,
-            BlockchainType.Avalanche,
-            BlockchainType.Optimism,
-            BlockchainType.ArbitrumOne,
-            BlockchainType.Gnosis,
-            BlockchainType.Fantom,
-            BlockchainType.Base,
-            BlockchainType.ZkSync -> TransactionSource.etherscanApi(AppConfigProvider.otherScanApiKey)
+            BlockchainType.Ethereum -> TransactionSource.ethereum(AppConfigProvider.etherscanApiKey)
+            BlockchainType.BinanceSmartChain -> TransactionSource.binance(AppConfigProvider.bscscanApiKey)
+            BlockchainType.Avalanche -> TransactionSource.avalanche(AppConfigProvider.bscscanApiKey)
+            BlockchainType.Optimism -> TransactionSource.optimism(AppConfigProvider.bscscanApiKey)
+            BlockchainType.Base -> TransactionSource.base(AppConfigProvider.bscscanApiKey)
+            BlockchainType.Polygon-> TransactionSource.polygon(AppConfigProvider.etherscanApiKey)
+            BlockchainType.ArbitrumOne -> TransactionSource.arbitrumOne(AppConfigProvider.etherscanApiKey)
+            BlockchainType.Gnosis -> TransactionSource.gnosis(AppConfigProvider.etherscanApiKey)
+            BlockchainType.Fantom -> TransactionSource.fantom(AppConfigProvider.etherscanApiKey)
+            BlockchainType.ZkSync -> TransactionSource.zkSync(AppConfigProvider.otherScanApiKey)
             else -> throw Exception("Non-supported EVM blockchain")
         }
     }
@@ -72,6 +68,18 @@ class EvmSyncSourceManager(
                     blockchainType,
                     "Binance",
                     RpcSource.binanceSmartChainHttp(),
+                    defaultTransactionSource(blockchainType)
+                ),
+                evmSyncSource(
+                    blockchainType,
+                    "BlockRazor",
+                    RpcSource.Http(listOf(URI("https://unstoppable.bsc.blockrazor.xyz")), null),
+                    defaultTransactionSource(blockchainType)
+                ),
+                evmSyncSource(
+                    blockchainType,
+                    "48club",
+                    RpcSource.Http(listOf(URI("https://unstoppable.rpc.48.club")), null),
                     defaultTransactionSource(blockchainType)
                 ),
                 evmSyncSource(
@@ -145,18 +153,18 @@ class EvmSyncSourceManager(
                 ),
                 evmSyncSource(
                     blockchainType,
-                    "LlamaNodes",
+                    "dRPC",
                     RpcSource.Http(
-                        listOf(URI("https://base.llamarpc.com")),
+                        listOf(URI("https://base.drpc.org")),
                         null
                     ),
                     defaultTransactionSource(blockchainType)
                 ),
                 evmSyncSource(
                     blockchainType,
-                    "Omnia",
+                    "PublicNode",
                     RpcSource.Http(
-                        listOf(URI("https://endpoints.omniatech.io/v1/base/mainnet/public")),
+                        listOf(URI("https://base-rpc.publicnode.com")),
                         null
                     ),
                     defaultTransactionSource(blockchainType)
