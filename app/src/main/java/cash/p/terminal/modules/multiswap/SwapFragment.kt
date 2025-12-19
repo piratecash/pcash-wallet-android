@@ -609,7 +609,7 @@ fun PriceImpactField(
             Text(
                 text = stringResource(
                     R.string.Swap_Percent,
-                    (priceImpact * BigDecimal.valueOf(-1)).toPlainString()
+                    priceImpact.toPlainString()
                 ),
                 style = ComposeAppTheme.typography.subhead2,
                 color = getPriceImpactColor(priceImpactLevel),

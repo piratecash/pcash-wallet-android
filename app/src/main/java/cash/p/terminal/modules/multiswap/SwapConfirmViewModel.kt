@@ -264,7 +264,7 @@ class SwapConfirmViewModel(
                 fiatServiceOutMin.setAmount(amountOutMin)
                 sendTransactionService.setSendTransactionData(finalQuote.sendTransactionData)
 
-                priceImpactService.setPriceImpact(finalQuote.priceImpact, swapProvider.title)
+                priceImpactService.setPriceImpact(finalQuote.priceImpact?.negate(), swapProvider.title)
 
                 emitState()
             } catch (e: BackendChangeNowResponseError) {

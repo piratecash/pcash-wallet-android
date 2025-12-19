@@ -8,11 +8,11 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.moreThanZero
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.WalletUseCase
-import cash.p.terminal.strings.helpers.TranslatableString
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
@@ -142,6 +142,7 @@ class SwapViewModel(
             remaining / quoteLifetime.toFloat()
         }
     )
+
     private fun checkWarningAndEmitState() {
         viewModelScope.launch {
             warningMessage = obtainWarningMessage()
@@ -172,7 +173,7 @@ class SwapViewModel(
         balanceService.setAmount(quoteState.amountIn)
 
         priceImpactService.setPriceImpact(
-            quoteState.quote?.priceImpact,
+            quoteState.quote?.priceImpact?.negate(),
             quoteState.quote?.provider?.title
         )
 
