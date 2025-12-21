@@ -945,6 +945,8 @@
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
     <string name="ImportWallet_RecoveryPhrase">from Recovery Phrase</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Import using recovery phrase or private key.</string>
+    <string name="import_wallet_from_qr">از QR</string>
+    <string name="import_wallet_from_qr_description">وارد کردن با استفاده از QR از برنامه P.CASH.</string>
     <string name="ImportWallet_WatchAddress">مشاهده آدرس</string>
     <string name="ImportWallet_WarningInvalidJson">Invalid Json File</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">This file is not a valid backup of the wallet, or the file has been corrupted and cannot be restored.</string>
@@ -1041,6 +1043,11 @@
     <string name="RecoveryPhrase_Title">عبارت بازیابی</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
+    <string name="tap_to_show_qr_code">برای نمایش کد QR ضربه بزنید</string>
+    <string name="seed_qr_decryption_failed">رمزگشایی ناموفق بود. کد QR ممکن است منقضی شده یا نامعتبر باشد.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">این کد QR را ذخیره نکنید — فقط ۱ ساعت اعتبار دارد.</string>
+    <string name="RecoveryPhrase_QrGenerationError">امکان تولید کد QR عبارت بازیابی وجود ندارد</string>
     <string name="RecoveryPhrase_Verify">تایید</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Risk of Copying</string>
     <!-- Evm Private Key -->
@@ -1578,4 +1585,12 @@
     <string name="Send_Address_AmlCheck_Info2">تمیز: بدون پرچم لیست سیاه.</string>
     <string name="Send_Address_AmlCheck_Info3">شناسایی شده: آدرس در لیست alpha-aml.com قرار دارد و ممکن است با خطرات قانونی یا امنیتی مرتبط باشد. با احتیاط ادامه دهید. بسیاری از صرافی‌های رمزنگاری کاربرانی را که از کیف پول‌هایی که با آدرس‌های لیست سیاه تعامل داشته‌اند، واریز یا برداشت می‌کنند، محدود می‌کنند. این را در نظر داشته باشید.</string>
     <string name="error_cannot_create_log_file">فایل گزارش ایجاد نشد. لطفاً مطمئن شوید که فضای ذخیره‌سازی کافی دارید.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">قوانین امنیتی</string>
+    <string name="safety_rules_warning"><![CDATA[قبل از صادر کردن کیف پول خود، لطفاً قوانین را با دقت بخوانید:<br/><br/><b>1. عبارت بذر و کلیدهای خصوصی شما فقط متعلق به شماست.</b><br/>پشتیبانی <b>هرگز</b> این اطلاعات را درخواست نمی‌کند. اگر آن را با اشخاص ثالث به اشتراک بگذارید، <b>برای همیشه دسترسی به وجوه خود را از دست خواهید داد</b>.<br/><br/><b>2. عبارت بذر خود را به صورت دیجیتال ذخیره نکنید.</b><br/>اسکرین‌شات، عکس، یادداشت و سایر روش‌های ذخیره‌سازی الکترونیکی امن نیستند. عبارت بذر خود را روی کاغذ بنویسید و در مکانی امن نگهداری کنید.<br/><br/><b>3. تیم P.cash به کلیدهای شما دسترسی ندارد.</b><br/>ما عبارت بذر یا کلیدهای خصوصی شما را ذخیره نمی‌کنیم و در صورت گم شدن نمی‌توانیم آنها را بازیابی کنیم. شما تنها مسئول حفظ امنیت آنها هستید.]]></string>
+    <string name="safety_rules_points_to_agree">نکاتی که باید با آنها موافقت کنید:</string>
+    <string name="safety_rules_checkbox_1">من درک می‌کنم که عبارت بذر محرمانه است و نباید به اشخاص ثالث فاش شود.</string>
+    <string name="safety_rules_checkbox_2">من درک می‌کنم که نمی‌توانم عبارت بذر خود را به صورت دیجیتال ذخیره کنم.</string>
+    <string name="safety_rules_checkbox_3">من درک می‌کنم که تیم p.cash به کلیدهای من دسترسی ندارد و نمی‌تواند آنها را بازیابی کند.</string>
 </resources>

@@ -969,6 +969,8 @@
     <string name="ImportWallet_BackupFile_Description">Імпорт з файлу резервної копії.</string>
     <string name="ImportWallet_RecoveryPhrase">Фраза відновлення</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Імпорт за допомогою фрази відновлення або приватного ключа.</string>
+    <string name="import_wallet_from_qr">з QR-коду</string>
+    <string name="import_wallet_from_qr_description">Імпорт за допомогою QR-коду з додатку P.CASH.</string>
     <string name="ImportWallet_WatchAddress">Перегляд гаманця</string>
     <string name="ImportWallet_WarningInvalidJson">Неприпустимий Json файл</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">Цей файл не є дійсною резервною копією гаманця, або ж він був пошкоджений і не може бути відновлений.</string>
@@ -1065,6 +1067,11 @@
     <string name="RecoveryPhrase_Title">Фраза відновлення</string>
     <string name="RecoveryPhrase_Description">Напишіть ці слова в правильному порядку та зберігайте їх у безпечному місці</string>
     <string name="RecoveryPhrase_ShowPhrase">Натисніть, щоб показати фразу відновлення</string>
+    <string name="tap_to_show_qr_code">Натисніть, щоб показати QR-код</string>
+    <string name="seed_qr_decryption_failed">Не вдалося розшифрувати. QR-код міг закінчитися або недійсний.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">Не зберігайте цей QR-код — він дійсний лише протягом 1 години.</string>
+    <string name="RecoveryPhrase_QrGenerationError">Не вдалося згенерувати QR-код сід-фрази</string>
     <string name="RecoveryPhrase_Verify">Підтвердити</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Ризик копіювання</string>
     <!-- Evm Private Key -->
@@ -1753,4 +1760,12 @@
     <string name="Send_Address_AmlCheck_Info2">Чисто: Немає прапорців у чорному списку.</string>
     <string name="Send_Address_AmlCheck_Info3">Виявлено: Адреса знаходиться в списку alpha-aml.com і може бути пов\'язана з юридичними або безпековими ризиками. Діяйте обережно. Багато криптобірж обмежують користувачів, які вносять або виводять кошти з гаманців, що взаємодіяли з адресами з чорного списку. Врахуйте це.</string>
     <string name="error_cannot_create_log_file">Не вдалося створити файл журналу. Переконайтеся, що на пристрої достатньо вільного місця.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Правила безпеки</string>
+    <string name="safety_rules_warning"><![CDATA[Перед експортом гаманця уважно ознайомтеся з правилами:<br/><br/><b>1. Seed-фраза та приватні ключі — тільки для вас.</b><br/>Підтримка <b>ніколи</b> не запитує цю інформацію. Передавши її третім особам, ви <b>безповоротно втратите доступ до коштів</b>.<br/><br/><b>2. Не зберігайте seed-фразу в цифровому вигляді.</b><br/>Скріншоти, фото, нотатки та інші електронні способи зберігання небезпечні. Запишіть Seed-фразу на папері та зберігайте в надійному місці.<br/><br/><b>3. Команда p.cash не має доступу до ваших ключів.</b><br/>Ми не зберігаємо і не можемо відновити Seed-фразу або приватні ключі при втраті. Відповідальність за їх збереження лежить тільки на вас.]]></string>
+    <string name="safety_rules_points_to_agree">Пункти, з якими потрібно погодитися:</string>
+    <string name="safety_rules_checkbox_1">Я розумію, що Seed-фраза є конфіденційною і не повинна передаватися третім особам.</string>
+    <string name="safety_rules_checkbox_2">Я розумію, що не можна зберігати Seed-фразу в цифровому вигляді.</string>
+    <string name="safety_rules_checkbox_3">Я розумію, що команда p.cash не має доступу до моїх ключів і не може їх відновити.</string>
 </resources>

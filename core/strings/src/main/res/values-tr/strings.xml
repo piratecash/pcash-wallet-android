@@ -943,6 +943,8 @@
     <string name="ImportWallet_BackupFile_Description">Bir yedek dosyadan içe aktar.</string>
     <string name="ImportWallet_RecoveryPhrase">Kurtarma İfadesinden</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Kurtarma ifadesini veya özel anahtarı kullanarak içe aktarın.</string>
+    <string name="import_wallet_from_qr">QR\'dan</string>
+    <string name="import_wallet_from_qr_description">P.CASH uygulamasından QR kullanarak içe aktarın.</string>
     <string name="ImportWallet_WatchAddress">Adresi İzle</string>
     <string name="ImportWallet_WarningInvalidJson">Geçersiz Json Dosyası</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">Bu dosya, cüzdanın geçerli bir yedeği değil veya dosya bozulmuş ve geri yüklenemez.</string>
@@ -1039,6 +1041,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="RecoveryPhrase_Title">Kurtarma cümlesi</string>
     <string name="RecoveryPhrase_Description">Bu kelimeleri doğru sırayla yazın ve güvenli bir yerde saklayın</string>
     <string name="RecoveryPhrase_ShowPhrase">Kurtarma ifadesini göstermek için dokunun</string>
+    <string name="tap_to_show_qr_code">QR kodunu göstermek için dokunun</string>
+    <string name="seed_qr_decryption_failed">Şifre çözme başarısız. QR kodunun süresi dolmuş veya geçersiz olabilir.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">Bu QR kodunu kaydetmeyin — yalnızca 1 saat geçerlidir.</string>
+    <string name="RecoveryPhrase_QrGenerationError">Tohum QR kodu oluşturulamıyor</string>
     <string name="RecoveryPhrase_Verify">Doğrula</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Kopyalama Riski</string>
     <!-- Evm Private Key -->
@@ -1575,4 +1582,12 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="Send_Address_AmlCheck_Info2">Temiz: Kara liste işareti yok.</string>
     <string name="Send_Address_AmlCheck_Info3">Tespit edildi: Adres alpha-aml.com\'da listelenmiştir ve yasal veya güvenlik riskleriyle ilişkili olabilir. Dikkatli ilerleyin. Birçok kripto borsası, kara listedeki adreslerle etkileşime geçmiş cüzdanlardan para yatıran veya çeken kullanıcıları kısıtlar. Bunu aklınızda tutun.</string>
     <string name="error_cannot_create_log_file">Günlük dosyası oluşturulamıyor. Lütfen yeterli depolama alanınız olduğundan emin olun.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Güvenlik Kuralları</string>
+    <string name="safety_rules_warning"><![CDATA[Cüzdanınızı dışa aktarmadan önce kuralları dikkatlice okuyun:<br/><br/><b>1. Tohum ifadeniz ve özel anahtarlarınız sadece size aittir.</b><br/>Destek <b>asla</b> bu bilgileri istemeyecektir. Üçüncü şahıslarla paylaşırsanız, <b>fonlarınıza kalıcı olarak erişiminizi kaybedersiniz</b>.<br/><br/><b>2. Tohum ifadenizi dijital olarak saklamayın.</b><br/>Ekran görüntüleri, fotoğraflar, notlar ve diğer elektronik depolama yöntemleri güvenli değildir. Tohum ifadenizi kağıda yazın ve güvenli bir yerde saklayın.<br/><br/><b>3. P.cash ekibi anahtarlarınıza erişemez.</b><br/>Tohum ifadenizi veya özel anahtarlarınızı saklamıyoruz ve kaybolurlarsa kurtaramayız. Bunları güvende tutmak tamamen sizin sorumluluğunuzdadır.]]></string>
+    <string name="safety_rules_points_to_agree">Kabul etmeniz gereken maddeler:</string>
+    <string name="safety_rules_checkbox_1">Tohum ifadesinin gizli olduğunu ve üçüncü şahıslara açıklanmaması gerektiğini anlıyorum.</string>
+    <string name="safety_rules_checkbox_2">Tohum ifademi dijital formda saklayamayacağımı anlıyorum.</string>
+    <string name="safety_rules_checkbox_3">p.cash ekibinin anahtarlarıma erişemeyeceğini ve bunları kurtaramayacağını anlıyorum.</string>
 </resources>

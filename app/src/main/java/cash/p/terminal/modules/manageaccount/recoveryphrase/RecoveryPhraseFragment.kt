@@ -5,15 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -24,10 +20,13 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
+import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesFragment
+import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
+import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.modules.manageaccount.ui.ActionButton
-import cash.p.terminal.modules.manageaccount.ui.ConfirmCopyBottomSheet
 import cash.p.terminal.modules.manageaccount.ui.PassphraseCell
 import cash.p.terminal.modules.manageaccount.ui.SeedPhraseList
+import cash.p.terminal.modules.manageaccount.ui.SeedPhraseQrCard
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.AnnotatedResourceString
@@ -41,7 +40,6 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
-import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
@@ -69,7 +67,6 @@ class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RecoveryPhraseScreen(
     navController: NavController,
@@ -85,46 +82,45 @@ private fun RecoveryPhraseScreen(
         )
 
     val view = LocalView.current
-    val coroutineScope = rememberCoroutineScope()
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
     val titleResId = if (recoveryPhraseType == RecoveryPhraseFragment.RecoveryPhraseType.Monero) {
         R.string.RecoveryPhrase_monero_Title
     } else {
         R.string.RecoveryPhrase_Title
     }
 
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            sheetState = sheetState,
-            dragHandle = null,
-            containerColor = ComposeAppTheme.colors.transparent,
-            onDismissRequest = {
-                showBottomSheet = false
+    // Track hidden state for phrase and QR
+    var phraseHidden by remember { mutableStateOf(true) }
+    var qrHidden by remember { mutableStateOf(true) }
+
+    // Function to navigate to safety rules and handle result for reveal
+    fun navigateToSafetyRulesForReveal(onAgreed: () -> Unit) {
+        navController.slideFromBottomForResult<SafetyRulesFragment.Result>(
+            R.id.safetyRulesFragment,
+            SafetyRulesModule.Input(SafetyRulesModule.SafetyRulesMode.AGREE)
+        ) { result ->
+            if (result == SafetyRulesFragment.Result.AGREED) {
+                onAgreed()
             }
-        ) {
-            ConfirmCopyBottomSheet(
-                onConfirm = {
-                    coroutineScope.launch {
-                        TextHelper.copyText(viewModel.words.joinToString(" "))
-                        HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
-                            }
-                        }
-                    }
-                },
-                onCancel = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) {
-                            showBottomSheet = false
-                        }
-                    }
-                }
-            )
         }
+    }
+
+    // Function to navigate to safety rules for copy confirmation
+    fun navigateToSafetyRulesForCopy() {
+        navController.slideFromBottomForResult<SafetyRulesFragment.Result>(
+            R.id.safetyRulesFragment,
+            SafetyRulesModule.Input(SafetyRulesModule.SafetyRulesMode.COPY_CONFIRM)
+        ) { result ->
+            if (result == SafetyRulesFragment.Result.RISK_IT) {
+                TextHelper.copyText(viewModel.words.joinToString(" "))
+                HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
+            }
+        }
+    }
+
+    // Show error if QR generation failed
+    if (viewModel.qrGenerationError) {
+        HudHelper.showErrorMessage(view, R.string.RecoveryPhrase_QrGenerationError)
+        viewModel.onQrGenerationErrorShown()
     }
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -178,17 +174,49 @@ private fun RecoveryPhraseScreen(
                     }
                 }
                 VSpacer(24.dp)
-                var hidden by remember { mutableStateOf(true) }
-                SeedPhraseList(viewModel.wordsNumbered, hidden) {
-                    hidden = !hidden
+                SeedPhraseList(viewModel.wordsNumbered, phraseHidden) {
+                    if (!phraseHidden) {
+                        // Already revealed - just hide
+                        phraseHidden = true
+                    } else if (viewModel.safetyRulesAgreed) {
+                        // Already agreed to safety rules - just reveal
+                        phraseHidden = false
+                    } else {
+                        // Need to show safety rules first
+                        navigateToSafetyRulesForReveal { phraseHidden = false }
+                    }
                 }
                 viewModel.passphrase?.let { passphrase ->
                     VSpacer(24.dp)
-                    PassphraseCell(passphrase, hidden)
+                    PassphraseCell(passphrase, phraseHidden)
                 }
+                VSpacer(24.dp)
+                SeedPhraseQrCard(
+                    encryptedContent = viewModel.encryptedSeedQrContent,
+                    hidden = qrHidden,
+                    onClick = {
+                        if (!qrHidden) {
+                            // Already revealed - hide and regenerate
+                            viewModel.regenerateEncryptedQrContent()
+                            qrHidden = true
+                        } else if (viewModel.safetyRulesAgreed) {
+                            // Already agreed to safety rules - just reveal
+                            qrHidden = false
+                        } else {
+                            // Need to show safety rules first
+                            navigateToSafetyRulesForReveal { qrHidden = false }
+                        }
+                    }
+                )
+                VSpacer(12.dp)
+                TextImportantWarning(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.RecoveryPhrase_QrCodeWarning)
+                )
+                VSpacer(12.dp)
             }
             ActionButton(R.string.Alert_Copy) {
-                showBottomSheet = true
+                navigateToSafetyRulesForCopy()
             }
         }
     }

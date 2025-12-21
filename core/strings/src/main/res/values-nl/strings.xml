@@ -947,6 +947,8 @@
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
     <string name="ImportWallet_RecoveryPhrase">from Recovery Phrase</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Import using recovery phrase or private key.</string>
+    <string name="import_wallet_from_qr">van QR</string>
+    <string name="import_wallet_from_qr_description">Importeren met QR van P.CASH-applicatie.</string>
     <string name="ImportWallet_WatchAddress">Watch Address</string>
     <string name="ImportWallet_WarningInvalidJson">Invalid Json File</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">This file is not a valid backup of the wallet, or the file has been corrupted and cannot be restored.</string>
@@ -1043,6 +1045,11 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="RecoveryPhrase_Title">Recovery Phrase</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
+    <string name="tap_to_show_qr_code">Tik om QR-code te tonen</string>
+    <string name="seed_qr_decryption_failed">Ontsleuteling mislukt. De QR-code is mogelijk verlopen of ongeldig.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">Sla deze QR-code niet op — deze is slechts 1 uur geldig.</string>
+    <string name="RecoveryPhrase_QrGenerationError">Kan seed QR-code niet genereren</string>
     <string name="RecoveryPhrase_Verify">Verify</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Risk of Copying</string>
     <!-- Evm Private Key -->
@@ -1580,4 +1587,12 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="Send_Address_AmlCheck_Info2">Schoon: Geen zwarte lijst vlaggen.</string>
     <string name="Send_Address_AmlCheck_Info3">Gedetecteerd: Het adres staat op alpha-aml.com en kan geassocieerd zijn met juridische of beveiligingsrisico\'s. Ga voorzichtig verder. Veel crypto-exchanges beperken gebruikers die geld storten of opnemen van wallets die interactie hebben gehad met adressen op de zwarte lijst. Houd daar rekening mee.</string>
     <string name="error_cannot_create_log_file">Kan logbestand niet aanmaken. Zorg ervoor dat u voldoende opslagruimte heeft.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Veiligheidsregels</string>
+    <string name="safety_rules_warning"><![CDATA[Lees de regels zorgvuldig door voordat u uw wallet exporteert:<br/><br/><b>1. Uw herstelzin en privésleutels zijn alleen van u.</b><br/>Ondersteuning zal <b>nooit</b> om deze informatie vragen. Als u deze deelt met derden, <b>verliest u permanent de toegang tot uw fondsen</b>.<br/><br/><b>2. Bewaar uw herstelzin niet digitaal.</b><br/>Screenshots, foto\'s, notities en andere elektronische opslagmethoden zijn niet veilig. Schrijf uw herstelzin op papier en bewaar deze op een veilige plek.<br/><br/><b>3. Het P.cash-team heeft geen toegang tot uw sleutels.</b><br/>Wij slaan uw herstelzin of privésleutels niet op en kunnen deze niet herstellen als ze verloren gaan. U bent zelf verantwoordelijk voor het veilig bewaren ervan.]]></string>
+    <string name="safety_rules_points_to_agree">Punten waarmee u akkoord moet gaan:</string>
+    <string name="safety_rules_checkbox_1">Ik begrijp dat de herstelzin vertrouwelijk is en niet aan derden mag worden onthuld.</string>
+    <string name="safety_rules_checkbox_2">Ik begrijp dat ik mijn herstelzin niet in digitale vorm mag opslaan.</string>
+    <string name="safety_rules_checkbox_3">Ik begrijp dat het p.cash-team geen toegang heeft tot mijn sleutels en deze niet kan herstellen.</string>
 </resources>

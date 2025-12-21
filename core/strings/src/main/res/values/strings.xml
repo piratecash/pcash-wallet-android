@@ -1304,6 +1304,8 @@ Proceed only if you\'re sure.</string>
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
     <string name="ImportWallet_RecoveryPhrase">from Recovery Phrase</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Import using recovery phrase or private key.</string>
+    <string name="import_wallet_from_qr">from QR</string>
+    <string name="import_wallet_from_qr_description">Import using QR from P.CASH application.</string>
     <string name="ImportWallet_WatchAddress">Watch Address</string>
     <string name="ImportWallet_WarningInvalidJson">Invalid Json File</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">This file is not a valid backup of the wallet, or the file has been corrupted and cannot be restored.</string>
@@ -1408,6 +1410,11 @@ Proceed only if you\'re sure.</string>
     <string name="RecoveryPhrase_Title">Recovery Phrase</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
+    <string name="tap_to_show_qr_code">Tap to show QR-code</string>
+    <string name="seed_qr_decryption_failed">Failed to decrypt. The QR code may have expired or is invalid.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">Do not save this QR code — it is valid for 1 hour only.</string>
+    <string name="RecoveryPhrase_QrGenerationError">Can\'t generate seed QR code</string>
     <string name="RecoveryPhrase_Verify">Verify</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Risk of Copying</string>
 
@@ -2028,4 +2035,12 @@ Proceed only if you\'re sure.</string>
 
     <!-- App Status -->
     <string name="error_cannot_create_log_file">Cannot create log file. Please ensure you have enough storage space.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Safety Rules</string>
+    <string name="safety_rules_warning"><![CDATA[Before exporting your wallet, please read the rules carefully:<br/><br/><b>1. Your seed phrase and private keys are yours alone.</b><br/>Support will <b>never</b> ask for this information. If you share it with third parties, <b>you will permanently lose access to your funds</b>.<br/><br/><b>2. Do not store your seed digitally.</b><br/>Screenshots, photos, notes, and other electronic storage methods are not secure. Write down your seed phrase on paper and store it in a safe place.<br/><br/><b>3. The P.cash team does not have access to your keys.</b><br/>We do not store and cannot recover your seed phrase or private keys if they are lost. You are solely responsible for keeping them safe.]]></string>
+    <string name="safety_rules_points_to_agree">Points to agree with:</string>
+    <string name="safety_rules_checkbox_1">I understand that the seed phrase is confidential and should not be disclosed to third parties.</string>
+    <string name="safety_rules_checkbox_2">I understand that I cannot store my seed phrase in digital form.</string>
+    <string name="safety_rules_checkbox_3">I understand that the p.cash team does not have access to my keys and cannot recover them.</string>
 </resources>

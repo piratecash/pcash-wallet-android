@@ -3,8 +3,11 @@ package cash.p.terminal.di
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
 import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
+import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
+import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
+import cash.p.terminal.modules.importwallet.ImportWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.premium.about.AboutPremiumViewModel
@@ -45,6 +48,7 @@ val viewModelModule = module {
     viewModelOf(::DisplayTransactionsViewModel)
     viewModelOf(::PrivacyViewModel)
     viewModelOf(::HardwareWalletViewModel)
+    viewModelOf(::ImportWalletViewModel)
     viewModelOf(::ResetToFactorySettingsViewModel)
     viewModelOf(::SecuritySettingsViewModel)
     viewModelOf(::ReleaseNotesViewModel)
@@ -86,5 +90,8 @@ val viewModelModule = module {
     viewModelOf(::CreateAdvancedAccountViewModel)
     viewModel { (termTitles: Array<String>) ->
         PassphraseTermsViewModel(termTitles = termTitles, localStorage = get())
+    }
+    viewModel { (mode: SafetyRulesModule.SafetyRulesMode, termTitles: List<String>) ->
+        SafetyRulesViewModel(mode = mode, termTitles = termTitles, localStorage = get())
     }
 }

@@ -942,6 +942,8 @@
     <string name="ImportWallet_BackupFile_Description">백업 파일에서 가져오기.</string>
     <string name="ImportWallet_RecoveryPhrase">복구 문구에서</string>
     <string name="ImportWallet_RecoveryPhrase_Description">이 문구는 복구 문구 또는 개인 키를 사용하여 가져올 수 있습니다.</string>
+    <string name="import_wallet_from_qr">QR에서</string>
+    <string name="import_wallet_from_qr_description">P.CASH 앱의 QR을 사용하여 가져오기.</string>
     <string name="ImportWallet_WatchAddress">주소 관찰</string>
     <string name="ImportWallet_WarningInvalidJson">잘못된 Json 파일입니다.</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">이 파일은 지갑의 유효한 백업이 아니거나 파일이 손상되어 복원할 수 없습니다.</string>
@@ -1038,6 +1040,11 @@
     <string name="RecoveryPhrase_Title">복구 문구</string>
     <string name="RecoveryPhrase_Description">이 단어들을 올바른 순서로 기록하고 안전한 장소에 보관하십시오</string>
     <string name="RecoveryPhrase_ShowPhrase">탭하여 복구 문구 표시</string>
+    <string name="tap_to_show_qr_code">QR 코드를 표시하려면 탭하세요</string>
+    <string name="seed_qr_decryption_failed">복호화 실패. QR 코드가 만료되었거나 유효하지 않을 수 있습니다.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">이 QR 코드를 저장하지 마세요 — 1시간 동안만 유효합니다.</string>
+    <string name="RecoveryPhrase_QrGenerationError">시드 문구 QR 코드를 생성할 수 없습니다</string>
     <string name="RecoveryPhrase_Verify">확인하기</string>
     <string name="RecoveryPhrase_CopyWarning_Title">복사의 위험</string>
     <!-- Evm Private Key -->
@@ -1573,4 +1580,12 @@
     <string name="Send_Address_AmlCheck_Info2">깨끗함: 블랙리스트 플래그 없음.</string>
     <string name="Send_Address_AmlCheck_Info3">감지됨: 주소가 alpha-aml.com에 등록되어 있으며 법적 또는 보안 위험과 관련이 있을 수 있습니다. 주의해서 진행하십시오. 많은 암호화폐 거래소는 블랙리스트 주소와 상호 작용한 지갑에서 자금을 입금하거나 출금하는 사용자를 제한합니다. 이 점을 염두에 두십시오.</string>
     <string name="error_cannot_create_log_file">로그 파일을 생성할 수 없습니다. 저장 공간이 충분한지 확인하세요.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">안전 규칙</string>
+    <string name="safety_rules_warning"><![CDATA[지갑을 내보내기 전에 규칙을 주의 깊게 읽어주세요:<br/><br/><b>1. 시드 문구와 개인 키는 오직 당신만의 것입니다.</b><br/>지원팀은 <b>절대</b> 이 정보를 요청하지 않습니다. 제3자와 공유하면 <b>영구적으로 자금에 대한 접근 권한을 잃게 됩니다</b>.<br/><br/><b>2. 시드 문구를 디지털로 저장하지 마세요.</b><br/>스크린샷, 사진, 메모 및 기타 전자 저장 방법은 안전하지 않습니다. 시드 문구를 종이에 적어 안전한 장소에 보관하세요.<br/><br/><b>3. P.cash 팀은 귀하의 키에 접근할 수 없습니다.</b><br/>우리는 귀하의 시드 문구나 개인 키를 저장하지 않으며, 분실 시 복구할 수 없습니다. 안전하게 보관하는 것은 전적으로 귀하의 책임입니다.]]></string>
+    <string name="safety_rules_points_to_agree">동의해야 할 사항:</string>
+    <string name="safety_rules_checkbox_1">시드 문구가 기밀이며 제3자에게 공개해서는 안 된다는 것을 이해합니다.</string>
+    <string name="safety_rules_checkbox_2">시드 문구를 디지털 형식으로 저장할 수 없다는 것을 이해합니다.</string>
+    <string name="safety_rules_checkbox_3">p.cash 팀이 내 키에 접근할 수 없으며 복구할 수 없다는 것을 이해합니다.</string>
 </resources>

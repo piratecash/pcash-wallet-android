@@ -939,6 +939,8 @@
     <string name="ImportWallet_BackupFile_Description">Importer depuis un fichier de sauvegarde.</string>
     <string name="ImportWallet_RecoveryPhrase">Voir la phase de récupération</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Importer à l\'aide de la phrase de récupération ou de la clé privée.</string>
+    <string name="import_wallet_from_qr">depuis QR</string>
+    <string name="import_wallet_from_qr_description">Importer à l\'aide d\'un QR de l\'application P.CASH.</string>
     <string name="ImportWallet_WatchAddress">Adresse à suivre</string>
     <string name="ImportWallet_WarningInvalidJson">Fichier Json invalide</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">Ce fichier n\'est pas une sauvegarde valide du portefeuille, ou bien il a été corrompu et ne peut pas être restauré.</string>
@@ -1035,6 +1037,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="RecoveryPhrase_Title">Phrase de récupération</string>
     <string name="RecoveryPhrase_Description">Écrivez ces mots dans le bon ordre et conservez-les dans un endroit sûr</string>
     <string name="RecoveryPhrase_ShowPhrase">Appuyez pour afficher la phrase de récupération</string>
+    <string name="tap_to_show_qr_code">Appuyez pour afficher le code QR</string>
+    <string name="seed_qr_decryption_failed">Échec du déchiffrement. Le code QR a peut-être expiré ou est invalide.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">Ne sauvegardez pas ce code QR — il n\'est valide que pendant 1 heure.</string>
+    <string name="RecoveryPhrase_QrGenerationError">Impossible de générer le code QR de la phrase de récupération</string>
     <string name="RecoveryPhrase_Verify">Vérifier</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Risque de copie</string>
     <!-- Evm Private Key -->
@@ -1572,4 +1579,12 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="Send_Address_AmlCheck_Info2">Clair : Aucun drapeau de liste noire.</string>
     <string name="Send_Address_AmlCheck_Info3">Détecté : L\'adresse est répertoriée sur alpha-aml.com et peut être associée à des risques juridiques ou de sécurité. Procédez avec prudence. De nombreux échanges de cryptomonnaies restreignent les utilisateurs qui déposent ou retirent des fonds de portefeuilles ayant interagi avec des adresses sur liste noire. Gardez cela à l\'esprit.</string>
     <string name="error_cannot_create_log_file">Impossible de créer le fichier journal. Veuillez vous assurer que vous disposez de suffisamment d\'espace de stockage.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Règles de Sécurité</string>
+    <string name="safety_rules_warning"><![CDATA[Avant d\'exporter votre portefeuille, veuillez lire attentivement les règles :<br/><br/><b>1. Votre phrase de récupération et vos clés privées vous appartiennent uniquement.</b><br/>Le support ne vous demandera <b>jamais</b> ces informations. Si vous les partagez avec des tiers, <b>vous perdrez définitivement l\'accès à vos fonds</b>.<br/><br/><b>2. Ne stockez pas votre phrase de récupération numériquement.</b><br/>Les captures d\'écran, photos, notes et autres méthodes de stockage électronique ne sont pas sécurisées. Écrivez votre phrase de récupération sur papier et conservez-la en lieu sûr.<br/><br/><b>3. L\'équipe P.cash n\'a pas accès à vos clés.</b><br/>Nous ne stockons pas et ne pouvons pas récupérer votre phrase de récupération ou vos clés privées en cas de perte. Vous êtes seul responsable de leur sécurité.]]></string>
+    <string name="safety_rules_points_to_agree">Points à accepter :</string>
+    <string name="safety_rules_checkbox_1">Je comprends que la phrase de récupération est confidentielle et ne doit pas être divulguée à des tiers.</string>
+    <string name="safety_rules_checkbox_2">Je comprends que je ne peux pas stocker ma phrase de récupération sous forme numérique.</string>
+    <string name="safety_rules_checkbox_3">Je comprends que l\'équipe p.cash n\'a pas accès à mes clés et ne peut pas les récupérer.</string>
 </resources>

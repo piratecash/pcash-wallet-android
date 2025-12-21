@@ -933,6 +933,8 @@
     <string name="ImportWallet_BackupFile_Description">Importar desde un archivo de copia de seguridad.</string>
     <string name="ImportWallet_RecoveryPhrase">de Frase de Recuperación</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Importe utilizando la frase de recuperación o la clave privada.</string>
+    <string name="import_wallet_from_qr">desde QR</string>
+    <string name="import_wallet_from_qr_description">Importar usando QR desde la aplicación P.CASH.</string>
     <string name="ImportWallet_WatchAddress">Ver Dirección</string>
     <string name="ImportWallet_WarningInvalidJson">Archivo Json inválido</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">Este archivo no es una copia de seguridad válida de la cartera, o bien ha sido dañado y no se puede restaurar.</string>
@@ -1029,6 +1031,11 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="RecoveryPhrase_Title">Frase de Recuperación</string>
     <string name="RecoveryPhrase_Description">Escriba estas palabras en el orden correcto y guárdelas en un lugar seguro</string>
     <string name="RecoveryPhrase_ShowPhrase">Toca para mostrar la frase de recuperación</string>
+    <string name="tap_to_show_qr_code">Toca para mostrar el código QR</string>
+    <string name="seed_qr_decryption_failed">Error al descifrar. El código QR puede haber caducado o no es válido.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">No guardes este código QR — solo es válido durante 1 hora.</string>
+    <string name="RecoveryPhrase_QrGenerationError">No se puede generar el código QR de la frase semilla</string>
     <string name="RecoveryPhrase_Verify">Verificar</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Riesgo de Copia</string>
     <!-- Evm Private Key -->
@@ -1566,4 +1573,12 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="Send_Address_AmlCheck_Info2">Limpio: Sin indicadores de lista negra.</string>
     <string name="Send_Address_AmlCheck_Info3">Detectado: La dirección está listada en alpha-aml.com y puede estar asociada con riesgos legales o de seguridad. Proceda con precaución. Muchos intercambios de criptomonedas restringen a usuarios que depositan o retiran fondos de billeteras que han interactuado con direcciones en lista negra. Téngalo en cuenta.</string>
     <string name="error_cannot_create_log_file">No se puede crear el archivo de registro. Asegúrese de tener suficiente espacio de almacenamiento.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Reglas de Seguridad</string>
+    <string name="safety_rules_warning"><![CDATA[Antes de exportar su billetera, lea las reglas cuidadosamente:<br/><br/><b>1. Su frase semilla y claves privadas son solo suyas.</b><br/>El soporte <b>nunca</b> le pedirá esta información. Si la comparte con terceros, <b>perderá permanentemente el acceso a sus fondos</b>.<br/><br/><b>2. No almacene su frase semilla digitalmente.</b><br/>Las capturas de pantalla, fotos, notas y otros métodos de almacenamiento electrónico no son seguros. Escriba su frase semilla en papel y guárdela en un lugar seguro.<br/><br/><b>3. El equipo de P.cash no tiene acceso a sus claves.</b><br/>No almacenamos ni podemos recuperar su frase semilla o claves privadas si se pierden. Usted es el único responsable de mantenerlas seguras.]]></string>
+    <string name="safety_rules_points_to_agree">Puntos con los que debe estar de acuerdo:</string>
+    <string name="safety_rules_checkbox_1">Entiendo que la frase semilla es confidencial y no debe ser revelada a terceros.</string>
+    <string name="safety_rules_checkbox_2">Entiendo que no puedo almacenar mi frase semilla en forma digital.</string>
+    <string name="safety_rules_checkbox_3">Entiendo que el equipo de p.cash no tiene acceso a mis claves y no puede recuperarlas.</string>
 </resources>

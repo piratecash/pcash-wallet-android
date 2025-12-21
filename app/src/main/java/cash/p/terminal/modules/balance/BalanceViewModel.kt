@@ -15,6 +15,7 @@ import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.core.utils.AddressUriResult
+import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.utils.ToncoinUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.modules.address.AddressHandlerFactory
@@ -23,6 +24,7 @@ import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BalanceSortType
@@ -79,6 +81,7 @@ class BalanceViewModel(
     private var isRefreshing = false
     private var showStackingForWatchAccount = false
     private var openSendTokenSelect: OpenSendTokenSelect? = null
+    private var openRestoreFromQr: OpenRestoreFromQr? = null
     private var errorMessage: String? = null
     private var balanceTabButtonsEnabled = localStorage.balanceTabButtonsEnabled
 
@@ -87,6 +90,7 @@ class BalanceViewModel(
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val coinManager: ICoinManager by inject(ICoinManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
+    private val seedPhraseQrCrypto: SeedPhraseQrCrypto by inject(SeedPhraseQrCrypto::class.java)
 
     private val _itemsBalanceHidden = MutableStateFlow<Map<Wallet, Boolean>>(emptyMap())
     private val itemsBalanceHidden: StateFlow<Map<Wallet, Boolean>> = _itemsBalanceHidden.asStateFlow()
@@ -209,6 +213,7 @@ class BalanceViewModel(
         headerNote = headerNote(),
         errorMessage = errorMessage,
         openSend = openSendTokenSelect,
+        openRestoreFromQr = openRestoreFromQr,
         balanceTabButtonsEnabled = balanceTabButtonsEnabled,
         sortType = sortType,
         sortTypes = sortTypes,
@@ -425,9 +430,34 @@ class BalanceViewModel(
             viewModelScope.launch {
                 App.tonConnectManager.handle(scannedText, false)
             }
+        } else if (scannedText.startsWith(SeedPhraseQrCrypto.QR_PREFIX)) {
+            handleEncryptedSeedQr(scannedText)
         } else {
             handleAddressData(scannedText)
         }
+    }
+
+    private fun handleEncryptedSeedQr(content: String) {
+        seedPhraseQrCrypto.decrypt(content)
+            .onSuccess { decrypted ->
+                openRestoreFromQr = OpenRestoreFromQr(
+                    words = decrypted.words,
+                    passphrase = decrypted.passphrase,
+                    moneroHeight = decrypted.height
+                )
+                emitState()
+            }
+            .onFailure {
+                errorMessage = Translator.getString(
+                    R.string.seed_qr_decryption_failed
+                )
+                emitState()
+            }
+    }
+
+    fun onRestoreFromQrOpened() {
+        openRestoreFromQr = null
+        emitState()
     }
 
     private fun uri(text: String): AddressUri? {
@@ -567,6 +597,7 @@ data class BalanceUiState(
     val headerNote: HeaderNote,
     val errorMessage: String?,
     val openSend: OpenSendTokenSelect? = null,
+    val openRestoreFromQr: OpenRestoreFromQr? = null,
     val balanceTabButtonsEnabled: Boolean,
     val showStackingForWatchAccount: Boolean,
     val sortType: BalanceSortType,
@@ -580,6 +611,12 @@ data class OpenSendTokenSelect(
     val tokenTypes: List<TokenType>?,
     val address: String,
     val amount: BigDecimal? = null,
+)
+
+data class OpenRestoreFromQr(
+    val words: List<String>,
+    val passphrase: String,
+    val moneroHeight: Long?  // Non-null for 25-word Monero seeds
 )
 
 sealed class TotalUIState {

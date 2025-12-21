@@ -933,6 +933,8 @@
     <string name="ImportWallet_BackupFile_Description">Aus Backup-Datei importieren.</string>
     <string name="ImportWallet_RecoveryPhrase">von Wiederherstellungsphrase</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Importieren Sie mithilfe der Wiederherstellungsphrase oder des privaten Schlüssels.</string>
+    <string name="import_wallet_from_qr">aus QR-Code</string>
+    <string name="import_wallet_from_qr_description">Import per QR-Code aus der P.CASH-Anwendung.</string>
     <string name="ImportWallet_WatchAddress">Watch-Adresse</string>
     <string name="ImportWallet_WarningInvalidJson">Ungültige Json-Datei</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">Diese Datei ist kein gültiges Backup der Brieftasche oder die Datei wurde beschädigt und kann nicht wiederhergestellt werden.</string>
@@ -1029,6 +1031,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="RecoveryPhrase_Title">Wiederherstellungsphrase</string>
     <string name="RecoveryPhrase_Description">Schreibe diese Wörter in die richtige Reihenfolge und halte sie an einem sicheren Ort</string>
     <string name="RecoveryPhrase_ShowPhrase">Tippen, um Wiederherstellungsphrase anzuzeigen</string>
+    <string name="tap_to_show_qr_code">Tippen, um QR-Code anzuzeigen</string>
+    <string name="seed_qr_decryption_failed">Entschlüsselung fehlgeschlagen. Der QR-Code ist möglicherweise abgelaufen oder ungültig.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">Speichern Sie diesen QR-Code nicht — er ist nur 1 Stunde gültig.</string>
+    <string name="RecoveryPhrase_QrGenerationError">QR-Code für Seed-Phrase kann nicht generiert werden</string>
     <string name="RecoveryPhrase_Verify">Prüfen</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Kopierrisiko</string>
     <!-- Evm Private Key -->
@@ -1567,4 +1574,12 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="Send_Address_AmlCheck_Info2">Sauber: Keine Blacklist-Flags.</string>
     <string name="Send_Address_AmlCheck_Info3">Erkannt: Die Adresse ist auf alpha-aml.com gelistet und kann mit rechtlichen oder Sicherheitsrisiken verbunden sein. Vorsichtig fortfahren. Viele Krypto-Börsen schränken Nutzer ein, die Gelder von oder zu Wallets einzahlen oder abheben, die mit Adressen auf der schwarzen Liste interagiert haben. Beachten Sie dies.</string>
     <string name="error_cannot_create_log_file">Protokolldatei kann nicht erstellt werden. Bitte stellen Sie sicher, dass genügend Speicherplatz vorhanden ist.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">Sicherheitsregeln</string>
+    <string name="safety_rules_warning"><![CDATA[Bevor Sie Ihre Wallet exportieren, lesen Sie bitte die Regeln sorgfältig durch:<br/><br/><b>1. Ihre Seed-Phrase und privaten Schlüssel gehören nur Ihnen.</b><br/>Der Support wird <b>niemals</b> nach diesen Informationen fragen. Wenn Sie sie an Dritte weitergeben, <b>verlieren Sie dauerhaft den Zugang zu Ihren Geldern</b>.<br/><br/><b>2. Speichern Sie Ihre Seed-Phrase nicht digital.</b><br/>Screenshots, Fotos, Notizen und andere elektronische Speichermethoden sind nicht sicher. Schreiben Sie Ihre Seed-Phrase auf Papier und bewahren Sie sie an einem sicheren Ort auf.<br/><br/><b>3. Das P.cash-Team hat keinen Zugang zu Ihren Schlüsseln.</b><br/>Wir speichern Ihre Seed-Phrase oder privaten Schlüssel nicht und können sie bei Verlust nicht wiederherstellen. Sie allein sind für deren Sicherheit verantwortlich.]]></string>
+    <string name="safety_rules_points_to_agree">Punkte, denen Sie zustimmen müssen:</string>
+    <string name="safety_rules_checkbox_1">Ich verstehe, dass die Seed-Phrase vertraulich ist und nicht an Dritte weitergegeben werden sollte.</string>
+    <string name="safety_rules_checkbox_2">Ich verstehe, dass ich meine Seed-Phrase nicht in digitaler Form speichern darf.</string>
+    <string name="safety_rules_checkbox_3">Ich verstehe, dass das p.cash-Team keinen Zugang zu meinen Schlüsseln hat und sie nicht wiederherstellen kann.</string>
 </resources>

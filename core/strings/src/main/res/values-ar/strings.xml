@@ -946,6 +946,8 @@
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
     <string name="ImportWallet_RecoveryPhrase">from Recovery Phrase</string>
     <string name="ImportWallet_RecoveryPhrase_Description">Import using recovery phrase or private key.</string>
+    <string name="import_wallet_from_qr">من QR</string>
+    <string name="import_wallet_from_qr_description">الاستيراد باستخدام QR من تطبيق P.CASH.</string>
     <string name="ImportWallet_WatchAddress">تابع عنوانًا</string>
     <string name="ImportWallet_WarningInvalidJson">Invalid Json File</string>
     <string name="ImportWallet_WarningInvalidJsonDescription">This file is not a valid backup of the wallet, or the file has been corrupted and cannot be restored.</string>
@@ -1042,6 +1044,11 @@
     <string name="RecoveryPhrase_Title">كلمات الاسترجاع</string>
     <string name="RecoveryPhrase_Description">Write these words down in the correct order and keep them in a safe place</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
+    <string name="tap_to_show_qr_code">انقر لإظهار رمز QR</string>
+    <string name="seed_qr_decryption_failed">فشل فك التشفير. قد يكون رمز QR منتهي الصلاحية أو غير صالح.</string>
+    <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
+    <string name="RecoveryPhrase_QrCodeWarning">لا تحفظ رمز QR هذا — فهو صالح لمدة ساعة واحدة فقط.</string>
+    <string name="RecoveryPhrase_QrGenerationError">لا يمكن إنشاء رمز QR لعبارة الاسترداد</string>
     <string name="RecoveryPhrase_Verify">Verify</string>
     <string name="RecoveryPhrase_CopyWarning_Title">Risk of Copying</string>
     <!-- Evm Private Key -->
@@ -1587,4 +1594,12 @@
     <string name="Send_Address_AmlCheck_Info2">نظيف: لا توجد علامات قائمة سوداء.</string>
     <string name="Send_Address_AmlCheck_Info3">تم الكشف: العنوان مدرج في alpha-aml.com وقد يكون مرتبطًا بمخاطر قانونية أو أمنية. تابع بحذر. تقيد العديد من بورصات العملات المشفرة المستخدمين الذين يودعون أو يسحبون أموالاً من محافظ تفاعلت مع عناوين في القائمة السوداء. ضع ذلك في اعتبارك.</string>
     <string name="error_cannot_create_log_file">تعذر إنشاء ملف السجل. يرجى التأكد من توفر مساحة تخزين كافية.</string>
+
+    <!-- Safety Rules -->
+    <string name="safety_rules_title">قواعد الأمان</string>
+    <string name="safety_rules_warning"><![CDATA[قبل تصدير محفظتك، يرجى قراءة القواعد بعناية:<br/><br/><b>1. عبارة البذرة ومفاتيحك الخاصة ملك لك وحدك.</b><br/>الدعم لن يطلب <b>أبداً</b> هذه المعلومات. إذا شاركتها مع أطراف ثالثة، <b>ستفقد الوصول إلى أموالك بشكل دائم</b>.<br/><br/><b>2. لا تخزن عبارة البذرة رقمياً.</b><br/>لقطات الشاشة والصور والملاحظات وطرق التخزين الإلكترونية الأخرى غير آمنة. اكتب عبارة البذرة على ورق واحفظها في مكان آمن.<br/><br/><b>3. فريق P.cash ليس لديه وصول إلى مفاتيحك.</b><br/>نحن لا نخزن ولا نستطيع استعادة عبارة البذرة أو المفاتيح الخاصة إذا فقدت. أنت وحدك المسؤول عن الحفاظ عليها آمنة.]]></string>
+    <string name="safety_rules_points_to_agree">النقاط التي يجب الموافقة عليها:</string>
+    <string name="safety_rules_checkbox_1">أفهم أن عبارة البذرة سرية ولا ينبغي الكشف عنها لأطراف ثالثة.</string>
+    <string name="safety_rules_checkbox_2">أفهم أنني لا أستطيع تخزين عبارة البذرة في شكل رقمي.</string>
+    <string name="safety_rules_checkbox_3">أفهم أن فريق p.cash ليس لديه وصول إلى مفاتيحي ولا يمكنه استعادتها.</string>
 </resources>

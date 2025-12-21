@@ -17,8 +17,10 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -30,6 +32,7 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.core.navigateWithTermsAccepted
+import cash.p.terminal.core.openQrScanner
 import cash.p.terminal.navigation.slideFromBottom
 import android.util.Base64
 import cash.p.terminal.modules.backuplocal.BackupLocalModule
@@ -39,6 +42,7 @@ import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.restorelocal.RestoreLocalFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.RowUniversal
@@ -48,6 +52,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 import timber.log.Timber
 import java.io.File
 
@@ -74,6 +79,38 @@ private fun ImportWalletScreen(
     val bottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val view = LocalView.current
+    val viewModel = koinViewModel<ImportWalletViewModel>()
+
+    // Handle one-shot navigation events from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is ImportWalletViewModel.NavigationEvent.OpenRestoreFromQr -> {
+                    navController.navigateWithTermsAccepted {
+                        navController.slideFromBottom(
+                            R.id.restoreAccountFragment,
+                            ManageAccountsModule.Input(
+                                popOffOnSuccess = popUpToInclusiveId,
+                                popOffInclusive = inclusive,
+                                prefillWords = event.words,
+                                prefillPassphrase = event.passphrase,
+                                prefillMoneroHeight = event.moneroHeight
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Handle error from ViewModel
+    viewModel.errorMessage?.let { error ->
+        LaunchedEffect(error) {
+            HudHelper.showErrorMessage(view, error)
+            viewModel.onErrorShown()
+        }
+    }
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { uriNonNull ->
@@ -130,13 +167,13 @@ private fun ImportWalletScreen(
 
     ModalBottomSheetLayout(
         sheetState = bottomSheetState,
-        sheetBackgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.transparent,
+        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmationBottomSheet(
                 title = stringResource(R.string.ImportWallet_WarningInvalidJson),
                 text = stringResource(R.string.ImportWallet_WarningInvalidJsonDescription),
                 iconPainter = painterResource(R.drawable.icon_warning_2_20),
-                iconTint = ColorFilter.tint(cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian),
+                iconTint = ColorFilter.tint(ComposeAppTheme.colors.lucian),
                 confirmText = stringResource(R.string.ImportWallet_SelectAnotherFile),
                 cautionType = Caution.Type.Warning,
                 cancelText = stringResource(R.string.Button_Cancel),
@@ -185,6 +222,17 @@ private fun ImportWalletScreen(
                     icon = R.drawable.ic_download_24,
                     onClick = {
                         restoreLauncher.launch(arrayOf("application/json", "application/octet-stream", "*/*"))
+                    }
+                )
+                VSpacer(12.dp)
+                ImportOption(
+                    title = stringResource(R.string.import_wallet_from_qr),
+                    description = stringResource(R.string.import_wallet_from_qr_description),
+                    icon = R.drawable.ic_qr_scan_24,
+                    onClick = {
+                        navController.openQrScanner(showPasteButton = false) { scannedText ->
+                            viewModel.handleScannedData(scannedText)
+                        }
                     }
                 )
                 VSpacer(12.dp)

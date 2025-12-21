@@ -101,6 +101,13 @@
         <argument
             android:name="input"
             app:argType="cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment$Input" />
+        <action
+            android:id="@+id/actionToSafetyRules"
+            app:destination="@id/safetyRulesFragment"
+            app:enterAnim="@anim/slide_from_bottom"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@anim/slide_to_bottom" />
     </fragment>
     <fragment
         android:id="@+id/evmPrivateKeyFragment"
@@ -553,4 +560,11 @@
     <fragment
         android:id="@+id/addressCheckFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment"/>
+    <fragment
+        android:id="@+id/safetyRulesFragment"
+        android:name="cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule$Input" />
+    </fragment>
 </navigation>

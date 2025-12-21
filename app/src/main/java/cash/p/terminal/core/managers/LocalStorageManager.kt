@@ -691,4 +691,9 @@ class LocalStorageManager(
         key = "passphrase_terms_agreed",
         default = false
     )
+
+    override var safetyRulesAgreed by preferences.delegate(
+        key = "safety_rules_agreed",
+        default = false
+    )
 }

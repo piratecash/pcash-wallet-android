@@ -25,6 +25,8 @@ import cash.p.terminal.core.managers.PendingTransactionRegistrarImpl
 import cash.p.terminal.core.managers.PendingTransactionRepository
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.managers.TimePasswordProvider
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.core.managers.SolanaWalletManager
@@ -91,6 +93,8 @@ val managerModule = module {
     singleOf(::TronKitManager)
     factoryOf(::StackingManager)
     singleOf(::RestoreSettingsManager)
+    singleOf(::TimePasswordProvider)
+    singleOf(::SeedPhraseQrCrypto)
     singleOf(::EvmLabelManager)
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)

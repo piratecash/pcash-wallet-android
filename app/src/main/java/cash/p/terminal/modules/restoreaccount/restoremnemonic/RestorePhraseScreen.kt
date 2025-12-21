@@ -116,15 +116,44 @@ fun RestorePhrase(
     openSelectCoins: () -> Unit,
     openNonStandardRestore: () -> Unit,
     onBackClick: () -> Unit,
-    onFinish: () -> Unit
+    onFinish: () -> Unit,
+    prefillWords: List<String>? = null,
+    prefillPassphrase: String? = null,
+    prefillMoneroHeight: Long? = null
 ) {
     val viewModel = koinViewModel<RestoreMnemonicViewModel>()
     val uiState = viewModel.uiState
     val context = LocalContext.current
     val view = LocalView.current
 
-    var textState by rememberSaveable("", stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
+    // Build initial text from prefill data (words only, passphrase handled separately)
+    val initialText = remember(prefillWords) {
+        prefillWords?.joinToString(" ") ?: ""
+    }
+
+    var textState by rememberSaveable(initialText, stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(initialText, TextRange(initialText.length)))
+    }
+
+    // Initialize viewModel with prefill data
+    LaunchedEffect(prefillWords, prefillMoneroHeight, prefillPassphrase) {
+        if (prefillWords != null) {
+            // Enable Monero mode if this is a 25-word seed with height
+            val isMonero = prefillWords.size == 25 && prefillMoneroHeight != null
+            if (isMonero) {
+                viewModel.onToggleMoneroMnemonic(true)
+                prefillMoneroHeight.let { height ->
+                    viewModel.onChangeHeightText(height.toString())
+                }
+            }
+            // Enable passphrase if present in QR data
+            if (!prefillPassphrase.isNullOrEmpty()) {
+                viewModel.onTogglePassphrase(true)
+                viewModel.onEnterPassphrase(prefillPassphrase)
+            }
+            // Trigger validation of the prefilled mnemonic
+            viewModel.onEnterMnemonicPhrase(initialText, initialText.length)
+        }
     }
     var showCustomKeyboardDialog by remember { mutableStateOf(false) }
     var isMnemonicPhraseInputFocused by remember { mutableStateOf(false) }
@@ -349,7 +378,8 @@ fun RestorePhrase(
                         viewModel,
                         uiState,
                         openNonStandardRestore,
-                        coroutineScope
+                        coroutineScope,
+                        prefillPassphrase
                     )
                 } else {
                     if (!uiState.isMoneroMnemonic) {
@@ -448,10 +478,16 @@ private fun BottomSection(
     uiState: RestoreMnemonicModule.UiState,
     openNonStandardRestore: () -> Unit,
     coroutineScope: CoroutineScope,
+    prefillPassphrase: String? = null
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var showLanguageSelectorDialog by remember { mutableStateOf(false) }
     var hidePassphrase by remember { mutableStateOf(true) }
+
+    // Create textState for passphrase field, initialized with prefill value
+    val passphraseTextState = rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(prefillPassphrase ?: ""))
+    }
 
     if (showLanguageSelectorDialog) {
         SelectorDialogCompose(
@@ -502,6 +538,7 @@ private fun BottomSection(
             modifier = Modifier.padding(horizontal = 16.dp),
             hint = stringResource(R.string.Passphrase),
             state = uiState.passphraseError?.let { DataState.Error(Exception(it)) },
+            textState = passphraseTextState,
             onValueChange = viewModel::onEnterPassphrase,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             hide = hidePassphrase,

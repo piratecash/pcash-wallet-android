@@ -43,6 +43,7 @@ class RestoreAccountFragment : BaseComposeFragment(screenshotEnabled = false) {
     companion object {
         const val ROUTE_DUPLICATE = "duplicate_wallet"
         const val ROUTE_RESTORE_PHRASE = "restore_phrase"
+        const val ROUTE_RESTORE_PHRASE_ADVANCED = "restore_phrase_advanced"
     }
 
     @Composable
@@ -57,7 +58,10 @@ class RestoreAccountFragment : BaseComposeFragment(screenshotEnabled = false) {
             popUpToInclusiveId = popUpToInclusiveId,
             inclusive = inclusive,
             defaultRoute = defaultRoute,
-            accountId = input?.accountId.orEmpty()
+            accountId = input?.accountId.orEmpty(),
+            prefillWords = input?.prefillWords,
+            prefillPassphrase = input?.prefillPassphrase,
+            prefillMoneroHeight = input?.prefillMoneroHeight
         )
     }
 
@@ -69,29 +73,43 @@ private fun RestoreAccountNavHost(
     popUpToInclusiveId: Int,
     inclusive: Boolean,
     defaultRoute: String,
-    accountId: String
+    accountId: String,
+    prefillWords: List<String>? = null,
+    prefillPassphrase: String? = null,
+    prefillMoneroHeight: Long? = null
 ) {
     val navController = rememberNavController()
     val restoreMenuViewModel: RestoreMenuViewModel =
         viewModel(factory = RestoreMenuModule.Factory())
     val mainViewModel: RestoreViewModel = viewModel()
+
+    // Navigate to advanced screen if passphrase is present from QR code
+    val actualStartDestination = if (!prefillPassphrase.isNullOrEmpty()) {
+        RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED
+    } else {
+        defaultRoute
+    }
+
     NavHost(
         navController = navController,
-        startDestination = defaultRoute,
+        startDestination = actualStartDestination,
     ) {
         composable(RestoreAccountFragment.ROUTE_RESTORE_PHRASE) {
             RestorePhrase(
                 advanced = false,
                 restoreMenuViewModel = restoreMenuViewModel,
                 mainViewModel = mainViewModel,
-                openRestoreAdvanced = { navController.navigate("restore_phrase_advanced") },
+                openRestoreAdvanced = { navController.navigate(RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED) },
                 openSelectCoins = { navController.navigate("restore_select_coins") },
                 openNonStandardRestore = { navController.navigate("restore_phrase_nonstandard") },
                 onBackClick = { fragmentNavController.popBackStack() },
-                onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
+                onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
+                prefillWords = prefillWords,
+                prefillPassphrase = prefillPassphrase,
+                prefillMoneroHeight = prefillMoneroHeight
             )
         }
-        composablePage("restore_phrase_advanced") {
+        composablePage(RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED) {
             AdvancedRestoreScreen(
                 restoreMenuViewModel = restoreMenuViewModel,
                 mainViewModel = mainViewModel,
@@ -99,8 +117,15 @@ private fun RestoreAccountNavHost(
                 openNonStandardRestore = {
                     navController.navigate("restore_phrase_nonstandard")
                 },
-                onBackClick = { navController.popBackStack() },
-                onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
+                onBackClick = {
+                    if (!navController.popBackStack()) {
+                        fragmentNavController.popBackStack()
+                    }
+                },
+                onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
+                prefillWords = prefillWords,
+                prefillPassphrase = prefillPassphrase,
+                prefillMoneroHeight = prefillMoneroHeight
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_DUPLICATE) { backStackEntry ->

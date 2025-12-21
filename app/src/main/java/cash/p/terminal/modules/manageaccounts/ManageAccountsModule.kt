@@ -14,7 +14,11 @@ object ManageAccountsModule {
         val popOffOnSuccess: Int,
         val popOffInclusive: Boolean,
         val defaultRoute: String? = null,
-        val accountId: String? = null
+        val accountId: String? = null,
+        // Pre-filled seed phrase data from QR scan
+        val prefillWords: List<String>? = null,
+        val prefillPassphrase: String? = null,
+        val prefillMoneroHeight: Long? = null
     ) : Parcelable
 
     class Factory(private val mode: Mode) : ViewModelProvider.Factory {

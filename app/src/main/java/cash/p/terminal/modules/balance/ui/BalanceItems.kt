@@ -57,6 +57,7 @@ import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayOptionsFragment
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
+import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.rateapp.RateAppModule
 import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
@@ -472,6 +473,19 @@ fun BalanceItems(
             )
         )
         viewModel.onSendOpened()
+    }
+    uiState.openRestoreFromQr?.let { restore ->
+        navController.slideFromRight(
+            R.id.restoreAccountFragment,
+            ManageAccountsModule.Input(
+                popOffOnSuccess = R.id.mainFragment,
+                popOffInclusive = false,
+                prefillWords = restore.words,
+                prefillPassphrase = restore.passphrase,
+                prefillMoneroHeight = restore.moneroHeight
+            )
+        )
+        viewModel.onRestoreFromQrOpened()
     }
 }
 

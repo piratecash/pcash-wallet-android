@@ -13,7 +13,10 @@ fun AdvancedRestoreScreen(
     openSelectCoinsScreen: () -> Unit,
     openNonStandardRestore: () -> Unit,
     onBackClick: () -> Unit,
-    onFinish: () -> Unit
+    onFinish: () -> Unit,
+    prefillWords: List<String>? = null,
+    prefillPassphrase: String? = null,
+    prefillMoneroHeight: Long? = null
 ) {
     when (restoreMenuViewModel.restoreOption) {
         RestoreOption.RecoveryPhrase -> {
@@ -24,7 +27,10 @@ fun AdvancedRestoreScreen(
                 openSelectCoins = openSelectCoinsScreen,
                 openNonStandardRestore = openNonStandardRestore,
                 onBackClick = onBackClick,
-                onFinish = onFinish
+                onFinish = onFinish,
+                prefillWords = prefillWords,
+                prefillPassphrase = prefillPassphrase,
+                prefillMoneroHeight = prefillMoneroHeight
             )
         }
         RestoreOption.PrivateKey -> {
