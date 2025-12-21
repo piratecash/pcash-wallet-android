@@ -16,7 +16,7 @@ object MoneroConfig {
     suspend fun autoSelectNode(): NodeInfo? = withContext(Dispatchers.IO) {
         try {
             val deferred = async {
-                DefaultNodes.entries.map { NodeInfo.fromString(it.uri) }.toSet()
+                DefaultNodes.entries.mapNotNull { NodeInfo.fromString(it.uri) }.toSet()
             }
 
             val nodes = withTimeoutOrNull(10_000) {
@@ -24,8 +24,8 @@ object MoneroConfig {
             }
             if (nodes.isNullOrEmpty()) return@withContext null
             execute(nodes, null)
-            val nodeList: MutableList<NodeInfo?> = ArrayList(nodes)
-            Collections.sort<NodeInfo?>(nodeList, NodeInfo.BestNodeComparator)
+            val nodeList: MutableList<NodeInfo> = ArrayList(nodes)
+            Collections.sort(nodeList, NodeInfo.BestNodeComparator)
             return@withContext nodeList[0]
         } catch (ex: Exception) {
             Timber.d(ex)
