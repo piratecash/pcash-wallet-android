@@ -7,8 +7,6 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
-import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
@@ -39,8 +37,6 @@ class MainSettingsViewModel(
     private val accountManager: IAccountManager,
     private val languageManager: LanguageManager,
     private val currencyManager: CurrencyManager,
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase,
-    private val localStorage: ILocalStorage,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
 ) : ViewModelUiState<MainSettingUiState>() {
 
@@ -90,14 +86,6 @@ class MainSettingsViewModel(
     val currentAccountSupportsTonConnect: Boolean
         get() = accountManager.activeAccount?.supportsTonConnect() == true
 
-    private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
-        .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
-
 
     private var wcCounterType: CounterType? = null
     private var wcSessionsCount = walletConnectSessionCount
@@ -138,11 +126,6 @@ class MainSettingsViewModel(
                 emitState()
             }
         }
-        updateAvailable.collectWith(viewModelScope) {
-            if (it) {
-                emitState()
-            }
-        }
 
         syncCounter()
         checkSelfieProblem()
@@ -160,7 +143,6 @@ class MainSettingsViewModel(
 
     override fun createState(): MainSettingUiState {
         return MainSettingUiState(
-            isUpdateAvailable = updateAvailable.value,
             currentLanguage = currentLanguageDisplayName,
             baseCurrencyCode = baseCurrencyCode,
             appWebPageLink = appWebPageLink,
@@ -189,7 +171,6 @@ class MainSettingsViewModel(
 }
 
 data class MainSettingUiState(
-    val isUpdateAvailable: Boolean,
     val currentLanguage: String,
     val baseCurrencyCode: String,
     val appWebPageLink: String,
