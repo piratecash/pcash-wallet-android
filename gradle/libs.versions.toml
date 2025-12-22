@@ -6,9 +6,6 @@ reownBom = "1.4.9"
 androidGradlePlugin = "8.6.1"
 coreVersion = "4.9.0"
 desugar_jdk_libs = "2.1.5"
-firebaseBom = "33.12.0"
-firebaseCrashlyticsGradle = "2.9.9"
-googleServices = "4.4.1"
 grpcApi = "1.63.0"
 kotlin = "2.2.0"
 koin-bom = "4.1.0"
@@ -56,7 +53,6 @@ retrofit = "2.11.0"
 okhttp-logging-interceptor = "4.12.0"
 uiTextAndroid = "1.7.6"
 jetbrainsKotlinJvm = "2.2.0"
-crashlytics = "3.0.5"
 ktor = "3.1.3"
 kotlinx-serialization-json = "1.8.0"
 androidx-constraintlayout = "2.2.0"
@@ -64,7 +60,6 @@ android-core-ktx = "1.13.1"
 material3Android = "1.3.2"
 zcashAndroidSdk = "2.4.3"
 junitJupiter = "5.8.1"
-google-play-core = "2.1.0"
 bitcoinj = "0.16.2"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -89,10 +84,6 @@ androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx",
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 androidx-room-rxjava2 = { module = "androidx.room:room-rxjava2", version.ref = "roomRxjava2" }
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
-firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
-google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpcApi" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
@@ -174,8 +165,6 @@ androidx-material3-android = { group = "androidx.compose.material3", name = "mat
 web3j-core = { module = "org.web3j:core", version.ref = "coreVersion" }
 zcash-android-sdk = { module = "cash.z.ecc.android:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
-google-play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "google-play-core" }
-google-play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "google-play-core" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -205,4 +194,3 @@ kotlin-parcelize = { id = "kotlin-parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 devtools-ksp = { id = "com.google.devtools.ksp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }

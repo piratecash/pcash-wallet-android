@@ -85,7 +85,6 @@ import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.getkeepsafe.relinker.ReLinker
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.m2049r.levin.util.NetCipherHelper
 import com.m2049r.levin.util.NetCipherHelper.OnStatusChangedListener
 import com.m2049r.xmrwallet.model.WalletManager
@@ -206,16 +205,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         if (!BuildConfig.DEBUG) {
             //Disable logging for lower levels in Release build
             Logger.getLogger("").level = Level.SEVERE
-            // Enable Crashlytics in release builds
-        }
-
-        RxJavaPlugins.setErrorHandler { e: Throwable? ->
-            Log.w("RxJava ErrorHandler", e)
-            e?.let {
-                if (localStorage.shareCrashDataEnabled) {
-                    FirebaseCrashlytics.getInstance().recordException(e)
-                }
-            }
         }
 
         RxJavaPlugins.setErrorHandler { e: Throwable? ->
@@ -339,9 +328,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         )
 
         startTasks()
-
-        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled =
-            localStorage.shareCrashDataEnabled
     }
 
     /**

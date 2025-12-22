@@ -9,8 +9,6 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
-import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.entities.LaunchPage
@@ -51,10 +49,6 @@ class MainViewModel(
     private val wcManager: WCManager,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
 ) : ViewModelUiState<MainModule.UiState>() {
-
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
-        CheckGooglePlayUpdateUseCase::class.java
-    )
 
     private var wcPendingRequestsCount = 0
     private var marketsTabEnabled = localStorage.marketsTabEnabledFlow.value
@@ -101,13 +95,6 @@ class MainViewModel(
     private var wcSupportState: WCManager.SupportState? = null
     private var torEnabled = localStorage.torEnabled
     private var openSendTokenSelect: OpenSendTokenSelect? = null
-    private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
-        .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
 
     val wallets: List<Account>
         get() = accountManager.accounts.filter { !it.isWatchAccount }
@@ -169,12 +156,6 @@ class MainViewModel(
             (it as? ActiveAccountState.ActiveAccount)?.let { state ->
                 activeWallet = state.account
                 emitState()
-            }
-        }
-
-        updateAvailable.collectWith(viewModelScope) {
-            if (it) {
-                updateSettingsBadge()
             }
         }
 
@@ -384,7 +365,6 @@ class MainViewModel(
         val showDotBadge =
             !(backupManager.allBackedUp && termsManager.allTermsAccepted && pinComponent.isPinSet) ||
                     accountManager.hasNonStandardAccount ||
-                    updateAvailable.value ||
                     !localStorage.isSystemPinRequired
 
         settingsBadge = if (wcPendingRequestsCount > 0) {
