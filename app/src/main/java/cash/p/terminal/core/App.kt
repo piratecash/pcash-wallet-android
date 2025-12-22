@@ -152,7 +152,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         val tronKitManager: TronKitManager by inject(TronKitManager::class.java)
         val tonKitManager: TonKitManager by inject(TonKitManager::class.java)
         val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
-        val rateAppManager: IRateAppManager by inject(IRateAppManager::class.java)
         val coinManager: ICoinManager by inject(ICoinManager::class.java)
         val wcSessionManager: WCSessionManager by inject(WCSessionManager::class.java)
         val wcManager: WCManager by inject(WCManager::class.java)
@@ -495,7 +494,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             EthereumKit.init()
             adapterManager.startAdapterManager()
             marketKit.sync(needForceUpdateCoins())
-            rateAppManager.onAppLaunch()
             nftMetadataSyncer.start()
             if (!pinComponent.isPinSet) {
                 pinComponent.initDefaultPinLevel()
