@@ -78,7 +78,6 @@ class MainSettingsViewModel(
     val currentAccountSupportsTonConnect: Boolean
         get() = accountManager.activeAccount?.supportsTonConnect() == true
 
-
     private var wcCounterType: CounterType? = null
     private var wcSessionsCount = walletConnectSessionCount
     private var wcPendingRequestCount = 0
