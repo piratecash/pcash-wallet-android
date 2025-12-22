@@ -190,7 +190,12 @@ private fun RecoveryPhraseScreen(
                     VSpacer(24.dp)
                     PassphraseCell(passphrase, phraseHidden)
                 }
-                VSpacer(24.dp)
+                VSpacer(16.dp)
+                TextImportantWarning(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.RecoveryPhrase_QrCodeWarning)
+                )
+                VSpacer(12.dp)
                 SeedPhraseQrCard(
                     encryptedContent = viewModel.encryptedSeedQrContent,
                     hidden = qrHidden,
@@ -207,11 +212,6 @@ private fun RecoveryPhraseScreen(
                             navigateToSafetyRulesForReveal { qrHidden = false }
                         }
                     }
-                )
-                VSpacer(12.dp)
-                TextImportantWarning(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.RecoveryPhrase_QrCodeWarning)
                 )
                 VSpacer(12.dp)
             }

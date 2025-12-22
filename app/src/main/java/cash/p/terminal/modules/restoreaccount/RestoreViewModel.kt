@@ -18,6 +18,24 @@ class RestoreViewModel: ViewModel() {
     var fileBackup: Boolean = false
         private set
 
+    // QR scan prefill data - shared across navigation
+    var prefillWords: List<String>? = null
+        private set
+    var prefillPassphrase: String? = null
+        private set
+    var prefillMoneroHeight: Long? = null
+        private set
+
+    fun setPrefillData(
+        words: List<String>?,
+        passphrase: String?,
+        moneroHeight: Long?
+    ) {
+        prefillWords = words
+        prefillPassphrase = passphrase
+        prefillMoneroHeight = moneroHeight
+    }
+
     var tokenZCashConfig: TokenConfig? = null
         private set
     var tokenMoneroConfig: TokenConfig? = null

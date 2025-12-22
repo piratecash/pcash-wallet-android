@@ -83,6 +83,11 @@ private fun RestoreAccountNavHost(
         viewModel(factory = RestoreMenuModule.Factory())
     val mainViewModel: RestoreViewModel = viewModel()
 
+    // Initialize prefill data in shared ViewModel
+    LaunchedEffect(prefillWords, prefillPassphrase, prefillMoneroHeight) {
+        mainViewModel.setPrefillData(prefillWords, prefillPassphrase, prefillMoneroHeight)
+    }
+
     // Navigate to advanced screen if passphrase is present from QR code
     val actualStartDestination = if (!prefillPassphrase.isNullOrEmpty()) {
         RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED
@@ -104,9 +109,9 @@ private fun RestoreAccountNavHost(
                 openNonStandardRestore = { navController.navigate("restore_phrase_nonstandard") },
                 onBackClick = { fragmentNavController.popBackStack() },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
-                prefillWords = prefillWords,
-                prefillPassphrase = prefillPassphrase,
-                prefillMoneroHeight = prefillMoneroHeight
+                prefillWords = mainViewModel.prefillWords,
+                prefillPassphrase = mainViewModel.prefillPassphrase,
+                prefillMoneroHeight = mainViewModel.prefillMoneroHeight
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED) {
@@ -123,9 +128,9 @@ private fun RestoreAccountNavHost(
                     }
                 },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
-                prefillWords = prefillWords,
-                prefillPassphrase = prefillPassphrase,
-                prefillMoneroHeight = prefillMoneroHeight
+                prefillWords = mainViewModel.prefillWords,
+                prefillPassphrase = mainViewModel.prefillPassphrase,
+                prefillMoneroHeight = mainViewModel.prefillMoneroHeight
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_DUPLICATE) { backStackEntry ->

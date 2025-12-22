@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
@@ -34,7 +35,8 @@ class RestoreMnemonicViewModel(
     private val validateMoneroHeightUseCase: ValidateMoneroHeightUseCase,
     private val moneroWalletUseCase: MoneroWalletUseCase,
     private val accountManager: IAccountManager,
-    private val walletActivator: WalletActivator
+    private val walletActivator: WalletActivator,
+    private val seedPhraseQrCrypto: SeedPhraseQrCrypto
 ) : ViewModelUiState<UiState>() {
 
     private val accountFactory: IAccountFactory = App.accountFactory
@@ -251,6 +253,51 @@ class RestoreMnemonicViewModel(
 
     fun onAllowThirdPartyKeyboard() {
         thirdKeyboardStorage.isThirdPartyKeyboardAllowed = true
+    }
+
+    fun handleScannedQrData(scannedText: String): RestoreMnemonicModule.QrScanResult {
+        if (!scannedText.startsWith(SeedPhraseQrCrypto.QR_PREFIX)) {
+            return RestoreMnemonicModule.QrScanResult.PlainText(scannedText)
+        }
+
+        return seedPhraseQrCrypto.decrypt(scannedText).fold(
+            onSuccess = { decrypted ->
+                RestoreMnemonicModule.QrScanResult.Success(
+                    words = decrypted.words,
+                    passphrase = decrypted.passphrase,
+                    moneroHeight = decrypted.height
+                )
+            },
+            onFailure = {
+                RestoreMnemonicModule.QrScanResult.Error(
+                    Translator.getString(R.string.seed_qr_decryption_failed)
+                )
+            }
+        )
+    }
+
+    fun applyQrScanResult(result: RestoreMnemonicModule.QrScanResult.Success) {
+        val wordsText = result.words.joinToString(" ")
+
+        // Enable Monero mode if 25-word seed with height
+        val isMonero = result.words.size == 25 && result.moneroHeight != null
+        if (isMonero) {
+            isMoneroMnemonic = true
+            height = result.moneroHeight.toString()
+        }
+
+        // Enable passphrase if present
+        if (result.passphrase.isNotEmpty()) {
+            passphraseEnabled = true
+            passphrase = result.passphrase
+        }
+
+        // Update mnemonic text
+        text = wordsText
+        cursorPosition = wordsText.length
+        processText()
+
+        emitState()
     }
 
     private fun wordItems(text: String): List<WordItem> {

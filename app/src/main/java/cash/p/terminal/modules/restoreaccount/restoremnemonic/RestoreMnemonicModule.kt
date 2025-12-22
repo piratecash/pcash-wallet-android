@@ -21,4 +21,14 @@ object RestoreMnemonicModule {
     data class State(val allItems: List<WordItem>, val invalidItems: List<WordItem>)
     data class WordSuggestions(val wordItem: WordItem, val options: List<String>)
 
+    sealed class QrScanResult {
+        data class Success(
+            val words: List<String>,
+            val passphrase: String,
+            val moneroHeight: Long?
+        ) : QrScanResult()
+
+        data class PlainText(val text: String) : QrScanResult()
+        data class Error(val message: String) : QrScanResult()
+    }
 }

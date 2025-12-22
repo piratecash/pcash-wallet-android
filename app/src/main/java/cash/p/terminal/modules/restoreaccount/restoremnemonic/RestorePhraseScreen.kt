@@ -31,6 +31,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -133,6 +134,11 @@ fun RestorePhrase(
 
     var textState by rememberSaveable(initialText, stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(initialText, TextRange(initialText.length)))
+    }
+
+    // Passphrase text state hoisted for QR scan support (as MutableState for FormsInputPassword)
+    val passphraseTextState = rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue(prefillPassphrase ?: ""))
     }
 
     // Initialize viewModel with prefill data
@@ -305,11 +311,42 @@ fun RestorePhrase(
                                 icon = R.drawable.ic_qr_scan_20,
                                 onClick = {
                                     view.findNavController().openQrScanner { scannedText ->
-                                        textState = textState.copy(
-                                            text = scannedText,
-                                            selection = TextRange(scannedText.length)
-                                        )
-                                        viewModel.onEnterMnemonicPhrase(scannedText, scannedText.length)
+                                        when (val result = viewModel.handleScannedQrData(scannedText)) {
+                                            is RestoreMnemonicModule.QrScanResult.Success -> {
+                                                val wordsText = result.words.joinToString(" ")
+                                                textState = textState.copy(
+                                                    text = wordsText,
+                                                    selection = TextRange(wordsText.length)
+                                                )
+                                                if (result.passphrase.isNotEmpty()) {
+                                                    passphraseTextState.value = TextFieldValue(
+                                                        text = result.passphrase,
+                                                        selection = TextRange(result.passphrase.length)
+                                                    )
+                                                }
+                                                viewModel.applyQrScanResult(result)
+
+                                                // Update shared state and navigate to advanced if passphrase present
+                                                if (result.passphrase.isNotEmpty() && !advanced) {
+                                                    mainViewModel.setPrefillData(
+                                                        result.words,
+                                                        result.passphrase,
+                                                        result.moneroHeight
+                                                    )
+                                                    openRestoreAdvanced?.invoke()
+                                                }
+                                            }
+                                            is RestoreMnemonicModule.QrScanResult.PlainText -> {
+                                                textState = textState.copy(
+                                                    text = result.text,
+                                                    selection = TextRange(result.text.length)
+                                                )
+                                                viewModel.onEnterMnemonicPhrase(result.text, result.text.length)
+                                            }
+                                            is RestoreMnemonicModule.QrScanResult.Error -> {
+                                                HudHelper.showErrorMessage(view, result.message)
+                                            }
+                                        }
                                     }
                                 }
                             )
@@ -375,11 +412,11 @@ fun RestorePhrase(
 
                 if (advanced) {
                     BottomSection(
-                        viewModel,
-                        uiState,
-                        openNonStandardRestore,
-                        coroutineScope,
-                        prefillPassphrase
+                        viewModel = viewModel,
+                        uiState = uiState,
+                        openNonStandardRestore = openNonStandardRestore,
+                        coroutineScope = coroutineScope,
+                        passphraseTextState = passphraseTextState
                     )
                 } else {
                     if (!uiState.isMoneroMnemonic) {
@@ -478,16 +515,11 @@ private fun BottomSection(
     uiState: RestoreMnemonicModule.UiState,
     openNonStandardRestore: () -> Unit,
     coroutineScope: CoroutineScope,
-    prefillPassphrase: String? = null
+    passphraseTextState: MutableState<TextFieldValue>
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var showLanguageSelectorDialog by remember { mutableStateOf(false) }
     var hidePassphrase by remember { mutableStateOf(true) }
-
-    // Create textState for passphrase field, initialized with prefill value
-    val passphraseTextState = rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(prefillPassphrase ?: ""))
-    }
 
     if (showLanguageSelectorDialog) {
         SelectorDialogCompose(
