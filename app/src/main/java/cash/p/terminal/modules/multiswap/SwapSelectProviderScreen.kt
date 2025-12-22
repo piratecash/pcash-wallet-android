@@ -158,7 +158,10 @@ private fun ProviderItem(
             ExchangeBlock(
                 from = viewItem.rateFrom,
                 to = viewItem.rateTo,
-                swapRates = swapRates,
+                swapRates = {
+                    onSelectQuote.invoke(viewItem.quote)
+                    swapRates()
+                },
                 modifier = Modifier.align(Alignment.End)
             )
         }
