@@ -1,3 +1,48 @@
+## 🚀 Version 0.50.3 Update
+_Release date: December 22, 2025_
+
+### ✨ New Features
+
+- **Seed phrase transfer via QR code**
+  Added the ability to transfer a seed phrase using a QR code to avoid potential leaks during copy-paste and significantly improve the security of transferring seed phrases between devices.
+
+- **Declared vs actual exchange rate visibility**
+  When swapping via **ChangeNOW** or **Quickex**, CEX providers declare an exchange rate that may differ from the final executed rate.
+  The app now displays:
+    - the declared rate history;
+    - the actual executed rate;
+    - the price deviation between declared and actual rates.
+
+### 🧭 UX Improvements
+
+- **Correct exchange ticker display before transaction confirmation**
+  Fixed an issue where, before transaction confirmation, the blockchain ticker was shown instead of the actual token ticker.
+
+- **Fixed profit percentage color on the swap screen**
+  Resolved an issue where the profit percentage color was displayed incorrectly on the exchange screen.
+
+### 🔧 Fixes and Performance Improvements
+
+- **Fixed active exchange provider selection**
+  Resolved an issue where the currently active exchange provider was occasionally not selected.
+
+- **Fixed crash when generating developer reports larger than 2 MB**
+  The app no longer crashes when creating developer reports with large data volumes.
+
+- **Accelerated transaction parsing for BSC**
+  Implemented a mechanism to speed up transaction parsing on **Binance Smart Chain (BSC)**, improving performance and responsiveness.
+
+- **Fixed nullability issues in Monero node selection logic**
+  Improved stability of Monero node selection by properly handling nullable states.
+
+- **Fixed widget item crash on some devices**
+  Resolved an issue where the app could crash on certain devices when interacting with widget items.
+
+- **Handled missing intent extras in KeyStoreActivity**
+  When required intent extras are missing, the app now redirects the user to **MainModule** instead of crashing.
+
+
+
 ## 🚀 Version 0.50.2 Update
 _Release date: December 16, 2025_
 
