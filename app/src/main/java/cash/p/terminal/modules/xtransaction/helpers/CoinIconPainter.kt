@@ -3,7 +3,7 @@ package cash.p.terminal.modules.xtransaction.helpers
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import cash.p.terminal.R
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 
 @Composable
 fun coinIconPainter(

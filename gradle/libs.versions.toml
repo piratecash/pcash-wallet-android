@@ -20,7 +20,7 @@ navigationUiKtx = "2.8.5"
 powermockApiMockito2 = "2.0.7"
 powermockModuleJunit4 = "2.0.7"
 recyclerview = "1.3.2"
-coil-compose = "2.5.0"
+coil = "3.3.0"
 annotation = "1.9.1"
 lifecycle-viewmodel-compose = "2.8.7"
 richtextMarkdown = "1.0.0-alpha02"
@@ -101,7 +101,10 @@ koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material = { module = "androidx.compose.material:material" }
 compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil-compose" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
+coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
 leakcanary-android = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanaryAndroid" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-viewmodel-compose" }

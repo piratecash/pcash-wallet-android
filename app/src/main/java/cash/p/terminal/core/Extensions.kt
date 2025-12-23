@@ -37,7 +37,7 @@ import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.models.CoinCategory
 import cash.p.terminal.wallet.models.CoinInvestment
 import cash.p.terminal.wallet.models.CoinTreasury
-import coil.load
+import coil3.load
 import io.horizontalsystems.ethereumkit.core.toRawHexString
 import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.hodler.LockTimeInterval

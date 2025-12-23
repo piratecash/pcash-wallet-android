@@ -6,8 +6,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope.Companion.DefaultFilterQ
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import coil.compose.AsyncImagePainter.State
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImagePainter.State
+import coil3.compose.rememberAsyncImagePainter
 
 @Composable
 fun rememberAsyncImagePainterWithFallback(

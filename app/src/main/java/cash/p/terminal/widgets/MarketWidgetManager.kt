@@ -5,10 +5,9 @@ import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import coil.annotation.ExperimentalCoilApi
-import coil.imageLoader
-import coil.request.ErrorResult
-import coil.request.ImageRequest
+import coil3.imageLoader
+import coil3.request.ErrorResult
+import coil3.request.ImageRequest
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +90,6 @@ class MarketWidgetManager {
         setWidgetState(context, glanceId, state)
     }
 
-    @OptIn(ExperimentalCoilApi::class)
     private suspend fun getImage(
         context: Context,
         url: String,

@@ -383,11 +383,11 @@ dependencies {
 
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
 
-    def coil_version = "2.6.0"
-    implementation "io.coil-kt:coil-compose:$coil_version"
+    implementation libs.coil.compose
+    implementation libs.coil.network.okhttp
+    implementation libs.coil.svg
+    implementation libs.coil.gif
     implementation 'com.getkeepsafe.relinker:relinker:1.4.5'
-    implementation "io.coil-kt:coil-svg:$coil_version"
-    implementation("io.coil-kt:coil-gif:$coil_version")
 
     // When using a AppCompat theme
     implementation "com.google.accompanist:accompanist-appcompat-theme:$accompanist_version"

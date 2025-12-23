@@ -65,7 +65,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.theme.YellowL
 import cash.p.terminal.wallet.imageUrl
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
