@@ -37,7 +37,12 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     protected val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     protected val wallet: Wallet by lazy { runBlocking { walletUseCase.createWalletIfNotExists(token)!! } }
     protected val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
-    protected val adapter: T = adapterManager.getAdapterForWallet(wallet)!!
+    protected val adapter: T by lazy {
+        runBlocking {
+            adapterManager.awaitAdapterForWallet(wallet)
+                ?: throw IllegalStateException("Adapter not available for ${token.coin.code}")
+        }
+    }
     private val baseCurrency = App.currencyManager.baseCurrency
     protected var uuid = UUID.randomUUID().toString()
     private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
