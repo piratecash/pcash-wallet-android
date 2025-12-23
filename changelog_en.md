@@ -1,3 +1,26 @@
+## 🚀 Version 0.50.4 Update
+_Release date: December 23, 2025_
+
+### ✨ New Features
+
+- **Automatic scrolling for QR code display**
+  Added automatic scrolling to ensure the entire QR code is visible even when it does not fit on the screen.
+
+### 🧭 Improvements
+
+- **Improved BSC transaction fetching**
+  Optimized the mechanism for obtaining transactions on the Binance Smart Chain, improving speed and reliability.
+
+- **Fixed QR code issue in dark theme**
+  QR codes are now displayed correctly in dark mode without losing contrast or scannability.
+
+### 🔧 Stability Fixes
+
+- **Set default Monero node when auto-selection fails**
+  If Monero node auto-selection fails, the app now sets a default node via `MoneroKitManager`, preventing errors and improving wallet stability.
+
+
+
 ## 🚀 Version 0.50.3 Update
 _Release date: December 22, 2025_
 
