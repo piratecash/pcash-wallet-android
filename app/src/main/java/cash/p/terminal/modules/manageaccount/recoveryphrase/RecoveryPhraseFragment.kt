@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
@@ -40,6 +41,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 class RecoveryPhraseFragment : BaseComposeFragment(screenshotEnabled = false) {
@@ -91,6 +93,8 @@ private fun RecoveryPhraseScreen(
     // Track hidden state for phrase and QR
     var phraseHidden by remember { mutableStateOf(true) }
     var qrHidden by remember { mutableStateOf(true) }
+    val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
 
     // Function to navigate to safety rules and handle result for reveal
     fun navigateToSafetyRulesForReveal(onAgreed: () -> Unit) {
@@ -148,7 +152,7 @@ private fun RecoveryPhraseScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(scrollState),
             ) {
                 VSpacer(12.dp)
                 TextImportantWarning(
@@ -207,13 +211,17 @@ private fun RecoveryPhraseScreen(
                         } else if (viewModel.safetyRulesAgreed) {
                             // Already agreed to safety rules - just reveal
                             qrHidden = false
+                            coroutineScope.launch { scrollState.animateScrollTo(scrollState.maxValue) }
                         } else {
                             // Need to show safety rules first
-                            navigateToSafetyRulesForReveal { qrHidden = false }
+                            navigateToSafetyRulesForReveal {
+                                qrHidden = false
+                                coroutineScope.launch { scrollState.animateScrollTo(scrollState.maxValue) }
+                            }
                         }
                     }
                 )
-                VSpacer(12.dp)
+                VSpacer(24.dp)
             }
             ActionButton(R.string.Alert_Copy) {
                 navigateToSafetyRulesForCopy()

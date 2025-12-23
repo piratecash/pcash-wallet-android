@@ -291,7 +291,9 @@ fun SeedPhraseQrCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .padding(24.dp),
+                .background(ComposeAppTheme.colors.white)
+                .padding(24.dp)
+                .clip(RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
             SeedQrCodeImage(encryptedContent)

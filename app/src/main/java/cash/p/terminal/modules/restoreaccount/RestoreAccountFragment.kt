@@ -109,9 +109,9 @@ private fun RestoreAccountNavHost(
                 openNonStandardRestore = { navController.navigate("restore_phrase_nonstandard") },
                 onBackClick = { fragmentNavController.popBackStack() },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
-                prefillWords = mainViewModel.prefillWords,
-                prefillPassphrase = mainViewModel.prefillPassphrase,
-                prefillMoneroHeight = mainViewModel.prefillMoneroHeight
+                prefillWords = prefillWords,
+                prefillPassphrase = prefillPassphrase,
+                prefillMoneroHeight = prefillMoneroHeight
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED) {
@@ -128,9 +128,9 @@ private fun RestoreAccountNavHost(
                     }
                 },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
-                prefillWords = mainViewModel.prefillWords,
-                prefillPassphrase = mainViewModel.prefillPassphrase,
-                prefillMoneroHeight = mainViewModel.prefillMoneroHeight
+                prefillWords = mainViewModel.prefillWords ?: prefillWords,
+                prefillPassphrase = mainViewModel.prefillPassphrase ?: prefillPassphrase,
+                prefillMoneroHeight = mainViewModel.prefillMoneroHeight ?: prefillMoneroHeight
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_DUPLICATE) { backStackEntry ->
