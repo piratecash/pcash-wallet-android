@@ -40,7 +40,7 @@ class ManageAccountViewModel(
             canSave = false,
             closeScreen = false,
             headerNote = account.headerNote(false),
-            keyActions = getKeyActions(account),
+            keyActions = emptyList(),
             backupActions = getBackupItems(account),
             signedHashes = (account.type as? AccountType.HardwareCard)?.signedHashes,
             canBeDuplicated = account.canBeDuplicated()
@@ -55,6 +55,7 @@ class ManageAccountViewModel(
 
     init {
         viewModelScope.launch {
+            viewState = viewState.copy(keyActions = getKeyActions(account))
             accountManager.accountsFlow
                 .collect { handleUpdatedAccounts(it) }
         }
@@ -148,14 +149,14 @@ class ManageAccountViewModel(
         return items
     }
 
-    private fun hasMoneroTokenEnabled(account: Account): Boolean {
+    private suspend fun hasMoneroTokenEnabled(account: Account): Boolean {
         return walletManager.getWallets(account)
             .find {
                 it.token.blockchainType == BlockchainType.Monero && it.token.type == TokenType.Native
             } != null
     }
 
-    private fun getKeyActions(account: Account): List<KeyAction> {
+    private suspend fun getKeyActions(account: Account): List<KeyAction> {
         if (!account.isBackedUp && !account.isFileBackedUp && account.accountSupportsBackup) {
             return emptyList()
         }
@@ -221,7 +222,7 @@ class ManageAccountViewModel(
         return moneroWalletService.wallet?.secretSpendKey ?: ""
     }
 
-    private fun handleUpdatedAccounts(accounts: List<Account>) {
+    private suspend fun handleUpdatedAccounts(accounts: List<Account>) {
         val account = accounts.find { it.id == account.id }
         viewState = if (account != null) {
             viewState.copy(

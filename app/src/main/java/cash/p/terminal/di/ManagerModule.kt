@@ -44,6 +44,7 @@ import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.converters.PendingTransactionConverter
+import cash.p.terminal.modules.addtoken.AddTokenService
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
@@ -101,6 +102,7 @@ val managerModule = module {
     singleOf(::DefaultUserManager) bind UserManager::class
     singleOf(::AccountFactory) bind IAccountFactory::class
     factoryOf(::WalletActivator)
+    factoryOf(::AddTokenService)
 
     singleOf(::Mnemonic)
     factoryOf(::WordsManager)

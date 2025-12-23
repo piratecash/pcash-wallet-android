@@ -13,7 +13,10 @@ import androidx.room.PrimaryKey
                 onDelete = ForeignKey.CASCADE,
                 deferred = true)
         ],
-        indices = [Index("accountId", name = "index_EnabledWallet_accountId")])
+        indices = [
+            Index("accountId", name = "index_EnabledWallet_accountId"),
+            Index(value = ["accountId", "tokenQueryId"], unique = true, name = "index_EnabledWallet_accountId_tokenQueryId")
+        ])
 data class EnabledWallet(
         @PrimaryKey(autoGenerate = true)
         val id: Long = 0,

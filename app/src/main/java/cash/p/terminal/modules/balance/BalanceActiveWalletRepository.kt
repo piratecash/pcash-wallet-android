@@ -26,7 +26,7 @@ class BalanceActiveWalletRepository(
 
     suspend fun disable(wallet: Wallet) {
         userDeletedWalletManager.markAsDeleted(wallet)
-        walletManager.delete(listOf(wallet))
+        walletManager.deleteByWallet(wallet)
     }
 
     fun enable(wallet: Wallet) {

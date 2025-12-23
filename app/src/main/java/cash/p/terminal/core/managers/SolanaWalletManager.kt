@@ -12,7 +12,8 @@ import kotlinx.coroutines.sync.withLock
 class SolanaWalletManager(
     private val walletManager: IWalletManager,
     private val accountManager: cash.p.terminal.wallet.IAccountManager,
-    private val marketKit: MarketKitWrapper
+    private val marketKit: MarketKitWrapper,
+    private val userDeletedWalletManager: UserDeletedWalletManager
 ) {
     private val mutex = Mutex()
 
@@ -26,7 +27,12 @@ class SolanaWalletManager(
         val newTokenQueries = queries.filter { !existingTokenTypeIds.contains(it.tokenType.id) }
         val tokens = marketKit.tokens(newTokenQueries)
 
-        val enabledWallets = tokens.map { token ->
+        val enabledWallets = tokens.mapNotNull { token ->
+            // Skip tokens that user has explicitly deleted
+            if (userDeletedWalletManager.isDeletedByUser(account.id, token.tokenQuery.id)) {
+                return@mapNotNull null
+            }
+
             cash.p.terminal.wallet.entities.EnabledWallet(
                 tokenQueryId = token.tokenQuery.id,
                 accountId = account.id,
@@ -37,9 +43,7 @@ class SolanaWalletManager(
             )
         }
 
-        if (enabledWallets.isNotEmpty()) {
-            walletManager.saveEnabledWallets(enabledWallets)
-        }
+        walletManager.saveEnabledWallets(enabledWallets)
     }
 
 }

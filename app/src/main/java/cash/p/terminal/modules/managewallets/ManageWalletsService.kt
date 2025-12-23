@@ -173,6 +173,8 @@ class ManageWalletsService(
             restoreSettingsService.save(restoreSettings, account, token.blockchainType)
         }
 
+        userDeletedWalletManager.unmarkAsDeleted(account.id, token.tokenQuery.id)
+
         val hardwarePublicKey = withContext(Dispatchers.IO) {
             getHardwarePublicKeyForWalletUseCase(account, token)
         }
@@ -219,7 +221,7 @@ class ManageWalletsService(
                 .firstOrNull { it.token == token }
                 ?.let {
                     userDeletedWalletManager.markAsDeleted(it)
-                    walletManager.delete(listOf(it))
+                    walletManager.deleteByWallet(it)
                     updateSortedItems(token, false)
                     syncState()
                 }

@@ -56,6 +56,10 @@ class WalletStorageTest {
         override suspend fun getAllPublicKeys(accountId: String) = emptyList<cash.p.terminal.wallet.entities.HardwarePublicKey>()
     }
 
+    private val deletedWalletChecker = object : IDeletedWalletChecker {
+        override suspend fun getDeletedTokenQueryIds(accountId: String) = emptySet<String>()
+    }
+
     @Test
     fun `save ignores duplicates within the same batch`() {
         val enabledWalletStorage = InMemoryEnabledWalletStorage()
@@ -63,7 +67,8 @@ class WalletStorageTest {
             marketKit = mockk(relaxed = true),
             storage = enabledWalletStorage,
             getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
-            walletFactory = walletFactory
+            walletFactory = walletFactory,
+            deletedWalletChecker = deletedWalletChecker
         )
 
         val wallet = walletFactory.create(token, account, null)!!
@@ -80,7 +85,8 @@ class WalletStorageTest {
             marketKit = mockk(relaxed = true),
             storage = enabledWalletStorage,
             getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
-            walletFactory = walletFactory
+            walletFactory = walletFactory,
+            deletedWalletChecker = deletedWalletChecker
         )
 
         val wallet = walletFactory.create(token, account, null)!!
@@ -140,6 +146,10 @@ class WalletStorageTest {
 
         override fun delete(enabledWalletIds: List<Long>) {
             items.removeAll { it.id in enabledWalletIds.toSet() }
+        }
+
+        override fun deleteByTokenQueryId(accountId: String, tokenQueryId: String) {
+            items.removeAll { it.accountId == accountId && it.tokenQueryId == tokenQueryId }
         }
     }
 }

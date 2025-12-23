@@ -11,7 +11,7 @@ import io.horizontalsystems.tonkit.Address
 import io.horizontalsystems.tonkit.core.TonKit
 import io.horizontalsystems.tonkit.models.Network
 
-class AddTonTokenBlockchainService(private val blockchain: Blockchain) : AddTokenModule.IAddTokenBlockchainService {
+class AddTonTokenBlockchainService(private val blockchain: Blockchain) : IAddTokenBlockchainService {
     override fun isValid(reference: String) = try {
         TonKit.validateAddress(reference)
         true

@@ -6,9 +6,11 @@ import cash.p.terminal.core.factories.AdapterFactory
 import cash.p.terminal.core.factories.EvmAccountManagerFactory
 import cash.p.terminal.core.managers.AccountCleaner
 import cash.p.terminal.core.managers.CoinManager
+import cash.p.terminal.core.managers.DeletedWalletChecker
 import cash.p.terminal.core.managers.NumberFormatter
 import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
+import cash.p.terminal.wallet.IDeletedWalletChecker
 import cash.p.terminal.core.providers.EvmLabelProvider
 import cash.p.terminal.core.storage.AccountsStorage
 import cash.p.terminal.core.storage.AppDatabase
@@ -86,6 +88,7 @@ val storageModule = module {
     factory { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
     factory { get<AppDatabase>().userDeletedWalletDao() }
     singleOf(::UserDeletedWalletManager)
+    singleOf(::DeletedWalletChecker) bind IDeletedWalletChecker::class
     factory { get<AppDatabase>().moneroFileDao() }
     factory { get<AppDatabase>().zcashSingleUseAddressDao() }
     single { get<AppDatabase>().spamAddressDao() }

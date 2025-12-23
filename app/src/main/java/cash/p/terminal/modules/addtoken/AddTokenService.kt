@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.addtoken
 
 import cash.p.terminal.core.ICoinManager
+import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.order
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
@@ -19,6 +20,7 @@ class AddTokenService(
     private val coinManager: ICoinManager,
     private val walletManager: IWalletManager,
     private val accountManager: IAccountManager,
+    private val userDeletedWalletManager: UserDeletedWalletManager,
     marketKit: MarketKitWrapper,
 ) {
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
@@ -85,6 +87,10 @@ class AddTokenService(
 
     suspend fun addToken(token: TokenInfo) = withContext(Dispatchers.IO) {
         val account = accountManager.activeAccount ?: return@withContext
+
+        // Clear deletion flag so previously deleted token can reappear
+        userDeletedWalletManager.unmarkAsDeleted(account.id, token.token.tokenQuery.id)
+
         val hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
                 account,
                 token.token.blockchainType,

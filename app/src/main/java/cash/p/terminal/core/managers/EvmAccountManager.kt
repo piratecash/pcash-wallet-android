@@ -274,13 +274,10 @@ class EvmAccountManager(
 
     private suspend fun handle(tokenInfos: List<TokenInfo>, account: Account, evmKit: EthereumKit) =
         withContext(Dispatchers.IO) {
-//        Log.e("AAA", "handle tokens ${tokenInfos.size} \n ${tokenInfos.joinToString(separator = " ") { it.type.id }}")
 
             val existingWallets = walletManager.activeWallets
             val existingTokenTypeIds = existingWallets.map { it.token.type.id }
             val newTokenInfos = tokenInfos.filter { !existingTokenTypeIds.contains(it.type.id) }
-
-//        Log.e("AAA", "New Tokens: ${newTokenInfos.size}")
 
             if (newTokenInfos.isEmpty()) return@withContext
 
@@ -334,9 +331,7 @@ class EvmAccountManager(
                     )
                 }
 
-            if (enabledWallets.isNotEmpty()) {
-                walletManager.saveEnabledWallets(enabledWallets)
-            }
+            walletManager.saveEnabledWallets(enabledWallets)
         }
 
     data class TokenInfo(

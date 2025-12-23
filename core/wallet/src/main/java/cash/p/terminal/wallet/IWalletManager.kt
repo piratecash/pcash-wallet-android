@@ -9,9 +9,10 @@ interface IWalletManager {
 
     fun save(wallets: List<Wallet>)
     suspend fun saveSuspended(wallets: List<Wallet>)
-    fun saveEnabledWallets(enabledWallets: List<EnabledWallet>)
+    suspend fun saveEnabledWallets(enabledWallets: List<EnabledWallet>)
     fun delete(wallets: List<Wallet>)
+    suspend fun deleteByWallet(wallet: Wallet)
     fun clear()
     fun handle(newWallets: List<Wallet>, deletedWallets: List<Wallet>)
-    fun getWallets(account: Account): List<Wallet>
+    suspend fun getWallets(account: Account): List<Wallet>
 }
