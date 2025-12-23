@@ -37,14 +37,14 @@ import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
-import java.util.concurrent.Executors
+import kotlinx.coroutines.withContext
 
 class TokenBalanceViewModel(
     private val totalBalance: TotalBalance,
@@ -81,10 +81,9 @@ class TokenBalanceViewModel(
         private set
 
     private var showCurrencyAsSecondary = true
-    private val dedicatedDispatcher = Executors.newFixedThreadPool(10).asCoroutineDispatcher()
 
     init {
-        viewModelScope.launch(dedicatedDispatcher) {
+        viewModelScope.launch {
             balanceService.balanceItemFlow.collect { balanceItem ->
                 balanceItem?.let {
                     updateBalanceViewItem(
@@ -95,7 +94,7 @@ class TokenBalanceViewModel(
             }
         }
 
-        viewModelScope.launch(dedicatedDispatcher) {
+        viewModelScope.launch {
             balanceHiddenManager.balanceHiddenFlow.collect {
                 balanceService.balanceItem?.let {
                     updateBalanceViewItem(
@@ -108,24 +107,24 @@ class TokenBalanceViewModel(
             }
         }
 
-        viewModelScope.launch(dedicatedDispatcher) {
+        viewModelScope.launch {
             transactionsService.itemsObservable.asFlow().collect {
                 updateTransactions(it)
             }
         }
 
-        viewModelScope.launch(dedicatedDispatcher) {
+        viewModelScope.launch {
             balanceService.start()
             transactionsService.start()
         }
 
-        viewModelScope.launch(dedicatedDispatcher) {
+        viewModelScope.launch {
             transactionHiddenManager.transactionHiddenFlow.collectLatest {
                 transactionsService.refreshList()
             }
         }
 
-        viewModelScope.launch(dedicatedDispatcher) {
+        viewModelScope.launch {
             totalBalance.stateFlow.collectLatest { totalBalanceValue ->
                 updateSecondaryValue(totalBalanceValue)
             }
@@ -167,7 +166,7 @@ class TokenBalanceViewModel(
 
     fun startStatusChecker() {
         statusCheckerJob?.cancel()
-        statusCheckerJob = viewModelScope.launch(dedicatedDispatcher) {
+        statusCheckerJob = viewModelScope.launch {
             while (isActive) {
                 adapterManager.getReceiveAdapterForWallet(wallet)?.let { adapter ->
                     if (updateSwapProviderTransactionsStatusUseCase(wallet.token, adapter.receiveAddress)) {
@@ -317,6 +316,5 @@ class TokenBalanceViewModel(
 
         balanceService.clear()
         totalBalance.stop()
-        dedicatedDispatcher.close()
     }
 }

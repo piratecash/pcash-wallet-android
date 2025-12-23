@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
+import kotlinx.coroutines.withContext
 
 class TokenBalanceService(
     private val wallet: Wallet,
@@ -36,7 +37,7 @@ class TokenBalanceService(
     private val coroutineScope = CoroutineScope(Dispatchers.Default + job)
     val baseCurrency by xRateRepository::baseCurrency
 
-    suspend fun start() {
+    suspend fun start() = withContext(Dispatchers.IO) {
         balanceAdapterRepository.setWallet(listOf(wallet))
         xRateRepository.setCoinUids(listOf(wallet.coin.uid))
 
