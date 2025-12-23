@@ -20,6 +20,8 @@ import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.SecretString
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
+import com.m2049r.xmrwallet.data.DefaultNodes
+import com.m2049r.xmrwallet.data.NodeInfo
 import com.m2049r.xmrwallet.data.TxData
 import com.m2049r.xmrwallet.data.UserNotes
 import com.m2049r.xmrwallet.model.PendingTransaction
@@ -278,7 +280,9 @@ class MoneroKitWrapper(
                     WalletManager.getInstance()
                         .setDaemon(selectedNode)
                 } else {
-                    logger.info("start: autoSelectNode returned null")
+                    logger.info("start: autoSelectNode returned null, set first default node")
+                    WalletManager.getInstance()
+                        .setDaemon(NodeInfo.fromString(DefaultNodes.entries.first().uri))
                 }
 
                 /*val walletFolder: File = Helper.getWalletRoot(App.instance)
@@ -508,7 +512,7 @@ class MoneroKitWrapper(
             "isStarted" to isStarted,
             "Birthday Height" to (getBirthdayHeight(account) ?: "Not set"),
             "Cache file size" to (tryOrNull { getCacheFile().sizeInMb() } ?: "")
-            )
+        )
     }
 
     private fun getCacheFile(): File? {
