@@ -274,13 +274,15 @@ class ZcashAdapter(
         return zcashAccount ?: synchronizer.getAccounts().firstOrNull() ?: throw Exception("No account found")
     }
 
-    private var syncState: AdapterState = AdapterState.Syncing()
+    private var syncState: AdapterState = AdapterState.Connecting
         set(value) {
             if (value != field) {
                 field = value
                 adapterStateUpdatedSubject.onNext(Unit)
             }
         }
+
+    private var lastDownloadProgress: Int = 0
 
     private suspend fun createNewSynchronizer() {
         val walletInitMode = if (existingWallet) {
@@ -661,11 +663,25 @@ class ZcashAdapter(
     }
 
     private fun onDownloadProgress(progress: PercentDecimal) {
-        syncState = AdapterState.Syncing(progress.toPercentage())
+        val progressPercent = progress.toPercentage()
+        lastDownloadProgress = progressPercent
+
+        syncState = AdapterState.Syncing(progress = progressPercent)
     }
 
     private fun onProcessorInfo(processorInfo: CompactBlockProcessor.ProcessorInfo) {
-        syncState = AdapterState.Syncing()
+        val networkHeight = processorInfo.networkBlockHeight?.value
+        val syncRange = processorInfo.overallSyncRange
+        val currentSyncedHeight = syncRange?.endInclusive?.value
+
+        if (networkHeight != null && currentSyncedHeight != null && networkHeight > currentSyncedHeight) {
+            val blocksRemained = networkHeight - currentSyncedHeight
+            val progress = ((currentSyncedHeight.toDouble() / networkHeight) * 100).toInt().coerceIn(0, 99)
+            syncState = AdapterState.Syncing(progress = progress, blocksRemained = blocksRemained)
+        } else if (lastDownloadProgress >= 100 && syncState !is AdapterState.Synced) {
+            syncState = AdapterState.Syncing(progress = 100, blocksRemained = null)
+        }
+
         lastBlockUpdatedSubject.onNext(Unit)
     }
 
