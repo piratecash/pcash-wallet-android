@@ -301,9 +301,12 @@
     <string name="Balance_RatePerCoin">%1$s за %2$s</string>
     <string name="Balance_SyncedUntil">до %s</string>
     <string name="Balance_Syncing">Синхронизация…</string>
+    <string name="balance_connecting">Подключение…</string>
     <string name="Balance_SearchingTransactions">Поиск транзакций...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Синхронизация… %s%%</string>
+    <string name="balance_syncing_blocks_remaining">Осталось %s блоков</string>
+    <string name="balance_processing">Обработка…</string>
     <string name="Balance_Sort_Balance">По балансу</string>
     <string name="Balance_Sort_PopupTitle">Сортировать</string>
     <string name="Balance_Sort_Az">По названию</string>

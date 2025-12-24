@@ -291,9 +291,12 @@
     <string name="Balance_RatePerCoin">%1$sدر هر%2$s</string>
     <string name="Balance_SyncedUntil">تا %s</string>
     <string name="Balance_Syncing">همزمانی…</string>
+    <string name="balance_connecting">در حال اتصال…</string>
     <string name="Balance_SearchingTransactions">در جستجوی تراکنش ها…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">همزمانی... %%%s</string>
+    <string name="balance_syncing_blocks_remaining">%s بلوک باقی مانده</string>
+    <string name="balance_processing">در حال پردازش…</string>
     <string name="Balance_Sort_Balance">مانده حساب</string>
     <string name="Balance_Sort_PopupTitle">مرتب‌ کردن بر اساس</string>
     <string name="Balance_Sort_Az">نام</string>

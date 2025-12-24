@@ -294,6 +294,9 @@
     <string name="Balance_SearchingTransactions">Procurando transações...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Sincronizando… %s%%</string>
+    <string name="balance_connecting">Conectando…</string>
+    <string name="balance_syncing_blocks_remaining">%s blocos restantes</string>
+    <string name="balance_processing">Processando…</string>
     <string name="Balance_Sort_Balance">Saldo</string>
     <string name="Balance_Sort_PopupTitle">Organizar por</string>
     <string name="Balance_Sort_Az">Nome</string>

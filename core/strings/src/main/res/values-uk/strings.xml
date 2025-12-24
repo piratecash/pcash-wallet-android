@@ -299,9 +299,12 @@
     <string name="Balance_RatePerCoin">%1$s за %2$s</string>
     <string name="Balance_SyncedUntil">до %s</string>
     <string name="Balance_Syncing">Синхронізація…</string>
+    <string name="balance_connecting">Підключення…</string>
     <string name="Balance_SearchingTransactions">Пошук транзакцій...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Синхронізація… %s%%</string>
+    <string name="balance_syncing_blocks_remaining">Залишилось %s блоків</string>
+    <string name="balance_processing">Обробка…</string>
     <string name="Balance_Sort_Balance">За балансом</string>
     <string name="Balance_Sort_PopupTitle">Сортувати</string>
     <string name="Balance_Sort_Az">За назвою</string>

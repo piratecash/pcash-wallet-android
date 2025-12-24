@@ -46,6 +46,7 @@ class TokenBalanceService(
 
         error = when (adapter?.balanceState) {
             null -> null // we handle it as request to add token
+            is AdapterState.Connecting -> WalletSyncing()
             is AdapterState.SearchingTxs -> WalletSyncing()
             is AdapterState.Syncing -> WalletSyncing()
             is AdapterState.NotSynced -> WalletNotSynced()

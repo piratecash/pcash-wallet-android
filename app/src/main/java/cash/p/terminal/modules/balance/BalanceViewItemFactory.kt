@@ -99,6 +99,7 @@ class BalanceViewItemFactory {
         blockchainType: BlockchainType
     ): SyncingProgress {
         return when (state) {
+            is AdapterState.Connecting -> SyncingProgress(SyncingProgressType.Spinner, 10)
             is AdapterState.Syncing -> {
                 val progressValue = state.progress ?: getDefaultSyncingProgress(blockchainType)
                 if (state.progress != null && blockchainType.isSyncWithProgress()) {
@@ -162,14 +163,29 @@ class BalanceViewItemFactory {
         }
 
         val text = when (state) {
+            is AdapterState.Connecting -> Translator.getString(R.string.balance_connecting)
             is AdapterState.Syncing -> {
-                if (state.progress != null) {
-                    Translator.getString(
-                        R.string.Balance_Syncing_WithProgress,
-                        state.progress.toString()
-                    )
-                } else {
-                    Translator.getString(R.string.Balance_Syncing)
+                val blocksRemained = state.blocksRemained
+                val progress = state.progress
+                when {
+                    blocksRemained != null && blocksRemained > 0 -> {
+                        Translator.getString(
+                            R.string.balance_syncing_blocks_remaining,
+                            formatBlocksRemaining(blocksRemained)
+                        )
+                    }
+                    blocksRemained == null && progress != null && progress >= 100 -> {
+                        Translator.getString(R.string.balance_processing)
+                    }
+                    progress != null -> {
+                        Translator.getString(
+                            R.string.Balance_Syncing_WithProgress,
+                            progress.toString()
+                        )
+                    }
+                    else -> {
+                        Translator.getString(R.string.Balance_Syncing)
+                    }
                 }
             }
 
@@ -178,6 +194,14 @@ class BalanceViewItemFactory {
         }
 
         return text
+    }
+
+    private fun formatBlocksRemaining(blocks: Long): String {
+        return when {
+            blocks >= 1_000_000 -> String.format("%.1fM", blocks / 1_000_000.0)
+            blocks >= 1_000 -> String.format("%.1fK", blocks / 1_000.0)
+            else -> blocks.toString()
+        }
     }
 
     private fun getSyncedUntilText(state: AdapterState?): String? {

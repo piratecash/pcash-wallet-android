@@ -294,6 +294,9 @@
     <string name="Balance_SearchingTransactions">İşlemler aranıyor ...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Eşitleniyor...%s%%</string>
+    <string name="balance_connecting">Bağlanıyor…</string>
+    <string name="balance_syncing_blocks_remaining">%s blok kaldı</string>
+    <string name="balance_processing">İşleniyor…</string>
     <string name="Balance_Sort_Balance">Bakiye</string>
     <string name="Balance_Sort_PopupTitle">Sıralama şekli</string>
     <string name="Balance_Sort_Az">İsim</string>

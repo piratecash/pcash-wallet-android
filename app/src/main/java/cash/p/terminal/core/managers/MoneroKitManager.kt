@@ -219,7 +219,7 @@ class MoneroKitWrapper(
             logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, currentState=isStarted=$isStarted initializing=${initializing.get()}")
             lastLoggedSyncProgress = -1
             lastLoggedConnectionStatus = null
-            _syncState.value = AdapterState.Syncing()
+            _syncState.value = AdapterState.Connecting
             try {
                 val walletFileName: String
                 val walletPassword: String
@@ -598,22 +598,25 @@ class MoneroKitWrapper(
                 AdapterState.Synced
             } else {
                 Timber.d("MoneroKitWrapper: Sync in progress")
-                val progressPercent = runCatching {
-                    val currentHeight = moneroWalletService.wallet?.blockChainHeight ?: 0
-                    val totalHeight = WalletManager.getInstance().blockchainHeight
-                    if (totalHeight > 0) {
-                        cachedTotalHeight = totalHeight
-                    }
-                    val heightToUse = if (totalHeight > 0) totalHeight else cachedTotalHeight
-                    Timber.d("currentHeight = $currentHeight, totalHeight = $totalHeight")
+                val currentHeight = tryOrNull { moneroWalletService.wallet?.blockChainHeight } ?: 0
+                val totalHeight = tryOrNull { WalletManager.getInstance().blockchainHeight } ?: 0L
+                if (totalHeight > 0) {
+                    cachedTotalHeight = totalHeight
+                }
+                val heightToUse = if (totalHeight > 0) totalHeight else cachedTotalHeight
+                Timber.d("currentHeight = $currentHeight, totalHeight = $totalHeight")
 
-                    if (heightToUse > 0) {
-                        ((currentHeight.toDouble() / heightToUse) * 100).coerceIn(0.0, 100.0)
-                            .toInt()
-                    } else {
-                        0
-                    }
-                }.getOrElse { 0 }
+                val progressPercent = if (heightToUse > 0) {
+                    ((currentHeight.toDouble() / heightToUse) * 100).coerceIn(0.0, 100.0).toInt()
+                } else {
+                    0
+                }
+
+                val blocksRemained = if (heightToUse > 0 && currentHeight < heightToUse) {
+                    heightToUse - currentHeight
+                } else {
+                    null
+                }
 
                 if (progressPercent == 0 && lastLoggedSyncProgress != 0) {
                     logger.info("onRefreshed: sync progress started (0%)")
@@ -622,11 +625,14 @@ class MoneroKitWrapper(
                     logger.info("onRefreshed: sync progress reached 100%")
                 }
                 if (progressPercent - lastLoggedSyncProgress >= 5 && progressPercent in 1..99) {
-                    logger.info("onRefreshed: sync progress=${progressPercent}%")
+                    logger.info("onRefreshed: sync progress=${progressPercent}% blocksRemained=$blocksRemained")
                 }
                 lastLoggedSyncProgress = progressPercent
 
-                AdapterState.Syncing(progressPercent.toInt())
+                AdapterState.Syncing(
+                    progress = progressPercent,
+                    blocksRemained = blocksRemained
+                )
             }
         Timber
             .d("onRefreshed, isSynchronized = ${wallet?.isSynchronized}, connectionStatus = ${wallet?.connectionStatus}, full = $full, restoreHeight = ${moneroWalletService.wallet?.restoreHeight?.toString()}")
