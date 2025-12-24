@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.balance.token
 
 import android.view.View
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ripple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -37,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
@@ -59,9 +55,8 @@ import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
-import cash.p.terminal.ui.compose.components.CoinImage
+import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
-import cash.p.terminal.ui.extensions.RotatingCircleProgressView
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
@@ -390,50 +385,22 @@ private fun WalletIcon(
     viewModel: TokenBalanceViewModel,
     navController: NavController
 ) {
+    val view = LocalView.current
+
     Box(
         modifier = Modifier
             .height(52.dp)
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        viewItem.syncingProgress.progress?.let { progress ->
-            AndroidView(
-                modifier = Modifier
-                    .size(52.dp),
-                factory = { context ->
-                    RotatingCircleProgressView(context)
-                },
-                update = { view ->
-                    val color = when (viewItem.syncingProgress.dimmed) {
-                        true -> R.color.grey_50
-                        false -> R.color.grey
-                    }
-                    view.setProgressColored(progress, view.context.getColor(color))
-                }
-            )
-        }
-        if (viewItem.failedIconVisible) {
-            val view = LocalView.current
-            Image(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple(bounded = false),
-                        onClick = {
-                            onSyncErrorClicked(viewItem, viewModel, navController, view)
-                        }
-                    ),
-                painter = painterResource(id = R.drawable.ic_attention_24),
-                contentDescription = "coin icon",
-                colorFilter = ColorFilter.tint(ComposeAppTheme.colors.lucian)
-            )
-        } else {
-            CoinImage(
-                token = viewItem.wallet.token,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        CoinIconWithSyncProgress(
+            token = viewItem.wallet.token,
+            syncingProgress = viewItem.syncingProgress,
+            failedIconVisible = viewItem.failedIconVisible,
+            onClickSyncError = {
+                onSyncErrorClicked(viewItem, viewModel, navController, view)
+            }
+        )
     }
 }
 

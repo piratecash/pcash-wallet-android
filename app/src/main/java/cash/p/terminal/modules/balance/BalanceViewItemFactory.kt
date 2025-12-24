@@ -86,7 +86,11 @@ data class BalanceViewItem2(
     val stackingUnpaid: DeemedValue<String>?
 )
 
-data class SyncingProgress(val progress: Int?, val dimmed: Boolean = false)
+enum class SyncingProgressType {
+    Spinner, ProgressWithRing
+}
+
+data class SyncingProgress(val type: SyncingProgressType?, val progress: Int?)
 
 class BalanceViewItemFactory {
 
@@ -95,15 +99,31 @@ class BalanceViewItemFactory {
         blockchainType: BlockchainType
     ): SyncingProgress {
         return when (state) {
-            is AdapterState.Syncing -> SyncingProgress(
-                state.progress ?: getDefaultSyncingProgress(
-                    blockchainType
-                ), false
-            )
-
-            is AdapterState.SearchingTxs -> SyncingProgress(10, true)
-            else -> SyncingProgress(null, false)
+            is AdapterState.Syncing -> {
+                val progressValue = state.progress ?: getDefaultSyncingProgress(blockchainType)
+                if (state.progress != null && blockchainType.isSyncWithProgress()) {
+                    SyncingProgress(SyncingProgressType.ProgressWithRing, progressValue)
+                } else {
+                    SyncingProgress(SyncingProgressType.Spinner, progressValue)
+                }
+            }
+            is AdapterState.SearchingTxs -> SyncingProgress(SyncingProgressType.Spinner, 10)
+            else -> SyncingProgress(null, null)
         }
+    }
+
+    private fun BlockchainType.isSyncWithProgress() = when (this) {
+        BlockchainType.Bitcoin,
+        BlockchainType.BitcoinCash,
+        BlockchainType.ECash,
+        BlockchainType.Litecoin,
+        BlockchainType.Dogecoin,
+        BlockchainType.Dash,
+        BlockchainType.PirateCash,
+        BlockchainType.Cosanta,
+        BlockchainType.Zcash,
+        BlockchainType.Monero -> true
+        else -> false
     }
 
     private fun getDefaultSyncingProgress(blockchainType: BlockchainType) = when (blockchainType) {
