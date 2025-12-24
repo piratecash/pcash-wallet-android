@@ -134,6 +134,7 @@
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Wrong words count. It must be 25 words. You entered: %d</string>
     <string name="invalid_height">Invalid height</string>
+    <string name="blockchair_height_by_date_connection_error">Can\'t connect to Blockchair to find the height by date</string>
     <string name="monero_restore_error">Monero restore error</string>
     <string name="Restore_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="Restore_InvalidChecksum">Invalid Checksum</string>
@@ -155,6 +156,7 @@
 
     <string name="SelectContacts_All">All</string>
 
+    <string name="restore_birthday_height_or_date">Birthday Height or Date</string>
     <string name="Restore_BirthdayHeight">Birthday Height</string>
     <string name="restore_monero" translatable="false">Monero</string>
     <string name="Restore_ZCash">ZCash</string>
@@ -350,9 +352,12 @@
     <string name="Balance_RatePerCoin">%1$s per %2$s</string>
     <string name="Balance_SyncedUntil">until %s</string>
     <string name="Balance_Syncing">Syncing…</string>
+    <string name="balance_connecting">Connecting…</string>
     <string name="Balance_SearchingTransactions">Searching transactions…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Syncing… %s%%</string>
+    <string name="balance_syncing_blocks_remaining">%s blocks remaining</string>
+    <string name="balance_processing">Processing…</string>
     <string name="Balance_Sort_Balance">Balance</string>
     <string name="Balance_Sort_PopupTitle">Sort by</string>
     <string name="Balance_Sort_Az">Name</string>
@@ -476,6 +481,7 @@ Proceed only if you\'re sure.</string>
     <string name="ScanQr_NoCameraPermission">No camera permission</string>
     <string name="ScanQr_CameraPermissionDeniedText">Access to your camera for this app was denied, you can go to settings and allow access</string>
     <string name="ScanQr_GoToSettings">Go to Settings</string>
+    <string name="scan_qr_camera_initialization_failed">Camera is not available. Please try again or use a different device.</string>
     <string name="choose_from_photos">Choose from Photos</string>
     <string name="image_decode_failed">Could not read a QR code from the selected image</string>
 

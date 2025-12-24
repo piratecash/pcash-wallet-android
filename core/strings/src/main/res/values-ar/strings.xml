@@ -103,6 +103,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">إعدادات متقدمة</string>
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
+    <string name="blockchair_height_by_date_connection_error">لا يمكن الاتصال بـ Blockchair للعثور على الارتفاع حسب التاريخ</string>
     <string name="Restore_Error_EmptyPassphrase">لا يمكن أن تكون كلمة المرور فارغة</string>
     <string name="Restore_InvalidChecksum">Invalid Checksum</string>
     <string name="Restore_PassphraseDescription">Enter the passphrase you used when creating this recovery phrase. Restoring an existing wallet with a new passphrase will generate a brand new wallet.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Invalid Key</string>
     <string name="SelectContacts_All">All</string>
     <string name="Restore_BirthdayHeight">Birthday Height</string>
+    <string name="restore_birthday_height_or_date">ارتفاع الميلاد أو التاريخ</string>
     <string name="Restore_ZCash">ZCash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Enter wallet\'s birthday height for faster synchronization.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (optional)</string>
@@ -292,6 +294,9 @@
     <string name="Balance_SearchingTransactions">Searching transactions…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Syncing… %s%%</string>
+    <string name="balance_connecting">جارٍ الاتصال…</string>
+    <string name="balance_syncing_blocks_remaining">%s كتلة متبقية</string>
+    <string name="balance_processing">جارٍ المعالجة…</string>
     <string name="Balance_Sort_Balance">Balance</string>
     <string name="Balance_Sort_PopupTitle">Sort by</string>
     <string name="Balance_Sort_Az">Name</string>
@@ -357,6 +362,7 @@
     <string name="ScanQr_NoCameraPermission">No camera permission</string>
     <string name="ScanQr_CameraPermissionDeniedText">Access to your camera for this app was denied, you can go to settings and allow access</string>
     <string name="ScanQr_GoToSettings">Go to Settings</string>
+    <string name="scan_qr_camera_initialization_failed">الكاميرا غير متاحة. يرجى المحاولة مرة أخرى أو استخدام جهاز آخر.</string>
     <string name="choose_from_photos">اختر من الصور</string>
     <string name="image_decode_failed">تعذّر قراءة رمز QR من الصورة المحددة</string>
     <string name="Send_Error_UnsupportedAddress">Time locking works only when sending to payment addresses starting with 1... (aka BIP44 addresses)</string>

@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.balance.ui
 
 import android.view.View
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -14,42 +13,39 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
-import androidx.compose.material.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.balance.SyncingProgress
+import cash.p.terminal.modules.balance.SyncingProgressType
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
 import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
 import cash.p.terminal.navigation.slideFromBottom
-import cash.p.terminal.ui.compose.components.CoinImage
-import cash.p.terminal.ui.extensions.RotatingCircleProgressView
+import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui_compose.components.CellMultilineClear
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.body_leah
+import cash.p.terminal.ui_compose.components.captionSB_leah
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.oneLineHeight
@@ -320,56 +316,20 @@ private fun WalletIcon(
     viewItem: BalanceViewItem2,
     onClickSyncError: (() -> Unit)?
 ) {
+    val syncingProgress = viewItem.syncingProgress
+
     Box(
         modifier = Modifier
             .width(64.dp)
             .fillMaxHeight(),
         contentAlignment = Alignment.Center
     ) {
-        viewItem.syncingProgress.progress?.let { progress ->
-            AndroidView(
-                modifier = Modifier
-                    .size(52.dp),
-                factory = { context ->
-                    RotatingCircleProgressView(context)
-                },
-                update = { view ->
-                    val color = when (viewItem.syncingProgress.dimmed) {
-                        true -> R.color.grey_50
-                        false -> R.color.grey
-                    }
-                    view.setProgressColored(progress, view.context.getColor(color))
-                }
-            )
-        }
-        if (viewItem.failedIconVisible) {
-            val clickableModifier = if (onClickSyncError != null) {
-                Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(
-                        bounded = false,
-                        radius = 20.dp
-                    ),
-                    onClick = onClickSyncError
-                )
-            } else {
-                Modifier
-            }
-
-            Image(
-                modifier = Modifier
-                    .size(32.dp)
-                    .then(clickableModifier),
-                painter = painterResource(id = R.drawable.ic_attention_24),
-                contentDescription = "coin icon",
-                colorFilter = ColorFilter.tint(ComposeAppTheme.colors.lucian)
-            )
-        } else {
-            CoinImage(
-                token = viewItem.wallet.token,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        CoinIconWithSyncProgress(
+            token = viewItem.wallet.token,
+            syncingProgress = syncingProgress,
+            failedIconVisible = viewItem.failedIconVisible,
+            onClickSyncError = onClickSyncError
+        )
     }
 }
 
@@ -412,6 +372,7 @@ private fun BalanceCardSwipablePreview() {
                 diff = BigDecimal("5.67"),
                 displayDiffOptionType = DisplayDiffOptionType.BOTH,
                 syncingProgress = SyncingProgress(
+                    type = SyncingProgressType.ProgressWithRing,
                     progress = 10
                 ),
                 syncingTextValue = null,

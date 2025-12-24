@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import cash.p.terminal.ui_compose.R
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 
 sealed class ImageSource {
     class Local(@DrawableRes val resId: Int) : ImageSource()

@@ -24,4 +24,7 @@ interface EnabledWalletsDao {
 
     @Query("DELETE FROM EnabledWallet WHERE id IN (:ids)")
     fun deleteWallets(ids: List<Long>)
+
+    @Query("DELETE FROM EnabledWallet WHERE accountId = :accountId AND tokenQueryId = :tokenQueryId")
+    fun deleteByTokenQueryId(accountId: String, tokenQueryId: String)
 }

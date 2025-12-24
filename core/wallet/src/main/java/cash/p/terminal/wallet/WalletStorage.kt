@@ -4,21 +4,26 @@ import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
-import cash.p.terminal.wallet.WalletFactory
 import io.horizontalsystems.core.entities.BlockchainType
-import kotlinx.coroutines.runBlocking
 
 class WalletStorage(
     private val marketKit: MarketKitWrapper,
     private val storage: IEnabledWalletStorage,
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase,
-    private val walletFactory: WalletFactory
+    private val walletFactory: WalletFactory,
+    private val deletedWalletChecker: IDeletedWalletChecker
 ) : IWalletStorage {
 
     private val map: HashMap<Wallet, Long> = HashMap()
 
-    override fun wallets(account: Account): List<Wallet> {
-        val enabledWallets = storage.enabledWallets(account.id)
+    override suspend fun wallets(account: Account): List<Wallet> {
+        val allEnabledWallets = storage.enabledWallets(account.id)
+
+        // Filter out wallets that user has deleted to prevent them from reappearing
+        val deletedTokenQueryIds = deletedWalletChecker.getDeletedTokenQueryIds(account.id)
+
+        val enabledWallets = allEnabledWallets.filter { it.tokenQueryId !in deletedTokenQueryIds }
+
         map.clear()
 
         val queries = enabledWallets.mapNotNull {
@@ -35,58 +40,60 @@ class WalletStorage(
         val blockchainUids = queries.map { it.blockchainType.uid }
         val blockchains = marketKit.blockchains(blockchainUids)
 
-        return enabledWallets.mapNotNull { enabledWallet ->
-            val tokenQuery = TokenQuery.fromId(enabledWallet.tokenQueryId) ?: return@mapNotNull null
+        return buildList {
+            for (enabledWallet in enabledWallets) {
+                val tokenQuery = TokenQuery.fromId(enabledWallet.tokenQueryId) ?: continue
 
-            tokens.find { it.tokenQuery == tokenQuery }?.let { token ->
-                val hardwarePublicKey = runBlocking {
-                    getHardwarePublicKeyForWalletUseCase(
+                val existingToken = tokens.find { it.tokenQuery == tokenQuery }
+                if (existingToken != null) {
+                    val hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
+                        account = account,
+                        blockchainType = existingToken.blockchainType,
+                        tokenType = existingToken.type
+                    )
+                    walletFactory.create(
+                        token = existingToken,
+                        account = account,
+                        hardwarePublicKey = hardwarePublicKey
+                    )?.let { wallet ->
+                        map[wallet] = enabledWallet.id
+                        add(wallet)
+                    }
+                    continue
+                }
+
+                if (enabledWallet.coinName != null && enabledWallet.coinCode != null && enabledWallet.coinDecimals != null) {
+                    val coinUid = tokenQuery.customCoinUid
+                    val blockchain = blockchains.firstOrNull { it.uid == tokenQuery.blockchainType.uid }
+                        ?: continue
+
+                    val token = Token(
+                        coin = Coin(
+                            uid = coinUid,
+                            name = enabledWallet.coinName,
+                            code = enabledWallet.coinCode,
+                            image = enabledWallet.coinImage
+                        ),
+                        blockchain = blockchain,
+                        type = tokenQuery.tokenType,
+                        decimals = enabledWallet.coinDecimals
+                    )
+
+                    val hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
                         account = account,
                         blockchainType = token.blockchainType,
                         tokenType = token.type
                     )
-                }
-                return@mapNotNull walletFactory.create(
-                    token = token,
-                    account = account,
-                    hardwarePublicKey = hardwarePublicKey
-                )?.apply { map[this] = enabledWallet.id }
-            }
 
-            if (enabledWallet.coinName != null && enabledWallet.coinCode != null && enabledWallet.coinDecimals != null) {
-                val coinUid = tokenQuery.customCoinUid
-                val blockchain = blockchains.firstOrNull { it.uid == tokenQuery.blockchainType.uid }
-                    ?: return@mapNotNull null
-
-                val token = Token(
-                    coin = Coin(
-                        uid = coinUid,
-                        name = enabledWallet.coinName,
-                        code = enabledWallet.coinCode,
-                        image = enabledWallet.coinImage
-                    ),
-                    blockchain = blockchain,
-                    type = tokenQuery.tokenType,
-                    decimals = enabledWallet.coinDecimals
-                )
-
-                val hardwarePublicKey = runBlocking {
-                    getHardwarePublicKeyForWalletUseCase(
+                    walletFactory.create(
+                        token = token,
                         account = account,
-                        blockchainType = token.blockchainType,
-                        tokenType = token.type
-                    )
+                        hardwarePublicKey = hardwarePublicKey
+                    )?.let { wallet ->
+                        map[wallet] = enabledWallet.id
+                        add(wallet)
+                    }
                 }
-
-                walletFactory.create(
-                    token = token,
-                    account = account,
-                    hardwarePublicKey = hardwarePublicKey
-                )?.apply {
-                    map[this] = enabledWallet.id
-                }
-            } else {
-                null
             }
         }
     }
@@ -110,7 +117,7 @@ class WalletStorage(
             enabledWallet(wallet, index)
         }
 
-        storage.save(enabledWallets).forEachIndexed { index, id ->
+        handle(enabledWallets).forEachIndexed { index, id ->
             map[walletsToAdd[index]] = id
         }
     }
@@ -119,8 +126,12 @@ class WalletStorage(
         storage.delete(wallets.mapNotNull { map[it] })
     }
 
-    override fun handle(newEnabledWallets: List<EnabledWallet>) {
-        storage.save(newEnabledWallets)
+    override fun deleteByTokenQueryId(accountId: String, tokenQueryId: String) {
+        storage.deleteByTokenQueryId(accountId, tokenQueryId)
+    }
+
+    override fun handle(newEnabledWallets: List<EnabledWallet>): List<Long> {
+        return storage.save(newEnabledWallets)
     }
 
     override fun clear() {

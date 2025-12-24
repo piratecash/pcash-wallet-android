@@ -3,16 +3,17 @@ package cash.p.terminal.core.adapters.stellar
 import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.managers.StellarKitWrapper
 import cash.p.terminal.core.managers.statusInfo
-import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.stellarkit.StellarKit
+import io.horizontalsystems.stellarkit.SyncState
 import io.horizontalsystems.stellarkit.room.StellarAsset
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import java.math.BigDecimal
@@ -29,7 +30,7 @@ class StellarAdapter(
     private var minimumBalance: BigDecimal = BigDecimal.ZERO
     private var assets = listOf<StellarAsset.Asset>()
 
-    override var balanceState: AdapterState = AdapterState.Syncing()
+    override var balanceState: AdapterState = AdapterState.Connecting
     override val balanceData: BalanceData
         get() = BalanceData(
             availableBalance,
@@ -54,8 +55,13 @@ class StellarAdapter(
             }
         }
         coroutineScope.launch {
-            stellarKit.syncStateFlow.collect {
-                balanceState = it.toAdapterState()
+            combine(
+                stellarKit.syncStateFlow,
+                stellarKit.operationsSyncStateFlow
+            ) { balanceSync, operationsSync ->
+                getCombinedSyncState(balanceSync, operationsSync)
+            }.collect { combinedState ->
+                balanceState = combinedState
                 balanceStateUpdatedSubject.onNext(Unit)
             }
         }
@@ -64,6 +70,32 @@ class StellarAdapter(
                 assets = it.keys.filterIsInstance<StellarAsset.Asset>()
                 balanceUpdatedSubject.onNext(Unit)
             }
+        }
+    }
+
+    private fun getCombinedSyncState(
+        balanceSync: SyncState,
+        operationsSync: SyncState
+    ): AdapterState {
+        return when {
+            // Error state (balance)
+            balanceSync is SyncState.NotSynced ->
+                AdapterState.NotSynced(balanceSync.error)
+
+            // Syncing balance
+            balanceSync is SyncState.Syncing -> AdapterState.Syncing()
+
+            // Balance synced, but operations still syncing
+            balanceSync is SyncState.Synced &&
+                operationsSync is SyncState.Syncing -> AdapterState.SearchingTxs(0)
+
+            // Operations sync error (balance is synced)
+            balanceSync is SyncState.Synced &&
+                operationsSync is SyncState.NotSynced ->
+                    AdapterState.NotSynced(operationsSync.error)
+
+            // Fully synced
+            else -> AdapterState.Synced
         }
     }
 

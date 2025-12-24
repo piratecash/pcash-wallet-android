@@ -143,10 +143,10 @@ class SwapViewModel(
         }
     )
 
-    private fun checkWarningAndEmitState() {
+    private fun fetchWarningMessageAsync() {
         viewModelScope.launch {
             warningMessage = obtainWarningMessage()
-            emitState()
+            emitState() // Update UI again once warning is fetched
         }
     }
 
@@ -182,7 +182,8 @@ class SwapViewModel(
         fiatServiceOut.setToken(quoteState.tokenOut)
         fiatServiceOut.setAmount(quoteState.quote?.amountOut)
 
-        checkWarningAndEmitState()
+        emitState() // Emit immediately so UI updates without waiting for warning
+        fetchWarningMessageAsync()
 
         if (quoteState.quote != null) {
             val elapsedMillis = System.currentTimeMillis() - quoteState.quote.createdAt

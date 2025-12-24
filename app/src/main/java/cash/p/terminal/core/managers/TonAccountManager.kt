@@ -133,8 +133,6 @@ class TonAccountManager(
                 )
             }
 
-        if (enabledWallets.isNotEmpty()) {
-            walletManager.saveEnabledWallets(enabledWallets)
-        }
+        walletManager.saveEnabledWallets(enabledWallets)
     }
 }

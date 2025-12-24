@@ -119,8 +119,6 @@ class StellarAccountManager(
                 )
             }
 
-        if (enabledWallets.isNotEmpty()) {
-            walletManager.saveEnabledWallets(enabledWallets)
-        }
+        walletManager.saveEnabledWallets(enabledWallets)
     }
 }

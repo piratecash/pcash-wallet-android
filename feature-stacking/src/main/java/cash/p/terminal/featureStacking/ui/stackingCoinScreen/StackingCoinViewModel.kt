@@ -39,16 +39,15 @@ import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.smartFormat
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.util.Calendar
 import java.util.Date
-import java.util.concurrent.Executors
 
 internal abstract class StackingCoinViewModel(
     private val walletManager: IWalletManager,
@@ -75,7 +74,6 @@ internal abstract class StackingCoinViewModel(
     )
     private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
 
-    private val customDispatcher = Executors.newFixedThreadPool(10).asCoroutineDispatcher()
     private val _uiState = mutableStateOf(
         StackingCoinUIState(
             balanceHidden = balanceHiddenManager.balanceHiddenFlow.value
@@ -99,7 +97,9 @@ internal abstract class StackingCoinViewModel(
             }
         }
         viewModelScope.launch {
-            premiumType = checkPremiumUseCase.update()
+            premiumType = withContext(Dispatchers.IO) {
+                checkPremiumUseCase.update()
+            }
         }
 
         viewModelScope.launch {
@@ -114,7 +114,7 @@ internal abstract class StackingCoinViewModel(
     fun loadData() = viewModelScope.launch {
         createWalletIfNotExist()
         loadAnnualInterest()
-        viewModelScope.launch(customDispatcher) {
+        viewModelScope.launch {
             balanceService.balanceItemsFlow.collect { items ->
                 if (items?.find {
                         it.state == AdapterState.Synced && it.wallet.token.type is TokenType.Eip20 &&
@@ -146,7 +146,7 @@ internal abstract class StackingCoinViewModel(
         }
     }
 
-    private fun loadAnnualInterest() = viewModelScope.launch(Dispatchers.IO) {
+    private fun loadAnnualInterest() = viewModelScope.launch {
         try {
             val data = piratePlaceRepository.getCalculatorData(
                 coin = stackingType.value,
@@ -175,17 +175,19 @@ internal abstract class StackingCoinViewModel(
         if (wallet == null) {
             val account = accountManager.activeAccount ?: return
             val tokenQuery = TokenQuery.eip20(BlockchainType.BinanceSmartChain, contract)
-            marketKitWrapper.token(tokenQuery)?.let { token ->
-                wallet = walletFactory.create(
-                    token = token,
-                    account = account,
-                    hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
-                        account = account, blockchainType = token.blockchainType,
-                        tokenType = token.type
-                    )
-                )?.also {
-                    walletManager.save(listOf(it))
-                }
+            val token = withContext(Dispatchers.IO) {
+                marketKitWrapper.token(tokenQuery)
+            } ?: return
+
+            wallet = walletFactory.create(
+                token = token,
+                account = account,
+                hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(
+                    account = account, blockchainType = token.blockchainType,
+                    tokenType = token.type
+                )
+            )?.also {
+                walletManager.save(listOf(it))
             }
         }
     }
@@ -232,10 +234,10 @@ internal abstract class StackingCoinViewModel(
         )
 
         viewModelScope.launch(
-            customDispatcher +
-                    CoroutineExceptionHandler { _, throwable ->
-                        Log.e("StackingCoinViewModel", "Error loading balance", throwable)
-                    }) {
+            CoroutineExceptionHandler { _, throwable ->
+                Log.e("StackingCoinViewModel", "Error loading balance", throwable)
+            }
+        ) {
             balanceService.balanceItemsFlow.collectLatest { items ->
                 if (backgroundManager.stateFlow.value != BackgroundManagerState.EnterForeground) {
                     return@collectLatest
@@ -259,13 +261,13 @@ internal abstract class StackingCoinViewModel(
 
     private fun loadInvestmentData(balance: BigDecimal, wallet: Wallet?, coinPrice: CoinPrice?) =
         viewModelScope.launch(
-            customDispatcher +
-                    CoroutineExceptionHandler { _, throwable ->
-                        Log.e("StackingCoinViewModel", "Error loading investment data", throwable)
-                        _uiState.value = uiState.value.copy(
-                            loading = false
-                        )
-                    }) {
+            CoroutineExceptionHandler { _, throwable ->
+                Log.e("StackingCoinViewModel", "Error loading investment data", throwable)
+                _uiState.value = uiState.value.copy(
+                    loading = false
+                )
+            }
+        ) {
             var unpaid: BigDecimal = BigDecimal.ZERO
             var totalIncome: BigDecimal = BigDecimal.ZERO
             var secondaryAmount = ""
@@ -368,9 +370,5 @@ internal abstract class StackingCoinViewModel(
         }
 
         return DateHelper.shortDate(date, "MMMM d", "MMMM d, yyyy")
-    }
-
-    override fun onCleared() {
-        customDispatcher.close()
     }
 }

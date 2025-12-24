@@ -128,6 +128,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Невірний ключ</string>
     <string name="SelectContacts_All">Всі</string>
     <string name="Restore_BirthdayHeight">Блок створення</string>
+    <string name="restore_birthday_height_or_date">Блок створення або дата створення</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Введіть блок створення гаманця для прискорення синхронізації.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (необов’язково)</string>
@@ -298,9 +299,12 @@
     <string name="Balance_RatePerCoin">%1$s за %2$s</string>
     <string name="Balance_SyncedUntil">до %s</string>
     <string name="Balance_Syncing">Синхронізація…</string>
+    <string name="balance_connecting">Підключення…</string>
     <string name="Balance_SearchingTransactions">Пошук транзакцій...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Синхронізація… %s%%</string>
+    <string name="balance_syncing_blocks_remaining">Залишилось %s блоків</string>
+    <string name="balance_processing">Обробка…</string>
     <string name="Balance_Sort_Balance">За балансом</string>
     <string name="Balance_Sort_PopupTitle">Сортувати</string>
     <string name="Balance_Sort_Az">За назвою</string>
@@ -368,6 +372,7 @@
     <string name="ScanQr_NoCameraPermission">Немає дозволу для камери</string>
     <string name="ScanQr_CameraPermissionDeniedText">Доступ до камери для цього застосунку заборонено, ви можете перейти в налаштування та дозволити доступ</string>
     <string name="ScanQr_GoToSettings">Перейти в налаштування</string>
+    <string name="scan_qr_camera_initialization_failed">Камера недоступна. Будь ласка, спробуйте ще раз або скористайтеся іншим пристроєм.</string>
     <string name="choose_from_photos">Вибрати з фото</string>
     <string name="image_decode_failed">Не вдалося зчитати QR-код із вибраного зображення</string>
     <string name="Send_Error_UnsupportedAddress">TimeLock працює тільки при надсиланні на платіжні адреси, що починаються з 1... (також відомих як BIP44 адреси)</string>
@@ -1613,6 +1618,7 @@
     <string name="restoreheight_hint">Вкажіть блок або дату (РРРР-ММ-ДД)</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Невірна кількість слів. Має бути 25. Ви ввели: %d</string>
     <string name="invalid_height">Невірне значення висоти</string>
+    <string name="blockchair_height_by_date_connection_error">Не вдалося підключитися до Blockchair, щоб знайти висоту за датою</string>
     <string name="view_key">Ключ перегляду</string>
     <string name="Balance_Receive_Trustline">Довірча лінія</string>
     <string name="Balance_Reserved_Title">Зарезервовано</string>

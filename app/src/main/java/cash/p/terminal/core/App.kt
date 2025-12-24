@@ -90,11 +90,15 @@ import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.widgets.MarketWidgetManager
 import cash.p.terminal.widgets.MarketWidgetRepository
 import cash.p.terminal.widgets.MarketWidgetWorker
-import coil.ImageLoader
-import coil.ImageLoaderFactory
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
-import coil.decode.SvgDecoder
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.PlatformContext
+import coil3.gif.GifDecoder
+import coil3.gif.AnimatedImageDecoder
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.svg.SvgDecoder
+import coil3.request.crossfade
+import okhttp3.OkHttpClient
 import com.getkeepsafe.relinker.ReLinker
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.m2049r.levin.util.NetCipherHelper
@@ -131,7 +135,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import androidx.work.Configuration as WorkConfiguration
 
-class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
+class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory {
 
     companion object : ICoreApp by CoreApp {
 
@@ -448,13 +452,29 @@ class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
     }
 
-    override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
+    override fun newImageLoader(context: PlatformContext): ImageLoader {
+        val okHttpClient = OkHttpClient.Builder()
+            .addNetworkInterceptor { chain ->
+                val response = chain.proceed(chain.request())
+                if (!response.isSuccessful) {
+                    // Don't cache error responses (404, 500, etc.)
+                    // This prevents placeholder icons from being shown permanently
+                    response.newBuilder()
+                        .header("Cache-Control", "no-store")
+                        .build()
+                } else {
+                    response
+                }
+            }
+            .build()
+
+        return ImageLoader.Builder(context)
             .crossfade(true)
             .components {
                 add(SvgDecoder.Factory())
+                add(OkHttpNetworkFetcherFactory(okHttpClient))
                 if (Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
+                    add(AnimatedImageDecoder.Factory())
                 } else {
                     add(GifDecoder.Factory())
                 }

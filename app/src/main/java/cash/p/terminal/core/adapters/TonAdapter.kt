@@ -2,7 +2,6 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.TonKitWrapper
-import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.tonkit.FriendlyAddress
@@ -15,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -37,11 +37,47 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
             }
         }
         coroutineScope.launch {
-            tonKit.syncStateFlow.collect {
-                balanceState = it.toAdapterState()
+            combine(
+                tonKit.syncStateFlow,
+                tonKit.eventSyncStateFlow,
+                tonKit.jettonSyncStateFlow
+            ) { accountSync, eventSync, jettonSync ->
+                getCombinedSyncState(accountSync, eventSync, jettonSync)
+            }.collect { combinedState ->
+                balanceState = combinedState
                 balanceStateUpdatedSubject.onNext(Unit)
             }
         }
+    }
+
+    private fun getCombinedSyncState(
+        accountSync: SyncState,
+        eventSync: SyncState,
+        jettonSync: SyncState
+    ): AdapterState {
+        // Check for errors first (any sync in error state)
+        if (accountSync is SyncState.NotSynced) {
+            return AdapterState.NotSynced(accountSync.error)
+        }
+        if (eventSync is SyncState.NotSynced) {
+            return AdapterState.NotSynced(eventSync.error)
+        }
+        if (jettonSync is SyncState.NotSynced) {
+            return AdapterState.NotSynced(jettonSync.error)
+        }
+
+        // Account syncing - show as Syncing (balance sync phase)
+        if (accountSync is SyncState.Syncing) {
+            return AdapterState.Syncing()
+        }
+
+        // Account synced, but events or jettons still syncing - show as SearchingTxs
+        if (eventSync is SyncState.Syncing || jettonSync is SyncState.Syncing) {
+            return AdapterState.SearchingTxs(0)
+        }
+
+        // All synced
+        return AdapterState.Synced
     }
 
     private fun getBalanceFromAccount(account: Account?): BigDecimal {
@@ -67,7 +103,7 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     override val debugInfo: String
         get() = ""
 
-    override var balanceState: AdapterState = AdapterState.Syncing()
+    override var balanceState: AdapterState = AdapterState.Connecting
     override val balanceStateUpdatedFlow: Flow<Unit>
         get() = balanceStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
     override val balanceData: BalanceData

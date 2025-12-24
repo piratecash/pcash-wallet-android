@@ -103,6 +103,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">高级</string>
     <string name="Restore_Error_MnemonicWordCount">个数有误。必须为12到24个单词。您输入了：%d</string>
+    <string name="blockchair_height_by_date_connection_error">无法连接到 Blockchair 以按日期查找高度</string>
     <string name="Restore_Error_EmptyPassphrase">助记词不能为空</string>
     <string name="Restore_InvalidChecksum">校验和无效</string>
     <string name="Restore_PassphraseDescription">输入您在创建此助记词时使用的密码.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">错误密钥</string>
     <string name="SelectContacts_All">所有</string>
     <string name="Restore_BirthdayHeight">生日高度</string>
+    <string name="restore_birthday_height_or_date">生日高度或日期</string>
     <string name="Restore_ZCash">ZCash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">输入钱包的生日高度以便实现更快同步。</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (可选)</string>
@@ -292,6 +294,9 @@
     <string name="Balance_SearchingTransactions">正在搜索交易…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">正在同步... %s%%</string>
+    <string name="balance_connecting">正在连接…</string>
+    <string name="balance_syncing_blocks_remaining">还剩 %s 个区块</string>
+    <string name="balance_processing">处理中…</string>
     <string name="Balance_Sort_Balance">余额</string>
     <string name="Balance_Sort_PopupTitle">排序</string>
     <string name="Balance_Sort_Az">名称</string>
@@ -357,6 +362,7 @@
     <string name="ScanQr_NoCameraPermission">没有拍照权限</string>
     <string name="ScanQr_CameraPermissionDeniedText">无法访问相机此应用，您可以进入设置并允许访问</string>
     <string name="ScanQr_GoToSettings">前往设置</string>
+    <string name="scan_qr_camera_initialization_failed">相机不可用。请重试或使用其他设备。</string>
     <string name="choose_from_photos">从照片中选择</string>
     <string name="image_decode_failed">无法从所选图片读取二维码</string>
     <string name="Send_Error_UnsupportedAddress">时间锁定只能和P2PKH地址（以1开头）一起使用</string>

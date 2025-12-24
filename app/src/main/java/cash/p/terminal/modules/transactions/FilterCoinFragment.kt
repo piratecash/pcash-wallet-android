@@ -39,7 +39,7 @@ import cash.p.terminal.ui_compose.components.D1
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.badge
-import coil.compose.rememberAsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 
 class FilterCoinFragment : BaseComposeFragment() {

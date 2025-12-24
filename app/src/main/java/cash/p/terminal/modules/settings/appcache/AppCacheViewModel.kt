@@ -8,8 +8,7 @@ import cash.p.terminal.modules.settings.appcache.AppCacheModule.CacheType
 import cash.p.terminal.modules.settings.appcache.AppCacheModule.UiState
 import cash.p.terminal.wallet.HSCache
 import cash.p.terminal.wallet.storage.MarketDatabase
-import coil.annotation.ExperimentalCoilApi
-import coil.imageLoader
+import coil3.imageLoader
 import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,7 +81,6 @@ class AppCacheViewModel(
         }
     }
 
-    @OptIn(ExperimentalCoilApi::class)
     private suspend fun clearImageCache() {
         withContext(dispatcherProvider.io) {
             runCatching {

@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.addtoken
 
 import cash.p.terminal.wallet.customCoinUid
-import cash.p.terminal.modules.addtoken.AddTokenModule.IAddTokenBlockchainService
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.Blockchain
 import cash.p.terminal.wallet.entities.Coin

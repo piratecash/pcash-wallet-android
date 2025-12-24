@@ -74,13 +74,15 @@ abstract class BitcoinBaseAdapter(
     // Adapter implementation
     //
 
-    private var syncState: AdapterState = AdapterState.Syncing()
+    private var syncState: AdapterState = AdapterState.Connecting
         set(value) {
             if (value != field) {
                 field = value
                 adapterStateUpdatedSubject.onNext(Unit)
             }
         }
+
+    private var lastSyncProgress: Int = 0
 
     override val transactionsState
         get() = syncState
@@ -283,6 +285,7 @@ abstract class BitcoinBaseAdapter(
     protected fun setState(kitState: BitcoinCore.KitState) {
         syncState = when (kitState) {
             is BitcoinCore.KitState.Synced -> {
+                lastSyncProgress = 100
                 AdapterState.Synced
             }
 
@@ -296,12 +299,23 @@ abstract class BitcoinBaseAdapter(
 
             is BitcoinCore.KitState.Syncing -> {
                 val progress = (kitState.progress * 100).toInt()
-                val lastBlockDate =
-                    if (syncMode is BitcoinCore.SyncMode.Blockchair) null else kit.lastBlockInfo?.timestamp?.let {
-                        Date(it * 1000)
-                    }
+                lastSyncProgress = progress
 
-                AdapterState.Syncing(progress, lastBlockDate)
+                val lastBlockDate = kit.lastBlockInfo?.timestamp?.let { Date(it * 1000) }
+
+                val currentHeight = kit.lastBlockInfo?.height?.toLong()
+                val blocksRemained = if (currentHeight != null && progress > 0 && progress < 100) {
+                    val estimatedTotal = (currentHeight * 100L) / progress
+                    (estimatedTotal - currentHeight).coerceAtLeast(0)
+                } else {
+                    null
+                }
+
+                if (progress >= 100) {
+                    AdapterState.Syncing(progress = 100, lastBlockDate = lastBlockDate, blocksRemained = null)
+                } else {
+                    AdapterState.Syncing(progress = progress, lastBlockDate = lastBlockDate, blocksRemained = blocksRemained)
+                }
             }
         }
     }

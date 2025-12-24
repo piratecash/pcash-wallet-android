@@ -130,6 +130,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Неверный ключ</string>
     <string name="SelectContacts_All">Все</string>
     <string name="Restore_BirthdayHeight">Блок создания</string>
+    <string name="restore_birthday_height_or_date">Блок создания или дата создания</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Введите блок создания кошелька для ускорения синхронизации.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (необязательно)</string>
@@ -300,9 +301,12 @@
     <string name="Balance_RatePerCoin">%1$s за %2$s</string>
     <string name="Balance_SyncedUntil">до %s</string>
     <string name="Balance_Syncing">Синхронизация…</string>
+    <string name="balance_connecting">Подключение…</string>
     <string name="Balance_SearchingTransactions">Поиск транзакций...</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Синхронизация… %s%%</string>
+    <string name="balance_syncing_blocks_remaining">Осталось %s блоков</string>
+    <string name="balance_processing">Обработка…</string>
     <string name="Balance_Sort_Balance">По балансу</string>
     <string name="Balance_Sort_PopupTitle">Сортировать</string>
     <string name="Balance_Sort_Az">По названию</string>
@@ -370,6 +374,7 @@
     <string name="ScanQr_NoCameraPermission">Нет разрешения для камеры</string>
     <string name="ScanQr_CameraPermissionDeniedText">Доступ к камере для этого приложения запрещен, вы можете перейти в настройки и разрешить доступ</string>
     <string name="ScanQr_GoToSettings">Перейти в настройки</string>
+    <string name="scan_qr_camera_initialization_failed">Камера недоступна. Попробуйте еще раз или используйте другое устройство.</string>
     <string name="choose_from_photos">Выбрать из фото</string>
     <string name="image_decode_failed">Не удалось распознать QR-код на выбранном изображении</string>
     <string name="Send_Error_UnsupportedAddress">TimeLock работает только при отправке на платёжные адреса, начинающиеся с 1... (также известных как BIP44 адреса)</string>
@@ -1614,6 +1619,7 @@
     <string name="restoreheight_hint">Укажите блок или дату (ГГГГ-ММ-ДД)</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Неверное количество слов. Должно быть 25. Вы ввели: %d</string>
     <string name="invalid_height">Неверное значение высоты</string>
+    <string name="blockchair_height_by_date_connection_error">Не удалось подключиться к Blockchair, чтобы найти высоту по дате</string>
     <string name="view_key">Ключ просмотра</string>
     <string name="Balance_Receive_Trustline">Доверительная линия</string>
     <string name="Balance_Reserved_Title">Зарезервировано</string>

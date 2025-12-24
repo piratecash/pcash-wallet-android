@@ -17,7 +17,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -49,6 +48,7 @@ import io.horizontalsystems.core.entities.Blockchain
 import cash.p.terminal.navigation.setNavigationResultX
 import kotlinx.coroutines.delay
 import kotlinx.parcelize.Parcelize
+import org.koin.compose.viewmodel.koinViewModel
 
 class AddTokenFragment : BaseComposeFragment() {
 
@@ -67,7 +67,7 @@ private const val BlockchainSelectorPage = "blockchain_selector"
 @Composable
 private fun AddTokenNavHost(
     fragmentNavController: NavController,
-    viewModel: AddTokenViewModel = viewModel(factory = AddTokenModule.Factory())
+    viewModel: AddTokenViewModel = koinViewModel()
 ) {
     val navController = rememberNavController()
     NavHost(

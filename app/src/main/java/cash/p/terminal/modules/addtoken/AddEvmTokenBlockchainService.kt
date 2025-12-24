@@ -2,7 +2,6 @@ package cash.p.terminal.modules.addtoken
 
 import cash.p.terminal.core.App
 import cash.p.terminal.wallet.customCoinUid
-import cash.p.terminal.modules.addtoken.AddTokenModule.IAddTokenBlockchainService
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.erc20kit.core.Eip20Provider
 import io.horizontalsystems.ethereumkit.core.AddressValidator

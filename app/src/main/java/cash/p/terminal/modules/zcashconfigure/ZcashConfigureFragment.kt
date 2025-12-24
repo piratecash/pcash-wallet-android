@@ -223,7 +223,7 @@ fun ZcashConfigureScreen(
 
                 if (!uiState.restoreAsNew) {
                     Spacer(Modifier.height(24.dp))
-                    HeaderText(text = stringResource(R.string.Restore_BirthdayHeight))
+                    HeaderText(text = stringResource(R.string.restore_birthday_height_or_date))
 
                     FormsInput(
                         initial = uiState.birthdayHeight,

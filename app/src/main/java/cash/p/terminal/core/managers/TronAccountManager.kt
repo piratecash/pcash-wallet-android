@@ -249,7 +249,7 @@ class TronAccountManager(
                     )
                 }
 
-            if (enabledWallets.isNotEmpty() && isActive) {
+            if (isActive) {
                 walletManager.saveEnabledWallets(enabledWallets)
             }
         }

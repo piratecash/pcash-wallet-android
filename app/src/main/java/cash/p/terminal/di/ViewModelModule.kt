@@ -1,6 +1,7 @@
 package cash.p.terminal.di
 
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
+import cash.p.terminal.modules.addtoken.AddTokenViewModel
 import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
@@ -62,6 +63,7 @@ val viewModelModule = module {
     viewModelOf(::TonConnectListViewModel)
     viewModelOf(::ZcashConfigureViewModel)
     viewModelOf(::QRScannerViewModel)
+    viewModelOf(::AddTokenViewModel)
     viewModel { (input: AccountTypeNotSupportedDialog.Input) ->
         AccountTypeNotSupportedViewModel(input = input, accountManager = get())
     }

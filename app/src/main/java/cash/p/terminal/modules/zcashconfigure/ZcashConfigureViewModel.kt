@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.network.zcash.domain.usecase.GetZcashHeightUseCase
+import cash.p.terminal.network.zcash.domain.usecase.ZcashHeightResult
 import cash.p.terminal.strings.helpers.Translator
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -75,13 +76,33 @@ class ZcashConfigureViewModel(
             uiState = uiState.copy(loading = true)
 
             val birthdayHeight = uiState.birthdayHeight?.trim().takeUnless { it.isNullOrBlank() }
+            var errorMessage: String? = null
             val heightDetected = if (uiState.restoreAsNew) {
                 getZcashHeightUseCase.getCurrentBlockHeight()?.toString()
             } else {
                 birthdayHeight?.let { heightInput ->
-                    getLocalDate(heightInput)?.let { detectedDate ->
-                        getZcashHeightUseCase(detectedDate)?.toString()
-                    } ?: heightInput.toLongOrNull()?.toString()
+                    val detectedDate = getLocalDate(heightInput)
+                    if (detectedDate != null) {
+                        when (val result = getZcashHeightUseCase(detectedDate)) {
+                            is ZcashHeightResult.Success -> result.height.toString()
+                            ZcashHeightResult.NotFound -> {
+                                errorMessage = Translator.getString(R.string.invalid_height)
+                                null
+                            }
+                            ZcashHeightResult.NetworkError -> {
+                                errorMessage = Translator.getString(
+                                    R.string.blockchair_height_by_date_connection_error
+                                )
+                                null
+                            }
+                        }
+                    } else {
+                        heightInput.toLongOrNull()?.toString().also {
+                            if (it == null) {
+                                errorMessage = Translator.getString(R.string.invalid_height)
+                            }
+                        }
+                    }
                 }
             }
             val heightCorrect = uiState.restoreAsNew || (heightDetected != null)
@@ -95,7 +116,7 @@ class ZcashConfigureViewModel(
                 errorHeight = if (heightCorrect) {
                     null
                 } else {
-                    Translator.getString(R.string.invalid_height)
+                    errorMessage ?: Translator.getString(R.string.invalid_height)
                 },
                 loading = false
             )

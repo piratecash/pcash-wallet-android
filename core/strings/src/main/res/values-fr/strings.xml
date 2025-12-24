@@ -103,6 +103,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Avancé</string>
     <string name="Restore_Error_MnemonicWordCount">Le nombre de mots est incorrect. Il doit être compris entre 12 et 24 mots. Vous avez saisi : %d</string>
+    <string name="blockchair_height_by_date_connection_error">Impossible de se connecter à Blockchair pour trouver la hauteur par date</string>
     <string name="Restore_Error_EmptyPassphrase">La phrase d\'authentification ne peut pas être laissée en blanc</string>
     <string name="Restore_InvalidChecksum">Somme de contrôle invalide</string>
     <string name="Restore_PassphraseDescription">Entrez la phrase d\'authentification que vous avez utilisée pour créer cette phrase mnémonique.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Clé invalide</string>
     <string name="SelectContacts_All">Tout</string>
     <string name="Restore_BirthdayHeight">Hauteur de l\'anniversaire</string>
+    <string name="restore_birthday_height_or_date">Hauteur de l\'anniversaire ou date</string>
     <string name="Restore_ZCash">ZCash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Saisissez la hauteur de l\'anniversaire du portefeuille pour une synchronisation plus rapide.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (facultatif)</string>
@@ -289,9 +291,12 @@
     <string name="Balance_RatePerCoin">%1$s par %2$s</string>
     <string name="Balance_SyncedUntil">jusqu\'à: %s</string>
     <string name="Balance_Syncing">Synchronisation…</string>
+    <string name="balance_connecting">Connexion…</string>
     <string name="Balance_SearchingTransactions">Recherche des transactions…</string>
     <string name="Balance_FoundTx">%s TX</string>
     <string name="Balance_Syncing_WithProgress">Synchronisation... %s%%</string>
+    <string name="balance_syncing_blocks_remaining">%s blocs restants</string>
+    <string name="balance_processing">Traitement…</string>
     <string name="Balance_Sort_Balance">Solde</string>
     <string name="Balance_Sort_PopupTitle">Trier par</string>
     <string name="Balance_Sort_Az">Nom</string>
@@ -357,6 +362,7 @@
     <string name="ScanQr_NoCameraPermission">Pas de permission caméra</string>
     <string name="ScanQr_CameraPermissionDeniedText">L\'accès à votre caméra pour cette application a été refusé, vous pouvez aller dans les paramètres et autoriser l\'accès</string>
     <string name="ScanQr_GoToSettings">Accéder aux paramètres</string>
+    <string name="scan_qr_camera_initialization_failed">La caméra n\'est pas disponible. Veuillez réessayer ou utiliser un autre appareil.</string>
     <string name="choose_from_photos">Choisir depuis les photos</string>
     <string name="image_decode_failed">Impossible de lire un code QR à partir de l\'image sélectionnée</string>
     <string name="Send_Error_UnsupportedAddress">Time lock ne fonctionne qu\'avec les adresses P2PKH (commençant par 1)</string>

@@ -102,6 +102,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Erweitert</string>
     <string name="Restore_Error_MnemonicWordCount">Falsche Wortzahl. Sie muss zwischen 12 und 24 Wörtern liegen. Sie haben eingegeben: %d</string>
+    <string name="blockchair_height_by_date_connection_error">Keine Verbindung zu Blockchair möglich, um die Höhe nach Datum zu finden</string>
     <string name="Restore_Error_EmptyPassphrase">Passphrase darf nicht leer sein</string>
     <string name="Restore_InvalidChecksum">Ungültige Prüfsumme</string>
     <string name="Restore_PassphraseDescription">Geben Sie Ihre Passphrase ein, die Sie beim Erstellen dieser Eselsbrücke verwendet haben.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Ungültiger Schlüssel</string>
     <string name="SelectContacts_All">Alle</string>
     <string name="Restore_BirthdayHeight">Geburtstagshöhe</string>
+    <string name="restore_birthday_height_or_date">Geburtstagshöhe oder Datum</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Geben Sie die Geburtstagshöhe das Wallet für eine schnellere Synchronisierung ein.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (optional)</string>
@@ -287,9 +289,12 @@
     <string name="Balance_RatePerCoin">%1$s pro %2$s</string>
     <string name="Balance_SyncedUntil">bis %s</string>
     <string name="Balance_Syncing">Synchronisieren…</string>
+    <string name="balance_connecting">Verbinden…</string>
     <string name="Balance_SearchingTransactions">Transaktionen werden gesucht…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Synchronisiere... %s%%</string>
+    <string name="balance_syncing_blocks_remaining">%s Blöcke verbleibend</string>
+    <string name="balance_processing">Verarbeitung…</string>
     <string name="Balance_Sort_Balance">Guthaben</string>
     <string name="Balance_Sort_PopupTitle">Sortieren nach</string>
     <string name="Balance_Sort_Az">Name</string>
@@ -355,6 +360,7 @@
     <string name="ScanQr_NoCameraPermission">Keine Kamerarechte</string>
     <string name="ScanQr_CameraPermissionDeniedText">Zugriff auf Ihre Kamera für diese App wurde verweigert, Sie können zu Einstellungen gehen und den Zugriff erlauben</string>
     <string name="ScanQr_GoToSettings">Zu den Einstellungen</string>
+    <string name="scan_qr_camera_initialization_failed">Kamera nicht verfügbar. Bitte versuchen Sie es erneut oder verwenden Sie ein anderes Gerät.</string>
     <string name="choose_from_photos">Aus Fotos auswählen</string>
     <string name="image_decode_failed">Der QR-Code im ausgewählten Bild konnte nicht gelesen werden</string>
     <string name="Send_Error_UnsupportedAddress">Zeitsperre funktioniert nur mit P2PKH-Adressen (beginnend mit 1) </string>

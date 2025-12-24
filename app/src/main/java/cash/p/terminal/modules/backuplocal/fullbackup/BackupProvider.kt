@@ -230,13 +230,13 @@ class BackupProvider(
     /**
      * Restores single wallet from V4 backup using pre-decrypted WalletBackupItem.
      */
-    fun restoreSingleWalletBackup(
+    suspend fun restoreSingleWalletBackup(
         walletBackupItem: WalletBackupItem
     ) {
         restoreWallets(listOf(walletBackupItem))
     }
 
-    fun restoreSingleWalletBackup(
+    suspend fun restoreSingleWalletBackup(
         type: AccountType,
         accountName: String,
         backup: BackupLocalModule.WalletBackup
@@ -281,7 +281,7 @@ class BackupProvider(
         }
     }
 
-    private fun restoreWallets(walletBackupItems: List<WalletBackupItem>) {
+    private suspend fun restoreWallets(walletBackupItems: List<WalletBackupItem>) {
         val accounts = mutableListOf<Account>()
         val enabledWallets = mutableListOf<EnabledWallet>()
 
