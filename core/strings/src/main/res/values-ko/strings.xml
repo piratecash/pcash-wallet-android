@@ -103,6 +103,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">고급의</string>
     <string name="Restore_Error_MnemonicWordCount">단어 수가 틀렸습니다. 12 개 와 24개 사이여야 합니다. 이렇게 입력했습니다: %d</string>
+    <string name="blockchair_height_by_date_connection_error">날짜로 높이를 찾기 위해 Blockchair에 연결할 수 없습니다</string>
     <string name="Restore_Error_EmptyPassphrase">암호 문구는 필수 입력 사항입니다</string>
     <string name="Restore_InvalidChecksum">유효하지 않은 체크섬</string>
     <string name="Restore_PassphraseDescription">이 연상 부호를 만들 때 사용한 암호 문구 입력.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">잘못된 암호입니다</string>
     <string name="SelectContacts_All">모든</string>
     <string name="Restore_BirthdayHeight">생일 신장</string>
+    <string name="restore_birthday_height_or_date">생일 신장 또는 날짜</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">더 빠른 동기화를 위해 지갑의 생일 키를 입력하세요.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000(선택 사항)</string>

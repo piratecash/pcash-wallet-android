@@ -103,6 +103,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">İleri düzey</string>
     <string name="Restore_Error_MnemonicWordCount">Hatalı sözcük sayısı. 12-24 arası sözcük olmalıdır. Girilen: %d</string>
+    <string name="blockchair_height_by_date_connection_error">Tarihe göre yüksekliği bulmak için Blockchair\'a bağlanılamıyor</string>
     <string name="Restore_Error_EmptyPassphrase">Parola boş olamaz</string>
     <string name="Restore_InvalidChecksum">Geçersiz sağlama toplamı</string>
     <string name="Restore_PassphraseDescription">Bu anımsatıcı ifadeyi oluştururken kullandığınız parolayı girin. Mevcut bir cüzdanı yeni bir parolayla geri yüklemek, yepyeni bir cüzdan oluşturur.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Geçersiz Anahtar</string>
     <string name="SelectContacts_All">Hepsi</string>
     <string name="Restore_BirthdayHeight">Oluşturulma Günü Üst Sınırı</string>
+    <string name="restore_birthday_height_or_date">Oluşturulma Günü Üst Sınırı veya Tarih</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Daha hızlı senkronizasyon için cüzdanın doğum günü yüksekliğini girin.</string>
     <string name="Restore_ZCash_Birthday_Hint">00000000 (isteğe bağlı)</string>

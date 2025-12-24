@@ -130,6 +130,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Неверный ключ</string>
     <string name="SelectContacts_All">Все</string>
     <string name="Restore_BirthdayHeight">Блок создания</string>
+    <string name="restore_birthday_height_or_date">Блок создания или дата создания</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Введите блок создания кошелька для ускорения синхронизации.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (необязательно)</string>
@@ -1614,6 +1615,7 @@
     <string name="restoreheight_hint">Укажите блок или дату (ГГГГ-ММ-ДД)</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Неверное количество слов. Должно быть 25. Вы ввели: %d</string>
     <string name="invalid_height">Неверное значение высоты</string>
+    <string name="blockchair_height_by_date_connection_error">Не удалось подключиться к Blockchair, чтобы найти высоту по дате</string>
     <string name="view_key">Ключ просмотра</string>
     <string name="Balance_Receive_Trustline">Доверительная линия</string>
     <string name="Balance_Reserved_Title">Зарезервировано</string>

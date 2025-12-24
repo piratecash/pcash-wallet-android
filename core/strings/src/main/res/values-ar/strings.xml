@@ -103,6 +103,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">إعدادات متقدمة</string>
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
+    <string name="blockchair_height_by_date_connection_error">لا يمكن الاتصال بـ Blockchair للعثور على الارتفاع حسب التاريخ</string>
     <string name="Restore_Error_EmptyPassphrase">لا يمكن أن تكون كلمة المرور فارغة</string>
     <string name="Restore_InvalidChecksum">Invalid Checksum</string>
     <string name="Restore_PassphraseDescription">Enter the passphrase you used when creating this recovery phrase. Restoring an existing wallet with a new passphrase will generate a brand new wallet.</string>
@@ -119,6 +120,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Invalid Key</string>
     <string name="SelectContacts_All">All</string>
     <string name="Restore_BirthdayHeight">Birthday Height</string>
+    <string name="restore_birthday_height_or_date">ارتفاع الميلاد أو التاريخ</string>
     <string name="Restore_ZCash">ZCash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Enter wallet\'s birthday height for faster synchronization.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (optional)</string>

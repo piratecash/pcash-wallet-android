@@ -102,6 +102,7 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Avanzado</string>
     <string name="Restore_Error_MnemonicWordCount">Número de palabras erróneas. Debe tener entre 12 y 24 palabras. Has ingresado: %d</string>
+    <string name="blockchair_height_by_date_connection_error">No se puede conectar a Blockchair para encontrar la altura por fecha</string>
     <string name="Restore_Error_EmptyPassphrase">La frase de contraseña no puede estar vacío</string>
     <string name="Restore_InvalidChecksum">Suma de verificación inválida</string>
     <string name="Restore_PassphraseDescription">Introduzca su frase de contraseña que utilizó al crear esta frase mnemotécnica.</string>
@@ -118,6 +119,7 @@
     <string name="Restore_PrivateKey_InvalidKey">Clave no válida</string>
     <string name="SelectContacts_All">Todo</string>
     <string name="Restore_BirthdayHeight">Altura de Cumpleaños</string>
+    <string name="restore_birthday_height_or_date">Altura de Cumpleaños o fecha</string>
     <string name="Restore_ZCash">Zcash</string>
     <string name="Restore_ZCash_BirthdayHeight_Hint">Introduzca la altura del cumpleaños del monedero para una sincronización más rápida.</string>
     <string name="Restore_ZCash_Birthday_Hint">000000000 (opcional)</string>
