@@ -358,6 +358,7 @@
     <string name="ScanQr_NoCameraPermission">No hay permiso de cámara</string>
     <string name="ScanQr_CameraPermissionDeniedText">Se ha denegado el acceso a tu cámara para esta aplicación, puedes ir a ajustes y permitir el acceso</string>
     <string name="ScanQr_GoToSettings">Ir a Ajustes</string>
+    <string name="scan_qr_camera_initialization_failed">La cámara no está disponible. Por favor, inténtelo de nuevo o use otro dispositivo.</string>
     <string name="choose_from_photos">Elegir desde Fotos</string>
     <string name="image_decode_failed">No se pudo leer un código QR de la imagen seleccionada</string>
     <string name="Send_Error_UnsupportedAddress">El bloqueo del tiempo solo funciona con direcciones P2PKH (a partir de 1)</string>

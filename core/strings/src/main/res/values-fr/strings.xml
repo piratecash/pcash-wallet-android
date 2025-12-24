@@ -359,6 +359,7 @@
     <string name="ScanQr_NoCameraPermission">Pas de permission caméra</string>
     <string name="ScanQr_CameraPermissionDeniedText">L\'accès à votre caméra pour cette application a été refusé, vous pouvez aller dans les paramètres et autoriser l\'accès</string>
     <string name="ScanQr_GoToSettings">Accéder aux paramètres</string>
+    <string name="scan_qr_camera_initialization_failed">La caméra n\'est pas disponible. Veuillez réessayer ou utiliser un autre appareil.</string>
     <string name="choose_from_photos">Choisir depuis les photos</string>
     <string name="image_decode_failed">Impossible de lire un code QR à partir de l\'image sélectionnée</string>
     <string name="Send_Error_UnsupportedAddress">Time lock ne fonctionne qu\'avec les adresses P2PKH (commençant par 1)</string>

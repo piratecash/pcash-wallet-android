@@ -359,6 +359,7 @@
     <string name="ScanQr_NoCameraPermission">اجازه دسترسی به دوربین وجود ندارد</string>
     <string name="ScanQr_CameraPermissionDeniedText">Access to your camera for this app was denied, you can go to settings and allow access</string>
     <string name="ScanQr_GoToSettings">برو به تنظیمات</string>
+    <string name="scan_qr_camera_initialization_failed">دوربین در دسترس نیست. لطفاً دوباره امتحان کنید یا از دستگاه دیگری استفاده کنید.</string>
     <string name="choose_from_photos">انتخاب از عکس‌ها</string>
     <string name="image_decode_failed">خواندن کد QR از تصویر انتخاب‌شده امکان‌پذیر نبود</string>
     <string name="Send_Error_UnsupportedAddress">Time locking works only when sending to payment addresses starting with 1... (aka BIP44 addresses)</string>

@@ -357,6 +357,7 @@
     <string name="ScanQr_NoCameraPermission">Keine Kamerarechte</string>
     <string name="ScanQr_CameraPermissionDeniedText">Zugriff auf Ihre Kamera für diese App wurde verweigert, Sie können zu Einstellungen gehen und den Zugriff erlauben</string>
     <string name="ScanQr_GoToSettings">Zu den Einstellungen</string>
+    <string name="scan_qr_camera_initialization_failed">Kamera nicht verfügbar. Bitte versuchen Sie es erneut oder verwenden Sie ein anderes Gerät.</string>
     <string name="choose_from_photos">Aus Fotos auswählen</string>
     <string name="image_decode_failed">Der QR-Code im ausgewählten Bild konnte nicht gelesen werden</string>
     <string name="Send_Error_UnsupportedAddress">Zeitsperre funktioniert nur mit P2PKH-Adressen (beginnend mit 1) </string>

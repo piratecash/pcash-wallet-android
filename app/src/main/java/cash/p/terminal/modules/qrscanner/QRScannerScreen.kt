@@ -239,6 +239,7 @@ private fun ScannerView(onScan: (String) -> Unit) {
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
     val hasScanned = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+    var cameraError by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -249,38 +250,38 @@ private fun ScannerView(onScan: (String) -> Unit) {
     LaunchedEffect(previewView) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-
-            val resolutionSelector = ResolutionSelector.Builder()
-                .setResolutionStrategy(
-                    ResolutionStrategy(
-                        Size(1920, 1080),
-                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
-                    )
-                )
-                .build()
-
-            val preview = Preview.Builder()
-                .setResolutionSelector(resolutionSelector)
-                .build()
-                .also { it.surfaceProvider = previewView.surfaceProvider }
-
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .setResolutionSelector(resolutionSelector)
-                .setHighResolutionDisabled(false)
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also { analysis ->
-                    analysis.setAnalyzer(cameraExecutor, QrCodeAnalyzer { result ->
-                        if (hasScanned.compareAndSet(false, true)) {
-                            mainHandler.post {
-                                onScan(result)
-                            }
-                        }
-                    })
-                }
-
             try {
+                val cameraProvider = cameraProviderFuture.get()
+
+                val resolutionSelector = ResolutionSelector.Builder()
+                    .setResolutionStrategy(
+                        ResolutionStrategy(
+                            Size(1920, 1080),
+                            ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                        )
+                    )
+                    .build()
+
+                val preview = Preview.Builder()
+                    .setResolutionSelector(resolutionSelector)
+                    .build()
+                    .also { it.surfaceProvider = previewView.surfaceProvider }
+
+                val imageAnalyzer = ImageAnalysis.Builder()
+                    .setResolutionSelector(resolutionSelector)
+                    .setHighResolutionDisabled(false)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also { analysis ->
+                        analysis.setAnalyzer(cameraExecutor, QrCodeAnalyzer { result ->
+                            if (hasScanned.compareAndSet(false, true)) {
+                                mainHandler.post {
+                                    onScan(result)
+                                }
+                            }
+                        })
+                    }
+
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     lifecycleOwner,
@@ -288,8 +289,8 @@ private fun ScannerView(onScan: (String) -> Unit) {
                     preview,
                     imageAnalyzer
                 )
-            } catch (_: Exception) {
-                // Camera binding failed
+            } catch (e: Exception) {
+                cameraError = context.getString(R.string.scan_qr_camera_initialization_failed)
             }
         }, ContextCompat.getMainExecutor(context))
     }
@@ -299,7 +300,29 @@ private fun ScannerView(onScan: (String) -> Unit) {
             factory = { previewView },
             modifier = Modifier.fillMaxSize()
         )
-        ScannerOverlay()
+        cameraError?.let { error ->
+            CameraErrorOverlay(error)
+        } ?: ScannerOverlay()
+    }
+}
+
+@Composable
+private fun CameraErrorOverlay(errorMessage: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ComposeAppTheme.colors.dark),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 40.dp)
+        ) {
+            subhead2_grey(
+                textAlign = TextAlign.Center,
+                text = errorMessage
+            )
+        }
     }
 }
 

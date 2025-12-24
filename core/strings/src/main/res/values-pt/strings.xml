@@ -359,6 +359,7 @@
     <string name="ScanQr_NoCameraPermission">Sem permissão de acesso à câmera</string>
     <string name="ScanQr_CameraPermissionDeniedText">O acesso à sua câmera para este app foi negado, você pode acessar as configurações e permitir o acesso</string>
     <string name="ScanQr_GoToSettings">Ir para Configurações</string>
+    <string name="scan_qr_camera_initialization_failed">Câmera não disponível. Por favor, tente novamente ou use outro dispositivo.</string>
     <string name="choose_from_photos">Escolher das fotos</string>
     <string name="image_decode_failed">Não foi possível ler um código QR da imagem selecionada</string>
     <string name="Send_Error_UnsupportedAddress">O bloqueio de tempo funciona apenas ao enviar para endereços de pagamento começando com 1... (também conhecidos como endereços BIP44)</string>

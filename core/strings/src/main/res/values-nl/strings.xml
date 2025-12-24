@@ -359,6 +359,7 @@
     <string name="ScanQr_NoCameraPermission">No camera permission</string>
     <string name="ScanQr_CameraPermissionDeniedText">Access to your camera for this app was denied, you can go to settings and allow access</string>
     <string name="ScanQr_GoToSettings">Go to Settings</string>
+    <string name="scan_qr_camera_initialization_failed">Camera is niet beschikbaar. Probeer het opnieuw of gebruik een ander apparaat.</string>
     <string name="choose_from_photos">Kiezen uit foto\'s</string>
     <string name="image_decode_failed">De QR-code uit de geselecteerde afbeelding kon niet worden gelezen</string>
     <string name="Send_Error_UnsupportedAddress">Time locking works only when sending to payment addresses starting with 1... (aka BIP44 addresses)</string>
