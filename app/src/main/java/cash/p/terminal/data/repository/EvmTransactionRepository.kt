@@ -14,6 +14,7 @@ import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.await
 
@@ -49,6 +50,12 @@ internal class EvmTransactionRepository(
 
     val syncStateFlowable: Flowable<SyncState>
         get() = evmKit.syncStateFlowable
+
+    val combinedSyncStateFlow: Flow<Unit>
+        get() = merge(
+            syncStateFlowable.map {}.asFlow(),
+            transactionsSyncStateFlowable.map {}.asFlow()
+        )
 
     val accountState: AccountState?
         get() = evmKit.accountState
