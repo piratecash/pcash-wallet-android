@@ -82,15 +82,21 @@ class ResendBitcoinViewModel(
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            if (replacementInfo != null) {
-                val feeRates = feeRateProvider.getFeeRates()
-                val feeRange = replacementInfo.feeRange
-                recommendedFee = replacementInfo.replacementTxMinSize * feeRates.recommended
-                val minFee = recommendedFee.coerceAtLeast(feeRange.first).coerceAtMost(feeRange.last)
+            try {
+                if (replacementInfo != null) {
+                    val feeRates = feeRateProvider.getFeeRates()
+                    val feeRange = replacementInfo.feeRange
+                    recommendedFee = replacementInfo.replacementTxMinSize * feeRates.recommended
+                    val minFee =
+                        recommendedFee.coerceAtLeast(feeRange.first).coerceAtMost(feeRange.last)
 
-                updateReplacementTransaction(minFee)
-            } else {
-                feeCaution = createCaution(BuildError.UnableToReplace)
+                    updateReplacementTransaction(minFee)
+                } else {
+                    feeCaution = createCaution(BuildError.UnableToReplace)
+                    emitState()
+                }
+            } catch (e: Throwable) {
+                feeCaution = createCaution(e)
                 emitState()
             }
         }
