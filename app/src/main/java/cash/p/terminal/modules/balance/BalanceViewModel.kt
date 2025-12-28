@@ -295,7 +295,7 @@ class BalanceViewModel(
      * We migrated to new address scheme, so we need to replace old ZCash with new one
      */
     private fun replaceOldZCashWithNew() {
-        balanceViewItems.find { it.wallet.isOldZCash() }?.let { oldZCashViewItem ->
+        ArrayList(balanceViewItems).find { it.wallet.isOldZCash() }?.let { oldZCashViewItem ->
             val account = accountManager.activeAccount ?: return
             val tokenQuery = TokenQuery(
                 BlockchainType.Zcash, TokenType.AddressSpecTyped(
