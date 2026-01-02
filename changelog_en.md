@@ -1,3 +1,24 @@
+## 🚀 Version 0.50.5 Update
+_Release date: January 2, 2026_
+
+### 🧭 Improvements & Enhancements
+
+- **Prevented duplicate enabled wallets**
+  Improved the logic for managing enabled wallets and handling deletion race conditions, increasing overall stability and consistency.
+
+- **Enhanced main screen synchronization UI**
+  The synchronization screen now displays more detailed information, including a clear synchronization progress percentage.
+
+### 🛠 Fixes
+
+- **Fixed ZEC wallet recovery issue when specifying a date**
+  Resolved an issue where Zcash wallet recovery could fail when a restore date was provided.
+
+- **Fixed crash on some devices (Bitcoin Kit)**
+  Fixed a crash occurring on certain devices during Bitcoin wallet operations, improving overall app stability.
+
+
+
 ## 🚀 Version 0.50.4 Update
 _Release date: December 23, 2025_
 
