@@ -185,11 +185,12 @@ val managerModule = module {
     singleOf(::TorManager) bind ITorManager::class
     singleOf(::PredefinedBlockchainSettingsProvider)
     singleOf(::KeyStoreCleaner) bind IKeyStoreCleaner::class
+    single<KeyStoreManager.Logger> { AppLogger("key-store") }
     single {
         KeyStoreManager(
             keyAlias = "MASTER_KEY",
             keyStoreCleaner = get(),
-            logger = AppLogger("key-store")
+            logger = get()
         )
     }
     single<IKeyStoreManager> { get<KeyStoreManager>() }
