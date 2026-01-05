@@ -13,9 +13,9 @@ interface IAdapterManager {
     /**
      * Wait for adapter for the given wallet to be available
      * If adapter is already available, return it
-     * Waits up to 300ms for the adapter to be initialized
+     * @param timeoutMs Maximum time to wait for adapter initialization (default 300ms)
      */
-    suspend fun <T> awaitAdapterForWallet(wallet: Wallet): T?
+    suspend fun <T> awaitAdapterForWallet(wallet: Wallet, timeoutMs: Long = 300): T?
 
     fun <T> getAdapterForWallet(wallet: Wallet): T?
     fun getAdapterForWalletOld(wallet: Wallet): IAdapter?

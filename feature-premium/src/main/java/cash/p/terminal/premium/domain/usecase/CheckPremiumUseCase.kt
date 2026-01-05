@@ -4,6 +4,9 @@ import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 
 interface CheckPremiumUseCase {
     fun getPremiumType(): PremiumType
+    fun getParentPremiumType(userLevel: Int): PremiumType
+    suspend fun isPremiumWithParentInCache(userLevel: Int): Boolean
+
     fun isTrialPremium(): Boolean
     suspend fun update(): PremiumType
 

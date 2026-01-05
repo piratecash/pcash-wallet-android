@@ -12,6 +12,7 @@ import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.manager.ITorConnectionStatusUseCase
+import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.tor.TorConnectionStatusUseCase
 import cash.p.terminal.tangem.domain.usecase.ICreateHardwareWalletUseCase
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
@@ -33,4 +34,5 @@ val useCaseModule = module {
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
     singleOf(::ClearZCashWalletDataUseCase)
     singleOf(::ResetUseCase)
+    singleOf(::SendZecOnDuressUseCase)
 }

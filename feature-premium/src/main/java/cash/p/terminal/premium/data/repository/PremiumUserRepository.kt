@@ -12,6 +12,10 @@ internal class PremiumUserRepository(
         premiumUserDao.getByLevel(level)
     }
 
+    suspend fun getByLevels(level: List<Int>) = withContext(Dispatchers.IO) {
+        premiumUserDao.getByLevels(level)
+    }
+
     suspend fun deleteByAccount(accountId: String) = withContext(Dispatchers.IO) {
         premiumUserDao.deleteByAccount(accountId)
     }

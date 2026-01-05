@@ -230,10 +230,10 @@ class AdapterManager(
         }
     }
 
-    override suspend fun <T> awaitAdapterForWallet(wallet: Wallet): T? {
+    override suspend fun <T> awaitAdapterForWallet(wallet: Wallet, timeoutMs: Long): T? {
         (adaptersMap[wallet] as? T)?.let { return it }
 
-        return withTimeoutOrNull(300) {
+        return withTimeoutOrNull(timeoutMs) {
             merge(
                 initializationInProgressFlow.filter { !it }.map { adaptersMap },
                 adaptersReadyObservable.asFlow()

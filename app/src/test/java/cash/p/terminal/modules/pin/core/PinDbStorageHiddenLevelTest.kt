@@ -128,5 +128,25 @@ private class InMemoryPinDao : PinDao {
         pins.remove(level)
     }
 
+    override fun deleteUserLevelsFromLevel(level: Int) {
+        val iterator = pins.iterator()
+        while (iterator.hasNext()) {
+            val key = iterator.next().key
+            if (key >= level && key < PinLevels.SECURE_RESET) {
+                iterator.remove()
+            }
+        }
+    }
+
+    override fun deleteLogLoggingPinsFromLevel(logLoggingLevel: Int) {
+        val iterator = pins.iterator()
+        while (iterator.hasNext()) {
+            val key = iterator.next().key
+            if (key >= logLoggingLevel) {
+                iterator.remove()
+            }
+        }
+    }
+
     override fun getMinLevel(): Int? = pins.keys.minOrNull()
 }

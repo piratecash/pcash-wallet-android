@@ -18,6 +18,7 @@ fun NavController.authorizedAction(
         PinType.REGULAR, PinType.DURESS, PinType.HIDDEN_WALLET, PinType.SECURE_RESET, null -> App.pinComponent.isPinSet
         PinType.TRANSFER -> getKoinInstance<ILocalStorage>().transferPasscodeEnabled
         PinType.TRANSACTIONS_HIDE -> App.pinComponent.isPinSet || getKoinInstance<TransactionHiddenManager>().transactionHiddenFlow.value.transactionAutoHidePinExists
+        PinType.LOG_LOGGING -> App.pinComponent.isLogLoggingPinSet() || App.pinComponent.isPinSet
     }
     if (needEnterPin) {
         slideFromBottomForResult<ConfirmPinFragment.Result>(
@@ -45,15 +46,59 @@ fun NavController.navigateWithTermsAccepted(action: () -> Unit) {
     }
 }
 
-fun NavController.ensurePinSet(descriptionResId: Int, action: () -> Unit) {
-    if (App.pinComponent.isPinSet) {
+fun NavController.ensurePinSet(
+    descriptionResId: Int,
+    pinType: PinType = PinType.REGULAR,
+    action: () -> Unit
+) {
+    val pinSetAlready = when (pinType) {
+        PinType.REGULAR -> App.pinComponent.isPinSet
+        PinType.LOG_LOGGING -> App.pinComponent.isLogLoggingPinSet()
+        else -> throw IllegalStateException("Unsupported pin type for ensurePinSet: $pinType")
+    }
+    if (pinSetAlready) {
         action.invoke()
     } else {
         slideFromRightForResult<SetPinFragment.Result>(
             R.id.setPinFragment,
-            SetPinFragment.Input(descriptionResId, PinType.REGULAR)
+            SetPinFragment.Input(descriptionResId, pinType)
         ) {
             action.invoke()
         }
     }
+}
+
+fun NavController.ensurePinSetPremiumAction(
+    descriptionResId: Int,
+    pinType: PinType = PinType.REGULAR,
+    setter: (Boolean) -> Unit
+): (Boolean) -> Unit = { enabled ->
+    if (enabled) {
+        premiumAction {
+            ensurePinSet(descriptionResId, pinType) {
+                setter(true)
+            }
+        }
+    } else {
+        setter(false)
+    }
+}
+
+/**
+ * Authorizes access to Login Logging screens.
+ * Requires LOG_LOGGING PIN if set, otherwise REGULAR PIN if set.
+ */
+fun NavController.authorizedLoggingAction(action: () -> Unit) {
+    val pinType = if (App.pinComponent.isLogLoggingPinSet()) {
+        PinType.LOG_LOGGING
+    } else {
+        null  // Will use default REGULAR check
+    }
+
+    authorizedAction(
+        input = pinType?.let {
+            ConfirmPinFragment.InputConfirm(R.string.confirm_pin_to_access_login_logging, it)
+        },
+        action = action
+    )
 }

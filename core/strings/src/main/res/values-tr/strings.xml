@@ -49,6 +49,7 @@
     <string name="Button_Share">Paylaş</string>
     <string name="Button_Apply">Uygula</string>
     <string name="Button_SetAmount">Miktarı Ayarla</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">Ücretler için en az %s bulundurduğunuzdan emin olun, aksi halde işlem başarısız olabilir</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
@@ -474,7 +475,7 @@
     <string name="WalletConnect_Unnamed">İsimsiz</string>
     <string name="WalletConnect_Pairings">Eşleştirme</string>
     <string name="WalletConnect_PairedDApps">Eşleştirilmiş dApps</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Hepsini Sil</string>
+    <string name="delete_all">Hepsini Sil</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Eşleştirilmiş tüm dAps\'leri silmek istiyor musunuz?</string>
     <string name="WalletConnect_Pairings_Delete">Sil</string>
     <string name="WalletConnect_DeleteAllPairs">Hepsini sil</string>
@@ -1119,7 +1120,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="Coin_Tab_Market">Marketler</string>
     <string name="Coin_Tab_Details">Analitik</string>
     <string name="Coin_Tab_Tweets">Tweets</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[Tipik ücret < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">1D</string>
     <string name="CoinPage_TimeDuration_Week">7G</string>
@@ -1344,6 +1345,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Premium Hakkında</string>
+    <string name="premium_settings">Premium ayarları</string>
     <string name="advanced_security">Gelişmiş Güvenlik</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
     <string name="create_hidden_wallet_pin">Gizli cüzdan PIN\'i</string>
@@ -1370,6 +1372,54 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="premium_demo_activation_error_backup">Premium\'i etkinleştirmek için cüzdanınızı yedeklemeniz gerekir</string>
     <string name="premium_demo_activation_error_watch_account">İzleme hesabı premium\'i etkinleştirmek için kullanılamaz</string>
     <string name="premium_demo_activation_error_wrong_type">Premium\'i etkinleştirmek için anımsatıcı veya donanım cüzdan türünü kullanın</string>
+    <string name="premium_try_for_free">ÜCRETSİZ Deneyin</string>
+    <string name="premium_upgrade_text">Premium özelliklerle deneyiminizi yükseltin!</string>
+    <string name="premium_available">⭐️ Premium kullanılabilir</string>
+    <string name="premium_demo_days_left">Demo Premium: %d gün kaldı</string>
+    <string name="premium_select_wallet_title">Demo için Cüzdan Seçin</string>
+    <string name="premium_select_wallet_description">Demo premium özelliklerini etkinleştirmek için bir cüzdan seçin. Aynı anda yalnızca bir cüzdan demo premium\'e sahip olabilir.</string>
+    <string name="premium_demo_activated">Demo Premium başarıyla etkinleştirildi!</string>
+    <string name="premium_demo_expired">Bu cüzdan için Demo Premium süresi doldu</string>
+    <string name="wallet_is_not_eligible">Bu cüzdan Premium için uygun değil</string>
+    <string name="premium_demo_activation_failed">Demo premium etkinleştirilemedi</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">Uygulamaya giriş</string>
+    <string name="login_logging_subscription_expired_title">Abonelik süresi doldu</string>
+    <string name="login_logging_subscription_expired_description">Bu bölümdeki özellikleri kullanmak için aboneliğinizi etkinleştirmeniz gerekiyor.\n\nBu bölümdeki tüm özellikleri devre dışı bırakarak bu pencereyi gizleyebilirsiniz.</string>
+    <string name="login_logging_delete_all">Tüm günlükleri sil</string>
+    <string name="login_logging_passcode">Şifre</string>
+    <string name="login_logging_selfie_on_successful_login">Başarılı girişte selfie çek</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">Başarısız girişte selfie çek</string>
+    <string name="login_logging_selfie_on_duress_login">Zorlama modunda selfie çek</string>
+    <string name="camera_permission_denied_title">Kamera izni gerekli</string>
+    <string name="camera_permission_denied_message">Girişte selfie çekmek için kamera erişimi gereklidir. Lütfen Ayarlar\'dan etkinleştirin.</string>
+    <string name="button_open_settings">Ayarları aç</string>
+    <string name="login_logging_standard_login">STANDART GİRİŞ</string>
+    <string name="login_logging_log_successful">Başarılı girişleri kaydet</string>
+    <string name="login_logging_log_unsuccessful">Başarısız girişleri kaydet</string>
+    <string name="login_logging_duress_mode">ZORLAMA MODU</string>
+    <string name="login_logging_log_into_duress">Zorlama moduna gir</string>
+    <string name="login_logging_send_notification">Giriş bildirimi gönder</string>
+    <string name="login_logging_delete_auth_data">Tüm kimlik doğrulama verilerini sil</string>
+    <string name="login_logging_delete_auth_data_description">Bu işlev, zorlama moduna girerken tüm kimlik doğrulama verilerini fotoğraflarla birlikte siler.</string>
+    <string name="login_logging_auto_delete">Günlükleri otomatik sil</string>
+    <string name="login_logging_delete_period">Silme periyodu</string>
+    <string-array name="login_logging_periods">
+        <item>Asla</item>
+        <item>Ay</item>
+        <item>Yıl</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1A</item>
+        <item>1Y</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">Verileri sil</string>
+    <string name="login_logging_delete_data_confirmation">Tüm günlükleri silmek istediğinizden emin misiniz?</string>
+    <string name="login_logging_delete_record_confirmation">Bu kaydı silmek istediğinizden emin misiniz?</string>
+    <string name="login_logging_info_description">Günlük kaydı etkinleştirilmişse, giriş geçmişini Gelişmiş Güvenlik\'te görüntüleyebilirsiniz.</string>
+
     <string name="Nfts_PriceType_Days_7">Ortalama 7G</string>
     <string name="Nfts_PriceType_Days_30">Ortalama 30G</string>
     <string name="Nfts_PriceType_LastSale">Son İndirim</string>
@@ -1484,6 +1534,10 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="PinSet_ErrorFailedToSavePin">Şifre kaydedilirken hata oluştu. Tekrar deneyin.</string>
     <string name="PinSet_ForBiometrics">Biyometriyi etkinleştirmek için bir şifre belirleyin</string>
     <string name="PinSet_ForDuress">Duress Modunu etkinleştirmek için bir şifre kodu ayarlayın</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">Giriş günlüğünü korumak için şifre belirleyin</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">Giriş günlüğünü devre dışı bırakmak için şifreyi girin</string>
+    <string name="confirm_pin_to_access_login_logging">Giriş günlüğüne erişmek için şifreyi girin</string>
     <string name="PinSet_ErrorPinInUse">Bu şifre zaten kullanılıyor.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Kod Değiştir</string>
@@ -1596,4 +1650,32 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="safety_rules_checkbox_1">Tohum ifadesinin gizli olduğunu ve üçüncü şahıslara açıklanmaması gerektiğini anlıyorum.</string>
     <string name="safety_rules_checkbox_2">Tohum ifademi dijital formda saklayamayacağımı anlıyorum.</string>
     <string name="safety_rules_checkbox_3">p.cash ekibinin anahtarlarıma erişemeyeceğini ve bunları kurtaramayacağını anlıyorum.</string>
+    <string name="authorization_information">Yetkilendirme bilgileri</string>
+    <string name="auth_info_successful">Başarılı</string>
+    <string name="auth_info_unsuccessful">Başarısız</string>
+    <string name="auth_info_duress_mode">(Zorlama Modu)</string>
+    <string name="auth_info_entrance_to">%s girişi</string>
+    <string name="auth_info_seconds_ago">(%d sn önce)</string>
+    <string name="auth_info_minutes_ago">(%d dk önce)</string>
+    <string name="auth_info_hours_ago">(%d saat önce)</string>
+    <string name="auth_info_days_ago">(%d gün önce)</string>
+    <string name="auth_detail_status_label">Durum:</string>
+    <string name="auth_detail_time_label">Zaman:</string>
+    <string name="auth_detail_save_to_gallery">Galeriye kaydet</string>
+    <string name="image_saved_to_gallery">Görsel galeriye kaydedildi</string>
+    <string name="auth_detail_save_failed">Görsel kaydedilemedi</string>
+    <string name="auth_info_no_records">Henüz yetkilendirme kaydı yok</string>
+    <string name="send_sms_via_zec_title">ZEC ile SMS Gönder</string>
+    <string name="send_sms_via_zec_info">Bu mod, uygulamayı zorla açtığınızı yakın arkadaşlarınıza veya avukatınıza bildirmenizi sağlar. Bu mod, cüzdanınızda ZEC varsa çalışır. Yoksa uygulama ekleyecektir.</string>
+    <string name="send_sms_wallet_balance_hint">Seçili cüzdanda gerekli miktarın olduğundan emin olun.</string>
+    <string name="send_sms_syncing">Göndermek için senkronize ediliyor…</string>
+    <string name="send_sms_test_success">Mesajınız başarıyla gönderildi.</string>
+    <string name="send_sms_test_error">Mesajınız gönderilirken bir hata oluştu.</string>
+    <string name="send_sms_insufficient_balance">Yetersiz bakiye</string>
+    <string name="send_sms_transparent_address_not_allowed">Şeffaf adresler kullanılamaz. Lütfen korumalı (z) bir adres kullanın.</string>
+    <string name="choose_wallet">Cüzdan Seç</string>
+    <string name="choose_wallet_none">Yok</string>
+    <string name="required_coins_for_transaction">İşlem için gerekli coinler</string>
+    <string name="test_sms">SMS Test Et</string>
+    <string name="no_zec_wallets_available">ZEC tokeni olan cüzdan bulunamadı</string>
 </resources>

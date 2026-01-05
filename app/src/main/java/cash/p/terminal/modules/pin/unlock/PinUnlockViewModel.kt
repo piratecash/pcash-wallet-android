@@ -6,7 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.feature.logging.domain.usecase.DeleteLoggingOnDuressUseCase
+import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.pin.PinModule
+import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.pin.core.ILockoutManager
 import cash.p.terminal.modules.pin.core.LockoutState
 import cash.p.terminal.modules.pin.core.OneTimeTimer
@@ -24,6 +27,9 @@ class PinUnlockViewModel(
     systemInfoManager: ISystemInfoManager,
     private val timer: OneTimeTimer,
     private val localStorage: ILocalStorage,
+    private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
+    private val deleteLoggingOnDuressUseCase: DeleteLoggingOnDuressUseCase,
+    private val sendZecOnDuressUseCase: SendZecOnDuressUseCase
 ) : ViewModel(), OneTimerDelegate {
 
     private var attemptsLeft: Int? = null
@@ -129,8 +135,26 @@ class PinUnlockViewModel(
     }
 
     private suspend fun unlock(pin: String): Boolean {
-        if (pinComponent.unlock(pin)) {
+        val pinLevel = pinComponent.getPinLevel(pin)
+
+        // 1. Capture selfie BEFORE validation (to capture whoever is trying)
+        val photoPath = logLoginAttemptUseCase.captureLoginPhoto(pinLevel)
+
+        // 2. Validate
+        pinComponent.unlock(pin, pinLevel)
+
+        // 3. Log the attempt with photo
+        logLoginAttemptUseCase.logLoginAttempt(
+            userLevel = pinLevel,
+            photoPath = photoPath
+        )
+
+        if (pinLevel != null) {
             lockoutManager.dropFailedAttempts()
+            // Delete logging data for lower levels if duress mode with deletion enabled
+            deleteLoggingOnDuressUseCase.deleteLoggingForLowerLevelsIfEnabled(pinLevel)
+            // Send ZEC SMS notification if enabled for duress mode
+            sendZecOnDuressUseCase.sendIfEnabled(pinLevel)
             return true
         } else {
             lockoutManager.didFailUnlock()
@@ -138,5 +162,4 @@ class PinUnlockViewModel(
             return false
         }
     }
-
 }

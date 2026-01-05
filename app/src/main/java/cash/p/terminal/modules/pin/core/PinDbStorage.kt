@@ -42,6 +42,14 @@ class PinDbStorage(private val pinDao: PinDao) {
         pinDao.deleteForLevel(level)
     }
 
+    fun deleteUserLevelsFromLevel(level: Int) {
+        pinDao.deleteUserLevelsFromLevel(level)
+    }
+
+    fun deleteLogLoggingPinsFromLevel(userLevel: Int) {
+        pinDao.deleteLogLoggingPinsFromLevel(PinLevels.logLoggingLevelFor(userLevel))
+    }
+
     fun isPinSetForLevel(level: Int): Boolean {
         return pinDao.get(level)?.passcode != null
     }
@@ -49,6 +57,12 @@ class PinDbStorage(private val pinDao: PinDao) {
     fun getNextHiddenWalletLevel(): Int {
         val minLevel = pinDao.getMinLevel() ?: 0
         return if (minLevel < 0) minLevel - 1 else -1
+    }
+
+    fun getAllLevels(): List<Int> {
+        return pinDao.getAll()
+            .filter { it.passcode != null && it.level < PinLevels.SECURE_RESET }
+            .map { it.level }
     }
 }
 
@@ -64,8 +78,8 @@ interface PinDao {
     @Query("SELECT * FROM Pin")
     fun getAll() : List<Pin>
 
-    /** Get the last user level PIN, excluding Secure Reset PIN at level ${PinLevels.SECURE_RESET} */
-    @Query("SELECT * FROM Pin WHERE level != ${PinLevels.SECURE_RESET} ORDER BY level DESC LIMIT 1")
+    /** Get the last user level PIN, excluding special PINs at level >= SECURE_RESET */
+    @Query("SELECT * FROM Pin WHERE level < ${PinLevels.SECURE_RESET} ORDER BY level DESC LIMIT 1")
     fun getLastLevelPin(): Pin?
 
     @Query("DELETE FROM Pin WHERE level >= :level")
@@ -74,12 +88,30 @@ interface PinDao {
     @Query("DELETE FROM Pin WHERE level = :level")
     fun deleteForLevel(level: Int)
 
+    /** Delete user levels in range [level, SECURE_RESET) - excludes reserved levels */
+    @Query("DELETE FROM Pin WHERE level >= :level AND level < ${PinLevels.SECURE_RESET}")
+    fun deleteUserLevelsFromLevel(level: Int)
+
+    /** Delete log logging PINs at logLoggingLevel and above */
+    @Query("DELETE FROM Pin WHERE level >= :logLoggingLevel")
+    fun deleteLogLoggingPinsFromLevel(logLoggingLevel: Int)
+
     @Query("SELECT MIN(level) FROM Pin")
     fun getMinLevel(): Int?
 }
 
 object PinLevels {
     const val SECURE_RESET = 10000
+    const val LOG_LOGGING_BASE = 10001
+
+    fun logLoggingLevelFor(userLevel: Int): Int {
+        require(userLevel >= 0) { "Log logging PIN not supported for hidden wallets" }
+        return LOG_LOGGING_BASE + userLevel
+    }
+
+    fun isLogLoggingLevel(pinLevel: Int): Boolean {
+        return pinLevel >= LOG_LOGGING_BASE
+    }
 }
 
 @Entity(primaryKeys = ["level"])

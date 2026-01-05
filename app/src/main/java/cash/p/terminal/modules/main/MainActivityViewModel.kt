@@ -4,15 +4,17 @@ import android.content.Intent
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.DAppRequestEntityWrapper
 import cash.p.terminal.core.managers.DefaultUserManager
+import io.horizontalsystems.core.ILoginRecordRepository
 import cash.p.terminal.core.managers.TonConnectManager
+import io.horizontalsystems.core.entities.AutoDeletePeriod
 import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
+import cash.p.terminal.wallet.managers.UserManager
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IKeyStoreManager
@@ -27,7 +29,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 
 class MainActivityViewModel(
@@ -35,12 +36,12 @@ class MainActivityViewModel(
     private val accountManager: IAccountManager,
     private val systemInfoManager: ISystemInfoManager,
     private val localStorage: ILocalStorage,
-    private val checkPremiumUseCase: CheckPremiumUseCase
+    private val checkPremiumUseCase: CheckPremiumUseCase,
+    private val pinComponent: IPinComponent,
+    private val keyStoreManager: IKeyStoreManager,
+    private val tonConnectManager: TonConnectManager,
+    private val loginRecordRepository: ILoginRecordRepository
 ) : ViewModel() {
-
-    private val pinComponent: IPinComponent = App.pinComponent
-    private val keyStoreManager: IKeyStoreManager = App.keyStoreManager
-    private val tonConnectManager: TonConnectManager = App.tonConnectManager
 
     val navigateToMainLiveData = MutableLiveData(false)
     val wcEvent = MutableLiveData<Wallet.Model?>()
@@ -60,9 +61,10 @@ class MainActivityViewModel(
 
     init {
         viewModelScope.launch {
-            userManager.currentUserLevelFlow.collect {
+            userManager.currentUserLevelFlow.collect { level ->
                 navigateToMainLiveData.postValue(true)
                 updatePremiumStatus()
+                cleanupExpiredLoginRecords(level)
             }
         }
         viewModelScope.launch {
@@ -85,6 +87,18 @@ class MainActivityViewModel(
     private fun updatePremiumStatus() {
         viewModelScope.launch(Dispatchers.IO) {
             checkPremiumUseCase.update()
+        }
+    }
+
+    private fun cleanupExpiredLoginRecords(level: Int) {
+        // Skip cleanup for initial/uninitialized level
+        if (level == UserManager.DEFAULT_USER_LEVEL) return
+
+        val period = AutoDeletePeriod.fromValue(localStorage.getAutoDeleteLogsPeriod(level))
+        if (period != AutoDeletePeriod.NEVER) {
+            viewModelScope.launch {
+                loginRecordRepository.deleteExpired(level, period)
+            }
         }
     }
 

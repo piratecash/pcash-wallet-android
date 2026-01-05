@@ -3,8 +3,8 @@ package cash.p.terminal.modules.send.securitycheck
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.address.AddressCheckManager
 import cash.p.terminal.core.address.AddressCheckType
 import cash.p.terminal.core.factories.AddressValidatorFactory
@@ -204,15 +204,15 @@ class SecurityCheckViewModel(
             val addressUriParser = AddressUriParser(token.blockchainType, token.type)
             val addressValidator = AddressValidatorFactory.get(token)
             val addressCheckManager = AddressCheckManager(
-                App.spamManager,
-                App.evmBlockchainManager,
-                App.evmSyncSourceManager
+                getKoinInstance(),
+                getKoinInstance(),
+                getKoinInstance()
             )
             return SecurityCheckViewModel(
                 token = token,
                 addressUriParser = addressUriParser,
                 initialAddress = address,
-                localStorage = App.localStorage,
+                localStorage = getKoinInstance(),
                 addressCheckerSkippable = addressCheckerSkippable,
                 domainParser = addressParserChain,
                 addressValidator = addressValidator,

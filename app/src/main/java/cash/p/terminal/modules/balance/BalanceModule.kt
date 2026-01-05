@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.address.AddressHandlerFactory
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -13,7 +14,7 @@ object BalanceModule {
     class AccountsFactory : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return BalanceAccountsViewModel(App.accountManager) as T
+            return BalanceAccountsViewModel(getKoinInstance()) as T
         }
     }
 
@@ -21,17 +22,17 @@ object BalanceModule {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val totalService = TotalService(
-                currencyManager = App.currencyManager,
-                marketKit = App.marketKit,
+                currencyManager = getKoinInstance(),
+                marketKit = getKoinInstance(),
                 baseTokenManager = App.baseTokenManager,
-                balanceHiddenManager = App.balanceHiddenManager
+                balanceHiddenManager = getKoinInstance()
             )
             return BalanceViewModel(
                 service = DefaultBalanceService.getInstance("wallet"),
                 balanceViewItemFactory = BalanceViewItemFactory(),
                 balanceViewTypeManager = App.balanceViewTypeManager,
-                totalBalance = TotalBalance(totalService, App.balanceHiddenManager),
-                localStorage = App.localStorage,
+                totalBalance = TotalBalance(totalService, getKoinInstance()),
+                localStorage = getKoinInstance(),
                 wCManager = App.wcManager,
                 addressHandlerFactory = AddressHandlerFactory(AppConfigProvider.udnApiKey),
                 priceManager = App.priceManager

@@ -49,6 +49,7 @@
     <string name="Button_Share">Teilen</string>
     <string name="Button_Apply">Übernehmen</string>
     <string name="Button_SetAmount">Setze Betrag</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">Stellen Sie sicher, dass Sie mindestens %s für Gebühren haben, sonst kann die Transaktion fehlschlagen</string>
     <string name="Error_OutOfRange">Es muss mindestens %1$s enthalten und darf maximal %2$s Zeichen lang sein</string>
@@ -468,7 +469,7 @@
     <string name="WalletConnect_Unnamed">Unbenannt</string>
     <string name="WalletConnect_Pairings">Währungspaare</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Alle löschen</string>
+    <string name="delete_all">Alle löschen</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Möchten Sie alle gepaart dApss löschen?</string>
     <string name="WalletConnect_Pairings_Delete">Löschen</string>
     <string name="WalletConnect_DeleteAllPairs">Alle Paare löschen</string>
@@ -1108,7 +1109,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="Coin_Tab_Market">Märkte</string>
     <string name="Coin_Tab_Details">Analytik</string>
     <string name="Coin_Tab_Tweets">Tweets</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[Typische Gebühr < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">1T</string>
     <string name="CoinPage_TimeDuration_Week">7T</string>
@@ -1333,6 +1334,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="SubscriptionInfo_HavePremium">Ich habe bereits Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Über Premium</string>
+    <string name="premium_settings">Premium-Einstellungen</string>
     <string name="advanced_security">Erweiterte Sicherheit</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Versteckte Wallet erstellen</string>
     <string name="create_hidden_wallet_pin">PIN für versteckte Wallet</string>
@@ -1360,6 +1362,54 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="premium_demo_activation_error_backup">Um Premium zu aktivieren, müssen Sie Ihr Wallet sichern</string>
     <string name="premium_demo_activation_error_watch_account">Ein Watch-Account kann nicht zur Aktivierung von Premium verwendet werden</string>
     <string name="premium_demo_activation_error_wrong_type">Verwenden Sie den Mnemonik- oder Hardware-Wallet-Typ, um Premium zu aktivieren</string>
+    <string name="premium_try_for_free">KOSTENLOS testen</string>
+    <string name="premium_upgrade_text">Verbessern Sie Ihr Erlebnis mit Premium-Funktionen!</string>
+    <string name="premium_available">⭐️ Premium ist verfügbar</string>
+    <string name="premium_demo_days_left">Demo Premium: %d Tage übrig</string>
+    <string name="premium_select_wallet_title">Wallet für Demo auswählen</string>
+    <string name="premium_select_wallet_description">Wählen Sie ein Wallet, um die Demo-Premium-Funktionen zu aktivieren. Nur ein Wallet kann gleichzeitig Demo-Premium haben.</string>
+    <string name="premium_demo_activated">Demo Premium erfolgreich aktiviert!</string>
+    <string name="premium_demo_expired">Demo Premium für dieses Wallet ist abgelaufen</string>
+    <string name="wallet_is_not_eligible">Dieses Wallet ist nicht für Premium berechtigt</string>
+    <string name="premium_demo_activation_failed">Demo Premium konnte nicht aktiviert werden</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">Anmeldung in der App</string>
+    <string name="login_logging_subscription_expired_title">Abonnement abgelaufen</string>
+    <string name="login_logging_subscription_expired_description">Um die Funktionen in diesem Bereich nutzen zu können, müssen Sie Ihr Abonnement aktivieren.\n\nSie können dieses Fenster ausblenden, indem Sie alle Funktionen in diesem Bereich deaktivieren.</string>
+    <string name="login_logging_delete_all">Alle Protokolle löschen</string>
+    <string name="login_logging_passcode">Passcode</string>
+    <string name="login_logging_selfie_on_successful_login">Selfie bei erfolgreicher Anmeldung aufnehmen</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">Selfie bei fehlgeschlagener Anmeldung aufnehmen</string>
+    <string name="login_logging_selfie_on_duress_login">Selfie im Zwangsmodus aufnehmen</string>
+    <string name="camera_permission_denied_title">Kameraberechtigung erforderlich</string>
+    <string name="camera_permission_denied_message">Kamerazugriff wird benötigt, um Selfies beim Login aufzunehmen. Bitte aktivieren Sie ihn in den Einstellungen.</string>
+    <string name="button_open_settings">Einstellungen öffnen</string>
+    <string name="login_logging_standard_login">STANDARD-ANMELDUNG</string>
+    <string name="login_logging_log_successful">Erfolgreiche Anmeldungen protokollieren</string>
+    <string name="login_logging_log_unsuccessful">Fehlgeschlagene Anmeldungen protokollieren</string>
+    <string name="login_logging_duress_mode">ZWANGSMODUS</string>
+    <string name="login_logging_log_into_duress">In Zwangsmodus einloggen</string>
+    <string name="login_logging_send_notification">Anmeldebenachrichtigung senden</string>
+    <string name="login_logging_delete_auth_data">Alle Authentifizierungsdaten löschen</string>
+    <string name="login_logging_delete_auth_data_description">Diese Funktion löscht alle Authentifizierungsdaten mit Fotos beim Einloggen in den Zwangsmodus.</string>
+    <string name="login_logging_auto_delete">Automatisches Löschen von Protokollen</string>
+    <string name="login_logging_delete_period">Löschzeitraum</string>
+    <string-array name="login_logging_periods">
+        <item>Nie</item>
+        <item>Monat</item>
+        <item>Jahr</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1M</item>
+        <item>1J</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">Daten löschen</string>
+    <string name="login_logging_delete_data_confirmation">Sind Sie sicher, dass Sie alle Protokolle löschen möchten?</string>
+    <string name="login_logging_delete_record_confirmation">Sind Sie sicher, dass Sie diesen Eintrag löschen möchten?</string>
+    <string name="login_logging_info_description">Wenn die Protokollierung aktiviert ist, können Sie den Anmeldeverlauf in der Erweiterten Sicherheit anzeigen.</string>
+
     <string name="Nfts_PriceType_Days_7">Durchschnitt 7D</string>
     <string name="Nfts_PriceType_Days_30">Durchschnitt 30D</string>
     <string name="Nfts_PriceType_LastSale">Letzter Verkauf</string>
@@ -1476,6 +1526,10 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="PinSet_ErrorFailedToSavePin">Beim Speichern Ihren Code ist leider ein Fehler aufgetreten. Bitte versuchen es erneut.</string>
     <string name="PinSet_ForBiometrics">Passcode zum Aktivieren von Biometrien festlegen</string>
     <string name="PinSet_ForDuress">Code zum Aktivieren des Duress Modus festlegen</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">Code festlegen zum Schutz des Login-Protokolls</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">Code eingeben zum Deaktivieren des Login-Protokolls</string>
+    <string name="confirm_pin_to_access_login_logging">Code eingeben für Zugriff auf Login-Protokoll</string>
     <string name="PinSet_ErrorPinInUse">Dieser Code wird bereits verwendet.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Code bearbeiten</string>
@@ -1588,4 +1642,32 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="safety_rules_checkbox_1">Ich verstehe, dass die Seed-Phrase vertraulich ist und nicht an Dritte weitergegeben werden sollte.</string>
     <string name="safety_rules_checkbox_2">Ich verstehe, dass ich meine Seed-Phrase nicht in digitaler Form speichern darf.</string>
     <string name="safety_rules_checkbox_3">Ich verstehe, dass das p.cash-Team keinen Zugang zu meinen Schlüsseln hat und sie nicht wiederherstellen kann.</string>
+    <string name="authorization_information">Autorisierungsinformationen</string>
+    <string name="auth_info_successful">Erfolgreich</string>
+    <string name="auth_info_unsuccessful">Nicht erfolgreich</string>
+    <string name="auth_info_duress_mode">(Zwangsmodus)</string>
+    <string name="auth_info_entrance_to">Zugang zum %s</string>
+    <string name="auth_info_seconds_ago">(vor %d Sek)</string>
+    <string name="auth_info_minutes_ago">(vor %d Min)</string>
+    <string name="auth_info_hours_ago">(vor %d Std)</string>
+    <string name="auth_info_days_ago">(vor %d Tagen)</string>
+    <string name="auth_detail_status_label">Status:</string>
+    <string name="auth_detail_time_label">Zeit:</string>
+    <string name="auth_detail_save_to_gallery">In Galerie speichern</string>
+    <string name="image_saved_to_gallery">Bild in Galerie gespeichert</string>
+    <string name="auth_detail_save_failed">Bild konnte nicht gespeichert werden</string>
+    <string name="auth_info_no_records">Noch keine Autorisierungsdatensätze</string>
+    <string name="send_sms_via_zec_title">SMS über ZEC senden</string>
+    <string name="send_sms_via_zec_info">Dieser Modus ermöglicht es Ihnen, Ihre engen Freunde oder Ihren Anwalt zu benachrichtigen, dass Sie gezwungen wurden, die App zu öffnen. Dieser Modus funktioniert, wenn Sie ZEC in Ihrer Wallet haben. Falls nicht, wird die App es hinzufügen.</string>
+    <string name="send_sms_wallet_balance_hint">Stellen Sie sicher, dass Sie den erforderlichen Betrag in der ausgewählten Wallet haben.</string>
+    <string name="send_sms_syncing">Synchronisiere zum Senden…</string>
+    <string name="send_sms_test_success">Ihre Nachricht wurde erfolgreich gesendet.</string>
+    <string name="send_sms_test_error">Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten.</string>
+    <string name="send_sms_insufficient_balance">Unzureichendes Guthaben</string>
+    <string name="send_sms_transparent_address_not_allowed">Transparente Adressen sind nicht erlaubt. Bitte verwenden Sie eine geschützte (z) Adresse.</string>
+    <string name="choose_wallet">Wallet auswählen</string>
+    <string name="choose_wallet_none">Keine</string>
+    <string name="required_coins_for_transaction">Erforderliche Coins für Transaktion</string>
+    <string name="test_sms">SMS testen</string>
+    <string name="no_zec_wallets_available">Keine Wallets mit ZEC-Token gefunden</string>
 </resources>

@@ -9,6 +9,7 @@ import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.UpdateResult
+import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.asFlow
-import org.koin.java.KoinJavaComponent.inject
 
 class MainSettingsViewModel(
     private val backupManager: IBackupManager,
@@ -38,13 +38,10 @@ class MainSettingsViewModel(
     private val accountManager: IAccountManager,
     private val languageManager: LanguageManager,
     private val currencyManager: CurrencyManager,
+    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase,
+    private val localStorage: ILocalStorage,
+    private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
 ) : ViewModelUiState<MainSettingUiState>() {
-
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
-        CheckGooglePlayUpdateUseCase::class.java
-    )
-
-    private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
 
     val appVersion: String
         get() {
@@ -79,6 +76,8 @@ class MainSettingsViewModel(
 
     private val isPinSet: Boolean
         get() = pinComponent.isPinSet
+
+    private var premiumSettingsShowAlert: Boolean = false
 
     val currentAccountSupportsTonConnect: Boolean
         get() = accountManager.activeAccount?.supportsTonConnect() == true
@@ -138,6 +137,17 @@ class MainSettingsViewModel(
         }
 
         syncCounter()
+        checkSelfieProblem()
+    }
+
+    private fun checkSelfieProblem() {
+        viewModelScope.launch {
+            val hasProblem = logLoginAttemptUseCase.shouldShowLoggingAlert()
+            if(premiumSettingsShowAlert != hasProblem) {
+                premiumSettingsShowAlert = !premiumSettingsShowAlert
+                emitState()
+            }
+        }
     }
 
     override fun createState(): MainSettingUiState {
@@ -153,17 +163,18 @@ class MainSettingsViewModel(
             manageWalletShowAlert = !allBackedUp || hasNonStandardAccount,
             securityCenterShowAlert = !isPinSet || !localStorage.isSystemPinRequired,
             aboutAppShowAlert = !termsManager.allTermsAccepted,
-            wcCounterType = wcCounterType
+            wcCounterType = wcCounterType,
+            premiumSettingsShowAlert = premiumSettingsShowAlert
         )
     }
 
     private fun syncCounter() {
-        if (wcPendingRequestCount > 0) {
-            wcCounterType = CounterType.PendingRequestCounter(wcPendingRequestCount)
+        wcCounterType = if (wcPendingRequestCount > 0) {
+            CounterType.PendingRequestCounter(wcPendingRequestCount)
         } else if (wcSessionsCount > 0) {
-            wcCounterType = CounterType.SessionCounter(wcSessionsCount)
+            CounterType.SessionCounter(wcSessionsCount)
         } else {
-            wcCounterType = null
+            null
         }
         emitState()
     }
@@ -181,5 +192,6 @@ data class MainSettingUiState(
     val manageWalletShowAlert: Boolean,
     val securityCenterShowAlert: Boolean,
     val aboutAppShowAlert: Boolean,
-    val wcCounterType: CounterType?
+    val wcCounterType: CounterType?,
+    val premiumSettingsShowAlert: Boolean
 )

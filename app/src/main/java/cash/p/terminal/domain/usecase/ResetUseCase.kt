@@ -78,6 +78,9 @@ class ResetUseCase(
 
         runCatching { context.deleteDatabase(CACHE_DB_NAME) }
             .onFailure { Timber.w(it, "Failed deleting cache database file") }
+
+        runCatching { context.deleteDatabase(LOGGING_DB_NAME) }
+            .onFailure { Timber.w(it, "Failed deleting logging database file") }
     }
 
     private fun purgeLocalePreferences() {
@@ -102,6 +105,10 @@ class ResetUseCase(
             context.getDir(TorConstants.DIRECTORY_TOR_DATA, Context.MODE_PRIVATE)
                 .deleteRecursively()
         }.onFailure { Timber.w(it, "Failed clearing Tor data") }
+
+        runCatching {
+            File(context.filesDir, PHOTOS_DIR_NAME).deleteRecursively()
+        }.onFailure { Timber.w(it, "Failed clearing login photos") }
     }
 
     private suspend fun clearWidgetState() {
@@ -124,5 +131,7 @@ class ResetUseCase(
         private const val CONTACTS_FILE_NAME = "UW_Contacts.json"
         private const val PREMIUM_DB_NAME = "premium_database"
         private const val CACHE_DB_NAME = "db_cache"
+        private const val LOGGING_DB_NAME = "logging_database"
+        private const val PHOTOS_DIR_NAME = "login_photos"
     }
 }

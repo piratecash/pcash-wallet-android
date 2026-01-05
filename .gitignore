@@ -10,3 +10,5 @@
 /app/src/main/assets/common/CHNAGELOG_*.md
 /.claude/settings.local.json
 /.kotlin/sessions/
+/AGENTS.md
+/CLAUDE.md

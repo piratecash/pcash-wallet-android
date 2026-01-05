@@ -3,6 +3,8 @@ package io.horizontalsystems.core.helpers
 import android.content.Context
 import android.text.format.DateFormat
 import cash.p.terminal.core.R
+import cash.p.terminal.strings.R as StringsR
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.CoreApp
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -90,5 +92,15 @@ object DateHelper {
         val calendar2 = Calendar.getInstance().apply { time = date }
 
         return calendar1.get(Calendar.YEAR) == calendar2.get(Calendar.YEAR)
+    }
+
+    fun formatRelativeTime(timestamp: Long): String {
+        val secondsAgo = (System.currentTimeMillis() - timestamp) / 1000
+        return when {
+            secondsAgo < 60 -> Translator.getString(StringsR.string.auth_info_seconds_ago, secondsAgo.toInt())
+            secondsAgo < 3600 -> Translator.getString(StringsR.string.auth_info_minutes_ago, (secondsAgo / 60).toInt())
+            secondsAgo < 86400 -> Translator.getString(StringsR.string.auth_info_hours_ago, (secondsAgo / 3600).toInt())
+            else -> Translator.getString(StringsR.string.auth_info_days_ago, (secondsAgo / 86400).toInt())
+        }
     }
 }

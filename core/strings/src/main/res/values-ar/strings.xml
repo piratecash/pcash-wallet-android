@@ -49,6 +49,7 @@
     <string name="Button_Share">Share</string>
     <string name="Button_Apply">Apply</string>
     <string name="Button_SetAmount">Set Amount</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">تأكد من توفر ما لا يقل عن %s للرسوم وإلا قد تفشل المعاملة</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
@@ -474,7 +475,7 @@
     <string name="WalletConnect_Unnamed">Unnamed</string>
     <string name="WalletConnect_Pairings">Pairings</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Delete All</string>
+    <string name="delete_all">Delete All</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Do you want to delete all paired dApss?</string>
     <string name="WalletConnect_Pairings_Delete">حذف</string>
     <string name="WalletConnect_DeleteAllPairs">Delete All Pairs</string>
@@ -1122,7 +1123,7 @@
     <string name="Coin_Tab_Market">Markets</string>
     <string name="Coin_Tab_Details">Analytics</string>
     <string name="Coin_Tab_Tweets">Tweets</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[الرسوم النموذجية < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">1D</string>
     <string name="CoinPage_TimeDuration_Week">7D</string>
@@ -1347,6 +1348,7 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">بريميوم</string>
     <string name="about_premium">حول بريميوم</string>
+    <string name="premium_settings">إعدادات المميزات المدفوعة</string>
     <string name="advanced_security">أمان متقدم</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
     <string name="create_hidden_wallet_pin">رمز مرور المحفظة المخفية</string>
@@ -1374,6 +1376,54 @@
     <string name="premium_demo_activation_error_backup">لتفعيل المميزات المدفوعة تحتاج إلى نسخ احتياطي من محفظتك</string>
     <string name="premium_demo_activation_error_watch_account">لا يمكن استخدام حساب المراقبة لتفعيل المميزات المدفوعة</string>
     <string name="premium_demo_activation_error_wrong_type">استخدم نوع محفظة ذاكري أو محفظة أجهزة لتفعيل المميزات المدفوعة</string>
+    <string name="premium_try_for_free">جرب مجاناً</string>
+    <string name="premium_upgrade_text">حسّن تجربتك مع الميزات المميزة!</string>
+    <string name="premium_available">⭐️ المميزات المدفوعة متاحة</string>
+    <string name="premium_demo_days_left">النسخة التجريبية المميزة: %d يوم متبقي</string>
+    <string name="premium_select_wallet_title">اختر محفظة للتجربة</string>
+    <string name="premium_select_wallet_description">اختر محفظة لتفعيل الميزات التجريبية المميزة. يمكن لمحفظة واحدة فقط الحصول على النسخة التجريبية المميزة في كل مرة.</string>
+    <string name="premium_demo_activated">تم تفعيل النسخة التجريبية المميزة بنجاح!</string>
+    <string name="premium_demo_expired">انتهت صلاحية النسخة التجريبية المميزة لهذه المحفظة</string>
+    <string name="wallet_is_not_eligible">هذه المحفظة غير مؤهلة للميزات المدفوعة</string>
+    <string name="premium_demo_activation_failed">فشل تفعيل النسخة التجريبية المميزة</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">تسجيل الدخول إلى التطبيق</string>
+    <string name="login_logging_subscription_expired_title">انتهت صلاحية الاشتراك</string>
+    <string name="login_logging_subscription_expired_description">لاستخدام الميزات في هذا القسم، تحتاج إلى تفعيل اشتراكك.\n\nيمكنك إخفاء هذه النافذة عن طريق تعطيل جميع الميزات في هذا القسم.</string>
+    <string name="login_logging_delete_all">حذف جميع السجلات</string>
+    <string name="login_logging_passcode">رمز المرور</string>
+    <string name="login_logging_selfie_on_successful_login">التقاط سيلفي عند تسجيل الدخول الناجح</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">التقاط سيلفي عند فشل تسجيل الدخول</string>
+    <string name="login_logging_selfie_on_duress_login">التقاط سيلفي في وضع الإكراه</string>
+    <string name="camera_permission_denied_title">يلزم إذن الكاميرا</string>
+    <string name="camera_permission_denied_message">يلزم الوصول إلى الكاميرا لالتقاط صور سيلفي عند الدخول. يرجى تفعيله في الإعدادات.</string>
+    <string name="button_open_settings">فتح الإعدادات</string>
+    <string name="login_logging_standard_login">الدخول القياسي</string>
+    <string name="login_logging_log_successful">تسجيل عمليات الدخول الناجحة</string>
+    <string name="login_logging_log_unsuccessful">تسجيل عمليات الدخول الفاشلة</string>
+    <string name="login_logging_duress_mode">وضع الإكراه</string>
+    <string name="login_logging_log_into_duress">الدخول في وضع الإكراه</string>
+    <string name="login_logging_send_notification">إرسال إشعار الدخول</string>
+    <string name="login_logging_delete_auth_data">حذف جميع بيانات المصادقة</string>
+    <string name="login_logging_delete_auth_data_description">تحذف هذه الوظيفة جميع بيانات المصادقة مع الصور عند الدخول في وضع الإكراه.</string>
+    <string name="login_logging_auto_delete">الحذف التلقائي للسجلات</string>
+    <string name="login_logging_delete_period">فترة الحذف</string>
+    <string-array name="login_logging_periods">
+        <item>أبداً</item>
+        <item>شهر</item>
+        <item>سنة</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1ش</item>
+        <item>1س</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">حذف البيانات</string>
+    <string name="login_logging_delete_data_confirmation">هل أنت متأكد أنك تريد حذف جميع السجلات؟</string>
+    <string name="login_logging_delete_record_confirmation">هل أنت متأكد أنك تريد حذف هذا السجل؟</string>
+    <string name="login_logging_info_description">إذا تم تمكين التسجيل، يمكنك عرض سجل تسجيل الدخول في الأمان المتقدم.</string>
+
     <string name="Nfts_PriceType_Days_7">7D avg.</string>
     <string name="Nfts_PriceType_Days_30">30D avg.</string>
     <string name="Nfts_PriceType_LastSale">Last Sale</string>
@@ -1488,6 +1538,10 @@
     <string name="PinSet_ErrorFailedToSavePin">Error occurred while saving your passcode. Please, try again.</string>
     <string name="PinSet_ForBiometrics">Set a passcode to enable Biometrics</string>
     <string name="PinSet_ForDuress">Set a passcode to enable Duress Mode</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">تعيين رمز مرور لحماية سجل تسجيل الدخول</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">أدخل رمز المرور لتعطيل سجل تسجيل الدخول</string>
+    <string name="confirm_pin_to_access_login_logging">أدخل رمز المرور للوصول إلى سجل تسجيل الدخول</string>
     <string name="PinSet_ErrorPinInUse">This passcode is already being used.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Edit Passcode</string>
@@ -1608,4 +1662,32 @@
     <string name="safety_rules_checkbox_1">أفهم أن عبارة البذرة سرية ولا ينبغي الكشف عنها لأطراف ثالثة.</string>
     <string name="safety_rules_checkbox_2">أفهم أنني لا أستطيع تخزين عبارة البذرة في شكل رقمي.</string>
     <string name="safety_rules_checkbox_3">أفهم أن فريق p.cash ليس لديه وصول إلى مفاتيحي ولا يمكنه استعادتها.</string>
+    <string name="authorization_information">معلومات التفويض</string>
+    <string name="auth_info_successful">ناجح</string>
+    <string name="auth_info_unsuccessful">فاشل</string>
+    <string name="auth_info_duress_mode">(وضع الإكراه)</string>
+    <string name="auth_info_entrance_to">الدخول إلى %s</string>
+    <string name="auth_info_seconds_ago">(منذ %d ثانية)</string>
+    <string name="auth_info_minutes_ago">(منذ %d دقيقة)</string>
+    <string name="auth_info_hours_ago">(منذ %d ساعة)</string>
+    <string name="auth_info_days_ago">(منذ %d يوم)</string>
+    <string name="auth_detail_status_label">الحالة:</string>
+    <string name="auth_detail_time_label">الوقت:</string>
+    <string name="auth_detail_save_to_gallery">حفظ في المعرض</string>
+    <string name="image_saved_to_gallery">تم حفظ الصورة في المعرض</string>
+    <string name="auth_detail_save_failed">فشل في حفظ الصورة</string>
+    <string name="auth_info_no_records">لا توجد سجلات تفويض بعد</string>
+    <string name="send_sms_via_zec_title">إرسال رسالة SMS عبر ZEC</string>
+    <string name="send_sms_via_zec_info">يسمح لك هذا الوضع بإبلاغ أصدقائك المقربين أو محاميك بأنك أُجبرت على فتح التطبيق. يعمل هذا الوضع إذا كان لديك ZEC في محفظتك. إذا لم يكن لديك، سيضيفه التطبيق.</string>
+    <string name="send_sms_wallet_balance_hint">تأكد من وجود المبلغ المطلوب في المحفظة المحددة.</string>
+    <string name="send_sms_syncing">جارٍ المزامنة للإرسال…</string>
+    <string name="send_sms_test_success">تم إرسال رسالتك بنجاح.</string>
+    <string name="send_sms_test_error">حدث خطأ أثناء إرسال رسالتك.</string>
+    <string name="send_sms_insufficient_balance">رصيد غير كافٍ</string>
+    <string name="send_sms_transparent_address_not_allowed">العناوين الشفافة غير مسموح بها. يرجى استخدام عنوان محمي (z).</string>
+    <string name="choose_wallet">اختر المحفظة</string>
+    <string name="choose_wallet_none">لا شيء</string>
+    <string name="required_coins_for_transaction">العملات المطلوبة للمعاملة</string>
+    <string name="test_sms">اختبار SMS</string>
+    <string name="no_zec_wallets_available">لم يتم العثور على محافظ بها رموز ZEC</string>
 </resources>

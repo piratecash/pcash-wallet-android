@@ -30,7 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
@@ -62,7 +62,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 fun SettingsScreen(
     navController: NavController,
     paddingValues: PaddingValues,
-    viewModel: MainSettingsViewModel = viewModel(factory = MainSettingsModule.Factory()),
+    viewModel: MainSettingsViewModel = koinViewModel(),
 ) {
     Surface(color = ComposeAppTheme.colors.tyler) {
         Column {
@@ -321,6 +321,7 @@ private fun SettingSections(
             title = R.string.premium_settings,
             icon = R.drawable.ic_settings,
             iconTint = ComposeAppTheme.colors.jacob,
+            showAlert = uiState.premiumSettingsShowAlert,
             onClick = {
                 navController.slideFromRight(R.id.premiumSettingsFragment)
             }

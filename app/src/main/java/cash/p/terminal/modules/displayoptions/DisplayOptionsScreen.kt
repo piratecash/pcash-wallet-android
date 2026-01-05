@@ -89,7 +89,7 @@ internal fun DisplayOptionsScreen(
                             // % Change
                             SwitchWithText(
                                 text = stringResource(R.string.display_options_percent_change),
-                                checkEnabled = uiState.displayDiffOptionType.hasPercentChange,
+                                checked = uiState.displayDiffOptionType.hasPercentChange,
                                 onCheckedChange = { onPercentChangeToggled(it) }
                             )
                         },
@@ -97,7 +97,7 @@ internal fun DisplayOptionsScreen(
                             // Price Change
                             SwitchWithText(
                                 text = stringResource(R.string.display_options_price_change),
-                                checkEnabled = uiState.displayDiffOptionType.hasPriceChange,
+                                checked = uiState.displayDiffOptionType.hasPriceChange,
                                 onCheckedChange = { onPriceChangeToggled(it) }
                             )
                         }
@@ -108,7 +108,7 @@ internal fun DisplayOptionsScreen(
                         {
                             SwitchWithText(
                                 text = stringResource(R.string.sum_rounding),
-                                checkEnabled = uiState.isRoundingAmountMainPage,
+                                checked = uiState.isRoundingAmountMainPage,
                                 onCheckedChange = onRoundingAmountMainPageToggled
                             )
                         }

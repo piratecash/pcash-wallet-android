@@ -40,7 +40,7 @@ import java.math.BigDecimal
 import java.util.UUID
 
 class LocalStorageManager(
-    private val preferences: SharedPreferences
+    private val preferences: SharedPreferences,
 ) : ILocalStorage, IPinSettingsStorage, ILockoutStorage, IThirdKeyboard, IMarketStorage {
 
     private val THIRD_KEYBOARD_WARNING_MSG = "third_keyboard_warning_msg"
@@ -656,6 +656,82 @@ class LocalStorageManager(
         default = true,
         commit = true
     )
+
+    // Helper function for level-scoped keys
+    private fun keyForLevel(key: String, level: Int) = "${key}_$level"
+
+    override fun hasEnabledAtLeastOneSettingsEnabled(level: Int): Boolean {
+        return getLogSuccessfulLoginsEnabled(level) ||
+                getLogUnsuccessfulLoginsEnabled(level) ||
+                getLogIntoDuressModeEnabled(level)
+    }
+
+    override fun getLogSuccessfulLoginsEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("log_successful_logins_enabled", level), false)
+
+    override fun setLogSuccessfulLoginsEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("log_successful_logins_enabled", level), enabled) }
+
+    override fun getSelfieOnSuccessfulLoginEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("selfie_on_successful_login_enabled", level), false)
+
+    override fun setSelfieOnSuccessfulLoginEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("selfie_on_successful_login_enabled", level), enabled) }
+
+    override fun getLogUnsuccessfulLoginsEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("log_unsuccessful_logins_enabled", level), false)
+
+    override fun setLogUnsuccessfulLoginsEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("log_unsuccessful_logins_enabled", level), enabled) }
+
+    override fun getSelfieOnUnsuccessfulLoginEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("selfie_on_unsuccessful_login_enabled", level), false)
+
+    override fun setSelfieOnUnsuccessfulLoginEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("selfie_on_unsuccessful_login_enabled", level), enabled) }
+
+    override fun getLogIntoDuressModeEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("log_into_duress_mode_enabled", level), false)
+
+    override fun setLogIntoDuressModeEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("log_into_duress_mode_enabled", level), enabled) }
+
+    override fun getSelfieOnDuressLoginEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("selfie_on_duress_login_enabled", level), false)
+
+    override fun setSelfieOnDuressLoginEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("selfie_on_duress_login_enabled", level), enabled) }
+
+    override fun getDeleteAllAuthDataOnDuressEnabled(level: Int): Boolean =
+        preferences.getBoolean(keyForLevel("delete_all_auth_data_on_duress_enabled", level), false)
+
+    override fun setDeleteAllAuthDataOnDuressEnabled(level: Int, enabled: Boolean) =
+        preferences.edit { putBoolean(keyForLevel("delete_all_auth_data_on_duress_enabled", level), enabled) }
+
+    override fun getAutoDeleteLogsPeriod(level: Int): Int =
+        preferences.getInt(keyForLevel("auto_delete_logs_period", level), 2) // Default: Year
+
+    override fun setAutoDeleteLogsPeriod(level: Int, period: Int) =
+        preferences.edit { putInt(keyForLevel("auto_delete_logs_period", level), period) }
+
+    // SMS Notification Settings (level-scoped)
+    override fun getSmsNotificationAccountId(level: Int): String? =
+        preferences.getString(keyForLevel("sms_notification_wallet_id", level), null)
+
+    override fun setSmsNotificationAccountId(level: Int, accountId: String?) =
+        preferences.edit { putString(keyForLevel("sms_notification_wallet_id", level), accountId) }
+
+    override fun getSmsNotificationAddress(level: Int): String? =
+        preferences.getString(keyForLevel("sms_notification_address", level), null)
+
+    override fun setSmsNotificationAddress(level: Int, address: String?) =
+        preferences.edit { putString(keyForLevel("sms_notification_address", level), address) }
+
+    override fun getSmsNotificationMemo(level: Int): String? =
+        preferences.getString(keyForLevel("sms_notification_memo", level), null)
+
+    override fun setSmsNotificationMemo(level: Int, memo: String?) =
+        preferences.edit { putString(keyForLevel("sms_notification_memo", level), memo) }
 
     override var recipientAddressBaseCheckEnabled by preferences.delegate(
         key = "recipientAddressBaseCheckEnabled",

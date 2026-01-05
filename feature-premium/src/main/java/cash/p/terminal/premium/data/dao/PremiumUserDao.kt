@@ -11,6 +11,9 @@ internal interface PremiumUserDao {
     @Query("SELECT * FROM premium_users WHERE level = :level")
     suspend fun getByLevel(level: Int): PremiumUser?
 
+    @Query("SELECT * FROM premium_users WHERE level IN (:levels)")
+    suspend fun getByLevels(levels: List<Int>): List<PremiumUser>
+
     @Query("DELETE FROM premium_users WHERE accountId = :accountId")
     suspend fun deleteByAccount(accountId: String)
 

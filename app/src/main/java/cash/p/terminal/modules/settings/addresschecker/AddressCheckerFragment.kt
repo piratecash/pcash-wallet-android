@@ -22,18 +22,15 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
-import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
 import io.horizontalsystems.core.ViewModelUiState
@@ -79,7 +76,7 @@ fun AddressCheckerScreen(
             SectionUniversalLawrence {
                 SwitchWithText(
                     text = stringResource(R.string.SettingsAddressChecker_RecipientCheck),
-                    checkEnabled = uiState.checkEnabled,
+                    checked = uiState.checkEnabled,
                     onCheckedChange = viewModel::toggleAddressChecking
                 )
             }

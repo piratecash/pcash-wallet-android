@@ -49,6 +49,7 @@
     <string name="Button_Share">공유</string>
     <string name="Button_Apply">적용</string>
     <string name="Button_SetAmount">금액 설정</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">수수료로 최소 %s를 보유하고 있는지 확인하세요. 그렇지 않으면 거래가 실패할 수 있습니다</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
@@ -474,7 +475,7 @@
     <string name="WalletConnect_Unnamed">이름없음</string>
     <string name="WalletConnect_Pairings">동기화</string>
     <string name="WalletConnect_PairedDApps">페어링된 dApp</string>
-    <string name="WalletConnect_Pairings_DeleteAll">모두 삭제</string>
+    <string name="delete_all">모두 삭제</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">페어링된 모든 dAps를 삭제하시겠습니까?</string>
     <string name="WalletConnect_Pairings_Delete">삭제</string>
     <string name="WalletConnect_DeleteAllPairs">모든 쌍 삭제</string>
@@ -1117,7 +1118,7 @@
     <string name="Coin_Tab_Market">시장</string>
     <string name="Coin_Tab_Details">분석</string>
     <string name="Coin_Tab_Tweets">트윗</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[일반적인 수수료 < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">1하루</string>
     <string name="CoinPage_TimeDuration_Week">7일</string>
@@ -1342,6 +1343,7 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">프리미엄</string>
     <string name="about_premium">프리미엄 소개</string>
+    <string name="premium_settings">프리미엄 설정</string>
     <string name="advanced_security">고급 보안</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
     <string name="create_hidden_wallet_pin">숨겨진 월렛 PIN</string>
@@ -1369,6 +1371,54 @@
     <string name="premium_demo_activation_error_backup">프리미엄을 활성화하려면 지갑을 백업해야 합니다</string>
     <string name="premium_demo_activation_error_watch_account">감시 계정은 프리미엄을 활성화하는 데 사용할 수 없습니다</string>
     <string name="premium_demo_activation_error_wrong_type">프리미엄을 활성화하려면 니모닉 또는 하드웨어 지갑 유형을 사용하세요</string>
+    <string name="premium_try_for_free">무료로 체험</string>
+    <string name="premium_upgrade_text">프리미엄 기능으로 경험을 업그레이드하세요!</string>
+    <string name="premium_available">⭐️ 프리미엄 이용 가능</string>
+    <string name="premium_demo_days_left">데모 프리미엄: %d일 남음</string>
+    <string name="premium_select_wallet_title">데모용 지갑 선택</string>
+    <string name="premium_select_wallet_description">데모 프리미엄 기능을 활성화할 지갑을 선택하세요. 한 번에 하나의 지갑만 데모 프리미엄을 사용할 수 있습니다.</string>
+    <string name="premium_demo_activated">데모 프리미엄이 성공적으로 활성화되었습니다!</string>
+    <string name="premium_demo_expired">이 지갑의 데모 프리미엄이 만료되었습니다</string>
+    <string name="wallet_is_not_eligible">이 지갑은 프리미엄 자격이 없습니다</string>
+    <string name="premium_demo_activation_failed">데모 프리미엄 활성화 실패</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">앱 로그인</string>
+    <string name="login_logging_subscription_expired_title">구독이 만료되었습니다</string>
+    <string name="login_logging_subscription_expired_description">이 섹션의 기능을 사용하려면 구독을 활성화해야 합니다.\n\n이 섹션의 모든 기능을 비활성화하면 이 창을 숨길 수 있습니다.</string>
+    <string name="login_logging_delete_all">모든 로그 삭제</string>
+    <string name="login_logging_passcode">암호</string>
+    <string name="login_logging_selfie_on_successful_login">로그인 성공 시 셀카 촬영</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">로그인 실패 시 셀카 촬영</string>
+    <string name="login_logging_selfie_on_duress_login">강압 모드에서 셀카 촬영</string>
+    <string name="camera_permission_denied_title">카메라 권한 필요</string>
+    <string name="camera_permission_denied_message">로그인 시 셀카를 촬영하려면 카메라 접근이 필요합니다. 설정에서 활성화해 주세요.</string>
+    <string name="button_open_settings">설정 열기</string>
+    <string name="login_logging_standard_login">표준 로그인</string>
+    <string name="login_logging_log_successful">성공한 로그인 기록</string>
+    <string name="login_logging_log_unsuccessful">실패한 로그인 기록</string>
+    <string name="login_logging_duress_mode">강압 모드</string>
+    <string name="login_logging_log_into_duress">강압 모드 로그인</string>
+    <string name="login_logging_send_notification">로그인 알림 보내기</string>
+    <string name="login_logging_delete_auth_data">모든 인증 데이터 삭제</string>
+    <string name="login_logging_delete_auth_data_description">이 기능은 강압 모드 로그인 시 사진과 함께 모든 인증 데이터를 삭제합니다.</string>
+    <string name="login_logging_auto_delete">로그 자동 삭제</string>
+    <string name="login_logging_delete_period">삭제 기간</string>
+    <string-array name="login_logging_periods">
+        <item>안 함</item>
+        <item>월</item>
+        <item>년</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1월</item>
+        <item>1년</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">데이터 삭제</string>
+    <string name="login_logging_delete_data_confirmation">모든 로그를 삭제하시겠습니까?</string>
+    <string name="login_logging_delete_record_confirmation">이 기록을 삭제하시겠습니까?</string>
+    <string name="login_logging_info_description">로깅이 활성화된 경우 고급 보안에서 로그인 기록을 볼 수 있습니다.</string>
+
     <string name="Nfts_PriceType_Days_7">평균 7일</string>
     <string name="Nfts_PriceType_Days_30">평균 30일</string>
     <string name="Nfts_PriceType_LastSale">마지막 판매</string>
@@ -1484,6 +1534,10 @@
     <string name="PinSet_ErrorFailedToSavePin">당신의 비밀번호를 저장하는 동안 오류가 발생했습니다. 다시 시도하세요.</string>
     <string name="PinSet_ForBiometrics">생체인식을 활성화하려면 비밀번호를 설정해주세요.</string>
     <string name="PinSet_ForDuress">긴급 상황 모드를 활성화하려면 비밀번호를 설정하세요.</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">로그인 로깅 보호를 위한 비밀번호 설정</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">로그인 로깅 비활성화를 위해 비밀번호 입력</string>
+    <string name="confirm_pin_to_access_login_logging">로그인 로깅 접근을 위해 비밀번호 입력</string>
     <string name="PinSet_ErrorPinInUse">이 비밀번호는 이미 사용 중입니다.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">비밀번호 변경</string>
@@ -1594,4 +1648,32 @@
     <string name="safety_rules_checkbox_1">시드 문구가 기밀이며 제3자에게 공개해서는 안 된다는 것을 이해합니다.</string>
     <string name="safety_rules_checkbox_2">시드 문구를 디지털 형식으로 저장할 수 없다는 것을 이해합니다.</string>
     <string name="safety_rules_checkbox_3">p.cash 팀이 내 키에 접근할 수 없으며 복구할 수 없다는 것을 이해합니다.</string>
+    <string name="authorization_information">인증 정보</string>
+    <string name="auth_info_successful">성공</string>
+    <string name="auth_info_unsuccessful">실패</string>
+    <string name="auth_info_duress_mode">(강압 모드)</string>
+    <string name="auth_info_entrance_to">%s 접속</string>
+    <string name="auth_info_seconds_ago">(%d초 전)</string>
+    <string name="auth_info_minutes_ago">(%d분 전)</string>
+    <string name="auth_info_hours_ago">(%d시간 전)</string>
+    <string name="auth_info_days_ago">(%d일 전)</string>
+    <string name="auth_detail_status_label">상태:</string>
+    <string name="auth_detail_time_label">시간:</string>
+    <string name="auth_detail_save_to_gallery">갤러리에 저장</string>
+    <string name="image_saved_to_gallery">갤러리에 이미지 저장됨</string>
+    <string name="auth_detail_save_failed">이미지 저장 실패</string>
+    <string name="auth_info_no_records">아직 인증 기록이 없습니다</string>
+    <string name="send_sms_via_zec_title">ZEC로 SMS 보내기</string>
+    <string name="send_sms_via_zec_info">이 모드는 앱을 강제로 열어야 했음을 가까운 친구나 변호사에게 알릴 수 있게 해줍니다. 이 모드는 지갑에 ZEC가 있어야 작동합니다. 없으면 앱에서 추가합니다.</string>
+    <string name="send_sms_wallet_balance_hint">선택한 지갑에 필요한 금액이 있는지 확인하세요.</string>
+    <string name="send_sms_syncing">전송을 위해 동기화 중…</string>
+    <string name="send_sms_test_success">메시지가 성공적으로 전송되었습니다.</string>
+    <string name="send_sms_test_error">메시지 전송 중 오류가 발생했습니다.</string>
+    <string name="send_sms_insufficient_balance">잔액 부족</string>
+    <string name="send_sms_transparent_address_not_allowed">투명 주소는 허용되지 않습니다. 차폐(z) 주소를 사용해 주세요.</string>
+    <string name="choose_wallet">지갑 선택</string>
+    <string name="choose_wallet_none">없음</string>
+    <string name="required_coins_for_transaction">트랜잭션에 필요한 코인</string>
+    <string name="test_sms">SMS 테스트</string>
+    <string name="no_zec_wallets_available">ZEC 토큰이 있는 지갑을 찾을 수 없습니다</string>
 </resources>

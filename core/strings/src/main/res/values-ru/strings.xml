@@ -54,6 +54,7 @@
     <string name="Button_Apply">Применить</string>
     <string name="Button_SetAmount">Установить сумму</string>
     <string name="Button_ContinueAnyway">Всё равно продолжить</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Недостаточно TON для оплаты комиссии</string>
     <string name="check_fee_warning">Убедитесь, что у вас есть как минимум %s для комиссий, иначе транзакция может не пройти</string>
     <string name="Error_AssetNotEnabled">Получатель не включил %s, поэтому не может получить.</string>
@@ -482,7 +483,7 @@
     <string name="WalletConnect_Unnamed">Без имени</string>
     <string name="WalletConnect_Pairings">Соединения</string>
     <string name="WalletConnect_PairedDApps">Соединеные dApp</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Удалить всё</string>
+    <string name="delete_all">Удалить всё</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Вы хотите удалить все соединенные dApss?</string>
     <string name="WalletConnect_Pairings_Delete">Удалить</string>
     <string name="WalletConnect_DeleteAllPairs">Удалить все пары</string>
@@ -1155,7 +1156,7 @@
     <string name="Coin_Tab_Market">Рынки</string>
     <string name="Coin_Tab_Details">Аналитика</string>
     <string name="Coin_Tab_Tweets">Твиты</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[Типичная комиссия < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1Ч</string>
     <string name="CoinPage_TimeDuration_Day">1Д</string>
     <string name="CoinPage_TimeDuration_Week">7Д</string>
@@ -1493,6 +1494,10 @@
     <string name="PinSet_ErrorFailedToSavePin">При сохранении вашего кода произошла ошибка. Повторите попытку.</string>
     <string name="PinSet_ForBiometrics">Установить секретный код для включения биометрических данных</string>
     <string name="PinSet_ForDuress">Установите код для включения режима Duress</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">Установите код для защиты журнала входа</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">Введите код для отключения журнала входа</string>
+    <string name="confirm_pin_to_access_login_logging">Введите код для доступа к журналу входа</string>
     <string name="PinSet_ErrorPinInUse">Этот пароль уже используется.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Изменить код</string>
@@ -1734,8 +1739,8 @@
         <item>После сброса ваш основной PIN-код станет вашим PIN-кодом сброса, а PIN-код сброса будет отключён.</item>
     </string-array>
     <string name="premium_settings">Настройки Премиум</string>
-    <string name="Premium_TryForFree">Попробовать БЕСПЛАТНО</string>
-    <string name="Premium_UpgradeText">Улучшите свой опыт с функциями Премиум!</string>
+    <string name="premium_try_for_free">Попробовать БЕСПЛАТНО</string>
+    <string name="premium_upgrade_text">Улучшите свой опыт с функциями Премиум!</string>
     <string name="premium_available">⭐️ Доступен Премиум</string>
     <string name="premium_demo_days_left">Демо Премиум: осталось %d дней</string>
     <string name="premium_select_wallet_title">Выберите кошелёк для демо</string>
@@ -1746,7 +1751,61 @@
     <string name="premium_demo_activation_error_backup">Для активации премиума необходимо создать резервную копию кошелька</string>
     <string name="premium_demo_activation_error_watch_account">Кошелёк для просмотра не может быть использован для активации премиума</string>
     <string name="premium_demo_activation_error_wrong_type">Используйте мнемонический или аппаратный тип кошелька для активации премиума</string>
-    <string name="wallet_is_not_eligile">Этот кошелёк не подходит для Премиум</string>
+    <string name="wallet_is_not_eligible">Этот кошелёк не подходит для Премиум</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">Вход в приложение</string>
+    <string name="login_logging_subscription_expired_title">Срок подписки истёк</string>
+    <string name="login_logging_subscription_expired_description">Чтобы использовать функции в этом разделе, вам необходимо активировать подписку.\n\nВы можете скрыть это окно, отключив все функции в этом разделе.</string>
+    <string name="login_logging_delete_all">Удалить все записи</string>
+    <string name="login_logging_passcode">Код доступа</string>
+    <string name="login_logging_selfie_on_successful_login">Делать селфи при успешном входе</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">Делать селфи при неуспешном входе</string>
+    <string name="login_logging_selfie_on_duress_login">Делать селфи в режиме принуждения</string>
+    <string name="camera_permission_denied_title">Требуется разрешение камеры</string>
+    <string name="camera_permission_denied_message">Для съёмки селфи при входе необходим доступ к камере. Пожалуйста, включите его в Настройках.</string>
+    <string name="button_open_settings">Открыть настройки</string>
+    <string name="login_logging_standard_login">СТАНДАРТНЫЙ ВХОД</string>
+    <string name="login_logging_log_successful">Логировать успешные входы</string>
+    <string name="login_logging_log_unsuccessful">Логировать неуспешные входы</string>
+    <string name="login_logging_duress_mode">РЕЖИМ ПРИНУЖДЕНИЯ</string>
+    <string name="login_logging_log_into_duress">Логировать вход в режим принуждения</string>
+    <string name="login_logging_send_notification">Отправить уведомление о входе</string>
+    <string name="login_logging_delete_auth_data">Удалить все данные аутентификации</string>
+    <string name="login_logging_delete_auth_data_description">Эта функция удаляет все данные аутентификации с фото при входе в режим принуждения.</string>
+    <string name="login_logging_auto_delete">Автоудаление логов</string>
+    <string name="login_logging_delete_period">Период удаления</string>
+    <string-array name="login_logging_periods">
+        <item>Никогда</item>
+        <item>Месяц</item>
+        <item>Год</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1М</item>
+        <item>1Г</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">Удалить данные</string>
+    <string name="login_logging_delete_data_confirmation">Вы уверены, что хотите удалить все логи?</string>
+    <string name="login_logging_delete_record_confirmation">Вы уверены, что хотите удалить эту запись?</string>
+    <string name="login_logging_info_description">Если журналирование включено, вы можете просмотреть историю входов в Расширенной безопасности.</string>
+
+    <!-- SMS Notification via ZEC -->
+    <string name="send_sms_via_zec_title">Отправить SMS через ZEC</string>
+    <string name="send_sms_via_zec_info">Этот режим позволяет уведомить ваших близких друзей или адвоката о том, что вас принудили открыть приложение. Этот режим работает, если у вас есть ZEC в кошельке. Если нет, приложение добавит его.</string>
+    <string name="send_sms_wallet_balance_hint">Убедитесь, что на выбранном кошельке достаточно средств.</string>
+    <string name="send_sms_syncing">Синхронизация для отправки…</string>
+    <string name="send_sms_test_success">Ваше сообщение успешно отправлено.</string>
+    <string name="send_sms_test_error">Произошла ошибка при отправке сообщения.</string>
+    <string name="send_sms_insufficient_balance">Недостаточно средств</string>
+    <string name="send_sms_transparent_address_not_allowed">Прозрачные адреса не поддерживаются. Пожалуйста, используйте защищённый (z) адрес.</string>
+    <string name="choose_wallet">Выбрать кошелёк</string>
+    <string name="choose_wallet_none">Не выбран</string>
+    <string name="required_coins_for_transaction">Необходимо монет для транзакции</string>
+    <string name="send_sms_address_hint">Укажите адрес, на который будет отправлено сообщение.</string>
+    <string name="test_sms">Тест SMS</string>
+    <string name="no_zec_wallets_available">Кошельки с токеном ZEC не найдены</string>
+
     <string name="Send_Confirmation_YouReceive">Вы получаете</string>
     <string name="Send_Confirmation_Mint">Выпустить</string>
 
@@ -1792,4 +1851,19 @@
     <string name="safety_rules_checkbox_1">Я понимаю, что Seed-фраза конфиденциальна и не должна передаваться третьим лицам</string>
     <string name="safety_rules_checkbox_2">Я понимаю, что нельзя хранить Seed-фразу в цифровом виде</string>
     <string name="safety_rules_checkbox_3">Я понимаю, что команда p.cash не имеет доступа к моим ключам и не может их восстановить</string>
+    <string name="authorization_information">Информация об авторизации</string>
+    <string name="auth_info_successful">Успешно</string>
+    <string name="auth_info_unsuccessful">Неуспешно</string>
+    <string name="auth_info_duress_mode">(Режим принуждения)</string>
+    <string name="auth_info_entrance_to">Вход в %s</string>
+    <string name="auth_info_seconds_ago">(%d сек назад)</string>
+    <string name="auth_info_minutes_ago">(%d мин назад)</string>
+    <string name="auth_info_hours_ago">(%d ч назад)</string>
+    <string name="auth_info_days_ago">(%d дн назад)</string>
+    <string name="auth_detail_status_label">Статус:</string>
+    <string name="auth_detail_time_label">Время:</string>
+    <string name="auth_detail_save_to_gallery">Сохранить в галерею</string>
+    <string name="image_saved_to_gallery">Изображение сохранено в галерею</string>
+    <string name="auth_detail_save_failed">Не удалось сохранить изображение</string>
+    <string name="auth_info_no_records">Записей об авторизации пока нет</string>
 </resources>

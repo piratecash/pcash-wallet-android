@@ -5,11 +5,19 @@ import androidx.preference.PreferenceManager
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.IMarketStorage
+import cash.p.terminal.core.IRateAppManager
+import cash.p.terminal.core.ITermsManager
+import io.horizontalsystems.core.ILoggingSettings
+import io.horizontalsystems.core.ISmsNotificationSettings
+import io.horizontalsystems.core.ISilentPhotoCapture
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
+import cash.p.terminal.core.managers.KeyStoreCleaner
+import cash.p.terminal.core.managers.TonConnectManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.DefaultCurrencyManager
@@ -23,9 +31,13 @@ import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.PendingTransactionRegistrarImpl
 import cash.p.terminal.core.managers.PendingTransactionRepository
+import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.managers.TermsManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.managers.SilentCameraManager
 import cash.p.terminal.core.managers.TimePasswordProvider
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
@@ -38,9 +50,24 @@ import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TorManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
+import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.modules.pin.PinComponent
+import cash.p.terminal.modules.pin.core.ILockoutManager
+import cash.p.terminal.modules.pin.core.ILockoutUntilDateFactory
+import cash.p.terminal.modules.pin.core.LockoutManager
+import cash.p.terminal.modules.pin.core.LockoutUntilDateFactory
+import cash.p.terminal.modules.pin.core.OneTimeTimer
+import cash.p.terminal.modules.pin.core.UptimeProvider
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
+import cash.p.terminal.modules.walletconnect.WCManager
+import cash.p.terminal.modules.walletconnect.WCSessionManager
+import cash.p.terminal.modules.walletconnect.handler.WCHandlerEvm
+import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
+import cash.p.terminal.modules.walletconnect.storage.WCSessionStorage
+import io.horizontalsystems.core.CurrentDateProvider
+import io.horizontalsystems.core.ICurrentDateProvider
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.converters.PendingTransactionConverter
@@ -59,9 +86,16 @@ import cash.p.terminal.wallet.managers.UserManager
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.IKeyProvider
+import io.horizontalsystems.core.IKeyStoreCleaner
+import io.horizontalsystems.core.IKeyStoreManager
 import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.ILockoutStorage
 import io.horizontalsystems.core.IPinSettingsStorage
 import io.horizontalsystems.core.ISystemInfoManager
+import io.horizontalsystems.core.IThirdKeyboard
+import io.horizontalsystems.core.logger.AppLogger
+import io.horizontalsystems.core.security.KeyStoreManager
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import org.koin.core.module.dsl.bind
 import org.koin.core.module.dsl.factoryOf
@@ -78,7 +112,12 @@ val managerModule = module {
     singleOf(::AdapterManager) bind IAdapterManager::class
     singleOf(::LocalStorageManager) {
         bind<ILocalStorage>()
+        bind<ILoggingSettings>()
+        bind<ISmsNotificationSettings>()
         bind<IPinSettingsStorage>()
+        bind<ILockoutStorage>()
+        bind<IThirdKeyboard>()
+        bind<IMarketStorage>()
     }
     single { PreferenceManager.getDefaultSharedPreferences(get()) }
     singleOf(::BackgroundManager)
@@ -100,7 +139,28 @@ val managerModule = module {
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)
     singleOf(::DefaultUserManager) bind UserManager::class
+    single<IPinComponent> {
+        PinComponent(
+            pinSettingsStorage = get(),
+            userManager = get(),
+            pinDbStorage = get(),
+            backgroundManager = get(),
+            resetUseCase = get(),
+            dispatcherProvider = get()
+        )
+    }
     singleOf(::AccountFactory) bind IAccountFactory::class
+    singleOf(::RateAppManager) bind IRateAppManager::class
+    singleOf(::TermsManager) bind ITermsManager::class
+    singleOf(::ReleaseNotesManager)
+    singleOf(::WCSessionStorage)
+    single {
+        WCManager(accountManager = get()).also {
+            it.addWcHandler(WCHandlerEvm(get()))
+            it.addWcHandler(WCHandlerStellar(get()))
+        }
+    }
+    singleOf(::WCSessionManager)
     factoryOf(::WalletActivator)
     factoryOf(::AddTokenService)
 
@@ -109,14 +169,39 @@ val managerModule = module {
 
     singleOf(::MoneroKitManager)
     singleOf(::MoneroWalletService)
+    singleOf(::SilentCameraManager) bind ISilentPhotoCapture::class
+    singleOf(::CurrentDateProvider) bind ICurrentDateProvider::class
+    singleOf(::UptimeProvider)
+    singleOf(::LockoutUntilDateFactory) bind ILockoutUntilDateFactory::class
+    singleOf(::LockoutManager) bind ILockoutManager::class
+    factoryOf(::OneTimeTimer)
     singleOf(::GlanceAppWidgetManager)
 
+    singleOf(::SpamManager)
     singleOf(::TransactionAdapterManager)
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class
     singleOf(::TorManager) bind ITorManager::class
     singleOf(::PredefinedBlockchainSettingsProvider)
+    singleOf(::KeyStoreCleaner) bind IKeyStoreCleaner::class
+    single {
+        KeyStoreManager(
+            keyAlias = "MASTER_KEY",
+            keyStoreCleaner = get(),
+            logger = AppLogger("key-store")
+        )
+    }
+    single<IKeyStoreManager> { get<KeyStoreManager>() }
+    single<IKeyProvider> { get<KeyStoreManager>() }
+    single {
+        TonConnectManager(
+            context = get(),
+            adapterFactory = get(),
+            appName = "P.cash Wallet",
+            appVersion = AppConfigProvider.appVersion
+        ).also { it.start() }
+    }
     factory { (pinComponent: IPinComponent) ->
         HiddenWalletPinPolicy(pinComponent, get())
     }

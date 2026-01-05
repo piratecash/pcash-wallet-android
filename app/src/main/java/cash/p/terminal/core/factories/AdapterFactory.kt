@@ -2,7 +2,6 @@ package cash.p.terminal.core.factories
 
 import android.content.Context
 import android.util.Log
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
@@ -428,7 +427,7 @@ class AdapterFactory(
                 coinManager = coinManager,
                 source = source,
                 baseToken = baseToken,
-                spamManager = App.spamManager,
+                spamManager = getKoinInstance(),
                 solanaKitWrapper = solanaKitWrapper
             )
 

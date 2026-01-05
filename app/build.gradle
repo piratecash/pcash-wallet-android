@@ -24,8 +24,8 @@ android {
         compileSdk compile_sdk_version
         minSdkVersion min_sdk_version
         targetSdkVersion compile_sdk_version
-        versionCode 202
-        versionName "0.50.5"
+        versionCode 201
+        versionName "0.50.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {
@@ -251,8 +251,13 @@ dependencies {
     implementation libs.room.runtime
     implementation libs.room.ktx
     implementation libs.androidx.room.rxjava2
+    implementation libs.room.paging
     implementation libs.androidx.material3.android
     ksp libs.room.compiler
+
+    // Paging
+    implementation libs.paging.runtime
+    implementation libs.paging.compose
 
     testImplementation libs.junit.jupiter
     // alternately - if using Java8, use the following instead of compiler
@@ -294,7 +299,7 @@ dependencies {
 
     //Compose Navigation
     implementation libs.androidx.navigation.compose
-    implementation "com.google.accompanist:accompanist-navigation-animation:$accompanist_version"
+    implementation libs.accompanist.navigation.animation
 
     // QR code scanning with CameraX + ZXing core
     implementation libs.camerax.camera2
@@ -367,6 +372,7 @@ dependencies {
     implementation project(':feature-stacking')
     implementation project(':feature-tangem')
     implementation project(':feature-premium')
+    implementation project(':feature-logging')
 
     // Integration with activities
     implementation libs.androidx.activity.compose
@@ -390,9 +396,9 @@ dependencies {
     implementation 'com.getkeepsafe.relinker:relinker:1.4.5'
 
     // When using a AppCompat theme
-    implementation "com.google.accompanist:accompanist-appcompat-theme:$accompanist_version"
-    implementation "com.google.accompanist:accompanist-flowlayout:$accompanist_version"
-    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
+    implementation libs.accompanist.appcompat.theme
+    implementation libs.accompanist.flowlayout
+    implementation libs.accompanist.permissions
 
     // UI Tests
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"

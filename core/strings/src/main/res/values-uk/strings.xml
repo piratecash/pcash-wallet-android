@@ -54,6 +54,7 @@
     <string name="Button_Apply">Застосувати</string>
     <string name="Button_SetAmount">Встановити суму</string>
     <string name="Button_ContinueAnyway">Все одно продовжити</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Недостатньо TON для оплати комісії</string>
     <string name="check_fee_warning">Переконайтеся, що маєте щонайменше %s для комісій, інакше транзакція може не виконатися</string>
     <string name="Error_AssetNotEnabled">Отримувач не увімкнув %s, тому не може отримати.</string>
@@ -480,7 +481,7 @@
     <string name="WalletConnect_Unnamed">Без назви</string>
     <string name="WalletConnect_Pairings">З\'єднання</string>
     <string name="WalletConnect_PairedDApps">З\'єднані dApp</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Видалити все</string>
+    <string name="delete_all">Видалити все</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Ви хочете видалити всі з\'єднані dApps?</string>
     <string name="WalletConnect_Pairings_Delete">Видалити</string>
     <string name="WalletConnect_DeleteAllPairs">Видалити всі пари</string>
@@ -1492,6 +1493,10 @@
     <string name="PinSet_ErrorFailedToSavePin">Під час збереження вашого коду сталася помилка. Повторіть спробу.</string>
     <string name="PinSet_ForBiometrics">Встановити секретний код для увімкнення біометричних даних</string>
     <string name="PinSet_ForDuress">Встановіть код для увімкнення режиму Duress</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">Встановіть код для захисту журналу входу</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">Введіть код для вимкнення журналу входу</string>
+    <string name="confirm_pin_to_access_login_logging">Введіть код для доступу до журналу входу</string>
     <string name="PinSet_ErrorPinInUse">Цей пароль вже використовується.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Змінити код</string>
@@ -1732,8 +1737,8 @@
         <item>Після скидання ваш основний PIN-код стане вашим PIN-кодом скидання, а PIN-код скидання буде вимкнено.</item>
     </string-array>
     <string name="premium_settings">Налаштування Преміум</string>
-    <string name="Premium_TryForFree">Спробувати БЕЗКОШТОВНО</string>
-    <string name="Premium_UpgradeText">Покращіть свій досвід з функціями Преміум!</string>
+    <string name="premium_try_for_free">Спробувати БЕЗКОШТОВНО</string>
+    <string name="premium_upgrade_text">Покращіть свій досвід з функціями Преміум!</string>
     <string name="premium_available">⭐️ Доступний Преміум</string>
     <string name="premium_demo_days_left">Демо Преміум: залишилося %d днів</string>
     <string name="premium_select_wallet_title">Виберіть гаманець для демо</string>
@@ -1742,7 +1747,45 @@
     <string name="premium_demo_activation_failed">Не вдалося активувати демо Преміум</string>
     <string name="premium_demo_expired">Термін дії демо Преміум для цього гаманця закінчився</string>
     <string name="premium_demo_activation_error_wrong_type">Щоб активувати преміум, використайте мнемонічну фразу або апаратний гаманець.</string>
-    <string name="wallet_is_not_eligile">Цей гаманець не підходить для Преміум</string>
+    <string name="wallet_is_not_eligible">Цей гаманець не підходить для Преміум</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">Вхід до додатку</string>
+    <string name="login_logging_subscription_expired_title">Термін підписки закінчився</string>
+    <string name="login_logging_subscription_expired_description">Щоб використовувати функції цього розділу, вам потрібно активувати підписку.\n\nВи можете приховати це вікно, вимкнувши всі функції в цьому розділі.</string>
+    <string name="login_logging_delete_all">Видалити всі записи</string>
+    <string name="login_logging_passcode">Код доступу</string>
+    <string name="login_logging_selfie_on_successful_login">Зробити селфі при успішному вході</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">Зробити селфі при невдалому вході</string>
+    <string name="login_logging_selfie_on_duress_login">Зробити селфі в режимі примусу</string>
+    <string name="camera_permission_denied_title">Потрібен дозвіл камери</string>
+    <string name="camera_permission_denied_message">Для зйомки селфі при вході потрібен доступ до камери. Будь ласка, увімкніть його в Налаштуваннях.</string>
+    <string name="button_open_settings">Відкрити налаштування</string>
+    <string name="login_logging_standard_login">СТАНДАРТНИЙ ВХІД</string>
+    <string name="login_logging_log_successful">Логувати успішні входи</string>
+    <string name="login_logging_log_unsuccessful">Логувати неуспішні входи</string>
+    <string name="login_logging_duress_mode">РЕЖИМ ПРИМУСУ</string>
+    <string name="login_logging_log_into_duress">Логувати вхід у режим примусу</string>
+    <string name="login_logging_send_notification">Надіслати сповіщення про вхід</string>
+    <string name="login_logging_delete_auth_data">Видалити всі дані автентифікації</string>
+    <string name="login_logging_delete_auth_data_description">Ця функція видаляє всі дані автентифікації з фото при вході в режим примусу.</string>
+    <string name="login_logging_auto_delete">Автовидалення логів</string>
+    <string name="login_logging_delete_period">Період видалення</string>
+    <string-array name="login_logging_periods">
+        <item>Ніколи</item>
+        <item>Місяць</item>
+        <item>Рік</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1М</item>
+        <item>1Р</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">Видалити дані</string>
+    <string name="login_logging_delete_data_confirmation">Ви впевнені, що хочете видалити всі логи?</string>
+    <string name="login_logging_delete_record_confirmation">Ви впевнені, що хочете видалити цей запис?</string>
+    <string name="login_logging_info_description">Якщо журналювання увімкнено, ви можете переглянути історію входів у Розширеній безпеці.</string>
+
     <string name="Send_Confirmation_YouReceive">Ви отримуєте</string>
     <string name="Send_Confirmation_Mint">Випустити</string>
     <string name="premium_demo_activation_error_backup">Щоб активувати преміум, вам потрібно зробити резервну копію вашого гаманця.</string>
@@ -1774,4 +1817,32 @@
     <string name="safety_rules_checkbox_1">Я розумію, що Seed-фраза є конфіденційною і не повинна передаватися третім особам.</string>
     <string name="safety_rules_checkbox_2">Я розумію, що не можна зберігати Seed-фразу в цифровому вигляді.</string>
     <string name="safety_rules_checkbox_3">Я розумію, що команда p.cash не має доступу до моїх ключів і не може їх відновити.</string>
+    <string name="authorization_information">Інформація про авторизацію</string>
+    <string name="auth_info_successful">Успішно</string>
+    <string name="auth_info_unsuccessful">Невдало</string>
+    <string name="auth_info_duress_mode">(Режим примусу)</string>
+    <string name="auth_info_entrance_to">Вхід до %s</string>
+    <string name="auth_info_seconds_ago">(%d сек тому)</string>
+    <string name="auth_info_minutes_ago">(%d хв тому)</string>
+    <string name="auth_info_hours_ago">(%d год тому)</string>
+    <string name="auth_info_days_ago">(%d дн тому)</string>
+    <string name="auth_detail_status_label">Статус:</string>
+    <string name="auth_detail_time_label">Час:</string>
+    <string name="auth_detail_save_to_gallery">Зберегти в галерею</string>
+    <string name="image_saved_to_gallery">Зображення збережено в галерею</string>
+    <string name="auth_detail_save_failed">Не вдалося зберегти зображення</string>
+    <string name="auth_info_no_records">Записів про авторизацію ще немає</string>
+    <string name="send_sms_via_zec_title">Надіслати SMS через ZEC</string>
+    <string name="send_sms_via_zec_info">Цей режим дозволяє повідомити ваших близьких друзів або адвоката про те, що вас змусили відкрити додаток. Цей режим працює, якщо у вас є ZEC в гаманці. Якщо немає, додаток додасть його.</string>
+    <string name="send_sms_wallet_balance_hint">Переконайтеся, що на вибраному гаманці є необхідна сума.</string>
+    <string name="send_sms_syncing">Синхронізація для відправки…</string>
+    <string name="send_sms_test_success">Ваше повідомлення успішно надіслано.</string>
+    <string name="send_sms_test_error">Під час надсилання повідомлення сталася помилка.</string>
+    <string name="send_sms_insufficient_balance">Недостатній баланс</string>
+    <string name="send_sms_transparent_address_not_allowed">Прозорі адреси не підтримуються. Будь ласка, використовуйте захищену (z) адресу.</string>
+    <string name="choose_wallet">Обрати гаманець</string>
+    <string name="choose_wallet_none">Не обрано</string>
+    <string name="required_coins_for_transaction">Необхідно монет для транзакції</string>
+    <string name="test_sms">Тест SMS</string>
+    <string name="no_zec_wallets_available">Гаманці з токеном ZEC не знайдено</string>
 </resources>

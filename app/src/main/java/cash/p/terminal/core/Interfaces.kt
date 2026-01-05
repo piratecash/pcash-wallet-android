@@ -192,8 +192,18 @@ interface ISendZcashAdapter {
     val availableBalance: BigDecimal
     val fee: StateFlow<BigDecimal>
 
+    // Balance state for checking sync status
+    val balanceState: AdapterState
+    val balanceStateUpdatedFlow: Flow<Unit>
+
+    // Start syncing the adapter
+    fun start()
+
+    // Stop the adapter (closes synchronizer without erasing data)
+    fun stop()
+
     suspend fun validate(address: String): ZcashAdapter.ZCashAddressType
-    suspend fun send(amount: BigDecimal, address: String, memo: String, logger: AppLogger): FirstClassByteArray
+    suspend fun send(amount: BigDecimal, address: String, memo: String, logger: AppLogger?): FirstClassByteArray
 }
 
 interface ISendSolanaAdapter {

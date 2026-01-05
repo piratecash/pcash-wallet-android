@@ -9,33 +9,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.IBackupManager
-import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.wallet.Account
 import kotlinx.parcelize.Parcelize
-import org.koin.java.KoinJavaComponent.get
 
 object MainModule {
-
-    class Factory : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MainViewModel(
-                App.pinComponent,
-                App.rateAppManager,
-                get(IBackupManager::class.java),
-                App.termsManager,
-                App.accountManager,
-                App.releaseNotesManager,
-                get(ILocalStorage::class.java),
-                App.wcSessionManager,
-                App.wcManager,
-            ) as T
-        }
-    }
-
     fun start(context: Context, data: Uri? = null) {
         val intent = Intent(context, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK

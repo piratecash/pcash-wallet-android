@@ -23,18 +23,29 @@ class PinManager(private val pinDbStorage: PinDbStorage) {
     }
 
     fun disablePin(level: Int) {
-        if (level < 0 || level == PinLevels.SECURE_RESET) {
+        if (level < 0 || level == PinLevels.SECURE_RESET || PinLevels.isLogLoggingLevel(level)) {
             pinDbStorage.deleteForLevel(level)
         } else {
             // For Level 0 and above (regular, duress) - clear current, delete higher levels
             pinDbStorage.clearPasscode(level)
-            pinDbStorage.deleteAllFromLevel(level + 1)
+            // Delete duress levels (level+1 to 9999) - excludes reserved levels
+            pinDbStorage.deleteUserLevelsFromLevel(level + 1)
+            // Delete SECURE_RESET PIN
+            pinDbStorage.deleteForLevel(PinLevels.SECURE_RESET)
+            // Delete LOG_LOGGING PIN for duress level only (same constraint as getDuressLevel)
+            val duressLevel = level + 1
+            if (duressLevel < PinLevels.SECURE_RESET) {
+                pinDbStorage.deleteForLevel(PinLevels.logLoggingLevelFor(duressLevel))
+            }
         }
         pinSetSubject.onNext(Unit)
     }
 
     fun disableDuressPin(level: Int) {
-        pinDbStorage.deleteAllFromLevel(level)
+        // Delete duress levels (level to 9999) - excludes reserved levels
+        pinDbStorage.deleteUserLevelsFromLevel(level)
+        // Delete all LOG_LOGGING PINs for this level and above
+        pinDbStorage.deleteLogLoggingPinsFromLevel(level)
         pinSetSubject.onNext(Unit)
     }
 

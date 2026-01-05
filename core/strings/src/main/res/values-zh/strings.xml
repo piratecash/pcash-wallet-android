@@ -49,6 +49,7 @@
     <string name="Button_Share">分享</string>
     <string name="Button_Apply">应用</string>
     <string name="Button_SetAmount">设定金额</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">请确保至少有 %s 用于手续费，否则交易可能会失败</string>
     <string name="Error_OutOfRange">不能小于 %1$s 或大于 %2$s</string>
@@ -470,7 +471,7 @@
     <string name="WalletConnect_Unnamed">未命名</string>
     <string name="WalletConnect_Pairings">货币对</string>
     <string name="WalletConnect_PairedDApps">已配对dApp</string>
-    <string name="WalletConnect_Pairings_DeleteAll">全部刪除</string>
+    <string name="delete_all">全部刪除</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">您想要删除所有配对的 dApps？</string>
     <string name="WalletConnect_Pairings_Delete">删除</string>
     <string name="WalletConnect_DeleteAllPairs">删除所有对</string>
@@ -1108,7 +1109,7 @@
     <string name="Coin_Tab_Market">市场</string>
     <string name="Coin_Tab_Details">分析</string>
     <string name="Coin_Tab_Tweets">推文</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[典型费用 < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">1天</string>
     <string name="CoinPage_TimeDuration_Week">7天</string>
@@ -1333,6 +1334,7 @@
     <string name="SubscriptionInfo_HavePremium">我已经有高级版</string>
     <string name="premium_title">高级版</string>
     <string name="about_premium">关于高级版</string>
+    <string name="premium_settings">高级设置</string>
     <string name="advanced_security">高级安全</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">创建隐藏钱包</string>
     <string name="create_hidden_wallet_pin">隐藏钱包密码</string>
@@ -1360,6 +1362,54 @@
     <string name="premium_demo_activation_error_backup">要激活高级版，您需要备份钱包</string>
     <string name="premium_demo_activation_error_watch_account">观察账户不能用于激活高级版</string>
     <string name="premium_demo_activation_error_wrong_type">使用助记词或硬件钱包类型来激活高级版</string>
+    <string name="premium_try_for_free">免费试用</string>
+    <string name="premium_upgrade_text">使用高级功能提升您的体验！</string>
+    <string name="premium_available">⭐️ 高级版可用</string>
+    <string name="premium_demo_days_left">演示高级版：剩余 %d 天</string>
+    <string name="premium_select_wallet_title">选择演示钱包</string>
+    <string name="premium_select_wallet_description">选择一个钱包来激活演示高级功能。一次只能有一个钱包拥有演示高级版。</string>
+    <string name="premium_demo_activated">演示高级版激活成功！</string>
+    <string name="premium_demo_expired">此钱包的演示高级版已过期</string>
+    <string name="wallet_is_not_eligible">此钱包不符合高级版资格</string>
+    <string name="premium_demo_activation_failed">演示高级版激活失败</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">登录应用</string>
+    <string name="login_logging_subscription_expired_title">订阅已过期</string>
+    <string name="login_logging_subscription_expired_description">要使用此部分的功能，您需要激活订阅。\n\n您可以通过禁用此部分的所有功能来隐藏此窗口。</string>
+    <string name="login_logging_delete_all">删除所有日志</string>
+    <string name="login_logging_passcode">密码</string>
+    <string name="login_logging_selfie_on_successful_login">登录成功时拍摄自拍</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">登录失败时拍摄自拍</string>
+    <string name="login_logging_selfie_on_duress_login">胁迫模式下拍摄自拍</string>
+    <string name="camera_permission_denied_title">需要相机权限</string>
+    <string name="camera_permission_denied_message">登录时拍摄自拍需要相机访问权限。请在设置中启用。</string>
+    <string name="button_open_settings">打开设置</string>
+    <string name="login_logging_standard_login">标准登录</string>
+    <string name="login_logging_log_successful">记录成功登录</string>
+    <string name="login_logging_log_unsuccessful">记录失败登录</string>
+    <string name="login_logging_duress_mode">胁迫模式</string>
+    <string name="login_logging_log_into_duress">登录胁迫模式</string>
+    <string name="login_logging_send_notification">发送登录通知</string>
+    <string name="login_logging_delete_auth_data">删除所有认证数据</string>
+    <string name="login_logging_delete_auth_data_description">此功能会在登录胁迫模式时删除所有认证数据和照片。</string>
+    <string name="login_logging_auto_delete">自动删除日志</string>
+    <string name="login_logging_delete_period">删除周期</string>
+    <string-array name="login_logging_periods">
+        <item>从不</item>
+        <item>月</item>
+        <item>年</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1月</item>
+        <item>1年</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">删除数据</string>
+    <string name="login_logging_delete_data_confirmation">您确定要删除所有日志吗？</string>
+    <string name="login_logging_delete_record_confirmation">您确定要删除此记录吗？</string>
+    <string name="login_logging_info_description">如果启用了日志记录，您可以在高级安全中查看登录历史记录。</string>
+
     <string name="Nfts_PriceType_Days_7">平均7天</string>
     <string name="Nfts_PriceType_Days_30">平均30天</string>
     <string name="Nfts_PriceType_LastSale">收盘价</string>
@@ -1474,6 +1524,10 @@
     <string name="PinSet_ErrorFailedToSavePin">保存密码时出错。请重试。</string>
     <string name="PinSet_ForBiometrics">设置密码以启用生物计。</string>
     <string name="PinSet_ForDuress">设置密码以启用压力模式</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">设置密码以保护登录日志</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">输入密码以禁用登录日志</string>
+    <string name="confirm_pin_to_access_login_logging">输入密码以访问登录日志</string>
     <string name="PinSet_ErrorPinInUse">此密码已被使用.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">编辑密码</string>
@@ -1584,4 +1638,32 @@
     <string name="safety_rules_checkbox_1">我理解助记词是保密的，不应向第三方透露。</string>
     <string name="safety_rules_checkbox_2">我理解不能以数字形式存储助记词。</string>
     <string name="safety_rules_checkbox_3">我理解 p.cash 团队无法访问我的密钥，也无法恢复它们。</string>
+    <string name="authorization_information">授权信息</string>
+    <string name="auth_info_successful">成功</string>
+    <string name="auth_info_unsuccessful">失败</string>
+    <string name="auth_info_duress_mode">(胁迫模式)</string>
+    <string name="auth_info_entrance_to">进入 %s</string>
+    <string name="auth_info_seconds_ago">(%d秒前)</string>
+    <string name="auth_info_minutes_ago">(%d分钟前)</string>
+    <string name="auth_info_hours_ago">(%d小时前)</string>
+    <string name="auth_info_days_ago">(%d天前)</string>
+    <string name="auth_detail_status_label">状态：</string>
+    <string name="auth_detail_time_label">时间：</string>
+    <string name="auth_detail_save_to_gallery">保存到相册</string>
+    <string name="image_saved_to_gallery">图片已保存到相册</string>
+    <string name="auth_detail_save_failed">保存图片失败</string>
+    <string name="auth_info_no_records">暂无授权记录</string>
+    <string name="send_sms_via_zec_title">通过 ZEC 发送短信</string>
+    <string name="send_sms_via_zec_info">此模式允许您通知您的亲密朋友或律师您被迫打开了该应用程序。此模式在您的钱包中有 ZEC 时才能正常工作。如果没有，应用程序将添加它。</string>
+    <string name="send_sms_wallet_balance_hint">请确保所选钱包中有足够的金额。</string>
+    <string name="send_sms_syncing">正在同步以发送…</string>
+    <string name="send_sms_test_success">您的消息已成功发送。</string>
+    <string name="send_sms_test_error">发送消息时发生错误。</string>
+    <string name="send_sms_insufficient_balance">余额不足</string>
+    <string name="send_sms_transparent_address_not_allowed">不支持透明地址。请使用屏蔽(z)地址。</string>
+    <string name="choose_wallet">选择钱包</string>
+    <string name="choose_wallet_none">无</string>
+    <string name="required_coins_for_transaction">交易所需代币</string>
+    <string name="test_sms">测试短信</string>
+    <string name="no_zec_wallets_available">未找到包含 ZEC 代币的钱包</string>
 </resources>

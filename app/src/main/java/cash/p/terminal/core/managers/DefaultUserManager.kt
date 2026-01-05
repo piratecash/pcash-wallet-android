@@ -13,7 +13,7 @@ class DefaultUserManager(
 ): UserManager {
     private val logger: AppLogger = AppLogger("DefaultUserManager")
 
-    private var currentUserLevel = Int.MAX_VALUE
+    private var currentUserLevel = UserManager.DEFAULT_USER_LEVEL
 
     private val _currentUserLevelFlow = MutableStateFlow(currentUserLevel)
     override val currentUserLevelFlow: StateFlow<Int> = _currentUserLevelFlow.asStateFlow()

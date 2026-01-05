@@ -19,7 +19,7 @@ object TransactionsModule {
                 transactionSyncStateRepository = TransactionSyncStateRepository(App.transactionAdapterManager),
                 contactsRepository = App.contactsRepository,
                 nftMetadataService = NftMetadataService(App.nftMetadataManager),
-                spamManager = App.spamManager,
+                spamManager = getKoinInstance(),
                 pendingMatcher = getKoinInstance()
             )
 
@@ -32,7 +32,7 @@ object TransactionsModule {
                 transactionFilterService = TransactionFilterService(
                     App.marketKit,
                     App.transactionAdapterManager,
-                    App.spamManager
+                    getKoinInstance()
                 ),
                 transactionHiddenManager = getKoinInstance()
             ) as T

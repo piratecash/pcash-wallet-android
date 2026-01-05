@@ -1,6 +1,8 @@
 package cash.p.terminal.ui_compose.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -459,6 +461,44 @@ fun CellUniversalLawrenceMutableSection(
                 borderTop = index != 0,
             ) {
                 composable()
+            }
+        }
+    }
+}
+
+@Composable
+fun CellUniversalLawrenceSectionAnimated(
+    primaryContent: @Composable () -> Unit,
+    animatedContent: @Composable () -> Unit,
+    afterAnimatedContent: @Composable (() -> Unit)? = null,
+    animatedVisible: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(ComposeAppTheme.colors.lawrence)
+    ) {
+        SectionUniversalItem(
+            borderBottom = true
+        ) {
+            primaryContent()
+        }
+        AnimatedVisibility(
+            visible = animatedVisible,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            SectionUniversalItem(borderBottom = true) {
+                animatedContent()
+            }
+        }
+        afterAnimatedContent?.let {
+            SectionUniversalItem(
+                borderTop = true,
+            ) {
+                it()
             }
         }
     }

@@ -35,7 +35,7 @@ fun SmartContractCheckSection(
     SectionUniversalLawrence(modifier = modifier) {
         SwitchWithText(
             text = stringResource(R.string.settings_smart_contract_check),
-            checkEnabled = addressCheckerControl.uiState.addressCheckSmartContractEnabled,
+            checked = addressCheckerControl.uiState.addressCheckSmartContractEnabled,
             onCheckedChange = {
                 navController.premiumAction {
                     addressCheckerControl.onCheckSmartContractAddressClick(it)

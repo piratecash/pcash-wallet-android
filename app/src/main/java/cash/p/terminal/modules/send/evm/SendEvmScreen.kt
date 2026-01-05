@@ -129,7 +129,7 @@ internal fun SendEvmScreen(
             SectionUniversalLawrence {
                 SwitchWithText(
                     text = stringResource(R.string.SettingsAddressChecker_RecipientCheck),
-                    checkEnabled = addressCheckerControl.uiState.addressCheckByBaseEnabled,
+                    checked = addressCheckerControl.uiState.addressCheckByBaseEnabled,
                     onCheckedChange = addressCheckerControl::onCheckBaseAddressClick
                 )
             }

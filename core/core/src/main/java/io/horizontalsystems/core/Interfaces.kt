@@ -46,7 +46,7 @@ interface IPinComponent {
     fun disablePin()
     fun disableDuressPin()
     fun isDuressPinSet(): Boolean
-    suspend fun unlock(pin: String): Boolean
+    suspend fun unlock(pin: String, pinLevelDetected: Int?): Boolean
     fun validateCurrentLevel(pin: String): Boolean
     fun onBiometricUnlock()
     fun initDefaultPinLevel()
@@ -60,6 +60,13 @@ interface IPinComponent {
     fun setSecureResetPin(pin: String)
     fun isSecureResetPinSet(): Boolean
     fun disableSecureResetPin()
+    fun getAllPinLevels(): List<Int>
+
+    fun setLogLoggingPin(pin: String)
+    fun isLogLoggingPinSet(): Boolean
+    fun disableLogLoggingPinForDuress()
+    fun disableLogLoggingPin()
+    fun validateLogLoggingPin(pin: String): Boolean
 }
 
 interface ILockoutStorage {

@@ -53,7 +53,7 @@ class TokenBalanceModule {
                 transactionAdapterManager = transactionAdapterManager,
                 contactsRepository = App.contactsRepository,
                 nftMetadataService = NftMetadataService(App.nftMetadataManager),
-                spamManager = App.spamManager
+                spamManager = getKoinInstance()
             )
 
             val totalService = TotalService(

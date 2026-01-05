@@ -5,6 +5,7 @@ import cash.p.terminal.network.binance.data.TokenBalance
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.config.PremiumConfig
+import cash.p.terminal.premium.data.dao.DemoPremiumUserDao
 import cash.p.terminal.premium.data.model.PremiumUser
 import cash.p.terminal.premium.data.repository.PremiumUserRepository
 import cash.p.terminal.wallet.Account
@@ -12,7 +13,6 @@ import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.eligibleForPremium
 import cash.p.terminal.wallet.managers.UserManager
 import io.horizontalsystems.core.DispatcherProvider
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 
 internal class CheckPremiumUseCaseImpl(
     private val premiumUserRepository: PremiumUserRepository,
+    private val demoPremiumUserDao: DemoPremiumUserDao,
     private val binanceApi: BinanceApi,
     private val piratePlaceRepository: PiratePlaceRepository,
     private val accountManager: IAccountManager,
@@ -41,6 +42,7 @@ internal class CheckPremiumUseCaseImpl(
 
     private val _premiumCache = MutableStateFlow<Map<Int, PremiumType>>(emptyMap())
     private val _trialPremiumCache = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    private val _levelAccountCache = MutableStateFlow<Map<Int, String>>(emptyMap())
     private val scope = CoroutineScope(dispatcherProvider.default + SupervisorJob())
 
     private val coinConfigs = mapOf(
@@ -70,12 +72,49 @@ internal class CheckPremiumUseCaseImpl(
     }
 
     override fun getPremiumType(): PremiumType {
-        val currentAccount = accountManager.activeAccount ?: return PremiumType.NONE
-        if (_trialPremiumCache.value[currentAccount.id] == true) {
+        return getPremiumTypeForLevel(userManager.currentUserLevelFlow.value)
+    }
+
+    override fun getParentPremiumType(userLevel: Int): PremiumType {
+        return getPremiumTypeForLevel(getParentLevel(userLevel))
+    }
+
+    override suspend fun isPremiumWithParentInCache(userLevel: Int): Boolean {
+            // Check token premium (PIRATE/COSA) by level
+            val hasTokenPremium = premiumUserRepository.getByLevels(
+                listOf(
+                    userLevel,
+                    getParentLevel(userLevel)
+                )
+            ).any { it.isPremium.isPremium() }
+
+            if (hasTokenPremium) return true
+
+            // Check trial premium (any active trial in cache)
+            return withContext(dispatcherProvider.io) { demoPremiumUserDao.hasActiveTrialPremium() }
+        }
+
+    private fun getParentLevel(userLevel: Int): Int {
+        return if (userLevel > 0) userLevel - 1 else userLevel
+    }
+
+    private fun getPremiumTypeForLevel(level: Int): PremiumType {
+        val currentLevel = userManager.currentUserLevelFlow.value
+
+        // For current level, use active account; for other levels, use cached accountId
+        val accountId = if (level == currentLevel) {
+            accountManager.activeAccount?.id
+        } else {
+            _levelAccountCache.value[level]
+        }
+
+        // Check trial premium if we have an accountId
+        if (accountId != null && _trialPremiumCache.value[accountId] == true) {
             return PremiumType.TRIAL
         }
-        val premiumType = _premiumCache.value[userManager.currentUserLevelFlow.value]
-        if (premiumType?.isPremium() != true) {
+
+        val premiumType = _premiumCache.value[level]
+        if (premiumType?.isPremium() != true && accountId != null) {
             val adapterResult = checkAdapterPremiumBalanceUseCase()
             if (adapterResult is CheckAdapterPremiumBalanceUseCase.Result.Premium) {
                 scope.launch {
@@ -95,18 +134,41 @@ internal class CheckPremiumUseCaseImpl(
 
     override suspend fun update(): PremiumType = mutex.withLock {
         _premiumCache.value = emptyMap()
+        _levelAccountCache.value = emptyMap()
 
         val currentLevel = userManager.currentUserLevelFlow.value
-        var firstAccountToCheck = premiumUserRepository.getByLevel(currentLevel)
+        if (currentLevel == UserManager.DEFAULT_USER_LEVEL) {
+            return PremiumType.NONE
+        }
+        val parentLevel = getParentLevel(currentLevel)
+
+        // Update current level
+        updateForLevel(currentLevel)
+
+        // Update parent level if different
+        if (parentLevel != currentLevel) {
+            updateForLevel(parentLevel)
+        }
+
+        return getPremiumType()
+    }
+
+    private suspend fun updateForLevel(level: Int) {
+        var accountToCheck = premiumUserRepository.getByLevel(level)
+
+        // Cache level -> accountId mapping for trial premium lookup
+        accountToCheck?.let {
+            _levelAccountCache.value += (level to it.accountId)
+        }
 
         val cachedResult = try {
-            checkCachedPremiumStatus(firstAccountToCheck)
+            checkCachedPremiumStatus(accountToCheck)
         } catch (_: Exception) {
-            firstAccountToCheck = null
+            accountToCheck = null
             null
         }
         if (cachedResult != null) {
-            updateCache(currentLevel, cachedResult)
+            updateCache(level, cachedResult)
         }
 
         if (cachedResult == null || cachedResult == PremiumType.NONE) {
@@ -114,45 +176,46 @@ internal class CheckPremiumUseCaseImpl(
         }
 
         if (cachedResult == null) {
-            val newState = updateAdapterBalance()
+            val newState = updateAdapterBalanceForLevel(level)
             if (newState?.isPremium() == true) {
-                return newState
+                return
             }
         }
 
         if (cachedResult == null) {
-            val premiumStatus = checkPremiumStatusByBalance(firstAccountToCheck, currentLevel)
-            val result = premiumStatus ?: firstAccountToCheck?.isPremium ?: PremiumType.NONE
-            updateCache(currentLevel, result)
+            val premiumStatus = checkPremiumStatusByBalance(accountToCheck, level)
+            val result = premiumStatus ?: accountToCheck?.isPremium ?: PremiumType.NONE
+            updateCache(level, result)
         }
-
-        return getPremiumType()
     }
 
     private suspend fun updateAdapterBalance(): PremiumType? {
-        val currentLevel = userManager.currentUserLevelFlow.value
+        return updateAdapterBalanceForLevel(userManager.currentUserLevelFlow.value)
+    }
+
+    private suspend fun updateAdapterBalanceForLevel(level: Int): PremiumType? {
         when (val adapterResult = checkAdapterPremiumBalanceUseCase()) {
             is CheckAdapterPremiumBalanceUseCase.Result.Premium -> {
                 updatePremiumData(
                     address = adapterResult.address,
-                    currentLevel = currentLevel,
+                    currentLevel = level,
                     coinType = adapterResult.coinType,
                     account = adapterResult.account,
                     premiumType = adapterResult.premiumType
                 )
-                updateCache(currentLevel, adapterResult.premiumType)
+                updateCache(level, adapterResult.premiumType)
                 return adapterResult.premiumType
             }
 
             is CheckAdapterPremiumBalanceUseCase.Result.Insufficient -> {
                 updatePremiumData(
                     address = adapterResult.address,
-                    currentLevel = currentLevel,
+                    currentLevel = level,
                     coinType = adapterResult.coinType,
                     account = adapterResult.account,
                     premiumType = PremiumType.NONE
                 )
-                updateCache(currentLevel, PremiumType.NONE)
+                updateCache(level, PremiumType.NONE)
             }
 
             null -> Unit
@@ -161,7 +224,7 @@ internal class CheckPremiumUseCaseImpl(
     }
 
     private fun updateCache(level: Int, premiumType: PremiumType) {
-        _premiumCache.value = _premiumCache.value + (level to premiumType)
+        _premiumCache.value += (level to premiumType)
     }
 
     private suspend fun checkCachedPremiumStatus(accountToCheck: PremiumUser?): PremiumType? {
@@ -201,12 +264,18 @@ internal class CheckPremiumUseCaseImpl(
                 val result = isPremiumByBalance(coinType, address)
                 balanceReceived = balanceReceived || result != null
                 if (result == true) {
-                    val premiumType = if(coinType == PremiumConfig.COIN_TYPE_PIRATE) {
+                    val premiumType = if (coinType == PremiumConfig.COIN_TYPE_PIRATE) {
                         PremiumType.PIRATE
                     } else {
                         PremiumType.COSA
                     }
-                    updatePremiumData(address, currentLevel, coinType, account, premiumType = premiumType)
+                    updatePremiumData(
+                        address,
+                        currentLevel,
+                        coinType,
+                        account,
+                        premiumType = premiumType
+                    )
                     return premiumType
                 }
             }
@@ -322,7 +391,7 @@ internal class CheckPremiumUseCaseImpl(
     }
 
     private fun updateTrialPremiumCache(address: String) {
-        _trialPremiumCache.value = _trialPremiumCache.value + (address to true)
+        _trialPremiumCache.value += (address to true)
     }
 }
 

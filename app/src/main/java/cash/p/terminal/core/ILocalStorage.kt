@@ -19,10 +19,12 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.entities.EncryptedString
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
+import io.horizontalsystems.core.ILoggingSettings
+import io.horizontalsystems.core.ISmsNotificationSettings
 import kotlinx.coroutines.flow.StateFlow
 import java.math.BigDecimal
 
-interface ILocalStorage {
+interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var marketSearchRecentCoinUids: List<String>
     var zcashAccountIds: Set<String>
     var autoLockInterval: AutoLockInterval
@@ -114,6 +116,7 @@ interface ILocalStorage {
     fun getStackingUnpaid(wallet: Wallet): BigDecimal?
 
     var isSystemPinRequired: Boolean
+    // Login Logging properties inherited from ILoggingSettings
 
     fun clear()
 }

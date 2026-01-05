@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.TransactionHiddenManager
@@ -19,7 +18,6 @@ import cash.p.terminal.modules.pin.core.LockoutUntilDateFactory
 import cash.p.terminal.modules.pin.core.OneTimeTimer
 import cash.p.terminal.modules.pin.core.OneTimerDelegate
 import cash.p.terminal.modules.pin.core.UptimeProvider
-import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.CurrentDateProvider
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.helpers.DateHelper
@@ -134,6 +132,14 @@ class PinConfirmViewModel(
         PinType.REGULAR, PinType.DURESS, PinType.HIDDEN_WALLET -> {
             pinComponent.validateCurrentLevel(pin)
         }
+        PinType.LOG_LOGGING -> {
+            // Accept LOG_LOGGING PIN, or fallback to REGULAR PIN if not set
+            if (pinComponent.isLogLoggingPinSet()) {
+                pinComponent.validateLogLoggingPin(pin)
+            } else {
+                pinComponent.validateCurrentLevel(pin)
+            }
+        }
         else -> {
             transactionHiddenManager.isPinMatches(pin)
         }
@@ -156,16 +162,16 @@ class PinConfirmViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val lockoutManager = LockoutManager(
-                CoreApp.lockoutStorage, UptimeProvider(), LockoutUntilDateFactory(
+                getKoinInstance(), UptimeProvider(), LockoutUntilDateFactory(
                     CurrentDateProvider()
                 )
             )
             return PinConfirmViewModel(
-                pinComponent = App.pinComponent,
+                pinComponent = getKoinInstance(),
                 lockoutManager = lockoutManager,
                 timer = OneTimeTimer(),
-                localStorage = App.localStorage,
-                transactionHiddenManager = getKoinInstance<TransactionHiddenManager>(),
+                localStorage = getKoinInstance(),
+                transactionHiddenManager = getKoinInstance(),
                 pinType = pinType
             ) as T
         }

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.pin
 import cash.p.terminal.core.App
 import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.modules.pin.core.LockManager
 import cash.p.terminal.modules.pin.core.PinDbStorage
@@ -84,17 +85,17 @@ class PinComponent(
         get() = pinManager.isPinSet
 
     override fun getDuressLevel(): Int {
-        var level = userManager.getUserLevel() + 1
-        // Skip reserved level for Secure Reset PIN
-        if (level == PinLevels.SECURE_RESET) {
-            level++
+        val level = userManager.getUserLevel() + 1
+        // Cap duress level to prevent reaching reserved levels
+        if (level >= PinLevels.SECURE_RESET) {
+            throw IllegalStateException("Cannot create duress PIN: too many duress levels")
         }
         return level
     }
 
     override fun isUnique(pin: String, forDuress: Boolean): Boolean {
         val level = if (forDuress) {
-            getDuressLevel()
+            tryOrNull { getDuressLevel() } ?: return false
         } else {
             userManager.getUserLevel()
         }
@@ -119,7 +120,7 @@ class PinComponent(
     }
 
     override fun isDuressPinSet(): Boolean {
-        return pinManager.isPinSetForLevel(getDuressLevel())
+        return tryOrNull { pinManager.isPinSetForLevel(getDuressLevel()) } ?: false
     }
 
     override fun disablePin() {
@@ -128,12 +129,17 @@ class PinComponent(
     }
 
     override fun disableDuressPin() {
-        pinManager.disableDuressPin(getDuressLevel())
-        userManager.disallowAccountsForDuress()
+        tryOrNull {
+            pinManager.disableDuressPin(getDuressLevel())
+            userManager.disallowAccountsForDuress()
+        }
     }
 
-    override suspend fun unlock(pin: String): Boolean = withContext(dispatcherProvider.io) {
-        var pinLevel = pinManager.getPinLevel(pin) ?: return@withContext false
+    /**
+     * @pinLevelDetected - level detected for the entered PIN
+     */
+    override suspend fun unlock(pin: String, pinLevelDetected: Int?): Boolean = withContext(dispatcherProvider.io) {
+        var pinLevel = pinLevelDetected ?: return@withContext false
 
         if (pinLevel == PinLevels.SECURE_RESET) {
             disableSecureResetPin()
@@ -197,5 +203,42 @@ class PinComponent(
 
     override fun disableSecureResetPin() {
         pinManager.disablePin(PinLevels.SECURE_RESET)
+    }
+
+    override fun getAllPinLevels(): List<Int> {
+        return pinDbStorage.getAllLevels()
+    }
+
+    override fun setLogLoggingPin(pin: String) {
+        val userLevel = userManager.getUserLevel()
+        require(userLevel >= 0) { "Log logging PIN not supported for hidden wallets" }
+        pinManager.store(pin, PinLevels.logLoggingLevelFor(userLevel))
+    }
+
+    override fun isLogLoggingPinSet(): Boolean {
+        val userLevel = userManager.getUserLevel()
+        if (userLevel < 0) return false
+        return pinManager.isPinSetForLevel(PinLevels.logLoggingLevelFor(userLevel))
+    }
+
+    /**
+     * Disables the log logging PIN associated with the duress level
+     * to prevent having a passcode inside duress mode when duress mode removed
+     */
+    override fun disableLogLoggingPinForDuress() {
+        pinManager.disablePin(PinLevels.logLoggingLevelFor(getDuressLevel()))
+    }
+
+    override fun disableLogLoggingPin() {
+        val userLevel = userManager.getUserLevel()
+        if (userLevel < 0) return
+        pinManager.disablePin(PinLevels.logLoggingLevelFor(userLevel))
+    }
+
+    override fun validateLogLoggingPin(pin: String): Boolean {
+        val pinLevel = pinManager.getPinLevel(pin) ?: return false
+        val userLevel = userManager.getUserLevel()
+        if (userLevel < 0) return false
+        return pinLevel == PinLevels.logLoggingLevelFor(userLevel)
     }
 }

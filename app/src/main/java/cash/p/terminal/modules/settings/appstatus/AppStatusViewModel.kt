@@ -6,10 +6,8 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
-import cash.p.terminal.BuildConfig
-import java.io.File
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
+import cash.p.terminal.BuildConfig
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.adapters.BitcoinBaseAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
@@ -35,24 +33,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import java.util.Date
 
 class AppStatusViewModel(
+    private val context: Context,
+    private val systemInfoManager: ISystemInfoManager,
+    private val localStorage: ILocalStorage,
+    private val accountManager: IAccountManager,
+    private val walletManager: IWalletManager,
+    private val adapterManager: IAdapterManager,
+    private val marketKit: MarketKitWrapper,
+    private val evmBlockchainManager: EvmBlockchainManager,
     private val moneroKitManager: MoneroKitManager,
     private val stellarKitManager: StellarKitManager,
+    private val tronKitManager: TronKitManager,
+    private val tonKitManager: TonKitManager,
+    private val solanaKitManager: SolanaKitManager,
+    private val btcBlockchainManager: BtcBlockchainManager
 ) : ViewModel() {
-
-    private val systemInfoManager: ISystemInfoManager = App.systemInfoManager
-    private val localStorage: ILocalStorage = App.localStorage
-    private val accountManager: IAccountManager = App.accountManager
-    private val walletManager: IWalletManager = App.walletManager
-    private val adapterManager: IAdapterManager = App.adapterManager
-    private val marketKit: MarketKitWrapper = App.marketKit
-    private val evmBlockchainManager: EvmBlockchainManager = App.evmBlockchainManager
-    private val tronKitManager: TronKitManager = App.tronKitManager
-    private val tonKitManager: TonKitManager = App.tonKitManager
-    private val solanaKitManager: SolanaKitManager = App.solanaKitManager
-    private val btcBlockchainManager: BtcBlockchainManager = App.btcBlockchainManager
 
     private var appLogs: Map<String, Any> = emptyMap()
     private var shareFile: File? = null
@@ -85,7 +84,7 @@ class AppStatusViewModel(
             // Pre-write the share file on IO thread
             appStatusAsText?.let { text ->
                 try {
-                    val file = File(App.instance.cacheDir, "app_status_report.txt")
+                    val file = File(context.cacheDir, "app_status_report.txt")
                     file.writeText(text)
                     shareFile = file
                 } catch (_: Exception) {
@@ -431,7 +430,7 @@ class AppStatusViewModel(
                 add(BlockContent.TitleValue("App Version", systemInfoManager.appVersion))
                 add(BlockContent.TitleValue("Device Model", systemInfoManager.deviceModel))
                 add(BlockContent.TitleValue("OS Version", systemInfoManager.osVersion))
-                addAll(getDeviceClass(App.instance))
+                addAll(getDeviceClass(context))
                 add(
                     BlockContent.TitleValue(
                         "System pin required",

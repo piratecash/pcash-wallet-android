@@ -22,10 +22,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import cash.p.terminal.R
 import cash.p.terminal.modules.pin.unlock.PinUnlockModule
 import cash.p.terminal.modules.pin.unlock.PinUnlockViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
@@ -34,7 +34,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 fun PinUnlock(
     onSuccess: () -> Unit,
 ) {
-    val viewModel = viewModel<PinUnlockViewModel>(factory = PinUnlockModule.Factory())
+    val viewModel: PinUnlockViewModel = koinViewModel()
     val uiState = viewModel.uiState
     var showBiometricPrompt by remember {
         mutableStateOf(

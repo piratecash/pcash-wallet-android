@@ -60,6 +60,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 
+    implementation(project(":components:icons"))
     implementation(project(":core:strings"))
     implementation(project(":core:resources"))
     implementation(project(":core:navigation"))

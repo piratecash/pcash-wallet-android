@@ -60,6 +60,7 @@
     <string name="Button_Apply">Apply</string>
     <string name="Button_SetAmount">Set Amount</string>
     <string name="Button_ContinueAnyway">Continue Anyway</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">Make sure you have at least %s for fees or the transaction may fail</string>
     <string name="Error_AssetNotEnabled">The recipient hasn\'t enabled %s, therefore they are unable to receive it.</string>
@@ -614,7 +615,7 @@ Proceed only if you\'re sure.</string>
     <string name="WalletConnect_Unnamed">Unnamed</string>
     <string name="WalletConnect_Pairings">Pairings</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Delete All</string>
+    <string name="delete_all">Delete All</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Do you want to delete all paired dApss?</string>
     <string name="WalletConnect_Pairings_Delete">Delete</string>
     <string name="WalletConnect_DeleteAllPairs">Delete All Pairs</string>
@@ -1915,6 +1916,10 @@ Proceed only if you\'re sure.</string>
     <string name="PinSet_ErrorFailedToSavePin">Error occurred while saving your passcode. Please, try again.</string>
     <string name="PinSet_ForBiometrics">Set a passcode to enable Biometrics</string>
     <string name="PinSet_ForDuress">Set a passcode to enable Duress Mode</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">Set a passcode to protect Login Logging</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">Enter passcode to disable Login Logging</string>
+    <string name="confirm_pin_to_access_login_logging">Enter passcode to access Login Logging</string>
     <string name="PinSet_ErrorPinInUse">This passcode is already being used.</string>
 
     <!--Edit Pin-->
@@ -2013,19 +2018,87 @@ Proceed only if you\'re sure.</string>
         <item>After reset, your main PIN becomes your reset PIN, and the reset PIN will be turned off.</item>
     </string-array>
     <string name="premium_settings">Premium settings</string>
-    <string name="Premium_TryForFree">Try for FREE</string>
-    <string name="Premium_UpgradeText">Upgrade your experience with Premium features!</string>
+    <string name="premium_try_for_free">Try for FREE</string>
+    <string name="premium_upgrade_text">Upgrade your experience with Premium features!</string>
     <string name="premium_available">⭐️ Premium is available</string>
     <string name="premium_demo_days_left">Demo Premium: %d days left</string>
     <string name="premium_select_wallet_title">Select Wallet for Demo</string>
     <string name="premium_select_wallet_description">Choose a wallet to activate demo premium features. Only one wallet can have demo premium at a time.</string>
     <string name="premium_demo_activated">Demo Premium activated successfully!</string>
     <string name="premium_demo_expired">Demo Premium for this wallet has expired</string>
-    <string name="wallet_is_not_eligile">This wallet is not eligible for Premium</string>
+    <string name="wallet_is_not_eligible">This wallet is not eligible for Premium</string>
     <string name="premium_demo_activation_failed">Failed to activate demo premium</string>
     <string name="premium_demo_activation_error_backup">To activate premium you need to backup your wallet</string>
     <string name="premium_demo_activation_error_watch_account">Watch account can\'t be used to activate premium</string>
     <string name="premium_demo_activation_error_wrong_type">Use mnemonic or hardware wallet type to activate premium</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">Login to the app</string>
+    <string name="login_logging_subscription_expired_title">Subscription has expired</string>
+    <string name="login_logging_subscription_expired_description">To use the features in this section, you need to activate your subscription.\n\nYou can hide this window by disabling all features in this section.</string>
+    <string name="authorization_information">Authorization information</string>
+    <string name="auth_info_no_records">No authorization records yet</string>
+    <string name="auth_info_successful">Successful</string>
+    <string name="auth_info_unsuccessful">Unsuccessful</string>
+    <string name="auth_info_duress_mode">(Duress Mode)</string>
+    <string name="auth_info_entrance_to">Entrance to the %s</string>
+    <string name="auth_info_seconds_ago">(%d sec ago)</string>
+    <string name="auth_info_minutes_ago">(%d min ago)</string>
+    <string name="auth_info_hours_ago">(%d hours ago)</string>
+    <string name="auth_info_days_ago">(%d days ago)</string>
+    <string name="auth_detail_status_label">Status:</string>
+    <string name="auth_detail_time_label">Time:</string>
+    <string name="auth_detail_save_to_gallery">Save to gallery</string>
+    <string name="image_saved_to_gallery">Image saved to gallery</string>
+    <string name="auth_detail_save_failed">Failed to save image</string>
+    <string name="login_logging_delete_all">Delete All Logs</string>
+    <string name="login_logging_passcode">Passcode</string>
+    <string name="login_logging_selfie_on_successful_login">Take selfie of successful login</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">Take selfie of unsuccessful login</string>
+    <string name="login_logging_selfie_on_duress_login">Take selfie of The Duress Mode</string>
+    <string name="camera_permission_denied_title">Camera Permission Required</string>
+    <string name="camera_permission_denied_message">Camera access is needed to take selfies on login. Please enable it in Settings.</string>
+    <string name="button_open_settings">Open Settings</string>
+    <string name="login_logging_standard_login">STANDARD LOGIN</string>
+    <string name="login_logging_log_successful">Log successful logins</string>
+    <string name="login_logging_log_unsuccessful">Log unsuccessful logins</string>
+    <string name="login_logging_duress_mode">DURESS MODE</string>
+    <string name="login_logging_log_into_duress">Log into Duress Mode</string>
+    <string name="login_logging_send_notification">Send login notification</string>
+    <string name="login_logging_delete_auth_data">Delete all authentication data</string>
+    <string name="login_logging_delete_auth_data_description">This function deletes all authentication data with photos when you log into Duress Mode.</string>
+    <string name="login_logging_auto_delete">Auto Deleting Datas Logs</string>
+    <string name="login_logging_delete_period">Delete Period</string>
+    <string-array name="login_logging_periods">
+        <item>Never</item>
+        <item>Month</item>
+        <item>Year</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1M</item>
+        <item>1Y</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">Delete data</string>
+    <string name="login_logging_delete_data_confirmation">Are you sure you want to delete all logs?</string>
+    <string name="login_logging_delete_record_confirmation">Are you sure you want to delete this record?</string>
+    <string name="login_logging_info_description">If logging is enabled, you can view the login history in Advanced Security.</string>
+
+    <!-- SMS Notification via ZEC -->
+    <string name="send_sms_via_zec_title">Send SMS via ZEC</string>
+    <string name="send_sms_via_zec_info">This mode allows you to notify your close friends or lawyer that you have been forced to open the app. This mode works if you have ZEC in your wallet. If you don\'t, the app will add it.</string>
+    <string name="send_sms_wallet_balance_hint">Make sure you have the required amount in the selected wallet.</string>
+    <string name="send_sms_syncing">Syncing to send…</string>
+    <string name="send_sms_test_success">Your message has been successfully sent.</string>
+    <string name="send_sms_test_error">An error occurred while sending your message.</string>
+    <string name="send_sms_insufficient_balance">Insufficient balance</string>
+    <string name="send_sms_transparent_address_not_allowed">Transparent addresses are not allowed. Please use a shielded (z) address.</string>
+    <string name="choose_wallet">Choose Wallet</string>
+    <string name="choose_wallet_none">None</string>
+    <string name="required_coins_for_transaction">Required coins for transaction</string>
+    <string name="send_sms_address_hint">Please specify the address where the message should be sent.</string>
+    <string name="test_sms">Test SMS</string>
+    <string name="no_zec_wallets_available">No wallets with ZEC tokens found</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d option</item>

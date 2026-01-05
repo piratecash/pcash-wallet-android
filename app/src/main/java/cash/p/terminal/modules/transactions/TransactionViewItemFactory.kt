@@ -60,15 +60,13 @@ class TransactionViewItemFactory(
 
     suspend fun updateCache() = mutex.withLock {
         showAmount = !balanceHiddenManager.balanceHidden
-        cache.forEach { (recordUid, map) ->
-            map.forEach { (createdAt, viewItem) ->
-                cache[recordUid] = mapOf(
-                    createdAt to viewItem.copy(
-                        showAmount = showAmount,
-                    )
-                )
+        val updated = cache.mapValues { (_, map) ->
+            map.mapValues { (_, viewItem) ->
+                viewItem.copy(showAmount = showAmount)
             }
         }
+        cache.clear()
+        cache.putAll(updated)
     }
 
     fun convertToViewItemCached(transactionItem: TransactionItem): TransactionViewItem {

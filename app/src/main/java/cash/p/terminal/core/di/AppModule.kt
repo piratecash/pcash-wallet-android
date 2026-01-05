@@ -5,6 +5,7 @@ import cash.p.terminal.di.repositoryModule
 import cash.p.terminal.di.storageModule
 import cash.p.terminal.di.swapProvidersModule
 import cash.p.terminal.di.viewModelModule
+import cash.p.terminal.feature.logging.di.featureLoggingModule
 import cash.p.terminal.featureStacking.di.featureStackingModule
 import cash.p.terminal.network.di.networkModule
 import cash.p.terminal.premium.di.featurePremiumModule
@@ -26,6 +27,7 @@ val appModule = module {
         contractValidatorModule,
         useCaseModule,
         appUpdateModule,
-        featurePremiumModule
+        featurePremiumModule,
+        featureLoggingModule
     )
 }

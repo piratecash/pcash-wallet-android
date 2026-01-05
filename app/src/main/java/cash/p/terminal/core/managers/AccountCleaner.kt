@@ -10,10 +10,12 @@ import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.adapters.TronAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
+import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.wallet.IAccountCleaner
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
+import io.horizontalsystems.core.ISmsNotificationSettings
 import io.horizontalsystems.core.entities.BlockchainType
 
 class AccountCleaner(
@@ -21,7 +23,9 @@ class AccountCleaner(
     private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase,
     private val accountManager: IAccountManager,
     private val walletManager: IWalletManager,
-    private val moneroFileDao: MoneroFileDao
+    private val moneroFileDao: MoneroFileDao,
+    private val smsNotificationSettings: ISmsNotificationSettings,
+    private val pinDbStorage: PinDbStorage
 ) : IAccountCleaner {
 
     override suspend fun clearAccounts(accountIds: List<String>) {
@@ -40,6 +44,17 @@ class AccountCleaner(
         clearWalletForAccount(accountId, BlockchainType.Zcash)
         SolanaAdapter.clear(accountId)
         TronAdapter.clear(accountId)
+        clearSmsNotificationSettings(accountId)
+    }
+
+    private fun clearSmsNotificationSettings(accountId: String) {
+        pinDbStorage.getAllLevels().forEach { level ->
+            if (smsNotificationSettings.getSmsNotificationAccountId(level) == accountId) {
+                smsNotificationSettings.setSmsNotificationAccountId(level, null)
+                smsNotificationSettings.setSmsNotificationAddress(level, null)
+                smsNotificationSettings.setSmsNotificationMemo(level, null)
+            }
+        }
     }
 
     /***

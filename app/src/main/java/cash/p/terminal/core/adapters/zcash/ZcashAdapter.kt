@@ -376,14 +376,24 @@ class ZcashAdapter(
 
     override fun start() {
         CoroutineScope(Dispatchers.IO).launch {
-            delay(1000) //We need this delay to wait until previous synchronizer is closed
-            if ((synchronizer as SdkSynchronizer).status.value == Synchronizer.Status.STOPPED) {
-                createNewSynchronizer()
+            try {
+                startSynchronizer()
+            } catch (e: IllegalStateException) {
+                // Previous synchronizer still closing, wait and retry
+                Timber.d("Synchronizer conflict, retrying after delay: ${e.message}")
+                delay(1000)
+                startSynchronizer()
             }
-            subscribe(synchronizer as SdkSynchronizer)
-            if (!existingWallet) {
-                localStorage.zcashAccountIds += wallet.account.id
-            }
+        }
+    }
+
+    private suspend fun startSynchronizer() {
+        if ((synchronizer as SdkSynchronizer).status.value == Synchronizer.Status.STOPPED) {
+            createNewSynchronizer()
+        }
+        subscribe(synchronizer as SdkSynchronizer)
+        if (!existingWallet) {
+            localStorage.zcashAccountIds += wallet.account.id
         }
     }
 
@@ -572,12 +582,12 @@ class ZcashAdapter(
         amount: BigDecimal,
         address: String,
         memo: String,
-        logger: AppLogger
+        logger: AppLogger?
     ): FirstClassByteArray {
         val spendingKey =
             DerivationTool.getInstance()
                 .deriveUnifiedSpendingKey(seed, network, zcashAccount?.hdAccountIndex!!)
-        logger.info("call synchronizer.sendToAddress")
+        logger?.info("call synchronizer.sendToAddress")
         val proposal = synchronizer.proposeTransfer(
             account = zcashAccount!!,
             recipient = address,
@@ -777,6 +787,10 @@ object ZcashAddressValidator {
         return isValidZcashAddress(address)
     }
 
+    fun isTransparentAddress(address: String): Boolean {
+        return isValidTransparentAddress(address)
+    }
+
     private fun isValidTransparentAddress(address: String): Boolean {
         val transparentPattern = Pattern.compile("^t[0-9a-zA-Z]{34}$")
         return transparentPattern.matcher(address).matches()
@@ -787,7 +801,12 @@ object ZcashAddressValidator {
         return shieldedPattern.matcher(address).matches()
     }
 
+    private fun isValidUnifiedAddress(address: String): Boolean {
+        val unifiedPattern = Pattern.compile("^u1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{100,220}$")
+        return unifiedPattern.matcher(address).matches()
+    }
+
     private fun isValidZcashAddress(address: String): Boolean {
-        return isValidTransparentAddress(address) || isValidShieldedAddress(address)
+        return isValidTransparentAddress(address) || isValidShieldedAddress(address) || isValidUnifiedAddress(address)
     }
 }

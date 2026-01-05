@@ -52,7 +52,7 @@ import cash.p.terminal.entities.EvmSyncSource
 import cash.p.terminal.modules.btcblockchainsettings.BlockchainSettingCell
 import cash.p.terminal.modules.evmnetwork.addrpc.AddRpcScreen
 import cash.p.terminal.modules.walletconnect.list.ui.ActionsRow
-import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.modules.walletconnect.list.ui.getShape
 import cash.p.terminal.modules.walletconnect.list.ui.showDivider
 import cash.p.terminal.strings.helpers.TranslatableString

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.backuplocal.password
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.DeniableEncryptionManager
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupProvider
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.entities.DataState
@@ -182,11 +183,15 @@ class BackupLocalPasswordViewModel(
                     }
                     // Mark duress accounts as backed up
                     if (duressBackupEnabled) {
-                        val duressLevel = pinComponent.getDuressLevel()
-                        accountManager.accountsAtLevel(duressLevel).forEach { account ->
-                            if (!account.isFileBackedUp) {
-                                accountManager.update(account.copy(isFileBackedUp = true))
+                        try {
+                            val duressLevel = pinComponent.getDuressLevel()
+                            accountManager.accountsAtLevel(duressLevel).forEach { account ->
+                                if (!account.isFileBackedUp) {
+                                    accountManager.update(account.copy(isFileBackedUp = true))
+                                }
                             }
+                        } catch (_: Exception) {
+                            // Ignore errors
                         }
                     }
                 }
@@ -219,8 +224,10 @@ class BackupLocalPasswordViewModel(
                 backupData = when (type) {
                     is BackupType.FullBackup -> {
                         val duressAccountIds = if (duressBackupEnabled) {
-                            val duressLevel = pinComponent.getDuressLevel()
-                            accountManager.accountsAtLevel(duressLevel).map { it.id }
+                            tryOrNull {
+                                val duressLevel = pinComponent.getDuressLevel()
+                                accountManager.accountsAtLevel(duressLevel).map { it.id }
+                            }
                         } else {
                             null
                         }

@@ -49,6 +49,7 @@
     <string name="Button_Share">Share</string>
     <string name="Button_Apply">درخواست دادن</string>
     <string name="Button_SetAmount">Set Amount</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">اطمینان حاصل کنید که حداقل %s برای کارمزدها داشته باشید، در غیر این صورت ممکن است تراکنش ناموفق شود</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
@@ -474,7 +475,7 @@
     <string name="WalletConnect_Unnamed">Unnamed</string>
     <string name="WalletConnect_Pairings">Pairings</string>
     <string name="WalletConnect_PairedDApps">Paired dApps</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Delete All</string>
+    <string name="delete_all">Delete All</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Do you want to delete all paired dApss?</string>
     <string name="WalletConnect_Pairings_Delete">Delete</string>
     <string name="WalletConnect_DeleteAllPairs">Delete All Pairs</string>
@@ -1121,7 +1122,7 @@
     <string name="Coin_Tab_Market">Markets</string>
     <string name="Coin_Tab_Details">Analytics</string>
     <string name="Coin_Tab_Tweets">Tweets</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[کارمزد معمول < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">1D</string>
     <string name="CoinPage_TimeDuration_Week">7D</string>
@@ -1346,6 +1347,7 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">پریمیوم</string>
     <string name="about_premium">درباره پریمیوم</string>
+    <string name="premium_settings">تنظیمات پریمیوم</string>
     <string name="advanced_security">امنیت پیشرفته</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
     <string name="create_hidden_wallet_pin">رمز عبور کیف پول مخفی</string>
@@ -1373,6 +1375,54 @@
     <string name="premium_demo_activation_error_backup">برای فعال‌سازی پریمیوم باید کیف پول خود را پشتیبان‌گیری کنید</string>
     <string name="premium_demo_activation_error_watch_account">حساب نظارت نمی‌تواند برای فعال‌سازی پریمیوم استفاده شود</string>
     <string name="premium_demo_activation_error_wrong_type">برای فعال‌سازی پریمیوم از نوع کیف پول حافظه‌ای یا سخت‌افزاری استفاده کنید</string>
+    <string name="premium_try_for_free">رایگان امتحان کنید</string>
+    <string name="premium_upgrade_text">تجربه خود را با ویژگی‌های پریمیوم ارتقا دهید!</string>
+    <string name="premium_available">⭐️ پریمیوم در دسترس است</string>
+    <string name="premium_demo_days_left">پریمیوم آزمایشی: %d روز باقی‌مانده</string>
+    <string name="premium_select_wallet_title">انتخاب کیف پول برای دمو</string>
+    <string name="premium_select_wallet_description">یک کیف پول برای فعال‌سازی ویژگی‌های پریمیوم آزمایشی انتخاب کنید. فقط یک کیف پول می‌تواند همزمان پریمیوم آزمایشی داشته باشد.</string>
+    <string name="premium_demo_activated">پریمیوم آزمایشی با موفقیت فعال شد!</string>
+    <string name="premium_demo_expired">پریمیوم آزمایشی برای این کیف پول منقضی شده است</string>
+    <string name="wallet_is_not_eligible">این کیف پول واجد شرایط پریمیوم نیست</string>
+    <string name="premium_demo_activation_failed">فعال‌سازی پریمیوم آزمایشی ناموفق بود</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">ورود به برنامه</string>
+    <string name="login_logging_subscription_expired_title">اشتراک منقضی شده است</string>
+    <string name="login_logging_subscription_expired_description">برای استفاده از امکانات این بخش، باید اشتراک خود را فعال کنید.\n\nمی‌توانید با غیرفعال کردن همه امکانات این بخش، این پنجره را پنهان کنید.</string>
+    <string name="login_logging_delete_all">حذف همه گزارش‌ها</string>
+    <string name="login_logging_passcode">رمز عبور</string>
+    <string name="login_logging_selfie_on_successful_login">گرفتن سلفی از ورود موفق</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">گرفتن سلفی از ورود ناموفق</string>
+    <string name="login_logging_selfie_on_duress_login">گرفتن سلفی در حالت اجبار</string>
+    <string name="camera_permission_denied_title">مجوز دوربین مورد نیاز است</string>
+    <string name="camera_permission_denied_message">دسترسی به دوربین برای گرفتن سلفی در هنگام ورود لازم است. لطفاً آن را در تنظیمات فعال کنید.</string>
+    <string name="button_open_settings">باز کردن تنظیمات</string>
+    <string name="login_logging_standard_login">ورود استاندارد</string>
+    <string name="login_logging_log_successful">ثبت ورودهای موفق</string>
+    <string name="login_logging_log_unsuccessful">ثبت ورودهای ناموفق</string>
+    <string name="login_logging_duress_mode">حالت اجبار</string>
+    <string name="login_logging_log_into_duress">ورود به حالت اجبار</string>
+    <string name="login_logging_send_notification">ارسال اعلان ورود</string>
+    <string name="login_logging_delete_auth_data">حذف همه داده‌های احراز هویت</string>
+    <string name="login_logging_delete_auth_data_description">این عملکرد همه داده‌های احراز هویت با عکس‌ها را هنگام ورود به حالت اجبار حذف می‌کند.</string>
+    <string name="login_logging_auto_delete">حذف خودکار گزارش‌ها</string>
+    <string name="login_logging_delete_period">دوره حذف</string>
+    <string-array name="login_logging_periods">
+        <item>هرگز</item>
+        <item>ماه</item>
+        <item>سال</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>۱م</item>
+        <item>۱س</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">حذف داده‌ها</string>
+    <string name="login_logging_delete_data_confirmation">آیا مطمئن هستید که می‌خواهید همه گزارش‌ها را حذف کنید؟</string>
+    <string name="login_logging_delete_record_confirmation">آیا مطمئن هستید که می‌خواهید این رکورد را حذف کنید؟</string>
+    <string name="login_logging_info_description">اگر گزارش‌گیری فعال باشد، می‌توانید تاریخچه ورود را در امنیت پیشرفته مشاهده کنید.</string>
+
     <string name="Nfts_PriceType_Days_7">7 دی اوت</string>
     <string name="Nfts_PriceType_Days_30">30 دی اوت</string>
     <string name="Nfts_PriceType_LastSale">آخرین فروش</string>
@@ -1487,6 +1537,10 @@
     <string name="PinSet_ErrorFailedToSavePin">هنگام ذخیره کد عبور شما خطایی روی داد. لطفا دوباره تلاش کنید.</string>
     <string name="PinSet_ForBiometrics">Set a passcode to enable Biometrics</string>
     <string name="PinSet_ForDuress">Set a passcode to enable Duress Mode</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">رمز عبور برای محافظت از ثبت ورود تعیین کنید</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">رمز عبور را برای غیرفعال کردن ثبت ورود وارد کنید</string>
+    <string name="confirm_pin_to_access_login_logging">رمز عبور را برای دسترسی به ثبت ورود وارد کنید</string>
     <string name="PinSet_ErrorPinInUse">This passcode is already being used.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">تغییر رمزعبور</string>
@@ -1599,4 +1653,32 @@
     <string name="safety_rules_checkbox_1">من درک می‌کنم که عبارت بذر محرمانه است و نباید به اشخاص ثالث فاش شود.</string>
     <string name="safety_rules_checkbox_2">من درک می‌کنم که نمی‌توانم عبارت بذر خود را به صورت دیجیتال ذخیره کنم.</string>
     <string name="safety_rules_checkbox_3">من درک می‌کنم که تیم p.cash به کلیدهای من دسترسی ندارد و نمی‌تواند آنها را بازیابی کند.</string>
+    <string name="authorization_information">اطلاعات مجوز</string>
+    <string name="auth_info_successful">موفق</string>
+    <string name="auth_info_unsuccessful">ناموفق</string>
+    <string name="auth_info_duress_mode">(حالت اجبار)</string>
+    <string name="auth_info_entrance_to">ورود به %s</string>
+    <string name="auth_info_seconds_ago">(%d ثانیه قبل)</string>
+    <string name="auth_info_minutes_ago">(%d دقیقه قبل)</string>
+    <string name="auth_info_hours_ago">(%d ساعت قبل)</string>
+    <string name="auth_info_days_ago">(%d روز قبل)</string>
+    <string name="auth_detail_status_label">وضعیت:</string>
+    <string name="auth_detail_time_label">زمان:</string>
+    <string name="auth_detail_save_to_gallery">ذخیره در گالری</string>
+    <string name="image_saved_to_gallery">تصویر در گالری ذخیره شد</string>
+    <string name="auth_detail_save_failed">ذخیره تصویر ناموفق بود</string>
+    <string name="auth_info_no_records">هنوز رکوردی از مجوزها ثبت نشده است</string>
+    <string name="send_sms_via_zec_title">ارسال پیامک از طریق ZEC</string>
+    <string name="send_sms_via_zec_info">این حالت به شما امکان می‌دهد به دوستان نزدیک یا وکیل خود اطلاع دهید که مجبور به باز کردن برنامه شده‌اید. این حالت در صورتی کار می‌کند که ZEC در کیف پول خود داشته باشید. اگر ندارید، برنامه آن را اضافه خواهد کرد.</string>
+    <string name="send_sms_wallet_balance_hint">مطمئن شوید که مبلغ مورد نیاز در کیف پول انتخاب شده موجود است.</string>
+    <string name="send_sms_syncing">در حال همگام‌سازی برای ارسال…</string>
+    <string name="send_sms_test_success">پیام شما با موفقیت ارسال شد.</string>
+    <string name="send_sms_test_error">هنگام ارسال پیام خطایی رخ داد.</string>
+    <string name="send_sms_insufficient_balance">موجودی ناکافی</string>
+    <string name="send_sms_transparent_address_not_allowed">آدرس‌های شفاف مجاز نیستند. لطفاً از آدرس محافظت‌شده (z) استفاده کنید.</string>
+    <string name="choose_wallet">انتخاب کیف پول</string>
+    <string name="choose_wallet_none">هیچکدام</string>
+    <string name="required_coins_for_transaction">سکه‌های مورد نیاز برای تراکنش</string>
+    <string name="test_sms">تست پیامک</string>
+    <string name="no_zec_wallets_available">کیف پولی با توکن ZEC یافت نشد</string>
 </resources>

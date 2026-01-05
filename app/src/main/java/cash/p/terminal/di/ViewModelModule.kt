@@ -10,9 +10,12 @@ import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.importwallet.ImportWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
+import cash.p.terminal.modules.main.MainViewModel
+import cash.p.terminal.modules.pin.unlock.PinUnlockViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.premium.about.AboutPremiumViewModel
 import cash.p.terminal.modules.premium.settings.PremiumSettingsViewModel
+import cash.p.terminal.modules.premium.smsnotification.SendSmsNotificationViewModel
 import cash.p.terminal.modules.qrscanner.QRScannerViewModel
 import cash.p.terminal.modules.qrscanner.QrCodeImageDecoder
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
@@ -25,6 +28,7 @@ import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTerms
 import cash.p.terminal.modules.settings.appcache.AppCacheViewModel
 import cash.p.terminal.modules.settings.appstatus.AppStatusViewModel
 import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsViewModel
+import cash.p.terminal.modules.settings.main.MainSettingsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
@@ -45,6 +49,7 @@ val viewModelModule = module {
     singleOf(::DefaultDispatcherProvider) bind DispatcherProvider::class
     singleOf(::QrCodeImageDecoder)
 
+    viewModelOf(::MainViewModel)
     viewModelOf(::MainActivityViewModel)
     viewModelOf(::DisplayTransactionsViewModel)
     viewModelOf(::PrivacyViewModel)
@@ -52,6 +57,7 @@ val viewModelModule = module {
     viewModelOf(::ImportWalletViewModel)
     viewModelOf(::ResetToFactorySettingsViewModel)
     viewModelOf(::SecuritySettingsViewModel)
+    viewModelOf(::MainSettingsViewModel)
     viewModelOf(::ReleaseNotesViewModel)
     viewModelOf(::RestoreMnemonicViewModel)
     viewModelOf(::AppStatusViewModel)
@@ -59,11 +65,13 @@ val viewModelModule = module {
     viewModelOf(::MoneroConfigureViewModel)
     viewModelOf(::AboutPremiumViewModel)
     viewModelOf(::PremiumSettingsViewModel)
+    viewModelOf(::SendSmsNotificationViewModel)
     viewModelOf(::DisplayOptionsViewModel)
     viewModelOf(::TonConnectListViewModel)
     viewModelOf(::ZcashConfigureViewModel)
     viewModelOf(::QRScannerViewModel)
     viewModelOf(::AddTokenViewModel)
+    viewModelOf(::PinUnlockViewModel)
     viewModel { (input: AccountTypeNotSupportedDialog.Input) ->
         AccountTypeNotSupportedViewModel(input = input, accountManager = get())
     }

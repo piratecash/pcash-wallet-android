@@ -169,7 +169,7 @@ fun AboutPremiumScreen(
                     ) {
                         ButtonPrimaryCustomColor(
                             modifier = Modifier.fillMaxWidth(),
-                            title = stringResource(R.string.Premium_TryForFree),
+                            title = stringResource(R.string.premium_try_for_free),
                             brush = yellowGradient,
                             onClick = onTryForFreeClick,
                             isLoading = uiState.activationViewState == ViewState.Loading
@@ -198,7 +198,7 @@ private fun DemoDaysDisplay(daysLeft: Int) {
 @Composable
 private fun ActionText() {
     val text = highlightText(
-        text = stringResource(R.string.Premium_UpgradeText),
+        text = stringResource(R.string.premium_upgrade_text),
         textColor = ComposeAppTheme.colors.leah,
         highlightPart = stringResource(R.string.premium_title),
         highlightColor = ComposeAppTheme.colors.jacob

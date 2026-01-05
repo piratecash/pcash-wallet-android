@@ -105,7 +105,7 @@ fun WCPairingsScreen(navController: NavController) {
                             tint = ComposeAppTheme.colors.lucian
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        body_lucian(text = stringResource(id = R.string.WalletConnect_Pairings_DeleteAll))
+                        body_lucian(text = stringResource(id = R.string.delete_all))
                     }
                 }
             )

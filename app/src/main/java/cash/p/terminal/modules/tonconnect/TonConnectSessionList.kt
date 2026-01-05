@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.walletconnect.list.ui.ActionsRow
-import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.modules.walletconnect.list.ui.getShape
 import cash.p.terminal.modules.walletconnect.list.ui.showDivider
 import cash.p.terminal.ui_compose.components.HeaderText

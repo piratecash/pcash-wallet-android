@@ -38,7 +38,7 @@ import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.balance.SyncingProgressType
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
-import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui_compose.components.CellMultilineClear

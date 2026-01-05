@@ -1,31 +1,27 @@
 package cash.p.terminal.modules.settings.security.passcode
 
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
+import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.tangem.domain.sdk.CardSdkConfigRepository
-import cash.p.terminal.wallet.managers.ITransactionHiddenManager
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
-import io.horizontalsystems.core.CoreApp
+import io.horizontalsystems.core.IPinComponent
+import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
-import org.koin.java.KoinJavaComponent.inject
 
 class SecuritySettingsViewModel(
-    private val cardSdkConfigRepository: CardSdkConfigRepository
+    private val cardSdkConfigRepository: CardSdkConfigRepository,
+    private val systemInfoManager: ISystemInfoManager,
+    private val pinComponent: IPinComponent,
+    private val balanceHiddenManager: BalanceHiddenManager,
+    private val localStorage: ILocalStorage,
+    private val transactionHiddenManager: TransactionHiddenManager
 ) : ViewModelUiState<SecuritySettingsUiState>() {
 
-    private val systemInfoManager = CoreApp.systemInfoManager
-    private val pinComponent = CoreApp.pinComponent
-    private val balanceHiddenManager = App.balanceHiddenManager
-    private val localStorage = App.localStorage
-
     val biometricSettingsVisible = systemInfoManager.biometricAuthSupported
-
-    private val transactionHiddenManager: TransactionHiddenManager by inject(
-        ITransactionHiddenManager::class.java
-    )
 
     private var pinEnabled = pinComponent.isPinSet
     private var duressPinEnabled = pinComponent.isDuressPinSet()

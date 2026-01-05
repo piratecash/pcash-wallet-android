@@ -16,4 +16,7 @@ internal interface DemoPremiumUserDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(premiumUser: DemoPremiumUser)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM demo_premium_users WHERE daysLeft > 0)")
+    suspend fun hasActiveTrialPremium(): Boolean
 }

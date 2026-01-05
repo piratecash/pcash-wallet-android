@@ -14,6 +14,7 @@ import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.entities.LaunchPage
+import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.modules.main.MainModule.MainNavigation
 import cash.p.terminal.modules.market.topplatforms.Platform
@@ -48,6 +49,7 @@ class MainViewModel(
     private val localStorage: ILocalStorage,
     wcSessionManager: WCSessionManager,
     private val wcManager: WCManager,
+    private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
 ) : ViewModelUiState<MainModule.UiState>() {
 
     private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
@@ -380,8 +382,10 @@ class MainViewModel(
 
     private fun updateSettingsBadge() {
         val showDotBadge =
-            !(backupManager.allBackedUp && termsManager.allTermsAccepted && pinComponent.isPinSet) || accountManager.hasNonStandardAccount ||
-                    updateAvailable.value || !localStorage.isSystemPinRequired
+            !(backupManager.allBackedUp && termsManager.allTermsAccepted && pinComponent.isPinSet) ||
+                    accountManager.hasNonStandardAccount ||
+                    updateAvailable.value ||
+                    !localStorage.isSystemPinRequired
 
         settingsBadge = if (wcPendingRequestsCount > 0) {
             MainModule.BadgeType.BadgeNumber(wcPendingRequestsCount)
@@ -391,6 +395,19 @@ class MainViewModel(
             null
         }
         syncNavigation()
+        checkSelfieProblem()
+    }
+
+    private fun checkSelfieProblem() {
+        if (settingsBadge != null) {
+            return
+        }
+        viewModelScope.launch {
+            if (logLoginAttemptUseCase.selfieEnabledAndHasProblem()) {
+                settingsBadge = MainModule.BadgeType.BadgeDot
+                syncNavigation()
+            }
+        }
     }
 
     fun deeplinkPageHandled() {

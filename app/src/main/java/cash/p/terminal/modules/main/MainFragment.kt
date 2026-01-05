@@ -15,16 +15,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BadgedBox
 import androidx.compose.material.Icon
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -72,6 +72,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.navigation.slideFromBottom
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 import java.lang.ref.WeakReference
 
 class MainFragment : BaseComposeFragment() {
@@ -160,7 +161,7 @@ private fun MainScreen(
     fragmentNavController: NavController,
     intentLiveData: Intent?,
     intentHandled: () -> Unit,
-    viewModel: MainViewModel = viewModel(factory = MainModule.Factory())
+    viewModel: MainViewModel = koinViewModel()
 ) {
     val windowInfo = LocalWindowInfo.current
     val uiState = viewModel.uiState
@@ -168,7 +169,7 @@ private fun MainScreen(
     val pagerState = rememberPagerState(initialPage = selectedPage) { uiState.mainNavItems.size }
 
     val coroutineScope = rememberCoroutineScope()
-    val modalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    var showWalletSheet by remember { mutableStateOf(false) }
     LaunchedEffect(intentLiveData) {
         intentLiveData?.data?.let {
             intentHandled()
@@ -176,29 +177,7 @@ private fun MainScreen(
         }
     }
 
-    ModalBottomSheetLayout(
-        sheetState = modalBottomSheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
-        sheetContent = {
-            WalletSwitchBottomSheet(
-                wallets = viewModel.wallets,
-                watchingAddresses = viewModel.watchWallets,
-                selectedAccount = uiState.activeWallet,
-                onSelectListener = {
-                    coroutineScope.launch {
-                        modalBottomSheetState.hide()
-                        viewModel.onSelect(it)
-                    }
-                },
-                onCancelClick = {
-                    coroutineScope.launch {
-                        modalBottomSheetState.hide()
-                    }
-                }
-            )
-        },
-    ) {
-        Scaffold(
+    Scaffold(
             containerColor = ComposeAppTheme.colors.tyler,
             bottomBar = {
                 Column {
@@ -226,9 +205,7 @@ private fun MainScreen(
                                 },
                                 onLongClick = {
                                     if (item.mainNavItem == MainNavigation.Balance) {
-                                        coroutineScope.launch {
-                                            modalBottomSheetState.show()
-                                        }
+                                        showWalletSheet = true
                                     }
                                 }
                             )
@@ -237,11 +214,6 @@ private fun MainScreen(
                 }
             }
         ) { paddingValues ->
-            BackHandler(enabled = modalBottomSheetState.isVisible) {
-                coroutineScope.launch {
-                    modalBottomSheetState.hide()
-                }
-            }
             Column {
                 LaunchedEffect(key1 = selectedPage, block = {
                     if (uiState.mainNavItems[selectedPage].mainNavItem != MainNavigation.Transactions) {
@@ -289,6 +261,16 @@ private fun MainScreen(
         }
         val isInRecentApps by rememberUpdatedState(!windowInfo.isWindowFocused)
         HideContentBox(uiState.contentHidden || isInRecentApps)
+
+    // Wallet Selection Bottom Sheet
+    if (showWalletSheet) {
+        WalletSwitchBottomSheet(
+            wallets = viewModel.wallets,
+            watchingAddresses = viewModel.watchWallets,
+            selectedAccount = uiState.activeWallet,
+            onSelectListener = { viewModel.onSelect(it) },
+            onDismiss = { showWalletSheet = false }
+        )
     }
 
     if (uiState.showWhatsNew) {

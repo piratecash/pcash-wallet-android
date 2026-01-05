@@ -1,4 +1,4 @@
-package cash.p.terminal.modules.walletconnect.list.ui
+package cash.p.terminal.ui_compose.components
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.MutableTransitionState

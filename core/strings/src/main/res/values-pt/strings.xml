@@ -49,6 +49,7 @@
     <string name="Button_Share">Share</string>
     <string name="Button_Apply">Apply</string>
     <string name="Button_SetAmount">Set Amount</string>
+    <string name="button_info">Info</string>
     <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
     <string name="check_fee_warning">Certifique-se de que tem pelo menos %s para taxas ou a transação pode falhar</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
@@ -474,7 +475,7 @@
     <string name="WalletConnect_Unnamed">Sem nome</string>
     <string name="WalletConnect_Pairings">Pareamento</string>
     <string name="WalletConnect_PairedDApps">dApps pareados</string>
-    <string name="WalletConnect_Pairings_DeleteAll">Excluir Tudo</string>
+    <string name="delete_all">Excluir Tudo</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Você deseja excluir todos os dApps pareados?</string>
     <string name="WalletConnect_Pairings_Delete">Deletar</string>
     <string name="WalletConnect_DeleteAllPairs">Deletar todos pareados</string>
@@ -1117,7 +1118,7 @@
     <string name="Coin_Tab_Market">Mercados</string>
     <string name="Coin_Tab_Details">Análises</string>
     <string name="Coin_Tab_Tweets">Tweets</string>
-    <string name="typical_fee"><![CDATA[Typical fee < 0.001 ZEC]]></string>
+    <string name="typical_fee"><![CDATA[Taxa típica < 0.001 ZEC]]></string>
     <string name="CoinPage_TimeDuration_Hour">1H</string>
     <string name="CoinPage_TimeDuration_Day">24H</string>
     <string name="CoinPage_TimeDuration_Week">7D</string>
@@ -1342,6 +1343,7 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Sobre o Premium</string>
+    <string name="premium_settings">Definições Premium</string>
     <string name="advanced_security">Segurança avançada</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
     <string name="create_hidden_wallet_pin">PIN da carteira oculta</string>
@@ -1369,6 +1371,54 @@
     <string name="premium_demo_activation_error_backup">Para ativar Premium você precisa fazer backup da sua carteira</string>
     <string name="premium_demo_activation_error_watch_account">Uma conta de observação não pode ser usada para ativar Premium</string>
     <string name="premium_demo_activation_error_wrong_type">Use tipo de carteira mnemônica ou hardware para ativar Premium</string>
+    <string name="premium_try_for_free">Experimente GRÁTIS</string>
+    <string name="premium_upgrade_text">Melhore a sua experiência com funcionalidades Premium!</string>
+    <string name="premium_available">⭐️ Premium está disponível</string>
+    <string name="premium_demo_days_left">Demo Premium: %d dias restantes</string>
+    <string name="premium_select_wallet_title">Selecionar carteira para Demo</string>
+    <string name="premium_select_wallet_description">Escolha uma carteira para ativar as funcionalidades demo premium. Apenas uma carteira pode ter demo premium de cada vez.</string>
+    <string name="premium_demo_activated">Demo Premium ativado com sucesso!</string>
+    <string name="premium_demo_expired">Demo Premium para esta carteira expirou</string>
+    <string name="wallet_is_not_eligible">Esta carteira não é elegível para Premium</string>
+    <string name="premium_demo_activation_failed">Falha ao ativar demo premium</string>
+
+    <!-- Login Logging -->
+    <string name="login_logging_title">Login no aplicativo</string>
+    <string name="login_logging_subscription_expired_title">A subscrição expirou</string>
+    <string name="login_logging_subscription_expired_description">Para utilizar as funcionalidades desta secção, precisa de ativar a sua subscrição.\n\nPode ocultar esta janela desativando todas as funcionalidades desta secção.</string>
+    <string name="login_logging_delete_all">Eliminar todos os registos</string>
+    <string name="login_logging_passcode">Código de acesso</string>
+    <string name="login_logging_selfie_on_successful_login">Tirar selfie de login bem-sucedido</string>
+    <string name="login_logging_selfie_on_unsuccessful_login">Tirar selfie de login falhado</string>
+    <string name="login_logging_selfie_on_duress_login">Tirar selfie no modo coação</string>
+    <string name="camera_permission_denied_title">Permissão de câmara necessária</string>
+    <string name="camera_permission_denied_message">O acesso à câmara é necessário para tirar selfies no login. Por favor, ative-o nas Definições.</string>
+    <string name="button_open_settings">Abrir definições</string>
+    <string name="login_logging_standard_login">LOGIN PADRÃO</string>
+    <string name="login_logging_log_successful">Registar logins bem-sucedidos</string>
+    <string name="login_logging_log_unsuccessful">Registar logins falhados</string>
+    <string name="login_logging_duress_mode">MODO COAÇÃO</string>
+    <string name="login_logging_log_into_duress">Entrar em modo coação</string>
+    <string name="login_logging_send_notification">Enviar notificação de login</string>
+    <string name="login_logging_delete_auth_data">Eliminar todos os dados de autenticação</string>
+    <string name="login_logging_delete_auth_data_description">Esta função elimina todos os dados de autenticação com fotos ao entrar em modo coação.</string>
+    <string name="login_logging_auto_delete">Auto eliminação de registos</string>
+    <string name="login_logging_delete_period">Período de eliminação</string>
+    <string-array name="login_logging_periods">
+        <item>Nunca</item>
+        <item>Mês</item>
+        <item>Ano</item>
+    </string-array>
+    <string-array name="login_logging_periods_short">
+        <item>-</item>
+        <item>1M</item>
+        <item>1A</item>
+    </string-array>
+    <string name="login_logging_delete_data_title">Eliminar dados</string>
+    <string name="login_logging_delete_data_confirmation">Tem a certeza que pretende eliminar todos os registos?</string>
+    <string name="login_logging_delete_record_confirmation">Tem a certeza que pretende eliminar este registo?</string>
+    <string name="login_logging_info_description">Se o registo estiver ativado, pode ver o histórico de início de sessão em Segurança Avançada.</string>
+
     <string name="Nfts_PriceType_Days_7">média de 7D.</string>
     <string name="Nfts_PriceType_Days_30">média de 30.</string>
     <string name="Nfts_PriceType_LastSale">Última Venda</string>
@@ -1483,6 +1533,10 @@
     <string name="PinSet_ErrorFailedToSavePin">Ocorreu um erro ao enviar a mensagem. Tente novamente.</string>
     <string name="PinSet_ForBiometrics">Set a passcode to enable Biometrics</string>
     <string name="PinSet_ForDuress">Set a passcode to enable Duress Mode</string>
+    <string name="pin_set_for_login_logging">Set a passcode to enable login logging</string>
+    <string name="pin_set_for_login_logging_passcode">Definir código para proteger o registo de login</string>
+    <string name="confirm_pin_to_disable_login_logging_passcode">Digite o código para desativar o registo de login</string>
+    <string name="confirm_pin_to_access_login_logging">Digite o código para aceder ao registo de login</string>
     <string name="PinSet_ErrorPinInUse">This passcode is already being used.</string>
     <!--Edit Pin-->
     <string name="EditPin_Title">Editar senha</string>
@@ -1595,4 +1649,32 @@
     <string name="safety_rules_checkbox_1">Compreendo que a frase semente é confidencial e não deve ser revelada a terceiros.</string>
     <string name="safety_rules_checkbox_2">Compreendo que não posso armazenar a minha frase semente em formato digital.</string>
     <string name="safety_rules_checkbox_3">Compreendo que a equipa p.cash não tem acesso às minhas chaves e não pode recuperá-las.</string>
+    <string name="authorization_information">Informações de autorização</string>
+    <string name="auth_info_successful">Bem-sucedido</string>
+    <string name="auth_info_unsuccessful">Sem sucesso</string>
+    <string name="auth_info_duress_mode">(Modo coação)</string>
+    <string name="auth_info_entrance_to">Entrada no %s</string>
+    <string name="auth_info_seconds_ago">(%d seg atrás)</string>
+    <string name="auth_info_minutes_ago">(%d min atrás)</string>
+    <string name="auth_info_hours_ago">(%d horas atrás)</string>
+    <string name="auth_info_days_ago">(%d dias atrás)</string>
+    <string name="auth_detail_status_label">Estado:</string>
+    <string name="auth_detail_time_label">Hora:</string>
+    <string name="auth_detail_save_to_gallery">Guardar na galeria</string>
+    <string name="image_saved_to_gallery">Imagem guardada na galeria</string>
+    <string name="auth_detail_save_failed">Falha ao guardar imagem</string>
+    <string name="auth_info_no_records">Ainda não existem registos de autorização</string>
+    <string name="send_sms_via_zec_title">Enviar SMS via ZEC</string>
+    <string name="send_sms_via_zec_info">Este modo permite notificar os seus amigos próximos ou advogado de que foi forçado a abrir a aplicação. Este modo funciona se tiver ZEC na sua carteira. Se não tiver, a aplicação irá adicioná-lo.</string>
+    <string name="send_sms_wallet_balance_hint">Certifique-se de que tem o valor necessário na carteira selecionada.</string>
+    <string name="send_sms_syncing">Sincronizando para enviar…</string>
+    <string name="send_sms_test_success">A sua mensagem foi enviada com sucesso.</string>
+    <string name="send_sms_test_error">Ocorreu um erro ao enviar a sua mensagem.</string>
+    <string name="send_sms_insufficient_balance">Saldo insuficiente</string>
+    <string name="send_sms_transparent_address_not_allowed">Endereços transparentes não são permitidos. Por favor, use um endereço blindado (z).</string>
+    <string name="choose_wallet">Escolher carteira</string>
+    <string name="choose_wallet_none">Nenhuma</string>
+    <string name="required_coins_for_transaction">Moedas necessárias para a transação</string>
+    <string name="test_sms">Testar SMS</string>
+    <string name="no_zec_wallets_available">Nenhuma carteira com tokens ZEC encontrada</string>
 </resources>

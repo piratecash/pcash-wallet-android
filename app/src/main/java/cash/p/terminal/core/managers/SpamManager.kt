@@ -1,6 +1,5 @@
 package cash.p.terminal.core.managers
 
-import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.factories.TransferEventFactory
@@ -25,26 +24,24 @@ import timber.log.Timber
 import java.math.BigDecimal
 
 class SpamManager(
-    private val localStorage: ILocalStorage
+    private val localStorage: ILocalStorage,
+    private val spamAddressStorage: SpamAddressStorage,
+    private val transactionAdapterManager: TransactionAdapterManager,
+
 ) {
-    private val coinManager: ICoinManager by inject(ICoinManager::class.java)
-    private val spamAddressStorage: SpamAddressStorage by inject(SpamAddressStorage::class.java)
-    private var transactionAdapterManager: TransactionAdapterManager? = null
     private val transferEventFactory = TransferEventFactory()
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    var hideSuspiciousTx = localStorage.hideSuspiciousTransactions
-        private set
-
-    fun set(transactionAdapterManager: TransactionAdapterManager) {
-        this.transactionAdapterManager = transactionAdapterManager
-
+    init {
         coroutineScope.launch {
             transactionAdapterManager.adaptersReadyFlow.collect {
                 subscribeToAdapters(transactionAdapterManager)
             }
         }
     }
+
+    var hideSuspiciousTx = localStorage.hideSuspiciousTransactions
+        private set
 
     private fun subscribeToAdapters(transactionAdapterManager: TransactionAdapterManager) {
         transactionAdapterManager.adaptersReadyFlow.value.forEach { (transactionSource, transactionsAdapter) ->

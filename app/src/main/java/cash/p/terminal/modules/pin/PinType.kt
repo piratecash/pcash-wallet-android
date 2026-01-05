@@ -7,4 +7,5 @@ enum class PinType {
     TRANSACTIONS_HIDE,
     TRANSFER,
     SECURE_RESET,
+    LOG_LOGGING,
 }

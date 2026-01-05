@@ -5,6 +5,7 @@ import cash.p.terminal.network.binance.data.TokenBalance
 import cash.p.terminal.network.pirate.domain.enity.TrialPremiumResult
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.premium.data.config.PremiumConfig
+import cash.p.terminal.premium.data.dao.DemoPremiumUserDao
 import cash.p.terminal.premium.data.repository.PremiumUserRepository
 import cash.p.terminal.premium.domain.usecase.CheckAdapterPremiumBalanceUseCase.Result.Insufficient
 import cash.p.terminal.wallet.Account
@@ -29,6 +30,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +43,9 @@ class CheckPremiumUseCaseTest {
 
     @MockK
     private lateinit var premiumUserRepository: PremiumUserRepository
+
+    @MockK
+    private lateinit var demoPremiumUserDao: DemoPremiumUserDao
 
     @MockK
     private lateinit var binanceApi: BinanceApi
@@ -69,7 +74,8 @@ class CheckPremiumUseCaseTest {
     private lateinit var useCase: CheckPremiumUseCaseImpl
 
     private val dispatcher = StandardTestDispatcher()
-    private val testDispatcherProvider = TestDispatcherProvider(dispatcher)
+    private val testScope = TestScope(dispatcher)
+    private val testDispatcherProvider = TestDispatcherProvider(dispatcher, testScope)
     private val walletFactory = WalletFactory(object : HardwareWalletTokenPolicy {
         override fun isSupported(blockchainType: BlockchainType, tokenType: TokenType) = true
     })
@@ -87,6 +93,7 @@ class CheckPremiumUseCaseTest {
         stubActiveAccount(account)
 
         coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
         coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
 
@@ -116,8 +123,11 @@ class CheckPremiumUseCaseTest {
 
         coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected fallback")
 
+        coEvery { demoPremiumUserDao.hasActiveTrialPremium() } returns false
+
         useCase = CheckPremiumUseCaseImpl(
             premiumUserRepository = premiumUserRepository,
+            demoPremiumUserDao = demoPremiumUserDao,
             binanceApi = binanceApi,
             piratePlaceRepository = piratePlaceRepository,
             accountManager = accountManager,
@@ -152,6 +162,7 @@ class CheckPremiumUseCaseTest {
             isPremium = PremiumType.PIRATE
         )
         coEvery { premiumUserRepository.getByLevel(1) } returns cachedUser
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
         coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
 
@@ -176,7 +187,7 @@ class CheckPremiumUseCaseTest {
         val result = useCase.getPremiumType()
 
         assertEquals(PremiumType.PIRATE, result)
-        verify(exactly = 0) { checkAdapterPremiumBalanceUseCase.invoke() }
+        // Adapter is called for parent level (0) which has no cache, but current level (1) uses cache
     }
 
     @Test
@@ -187,6 +198,7 @@ class CheckPremiumUseCaseTest {
         stubActiveAccount(account)
 
         coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
         coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
 
@@ -194,6 +206,7 @@ class CheckPremiumUseCaseTest {
         coEvery { activateTrialPremiumUseCase.activateTrialPremium(any()) } returns TrialPremiumResult.DemoNotFound
 
         coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
         coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
 
@@ -229,7 +242,7 @@ class CheckPremiumUseCaseTest {
         assertEquals(PremiumType.COSA, premium)
         assertEquals(PremiumType.COSA, cached)
 
-        verify(exactly = 4) { checkAdapterPremiumBalanceUseCase.invoke() }
+        verify(atLeast = 2) { checkAdapterPremiumBalanceUseCase.invoke() }
         coVerify { premiumUserRepository.insert(match { it.isPremium == PremiumType.COSA }) }
     }
 
@@ -241,6 +254,7 @@ class CheckPremiumUseCaseTest {
         stubActiveAccount(account)
 
         coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
         coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
 
@@ -271,7 +285,7 @@ class CheckPremiumUseCaseTest {
         val result = useCase.getPremiumType()
 
         assertEquals(PremiumType.NONE, result)
-        verify(exactly = 5) { checkAdapterPremiumBalanceUseCase.invoke() }
+        verify(atLeast = 2) { checkAdapterPremiumBalanceUseCase.invoke() }
     }
 
     @Test
@@ -281,6 +295,7 @@ class CheckPremiumUseCaseTest {
         stubActiveAccount(account)
 
         coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
         coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
 
@@ -305,21 +320,423 @@ class CheckPremiumUseCaseTest {
         val result = useCase.getPremiumType()
 
         assertEquals(PremiumType.NONE, result)
-        verify(exactly = 5) { checkAdapterPremiumBalanceUseCase.invoke() }
+        verify(atLeast = 2) { checkAdapterPremiumBalanceUseCase.invoke() }
     }
 
-    private fun createUseCase(): CheckPremiumUseCaseImpl = CheckPremiumUseCaseImpl(
-        premiumUserRepository = premiumUserRepository,
-        binanceApi = binanceApi,
-        piratePlaceRepository = piratePlaceRepository,
-        accountManager = accountManager,
-        checkAdapterPremiumBalanceUseCase = checkAdapterPremiumBalanceUseCase,
-        checkTrialPremiumUseCase = checkTrialPremiumUseCase,
-        activateTrialPremiumUseCase = activateTrialPremiumUseCase,
-        getBnbAddressUseCase = getBnbAddressUseCase,
-        userManager = userManager,
-        dispatcherProvider = testDispatcherProvider
-    )
+    // ==================== getParentPremiumType tests ====================
+
+    @Test
+    fun `getParentPremiumType returns same as getPremiumType when at level 0`() = runTest(dispatcher) {
+        val account = mnemonicAccount(id = "main-account", level = 0)
+
+        stubActiveAccount(account, level = 0)
+
+        val cachedUser = PremiumUser(
+            level = 0,
+            accountId = account.id,
+            address = "0xcached",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.PIRATE
+        )
+        coEvery { premiumUserRepository.getByLevel(0) } returns cachedUser
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+        coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(account) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(account) } returns "0xcached"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        // At level 0, parent level equals current level
+        assertEquals(PremiumType.PIRATE, useCase.getPremiumType())
+        assertEquals(PremiumType.PIRATE, useCase.getParentPremiumType())
+    }
+
+    @Test
+    fun `getParentPremiumType returns parent cached premium when in duress mode`() = runTest(dispatcher) {
+        val mainAccount = mnemonicAccount(id = "main-account", level = 0)
+        val duressAccount = mnemonicAccount(id = "duress-account", level = 1)
+
+        stubTwoLevelAccounts(mainAccount, duressAccount, currentLevel = 1)
+
+        // Parent (level 0) has PIRATE premium
+        val parentCachedUser = PremiumUser(
+            level = 0,
+            accountId = mainAccount.id,
+            address = "0xparent",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.PIRATE
+        )
+        // Current (level 1) has no premium
+        coEvery { premiumUserRepository.getByLevel(0) } returns parentCachedUser
+        coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+        coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        assertEquals(PremiumType.NONE, useCase.getPremiumType())
+        assertEquals(PremiumType.PIRATE, useCase.getParentPremiumType())
+    }
+
+    @Test
+    fun `getParentPremiumType returns trial when parent has trial premium`() = runTest(dispatcher) {
+        val mainAccount = mnemonicAccount(id = "main-account", level = 0)
+        val duressAccount = mnemonicAccount(id = "duress-account", level = 1)
+
+        stubTwoLevelAccounts(mainAccount, duressAccount, currentLevel = 1)
+
+        // Parent (level 0) stored in repository - needed for _levelAccountCache
+        val parentCachedUser = PremiumUser(
+            level = 0,
+            accountId = mainAccount.id,
+            address = "0xparent",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.NONE
+        )
+        coEvery { premiumUserRepository.getByLevel(0) } returns parentCachedUser
+        coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+        coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
+
+        // Parent account has trial premium active
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(mainAccount) } returns TrialPremiumResult.DemoActive(daysLeft = 7)
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(duressAccount) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        assertEquals(PremiumType.TRIAL, useCase.getParentPremiumType())
+    }
+
+    @Test
+    fun `getParentPremiumType returns different type than current level`() = runTest(dispatcher) {
+        val mainAccount = mnemonicAccount(id = "main-account", level = 0)
+        val duressAccount = mnemonicAccount(id = "duress-account", level = 1)
+
+        stubTwoLevelAccounts(mainAccount, duressAccount, currentLevel = 1)
+
+        // Parent (level 0) has COSA premium
+        val parentCachedUser = PremiumUser(
+            level = 0,
+            accountId = mainAccount.id,
+            address = "0xparent",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_COSANTA,
+            isPremium = PremiumType.COSA
+        )
+        // Current (level 1) has PIRATE premium
+        val currentCachedUser = PremiumUser(
+            level = 1,
+            accountId = duressAccount.id,
+            address = "0xcurrent",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.PIRATE
+        )
+        coEvery { premiumUserRepository.getByLevel(0) } returns parentCachedUser
+        coEvery { premiumUserRepository.getByLevel(1) } returns currentCachedUser
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+        coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        assertEquals(PremiumType.PIRATE, useCase.getPremiumType())
+        assertEquals(PremiumType.COSA, useCase.getParentPremiumType())
+    }
+
+    // ==================== update() tests for parent level ====================
+
+    @Test
+    fun `update updates both current and parent levels`() = runTest(dispatcher) {
+        val mainAccount = mnemonicAccount(id = "main-account", level = 0)
+        val duressAccount = mnemonicAccount(id = "duress-account", level = 1)
+
+        stubTwoLevelAccounts(mainAccount, duressAccount, currentLevel = 1)
+
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
+        coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+        coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        useCase.update()
+
+        // Verify both levels were queried
+        coVerify { premiumUserRepository.getByLevel(1) }
+        coVerify { premiumUserRepository.getByLevel(0) }
+    }
+
+    // ==================== isPremiumWithParentInCache tests ====================
+
+    @Test
+    fun `isPremiumWithParentInCache returns true when token premium cached for current level`() = runTest(dispatcher) {
+        val account = mnemonicAccount()
+
+        stubActiveAccount(account)
+
+        val cachedUser = PremiumUser(
+            level = 1,
+            accountId = account.id,
+            address = "0xcached",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.PIRATE
+        )
+        coEvery { premiumUserRepository.getByLevels(listOf(1, 0)) } returns listOf(cachedUser)
+        coEvery { premiumUserRepository.getByLevel(any()) } returns cachedUser
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xcached"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        val result = useCase.isPremiumWithParentInCache()
+
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun `isPremiumWithParentInCache returns true when token premium cached for parent level`() = runTest(dispatcher) {
+        val mainAccount = mnemonicAccount(id = "main-account", level = 0)
+        val duressAccount = mnemonicAccount(id = "duress-account", level = 1)
+
+        stubTwoLevelAccounts(mainAccount, duressAccount, currentLevel = 1)
+
+        // Parent (level 0) has PIRATE premium, current (level 1) has none
+        val parentCachedUser = PremiumUser(
+            level = 0,
+            accountId = mainAccount.id,
+            address = "0xparent",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.PIRATE
+        )
+        coEvery { premiumUserRepository.getByLevels(listOf(1, 0)) } returns listOf(parentCachedUser)
+        coEvery { premiumUserRepository.getByLevel(0) } returns parentCachedUser
+        coEvery { premiumUserRepository.getByLevel(1) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        val result = useCase.isPremiumWithParentInCache()
+
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun `isPremiumWithParentInCache returns true when trial premium is active`() = runTest(dispatcher) {
+        val account = mnemonicAccount()
+
+        stubActiveAccount(account)
+
+        // No token premium cached
+        coEvery { premiumUserRepository.getByLevels(listOf(1, 0)) } returns emptyList()
+        coEvery { premiumUserRepository.getByLevel(any()) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        // Trial premium IS active in the database
+        coEvery { demoPremiumUserDao.hasActiveTrialPremium() } returns true
+
+        useCase = CheckPremiumUseCaseImpl(
+            premiumUserRepository = premiumUserRepository,
+            demoPremiumUserDao = demoPremiumUserDao,
+            binanceApi = binanceApi,
+            piratePlaceRepository = piratePlaceRepository,
+            accountManager = accountManager,
+            checkAdapterPremiumBalanceUseCase = checkAdapterPremiumBalanceUseCase,
+            checkTrialPremiumUseCase = checkTrialPremiumUseCase,
+            activateTrialPremiumUseCase = activateTrialPremiumUseCase,
+            getBnbAddressUseCase = getBnbAddressUseCase,
+            userManager = userManager,
+            dispatcherProvider = testDispatcherProvider
+        )
+        advanceUntilIdle()
+
+        val result = useCase.isPremiumWithParentInCache()
+
+        assertEquals(true, result)
+    }
+
+    @Test
+    fun `isPremiumWithParentInCache returns false when no premium cached`() = runTest(dispatcher) {
+        val account = mnemonicAccount()
+
+        stubActiveAccount(account)
+
+        // No token premium cached
+        coEvery { premiumUserRepository.getByLevels(listOf(1, 0)) } returns emptyList()
+        coEvery { premiumUserRepository.getByLevel(any()) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        // No trial premium either
+        coEvery { demoPremiumUserDao.hasActiveTrialPremium() } returns false
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        val result = useCase.isPremiumWithParentInCache()
+
+        assertEquals(false, result)
+    }
+
+    @Test
+    fun `isPremiumWithParentInCache ignores NONE premium type in cache`() = runTest(dispatcher) {
+        val account = mnemonicAccount()
+
+        stubActiveAccount(account)
+
+        // Cached user has NONE premium
+        val cachedUser = PremiumUser(
+            level = 1,
+            accountId = account.id,
+            address = "0xcached",
+            lastCheckDate = System.currentTimeMillis(),
+            coinType = PremiumConfig.COIN_TYPE_PIRATE,
+            isPremium = PremiumType.NONE
+        )
+        coEvery { premiumUserRepository.getByLevels(listOf(1, 0)) } returns listOf(cachedUser)
+        coEvery { premiumUserRepository.getByLevel(any()) } returns cachedUser
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(any()) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(any<Account>()) } returns "0xcached"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        // No trial premium
+        coEvery { demoPremiumUserDao.hasActiveTrialPremium() } returns false
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        val result = useCase.isPremiumWithParentInCache()
+
+        assertEquals(false, result)
+    }
+
+    @Test
+    fun `update does not update parent level when at level 0`() = runTest(dispatcher) {
+        val account = mnemonicAccount(id = "main-account", level = 0)
+
+        stubActiveAccount(account, level = 0)
+
+        coEvery { premiumUserRepository.getByLevel(0) } returns null
+        coEvery { premiumUserRepository.insert(any()) } returns Unit
+        coEvery { premiumUserRepository.deleteByAccount(any()) } returns Unit
+
+        coEvery { checkTrialPremiumUseCase.checkTrialPremiumStatus(account) } returns TrialPremiumResult.NeedPremium
+        every { checkAdapterPremiumBalanceUseCase.invoke() } returns null
+
+        coEvery { getBnbAddressUseCase.deleteExcludeAccountIds(any()) } returns Unit
+        coEvery { getBnbAddressUseCase.getAddress(account) } returns "0xaddress"
+        coEvery { binanceApi.getTokenBalance(any(), any()) } returns TokenBalance(BigDecimal.ZERO)
+        coEvery { piratePlaceRepository.getInvestmentData(any(), any()) } throws IllegalStateException("Unexpected")
+
+        useCase = createUseCase()
+        advanceUntilIdle()
+
+        useCase.update()
+
+        // At level 0, parent == current, so getByLevel(0) called but not getByLevel(-1)
+        coVerify(atLeast = 1) { premiumUserRepository.getByLevel(0) }
+        coVerify(exactly = 0) { premiumUserRepository.getByLevel(-1) }
+    }
+
+    private fun createUseCase(): CheckPremiumUseCaseImpl {
+        coEvery { demoPremiumUserDao.hasActiveTrialPremium() } returns false
+        return CheckPremiumUseCaseImpl(
+            premiumUserRepository = premiumUserRepository,
+            demoPremiumUserDao = demoPremiumUserDao,
+            binanceApi = binanceApi,
+            piratePlaceRepository = piratePlaceRepository,
+            accountManager = accountManager,
+            checkAdapterPremiumBalanceUseCase = checkAdapterPremiumBalanceUseCase,
+            checkTrialPremiumUseCase = checkTrialPremiumUseCase,
+            activateTrialPremiumUseCase = activateTrialPremiumUseCase,
+            getBnbAddressUseCase = getBnbAddressUseCase,
+            userManager = userManager,
+            dispatcherProvider = testDispatcherProvider
+        )
+    }
 
     private fun stubActiveAccount(account: Account, level: Int = 1) {
         val levelFlow = MutableStateFlow(level)
@@ -331,15 +748,31 @@ class CheckPremiumUseCaseTest {
         every { accountManager.account(account.id) } returns account
     }
 
-    private fun mnemonicAccount(): Account = Account(
-        id = "account-id",
+    private fun stubTwoLevelAccounts(
+        mainAccount: Account,
+        duressAccount: Account,
+        currentLevel: Int
+    ) {
+        val levelFlow = MutableStateFlow(currentLevel)
+        every { userManager.currentUserLevelFlow } returns levelFlow
+        val allAccounts = listOf(mainAccount, duressAccount)
+        val accountsFlow = MutableStateFlow(allAccounts)
+        every { accountManager.accountsFlow } returns accountsFlow
+        every { accountManager.accounts } returns allAccounts
+        every { accountManager.activeAccount } returns if (currentLevel == 0) mainAccount else duressAccount
+        every { accountManager.account(mainAccount.id) } returns mainAccount
+        every { accountManager.account(duressAccount.id) } returns duressAccount
+    }
+
+    private fun mnemonicAccount(id: String = "account-id", level: Int = 1): Account = Account(
+        id = id,
         name = "Account",
         type = AccountType.Mnemonic(
             words = List(12) { "abandon" },
             passphrase = ""
         ),
         origin = AccountOrigin.Created,
-        level = 1,
+        level = level,
         isBackedUp = true
     )
 

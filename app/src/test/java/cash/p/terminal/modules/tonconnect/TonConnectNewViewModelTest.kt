@@ -22,6 +22,7 @@ import io.mockk.mockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -42,7 +43,8 @@ import kotlin.test.assertTrue
 class TonConnectNewViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-    private val testDispatcherProvider = TestDispatcherProvider(dispatcher)
+    private val testScope = TestScope(dispatcher)
+    private val testDispatcherProvider = TestDispatcherProvider(dispatcher, testScope)
     private lateinit var request: DAppRequestEntity
 
     private val tonConnectKit = mockk<TonConnectKit>(relaxed = true)

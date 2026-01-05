@@ -58,7 +58,7 @@ private fun ErrorDisplayScreen(
     errorText: String,
     navController: NavController
 ) {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         BottomSheetHeader(
             iconPainter = painterResource(R.drawable.icon_24_warning_2),
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.lucian),

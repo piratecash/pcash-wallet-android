@@ -31,6 +31,7 @@ import org.junit.Test
 class PinComponentSecureResetLevelTest {
 
     private val dispatcher = StandardTestDispatcher()
+    private val testScope = TestScope(dispatcher)
     private val pinDao = InMemoryPinDao()
     private val pinDbStorage = PinDbStorage(pinDao)
     private val pinManager = PinManager(pinDbStorage)
@@ -70,8 +71,8 @@ class PinComponentSecureResetLevelTest {
             pinDbStorage = pinDbStorage,
             backgroundManager = backgroundManager,
             resetUseCase = resetUseCase,
-            dispatcherProvider = TestDispatcherProvider(dispatcher),
-            scope = TestScope()
+            dispatcherProvider = TestDispatcherProvider(dispatcher, testScope),
+            scope = testScope
         )
     }
 
@@ -79,18 +80,13 @@ class PinComponentSecureResetLevelTest {
         currentUserLevel = level
     }
 
-    @Test
-    fun `duress PIN skips SECURE_RESET_PIN_LEVEL when user level is 9999`() {
+    @Test(expected = IllegalStateException::class)
+    fun `duress PIN throws exception when user level is 9999`() {
         // Set user level to 9999
         setUserLevel(9999)
 
-        // Set duress PIN
+        // Attempting to set duress PIN should throw because duress level would be 10000 (SECURE_RESET)
         pinComponent.setDuressPin("1234")
-
-        // Duress PIN should be at level 10001, not 10000
-        val duressLevel = pinManager.getPinLevel("1234")
-        assertNotEquals(PinLevels.SECURE_RESET, duressLevel)
-        assertEquals(PinLevels.SECURE_RESET + 1, duressLevel)
     }
 
     @Test
@@ -108,18 +104,18 @@ class PinComponentSecureResetLevelTest {
 
     @Test
     fun `isDuressPinSet returns false when no duress PIN at correct level`() {
-        setUserLevel(9999)
+        setUserLevel(0)
 
-        // Manually set a PIN at level 10000 (reserved)
-        pinManager.store("9999", PinLevels.SECURE_RESET)
+        // Manually set a PIN at level 2 (not the expected duress level 1)
+        pinManager.store("9999", 2)
 
-        // isDuressPinSet should return false because duress should be at 10001
+        // isDuressPinSet should return false because duress should be at level 1
         assertFalse(pinComponent.isDuressPinSet())
     }
 
     @Test
     fun `isDuressPinSet returns true when duress PIN set at correct level`() {
-        setUserLevel(9999)
+        setUserLevel(0)
 
         // Set duress PIN through component
         pinComponent.setDuressPin("1111")
@@ -129,8 +125,8 @@ class PinComponentSecureResetLevelTest {
     }
 
     @Test
-    fun `secure reset PIN and duress PIN can coexist at level 9999`() {
-        setUserLevel(9999)
+    fun `secure reset PIN and duress PIN can coexist`() {
+        setUserLevel(0)
 
         // Set secure reset PIN
         pinComponent.setSecureResetPin("0000")
@@ -140,12 +136,15 @@ class PinComponentSecureResetLevelTest {
 
         // Both should exist at different levels
         assertEquals(PinLevels.SECURE_RESET, pinManager.getPinLevel("0000"))
-        assertEquals(PinLevels.SECURE_RESET + 1, pinManager.getPinLevel("1111"))
+        assertEquals(1, pinManager.getPinLevel("1111"))
+
+        assertTrue(pinComponent.isSecureResetPinSet())
+        assertTrue(pinComponent.isDuressPinSet())
     }
 
     @Test
-    fun `disableDuressPin removes PIN from correct level at 9999`() {
-        setUserLevel(9999)
+    fun `disableDuressPin removes PIN from correct level`() {
+        setUserLevel(0)
 
         // Set duress PIN
         pinComponent.setDuressPin("2222")
@@ -157,7 +156,7 @@ class PinComponentSecureResetLevelTest {
         // Should be disabled now
         assertFalse(pinComponent.isDuressPinSet())
 
-        // PIN should not exist at level 10001
+        // PIN should not exist at level 1
         assertEquals(null, pinManager.getPinLevel("2222"))
     }
 
@@ -167,7 +166,7 @@ class PinComponentSecureResetLevelTest {
         pinComponent.setPin("3333")
         pinComponent.setSecureResetPin("4444")
 
-        val unlocked = pinComponent.unlock("4444")
+        val unlocked = pinComponent.unlock("4444", pinComponent.getPinLevel("4444"))
 
         assertTrue(unlocked)
         assertEquals(0, pinManager.getPinLevel("4444"))
@@ -177,16 +176,19 @@ class PinComponentSecureResetLevelTest {
     }
 
     @Test
-    fun `disableSecureResetPin does not clear pins above SECURE_RESET_PIN_LEVEL`() {
-        setUserLevel(9999)
+    fun `disableSecureResetPin does not clear other pins`() {
+        setUserLevel(0)
+
+        // Set main PIN at level 0
+        pinComponent.setPin("6666")
+
+        // Set duress PIN at level 1
+        pinComponent.setDuressPin("8888")
+        assertTrue(pinComponent.isDuressPinSet())
 
         // Set secure reset PIN at level 10000
         pinComponent.setSecureResetPin("7777")
         assertTrue(pinComponent.isSecureResetPinSet())
-
-        // Set duress PIN at level 10001
-        pinComponent.setDuressPin("8888")
-        assertTrue(pinComponent.isDuressPinSet())
 
         // Disable secure reset PIN
         pinComponent.disableSecureResetPin()
@@ -195,9 +197,10 @@ class PinComponentSecureResetLevelTest {
         assertFalse(pinComponent.isSecureResetPinSet())
         assertEquals(null, pinManager.getPinLevel("7777"))
 
-        // Duress PIN at level 10001 should still exist
+        // Main PIN and duress PIN should still exist
+        assertEquals(0, pinManager.getPinLevel("6666"))
         assertTrue(pinComponent.isDuressPinSet())
-        assertEquals(PinLevels.SECURE_RESET + 1, pinManager.getPinLevel("8888"))
+        assertEquals(1, pinManager.getPinLevel("8888"))
     }
 
     @Test
@@ -319,7 +322,7 @@ private class InMemoryPinDao : PinDao {
     override fun getAll(): List<Pin> = pins.values.toList()
 
     override fun getLastLevelPin(): Pin? = pins.values
-        .filter { it.level != PinLevels.SECURE_RESET }
+        .filter { it.level != PinLevels.SECURE_RESET && !PinLevels.isLogLoggingLevel(it.level) }
         .maxByOrNull { it.level }
 
     override fun deleteAllFromLevel(level: Int) {
@@ -333,6 +336,26 @@ private class InMemoryPinDao : PinDao {
 
     override fun deleteForLevel(level: Int) {
         pins.remove(level)
+    }
+
+    override fun deleteUserLevelsFromLevel(level: Int) {
+        val iterator = pins.iterator()
+        while (iterator.hasNext()) {
+            val key = iterator.next().key
+            if (key >= level && key < PinLevels.SECURE_RESET) {
+                iterator.remove()
+            }
+        }
+    }
+
+    override fun deleteLogLoggingPinsFromLevel(logLoggingLevel: Int) {
+        val iterator = pins.iterator()
+        while (iterator.hasNext()) {
+            val key = iterator.next().key
+            if (key >= logLoggingLevel) {
+                iterator.remove()
+            }
+        }
     }
 
     override fun getMinLevel(): Int? = pins.keys.minOrNull()

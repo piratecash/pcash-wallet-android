@@ -63,7 +63,7 @@ import cash.p.terminal.wallet.imageUrl
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.modules.market.MarketViewItem
 import cash.p.terminal.modules.market.search.MarketSearchModule.DiscoveryItem
-import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.ButtonSecondaryTransparent

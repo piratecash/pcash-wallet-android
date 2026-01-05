@@ -24,6 +24,7 @@ import cash.p.terminal.core.storage.RestoreSettingsStorage
 import cash.p.terminal.core.storage.SpamAddressStorage
 import cash.p.terminal.core.storage.ZcashSingleUseAddressStorage
 import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
+import cash.p.terminal.modules.pin.core.PinDbStorage
 import cash.p.terminal.modules.balance.DefaultBalanceService
 import cash.p.terminal.modules.balance.DefaultBalanceXRateRepository
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -81,20 +82,22 @@ val storageModule = module {
     factory<BalanceService>(named("wallet")) {
         DefaultBalanceService.getInstance("wallet")
     }
-    factory { get<AppDatabase>().evmAddressLabelDao() }
-    factory { get<AppDatabase>().evmMethodLabelDao() }
-    factory { get<AppDatabase>().syncerStateDao() }
-    factory { get<AppDatabase>().recentAddressDao() }
-    factory { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
-    factory { get<AppDatabase>().userDeletedWalletDao() }
+    single { get<AppDatabase>().evmAddressLabelDao() }
+    single { get<AppDatabase>().evmMethodLabelDao() }
+    single { get<AppDatabase>().syncerStateDao() }
+    single { get<AppDatabase>().recentAddressDao() }
+    single { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
+    single { get<AppDatabase>().userDeletedWalletDao() }
     singleOf(::UserDeletedWalletManager)
     singleOf(::DeletedWalletChecker) bind IDeletedWalletChecker::class
-    factory { get<AppDatabase>().moneroFileDao() }
-    factory { get<AppDatabase>().zcashSingleUseAddressDao() }
+    single { get<AppDatabase>().moneroFileDao() }
+    single { get<AppDatabase>().zcashSingleUseAddressDao() }
     single { get<AppDatabase>().spamAddressDao() }
-    factory { get<AppDatabase>().pendingTransactionDao() }
-    factory { get<AppDatabase>().swapProviderTransactionsDao() }
+    single { get<AppDatabase>().pendingTransactionDao() }
+    single { get<AppDatabase>().swapProviderTransactionsDao() }
+    single { get<AppDatabase>().pinDao() }
     singleOf(::PendingTransactionStorage)
+    singleOf(::PinDbStorage)
     single {
         ZcashSingleUseAddressStorage(
             dao = get(),

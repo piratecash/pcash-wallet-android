@@ -34,6 +34,7 @@ rxjava = "2.2.21"
 kotlinx-coroutines-android = "1.10.2"
 kotlinx-coroutines-test = "1.10.2"
 room = "2.7.2"
+paging = "3.3.5"
 javax-inject = "1"
 appcompat = "1.7.0"
 timber = "5.0.1"
@@ -70,6 +71,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.7.0"
 camerax = "1.4.0"
 zxing = "3.5.4"
+accompanist = "0.32.0"
 
 tor-android = "0.4.8.17.2"
 
@@ -130,6 +132,10 @@ bitcoinj = { module = "org.bitcoinj:bitcoinj-core", version.ref = "bitcoinj" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+
+paging-runtime = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 stellar-sdk = { module = "network.lightsail:stellar-sdk", version.ref = "stellarSdk" }
 ton-kotlin-contract = { module = "org.ton.kotlin:ton-kotlin-contract", version.ref = "tonKotlin" }
@@ -183,6 +189,12 @@ camerax-view = { group = "androidx.camera", name = "camera-view", version.ref = 
 
 # ZXing for QR code decoding
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+
+# Accompanist
+accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
+accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
+accompanist-flowlayout = { group = "com.google.accompanist", name = "accompanist-flowlayout", version.ref = "accompanist" }
+accompanist-appcompat-theme = { group = "com.google.accompanist", name = "accompanist-appcompat-theme", version.ref = "accompanist" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }

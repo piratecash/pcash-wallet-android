@@ -48,7 +48,7 @@ import cash.p.terminal.navigation.slideFromRight
 
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.modules.market.search.MarketSearchModule.CoinItem
-import cash.p.terminal.modules.walletconnect.list.ui.DraggableCardSimple
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.ui_compose.components.HeaderStick
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui.compose.components.ListEmptyView
