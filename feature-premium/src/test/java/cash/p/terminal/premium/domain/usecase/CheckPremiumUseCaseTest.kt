@@ -29,6 +29,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.verify
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -356,7 +357,7 @@ class CheckPremiumUseCaseTest {
 
         // At level 0, parent level equals current level
         assertEquals(PremiumType.PIRATE, useCase.getPremiumType())
-        assertEquals(PremiumType.PIRATE, useCase.getParentPremiumType())
+        assertEquals(PremiumType.PIRATE, useCase.getParentPremiumType(userLevel = 0))
     }
 
     @Test
@@ -393,7 +394,7 @@ class CheckPremiumUseCaseTest {
         advanceUntilIdle()
 
         assertEquals(PremiumType.NONE, useCase.getPremiumType())
-        assertEquals(PremiumType.PIRATE, useCase.getParentPremiumType())
+        assertEquals(PremiumType.PIRATE, useCase.getParentPremiumType(0))
     }
 
     @Test
@@ -430,7 +431,7 @@ class CheckPremiumUseCaseTest {
         useCase = createUseCase()
         advanceUntilIdle()
 
-        assertEquals(PremiumType.TRIAL, useCase.getParentPremiumType())
+        assertEquals(PremiumType.TRIAL, useCase.getParentPremiumType(0))
     }
 
     @Test
@@ -475,7 +476,7 @@ class CheckPremiumUseCaseTest {
         advanceUntilIdle()
 
         assertEquals(PremiumType.PIRATE, useCase.getPremiumType())
-        assertEquals(PremiumType.COSA, useCase.getParentPremiumType())
+        assertEquals(PremiumType.COSA, useCase.getParentPremiumType(0))
     }
 
     // ==================== update() tests for parent level ====================
@@ -541,9 +542,9 @@ class CheckPremiumUseCaseTest {
         useCase = createUseCase()
         advanceUntilIdle()
 
-        val result = useCase.isPremiumWithParentInCache()
+        val result = useCase.getParentPremiumType(userLevel = 0)
 
-        assertEquals(true, result)
+        assertEquals(PremiumType.PIRATE, result)
     }
 
     @Test
@@ -578,9 +579,9 @@ class CheckPremiumUseCaseTest {
         useCase = createUseCase()
         advanceUntilIdle()
 
-        val result = useCase.isPremiumWithParentInCache()
+        val result = useCase.getParentPremiumType(userLevel = 0)
 
-        assertEquals(true, result)
+        assertEquals(PremiumType.PIRATE, result)
     }
 
     @Test
@@ -590,7 +591,7 @@ class CheckPremiumUseCaseTest {
         stubActiveAccount(account)
 
         // No token premium cached
-        coEvery { premiumUserRepository.getByLevels(listOf(1, 0)) } returns emptyList()
+        coEvery { premiumUserRepository.getByLevels(listOf(0, 0)) } returns emptyList()
         coEvery { premiumUserRepository.getByLevel(any()) } returns null
         coEvery { premiumUserRepository.insert(any()) } returns Unit
 
@@ -620,9 +621,9 @@ class CheckPremiumUseCaseTest {
         )
         advanceUntilIdle()
 
-        val result = useCase.isPremiumWithParentInCache()
+        val result = useCase.isPremiumWithParentInCache(userLevel = 0)
 
-        assertEquals(true, result)
+        assertTrue(result)
     }
 
     @Test
@@ -650,9 +651,9 @@ class CheckPremiumUseCaseTest {
         useCase = createUseCase()
         advanceUntilIdle()
 
-        val result = useCase.isPremiumWithParentInCache()
+        val result = useCase.getParentPremiumType(userLevel = 0)
 
-        assertEquals(false, result)
+        assertEquals(PremiumType.NONE, result)
     }
 
     @Test
@@ -688,9 +689,9 @@ class CheckPremiumUseCaseTest {
         useCase = createUseCase()
         advanceUntilIdle()
 
-        val result = useCase.isPremiumWithParentInCache()
+        val result = useCase.getParentPremiumType(userLevel = 0)
 
-        assertEquals(false, result)
+        assertEquals(PremiumType.NONE, result)
     }
 
     @Test
