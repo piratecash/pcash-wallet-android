@@ -483,7 +483,7 @@
     <string name="EthereumTransaction_Warning_Title">Aviso</string>
     <string name="EthereumTransaction_Error_Title">Erro</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Saldo insuficiente</string>
-    <string name="EthereumTransaction_Error_InsufficientBalanceForFee">O saldo atual de %s está abaixo do valor necessário para processar a transação, incluindo taxa de transação.</string>
+    <string name="Error_InsufficientBalanceForFee">O saldo atual de %s está abaixo do valor necessário para processar a transação, incluindo taxa de transação.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Taxa baixa</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">A taxa de transação definida é insuficiente para processar esta transação agora.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Liquidez Insuficiente</string>

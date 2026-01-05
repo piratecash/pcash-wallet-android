@@ -492,7 +492,7 @@
     <string name="EthereumTransaction_Warning_Title">Внимание</string>
     <string name="EthereumTransaction_Error_Title">Ошибка</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Недостаточный баланс</string>
-    <string name="EthereumTransaction_Error_InsufficientBalanceForFee">Текущий баланс %s ниже суммы, необходимой для обработки этой транзакции, включая комиссию за транзакцию.</string>
+    <string name="Error_InsufficientBalanceForFee">Текущий баланс %s ниже суммы, необходимой для обработки этой транзакции, включая комиссию за транзакцию.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Низкая комиссия</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">Установленная сумма комиссии недостаточно для обработки этой транзакции.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Недостаточно ликвидности</string>

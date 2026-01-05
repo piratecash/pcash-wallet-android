@@ -479,7 +479,7 @@
     <string name="EthereumTransaction_Warning_Title">警告</string>
     <string name="EthereumTransaction_Error_Title">出错</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">可用额度不足</string>
-    <string name="EthereumTransaction_Error_InsufficientBalanceForFee">当前%s余额低于此交易所需金额，包括交易费用。</string>
+    <string name="Error_InsufficientBalanceForFee">当前%s余额低于此交易所需金额，包括交易费用。</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">低费用</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">当前设置的交易费用金额不足以处理此交易。</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">流动性不足</string>

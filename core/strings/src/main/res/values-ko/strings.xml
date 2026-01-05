@@ -483,7 +483,7 @@
     <string name="EthereumTransaction_Warning_Title">경고</string>
     <string name="EthereumTransaction_Error_Title">오류</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">잔액 부족</string>
-    <string name="EthereumTransaction_Error_InsufficientBalanceForFee">현재 %s 잔액은 거래 수수료를 포함하여이 거래를 처리하는 데 필요한 금액보다 적습니다.</string>
+    <string name="Error_InsufficientBalanceForFee">현재 %s 잔액은 거래 수수료를 포함하여이 거래를 처리하는 데 필요한 금액보다 적습니다.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">적은 수수료</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">설정된 거래 수수료 금액이 현재 이 거래를 처리하기에 충분하지 않습니다.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">유동성 부족</string>

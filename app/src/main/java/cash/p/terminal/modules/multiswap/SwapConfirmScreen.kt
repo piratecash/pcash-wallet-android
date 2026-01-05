@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
@@ -135,7 +136,7 @@ fun SwapConfirmScreen(
                 ButtonPrimaryYellow(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap),
-                    enabled = buttonEnabled && uiState.amountOut != null,
+                    enabled = buttonEnabled && uiState.amountOut != null && uiState.cautions.none { it.type == CautionViewItem.Type.Error },
                     onClick = {
                         coroutineScope.launch {
                             buttonEnabled = false

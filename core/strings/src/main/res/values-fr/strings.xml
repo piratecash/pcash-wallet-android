@@ -479,7 +479,7 @@
     <string name="EthereumTransaction_Warning_Title">Attention</string>
     <string name="EthereumTransaction_Error_Title">Erreur</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Solde insuffisant</string>
-    <string name="EthereumTransaction_Error_InsufficientBalanceForFee">Le solde actuel des %s est inférieur au montant requis pour traiter cette transaction, frais de transaction compris.</string>
+    <string name="Error_InsufficientBalanceForFee">Le solde actuel des %s est inférieur au montant requis pour traiter cette transaction, frais de transaction compris.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Frais faibles</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">Le montant des frais de transaction défini est insuffisant pour traiter cette transaction immédiatement.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Liquidité insuffisante</string>

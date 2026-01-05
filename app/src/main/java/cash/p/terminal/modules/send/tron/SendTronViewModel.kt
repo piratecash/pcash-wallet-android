@@ -153,7 +153,7 @@ class SendTronViewModel(
                 HSCaution(
                     TranslatableString.PlainString(
                         cash.p.terminal.strings.helpers.Translator.getString(
-                            R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
+                            R.string.Error_InsufficientBalanceForFee,
                             feeToken.coin.code
                         )
                     )

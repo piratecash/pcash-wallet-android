@@ -86,7 +86,7 @@ class SendErrorInsufficientBalance(coinCode: Any) : HSCaution(
     TranslatableString.ResString(R.string.Swap_ErrorInsufficientBalance),
     Type.Error,
     TranslatableString.ResString(
-        R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
+        R.string.Error_InsufficientBalanceForFee,
         coinCode
     )
 )

@@ -5,8 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendTronAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.math.RoundingMode
 
 class SendTransactionServiceTron(
@@ -81,12 +84,14 @@ class SendTransactionServiceTron(
 
     private var cautions: List<CautionViewItem> = listOf()
     private var fields = listOf<DataField>()
+    private var hasEnoughFeeBalance: Boolean = true
+    private var feeCaution: CautionViewItem? = null
 
     override fun createState() = SendTransactionServiceState(
         availableBalance = adapter.balanceData.available,
         networkFee = networkFee,
-        cautions = cautions,
-        sendable = sendTransactionData != null || (amountState.canBeSend && feeState.canBeSend && addressState.canBeSend),
+        cautions = cautions + listOfNotNull(feeCaution),
+        sendable = hasEnoughFeeBalance && (sendTransactionData != null || (amountState.canBeSend && feeState.canBeSend && addressState.canBeSend)),
         loading = false,
         fields = fields
     )
@@ -185,6 +190,7 @@ class SendTransactionServiceTron(
             getAmountData(CoinValue(feeToken, it))
         }
 
+        checkFeeBalance(feeState.fee)
         emitState()
     }
 
@@ -198,6 +204,32 @@ class SendTransactionServiceTron(
         this.addressState = addressState
         feeService.setTronAddress(addressState.tronAddress)
         emitState()
+    }
+
+    private fun checkFeeBalance(fee: BigDecimal?) {
+        if (fee == null) {
+            hasEnoughFeeBalance = true
+            feeCaution = null
+            return
+        }
+
+        val trxBalance = adapter.trxBalanceData.available
+        val requiredTrx = if (token.type.isNative) {
+            // If sending TRX, need balance for amount + fee
+            (amountState.amount ?: BigDecimal.ZERO) + fee
+        } else {
+            // If sending TRC20 token, need TRX only for fee
+            fee
+        }
+
+        hasEnoughFeeBalance = trxBalance >= requiredTrx
+        feeCaution = if (!hasEnoughFeeBalance) {
+            createCaution(
+                LocalizedException(R.string.Error_InsufficientBalanceForFee, feeToken.coin.code)
+            )
+        } else {
+            null
+        }
     }
 
     override fun hasSettings() = false

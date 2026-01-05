@@ -64,7 +64,7 @@ class CautionViewItemFactory(
                 CautionViewItem(
                     Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalance_Title),
                     Translator.getString(
-                        R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
+                        R.string.Error_InsufficientBalanceForFee,
                         baseCoinService.token.coin.code
                     ),
                     CautionViewItem.Type.Error
@@ -90,7 +90,7 @@ class CautionViewItemFactory(
                 Pair(
                     Translator.getString(R.string.EthereumTransaction_Error_Title),
                     Translator.getString(
-                        R.string.EthereumTransaction_Error_InsufficientBalanceForFee,
+                        R.string.Error_InsufficientBalanceForFee,
                         baseCoinService.token.coin.code
                     )
                 )
