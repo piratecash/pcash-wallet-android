@@ -78,7 +78,7 @@ private fun MarkdownLocalScreen(
         MarkdownContent(
             modifier = Modifier.padding(it),
             viewState = viewModel.viewState,
-            markdownBlocks = viewModel.markdownBlocks,
+            markdownContent = viewModel.markdownContent,
             addFooter = true,
             onRetryClick = {},
             onUrlClick = onUrlClick

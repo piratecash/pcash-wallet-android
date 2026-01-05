@@ -8,9 +8,6 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.INetworkManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.ui_compose.entities.ViewState
-import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
-import com.halilibo.richtext.markdown.node.AstNode
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -22,7 +19,7 @@ class MarkdownViewModel(
     private val connectivityManager: ConnectivityManager,
 ) : ViewModel() {
 
-    var markdownBlocks by mutableStateOf<AstNode?>(null)
+    var markdownContent by mutableStateOf<String?>(null)
         private set
 
     var viewState by mutableStateOf<ViewState>(ViewState.Loading)
@@ -48,18 +45,12 @@ class MarkdownViewModel(
     private fun loadContent() {
         viewModelScope.launch {
             try {
-                val content = getContent()
-                markdownBlocks = getMarkdownBlocks(content)
+                markdownContent = getContent()
                 viewState = ViewState.Success
             } catch (e: Exception) {
                 viewState = ViewState.Error(e)
             }
         }
-    }
-
-    private fun getMarkdownBlocks(content: String): AstNode {
-        val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
-        return parser.parse(content)
     }
 
     private suspend fun getContent(): String {

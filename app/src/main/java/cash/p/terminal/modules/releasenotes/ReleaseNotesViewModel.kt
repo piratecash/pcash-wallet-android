@@ -12,9 +12,6 @@ import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
 import cash.p.terminal.ui_compose.entities.ViewState
-import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
-import com.halilibo.richtext.markdown.node.AstNode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -63,20 +60,14 @@ class ReleaseNotesViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val content = getLocalizedAssetUseCase(GetLocalizedAssetUseCase.CHANGELOG_PREFIX)
-                val markdownBlocks = getMarkdownBlocks(content)
                 uiState = uiState.copy(
                     viewState = ViewState.Success,
-                    markdownBlocks = markdownBlocks
+                    markdownContent = content
                 )
             } catch (e: Exception) {
                 uiState = uiState.copy(viewState = ViewState.Error(e))
             }
         }
-    }
-
-    private fun getMarkdownBlocks(content: String): AstNode {
-        val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
-        return parser.parse(content)
     }
 
     fun setShowChangeLogAfterUpdate() {
@@ -87,7 +78,7 @@ class ReleaseNotesViewModel(
 
 data class ReleaseNotesUiState(
     val viewState: ViewState = ViewState.Loading,
-    val markdownBlocks: AstNode? = null,
+    val markdownContent: String? = null,
     val twitterUrl: String,
     val telegramUrl: String,
     val redditUrl: String,

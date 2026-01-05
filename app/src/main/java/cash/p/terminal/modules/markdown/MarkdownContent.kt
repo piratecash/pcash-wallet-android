@@ -26,6 +26,8 @@ import cash.p.terminal.ui.compose.components.ListErrorView
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.theme.Grey50
+import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
+import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
 import com.halilibo.richtext.markdown.AstBlockNodeComposer
 import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.markdown.node.AstBlockNodeType
@@ -40,12 +42,19 @@ import com.halilibo.richtext.ui.material3.RichText
 fun MarkdownContent(
     modifier: Modifier = Modifier,
     viewState: ViewState? = null,
-    markdownBlocks: AstNode?,
+    markdownContent: String?,
     scrollableContent: Boolean = true,
     addFooter: Boolean,
     onRetryClick: () -> Unit,
     onUrlClick: (String) -> Unit,
 ) {
+    // Parse markdown to AstNode locally using remember (not saveable) to avoid Parcel issues
+    val markdownBlocks = remember(markdownContent) {
+        markdownContent?.let {
+            val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
+            parser.parse(it)
+        }
+    }
     val colors = ComposeAppTheme.colors
     val richTextStyle by remember {
         mutableStateOf(

@@ -82,7 +82,7 @@ private fun MarkdownScreen(
         MarkdownContent(
             modifier = Modifier.padding(it),
             viewState = viewModel.viewState,
-            markdownBlocks = viewModel.markdownBlocks,
+            markdownContent = viewModel.markdownContent,
             addFooter = true,
             onRetryClick = { viewModel.retry() },
             onUrlClick = onUrlClick

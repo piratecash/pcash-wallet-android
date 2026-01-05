@@ -19,9 +19,6 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.eligibleForPremium
 import cash.p.terminal.wallet.premiumEligibility
-import com.halilibo.richtext.commonmark.CommonMarkdownParseOptions
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
-import com.halilibo.richtext.markdown.node.AstNode
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IAppNumberFormatter
 import kotlinx.coroutines.async
@@ -153,12 +150,11 @@ class AboutPremiumViewModel(
                         }
                     }
 
-                val markdownBlocks = getMarkdownBlocks(processedContent)
                 val hasEligibleWallets = hasEligibleWallets()
 
                 uiState = uiState.copy(
                     viewState = ViewState.Success,
-                    markdownBlocks = markdownBlocks,
+                    markdownContent = processedContent,
                     hasPremium = isPremium.isPremium(),
                     demoDaysLeft = demoDaysLeft,
                     hasEligibleWallets = hasEligibleWallets
@@ -187,11 +183,6 @@ class AboutPremiumViewModel(
         }
 
         return (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft
-    }
-
-    private fun getMarkdownBlocks(content: String): AstNode? {
-        val parser = CommonmarkAstNodeParser(CommonMarkdownParseOptions.Default)
-        return parser.parse(content)
     }
 
     private suspend fun calculateRoi(coinType: String, amount: Int): String? {
@@ -232,7 +223,7 @@ class AboutPremiumViewModel(
 
 data class AboutPremiumUiState(
     val viewState: ViewState = ViewState.Loading,
-    val markdownBlocks: AstNode? = null,
+    val markdownContent: String? = null,
     val hasPremium: Boolean = false,
     val demoDaysLeft: Int? = null,
     val hasEligibleWallets: Boolean = false,
