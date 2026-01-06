@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -82,5 +84,17 @@ fun <T> rememberDebouncedAction(
                 actionState(param)
             }
         }
+    }
+}
+
+fun TextFieldValue.withLeadingZeroIfDecimal(): TextFieldValue {
+    val text = this.text
+    return if (text.startsWith(",") || text.startsWith(".")) {
+        copy(
+            text = "0$text",
+            selection = TextRange(selection.start + 1, selection.end + 1)
+        )
+    } else {
+        this
     }
 }
