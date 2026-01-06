@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.isEvm
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.wallet.Wallet
@@ -81,7 +82,7 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
             onCloseClick = { navController.popBackStack() }
         ) {
             val errorDescription = when {
-                wallet.token.isMonero() -> annotatedStringResource(R.string.balance_sync_error_monero)
+                wallet.token.isMonero() || wallet.token.blockchainType.isEvm -> annotatedStringResource(R.string.balance_sync_error_monero)
                 viewModel.sourceChangeable -> annotatedStringResource(R.string.balance_sync_error_changeable_source)
                 else -> annotatedStringResource(R.string.balance_sync_error_fixed_source)
             }
