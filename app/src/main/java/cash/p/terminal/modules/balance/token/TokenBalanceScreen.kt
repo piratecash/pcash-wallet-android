@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +55,7 @@ import cash.p.terminal.modules.transactions.transactionsHiddenBlock
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
@@ -68,6 +70,7 @@ import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoBottomSheet
+import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -92,6 +95,16 @@ fun TokenBalanceScreen(
     onRefresh: () -> Unit
 ) {
     val uiState = viewModel.uiState
+    val view = LocalView.current
+
+    val failedIconVisible = uiState.balanceViewItem?.failedIconVisible == true
+    val loading = uiState.balanceViewItem?.syncingProgress?.progress != null
+
+    LaunchedEffect(failedIconVisible) {
+        if (failedIconVisible) {
+            onSyncErrorClicked(uiState.balanceViewItem, viewModel, navController, view)
+        }
+    }
 
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -100,12 +113,30 @@ fun TokenBalanceScreen(
                 title = uiState.title,
                 navigationIcon = {
                     HsBackButton(onClick = { navController.popBackStack() })
+                },
+                menuItems = buildList {
+                    if (failedIconVisible && !loading) {
+                        add(
+                            MenuItem(
+                                title = TranslatableString.ResString(R.string.BalanceSyncError_Title),
+                                icon = R.drawable.ic_attention_red_24,
+                                tint = ComposeAppTheme.colors.lucian,
+                                onClick = {
+                                    onSyncErrorClicked(
+                                        uiState.balanceViewItem,
+                                        viewModel,
+                                        navController,
+                                        view
+                                    )
+                                }
+                            )
+                        )
+                    }
                 }
             )
         }
     ) { paddingValues ->
         val transactionItems = uiState.transactions
-        val view = LocalView.current
         when (sendResult) {
             SendResult.Sending -> {
                 HudHelper.showInProcessMessage(

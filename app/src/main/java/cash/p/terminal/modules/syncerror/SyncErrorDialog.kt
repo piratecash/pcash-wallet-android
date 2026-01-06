@@ -37,6 +37,7 @@ import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.subhead2_grey
 import kotlinx.parcelize.Parcelize
 
 class SyncErrorDialog : BaseComposableBottomSheetFragment() {
@@ -77,8 +78,18 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
             title = stringResource(R.string.BalanceSyncError_Title) + " - ${wallet.coin.code}",
             onCloseClick = { navController.popBackStack() }
         ) {
+            val errorDescription = if (viewModel.sourceChangeable) {
+                stringResource(R.string.balance_sync_error_changeable_source)
+            } else {
+                stringResource(R.string.balance_sync_error_fixed_source)
+            }
 
-            Spacer(Modifier.height(32.dp))
+            subhead2_grey(
+                text = errorDescription,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
+            )
+
+            Spacer(Modifier.height(20.dp))
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()

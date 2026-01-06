@@ -1478,6 +1478,9 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="BalanceSyncError_ButtonRetry">Reintentar</string>
     <string name="BalanceSyncError_ButtonChangeSource">Cambiar Origen</string>
     <string name="BalanceSyncError_ButtonReport">Reportar</string>
+    <string name="balance_sync_error_text">Error de sincronización</string>
+    <string name="balance_sync_error_changeable_source">Error al recuperar los datos de la fuente actual. Puede volver a intentar o cambiar a una fuente de sincronización diferente.</string>
+    <string name="balance_sync_error_fixed_source">Error al obtener los datos de la fuente actual. Inténtalo de nuevo más tarde.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
     <string name="ProUsersInfo_Description">Para activar estos datos, debes obtener NFT de bronce de nivel \"Coin Info+\"\n\nTambién obtendrás acceso a los datos a continuación:</string>

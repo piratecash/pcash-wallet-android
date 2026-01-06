@@ -1492,6 +1492,9 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="BalanceSyncError_ButtonRetry">Retry</string>
     <string name="BalanceSyncError_ButtonChangeSource">Change Source</string>
     <string name="BalanceSyncError_ButtonReport">Report</string>
+    <string name="balance_sync_error_text">Synchronisatiefout</string>
+    <string name="balance_sync_error_changeable_source">Kan geen gegevens ophalen van de huidige bron. U kunt het opnieuw proberen of overschakelen naar een andere synchronisatiebron.</string>
+    <string name="balance_sync_error_fixed_source">Kan geen gegevens ophalen van de huidige bron. Probeer het later opnieuw.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
     <string name="ProUsersInfo_Description">To enable this data you should get bronze level UW NFTs “Coin Info+”\n\nAlso you get access to data below:</string>

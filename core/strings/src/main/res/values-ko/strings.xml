@@ -1486,6 +1486,9 @@
     <string name="BalanceSyncError_ButtonRetry">재시도</string>
     <string name="BalanceSyncError_ButtonChangeSource">출처를 변경하다</string>
     <string name="BalanceSyncError_ButtonReport">보고</string>
+    <string name="balance_sync_error_text">동기화 오류</string>
+    <string name="balance_sync_error_changeable_source">현재 소스에서 데이터를 가져오지 못했습니다. 다시 시도하거나 다른 동기화 소스로 변경할 수 있습니다.</string>
+    <string name="balance_sync_error_fixed_source">현재 소스에서 데이터를 가져오지 못했습니다. 나중에 다시 시도하세요.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">P.CASH 패스</string>
     <string name="ProUsersInfo_Description">이 데이터를 활성화하려면 브론즈 레벨 UW NFTs \'Coin Info+\'를 획득해야 합니다.

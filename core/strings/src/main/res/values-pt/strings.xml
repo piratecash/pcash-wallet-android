@@ -1486,6 +1486,9 @@
     <string name="BalanceSyncError_ButtonRetry">Tentar de novo</string>
     <string name="BalanceSyncError_ButtonChangeSource">Mudar a fonte</string>
     <string name="BalanceSyncError_ButtonReport">Reportar</string>
+    <string name="balance_sync_error_text">Erro de sincronização</string>
+    <string name="balance_sync_error_changeable_source">Falha ao obter dados da fonte atual. Você pode tentar novamente ou alternar para uma fonte de sincronização diferente.</string>
+    <string name="balance_sync_error_fixed_source">Falha ao buscar dados da fonte atual. Tente novamente mais tarde.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">Senha P.CASH</string>
     <string name="ProUsersInfo_Description">Para ativar estes dados, você deve obter o nível bronze de UW NFT \"Coin Info+\"\n\nTambém você terá acesso aos dados abaixo:</string>

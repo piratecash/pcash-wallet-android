@@ -1484,6 +1484,9 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="BalanceSyncError_ButtonRetry">Réessayer</string>
     <string name="BalanceSyncError_ButtonChangeSource">Changer la Source</string>
     <string name="BalanceSyncError_ButtonReport">Signaler</string>
+    <string name="balance_sync_error_text">Erreur de synchronisation</string>
+    <string name="balance_sync_error_changeable_source">Impossible de récupérer les données de la source actuelle. Vous pouvez réessayer ou basculer vers une source de synchronisation différente.</string>
+    <string name="balance_sync_error_fixed_source">Impossible de récupérer les données de la source actuelle. Veuillez réessayer plus tard.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">Passe P.CASH</string>
     <string name="ProUsersInfo_Description">Pour activer ces données, vous devriez obtenir des NFT UW au niveau de bronze « Coin Info+»\n\nVous avez également accès aux données ci-dessous:</string>

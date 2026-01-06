@@ -1490,6 +1490,9 @@
     <string name="BalanceSyncError_ButtonRetry">دوباره تلاش کنید</string>
     <string name="BalanceSyncError_ButtonChangeSource">تغییر منبع</string>
     <string name="BalanceSyncError_ButtonReport">گزارش</string>
+    <string name="balance_sync_error_text">خطای همگام‌سازی</string>
+    <string name="balance_sync_error_changeable_source">دریافت داده از منبع فعلی ناموفق بود. می‌توانید دوباره تلاش کنید یا به منبع همگام‌سازی دیگری تغییر دهید.</string>
+    <string name="balance_sync_error_fixed_source">دریافت داده از منبع فعلی ناموفق بود. لطفاً بعداً دوباره تلاش کنید.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">غیرقابل توقف %s</string>
     <string name="ProUsersInfo_Description">To enable this data you should get bronze level UW NFTs “Coin Info+”\n\nAlso you get access to data below:</string>
