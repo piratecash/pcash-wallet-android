@@ -102,7 +102,7 @@ fun TokenBalanceScreen(
 
     LaunchedEffect(failedIconVisible) {
         if (failedIconVisible) {
-            onSyncErrorClicked(uiState.balanceViewItem, viewModel, navController, view)
+            onSyncErrorClicked(uiState.balanceViewItem, viewModel, navController)
         }
     }
 
@@ -125,8 +125,7 @@ fun TokenBalanceScreen(
                                     onSyncErrorClicked(
                                         uiState.balanceViewItem,
                                         viewModel,
-                                        navController,
-                                        view
+                                        navController
                                     )
                                 }
                             )
@@ -429,7 +428,7 @@ private fun WalletIcon(
             syncingProgress = viewItem.syncingProgress,
             failedIconVisible = viewItem.failedIconVisible,
             onClickSyncError = {
-                onSyncErrorClicked(viewItem, viewModel, navController, view)
+                onSyncErrorClicked(viewItem, viewModel, navController)
             }
         )
     }
@@ -438,8 +437,7 @@ private fun WalletIcon(
 private fun onSyncErrorClicked(
     viewItem: BalanceViewItem,
     viewModel: TokenBalanceViewModel,
-    navController: NavController,
-    view: View
+    navController: NavController
 ) {
     when (val syncErrorDetails = viewModel.getSyncErrorDetails(viewItem)) {
         is BalanceViewModel.SyncError.Dialog -> {
@@ -451,10 +449,7 @@ private fun onSyncErrorClicked(
                 SyncErrorDialog.Input(wallet, errorMessage)
             )
         }
-
-        is BalanceViewModel.SyncError.NetworkNotAvailable -> {
-            HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
-        }
+        is BalanceViewModel.SyncError.NetworkNotAvailable -> Unit // We already show this at bottom panel
     }
 }
 
