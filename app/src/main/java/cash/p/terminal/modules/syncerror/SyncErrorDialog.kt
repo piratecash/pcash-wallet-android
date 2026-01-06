@@ -38,6 +38,7 @@ import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.annotatedStringResource
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import kotlinx.parcelize.Parcelize
 
@@ -80,9 +81,9 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
             onCloseClick = { navController.popBackStack() }
         ) {
             val errorDescription = when {
-                wallet.token.isMonero() -> stringResource(R.string.balance_sync_error_monero)
-                viewModel.sourceChangeable -> stringResource(R.string.balance_sync_error_changeable_source)
-                else -> stringResource(R.string.balance_sync_error_fixed_source)
+                wallet.token.isMonero() -> annotatedStringResource(R.string.balance_sync_error_monero)
+                viewModel.sourceChangeable -> annotatedStringResource(R.string.balance_sync_error_changeable_source)
+                else -> annotatedStringResource(R.string.balance_sync_error_fixed_source)
             }
 
             subhead2_grey(
