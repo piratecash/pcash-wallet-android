@@ -101,6 +101,7 @@ fun RestorePhraseNonStandard(
     val uiState = viewModel.uiState
     val context = LocalContext.current
     val view = LocalView.current
+    val scannerTitle = stringResource(R.string.Restore_RecoveryPhrase)
 
     var textState by rememberSaveable("", stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(""))
@@ -237,7 +238,7 @@ fun RestorePhraseNonStandard(
                                 modifier = Modifier.padding(end = 8.dp),
                                 icon = R.drawable.ic_qr_scan_20,
                                 onClick = {
-                                    view.findNavController().openQrScanner { scannedText ->
+                                    view.findNavController().openQrScanner(scannerTitle) { scannedText ->
                                         textState = textState.copy(
                                             text = scannedText,
                                             selection = TextRange(scannedText.length)

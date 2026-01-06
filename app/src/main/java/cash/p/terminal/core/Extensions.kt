@@ -331,7 +331,7 @@ fun Context.hasNFC(): Boolean {
 }
 
 fun NavController.openQrScanner(
-    title: String ="",
+    title: String,
     showPasteButton: Boolean = false,
     onResult: (String) -> Unit,
 ) {

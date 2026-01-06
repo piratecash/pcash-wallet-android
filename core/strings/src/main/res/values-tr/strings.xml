@@ -364,6 +364,8 @@
     <string name="ScanQr_CameraPermissionDeniedText">Bu uygulama için kameranıza erişim reddedildi, ayarlara gidip erişime izin verebilirsiniz</string>
     <string name="ScanQr_GoToSettings">Ayarlara gidin</string>
     <string name="scan_qr_camera_initialization_failed">Kamera kullanılamıyor. Lütfen tekrar deneyin veya farklı bir cihaz kullanın.</string>
+    <string name="qr_scanner_title_address">%s adresi</string>
+    <string name="qr_scanner_title_smart_scan">AKILLI TARAMA</string>
     <string name="choose_from_photos">Fotoğraflardan seç</string>
     <string name="image_decode_failed">Seçilen görüntüden bir QR kodu okunamadı</string>
     <string name="Send_Error_UnsupportedAddress">Zaman kilitleme sadece BIP44 (1 ile başlayan) adresleriyle çalışır</string>

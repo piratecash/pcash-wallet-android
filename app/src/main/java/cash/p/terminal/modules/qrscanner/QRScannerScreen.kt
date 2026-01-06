@@ -154,11 +154,14 @@ fun QRScannerScreen(
                 GoToSettingsBox(onCameraPermissionSettingsClick)
             }
             if (title.isNotEmpty()) {
-                title3_leah(
+                Text(
                     text = title,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .padding(top = 50.dp)
-                        .align(Alignment.TopCenter)
+                        .padding(top = 50.dp, start = 16.dp, end = 16.dp)
+                        .align(Alignment.TopCenter),
+                    style = ComposeAppTheme.typography.headline1,
+                    color = ComposeAppTheme.colors.white
                 )
             }
 
@@ -548,7 +551,7 @@ private fun ScannerOverlayPreview() {
     ComposeAppTheme {
         QRScannerScreen(
             uiState = QRScannerUiState(),
-            title = "Smart Scan",
+            title = "SMART SCAN",
             navController = NavController(LocalContext.current),
             showPasteButton = true,
             onScan = {},

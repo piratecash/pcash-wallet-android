@@ -84,6 +84,7 @@ fun RestorePrivateKey(
                 hint = stringResource(id = R.string.Restore_PrivateKeyHint),
                 state = viewModel.inputState,
                 qrScannerEnabled = true,
+                qrScannerTitle = stringResource(R.string.Restore_PrivateKey),
                 onValueChange = {
                     viewModel.onEnterPrivateKey(it)
                 },

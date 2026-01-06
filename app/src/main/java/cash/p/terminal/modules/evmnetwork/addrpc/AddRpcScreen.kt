@@ -74,6 +74,7 @@ fun AddRpcScreen(
             FormsInput(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 qrScannerEnabled = true,
+                qrScannerTitle = stringResource(R.string.AddEvmSyncSource_RpcUrl),
                 onValueChange = viewModel::onEnterRpcUrl,
                 hint = "",
                 state = getState(viewModel.viewState.urlCaution)
@@ -84,6 +85,7 @@ fun AddRpcScreen(
             FormsInput(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 qrScannerEnabled = true,
+                qrScannerTitle = stringResource(R.string.AddEvmSyncSource_BasicAuthentication),
                 onValueChange = viewModel::onEnterBasicAuth,
                 hint = ""
             )

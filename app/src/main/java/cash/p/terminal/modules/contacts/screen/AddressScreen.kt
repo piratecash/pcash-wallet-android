@@ -136,6 +136,7 @@ fun AddressScreen(
                     hint = stringResource(R.string.Contacts_AddressHint),
                     state = uiState.addressState,
                     qrScannerEnabled = true,
+                    qrScannerTitle = stringResource(R.string.qr_scanner_title_address, uiState.blockchain.name),
                 ) {
                     viewModel.onEnterAddress(it)
                 }

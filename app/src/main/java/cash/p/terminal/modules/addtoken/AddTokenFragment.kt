@@ -188,6 +188,7 @@ private fun AddTokenScreen(
                 hint = stringResource(R.string.AddToken_AddressOrSymbol),
                 state = getState(uiState.caution, uiState.loading),
                 qrScannerEnabled = true,
+                qrScannerTitle = stringResource(R.string.AddToken_AddressOrSymbol),
             ) {
                 viewModel.onEnterText(it)
             }

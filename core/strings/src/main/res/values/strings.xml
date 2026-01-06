@@ -483,6 +483,8 @@ Proceed only if you\'re sure.</string>
     <string name="ScanQr_CameraPermissionDeniedText">Access to your camera for this app was denied, you can go to settings and allow access</string>
     <string name="ScanQr_GoToSettings">Go to Settings</string>
     <string name="scan_qr_camera_initialization_failed">Camera is not available. Please try again or use a different device.</string>
+    <string name="qr_scanner_title_address">%s address</string>
+    <string name="qr_scanner_title_smart_scan">SMART SCAN</string>
     <string name="choose_from_photos">Choose from Photos</string>
     <string name="image_decode_failed">Could not read a QR code from the selected image</string>
 

@@ -66,6 +66,8 @@ fun TonConnectMainScreen(
         }
     }
 
+    val scannerTitle = stringResource(R.string.TonConnect_Title)
+
     ModalBottomSheetLayout(
         sheetState = invalidUrlBottomSheetState,
         sheetBackgroundColor = ComposeAppTheme.colors.transparent,
@@ -81,7 +83,10 @@ fun TonConnectMainScreen(
                 onConfirm = {
                     coroutineScope.launch {
                         invalidUrlBottomSheetState.hide()
-                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                        navController.openQrScanner(
+                            title = scannerTitle,
+                            showPasteButton = true
+                        ) { scannedText ->
                             viewModel.setConnectionUri(scannedText)
                         }
                     }
@@ -129,7 +134,10 @@ fun TonConnectMainScreen(
                             .fillMaxWidth(),
                         title = stringResource(R.string.TonConnect_NewConnect),
                         onClick = {
-                            navController.openQrScanner(showPasteButton = true) { scannedText ->
+                            navController.openQrScanner(
+                                title = scannerTitle,
+                                showPasteButton = true
+                            ) { scannedText ->
                                 viewModel.setConnectionUri(scannedText)
                             }
                         }

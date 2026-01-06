@@ -68,6 +68,7 @@ fun FormsInput(
     singleLine: Boolean = false,
     state: DataState<Any>? = null,
     qrScannerEnabled: Boolean = false,
+    qrScannerTitle: String? = null,
     pasteEnabled: Boolean = true,
     maxLength: Int? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
@@ -213,11 +214,12 @@ fun FormsInput(
                 )
             } else {
                 if (qrScannerEnabled) {
+                    val scannerTitle = qrScannerTitle ?: stringResource(R.string.qr_scanner_title_smart_scan)
                     ButtonSecondaryCircle(
                         modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
                         icon = R.drawable.ic_qr_scan_20,
                         onClick = {
-                            view.findNavController().openQrScanner { scannedText ->
+                            view.findNavController().openQrScanner(scannerTitle) { scannedText ->
                                 val textProcessed = textPreprocessor.process(scannedText)
                                 textState = TextFieldValue(
                                     text = textProcessed,
@@ -286,6 +288,7 @@ fun FormsInputMultiline(
     state: DataState<Any>? = null,
     pasteEnabled: Boolean = true,
     qrScannerEnabled: Boolean = false,
+    qrScannerTitle: String? = null,
     textPreprocessor: TextPreprocessor = TextPreprocessorImpl,
     onChangeFocus: ((Boolean) -> Unit)? = null,
     maxLength: Int? = null,
@@ -431,11 +434,12 @@ fun FormsInputMultiline(
                     )
                 } else {
                     if (qrScannerEnabled) {
+                        val scannerTitle = qrScannerTitle ?: stringResource(R.string.qr_scanner_title_smart_scan)
                         ButtonSecondaryCircle(
                             modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
                             icon = R.drawable.ic_qr_scan_20,
                             onClick = {
-                                view.findNavController().openQrScanner { scannedText ->
+                                view.findNavController().openQrScanner(scannerTitle) { scannedText ->
                                     val textProcessed = textPreprocessor.process(scannedText)
                                     textState = textState.copy(
                                         text = textProcessed,

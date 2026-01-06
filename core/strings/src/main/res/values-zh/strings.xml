@@ -364,6 +364,8 @@
     <string name="ScanQr_CameraPermissionDeniedText">无法访问相机此应用，您可以进入设置并允许访问</string>
     <string name="ScanQr_GoToSettings">前往设置</string>
     <string name="scan_qr_camera_initialization_failed">相机不可用。请重试或使用其他设备。</string>
+    <string name="qr_scanner_title_address">%s 地址</string>
+    <string name="qr_scanner_title_smart_scan">智能扫描</string>
     <string name="choose_from_photos">从照片中选择</string>
     <string name="image_decode_failed">无法从所选图片读取二维码</string>
     <string name="Send_Error_UnsupportedAddress">时间锁定只能和P2PKH地址（以1开头）一起使用</string>

@@ -364,6 +364,8 @@
     <string name="ScanQr_CameraPermissionDeniedText">이 앱의 카메라에 대한 액세스가 거부되었습니다. 설정으로 이동하여 액세스를 허용 할 수 있습니다.</string>
     <string name="ScanQr_GoToSettings">설정으로 가기</string>
     <string name="scan_qr_camera_initialization_failed">카메라를 사용할 수 없습니다. 다시 시도하거나 다른 기기를 사용해 주세요.</string>
+    <string name="qr_scanner_title_address">%s 주소</string>
+    <string name="qr_scanner_title_smart_scan">스마트 스캔</string>
     <string name="choose_from_photos">사진에서 선택</string>
     <string name="image_decode_failed">선택한 이미지에서 QR 코드를 읽을 수 없습니다</string>
     <string name="Send_Error_UnsupportedAddress">P2PKH (1으로 시작하는) 주소만 시간 잠금이 가능합니다.</string>

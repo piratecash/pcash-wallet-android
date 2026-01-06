@@ -63,6 +63,7 @@ fun BalanceForAccount(
 
     val invalidUrlBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
+    val scannerTitle = stringResource(R.string.qr_scanner_title_smart_scan)
 
     viewModel.uiState.errorMessage?.let { message ->
         val view = LocalView.current
@@ -100,7 +101,10 @@ fun BalanceForAccount(
                 onConfirm = {
                     coroutineScope.launch {
                         invalidUrlBottomSheetState.hide()
-                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                        navController.openQrScanner(
+                            title = scannerTitle,
+                            showPasteButton = true
+                        ) { scannedText ->
                             viewModel.handleScannedData(scannedText)
                         }
                     }
@@ -135,7 +139,10 @@ fun BalanceForAccount(
                                     title = TranslatableString.ResString(R.string.WalletConnect_NewConnect),
                                     icon = R.drawable.ic_qr_scan_20,
                                     onClick = {
-                                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                                        navController.openQrScanner(
+                                            title = scannerTitle,
+                                            showPasteButton = true
+                                        ) { scannedText ->
                                             viewModel.handleScannedData(scannedText)
                                         }
                                     }

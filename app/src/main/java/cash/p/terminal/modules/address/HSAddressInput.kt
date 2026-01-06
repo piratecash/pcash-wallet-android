@@ -14,6 +14,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui.compose.components.FormsInputAddress
 import cash.p.terminal.ui.compose.components.TextPreprocessor
 import cash.p.terminal.ui.compose.components.TextPreprocessorImpl
+import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.entities.TokenQuery
 
 @Composable
@@ -72,6 +73,8 @@ fun HSAddressInput(
         onError?.invoke(inputState?.errorOrNull)
     }
 
+    val scannerTitle = stringResource(R.string.qr_scanner_title_address, viewModel.blockchainType.title)
+
     FormsInputAddress(
         modifier = modifier,
         value = value,
@@ -82,7 +85,7 @@ fun HSAddressInput(
         chooseContactEnable = viewModel.hasContacts(),
         blockchainType = viewModel.blockchainType,
         onQrScanClick = {
-            navController.openQrScanner { scannedText ->
+            navController.openQrScanner(scannerTitle) { scannedText ->
                 val textProcessed = textPreprocessor.process(scannedText)
                 viewModel.parseText(textProcessed)
             }

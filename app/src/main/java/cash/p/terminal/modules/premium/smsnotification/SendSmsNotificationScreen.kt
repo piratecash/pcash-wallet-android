@@ -62,6 +62,7 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.title
 import io.horizontalsystems.core.entities.BlockchainType
 import java.math.BigDecimal
 
@@ -82,6 +83,7 @@ fun SendSmsNotificationScreen(
     var showInfoSheet by remember { mutableStateOf(false) }
     var showWalletSheet by remember { mutableStateOf(false) }
     val view = LocalView.current
+    val scannerTitle = stringResource(R.string.qr_scanner_title_address, BlockchainType.Zcash.title)
 
     // Handle back press - cancel test if syncing
     BackHandler {
@@ -207,7 +209,7 @@ fun SendSmsNotificationScreen(
                 chooseContactEnable = false,
                 blockchainType = BlockchainType.Zcash,
                 onQrScanClick = {
-                    navController.openQrScanner { scannedText ->
+                    navController.openQrScanner(scannerTitle) { scannedText ->
                         onAddressChanged(scannedText)
                     }
                 },

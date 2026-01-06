@@ -376,6 +376,8 @@
     <string name="ScanQr_CameraPermissionDeniedText">Доступ к камере для этого приложения запрещен, вы можете перейти в настройки и разрешить доступ</string>
     <string name="ScanQr_GoToSettings">Перейти в настройки</string>
     <string name="scan_qr_camera_initialization_failed">Камера недоступна. Попробуйте еще раз или используйте другое устройство.</string>
+    <string name="qr_scanner_title_address">Адрес %s</string>
+    <string name="qr_scanner_title_smart_scan">УМНОЕ СКАНИРОВАНИЕ</string>
     <string name="choose_from_photos">Выбрать из фото</string>
     <string name="image_decode_failed">Не удалось распознать QR-код на выбранном изображении</string>
     <string name="Send_Error_UnsupportedAddress">TimeLock работает только при отправке на платёжные адреса, начинающиеся с 1... (также известных как BIP44 адреса)</string>

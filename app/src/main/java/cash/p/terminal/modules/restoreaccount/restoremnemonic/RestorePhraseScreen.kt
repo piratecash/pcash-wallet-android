@@ -126,6 +126,7 @@ fun RestorePhrase(
     val uiState = viewModel.uiState
     val context = LocalContext.current
     val view = LocalView.current
+    val scannerTitle = stringResource(R.string.Restore_RecoveryPhrase)
 
     // Build initial text from prefill data (words only, passphrase handled separately)
     val initialText = remember(prefillWords) {
@@ -310,7 +311,7 @@ fun RestorePhrase(
                                 modifier = Modifier.padding(end = 8.dp),
                                 icon = R.drawable.ic_qr_scan_20,
                                 onClick = {
-                                    view.findNavController().openQrScanner { scannedText ->
+                                    view.findNavController().openQrScanner(scannerTitle) { scannedText ->
                                         when (val result = viewModel.handleScannedQrData(scannedText)) {
                                             is RestoreMnemonicModule.QrScanResult.Success -> {
                                                 val wordsText = result.words.joinToString(" ")

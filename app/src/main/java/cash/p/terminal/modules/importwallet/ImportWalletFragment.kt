@@ -81,6 +81,7 @@ private fun ImportWalletScreen(
     val context = LocalContext.current
     val view = LocalView.current
     val viewModel = koinViewModel<ImportWalletViewModel>()
+    val scannerTitle = stringResource(R.string.ManageAccounts_ImportWallet)
 
     // Handle one-shot navigation events from ViewModel
     LaunchedEffect(Unit) {
@@ -230,7 +231,10 @@ private fun ImportWalletScreen(
                     description = stringResource(R.string.import_wallet_from_qr_description),
                     icon = R.drawable.ic_qr_scan_24,
                     onClick = {
-                        navController.openQrScanner(showPasteButton = false) { scannedText ->
+                        navController.openQrScanner(
+                            title = scannerTitle,
+                            showPasteButton = false
+                        ) { scannedText ->
                             viewModel.handleScannedData(scannedText)
                         }
                     }

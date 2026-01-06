@@ -83,6 +83,8 @@ fun WCSessionsScreen(
         viewModel.refreshList()
     }
 
+    val scannerTitle = stringResource(R.string.WalletConnect_Title)
+
     ModalBottomSheetLayout(
         sheetState = invalidUrlBottomSheetState,
         sheetBackgroundColor = ComposeAppTheme.colors.transparent,
@@ -98,7 +100,10 @@ fun WCSessionsScreen(
                 onConfirm = {
                     coroutineScope.launch {
                         invalidUrlBottomSheetState.hide()
-                        navController.openQrScanner(showPasteButton = true) { scannedText ->
+                        navController.openQrScanner(
+                            title = scannerTitle,
+                            showPasteButton = true
+                        ) { scannedText ->
                             viewModel.setConnectionUri(scannedText)
                         }
                     }
@@ -154,7 +159,10 @@ fun WCSessionsScreen(
                             .fillMaxWidth(),
                         title = stringResource(R.string.WalletConnect_NewConnect),
                         onClick = {
-                            navController.openQrScanner(showPasteButton = true) { scannedText ->
+                            navController.openQrScanner(
+                                title = scannerTitle,
+                                showPasteButton = true
+                            ) { scannedText ->
                                 viewModel.setConnectionUri(scannedText)
                             }
                         }

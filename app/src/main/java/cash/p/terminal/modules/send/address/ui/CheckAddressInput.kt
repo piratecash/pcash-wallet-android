@@ -49,6 +49,7 @@ fun CheckAddressInput(
 ) {
     val focusRequester = remember { FocusRequester() }
     val view = LocalView.current
+    val scannerTitle = stringResource(R.string.qr_scanner_title_smart_scan)
 
     val borderColor = when (state) {
         is DataState.Error -> {
@@ -120,7 +121,7 @@ fun CheckAddressInput(
                     modifier = Modifier.padding(end = 8.dp),
                     icon = R.drawable.ic_qr_scan_20,
                     onClick = {
-                        view.findNavController().openQrScanner { scannedText ->
+                        view.findNavController().openQrScanner(scannerTitle) { scannedText ->
                             onValueChange.invoke(scannedText)
                         }
                     }
