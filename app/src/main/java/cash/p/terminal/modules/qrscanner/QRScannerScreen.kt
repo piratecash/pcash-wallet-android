@@ -560,11 +560,6 @@ private fun ScannerOverlayPreview() {
             onGalleryImagePicked = {},
             onErrorMessageConsumed = {}
         )
-        /*
-                ScannerView {
-
-                }
-        */
     }
 }
 
