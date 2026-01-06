@@ -1484,17 +1484,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="balance_sync_error_fixed_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Bitte versuchen Sie es später erneut.</string>
     <string name="balance_sync_error_monero">Fehler beim Abrufen der Daten aus der aktuellen Quelle.\n\nSie können:\n• Später erneut versuchen\n• VPN aktivieren und Synchronisierung wiederholen\n\nWenn Sie einen <b>403</b>-Fehler erhalten haben, ist <b>Ihre IP-Adresse möglicherweise gesperrt</b>. Die Verwendung eines VPN <b>behebt dieses Problem normalerweise</b>.</string>
     <!--Release notes-->
-    <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
-    <string name="ProUsersInfo_Description">Um diese Daten zu aktivieren, solltest du Bronze-Level UW NFTs “Coin Info+”\n\nerwerben:</string>
-    <string name="ProUsersInfo_Features_DexVolume">DEX-Volume und Rang</string>
-    <string name="ProUsersInfo_Features_DesLiquidity">DEX Liquiditätsrang</string>
-    <string name="ProUsersInfo_Features_ActiveAddresses">Active Addresses</string>
-    <string name="ProUsersInfo_Features_TxCount">Transaktionsanzahl</string>
-    <string name="ProUsersInfo_Features_TxVolume">Transaktionsvolumen</string>
-    <string name="Hud_Text_LearnMore">Coming Soon</string>
     <string name="Hud_Text_Activate">Aktivieren</string>
-    <string name="ProUsersActivate_Title">Activate the Pass</string>
-    <string name="ProUsersActivate_Description">Mountain Yak - Go borderless. Will show you important market data, analytical tools, useful charts based on on-chain data that will help give you a clear view of projects</string>
     <!--Widget-->
     <string name="WidgetList_Config_Title">Typ auswählen</string>
     <string name="NftAssetActivity_Empty">Noch keine Artikel-Aktivität</string>

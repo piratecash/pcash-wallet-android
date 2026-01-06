@@ -29,7 +29,6 @@ import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
-import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.StellarAccountManager
 import cash.p.terminal.core.managers.TokenAutoEnableManager
 import cash.p.terminal.core.managers.TonAccountManager
@@ -55,8 +54,6 @@ import cash.p.terminal.modules.market.favorites.MarketFavoritesMenuService
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsRepository
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsViewItemFactory
 import cash.p.terminal.modules.market.topplatforms.TopPlatformsRepository
-import cash.p.terminal.modules.profeatures.ProFeaturesAuthorizationManager
-import cash.p.terminal.modules.profeatures.storage.ProFeaturesStorage
 import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.settings.appearance.LaunchScreenService
 import cash.p.terminal.modules.theme.ThemeService
@@ -148,7 +145,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         val accountManager: IAccountManager by inject(IAccountManager::class.java)
         val userManager: DefaultUserManager by inject(DefaultUserManager::class.java)
         val accountFactory: IAccountFactory by inject(AccountFactory::class.java)
-        lateinit var proFeatureAuthorizationManager: ProFeaturesAuthorizationManager
         val zcashBirthdayProvider: ZcashBirthdayProvider by inject(ZcashBirthdayProvider::class.java)
 
         val connectivityManager: ConnectivityManager by inject(ConnectivityManager::class.java)
@@ -239,10 +235,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         backgroundManager = get()
 
         AppLog.logsDao = appDatabase.logsDao()
-
-        val proFeaturesStorage = ProFeaturesStorage(appDatabase)
-        proFeatureAuthorizationManager =
-            ProFeaturesAuthorizationManager(proFeaturesStorage, accountManager)
 
         networkManager = NetworkManager()
 

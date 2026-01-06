@@ -62,10 +62,10 @@ import cash.p.terminal.core.storage.migrations.Migration_84_85
 import cash.p.terminal.core.storage.migrations.Migration_85_86
 import cash.p.terminal.core.storage.migrations.Migration_86_87
 import cash.p.terminal.core.storage.migrations.Migration_87_88
+import cash.p.terminal.core.storage.migrations.Migration_88_89
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
-import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.EnabledWalletCache
 import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
@@ -76,6 +76,7 @@ import cash.p.terminal.entities.RecentAddress
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.entities.SpamAddress
 import cash.p.terminal.entities.SpamScanState
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.SyncerState
 import cash.p.terminal.entities.TokenAutoEnabledBlockchain
 import cash.p.terminal.entities.UserDeletedWallet
@@ -88,8 +89,6 @@ import cash.p.terminal.modules.chart.ChartIndicatorSetting
 import cash.p.terminal.modules.chart.ChartIndicatorSettingsDao
 import cash.p.terminal.modules.pin.core.Pin
 import cash.p.terminal.modules.pin.core.PinDao
-import cash.p.terminal.modules.profeatures.storage.ProFeaturesDao
-import cash.p.terminal.modules.profeatures.storage.ProFeaturesSessionKey
 import cash.p.terminal.modules.walletconnect.storage.WCSessionDao
 import cash.p.terminal.modules.walletconnect.storage.WalletConnectV2Session
 import cash.p.terminal.wallet.entities.AccountRecord
@@ -99,7 +98,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 88,
+    version = 89,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -116,7 +115,6 @@ import io.horizontalsystems.core.storage.LogsDao
         NftAssetRecord::class,
         NftMetadataSyncRecord::class,
         NftAssetBriefMetadataRecord::class,
-        ProFeaturesSessionKey::class,
         EvmAddressLabel::class,
         EvmMethodLabel::class,
         SyncerState::class,
@@ -148,7 +146,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun marketFavoritesDao(): MarketFavoritesDao
     abstract fun wcSessionDao(): WCSessionDao
     abstract fun nftDao(): NftDao
-    abstract fun proFeaturesDao(): ProFeaturesDao
     abstract fun evmAddressLabelDao(): EvmAddressLabelDao
     abstract fun evmMethodLabelDao(): EvmMethodLabelDao
     abstract fun syncerStateDao(): SyncerStateDao
@@ -235,7 +232,8 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_84_85,
                     Migration_85_86,
                     Migration_86_87,
-                    Migration_87_88
+                    Migration_87_88,
+                    Migration_88_89
                 )
                 .build()
         }

@@ -109,7 +109,6 @@ private class FakeAppDatabase(
     override fun marketFavoritesDao() = unsupported()
     override fun wcSessionDao() = unsupported()
     override fun nftDao() = unsupported()
-    override fun proFeaturesDao() = unsupported()
     override fun evmAddressLabelDao() = unsupported()
     override fun evmMethodLabelDao() = unsupported()
     override fun syncerStateDao() = unsupported()

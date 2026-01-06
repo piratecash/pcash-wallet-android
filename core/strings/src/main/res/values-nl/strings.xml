@@ -1499,17 +1499,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="balance_sync_error_fixed_source">Kan geen gegevens ophalen van de huidige bron. Probeer het later opnieuw.</string>
     <string name="balance_sync_error_monero">Kan geen gegevens ophalen van de huidige bron.\n\nU kunt:\n• Later opnieuw proberen\n• VPN inschakelen en synchronisatie opnieuw proberen\n\nAls u een <b>403</b>-fout hebt ontvangen, is <b>uw IP-adres mogelijk geblokkeerd</b>. Het gebruik van een VPN <b>lost dit probleem meestal op</b>.</string>
     <!--Release notes-->
-    <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
-    <string name="ProUsersInfo_Description">To enable this data you should get bronze level UW NFTs “Coin Info+”\n\nAlso you get access to data below:</string>
-    <string name="ProUsersInfo_Features_DexVolume">DEX Volume and Rank</string>
-    <string name="ProUsersInfo_Features_DesLiquidity">DEX Liquidity and Rank</string>
-    <string name="ProUsersInfo_Features_ActiveAddresses">Active Addresses</string>
-    <string name="ProUsersInfo_Features_TxCount">Transaction Count</string>
-    <string name="ProUsersInfo_Features_TxVolume">Transaction Volume</string>
-    <string name="Hud_Text_LearnMore">Coming Soon</string>
     <string name="Hud_Text_Activate">Activate</string>
-    <string name="ProUsersActivate_Title">Activate the Pass</string>
-    <string name="ProUsersActivate_Description">Mountain Yak - Go borderless. Will show you important market data, analytical tools, useful charts based on on-chain data that will help give you a clear view of projects</string>
     <!--Widget-->
     <string name="WidgetList_Config_Title">Choose Type</string>
     <string name="NftAssetActivity_Empty">No item activity yet</string>

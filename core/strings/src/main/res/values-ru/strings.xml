@@ -1454,17 +1454,7 @@
     <string name="balance_sync_error_monero">Не удалось получить данные из текущего источника.\n\nВы можете:\n• повторить попытку позже\n• включить VPN и повторить синхронизацию\n\nЕсли при запросе был получен код <b>403</b>, это означает, что <b>доступ к ресурсу ограничен для вашего IP-адреса</b>. Наиболее вероятная причина - <b>блокировка по IP</b>. Использование VPN, как правило, <b>устраняет эту проблему</b>.</string>
     <!--Release notes-->
     <string name="show_changelog_after_update">Открывать changelog после обновления</string>
-    <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
-    <string name="ProUsersInfo_Description">Чтобы включить эти данные, вы должны получить бронзовый уровень UW NFTs “Coin Info+”\n\nТакже вы получите доступ к данным ниже:</string>
-    <string name="ProUsersInfo_Features_DexVolume">DEX объем и рейтинг</string>
-    <string name="ProUsersInfo_Features_DesLiquidity">DEX ликвидность и рейтинг</string>
-    <string name="ProUsersInfo_Features_ActiveAddresses">Активные адреса</string>
-    <string name="ProUsersInfo_Features_TxCount">Количество транзакций</string>
-    <string name="ProUsersInfo_Features_TxVolume">Объем транзакций</string>
-    <string name="Hud_Text_LearnMore">Уже скоро</string>
     <string name="Hud_Text_Activate">Активировать</string>
-    <string name="ProUsersActivate_Title">Активировать кодовую фразу</string>
-    <string name="ProUsersActivate_Description">Mountain Yak - Безграничная свобода действий. Вам предоставят важные данные рынка, аналитические инструменты, полезные диаграммы, основанные на ончейн-данных, с помощью которых вы сможете составить себе четкое представление о проектах</string>
     <!--Widget-->
     <string name="WidgetList_Config_Title">Выбрать тип</string>
     <string name="NftAssetActivity_Empty">Нет активности</string>
