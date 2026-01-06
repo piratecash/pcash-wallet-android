@@ -1494,6 +1494,7 @@
     <string name="balance_sync_error_text">خطأ في المزامنة</string>
     <string name="balance_sync_error_changeable_source">فشل في جلب البيانات من المصدر الحالي. يمكنك إعادة المحاولة أو التبديل إلى مصدر مزامنة مختلف.</string>
     <string name="balance_sync_error_fixed_source">فشل في جلب البيانات من المصدر الحالي. يرجى المحاولة مرة أخرى لاحقاً.</string>
+    <string name="balance_sync_error_monero">فشل في جلب البيانات من المصدر الحالي.\n\nيمكنك:\n• المحاولة مرة أخرى لاحقاً\n• تفعيل VPN وإعادة محاولة المزامنة\n\nإذا تلقيت خطأ 403، فقد يكون عنوان IP الخاص بك محظوراً. استخدام VPN عادةً ما يحل هذه المشكلة.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
     <string name="ProUsersInfo_Description">To enable this data you should get bronze level UW NFTs “Coin Info+”\n\nAlso you get access to data below:</string>

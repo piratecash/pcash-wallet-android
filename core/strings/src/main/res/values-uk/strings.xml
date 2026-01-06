@@ -1448,6 +1448,7 @@
     <string name="balance_sync_error_text">Помилка синхронізації</string>
     <string name="balance_sync_error_changeable_source">Не вдалося отримати дані з поточного джерела. Ви можете спробувати ще раз або перейти на інше джерело синхронізації.</string>
     <string name="balance_sync_error_fixed_source">Не вдалося отримати дані з поточного джерела. Будь ласка, спробуйте пізніше.</string>
+    <string name="balance_sync_error_monero">Не вдалося отримати дані з поточного джерела.\n\nВи можете:\n• спробувати пізніше\n• увімкнути VPN і повторити синхронізацію\n\nЯкщо при запиті було отримано код 403, це означає, що доступ до ресурсу обмежено для вашої IP-адреси. Найімовірніша причина - блокування по IP. Використання VPN, як правило, вирішує цю проблему.</string>
     <!--Release notes-->
     <string name="show_changelog_after_update">Відкривати список змін після оновлення</string>
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>

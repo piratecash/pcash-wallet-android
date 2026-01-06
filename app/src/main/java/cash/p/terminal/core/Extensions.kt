@@ -331,12 +331,13 @@ fun Context.hasNFC(): Boolean {
 }
 
 fun NavController.openQrScanner(
+    title: String ="",
     showPasteButton: Boolean = false,
     onResult: (String) -> Unit,
 ) {
     slideFromBottomForResult<QRScannerFragment.Result>(
         R.id.qrScannerFragment,
-        QRScannerFragment.Input(showPasteButton)
+        QRScannerFragment.Input(title, showPasteButton)
     ) { result ->
         onResult(result.text)
     }

@@ -24,8 +24,8 @@ class QRScannerFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
         // Cache input to survive configuration changes and returning from gallery picker
-        val showPasteButton = rememberSaveable {
-            navController.getInput<Input>()?.showPasteButton ?: false
+        val input: Input = rememberSaveable {
+            navController.getInput<Input>() ?: Input("")
         }
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -38,8 +38,9 @@ class QRScannerFragment : BaseComposeFragment() {
 
         QRScannerScreen(
             uiState = uiState,
+            title = input.title,
             navController = navController,
-            showPasteButton = showPasteButton,
+            showPasteButton = input.showPasteButton,
             onScan = { decoded ->
                 navController.setNavigationResultX(Result(decoded))
                 navController.popBackStack()
@@ -59,7 +60,7 @@ class QRScannerFragment : BaseComposeFragment() {
     }
 
     @Parcelize
-    data class Input(val showPasteButton: Boolean = false) : Parcelable
+    data class Input(val title: String, val showPasteButton: Boolean = false) : Parcelable
 
     @Parcelize
     data class Result(val text: String) : Parcelable

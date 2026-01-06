@@ -1864,6 +1864,7 @@ Proceed only if you\'re sure.</string>
     <string name="balance_sync_error_text">Sync error</string>
     <string name="balance_sync_error_changeable_source">Failed to fetch data from the current source. You can retry or switch to a different sync source.</string>
     <string name="balance_sync_error_fixed_source">Failed to fetch data from the current source. Please try again later.</string>
+    <string name="balance_sync_error_monero">Failed to fetch data from current source.\n\nYou can:\n• Try again later\n• Enable VPN and retry sync\n\nIf you received a 403 error, your IP address may be blocked. Using a VPN usually resolves this issue.</string>
 
     <!--Release notes-->
     <string name="show_changelog_after_update">Show changelog after update</string>

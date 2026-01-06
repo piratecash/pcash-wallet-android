@@ -17,7 +17,6 @@ buildscript {
         rxjava_version = "2.2.19"
         biometric_version = "1.1.0"
         junit_version = "4.13.2"
-        accompanist_version = "0.32.0"
     }
 
     repositories {

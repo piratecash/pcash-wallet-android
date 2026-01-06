@@ -1493,6 +1493,7 @@
     <string name="balance_sync_error_text">خطای همگام‌سازی</string>
     <string name="balance_sync_error_changeable_source">دریافت داده از منبع فعلی ناموفق بود. می‌توانید دوباره تلاش کنید یا به منبع همگام‌سازی دیگری تغییر دهید.</string>
     <string name="balance_sync_error_fixed_source">دریافت داده از منبع فعلی ناموفق بود. لطفاً بعداً دوباره تلاش کنید.</string>
+    <string name="balance_sync_error_monero">دریافت داده از منبع فعلی ناموفق بود.\n\nشما می‌توانید:\n• بعداً دوباره تلاش کنید\n• VPN را فعال کرده و همگام‌سازی را دوباره امتحان کنید\n\nاگر خطای 403 دریافت کردید، آدرس IP شما ممکن است مسدود شده باشد. استفاده از VPN معمولاً این مشکل را حل می‌کند.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">غیرقابل توقف %s</string>
     <string name="ProUsersInfo_Description">To enable this data you should get bronze level UW NFTs “Coin Info+”\n\nAlso you get access to data below:</string>

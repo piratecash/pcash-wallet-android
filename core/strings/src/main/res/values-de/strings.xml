@@ -1480,6 +1480,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="balance_sync_error_text">Sync-Fehler</string>
     <string name="balance_sync_error_changeable_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Sie können erneut versuchen oder zu einer anderen Sync-Quelle wechseln.</string>
     <string name="balance_sync_error_fixed_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Bitte versuchen Sie es später erneut.</string>
+    <string name="balance_sync_error_monero">Fehler beim Abrufen der Daten aus der aktuellen Quelle.\n\nSie können:\n• Später erneut versuchen\n• VPN aktivieren und Synchronisierung wiederholen\n\nWenn Sie einen 403-Fehler erhalten haben, ist Ihre IP-Adresse möglicherweise gesperrt. Die Verwendung eines VPN behebt dieses Problem normalerweise.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
     <string name="ProUsersInfo_Description">Um diese Daten zu aktivieren, solltest du Bronze-Level UW NFTs “Coin Info+”\n\nerwerben:</string>

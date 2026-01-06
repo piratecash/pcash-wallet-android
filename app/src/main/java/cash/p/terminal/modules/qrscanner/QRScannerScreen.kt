@@ -79,7 +79,10 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.components.title3_jacob
 import cash.p.terminal.ui_compose.components.title3_leah
+import cash.p.terminal.ui_compose.components.title3_lucian
+import cash.p.terminal.ui_compose.components.title3_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.theme.Dark
 import cash.p.terminal.ui_compose.theme.SteelLight
@@ -94,6 +97,7 @@ import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 @Composable
 fun QRScannerScreen(
     uiState: QRScannerUiState,
+    title: String,
     navController: NavController,
     showPasteButton: Boolean,
     onScan: (String) -> Unit,
@@ -148,6 +152,14 @@ fun QRScannerScreen(
                         .background(color = ComposeAppTheme.colors.dark)
                 )
                 GoToSettingsBox(onCameraPermissionSettingsClick)
+            }
+            if (title.isNotEmpty()) {
+                title3_leah(
+                    text = title,
+                    modifier = Modifier
+                        .padding(top = 50.dp)
+                        .align(Alignment.TopCenter)
+                )
             }
 
             Column(
@@ -527,6 +539,29 @@ private fun PermissionNeededDialog(
 private fun PermissionNeededDialogPreview() {
     ComposeAppTheme {
         PermissionNeededDialog({}, {})
+    }
+}
+
+@ComposePreview
+@Composable
+private fun ScannerOverlayPreview() {
+    ComposeAppTheme {
+        QRScannerScreen(
+            uiState = QRScannerUiState(),
+            title = "Smart Scan",
+            navController = NavController(LocalContext.current),
+            showPasteButton = true,
+            onScan = {},
+            onCloseClick = {},
+            onCameraPermissionSettingsClick = {},
+            onGalleryImagePicked = {},
+            onErrorMessageConsumed = {}
+        )
+        /*
+                ScannerView {
+
+                }
+        */
     }
 }
 

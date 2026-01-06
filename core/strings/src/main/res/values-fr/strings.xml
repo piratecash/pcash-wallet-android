@@ -1487,6 +1487,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="balance_sync_error_text">Erreur de synchronisation</string>
     <string name="balance_sync_error_changeable_source">Impossible de récupérer les données de la source actuelle. Vous pouvez réessayer ou basculer vers une source de synchronisation différente.</string>
     <string name="balance_sync_error_fixed_source">Impossible de récupérer les données de la source actuelle. Veuillez réessayer plus tard.</string>
+    <string name="balance_sync_error_monero">Impossible de récupérer les données de la source actuelle.\n\nVous pouvez :\n• Réessayer plus tard\n• Activer le VPN et relancer la synchronisation\n\nSi vous avez reçu une erreur 403, votre adresse IP est peut-être bloquée. L\'utilisation d\'un VPN résout généralement ce problème.</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">Passe P.CASH</string>
     <string name="ProUsersInfo_Description">Pour activer ces données, vous devriez obtenir des NFT UW au niveau de bronze « Coin Info+»\n\nVous avez également accès aux données ci-dessous:</string>

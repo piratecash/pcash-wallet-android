@@ -29,6 +29,7 @@ import cash.p.terminal.R
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.isMonero
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -78,10 +79,10 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
             title = stringResource(R.string.BalanceSyncError_Title) + " - ${wallet.coin.code}",
             onCloseClick = { navController.popBackStack() }
         ) {
-            val errorDescription = if (viewModel.sourceChangeable) {
-                stringResource(R.string.balance_sync_error_changeable_source)
-            } else {
-                stringResource(R.string.balance_sync_error_fixed_source)
+            val errorDescription = when {
+                wallet.token.isMonero() -> stringResource(R.string.balance_sync_error_monero)
+                viewModel.sourceChangeable -> stringResource(R.string.balance_sync_error_changeable_source)
+                else -> stringResource(R.string.balance_sync_error_fixed_source)
             }
 
             subhead2_grey(

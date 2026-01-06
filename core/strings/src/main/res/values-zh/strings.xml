@@ -1480,6 +1480,7 @@
     <string name="balance_sync_error_text">同步错误</string>
     <string name="balance_sync_error_changeable_source">无法从当前源获取数据。您可以重试或切换到不同的同步源。</string>
     <string name="balance_sync_error_fixed_source">无法从当前源获取数据。请稍后再试。</string>
+    <string name="balance_sync_error_monero">无法从当前源获取数据。\n\n您可以：\n• 稍后重试\n• 启用VPN并重新同步\n\n如果您收到403错误，您的IP地址可能被封锁。使用VPN通常可以解决此问题。</string>
     <!--Release notes-->
     <string name="ProUsersInfo_UnstoppablePass">P.CASH Pass</string>
     <string name="ProUsersInfo_Description">若要启用此数据，您应该获得精灵等级的 UW NFTs “Coin Info+”\n\n也可以访问下面的数据：</string>
