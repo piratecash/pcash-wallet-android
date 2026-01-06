@@ -1510,8 +1510,8 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="NftAssetActivity_Empty">Henüz öğe etkinliği yok</string>
     <string name="Widget_EnableAutostartWarning">To make sure that this widget works properly, you should enable Autostart.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Android anahtar deposu hatası</string>
-    <string name="Alert_KeysInvalidatedDescription">Android cihazınızın kilidi değiştirildiğinden cüzdan bilginizi tutan şifreli dosya artık geçersiz</string>
+    <string name="alert_keys_invalidated_title">Android anahtar deposu hatası</string>
+    <string name="alert_keys_invalidated_description">Cüzdan şifreleme anahtarlarınız Android güvenlik sistemi tarafından geçersiz kılındı. Bu, parmak izi veya kilit ekranı ayarları değiştiğinde olabilir.\n\nErişimi geri yüklemek için yedek ifadenizi kullanarak cüzdanınızı yeniden içe aktarın.\n\nBu sık sık oluyorsa, cihaz ayarlarında Google Smart Lock\'u devre dışı bırakmayı deneyin ve telefonunuzu yeniden başlatın.</string>
     <string name="Alert_TitleWarning">Uyarı</string>
     <string name="Alert_CustomKeyboardIsUsed">Cihazınız varsayılan olmayan bir klavye kullanıyor gibi görünüyor. P.CASH, üçüncü taraf klavyelerin kullanıcıların girdiği verileri toplayıp paylaşabileceği ihtimali nedeniyle, cihazınızda varsayılan klavyeyi seçmenizi önerir.\n\nTercih ettiğiniz klavyeyi kullanmaya devam etmek istiyorsanız \'Atla\' butonuna tıklayın.</string>
     <string name="Alert_DeviceIsRootedWarning">P.CASH ekibi, uygulamanın yalnızca root olmayan (jailbreak yapılmamış) telefonlarda çalıştırılmasını önerir.\n\nKöklü bir cihaz kullandığınızda, uygulamanın artık kripto para biriminizin kötü amaçlı yazılımlara karşı güvenliğini garanti edemeyeceğini lütfen unutmayın.</string>

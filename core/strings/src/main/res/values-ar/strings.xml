@@ -1514,9 +1514,9 @@
     <string name="NftAssetActivity_Empty">No item activity yet</string>
     <string name="Widget_EnableAutostartWarning">To make sure that this widget works properly, you should enable Autostart.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Android Keystore Error</string>
-    <string name="Alert_KeysInvalidatedDescription">The encrypted data holding your wallet was recently invalidated because your Android lock screen was changed</string>
-    <string name="Alert_TitleWarning">Warning</string>
+    <string name="alert_keys_invalidated_title">خطأ في مخزن مفاتيح Android</string>
+    <string name="alert_keys_invalidated_description">تم إبطال مفاتيح تشفير محفظتك بواسطة نظام أمان Android. يمكن أن يحدث هذا عند تغيير إعدادات بصمة الإصبع أو شاشة القفل.\n\nلاستعادة الوصول، قم بإعادة استيراد محفظتك باستخدام عبارة النسخ الاحتياطي.\n\nإذا حدث هذا بشكل متكرر، حاول تعطيل Google Smart Lock في إعدادات الجهاز وأعد تشغيل هاتفك.</string>
+    <string name="Alert_TitleWarning">تحذير</string>
     <string name="Alert_CustomKeyboardIsUsed">It looks like your device uses a non-default keyboard. P.CASH recommends selecting default keyboard on your device as third party keyboards can potentially collect and expose users\' input data. \n\nClick \'Skip\' button if you would like to keep using your preferred keyboard.</string>
     <string name="Alert_DeviceIsRootedWarning">The P.CASH team recommends running app only on non-rooted (not jailbroken) phones.\n\nPlease note when you use a rooted device the app can no longer guarantee the safety of your cryptocurrency from malicious software.</string>
     <!--OS Pin-->

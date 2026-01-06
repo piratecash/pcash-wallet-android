@@ -249,12 +249,12 @@ private fun KeysInvalidatedDialog(onClick: () -> Unit) {
         ) {
             BottomSheetsElementsHeader(
                 icon = painterResource(R.drawable.icon_key_24),
-                title = stringResource(R.string.Alert_KeysInvalidatedTitle),
+                title = stringResource(R.string.alert_keys_invalidated_title),
                 subtitle = stringResource(R.string.Error),
                 onClickClose = onClick
             )
             BottomSheetsElementsText(
-                text = stringResource(R.string.Alert_KeysInvalidatedDescription)
+                text = stringResource(R.string.alert_keys_invalidated_description)
             )
             BottomSheetsElementsButtons(
                 buttonPrimaryText = stringResource(R.string.Button_Ok),

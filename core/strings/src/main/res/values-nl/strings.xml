@@ -1515,8 +1515,8 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="NftAssetActivity_Empty">No item activity yet</string>
     <string name="Widget_EnableAutostartWarning">To make sure that this widget works properly, you should enable Autostart.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Android Keystore Error</string>
-    <string name="Alert_KeysInvalidatedDescription">The encrypted data holding your wallet was recently invalidated because your Android lock screen was changed</string>
+    <string name="alert_keys_invalidated_title">Android Keystore Error</string>
+    <string name="alert_keys_invalidated_description">Je wallet-encryptiesleutels zijn ongeldig gemaakt door het Android-beveiligingssysteem. Dit kan gebeuren wanneer vingerafdruk- of vergrendelscherm-instellingen wijzigen.\n\nOm toegang te herstellen, importeer je wallet opnieuw met je backup-zin.\n\nAls dit vaak gebeurt, probeer Google Smart Lock uit te schakelen in de apparaatinstellingen en herstart je telefoon.</string>
     <string name="Alert_TitleWarning">Warning</string>
     <string name="Alert_CustomKeyboardIsUsed">It looks like your device uses a non-default keyboard. P.CASH recommends selecting default keyboard on your device as third party keyboards can potentially collect and expose users\' input data. \n\nClick \'Skip\' button if you would like to keep using your preferred keyboard.</string>
     <string name="Alert_DeviceIsRootedWarning">The P.CASH team recommends running app only on non-rooted (not jailbroken) phones.\n\nPlease note when you use a rooted device the app can no longer guarantee the safety of your cryptocurrency from malicious software.</string>

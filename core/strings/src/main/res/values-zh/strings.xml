@@ -1500,8 +1500,8 @@
     <string name="NftAssetActivity_Empty">还没有项目活动</string>
     <string name="Widget_EnableAutostartWarning">为了确保这个部件正常工作，您应该启用自动启动。</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Android密钥库错误</string>
-    <string name="Alert_KeysInvalidatedDescription">因为您的Android锁定屏幕已被更改，所以保存您钱包的加密数据目前已失效。</string>
+    <string name="alert_keys_invalidated_title">Android密钥库错误</string>
+    <string name="alert_keys_invalidated_description">您的钱包加密密钥已被Android安全系统作废。这可能在指纹或锁屏设置更改时发生。\n\n要恢复访问权限，请使用您的备份短语重新导入钱包。\n\n如果此问题频繁发生，请尝试在设备设置中禁用Google Smart Lock并重启手机。</string>
     <string name="Alert_TitleWarning">警告</string>
     <string name="Alert_CustomKeyboardIsUsed">您的设备似乎使用了非默认键盘。P.CASH建议选择设备上的默认键盘，因为第三方键盘可能会收集和暴露用户输入的数据。\n\n如果您要继续使用您的首选键盘，请单击“跳过”（Skip）按钮。</string>
     <string name="Alert_DeviceIsRootedWarning">P.CASH团队建议仅在未获取根权限（未越狱）的手机上使用应用。\n\n请注意，使用已获取根权限的设备，应用将难以保证您的加密货币免受来自恶意软件的安全威胁。</string>

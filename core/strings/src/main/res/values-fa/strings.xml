@@ -1513,8 +1513,8 @@
     <string name="NftAssetActivity_Empty">No item activity yet</string>
     <string name="Widget_EnableAutostartWarning">To make sure that this widget works properly, you should enable Autostart.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">خطای کلید اصلی اندروید</string>
-    <string name="Alert_KeysInvalidatedDescription">داده رمزگذاری شده که کیف پول شما را نگه داشته است اخیراً باطل نشده است زیرا صفحه قفل اندروید شما تغییر کرده است</string>
+    <string name="alert_keys_invalidated_title">خطای کلید اصلی اندروید</string>
+    <string name="alert_keys_invalidated_description">کلیدهای رمزگذاری کیف پول شما توسط سیستم امنیتی اندروید باطل شده است. این می‌تواند هنگام تغییر تنظیمات اثر انگشت یا صفحه قفل رخ دهد.\n\nبرای بازیابی دسترسی، کیف پول خود را با استفاده از عبارت پشتیبان مجدداً وارد کنید.\n\nاگر این اتفاق مکرراً رخ می‌دهد، سعی کنید Google Smart Lock را در تنظیمات دستگاه غیرفعال کنید و تلفن خود را راه‌اندازی مجدد کنید.</string>
     <string name="Alert_TitleWarning">هشدار</string>
     <string name="Alert_CustomKeyboardIsUsed">It looks like your device uses a non-default keyboard. P.CASH recommends selecting default keyboard on your device as third party keyboards can potentially collect and expose users\' input data. \n\nClick \'Skip\' button if you would like to keep using your preferred keyboard.</string>
     <string name="Alert_DeviceIsRootedWarning">The P.CASH team recommends running app only on non-rooted (not jailbroken) phones.\n\nPlease note when you use a rooted device the app can no longer guarantee the safety of your cryptocurrency from malicious software.</string>

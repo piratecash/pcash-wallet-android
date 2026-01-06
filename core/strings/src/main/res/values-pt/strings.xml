@@ -1509,8 +1509,8 @@
     <string name="NftAssetActivity_Empty">Sem atividade de item ainda</string>
     <string name="Widget_EnableAutostartWarning">Para garantir que este widget funcione corretamente, você deve habilitar o início automático.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Erro de Keystore do Android</string>
-    <string name="Alert_KeysInvalidatedDescription">Os dados criptografados que continham sua carteira foram invalidados recentemente porque a tela de bloqueio do iOS foi alterada</string>
+    <string name="alert_keys_invalidated_title">Erro de Keystore do Android</string>
+    <string name="alert_keys_invalidated_description">As chaves de criptografia da sua carteira foram invalidadas pelo sistema de segurança do Android. Isso pode acontecer quando as configurações de impressão digital ou tela de bloqueio são alteradas.\n\nPara restaurar o acesso, reimporte sua carteira usando sua frase de backup.\n\nSe isso acontecer com frequência, tente desativar o Google Smart Lock nas configurações do dispositivo e reinicie o telefone.</string>
     <string name="Alert_TitleWarning">Aviso</string>
     <string name="Alert_CustomKeyboardIsUsed">Parece que o seu dispositivo usa um teclado que não é padrão. A P.CASH recomenda a seleção de teclado padrão no seu dispositivo, já que teclados de terceiros podem potencialmente coletar e expor os dados de entrada dos usuários. \n\nClique no botão \'Avançar\' se você quiser continuar usando seu teclado preferido.</string>
     <string name="Alert_DeviceIsRootedWarning">A equipe P.CASH recomenda a execução do aplicativo apenas em telefones sem root (sem jailbreak).\n\nObserve que quando você usa um dispositivo com root, o aplicativo não pode mais garantir a segurança de sua criptomoeda contra software malicioso.</string>

@@ -1501,8 +1501,8 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="NftAssetActivity_Empty">Aún no hay actividad de artículo</string>
     <string name="Widget_EnableAutostartWarning">Para asegurarse de que este widget funciona correctamente, debe habilitar Autoiniciar.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Error de almacenamiento de claves de Android</string>
-    <string name="Alert_KeysInvalidatedDescription">Los datos encriptados de su monedero han sido recientemente  invalidados porque se cambió la pantalla de bloqueo de Android</string>
+    <string name="alert_keys_invalidated_title">Error de almacenamiento de claves de Android</string>
+    <string name="alert_keys_invalidated_description">Las claves de cifrado de su billetera fueron invalidadas por el sistema de seguridad de Android. Esto puede ocurrir cuando cambian la configuración de huella digital o de pantalla de bloqueo.\n\nPara restaurar el acceso, vuelva a importar su billetera usando su frase de respaldo.\n\nSi esto ocurre frecuentemente, intente deshabilitar Google Smart Lock en la configuración del dispositivo y reinicie su teléfono.</string>
     <string name="Alert_TitleWarning">Aviso</string>
     <string name="Alert_CustomKeyboardIsUsed">Parece que su dispositivo utiliza un teclado no predeterminado. P.CASH recomienda seleccionar el teclado por defecto en su dispositivo ya que los teclados de terceros potencialmente pueden recopilar y exponer los datos de entrada de los usuarios. \n\nHaga clic en el botón \'Saltar\' si desea seguir usando su teclado preferido.</string>
     <string name="Alert_DeviceIsRootedWarning">El equipo de P.CASH recomienda ejecutar la aplicación sólo en teléfonos no rooteados (no jailbrokes).\n\nTenga en cuenta que cuando utilice un dispositivo con root, la aplicación ya no puede garantizar la seguridad de su criptomoneda con el software malicioso.</string>

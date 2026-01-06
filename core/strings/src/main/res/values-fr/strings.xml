@@ -1507,8 +1507,8 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="NftAssetActivity_Empty">Aucune activité pour l\'instant</string>
     <string name="Widget_EnableAutostartWarning">Pour vous assurer que ce widget fonctionne correctement, vous devez activer le démarrage automatique.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Erreur de Keystore Android</string>
-    <string name="Alert_KeysInvalidatedDescription">Les données cryptées contenant votre porte-monnaie ont récemment été invalidées car votre écran de verrouillage Android a été modifié</string>
+    <string name="alert_keys_invalidated_title">Erreur de Keystore Android</string>
+    <string name="alert_keys_invalidated_description">Les clés de chiffrement de votre portefeuille ont été invalidées par le système de sécurité Android. Cela peut se produire lorsque les paramètres d\'empreinte digitale ou d\'écran de verrouillage changent.\n\nPour restaurer l\'accès, réimportez votre portefeuille en utilisant votre phrase de sauvegarde.\n\nSi cela se produit fréquemment, essayez de désactiver Google Smart Lock dans les paramètres de l\'appareil et redémarrez votre téléphone.</string>
     <string name="Alert_TitleWarning">Attention</string>
     <string name="Alert_CustomKeyboardIsUsed">Il semble que votre appareil utilise un clavier autre que celui par défaut. P.CASH recommande de sélectionner le clavier par défaut sur votre appareil car les claviers tiers peuvent potentiellement collecter et exposer les données de saisie des utilisateurs.\n\n\Cliquez sur le bouton \"Ignorer\" si vous souhaitez continuer à utiliser le clavier souhaité.</string>
     <string name="Alert_DeviceIsRootedWarning">L\'équipe d\'P.CASH vous recommande d\'utiliser l\'application uniquement sur des téléphones non rootés (non débridés).\n\nVeuillez noter que lorsque vous utilisez un appareil rooté, l\'application ne peut plus garantir la sécurité de votre cryptomonnaie contre les logiciels malveillants.</string>

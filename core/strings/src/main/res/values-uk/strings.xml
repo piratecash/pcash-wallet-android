@@ -1469,8 +1469,8 @@
     <string name="NftAssetActivity_Empty">Немає активності</string>
     <string name="Widget_EnableAutostartWarning">Щоб переконатися, що цей віджет працює правильно, необхідно увімкнути автозапуск.</string>
     <!--Alert-->
-    <string name="Alert_KeysInvalidatedTitle">Помилка Android Keystore</string>
-    <string name="Alert_KeysInvalidatedDescription">Ваші зашифровані дані були нещодавно анульовані, тому що Android lock screen було змінено</string>
+    <string name="alert_keys_invalidated_title">Помилка Android Keystore</string>
+    <string name="alert_keys_invalidated_description">Ключі шифрування гаманця були анульовані системою безпеки Android. Це може статися при зміні налаштувань відбитка пальця або блокування екрана.\n\nДля відновлення доступу повторно імпортуйте гаманець, використовуючи вашу резервну фразу.\n\nЯкщо це трапляється часто, спробуйте вимкнути Google Smart Lock у налаштуваннях пристрою та перезавантажте телефон.</string>
     <string name="Alert_TitleWarning">Увага</string>
     <string name="Alert_CustomKeyboardIsUsed">Здається, ваш пристрій використовує клавіатуру, що не є типовою. P.CASH рекомендує вибрати на вашому пристрої типову клавіатуру, оскільки сторонні клавіатури потенційно можуть збирати та розкривати інформацію про користувачів. \n\nНатисніть кнопку \'Пропустити\', якщо ви хочете продовжувати використовувати обрану вами клавіатуру.</string>
     <string name="Alert_DeviceIsRootedWarning">Команда P.CASH рекомендує запускати програму лише на нерутованих телефонах (без джейлбрейка).\n\nЗверніть увагу, що при використанні рутованого пристрою програма більше не захищатиме вашу криптовалюту від шкідливого ПЗ.</string>
