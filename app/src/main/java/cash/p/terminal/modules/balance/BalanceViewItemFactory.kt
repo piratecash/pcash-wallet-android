@@ -197,11 +197,13 @@ class BalanceViewItemFactory {
     }
 
     private fun formatBlocksRemaining(blocks: Long): String {
-        return when {
-            blocks >= 1_000_000 -> String.format("%.1fM", blocks / 1_000_000.0)
-            blocks >= 1_000 -> String.format("%.1fK", blocks / 1_000.0)
-            else -> blocks.toString()
+        val (value, suffix) = when {
+            blocks >= 1_000_000 -> (blocks / 1_000_000.0) to Translator.getString(R.string.CoinPage_MarketCap_Million)
+            blocks >= 1_000 -> (blocks / 1_000.0) to Translator.getString(R.string.CoinPage_MarketCap_Thousand)
+            else -> return blocks.toString()
         }
+        val formattedValue = App.numberFormatter.format(value, 0, 1)
+        return Translator.getString(R.string.LargeNumberFormat, formattedValue, suffix)
     }
 
     private fun getSyncedUntilText(state: AdapterState?): String? {
