@@ -7,6 +7,7 @@ import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.core.storage.UserDeletedWalletDao
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.wallet.entities.AccountRecord
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import io.mockk.coEvery
@@ -27,10 +28,12 @@ class HiddenWalletAccountVisibilityTest {
             appContext = mockk<Context>(relaxed = true),
             getMoneroWalletFilesNameUseCase = getMoneroWalletFilesNameUseCase
         )
+    private val balanceHiddenManager = mockk<IBalanceHiddenManager>(relaxed = true)
     private val accountManager = AccountManager(
         storage = storage,
         getMoneroWalletFilesNameUseCase = getMoneroWalletFilesNameUseCase,
-        removeMoneroWalletFilesUseCase = removeMoneroWalletFilesUseCase
+        removeMoneroWalletFilesUseCase = removeMoneroWalletFilesUseCase,
+        balanceHiddenManager = balanceHiddenManager
     )
 
     @Before
