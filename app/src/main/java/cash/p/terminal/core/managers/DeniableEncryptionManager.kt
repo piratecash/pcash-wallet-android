@@ -40,6 +40,12 @@ object DeniableEncryptionManager {
     private const val MAX_CONTAINER_SIZE = 10_000_000  // 10MB maximum
     private const val OFFSET_MODULO = 100_000          // Fixed offset range (~100KB max offset)
 
+    /**
+     * Recommended max retries for collision handling.
+     * With ~70% collision probability for large payloads, 50 retries gives P(failure) ≈ 10^-10.
+     */
+    const val RECOMMENDED_MAX_RETRIES = 50
+
     // Size buckets for deniability - container rounds up to nearest bucket
     // This prevents container size from revealing exact payload size
     // Note: All buckets must be >= MIN_CONTAINER_SIZE

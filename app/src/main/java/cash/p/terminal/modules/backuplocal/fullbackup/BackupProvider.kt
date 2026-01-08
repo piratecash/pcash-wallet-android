@@ -753,9 +753,6 @@ class BackupProvider(
 
     /**
      * Creates deniable container with automatic retry on offset collision.
-     *
-     * With ~40KB payloads and 100KB offset range, collision probability is ~64% per attempt.
-     * 50 retries gives P(failure) ≈ 0.64^50 ≈ 10^-10, effectively negligible.
      */
     private fun createDeniableContainerWithRetry(
         payload1: ByteArray,
@@ -763,7 +760,7 @@ class BackupProvider(
         payload2: ByteArray?,
         passphrase2: String?
     ): ByteArray {
-        val maxRetries = 50
+        val maxRetries = DeniableEncryptionManager.RECOMMENDED_MAX_RETRIES
         var lastException: DeniableEncryptionManager.PasswordCollisionException? = null
 
         repeat(maxRetries) {
