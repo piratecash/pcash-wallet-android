@@ -180,13 +180,7 @@ fun BalanceForAccount(
                             balanceViewItems = balanceViewItems,
                             viewModel = viewModel,
                             onItemClick = navigateToTokenBalance,
-                            onBalanceClick = {
-                                if (viewModel.balanceHidden) {
-                                    viewModel.onBalanceClick(it)
-                                } else {
-                                    navigateToTokenBalance(it)
-                                }
-                            },
+                            onBalanceClick = viewModel::onBalanceClick,
                             accountViewItem = accountViewItem,
                             navController = navController,
                             uiState = uiState,

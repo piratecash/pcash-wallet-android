@@ -60,21 +60,38 @@ class TransactionViewItemFactory(
 
     suspend fun updateCache() = mutex.withLock {
         showAmount = !balanceHiddenManager.balanceHidden
-        val updated = cache.mapValues { (_, map) ->
+        val updated = cache.mapValues { (uid, map) ->
+            val perItemShowAmount = !balanceHiddenManager.isTransactionInfoHidden(uid)
             map.mapValues { (_, viewItem) ->
-                viewItem.copy(showAmount = showAmount)
+                viewItem.copy(showAmount = perItemShowAmount)
             }
         }
         cache.clear()
         cache.putAll(updated)
     }
 
-    fun convertToViewItemCached(transactionItem: TransactionItem): TransactionViewItem {
-        cache[transactionItem.record.uid]?.get(transactionItem.createdAt)?.let {
-            return it
+    fun convertToViewItemCached(
+        transactionItem: TransactionItem,
+        walletUid: String? = null
+    ): TransactionViewItem {
+        val perItemShowAmount = if (walletUid != null) {
+            !balanceHiddenManager.isTransactionInfoHiddenForWallet(transactionItem.record.uid, walletUid)
+        } else {
+            !balanceHiddenManager.isTransactionInfoHidden(transactionItem.record.uid)
         }
 
-        val transactionViewItem = convertToViewItem(transactionItem)
+        cache[transactionItem.record.uid]?.get(transactionItem.createdAt)?.let { cached ->
+            // Return cached item with updated showAmount
+            return if (cached.showAmount != perItemShowAmount) {
+                cached.copy(showAmount = perItemShowAmount).also {
+                    cache[transactionItem.record.uid] = mapOf(transactionItem.createdAt to it)
+                }
+            } else {
+                cached
+            }
+        }
+
+        val transactionViewItem = convertToViewItem(transactionItem).copy(showAmount = perItemShowAmount)
         cache[transactionItem.record.uid] = mapOf(transactionItem.createdAt to transactionViewItem)
 
         return transactionViewItem

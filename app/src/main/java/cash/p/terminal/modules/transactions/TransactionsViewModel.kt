@@ -22,6 +22,7 @@ import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.ui_compose.entities.ViewState
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.helpers.DateHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -60,6 +61,9 @@ class TransactionsViewModel(
 
     val balanceHidden: Boolean
         get() = balanceHiddenManager.balanceHidden
+
+    fun toggleTransactionInfoHidden(transactionId: String) =
+        balanceHiddenManager.toggleTransactionInfoHidden(transactionId)
 
     private var refreshViewItemsJob: Job? = null
 
@@ -153,6 +157,12 @@ class TransactionsViewModel(
         }
 
         viewModelScope.launch {
+            balanceHiddenManager.anyTransactionVisibilityChangedFlow.collect {
+                service.refreshList()
+            }
+        }
+
+        viewModelScope.launch {
             transactionHiddenManager.transactionHiddenFlow.collectLatest {
                 service.reload()
             }
@@ -204,7 +214,7 @@ class TransactionsViewModel(
         hasHiddenTransactions = hasHiddenTransactions
     )
 
-    private fun handleUpdatedWallets(wallets: List<cash.p.terminal.wallet.Wallet>) {
+    private fun handleUpdatedWallets(wallets: List<Wallet>) {
         transactionFilterService.setWallets(wallets)
     }
 
@@ -258,7 +268,8 @@ data class TransactionItem(
     val lastBlockInfo: LastBlockInfo?,
     val nftMetadata: Map<NftUid, NftAssetBriefMetadata>,
     val changeNowTransactionId: String? = null,
-    val transactionStatusUrl: Pair<String, String>? = null
+    val transactionStatusUrl: Pair<String, String>? = null,
+    val walletUid: String? = null
 ) {
     val createdAt = System.currentTimeMillis()
 }

@@ -1,8 +1,8 @@
 package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.core.ITransactionsAdapter
-import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.PendingTransactionMatcher
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
@@ -41,6 +41,7 @@ import java.math.BigDecimal
 class TransactionInfoService(
     initialTransactionRecord: TransactionRecord,
     private val userSwapTransactionId: String?,
+    val walletUid: String?,
     private val adapter: ITransactionsAdapter,
     private val marketKit: MarketKitWrapper,
     private val currencyManager: CurrencyManager,
@@ -49,7 +50,7 @@ class TransactionInfoService(
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     transactionStatusUrl: Pair<String, String>?
 ) {
-    private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
+    private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
     private val pendingTransactionMatcher: PendingTransactionMatcher by inject(
         PendingTransactionMatcher::class.java
     )
@@ -79,7 +80,7 @@ class TransactionInfoService(
         ),
         rates = mapOf(),
         nftMetadata = mapOf(),
-        hideAmount = balanceHiddenManager.balanceHidden,
+        hideAmount = balanceHiddenManager.isTransactionInfoHidden(transactionRecord.uid, walletUid),
         transactionStatusUrl = transactionStatusUrl,
         swapAmountOut = null,
         swapAmountOutReal = null,
@@ -327,11 +328,12 @@ class TransactionInfoService(
         }
 
         launch {
-            balanceHiddenManager.balanceHiddenFlow.collect {
-                mutex.withLock {
-                    transactionInfoItem = transactionInfoItem.copy(hideAmount = it)
+            balanceHiddenManager.transactionInfoHiddenFlow(transactionRecord.uid, walletUid)
+                .collect {
+                    mutex.withLock {
+                        transactionInfoItem = transactionInfoItem.copy(hideAmount = it)
+                    }
                 }
-            }
         }
 
         fetchRates()

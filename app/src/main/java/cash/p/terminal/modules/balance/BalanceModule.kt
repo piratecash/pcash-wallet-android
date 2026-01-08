@@ -9,6 +9,7 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.address.AddressHandlerFactory
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.balance.BalanceWarning
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 
 object BalanceModule {
     class AccountsFactory : ViewModelProvider.Factory {
@@ -35,7 +36,8 @@ object BalanceModule {
                 localStorage = getKoinInstance(),
                 wCManager = App.wcManager,
                 addressHandlerFactory = AddressHandlerFactory(AppConfigProvider.udnApiKey),
-                priceManager = App.priceManager
+                priceManager = App.priceManager,
+                balanceHiddenManager = getKoinInstance<IBalanceHiddenManager>(),
             ) as T
         }
     }

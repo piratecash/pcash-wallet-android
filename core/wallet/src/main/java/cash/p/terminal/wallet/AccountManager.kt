@@ -1,5 +1,6 @@
 package cash.p.terminal.wallet
 
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import io.horizontalsystems.core.logger.AppLogger
@@ -18,7 +19,8 @@ import kotlinx.coroutines.withContext
 class AccountManager(
     private val storage: IAccountsStorage,
     private val getMoneroWalletFilesNameUseCase: IGetMoneroWalletFilesNameUseCase,
-    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase
+    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase,
+    private val balanceHiddenManager: IBalanceHiddenManager
 ) : IAccountManager {
     private val logger: AppLogger = AppLogger("AccountManager")
 
@@ -63,6 +65,7 @@ class AccountManager(
         if (activeAccount?.id != activeAccountId || (activeAccount == null && activeAccountId == null)) {
             storage.setActiveAccountId(currentLevel, activeAccountId)
             activeAccount = activeAccountId?.let { account(it) }
+            balanceHiddenManager.clearSessionState()
             _activeAccountStateFlow.update {
                 ActiveAccountState.ActiveAccount(activeAccount)
             }

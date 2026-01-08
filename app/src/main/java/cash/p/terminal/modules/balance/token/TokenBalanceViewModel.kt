@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.getKoinInstance
-import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.swappable
@@ -33,18 +32,18 @@ import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.balance.DeemedValue
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
+import cash.p.terminal.wallet.tokenQueryId
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.withContext
 
 class TokenBalanceViewModel(
     private val totalBalance: TotalBalance,
@@ -53,11 +52,11 @@ class TokenBalanceViewModel(
     private val balanceViewItemFactory: BalanceViewItemFactory,
     private val transactionsService: TokenTransactionsService,
     private val transactionViewItem2Factory: TransactionViewItemFactory,
-    private val balanceHiddenManager: BalanceHiddenManager,
+    private val balanceHiddenManager: IBalanceHiddenManager,
     private val connectivityManager: ConnectivityManager,
     private val accountManager: IAccountManager,
     private val transactionHiddenManager: TransactionHiddenManager,
-    private val getChangeNowAssociatedCoinTickerUseCase: GetChangeNowAssociatedCoinTickerUseCase
+    private val getChangeNowAssociatedCoinTickerUseCase: GetChangeNowAssociatedCoinTickerUseCase,
 ) : ViewModelUiState<TokenBalanceUiState>() {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
@@ -95,7 +94,7 @@ class TokenBalanceViewModel(
         }
 
         viewModelScope.launch {
-            balanceHiddenManager.balanceHiddenFlow.collect {
+            balanceHiddenManager.walletBalanceHiddenFlow(wallet.tokenQueryId).collect {
                 balanceService.balanceItem?.let {
                     updateBalanceViewItem(
                         balanceItem = it,
@@ -127,6 +126,12 @@ class TokenBalanceViewModel(
         viewModelScope.launch {
             totalBalance.stateFlow.collectLatest { totalBalanceValue ->
                 updateSecondaryValue(totalBalanceValue)
+            }
+        }
+
+        viewModelScope.launch {
+            balanceHiddenManager.anyTransactionVisibilityChangedFlow.collect {
+                transactionsService.refreshList()
             }
         }
 
@@ -201,7 +206,7 @@ class TokenBalanceViewModel(
             } else {
                 items.also { hasHiddenTransactions = false }
             }.distinctBy { it.record.uid }
-                .map { transactionViewItem2Factory.convertToViewItemCached(it) }
+                .map { transactionViewItem2Factory.convertToViewItemCached(it, wallet.tokenQueryId) }
                 .groupBy { it.formattedDate }
 
         emitState()
@@ -211,7 +216,7 @@ class TokenBalanceViewModel(
         val balanceViewItem = balanceViewItemFactory.viewItem(
             item = balanceItem,
             currency = balanceService.baseCurrency,
-            hideBalance = balanceHiddenManager.balanceHidden,
+            hideBalance = balanceHiddenManager.isWalletBalanceHidden(wallet.tokenQueryId),
             watchAccount = wallet.account.isWatchAccount,
             balanceViewType = BalanceViewType.CoinThenFiat,
             isSwappable = isSwappable
@@ -255,11 +260,12 @@ class TokenBalanceViewModel(
     fun getTransactionItem(viewItem: TransactionViewItem) =
         transactionsService.getTransactionItem(viewItem.uid)?.copy(
             transactionStatusUrl = viewItem.transactionStatusUrl,
-            changeNowTransactionId = viewItem.changeNowTransactionId
+            changeNowTransactionId = viewItem.changeNowTransactionId,
+            walletUid = wallet.tokenQueryId
         )
 
     fun toggleBalanceVisibility() {
-        balanceHiddenManager.toggleBalanceHidden()
+        balanceHiddenManager.toggleWalletBalanceHidden(wallet.tokenQueryId)
     }
 
     fun toggleTotalType() {

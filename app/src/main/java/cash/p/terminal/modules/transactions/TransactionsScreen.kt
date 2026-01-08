@@ -32,7 +32,6 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -162,19 +161,14 @@ fun TransactionsScreen(
                                     }
                                 }
 
-                                val itemsBalanceHidden =
-                                    remember(viewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
                                 LazyColumn(state = listState) {
                                     transactionList(
                                         transactionsMap = transactionItems,
                                         willShow = viewModel::willShow,
-                                        isItemBalanceHidden = {
-                                            itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden
-                                        },
+                                        isItemBalanceHidden = { !it.showAmount },
                                         onSensitiveValueClick = {
                                             HudHelper.vibrate(App.instance)
-                                            itemsBalanceHidden[it.uid] =
-                                                !(itemsBalanceHidden[it.uid] ?: viewModel.balanceHidden)
+                                            viewModel.toggleTransactionInfoHidden(it.uid)
                                         },
                                         onClick = onClick,
                                         onBottomReached = viewModel::onBottomReached

@@ -19,6 +19,7 @@ import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionsRateRepository
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import org.koin.java.KoinJavaComponent.inject
 
 class TokenBalanceModule {
@@ -73,11 +74,11 @@ class TokenBalanceModule {
                 balanceViewItemFactory = BalanceViewItemFactory(),
                 transactionsService = tokenTransactionsService,
                 transactionViewItem2Factory = getKoinInstance(),
-                balanceHiddenManager = App.balanceHiddenManager,
                 connectivityManager = App.connectivityManager,
                 accountManager = App.accountManager,
                 transactionHiddenManager = getKoinInstance(),
-                getChangeNowAssociatedCoinTickerUseCase = getKoinInstance()
+                getChangeNowAssociatedCoinTickerUseCase = getKoinInstance(),
+                balanceHiddenManager = getKoinInstance<IBalanceHiddenManager>()
             ) as T
         }
     }

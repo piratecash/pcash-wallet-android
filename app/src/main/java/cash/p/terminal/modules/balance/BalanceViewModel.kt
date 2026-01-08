@@ -12,10 +12,10 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.core.factories.uriScheme
 import cash.p.terminal.core.managers.PriceManager
+import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.core.utils.AddressUriResult
-import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.utils.ToncoinUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.modules.address.AddressHandlerFactory
@@ -25,12 +25,16 @@ import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -39,16 +43,14 @@ import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
 import cash.p.terminal.wallet.isCosanta
 import cash.p.terminal.wallet.isOldZCash
 import cash.p.terminal.wallet.isPirateCash
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
+import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import com.reown.walletkit.client.Wallet.Params.Pair
+import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.ui_compose.entities.ViewState
-import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.useCases.WalletUseCase
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.wallet.WalletFactory
-import com.reown.walletkit.client.WalletKit
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -56,13 +58,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
-import kotlin.getValue
 
 class BalanceViewModel(
     private val service: DefaultBalanceService,
@@ -72,7 +69,8 @@ class BalanceViewModel(
     private val localStorage: ILocalStorage,
     private val wCManager: WCManager,
     private val addressHandlerFactory: AddressHandlerFactory,
-    private val priceManager: PriceManager
+    private val priceManager: PriceManager,
+    private val balanceHiddenManager: IBalanceHiddenManager
 ) : ViewModelUiState<BalanceUiState>(), ITotalBalance by totalBalance {
 
     private var balanceViewType = balanceViewTypeManager.balanceViewTypeFlow.value
@@ -92,10 +90,9 @@ class BalanceViewModel(
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     private val seedPhraseQrCrypto: SeedPhraseQrCrypto by inject(SeedPhraseQrCrypto::class.java)
 
-    private val _itemsBalanceHidden = MutableStateFlow<Map<Wallet, Boolean>>(emptyMap())
-    private val itemsBalanceHidden: StateFlow<Map<Wallet, Boolean>> = _itemsBalanceHidden.asStateFlow()
-
-    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(GetHardwarePublicKeyForWalletUseCase::class.java)
+    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
+        GetHardwarePublicKeyForWalletUseCase::class.java
+    )
 
     private val sortTypes =
         listOf(BalanceSortType.Value, BalanceSortType.Name, BalanceSortType.PercentGrowth)
@@ -135,18 +132,12 @@ class BalanceViewModel(
                         )
                     })
                     detectPirateAndCosanta(items)
-                    if (balanceHidden && !itemsBalanceHidden.value.keys.containsAll(items.map { it.wallet })) {
-                        addWalletsToHidden(items.map(BalanceItem::wallet))
-                    }
                     refreshViewItems(items)
                 }
         }
 
         viewModelScope.launch {
             totalBalance.stateFlow.collect {
-                if (it is TotalService.State.Hidden) {
-                    addWalletsToHidden(balanceViewItems.map(BalanceViewItem2::wallet))
-                }
                 refreshViewItems(service.balanceItemsFlow.value)
             }
         }
@@ -172,7 +163,7 @@ class BalanceViewModel(
 
         // To hide balance for Samsung devices with hide balance feature enabled
         viewModelScope.launch {
-            balanceHiddenFlow.collect {
+            balanceHiddenManager.anyWalletVisibilityChangedFlow.collect {
                 refreshViewItems(service.balanceItemsFlow.value)
             }
         }
@@ -186,24 +177,6 @@ class BalanceViewModel(
         val isMoneroAccount = accountManager.activeAccount?.type is AccountType.MnemonicMonero
         isStackingEnabled = !isMoneroAccount
         isSwapEnabled = !isMoneroAccount && App.instance.isSwapEnabled
-    }
-
-    private inline fun mutateHiddenState(
-        crossinline reducer: MutableMap<Wallet, Boolean>.() -> Unit
-    ) {
-        _itemsBalanceHidden.update { current ->
-            val mutableCopy = current.toMutableMap()
-            reducer(mutableCopy)
-            mutableCopy.toMap()
-        }
-    }
-
-    private fun addWalletsToHidden(items: List<Wallet>) {
-        if (items.isEmpty()) return
-        mutateHiddenState {
-            clear()
-            items.forEach { this[it] = true }
-        }
     }
 
     override fun createState() = BalanceUiState(
@@ -239,23 +212,11 @@ class BalanceViewModel(
     }
 
     fun onBalanceClick(item: BalanceViewItem2) {
-        if (balanceHidden) {
-            HudHelper.vibrate(App.instance)
-
-            mutateHiddenState {
-                this[item.wallet] = this[item.wallet] != true
-            }
-            refreshViewItems(service.balanceItemsFlow.value)
-            emitState()
-        }
+        HudHelper.vibrate(App.instance)
+        balanceHiddenManager.toggleWalletBalanceHidden(item.wallet.tokenQueryId)
     }
 
     override fun toggleBalanceVisibility() {
-        mutateHiddenState {
-            keys.forEach {
-                this[it] = !balanceHidden
-            }
-        }
         totalBalance.toggleBalanceVisibility()
     }
 
@@ -264,14 +225,14 @@ class BalanceViewModel(
         refreshViewItemsJob = viewModelScope.launch(Dispatchers.Default) {
             if (balanceItems != null) {
                 viewState = ViewState.Success
-                val hiddenMap = itemsBalanceHidden.value
                 balanceViewItems = balanceItems.map { balanceItem ->
                     ensureActive()
+                    val isHidden = balanceHiddenManager.isWalletBalanceHidden(balanceItem.wallet.tokenQueryId)
                     balanceViewItemFactory.viewItem2(
                         item = balanceItem,
                         currency = service.baseCurrency,
                         roundingAmount = localStorage.isRoundingAmountMainPage,
-                        hideBalance = balanceHidden && hiddenMap[balanceItem.wallet] == true,
+                        hideBalance = isHidden,
                         watchAccount = service.isWatchAccount,
                         isSwipeToDeleteEnabled = !isSingleWalletAccount(),
                         balanceViewType = balanceViewType,
@@ -409,7 +370,7 @@ class BalanceViewModel(
      */
     fun getSingleWalletForReceive(): Wallet? {
         val account = accountManager.activeAccount ?: return null
-        return if(account.type is AccountType.MnemonicMonero) {
+        return if (account.type is AccountType.MnemonicMonero) {
             coinManager.getToken(TokenQuery(BlockchainType.Monero, TokenType.Native))?.let {
                 walletUseCase.getWallet(it)
             }

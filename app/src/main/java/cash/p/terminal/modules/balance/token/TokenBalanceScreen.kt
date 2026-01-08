@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.balance.token
 
-import android.view.View
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -192,8 +190,6 @@ fun TokenBalanceScreen(
                 }
             }
         } else {
-            val itemsBalanceHidden =
-                remember(transactionsViewModel.balanceHidden) { mutableStateMapOf<String, Boolean>() }
             HSSwipeRefresh(
                 refreshing = refreshing,
                 modifier = Modifier.padding(paddingValues),
@@ -223,13 +219,10 @@ fun TokenBalanceScreen(
                                 navController
                             )
                         },
-                        isItemBalanceHidden = {
-                            itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden
-                        },
+                        isItemBalanceHidden = { !it.showAmount },
                         onSensitiveValueClick = {
                             HudHelper.vibrate(App.instance)
-                            itemsBalanceHidden[it.uid] =
-                                !(itemsBalanceHidden[it.uid] ?: transactionsViewModel.balanceHidden)
+                            transactionsViewModel.toggleTransactionInfoHidden(it.uid)
                         },
                         onBottomReached = viewModel::onBottomReached
                     )

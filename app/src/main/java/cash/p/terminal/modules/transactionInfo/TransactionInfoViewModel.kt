@@ -5,8 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.transaction.TransactionSource
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -18,9 +18,9 @@ class TransactionInfoViewModel(
     private val contactsRepository: ContactsRepository
 ) : ViewModel() {
 
-    private val balanceHiddenManager: BalanceHiddenManager by inject(BalanceHiddenManager::class.java)
+    private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
     val balanceHidden: Boolean
-        get() = balanceHiddenManager.balanceHidden
+        get() = balanceHiddenManager.isTransactionInfoHidden(service.transactionRecord.uid, service.walletUid)
 
     val source: TransactionSource by service::source
     val transactionRecord by service::transactionRecord
@@ -48,6 +48,6 @@ class TransactionInfoViewModel(
     fun getRawTransaction(): String? = service.getRawTransaction()
 
     fun toggleBalanceVisibility() {
-        balanceHiddenManager.toggleBalanceHidden()
+        balanceHiddenManager.toggleTransactionInfoHidden(service.transactionRecord.uid)
     }
 }

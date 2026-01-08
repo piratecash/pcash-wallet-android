@@ -126,7 +126,6 @@ val managerModule = module {
     singleOf(::TokenAutoEnableManager)
     singleOf(::EvmBlockchainManager)
     singleOf(::BtcBlockchainManager)
-    singleOf(::BalanceHiddenManager)
     singleOf(::SolanaKitManager)
     singleOf(::StellarKitManager)
     singleOf(::TonKitManager)

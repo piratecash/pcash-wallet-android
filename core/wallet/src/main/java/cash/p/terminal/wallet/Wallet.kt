@@ -54,6 +54,9 @@ data class Wallet internal constructor(
     }
 }
 
+val Wallet.tokenQueryId: String
+    get() = token.tokenQuery.id
+
 class WalletFactory(
     private val hardwareWalletTokenPolicy: HardwareWalletTokenPolicy
 ) {

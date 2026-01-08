@@ -28,6 +28,7 @@ object TransactionInfoModule {
             val service = TransactionInfoService(
                 initialTransactionRecord = transactionItem.record,
                 userSwapTransactionId = transactionItem.changeNowTransactionId,
+                walletUid = transactionItem.walletUid,
                 adapter = adapter,
                 marketKit = App.marketKit,
                 currencyManager = App.currencyManager,
@@ -41,7 +42,11 @@ object TransactionInfoModule {
                 transactionSource.blockchain.type
             )
 
-            return TransactionInfoViewModel(service, factory, App.contactsRepository) as T
+            return TransactionInfoViewModel(
+                service = service,
+                factory = factory,
+                contactsRepository = App.contactsRepository
+            ) as T
         }
 
     }

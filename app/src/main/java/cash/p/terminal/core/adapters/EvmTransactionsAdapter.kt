@@ -1,6 +1,5 @@
 package cash.p.terminal.core.adapters
 
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.EvmKitWrapper
