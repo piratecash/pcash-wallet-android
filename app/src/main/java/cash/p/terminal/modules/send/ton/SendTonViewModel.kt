@@ -10,6 +10,7 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import io.horizontalsystems.core.ViewModelUiState
@@ -29,7 +30,6 @@ import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
-import kotlin.getValue
 
 class SendTonViewModel(
     val wallet: Wallet,
@@ -45,6 +45,7 @@ class SendTonViewModel(
     private val showAddressInput: Boolean,
     address: Address?,
     private val pendingRegistrar: PendingTransactionRegistrar,
+    private val adapterManager: IAdapterManager,
 ): ViewModelUiState<SendTonUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
@@ -160,11 +161,14 @@ class SendTonViewModel(
             logger.info("sending tx")
 
             // 1. Create pending transaction draft BEFORE sending
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: amountState.availableBalance ?: throw IllegalStateException("Balance unavailable")
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = sendToken,
                 amount = amountState.amount!!,
                 fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
+                sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // TON doesn't require from address
                 toAddress = addressState.address!!.hex,
                 memo = memo,

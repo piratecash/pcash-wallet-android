@@ -130,7 +130,8 @@ internal class SendTransactionServiceEvm(
     private var fields = listOf<DataField>()
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = tryOrNull { adapter.balanceData.available },
+        availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+            ?: tryOrNull { adapter.balanceData.available },
         networkFee = feeAmountData,
         cautions = cautions,
         sendable = sendable,

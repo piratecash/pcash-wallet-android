@@ -83,7 +83,7 @@ class SendTransactionServiceBitcoin(
     private val feeRateService = SendBitcoinFeeRateService(provider)
     private var bitcoinFeeInfo = feeService.bitcoinFeeInfoFlow.value
     private val amountService =
-        SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator())
+        SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator(), adapterManager, wallet)
     private val addressService = SendBitcoinAddressService(adapter)
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val btcBlockchainManager: BtcBlockchainManager by inject(BtcBlockchainManager::class.java)

@@ -10,11 +10,12 @@ import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.LocalizedException
-import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
@@ -22,9 +23,11 @@ import cash.p.terminal.modules.send.SendErrorInsufficientBalance
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.SolanaKit
 import kotlinx.coroutines.Dispatchers
@@ -49,15 +52,18 @@ class SendSolanaViewModel(
     private val showAddressInput: Boolean,
     private val connectivityManager: ConnectivityManager,
     address: Address?,
+    private val pendingRegistrar: PendingTransactionRegistrar
 ) : ViewModelUiState<SendSolanaModule.SendUiState>() {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
+    private var pendingTxId: String? = null
 
     var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
@@ -140,15 +146,35 @@ class SendSolanaViewModel(
 
             val totalSolAmount = (if (sendToken.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
 
-            if (totalSolAmount > solBalance)
+            val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                ?: solBalance
+            if (totalSolAmount > availableBalance)
                 throw EvmError.InsufficientBalanceWithFee
 
+            // 1. Create pending transaction draft BEFORE sending
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: solBalance
+            val draft = PendingTransactionDraft(
+                wallet = wallet,
+                token = sendToken,
+                amount = decimalAmount,
+                fee = SolanaKit.fee,
+                sdkBalanceAtCreation = sdkBalance,
+                fromAddress = "",
+                toAddress = addressState.address!!.hex
+            )
+
+            // 2. Register pending transaction
+            pendingTxId = pendingRegistrar.register(draft)
+
+            // 3. Broadcast transaction
             adapter.send(decimalAmount, addressState.solanaAddress!!)
 
             sendResult = SendResult.Sent()
 
             recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Solana)
         } catch (e: Throwable) {
+            pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             sendResult = SendResult.Failed(createCaution(e))
         }
     }

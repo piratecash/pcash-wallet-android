@@ -11,7 +11,9 @@ import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -20,6 +22,7 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule.rbfSupported
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.core.TangemSdkError
@@ -50,7 +53,8 @@ class SendBitcoinViewModel(
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
     private val localStorage: ILocalStorage,
-    private val address: Address?
+    private val address: Address?,
+    private val pendingRegistrar: PendingTransactionRegistrar
 ) : ViewModelUiState<SendBitcoinUiState>() {
     private companion object {
         val BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS = listOf(
@@ -61,6 +65,7 @@ class SendBitcoinViewModel(
     }
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
     val coinMaxAllowedDecimals = wallet.token.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
@@ -78,6 +83,7 @@ class SendBitcoinViewModel(
     private var fee: BigDecimal? = feeService.bitcoinFeeInfoFlow.value?.fee
     private var utxoData = SendBitcoinModule.UtxoData()
     private var memo: String? = null
+    private var pendingTxId: String? = null
     private var isMemoAvailable: Boolean =
         blockchainType !in BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS
     private var isAdvancedSettingsAvailable: Boolean =
@@ -283,6 +289,26 @@ class SendBitcoinViewModel(
         try {
             sendResult = SendResult.Sending
             logger.info("sending tx")
+
+            // 1. Create pending transaction draft BEFORE sending
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: amountState.availableBalance
+                ?: throw IllegalStateException("Balance unavailable")
+            val draft = PendingTransactionDraft(
+                wallet = wallet,
+                token = wallet.token,
+                amount = amountState.amount!!,
+                fee = fee,
+                sdkBalanceAtCreation = sdkBalance,
+                fromAddress = "",
+                toAddress = addressState.validAddress!!.hex,
+                memo = memo
+            )
+
+            // 2. Register pending transaction
+            pendingTxId = pendingRegistrar.register(draft)
+
+            // 3. Broadcast transaction
             val transactionRecord = adapter.send(
                 amount = amountState.amount!!,
                 address = addressState.validAddress!!.hex,
@@ -296,6 +322,11 @@ class SendBitcoinViewModel(
                 utxoFilters = UtxoFilters()
             )
 
+            // 4. Update pending with txHash
+            pendingTxId?.let {
+                pendingRegistrar.updateTxId(it, transactionRecord)
+            }
+
             logger.info("success")
             sendResult = SendResult.Sent(transactionRecord)
 
@@ -303,9 +334,11 @@ class SendBitcoinViewModel(
                 recentAddressManager.setRecentAddress(address, blockchainType)
             }
         } catch (e: TangemSdkError.UserCancelled) {
+            pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             sendResult = null
             logger.info("user cancelled")
         } catch (e: Throwable) {
+            pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             if (e is TangemSdkError) {
                 sendResult = null
                 return@withContext

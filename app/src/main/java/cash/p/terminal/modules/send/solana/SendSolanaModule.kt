@@ -7,15 +7,18 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.SolanaKit
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -26,7 +29,9 @@ object SendSolanaModule {
         private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
-        val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendSolanaAdapter)
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+        val adapter = (adapterManager.getAdapterForWalletOld(wallet) as? ISendSolanaAdapter)
             ?: throw IllegalStateException("SendSolanaAdapter is null")
 
         @Suppress("UNCHECKED_CAST")
@@ -36,10 +41,12 @@ object SendSolanaModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
+                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                        ?: adapter.availableBalance
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,
-                        adapter.availableBalance.setScale(
+                        availableBalance.setScale(
                             coinMaxAllowedDecimals,
                             RoundingMode.DOWN
                         ),
@@ -73,6 +80,7 @@ object SendSolanaModule {
                         showAddressInput = !hideAddress,
                         address = address,
                         connectivityManager = App.connectivityManager,
+                        pendingRegistrar = pendingRegistrar
                     ) as T
                 }
 

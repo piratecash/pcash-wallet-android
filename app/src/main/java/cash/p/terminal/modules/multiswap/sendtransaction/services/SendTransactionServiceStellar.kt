@@ -79,15 +79,25 @@ class SendTransactionServiceStellar(account: Account, token: Token) :
         return SendTransactionResult.Stellar(response)
     }
 
-    override fun createState() = SendTransactionServiceState(
-        availableBalance = adapter.maxSendableBalance,
-        networkFee = fee?.let {
-            getAmountData(CoinValue(feeToken, it))
-        },
-        cautions = listOf(),
-        sendable = transactionEnvelope != null,
-        loading = false,
-        fields = listOf(),
-        extraFees = extraFees
-    )
+    override fun createState(): SendTransactionServiceState {
+        val adjustedBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+        val maxSendable = adapter.maxSendableBalance
+        // Use minOf to ensure we don't show more than maxSendableBalance (which accounts for fee)
+        val availableBalance = if (adjustedBalance != null) {
+            minOf(adjustedBalance, maxSendable)
+        } else {
+            maxSendable
+        }
+        return SendTransactionServiceState(
+            availableBalance = availableBalance,
+            networkFee = fee?.let {
+                getAmountData(CoinValue(feeToken, it))
+            },
+            cautions = listOf(),
+            sendable = transactionEnvelope != null,
+            loading = false,
+            fields = listOf(),
+            extraFees = extraFees
+        )
+    }
 }

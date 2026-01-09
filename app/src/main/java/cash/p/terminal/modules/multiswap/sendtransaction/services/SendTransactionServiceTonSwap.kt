@@ -49,16 +49,19 @@ class SendTransactionServiceTonSwap(
 ) : ISendTransactionService<ISendTonAdapter>(token) {
     private val amountValidator = AmountValidator()
 
-    private var feeAdapter: ISendTonAdapter? = null
+    private var feeWallet: cash.p.terminal.wallet.Wallet? = null
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
 
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
     private var pendingTxId: String? = null
 
+    private val adjustedAvailableBalance: BigDecimal
+        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.availableBalance
+
     private val amountService = SendTonAmountService(
         amountValidator = amountValidator,
         coinCode = wallet.coin.code,
-        availableBalance = adapter.availableBalance,
+        availableBalance = adjustedAvailableBalance,
         leaveSomeBalanceForFee = wallet.token.type.isNative
     )
     private val addressService = SendTonAddressService()
@@ -87,7 +90,7 @@ class SendTransactionServiceTonSwap(
         private set
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = adapter.availableBalance,
+        availableBalance = adjustedAvailableBalance,
         networkFee = feeAmountData,
         cautions = cautions + listOfNotNull(feeCaution),
         sendable = sendable,
@@ -169,8 +172,8 @@ class SendTransactionServiceTonSwap(
             if (accountManager.activeAccount?.isHardwareWalletAccount == true) {
                 return@launch
             }
-            feeAdapter = walletUseCase.createWalletIfNotExists(feeToken)?.run {
-                adapterManager.awaitAdapterForWallet<ISendTonAdapter>(this)
+            feeWallet = walletUseCase.createWalletIfNotExists(feeToken)?.also {
+                adapterManager.awaitAdapterForWallet<ISendTonAdapter>(it)
             }
         }
     }
@@ -215,8 +218,10 @@ class SendTransactionServiceTonSwap(
             "SendTransactionData should be SendTransactionData.TonSwap"
         }
 
-        if (feeAdapter != null) {
-            feeAdapter?.availableBalance?.let { availableBalance ->
+        val feeWalletLocal = feeWallet
+        if (feeWalletLocal != null) {
+            val availableBalance = adapterManager.getAdjustedBalanceData(feeWalletLocal)?.available
+            if (availableBalance != null) {
                 feeCaution = if (availableBalance < data.forwardGas.toBigDecimal()
                         .movePointLeft(feeToken.decimals)
                 ) {
@@ -248,11 +253,14 @@ class SendTransactionServiceTonSwap(
             val destinationAddress =
                 checkNotNull(tonSwapData.destinationAddress) { "Destination address is missing" }
 
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: throw IllegalStateException("Balance unavailable")
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = token,
                 amount = tonSwapData.offerUnits.toBigDecimal().movePointLeft(token.decimals),
                 fee = null,
+                sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // TON doesn't require from address
                 toAddress = addressState.address!!.hex,
                 txHash = null

@@ -41,7 +41,7 @@ class BalanceAdapterRepository(
 
                 balanceCache.setCache(
                     wallets.mapNotNull { wallet ->
-                        adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.let {
+                        adapterManager.getAdjustedBalanceData(wallet)?.let {
                             wallet to it
                         }
                     }.toMap()
@@ -83,7 +83,7 @@ class BalanceAdapterRepository(
                     adapter.balanceUpdatedFlow.collect {
                         updatesSubject.onNext(wallet)
 
-                        adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.let {
+                        adapterManager.getAdjustedBalanceData(wallet)?.let {
                             balanceCache.setCache(wallet, it)
                         }
                     }
@@ -98,7 +98,7 @@ class BalanceAdapterRepository(
     }
 
     fun balanceData(wallet: Wallet): BalanceData {
-        return adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData
+        return adapterManager.getAdjustedBalanceData(wallet)
             ?: balanceCache.getCache(wallet)
             ?: BalanceData(BigDecimal.ZERO)
     }

@@ -20,6 +20,7 @@ data class PendingTransactionEntity(
     // Transaction data for matching
     val amountAtomic: String,
     val feeAtomic: String?,
+    val sdkBalanceAtCreationAtomic: String,
     val fromAddress: String,
     val toAddress: String,
 

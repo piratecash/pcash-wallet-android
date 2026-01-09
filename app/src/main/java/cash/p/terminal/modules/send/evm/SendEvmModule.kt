@@ -7,13 +7,15 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.isNative
 import cash.p.terminal.entities.Address
-import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.parcelize.Parcelize
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigInteger
 import java.math.RoundingMode
 
@@ -64,6 +66,7 @@ object SendEvmModule {
         private val hideAddress: Boolean,
         private val adapter: ISendEthereumAdapter
     ) : ViewModelProvider.Factory {
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -72,10 +75,12 @@ object SendEvmModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
+                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                        ?: adapter.balanceData.available
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,
-                        adapter.balanceData.available.setScale(coinMaxAllowedDecimals, RoundingMode.DOWN),
+                        availableBalance.setScale(coinMaxAllowedDecimals, RoundingMode.DOWN),
                         wallet.token.type.isNative
                     )
                     val addressService = SendEvmAddressService()

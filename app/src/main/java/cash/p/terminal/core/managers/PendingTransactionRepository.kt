@@ -57,8 +57,10 @@ class PendingTransactionRepository(
         }
     }
 
-    suspend fun updateTxId(draftId: String, txId: String) = withContext(dispatcherProvider.io) {
-        storage.updateTxId(draftId, txId)
+    suspend fun updateTxId(draftId: String, txId: String) = mutex.withLock {
+        withContext(dispatcherProvider.io) {
+            storage.updateTxId(draftId, txId)
+        }
     }
 
     fun getActivePendingFlow(walletId: String): Flow<List<PendingTransactionEntity>> =
@@ -76,6 +78,13 @@ class PendingTransactionRepository(
         }
     }
 
+    suspend fun deleteByIds(ids: List<String>) = mutex.withLock {
+        withContext(dispatcherProvider.io) {
+            storage.deleteByIds(ids)
+            startCleanupJob()
+        }
+    }
+
     private fun draftToEntity(draft: PendingTransactionDraft): PendingTransactionEntity {
         return PendingTransactionEntity(
             id = draft.id,
@@ -87,13 +96,15 @@ class PendingTransactionRepository(
             amountAtomic = draft.amount.movePointRight(draft.token.decimals).toBigInteger()
                 .toString(),
             feeAtomic = draft.fee?.movePointRight(draft.token.decimals)?.toBigInteger()?.toString(),
+            sdkBalanceAtCreationAtomic = draft.sdkBalanceAtCreation
+                .movePointRight(draft.token.decimals).toBigInteger().toString(),
             fromAddress = draft.fromAddress,
             toAddress = draft.toAddress,
             txHash = draft.txHash,
             nonce = draft.nonce,
             memo = draft.memo,
             createdAt = draft.timestamp,
-            expiresAt = draft.timestamp + TimeUnit.MINUTES.toMillis(10)
+            expiresAt = draft.timestamp + TimeUnit.HOURS.toMillis(1)
         )
     }
 

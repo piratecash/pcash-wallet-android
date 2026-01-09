@@ -44,15 +44,19 @@ class SendTransactionServiceTron(
     val amountValidator = AmountValidator()
     val coinMaxAllowedDecimals = wallet.token.decimals
 
-    val amountService = SendAmountService(
-        amountValidator = amountValidator,
-        coinCode = wallet.token.coin.code,
-        availableBalance = adapter.balanceData.available.setScale(
-            coinMaxAllowedDecimals,
-            RoundingMode.DOWN
-        ),
-        leaveSomeBalanceForFee = wallet.token.type.isNative
-    )
+    val amountService by lazy {
+        val adjustedBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+            ?: adapter.balanceData.available
+        SendAmountService(
+            amountValidator = amountValidator,
+            coinCode = wallet.token.coin.code,
+            availableBalance = adjustedBalance.setScale(
+                coinMaxAllowedDecimals,
+                RoundingMode.DOWN
+            ),
+            leaveSomeBalanceForFee = wallet.token.type.isNative
+        )
+    }
     val addressService = SendTronAddressService(adapter, wallet.token)
     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
     private val feeService = SendTronFeeService(adapter, feeToken)
@@ -88,7 +92,8 @@ class SendTransactionServiceTron(
     private var feeCaution: CautionViewItem? = null
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = adapter.balanceData.available,
+        availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+            ?: adapter.balanceData.available,
         networkFee = networkFee,
         cautions = cautions + listOfNotNull(feeCaution),
         sendable = hasEnoughFeeBalance && (sendTransactionData != null || (amountState.canBeSend && feeState.canBeSend && addressState.canBeSend)),
@@ -172,7 +177,6 @@ class SendTransactionServiceTron(
                         feeState.feeLimit
                     )
                 }
-
             }
         } catch (e: Throwable) {
             cautions = listOf(createCaution(e))

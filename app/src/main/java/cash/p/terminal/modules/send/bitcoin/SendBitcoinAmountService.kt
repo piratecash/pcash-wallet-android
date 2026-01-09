@@ -4,6 +4,8 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
+import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
@@ -15,7 +17,9 @@ import java.math.BigDecimal
 class SendBitcoinAmountService(
     private val adapter: ISendBitcoinAdapter,
     private val coinCode: String,
-    private val amountValidator: AmountValidator
+    private val amountValidator: AmountValidator,
+    private val adapterManager: IAdapterManager,
+    private val wallet: Wallet
 ) {
     private var amount: BigDecimal? = null
     private var customUnspentOutputs: List<UnspentOutputInfo>? = null
@@ -61,7 +65,7 @@ class SendBitcoinAmountService(
     }
 
     private fun refreshAvailableBalance() {
-        availableBalance = feeRate?.let {
+        val dynamicBalance = feeRate?.let {
             adapter.availableBalance(
                 it,
                 validAddress?.hex,
@@ -71,6 +75,12 @@ class SendBitcoinAmountService(
                 changeToFirstInput,
                 utxoFilters
             )
+        }
+        val adjustedBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+        availableBalance = when {
+            dynamicBalance == null -> null
+            adjustedBalance == null -> dynamicBalance
+            else -> minOf(dynamicBalance, adjustedBalance)
         }
     }
 

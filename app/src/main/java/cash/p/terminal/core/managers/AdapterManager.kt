@@ -9,6 +9,7 @@ import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
@@ -43,7 +44,8 @@ class AdapterManager(
     private val tronKitManager: TronKitManager,
     private val tonKitManager: TonKitManager,
     private val moneroKitManager: MoneroKitManager,
-    private val stellarKitManager: StellarKitManager
+    private val stellarKitManager: StellarKitManager,
+    private val pendingBalanceCalculator: PendingBalanceCalculator
 ) : IAdapterManager, HandlerThread("A") {
 
     private val mutex = Mutex()
@@ -160,6 +162,14 @@ class AdapterManager(
         adaptersMap.clear()
         _initializationInProgressFlow.value = true
 
+        // Only one account is active at a time
+        val activeAccountId = wallets.firstOrNull()?.account?.id
+        val previousAccountId = currentAdapters.keys.firstOrNull()?.account?.id
+
+        if (activeAccountId != null) {
+            pendingBalanceCalculator.startObserving(activeAccountId)
+        }
+
         wallets.forEach { wallet ->
             var adapter = currentAdapters.remove(wallet)
             if (adapter == null) {
@@ -179,6 +189,11 @@ class AdapterManager(
             coroutineScope.launch {
                 adapterFactory.unlinkAdapter(wallet)
             }
+        }
+
+        // Stop observing if account changed
+        if (previousAccountId != null && previousAccountId != activeAccountId) {
+            pendingBalanceCalculator.stopObserving(previousAccountId)
         }
         _initializationInProgressFlow.value = false
     }
@@ -264,5 +279,15 @@ class AdapterManager(
 
     override fun getReceiveAdapterForWallet(wallet: Wallet): IReceiveAdapter? {
         return adaptersMap[wallet]?.let { it as? IReceiveAdapter }
+    }
+
+    override fun getAdjustedBalanceData(wallet: Wallet): BalanceData? {
+        val adapter = getBalanceAdapterForWallet(wallet) ?: return null
+        return pendingBalanceCalculator.adjustBalance(wallet, adapter.balanceData)
+    }
+
+    override fun getAdjustedBalanceDataForToken(token: Token): BalanceData? {
+        val wallet = walletManager.activeWallets.firstOrNull { it.token == token } ?: return null
+        return getAdjustedBalanceData(wallet)
     }
 }

@@ -1,5 +1,6 @@
 package cash.p.terminal.wallet
 
+import cash.p.terminal.wallet.entities.BalanceData
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.StateFlow
 
@@ -24,4 +25,16 @@ interface IAdapterManager {
     fun getReceiveAdapterForWallet(wallet: Wallet): IReceiveAdapter?
     fun refreshAdapters(wallets: List<Wallet>)
     fun refreshByWallet(wallet: Wallet)
+
+    /**
+     * Get balance data adjusted for pending transactions.
+     * Automatically handles different SDK behaviors (some deduct immediately, some don't).
+     */
+    fun getAdjustedBalanceData(wallet: Wallet): BalanceData?
+
+    /**
+     * Get balance data adjusted for pending transactions by token.
+     * Finds the active wallet for the token and returns adjusted balance.
+     */
+    fun getAdjustedBalanceDataForToken(token: Token): BalanceData?
 }

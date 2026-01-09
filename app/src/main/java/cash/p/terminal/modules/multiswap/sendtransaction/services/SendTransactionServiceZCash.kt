@@ -150,11 +150,15 @@ class SendTransactionServiceZCash(
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: amountState.availableBalance
+                ?: throw IllegalStateException("Balance unavailable")
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = wallet.token,
                 amount = amountState.amount!!,
                 fee = adapter.fee.firstOrNull(),
+                sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // ZCash doesn't require from address
                 toAddress = addressState.address!!.hex,
                 memo = memo,

@@ -9,6 +9,7 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import org.koin.java.KoinJavaComponent.inject
 
@@ -19,17 +20,20 @@ object SendZCashModule {
         private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
         val adapter =
-            (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendZcashAdapter) ?: throw IllegalStateException("SendZcashAdapter is null")
+            (adapterManager.getAdapterForWalletOld(wallet) as? ISendZcashAdapter) ?: throw IllegalStateException("SendZcashAdapter is null")
         private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
+            val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                ?: adapter.availableBalance
             val amountService = SendAmountService(
                 amountValidator = AmountValidator(),
                 coinCode = wallet.coin.code,
-                availableBalance = adapter.availableBalance
+                availableBalance = availableBalance
             )
             val addressService = SendZCashAddressService(adapter)
             val memoService = SendZCashMemoService()

@@ -27,6 +27,7 @@ import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.managers.PendingBalanceCalculator
 import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.PendingTransactionRegistrarImpl
@@ -217,6 +218,7 @@ val managerModule = module {
 
     // Pending transactions
     singleOf(::PendingTransactionRepository)
+    singleOf(::PendingBalanceCalculator)
     singleOf(::PendingTransactionRegistrarImpl) bind PendingTransactionRegistrar::class
     singleOf(::PendingTransactionMatcher)
     singleOf(::PendingAccountProviderImpl) bind PendingAccountProvider::class

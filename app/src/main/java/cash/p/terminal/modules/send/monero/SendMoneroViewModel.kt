@@ -22,6 +22,7 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.SendUiState
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
@@ -30,6 +31,7 @@ import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
 
@@ -49,6 +51,8 @@ class SendMoneroViewModel(
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = sendToken.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
+
+    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -145,7 +149,9 @@ class SendMoneroViewModel(
             val totalSolAmount =
                 (if (sendToken.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + fee
 
-            if (totalSolAmount > adapter.balanceData.available)
+            val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                ?: adapter.balanceData.available
+            if (totalSolAmount > availableBalance)
                 throw EvmError.InsufficientBalanceWithFee
 
             adapter.send(decimalAmount, addressState.address!!.hex, null)

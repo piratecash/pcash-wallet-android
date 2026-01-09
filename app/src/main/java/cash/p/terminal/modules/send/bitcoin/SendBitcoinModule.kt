@@ -5,11 +5,14 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.factories.FeeRateProviderFactory
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
+import org.koin.java.KoinJavaComponent.inject
 
 object SendBitcoinModule {
     @Suppress("UNCHECKED_CAST")
@@ -19,12 +22,15 @@ object SendBitcoinModule {
         private val hideAddress: Boolean,
         private val adapter: ISendBitcoinAdapter
     ) : ViewModelProvider.Factory {
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val provider = FeeRateProviderFactory.provider(wallet.token.blockchainType)!!
             val feeService = SendBitcoinFeeService(adapter)
             val feeRateService = SendBitcoinFeeRateService(provider)
             val amountService =
-                SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator())
+                SendBitcoinAmountService(adapter, wallet.coin.code, AmountValidator(), adapterManager, wallet)
             val addressService = SendBitcoinAddressService(adapter)
             val pluginService = SendBitcoinPluginService(wallet.token.blockchainType)
             return SendBitcoinViewModel(
@@ -40,7 +46,8 @@ object SendBitcoinModule {
                 contactsRepo = App.contactsRepository,
                 showAddressInput = !hideAddress,
                 localStorage = App.localStorage,
-                address = address
+                address = address,
+                pendingRegistrar = pendingRegistrar
             ) as T
         }
     }

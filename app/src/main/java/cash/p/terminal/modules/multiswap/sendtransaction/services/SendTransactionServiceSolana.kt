@@ -47,10 +47,13 @@ class SendTransactionServiceSolana(
 
     private val coinMaxAllowedDecimals = wallet.token.decimals
 
+    private val adjustedAvailableBalance: BigDecimal
+        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.availableBalance
+
     private val amountService = SendAmountService(
         amountValidator = AmountValidator(),
         coinCode = wallet.token.coin.code,
-        availableBalance = adapter.availableBalance.setScale(
+        availableBalance = adjustedAvailableBalance.setScale(
             coinMaxAllowedDecimals,
             RoundingMode.DOWN
         ),
@@ -108,7 +111,7 @@ class SendTransactionServiceSolana(
     }
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = adapter.availableBalance,
+        availableBalance = adjustedAvailableBalance,
         networkFee = feeAmountData,
         cautions = cautions,
         sendable = sendable,

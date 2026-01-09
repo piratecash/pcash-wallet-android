@@ -40,6 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
+import java.math.BigDecimal
 import kotlin.getValue
 
 class SendTransactionServiceTon(
@@ -47,10 +48,13 @@ class SendTransactionServiceTon(
 ) : ISendTransactionService<ISendTonAdapter>(token) {
     private val amountValidator = AmountValidator()
 
+    private val adjustedAvailableBalance: BigDecimal
+        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.availableBalance
+
     private val amountService = SendTonAmountService(
         amountValidator = amountValidator,
         coinCode = wallet.coin.code,
-        availableBalance = adapter.availableBalance,
+        availableBalance = adjustedAvailableBalance,
         leaveSomeBalanceForFee = wallet.token.type.isNative
     )
     private val addressService = SendTonAddressService()
@@ -75,13 +79,13 @@ class SendTransactionServiceTon(
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
 
-    private var feeAdapter: ISendTonAdapter? = null
+    private var feeWallet: cash.p.terminal.wallet.Wallet? = null
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private var feeCaution: CautionViewItem? = null
     private var hasEnoughFeeAmount: Boolean = true
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = adapter.availableBalance,
+        availableBalance = adjustedAvailableBalance,
         networkFee = feeAmountData,
         cautions = cautions + listOfNotNull(feeCaution),
         sendable = sendable,
@@ -174,8 +178,8 @@ class SendTransactionServiceTon(
             if (accountManager.activeAccount?.isHardwareWalletAccount == true) {
                 return@launch
             }
-            feeAdapter = walletUseCase.createWalletIfNotExists(feeToken)?.run {
-                adapterManager.awaitAdapterForWallet<ISendTonAdapter>(this)
+            feeWallet = walletUseCase.createWalletIfNotExists(feeToken)?.also {
+                adapterManager.awaitAdapterForWallet<ISendTonAdapter>(it)
             }
         }
     }
@@ -188,11 +192,15 @@ class SendTransactionServiceTon(
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: amountState.availableBalance
+                ?: throw IllegalStateException("Balance unavailable")
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = token,
                 amount = amountState.amount!!,
                 fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
+                sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // TON doesn't require from address
                 toAddress = addressState.address!!.hex,
                 memo = memo,
@@ -220,8 +228,10 @@ class SendTransactionServiceTon(
             hasEnoughFeeAmount = true
         }
         val fee = (feeState.feeStatus as? FeeStatus.Success)?.fee ?: return
-        if (feeAdapter != null) {
-            feeAdapter?.availableBalance?.let { availableBalance ->
+        val feeWalletLocal = feeWallet
+        if (feeWalletLocal != null) {
+            val availableBalance = adapterManager.getAdjustedBalanceData(feeWalletLocal)?.available
+            if (availableBalance != null) {
                 feeCaution = if (availableBalance < fee) {
                     createCaution(LocalizedException(R.string.not_enough_ton_for_fee))
                 } else {

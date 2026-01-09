@@ -9,6 +9,7 @@ import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -23,6 +24,7 @@ object SendTonModule {
         private val adapter: ISendTonAdapter
     ) : ViewModelProvider.Factory {
         private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -31,10 +33,12 @@ object SendTonModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
+                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                        ?: adapter.availableBalance
                     val amountService = SendTonAmountService(
                         amountValidator = amountValidator,
                         coinCode = wallet.coin.code,
-                        availableBalance = adapter.availableBalance,
+                        availableBalance = availableBalance,
                         leaveSomeBalanceForFee = wallet.token.type.isNative
                     )
                     val addressService = SendTonAddressService()
@@ -55,7 +59,8 @@ object SendTonModule {
                         contactsRepo = App.contactsRepository,
                         showAddressInput = !hideAddress,
                         address = address,
-                        pendingRegistrar = pendingRegistrar
+                        pendingRegistrar = pendingRegistrar,
+                        adapterManager = adapterManager
                     ) as T
                 }
 

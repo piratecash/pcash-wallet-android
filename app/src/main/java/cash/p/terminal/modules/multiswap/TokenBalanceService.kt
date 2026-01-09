@@ -62,7 +62,8 @@ class TokenBalanceService(
 
     private fun refreshAvailableBalance() {
         adapter = token?.let { adapterManager.getAdapterForToken(it) as? IBalanceAdapter }
-        balance = adapter?.balanceData?.available
+        balance = token?.let { adapterManager.getAdjustedBalanceDataForToken(it)?.available }
+            ?: adapter?.balanceData?.available
     }
 
     fun getFeeToTransferAll(): BigDecimal? {

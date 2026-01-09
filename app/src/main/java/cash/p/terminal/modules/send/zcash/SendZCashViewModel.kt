@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.LocalizedException
@@ -19,14 +18,17 @@ import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.grpc.StatusRuntimeException
 import io.horizontalsystems.core.ViewModelUiState
+import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.toHexReversed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
 
@@ -47,6 +49,7 @@ class SendZCashViewModel(
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val memoMaxLength by memoService::memoMaxLength
 
+    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
     private val fee = adapter.fee
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -163,11 +166,15 @@ class SendZCashViewModel(
         try {
             sendResult = SendResult.Sending
             // 1. Create pending transaction draft BEFORE sending
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: amountState.availableBalance
+                ?: throw IllegalStateException("Balance unavailable")
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = wallet.token,
                 amount = amountState.amount!!,
                 fee = fee.value,
+                sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // ZCash doesn't require from address
                 toAddress = addressState.address!!.hex,
                 memo = memoState.memo,

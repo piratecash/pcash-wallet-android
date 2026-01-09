@@ -9,7 +9,9 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
+import org.koin.java.KoinJavaComponent.inject
 import java.math.RoundingMode
 
 object SendMoneroModule {
@@ -19,7 +21,8 @@ object SendMoneroModule {
         private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
-        val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendMoneroAdapter) ?: throw IllegalStateException("SendMoneroAdapter is null")
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        val adapter = (adapterManager.getAdapterForWalletOld(wallet) as? ISendMoneroAdapter) ?: throw IllegalStateException("SendMoneroAdapter is null")
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -28,10 +31,12 @@ object SendMoneroModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
+                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                        ?: adapter.balanceData.available
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,
-                        adapter.balanceData.available.setScale(coinMaxAllowedDecimals, RoundingMode.DOWN),
+                        availableBalance.setScale(coinMaxAllowedDecimals, RoundingMode.DOWN),
                         wallet.token.type.isNative,
                     )
                     val addressService = SendMoneroAddressService()

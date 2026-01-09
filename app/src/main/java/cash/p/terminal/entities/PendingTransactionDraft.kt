@@ -12,11 +12,12 @@ data class PendingTransactionDraft(
     val token: Token,
     val amount: BigDecimal,
     val fee: BigDecimal?,
+    val sdkBalanceAtCreation: BigDecimal,
     val fromAddress: String,
     val toAddress: String,
-    val meta: String? =  token.type.meta,
+    val meta: String? = token.type.meta,
     val memo: String? = null,
-    val txHash: String?,
+    val txHash: String? = null,
     val nonce: Long? = null,
     val timestamp: Long = System.currentTimeMillis()
 )

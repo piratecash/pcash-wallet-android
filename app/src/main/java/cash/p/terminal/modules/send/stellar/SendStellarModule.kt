@@ -9,10 +9,12 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
+import org.koin.java.KoinJavaComponent.inject
 
 object SendStellarModule {
     class Factory(
@@ -20,17 +22,26 @@ object SendStellarModule {
         private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
-        val adapter = App.adapterManager.getAdapterForWallet<ISendStellarAdapter>(wallet) ?: throw IllegalStateException("ISendStellarAdapter is null")
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        val adapter = adapterManager.getAdapterForWallet<ISendStellarAdapter>(wallet) ?: throw IllegalStateException("ISendStellarAdapter is null")
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val amountValidator = AmountValidator()
             val coinMaxAllowedDecimals = wallet.token.decimals
 
+            val adjustedBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+            val maxSendable = adapter.maxSendableBalance
+            // Use minOf to ensure we don't show more than maxSendableBalance (which accounts for fee)
+            val availableBalance = if (adjustedBalance != null) {
+                minOf(adjustedBalance, maxSendable)
+            } else {
+                maxSendable
+            }
             val amountService = SendAmountService(
                 amountValidator = amountValidator,
                 coinCode = wallet.coin.code,
-                availableBalance = adapter.maxSendableBalance,
+                availableBalance = availableBalance,
                 leaveSomeBalanceForFee = wallet.token.type.isNative
             )
             val addressService = SendStellarAddressService()

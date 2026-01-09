@@ -9,10 +9,12 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
-import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.entities.BlockchainType
+import org.koin.java.KoinJavaComponent.inject
 import java.math.RoundingMode
 
 object SendTronModule {
@@ -22,7 +24,8 @@ object SendTronModule {
         private val address: Address?,
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
-        val adapter = (App.adapterManager.getAdapterForWalletOld(wallet) as? ISendTronAdapter) ?: throw IllegalStateException("SendTronAdapter is null")
+        private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        val adapter = (adapterManager.getAdapterForWalletOld(wallet) as? ISendTronAdapter) ?: throw IllegalStateException("SendTronAdapter is null")
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -31,10 +34,12 @@ object SendTronModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
+                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                        ?: adapter.balanceData.available
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,
-                        adapter.balanceData.available.setScale(coinMaxAllowedDecimals, RoundingMode.DOWN),
+                        availableBalance.setScale(coinMaxAllowedDecimals, RoundingMode.DOWN),
                         wallet.token.type.isNative,
                     )
                     val addressService = SendTronAddressService(adapter, wallet.token)
