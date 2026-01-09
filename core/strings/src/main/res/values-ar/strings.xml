@@ -104,6 +104,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">إعدادات متقدمة</string>
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
+    <string name="invalid_height">ارتفاع غير صالح</string>
+    <string name="invalid_height_format">ارتفاع غير صالح، تأكد من إدخال YYYY-MM-DD أو ارتفاع الولادة</string>
     <string name="blockchair_height_by_date_connection_error">لا يمكن الاتصال بـ Blockchair للعثور على الارتفاع حسب التاريخ</string>
     <string name="Restore_Error_EmptyPassphrase">لا يمكن أن تكون كلمة المرور فارغة</string>
     <string name="Restore_InvalidChecksum">Invalid Checksum</string>

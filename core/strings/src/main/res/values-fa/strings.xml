@@ -104,6 +104,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Advanced</string>
     <string name="Restore_Error_MnemonicWordCount">تعداد کلمات اشتباه. باید بین ۱۲ تا ۱۴ کلمه باشد. شما وارد کردید: %d</string>
+    <string name="invalid_height">ارتفاع نامعتبر</string>
+    <string name="invalid_height_format">ارتفاع نامعتبر، مطمئن شوید که تاریخ را به صورت YYYY-MM-DD یا ارتفاع تولد وارد کرده‌اید</string>
     <string name="blockchair_height_by_date_connection_error">امکان اتصال به Blockchair برای یافتن ارتفاع بر اساس تاریخ وجود ندارد</string>
     <string name="Restore_Error_EmptyPassphrase">رمز عبور نمی تواند خالی باشد</string>
     <string name="Restore_InvalidChecksum">Checksum نامعتبر است</string>

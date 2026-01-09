@@ -99,7 +99,7 @@ class ZcashConfigureViewModel(
                     } else {
                         heightInput.toLongOrNull()?.toString().also {
                             if (it == null) {
-                                errorMessage = Translator.getString(R.string.invalid_height)
+                                errorMessage = Translator.getString(R.string.invalid_height_format)
                             }
                         }
                     }

@@ -59,7 +59,7 @@ class MoneroConfigureViewModel(
                 null
             },
             errorHeight = if (heightDetected == -1L) {
-                Translator.getString(R.string.invalid_height)
+                Translator.getString(R.string.invalid_height_format)
             } else {
                 null
             }

@@ -104,6 +104,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">고급의</string>
     <string name="Restore_Error_MnemonicWordCount">단어 수가 틀렸습니다. 12 개 와 24개 사이여야 합니다. 이렇게 입력했습니다: %d</string>
+    <string name="invalid_height">잘못된 높이</string>
+    <string name="invalid_height_format">잘못된 높이, YYYY-MM-DD 형식이나 출생 높이를 입력했는지 확인하세요</string>
     <string name="blockchair_height_by_date_connection_error">날짜로 높이를 찾기 위해 Blockchair에 연결할 수 없습니다</string>
     <string name="Restore_Error_EmptyPassphrase">암호 문구는 필수 입력 사항입니다</string>
     <string name="Restore_InvalidChecksum">유효하지 않은 체크섬</string>

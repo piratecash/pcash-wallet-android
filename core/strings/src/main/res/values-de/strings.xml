@@ -103,6 +103,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Erweitert</string>
     <string name="Restore_Error_MnemonicWordCount">Falsche Wortzahl. Sie muss zwischen 12 und 24 Wörtern liegen. Sie haben eingegeben: %d</string>
+    <string name="invalid_height">Ungültige Höhe</string>
+    <string name="invalid_height_format">Ungültige Höhe, bitte stellen Sie sicher, dass Sie JJJJ-MM-TT oder Geburtshöhe eingegeben haben</string>
     <string name="blockchair_height_by_date_connection_error">Keine Verbindung zu Blockchair möglich, um die Höhe nach Datum zu finden</string>
     <string name="Restore_Error_EmptyPassphrase">Passphrase darf nicht leer sein</string>
     <string name="Restore_InvalidChecksum">Ungültige Prüfsumme</string>

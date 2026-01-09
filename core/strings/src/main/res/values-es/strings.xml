@@ -103,6 +103,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Avanzado</string>
     <string name="Restore_Error_MnemonicWordCount">Número de palabras erróneas. Debe tener entre 12 y 24 palabras. Has ingresado: %d</string>
+    <string name="invalid_height">Altura no válida</string>
+    <string name="invalid_height_format">Altura no válida, asegúrese de haber ingresado AAAA-MM-DD o altura de nacimiento</string>
     <string name="blockchair_height_by_date_connection_error">No se puede conectar a Blockchair para encontrar la altura por fecha</string>
     <string name="Restore_Error_EmptyPassphrase">La frase de contraseña no puede estar vacío</string>
     <string name="Restore_InvalidChecksum">Suma de verificación inválida</string>
