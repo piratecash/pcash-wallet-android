@@ -776,6 +776,8 @@
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
     <string name="Appearance_AppIcon">نماد برنامه</string>
+    <string name="appearance_app_icon_our_icon">نماد ما</string>
+    <string name="appearance_app_icon_other">سایر</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
     <string name="Appearance_Warning_CloseApplication">Changing icon will close application</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>

@@ -475,6 +475,9 @@ class LocalStorageManager(
             preferences.edit().putString(APP_ICON, value?.name).apply()
         }
 
+    override val appIconRaw: String?
+        get() = preferences.getString(APP_ICON, null)
+
     override var mainTab: MainModule.MainNavigation?
         get() = preferences.getString(MAIN_TAB, null)?.let {
             MainModule.MainNavigation.fromString(it)

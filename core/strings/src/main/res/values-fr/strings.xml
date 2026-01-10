@@ -771,7 +771,9 @@
     <string name="mev_protection">Protection MEV</string>
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
-    <string name="Appearance_AppIcon">ICON APPLICATION</string>
+    <string name="Appearance_AppIcon">Icône de l\'app</string>
+    <string name="appearance_app_icon_our_icon">NOTRE ICÔNE</string>
+    <string name="appearance_app_icon_other">AUTRES</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
     <string name="Appearance_Warning_CloseApplication">La modification de l\'icône fermera l\'application</string>
     <string name="Appearance_HideMarketsTab">Masquer les marchés</string>

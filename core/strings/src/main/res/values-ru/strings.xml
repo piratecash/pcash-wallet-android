@@ -791,7 +791,9 @@
     <string name="SettingsAddressChecker_InvalidAddress">Введённый вами адрес недействителен. Пожалуйста, проверьте его на наличие опечаток или ошибок в формате и попробуйте снова.</string>
     <string name="Appearance_MarketsTab">ВКЛАДКА РЫНКОВ</string>
     <string name="Appearance_BalanceTab">ВКЛАДКА БАЛАНС</string>
-    <string name="Appearance_AppIcon">ИКОНКА ПРИЛОЖЕНИЯ</string>
+    <string name="Appearance_AppIcon">Иконка приложения</string>
+    <string name="appearance_app_icon_our_icon">НАША ИКОНКА</string>
+    <string name="appearance_app_icon_other">ДРУГИЕ</string>
     <string name="Appearance_BalanceValue">Значение баланса</string>
     <string name="Appearance_Warning_CloseApplication">Изменение значка закроет приложение</string>
     <string name="Appearance_HideMarketsTab">Скрыть рынки</string>

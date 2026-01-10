@@ -75,6 +75,7 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var ignoreRootedDeviceWarning: Boolean
     var launchPage: LaunchPage?
     var appIcon: AppIcon?
+    val appIconRaw: String?
     var mainTab: MainModule.MainNavigation?
     var marketFavoritesSorting: WatchlistSorting?
     var marketFavoritesShowSignals: Boolean

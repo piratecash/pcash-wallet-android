@@ -776,6 +776,8 @@
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
     <string name="Appearance_AppIcon">앱 아이콘</string>
+    <string name="appearance_app_icon_our_icon">우리 아이콘</string>
+    <string name="appearance_app_icon_other">기타</string>
     <string name="Appearance_BalanceValue">균형 가치</string>
     <string name="Appearance_Warning_CloseApplication">아이콘을 변경하면 애플리케이션이 종료됩니다.</string>
     <string name="Appearance_HideMarketsTab">마켓 숨기기</string>

@@ -17,6 +17,23 @@ class AppIconService(private val localStorage: ILocalStorage) {
     )
     val optionsFlow = _optionsFlow.asStateFlow()
 
+    init {
+        migrateFromLegacyIconIfNeeded()
+    }
+
+    /**
+     * Migrates users from legacy app icons (Dark, Duck, IVFun, Mono, Yellow) to Main.
+     * These icons were removed but users may still have them stored in preferences.
+     * When a stored icon name doesn't match any current AppIcon, we migrate to Main.
+     */
+    private fun migrateFromLegacyIconIfNeeded() {
+        val rawIconName = localStorage.appIconRaw
+        // If there's a stored value but it doesn't map to a valid AppIcon, it's a legacy icon
+        if (rawIconName != null && localStorage.appIcon == null) {
+            setAppIcon(AppIcon.Main)
+        }
+    }
+
     fun setAppIcon(appIcon: AppIcon) {
         localStorage.appIcon = appIcon
 

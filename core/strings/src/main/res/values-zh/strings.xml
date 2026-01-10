@@ -772,6 +772,8 @@
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
     <string name="Appearance_AppIcon">应用图标</string>
+    <string name="appearance_app_icon_our_icon">我们的图标</string>
+    <string name="appearance_app_icon_other">其他</string>
     <string name="Appearance_BalanceValue">余额值</string>
     <string name="Appearance_Warning_CloseApplication">更改图标将关闭应用程序</string>
     <string name="Appearance_HideMarketsTab">隐藏市场</string>

@@ -775,7 +775,9 @@
     <string name="mev_protection">MEV Koruması</string>
     <string name="Appearance_MarketsTab">MARKETS TAB</string>
     <string name="Appearance_BalanceTab">BALANCE TAB</string>
-    <string name="Appearance_AppIcon">UYGULAMA IKONLARI</string>
+    <string name="Appearance_AppIcon">Uygulama simgesi</string>
+    <string name="appearance_app_icon_our_icon">BİZİM SİMGEMİZ</string>
+    <string name="appearance_app_icon_other">DİĞER</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
     <string name="Appearance_Warning_CloseApplication">Simgeyi değiştirmek uygulamayı kapatır</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>

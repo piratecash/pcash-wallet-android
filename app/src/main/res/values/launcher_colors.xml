@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="launcher_pcash_background">#000000</color>
+    <color name="launcher_pirate_background">#000000</color>
+    <color name="launcher_cosa_background">#000000</color>
+    <color name="launcher_btc_background">#F7931A</color>
+    <color name="launcher_eth_background">#627EEA</color>
+    <color name="launcher_bnb_background">#F0B90B</color>
+    <color name="launcher_doge_background">#BA9F33</color>
+    <color name="launcher_ltc_background">#345D9D</color>
+    <color name="launcher_xmr_background">#FFFFFF</color>
+    <color name="launcher_ton_background">#0098EA</color>
+    <color name="launcher_trx_background">#EB332A</color>
+    <color name="launcher_sol_background">#2F2F2F</color>
+    <color name="launcher_matic_background">#8247E5</color>
+    <color name="launcher_arb_background">#2D374B</color>
+    <color name="launcher_op_background">#EB3431</color>
+    <color name="launcher_base_background">#174DDB</color>
+    <color name="launcher_zk_background">#FFFFFF</color>
+    <color name="launcher_avax_background">#D74F49</color>
+    <color name="launcher_dash_background">#008CE7</color>
+    <color name="launcher_xlm_background">#FFFFFF</color>
+    <color name="launcher_zec_background">#ECB244</color>
+    <color name="launcher_ftm_background">#56B4E5</color>
+    <color name="launcher_gno_background">#3E6957</color>
+    <color name="launcher_xec_background">#1B49A6</color>
+    <color name="launcher_bch_background">#0AC18E</color>
+</resources>

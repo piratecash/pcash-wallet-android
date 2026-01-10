@@ -790,7 +790,9 @@
     <string name="SettingsAddressChecker_InvalidAddress">Введена вами адреса недійсна. Будь ласка, перевірте її на наявність помилок або помилок у форматі та спробуйте знову.</string>
     <string name="Appearance_MarketsTab">ВКЛАДКА РИНКІВ</string>
     <string name="Appearance_BalanceTab">ВКЛАДКА БАЛАНСУ</string>
-    <string name="Appearance_AppIcon">ІКОНКА ПРОГРАМИ</string>
+    <string name="Appearance_AppIcon">Іконка програми</string>
+    <string name="appearance_app_icon_our_icon">НАША ІКОНКА</string>
+    <string name="appearance_app_icon_other">ІНШІ</string>
     <string name="Appearance_BalanceValue">Значення балансу</string>
     <string name="Appearance_Warning_CloseApplication">Зміна іконки закриє програму</string>
     <string name="Appearance_HideMarketsTab">Приховати ринки</string>
