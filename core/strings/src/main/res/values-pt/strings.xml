@@ -1627,6 +1627,10 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Enviando</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">Verificação de contrato inteligente do destinatário</string>
+    <string name="settings_smart_contract_check_description">Verifica se o endereço do destinatário não é um contrato antes de enviar.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">Verificação AML</string>
     <string name="alpha_aml_description">Alpha AML é uma ferramenta para verificar carteiras e transações de criptomoedas. Avalia o nível de risco de interagir com uma carteira, identifica endereços em listas negras, listas de sanções, relatórios de fraude e ajuda a evitar receber criptomoedas contaminadas.</string>

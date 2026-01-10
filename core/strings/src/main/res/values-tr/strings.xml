@@ -1628,6 +1628,10 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Gönderiliyor</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">Akıllı sözleşme alıcı kontrolü</string>
+    <string name="settings_smart_contract_check_description">Göndermeden önce alıcı adresinin bir akıllı sözleşme olmadığını kontrol eder.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">AML Kontrolü</string>
     <string name="alpha_aml_description">Alpha AML, kripto para cüzdanlarını ve işlemlerini kontrol etmek için bir araçtır. Bir cüzdanla etkileşim risk seviyesini değerlendirir, kara listelerdeki, yaptırım listelerindeki ve dolandırıcılık raporlarındaki adresleri tespit eder ve kirlenmiş kripto para almaktan kaçınmaya yardımcı olur.</string>

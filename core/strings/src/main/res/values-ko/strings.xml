@@ -1625,6 +1625,10 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">전송 중</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">스마트 컨트랙트 수신자 확인</string>
+    <string name="settings_smart_contract_check_description">전송 전 수신자 주소가 스마트 컨트랙트가 아닌지 확인합니다.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">AML 확인</string>
     <string name="alpha_aml_description">Alpha AML은 암호화폐 지갑 및 거래를 확인하는 도구입니다. 지갑과의 상호 작용 위험 수준을 평가하고, 블랙리스트, 제재 목록, 사기 보고서에 있는 주소를 식별하며, 오염된 암호화폐 수신을 방지하는 데 도움을 줍니다.</string>

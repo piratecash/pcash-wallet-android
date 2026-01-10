@@ -1633,6 +1633,10 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Verzenden</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">Smart contract ontvanger controle</string>
+    <string name="settings_smart_contract_check_description">Controleert voor verzending of het adres van de ontvanger geen smart contract is.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">AML-controle</string>
     <string name="alpha_aml_description">Alpha AML is een tool voor het controleren van cryptocurrency-wallets en transacties. Het beoordeelt het risiconiveau van interactie met een wallet, identificeert adressen op zwarte lijsten, sanctielijsten en frauderapporten en helpt besmette crypto te vermijden.</string>

@@ -1625,6 +1625,10 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Envoi</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">Vérification du contrat intelligent du destinataire</string>
+    <string name="settings_smart_contract_check_description">Vérifie que l\'adresse du destinataire n\'est pas un contrat avant l\'envoi.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">Vérification AML</string>
     <string name="alpha_aml_description">Alpha AML est un outil de vérification des portefeuilles et transactions de cryptomonnaies. Il évalue le niveau de risque d\'interaction avec un portefeuille, identifie les adresses sur les listes noires, les listes de sanctions, les rapports d\'escroquerie et aide à éviter de recevoir des cryptomonnaies contaminées.</string>

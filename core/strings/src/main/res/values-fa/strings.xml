@@ -1631,6 +1631,10 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">ارسال</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">بررسی قرارداد هوشمند گیرنده</string>
+    <string name="settings_smart_contract_check_description">قبل از ارسال، بررسی می‌کند که آدرس گیرنده یک قرارداد هوشمند نباشد.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">بررسی AML</string>
     <string name="alpha_aml_description">Alpha AML ابزاری برای بررسی کیف پول‌های رمزنگاری و تراکنش‌ها است. سطح ریسک تعامل با کیف پول را ارزیابی می‌کند، آدرس‌های موجود در لیست سیاه، لیست تحریم‌ها و گزارش‌های کلاهبرداری را شناسایی کرده و به جلوگیری از دریافت ارزهای دیجیتال آلوده کمک می‌کند.</string>

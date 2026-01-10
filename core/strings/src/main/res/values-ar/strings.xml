@@ -1640,6 +1640,10 @@
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">جارٍ الإرسال</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">فحص العقد الذكي للمستلم</string>
+    <string name="settings_smart_contract_check_description">يتحقق من أن عنوان المستلم ليس عقدًا ذكيًا قبل الإرسال.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">فحص AML</string>
     <string name="alpha_aml_description">Alpha AML هي أداة للتحقق من محافظ العملات المشفرة والمعاملات. تقوم بتقييم مستوى المخاطر للتفاعل مع المحفظة، وتحديد العناوين في القوائم السوداء وقوائم العقوبات وتقارير الاحتيال والمساعدة في تجنب استلام العملات المشفرة الملوثة.</string>

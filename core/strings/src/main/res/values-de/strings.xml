@@ -1620,6 +1620,10 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
 
     <!-- Pending Transactions -->
     <string name="transaction_pending_title">Senden</string>
+    <!-- Smart Contract Check -->
+    <string name="settings_smart_contract_check">Smart-Contract-Empfängerprüfung</string>
+    <string name="settings_smart_contract_check_description">Prüft vor dem Senden, ob die Empfängeradresse kein Smart Contract ist.</string>
+
     <!-- Alpha AML Risk Levels -->
     <string name="alpha_aml_title">AML-Prüfung</string>
     <string name="alpha_aml_description">Alpha AML ist ein Tool zur Überprüfung von Kryptowährungs-Wallets und Transaktionen. Es bewertet das Risikoniveau bei der Interaktion mit einem Wallet, identifiziert Adressen auf Blacklists, Sanktionslisten und Betrugsberichten und hilft, den Erhalt von belasteten Kryptowährungen zu vermeiden.</string>
