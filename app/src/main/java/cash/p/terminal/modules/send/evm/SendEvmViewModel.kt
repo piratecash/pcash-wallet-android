@@ -128,7 +128,7 @@ internal class SendEvmViewModel(
         sendResult = try {
             val sendResult = sendTransactionService.sendTransaction()
             SendResult.Sent(sendResult.getRecordUid())
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             SendResult.Failed(createCaution(e))
         }
     }
