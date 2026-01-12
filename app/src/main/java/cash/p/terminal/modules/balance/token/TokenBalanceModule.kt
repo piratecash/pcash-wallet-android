@@ -78,7 +78,9 @@ class TokenBalanceModule {
                 accountManager = App.accountManager,
                 transactionHiddenManager = getKoinInstance(),
                 getChangeNowAssociatedCoinTickerUseCase = getKoinInstance(),
-                balanceHiddenManager = getKoinInstance<IBalanceHiddenManager>()
+                balanceHiddenManager = getKoinInstance<IBalanceHiddenManager>(),
+                premiumSettings = getKoinInstance(),
+                amlStatusManager = getKoinInstance()
             ) as T
         }
     }
@@ -87,6 +89,8 @@ class TokenBalanceModule {
         val title: String,
         val balanceViewItem: BalanceViewItem?,
         val transactions: Map<String, List<TransactionViewItem>>?,
-        val hasHiddenTransactions: Boolean
+        val hasHiddenTransactions: Boolean,
+        val showAmlPromo: Boolean = false,
+        val amlCheckEnabled: Boolean = false
     )
 }

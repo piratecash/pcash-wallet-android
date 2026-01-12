@@ -7,5 +7,7 @@ data class TransactionsUiState(
     val viewState: ViewState,
     val transactionListId: String?,
     val syncing: Boolean,
-    val hasHiddenTransactions: Boolean
+    val hasHiddenTransactions: Boolean,
+    val showAmlPromo: Boolean = false,
+    val amlCheckEnabled: Boolean = false
 )

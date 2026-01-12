@@ -40,6 +40,7 @@
 
     <!--Paired Colors-->
     <color name="jacob">@color/yellow_l</color>
+    <color name="jacob_d">#FFA800</color>
     <color name="remus">@color/green_l</color>
     <color name="lucian">@color/red_l</color>
     <color name="tyler">@color/light</color>

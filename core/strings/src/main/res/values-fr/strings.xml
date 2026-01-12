@@ -1636,6 +1636,13 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="alpha_aml_low_risk">Faible Risque</string>
     <string name="alpha_aml_high_risk">Risque Élevé</string>
     <string name="alpha_aml_very_high_risk">Risque Très Élevé</string>
+    <string name="aml_promo_dismiss_hud">Vous pouvez toujours revenir à cette fonctionnalité dans les paramètres premium.</string>
+    <string name="aml_check_info_description">Il s\'agit d\'une fonctionnalité premium pour vérifier les transactions entrantes. Elle peut être désactivée dans la section des paramètres premium.</string>
+    <string name="aml_check_info_later">Plus tard</string>
+    <string name="aml_unknown">Inconnu</string>
+    <string name="aml_low_risk">Risque Faible</string>
+    <string name="aml_medium_risk">Risque Moyen</string>
+    <string name="aml_high_risk">Risque Élevé</string>
     <string name="check_from_aml">Vérification de alpha-aml.com</string>
     <string name="Send_Address_ErrorMessage_AmlDetected">Problème AML détecté !</string>
     <string name="Send_Address_ErrorMessage_AmlDetected_Description">L\'adresse saisie figure sur la liste noire AML. Les transactions vers cette adresse pourraient entraîner des pertes ou d\'autres risques. Veuillez vérifier les détails du destinataire avant de continuer.</string>

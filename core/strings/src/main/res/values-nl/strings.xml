@@ -633,7 +633,7 @@
     <string name="Transactions_Unknown_Description">Transaction can not be parsed</string>
     <string name="Transactions_Multiple">Multiple</string>
     <string name="Transactions_Filter">Filter</string>
-    <string name="Transactions_Filter_HideSuspiciousTx">Hide suspicious tx</string>
+    <string name="Transactions_Filter_HideSuspiciousTx">Verdachte transacties verbergen</string>
     <string name="Transactions_Filter_StablecoinDustAmount_Description">Hiding incoming transactions with the dust amount in stablecoins, this partially solves the  address poisoning attack problems.</string>
     <string name="Transactions_Filter_ChooseContact_Hint">Filtering by contacts works on the following blockchains: Ethereum, BNB Smart Chain, Polygon, Avalanche, Gnosis, Fantom, Arbitrum, Optimism, Tron, Ton and ZCash. Below are the suitable contacts</string>
     <string name="Transactions_Filter_ChooseContact_NoSuitableContact">You don\'t have any suitable contacts </string>
@@ -1644,6 +1644,13 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="alpha_aml_low_risk">Laag Risico</string>
     <string name="alpha_aml_high_risk">Hoog Risico</string>
     <string name="alpha_aml_very_high_risk">Hoogste Risico</string>
+    <string name="aml_promo_dismiss_hud">U kunt altijd terugkeren naar deze functie in de premium-instellingen.</string>
+    <string name="aml_check_info_description">Dit is een premium-functie voor het controleren van inkomende transacties. Deze kan worden uitgeschakeld in de premium-instellingen.</string>
+    <string name="aml_check_info_later">Later</string>
+    <string name="aml_unknown">Onbekend</string>
+    <string name="aml_low_risk">Laag Risico</string>
+    <string name="aml_medium_risk">Gemiddeld Risico</string>
+    <string name="aml_high_risk">Hoog Risico</string>
     <string name="check_from_aml">Controle van alpha-aml.com</string>
     <string name="Send_Address_ErrorMessage_AmlDetected">AML-probleem gedetecteerd!</string>
     <string name="Send_Address_ErrorMessage_AmlDetected_Description">Het ingevoerde adres staat op de AML-zwarte lijst. Transacties naar dit adres kunnen leiden tot verlies of andere risico\'s. Controleer de gegevens van de ontvanger voordat u doorgaat.</string>

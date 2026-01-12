@@ -7,6 +7,7 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.send.address.AddressCheckResult
 import cash.p.terminal.wallet.Token
+import java.util.concurrent.ConcurrentHashMap
 
 class AddressCheckManager(
     spamManager: SpamManager,
@@ -35,7 +36,7 @@ class AddressCheckManager(
         )
     )
 
-    private val cache = mutableMapOf<CacheKey, AddressCheckResult>()
+    private val cache = ConcurrentHashMap<CacheKey, AddressCheckResult>()
 
     fun availableCheckTypes(token: Token): List<AddressCheckType> {
         return checkers.mapNotNull { (type, checker) -> if (checker.supports(token)) type else null }

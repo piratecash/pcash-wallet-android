@@ -1691,6 +1691,13 @@
     <string name="alpha_aml_low_risk">Низький ризик</string>
     <string name="alpha_aml_high_risk">Високий ризик</string>
     <string name="alpha_aml_very_high_risk">Найвищий ризик</string>
+    <string name="aml_promo_dismiss_hud">Ви завжди можете повернутися до цієї функції в преміум-налаштуваннях.</string>
+    <string name="aml_check_info_description">Це преміум-функція для перевірки вхідних транзакцій. Її можна вимкнути в розділі преміум-налаштувань.</string>
+    <string name="aml_check_info_later">Пізніше</string>
+    <string name="aml_unknown">Невідомо</string>
+    <string name="aml_low_risk">Низький ризик</string>
+    <string name="aml_medium_risk">Середній ризик</string>
+    <string name="aml_high_risk">Високий ризик</string>
     <string name="SettingsAddressChecker_TokenBlacklistCheck">Перевірка %s за чорним списком</string>
     <string name="SettingsAddressChecker_ChainalysisCheckDescription">Chainalysis - це платформа для аналізу блокчейнів, яка надає інструменти для відстеження, розслідування та оцінки ризиків криптовалютних адрес. Вона допомагає виявляти адреси, пов\'язані з санкціями, шахрайством та іншою незаконною діяльністю.</string>
     <string name="SettingsAddressChecker_HashditCheckDescription">HashDit - це платформа безпеки, яка дозволяє користувачам перевіряти адреси гаманців на наявність ризиків, таких як санкції та статус у чорних списках. Вона допомагає уникати взаємодії з потенційно шкідливими або заблокованими адресами.</string>

@@ -6,7 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
+import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.swappable
@@ -20,9 +22,12 @@ import cash.p.terminal.modules.balance.TotalService
 import cash.p.terminal.modules.balance.token.TokenBalanceModule.TokenBalanceUiState
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
+import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
+import cash.p.terminal.modules.transactions.withClearedAmlStatus
+import cash.p.terminal.modules.transactions.withUpdatedAmlStatus
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
@@ -57,6 +62,8 @@ class TokenBalanceViewModel(
     private val accountManager: IAccountManager,
     private val transactionHiddenManager: TransactionHiddenManager,
     private val getChangeNowAssociatedCoinTickerUseCase: GetChangeNowAssociatedCoinTickerUseCase,
+    private val premiumSettings: PremiumSettings,
+    private val amlStatusManager: AmlStatusManager
 ) : ViewModelUiState<TokenBalanceUiState>() {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
@@ -68,6 +75,7 @@ class TokenBalanceViewModel(
     private var balanceViewItem: BalanceViewItem? = null
     private var transactions: Map<String, List<TransactionViewItem>>? = null
     private var hasHiddenTransactions: Boolean = false
+    private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
 
     private var statusCheckerJob: Job? = null
     var sendResult by mutableStateOf<SendResult?>(null)
@@ -135,6 +143,27 @@ class TokenBalanceViewModel(
             }
         }
 
+        viewModelScope.launch {
+            amlStatusManager.statusUpdates.collect { update ->
+                updateTransactionAmlStatus(update.uid, update.status)
+            }
+        }
+
+        viewModelScope.launch {
+            amlStatusManager.enabledStateFlow.collect { enabled ->
+                if (enabled) {
+                    // Trigger AML checks for currently loaded transactions
+                    transactions?.values?.flatten()?.forEach { viewItem ->
+                        fetchAmlStatusIfNeeded(viewItem.uid)
+                    }
+                } else {
+                    // Remove AML status from all transactions
+                    transactions = transactions?.withClearedAmlStatus()
+                }
+                emitState()
+            }
+        }
+
         totalBalance.start(viewModelScope)
     }
 
@@ -187,11 +216,18 @@ class TokenBalanceViewModel(
         statusCheckerJob?.cancel()
     }
 
+    private fun shouldShowAmlPromo(): Boolean {
+        val hasTransactions = transactions?.values?.flatten()?.isNotEmpty() == true
+        return amlPromoAlertEnabled && hasTransactions
+    }
+
     override fun createState() = TokenBalanceUiState(
         title = title,
         balanceViewItem = balanceViewItem,
         transactions = transactions,
-        hasHiddenTransactions = hasHiddenTransactions
+        hasHiddenTransactions = hasHiddenTransactions,
+        showAmlPromo = shouldShowAmlPromo(),
+        amlCheckEnabled = amlStatusManager.isEnabled
     )
 
     private fun updateTransactions(items: List<TransactionItem>) {
@@ -207,6 +243,7 @@ class TokenBalanceViewModel(
                 items.also { hasHiddenTransactions = false }
             }.distinctBy { it.record.uid }
                 .map { transactionViewItem2Factory.convertToViewItemCached(it, wallet.tokenQueryId) }
+                .map { amlStatusManager.applyStatus(it) }
                 .groupBy { it.formattedDate }
 
         emitState()
@@ -255,6 +292,19 @@ class TokenBalanceViewModel(
 
     fun willShow(viewItem: TransactionViewItem) {
         transactionsService.fetchRateIfNeeded(viewItem.uid)
+        fetchAmlStatusIfNeeded(viewItem.uid)
+    }
+
+    private fun fetchAmlStatusIfNeeded(uid: String) {
+        val transactionItem = transactionsService.getTransactionItem(uid) ?: return
+        amlStatusManager.fetchStatusIfNeeded(uid, transactionItem.record)
+    }
+
+    private fun updateTransactionAmlStatus(uid: String, status: AmlStatus?) {
+        transactions?.let {
+            transactions = it.withUpdatedAmlStatus(uid, status)
+            emitState()
+        }
     }
 
     fun getTransactionItem(viewItem: TransactionViewItem) =
@@ -319,8 +369,17 @@ class TokenBalanceViewModel(
 
     override fun onCleared() {
         super.onCleared()
-
         balanceService.clear()
         totalBalance.stop()
+    }
+
+    fun setAmlCheckEnabled(enabled: Boolean) {
+        amlStatusManager.setEnabled(enabled)
+    }
+
+    fun dismissAmlPromo() {
+        premiumSettings.setAmlCheckShowAlert(false)
+        amlPromoAlertEnabled = false
+        emitState()
     }
 }

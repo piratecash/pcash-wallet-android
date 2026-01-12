@@ -1636,6 +1636,13 @@
     <string name="alpha_aml_low_risk">낮은 위험</string>
     <string name="alpha_aml_high_risk">높은 위험</string>
     <string name="alpha_aml_very_high_risk">최고 위험</string>
+    <string name="aml_promo_dismiss_hud">프리미엄 설정에서 언제든지 이 기능으로 돌아올 수 있습니다.</string>
+    <string name="aml_check_info_description">이 기능은 들어오는 거래를 확인하기 위한 프리미엄 기능입니다. 프리미엄 설정 섹션에서 비활성화할 수 있습니다.</string>
+    <string name="aml_check_info_later">나중에</string>
+    <string name="aml_unknown">알 수 없음</string>
+    <string name="aml_low_risk">낮은 위험</string>
+    <string name="aml_medium_risk">중간 위험</string>
+    <string name="aml_high_risk">높은 위험</string>
     <string name="check_from_aml">alpha-aml.com 확인</string>
     <string name="Send_Address_ErrorMessage_AmlDetected">AML 문제 감지됨!</string>
     <string name="Send_Address_ErrorMessage_AmlDetected_Description">입력한 주소가 AML 블랙리스트에 있습니다. 이 주소로의 거래는 손실이나 기타 위험을 초래할 수 있습니다. 계속하기 전에 수신자 정보를 확인하십시오.</string>

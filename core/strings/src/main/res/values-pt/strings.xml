@@ -633,7 +633,7 @@
     <string name="Transactions_Unknown_Description">Transação não pôde ser analisada</string>
     <string name="Transactions_Multiple">Múltiplo</string>
     <string name="Transactions_Filter">Filter</string>
-    <string name="Transactions_Filter_HideSuspiciousTx">Hide suspicious tx</string>
+    <string name="Transactions_Filter_HideSuspiciousTx">Ocultar transações suspeitas</string>
     <string name="Transactions_Filter_StablecoinDustAmount_Description">Hiding incoming transactions with the dust amount in stablecoins, this partially solves the  address poisoning attack problems.</string>
     <string name="Transactions_Filter_ChooseContact_Hint">Filtering by contacts works on the following blockchains: Ethereum, BNB Smart Chain, Polygon, Avalanche, Gnosis, Fantom, Arbitrum, Optimism, Tron, Ton and ZCash. Below are the suitable contacts</string>
     <string name="Transactions_Filter_ChooseContact_NoSuitableContact">You don\'t have any suitable contacts </string>
@@ -1638,6 +1638,13 @@
     <string name="alpha_aml_low_risk">Risco Baixo</string>
     <string name="alpha_aml_high_risk">Risco Alto</string>
     <string name="alpha_aml_very_high_risk">Risco Mais Alto</string>
+    <string name="aml_promo_dismiss_hud">Pode sempre voltar a esta funcionalidade nas definições premium.</string>
+    <string name="aml_check_info_description">Esta é uma funcionalidade premium para verificar transações recebidas. Pode ser desativada na secção de definições premium.</string>
+    <string name="aml_check_info_later">Mais tarde</string>
+    <string name="aml_unknown">Desconhecido</string>
+    <string name="aml_low_risk">Risco Baixo</string>
+    <string name="aml_medium_risk">Risco Médio</string>
+    <string name="aml_high_risk">Risco Alto</string>
     <string name="check_from_aml">Verificação de alpha-aml.com</string>
     <string name="Send_Address_ErrorMessage_AmlDetected">Problema AML detectado!</string>
     <string name="Send_Address_ErrorMessage_AmlDetected_Description">O endereço inserido está na lista negra AML. Transações para este endereço podem levar a perdas ou outros riscos. Por favor, verifique os dados do destinatário antes de prosseguir.</string>

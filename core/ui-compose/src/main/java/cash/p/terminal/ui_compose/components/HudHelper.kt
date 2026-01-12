@@ -120,6 +120,21 @@ object HudHelper {
         )
     }
 
+    fun showPremiumMessage(
+        contentView: View,
+        resId: Int,
+        duration: SnackbarDuration = SnackbarDuration.SHORT,
+        gravity: SnackbarGravity = SnackbarGravity.BOTTOM
+    ): CustomSnackbar? {
+        return showHudNotification(
+            contentView = contentView,
+            text = contentView.context.getString(resId),
+            backgroundColor = R.color.jacob_d,
+            duration = duration,
+            gravity = gravity,
+        )
+    }
+
     fun vibrate(context: Context) {
         val vibratorService = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager =

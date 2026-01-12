@@ -34,7 +34,9 @@ object TransactionsModule {
                     App.transactionAdapterManager,
                     getKoinInstance()
                 ),
-                transactionHiddenManager = getKoinInstance()
+                transactionHiddenManager = getKoinInstance(),
+                premiumSettings = getKoinInstance(),
+                amlStatusManager = getKoinInstance()
             ) as T
         }
     }

@@ -14,6 +14,7 @@ import io.horizontalsystems.core.ISilentPhotoCapture
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.KeyStoreCleaner
@@ -53,6 +54,8 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TronKitManager
+import cash.p.terminal.core.address.AddressCheckManager
+import cash.p.terminal.modules.transactions.CheckAmlIncomingTransactionUseCase
 import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.modules.pin.PinComponent
 import cash.p.terminal.modules.pin.core.ILockoutManager
@@ -138,6 +141,7 @@ val managerModule = module {
     singleOf(::EvmLabelManager)
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)
+    singleOf(::AmlStatusManager)
     singleOf(::DefaultUserManager) bind UserManager::class
     single<IPinComponent> {
         PinComponent(
@@ -178,6 +182,8 @@ val managerModule = module {
     singleOf(::GlanceAppWidgetManager)
 
     singleOf(::SpamManager)
+    singleOf(::AddressCheckManager)
+    singleOf(::CheckAmlIncomingTransactionUseCase)
     singleOf(::TransactionAdapterManager)
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class

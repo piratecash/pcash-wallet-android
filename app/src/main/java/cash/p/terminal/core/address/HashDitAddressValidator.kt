@@ -47,7 +47,9 @@ class HashDitAddressValidator(
 
     data class TransactionSecurityData(
         val chainId: Int,
-        val to: String
+        val to: String,
+        val from: String = "0x0000000000000000000000000000000000000000",
+        val data: String = "0x"
     )
 
     data class TransactionSecurityResponse(

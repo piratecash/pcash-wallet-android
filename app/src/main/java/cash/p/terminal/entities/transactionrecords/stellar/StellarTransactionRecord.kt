@@ -88,8 +88,8 @@ class StellarTransactionRecord(
 
         fun toTransactionRecordType() =
             when (this) {
-                is Send -> TransactionRecordType.STELLAR_INCOMING
-                is Receive -> TransactionRecordType.STELLAR_OUTGOING
+                is Send -> TransactionRecordType.STELLAR_OUTGOING
+                is Receive -> TransactionRecordType.STELLAR_INCOMING
                 is ChangeTrust -> TransactionRecordType.UNKNOWN
                 is Unsupported -> TransactionRecordType.UNKNOWN
             }

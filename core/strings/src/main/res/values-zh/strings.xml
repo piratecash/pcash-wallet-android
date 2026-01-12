@@ -1627,6 +1627,13 @@
     <string name="alpha_aml_low_risk">低风险</string>
     <string name="alpha_aml_high_risk">高风险</string>
     <string name="alpha_aml_very_high_risk">最高风险</string>
+    <string name="aml_promo_dismiss_hud">您可以随时在高级设置中返回此功能。</string>
+    <string name="aml_check_info_description">这是一项用于检查收到交易的高级功能。可以在高级设置部分禁用它。</string>
+    <string name="aml_check_info_later">稍后</string>
+    <string name="aml_unknown">未知</string>
+    <string name="aml_low_risk">低风险</string>
+    <string name="aml_medium_risk">中等风险</string>
+    <string name="aml_high_risk">高风险</string>
     <string name="check_from_aml">alpha-aml.com 检查</string>
     <string name="Send_Address_ErrorMessage_AmlDetected">检测到 AML 问题！</string>
     <string name="Send_Address_ErrorMessage_AmlDetected_Description">您输入的地址在 AML 黑名单中。向此地址的交易可能导致损失或其他风险。请在继续之前验证收件人的详细信息。</string>

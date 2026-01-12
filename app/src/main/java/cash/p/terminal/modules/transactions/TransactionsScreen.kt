@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -29,16 +30,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +56,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BalanceAccountsViewModel
 import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceScreenState
@@ -68,6 +76,7 @@ import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.ScrollableTabs
 import cash.p.terminal.ui_compose.components.SectionUniversalItem
+import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TabItem
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
@@ -75,7 +84,6 @@ import cash.p.terminal.ui_compose.entities.SectionItemPosition
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.core.helpers.DateHelper
 import java.util.Date
 
 @Composable
@@ -94,6 +102,9 @@ fun TransactionsScreen(
     val uiState = viewModel.uiState
     val syncing = uiState.syncing
     val transactions = uiState.transactions
+
+    var showAmlInfoSheet by remember { mutableStateOf(false) }
+    val view = LocalView.current
 
     Surface(color = ComposeAppTheme.colors.tyler) {
         Column(modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())) {
@@ -162,6 +173,32 @@ fun TransactionsScreen(
                                 }
 
                                 LazyColumn(state = listState) {
+                                    if (uiState.showAmlPromo) {
+                                        item {
+                                            AmlCheckPromoBanner(
+                                                amlCheckEnabled = uiState.amlCheckEnabled,
+                                                onToggleChange = { enabled ->
+                                                    if (enabled) {
+                                                        navController.premiumAction {
+                                                            viewModel.setAmlCheckEnabled(true)
+                                                        }
+                                                    } else {
+                                                        viewModel.setAmlCheckEnabled(false)
+                                                    }
+                                                },
+                                                onInfoClick = { showAmlInfoSheet = true },
+                                                onClose = {
+                                                    viewModel.dismissAmlPromo()
+                                                    HudHelper.showPremiumMessage(
+                                                        view,
+                                                        R.string.aml_promo_dismiss_hud,
+                                                        SnackbarDuration.LONG
+                                                    )
+                                                },
+                                                modifier = Modifier.padding(vertical = 12.dp)
+                                            )
+                                        }
+                                    }
                                     transactionList(
                                         transactionsMap = transactionItems,
                                         willShow = viewModel::willShow,
@@ -189,6 +226,19 @@ fun TransactionsScreen(
                 }
             }
         }
+    }
+
+    if (showAmlInfoSheet) {
+        AmlCheckInfoBottomSheet(
+            onPremiumSettingsClick = {
+                showAmlInfoSheet = false
+                navController.slideFromRight(
+                    R.id.premiumSettingsFragment
+                )
+            },
+            onLaterClick = { showAmlInfoSheet = false },
+            onDismiss = { showAmlInfoSheet = false }
+        )
     }
 }
 
@@ -355,7 +405,9 @@ fun TransactionCell(
                 Modifier.clip(RoundedCornerShape(12.dp))
             }
 
-            else -> Modifier
+            SectionItemPosition.Middle -> {
+                Modifier.clipToBounds()
+            }
         }
 
         val borderModifier = if (position != SectionItemPosition.Single) {
@@ -364,128 +416,177 @@ fun TransactionCell(
             Modifier.border(1.dp, ComposeAppTheme.colors.steel20, RoundedCornerShape(12.dp))
         }
 
-        RowUniversal(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .then(clipModifier)
                 .then(borderModifier)
-                .clickable(onClick = onClick),
+                .clickable(onClick = onClick)
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .size(42.dp)
-                    .alpha(if (item.spam) 0.5f else 1f),
-                contentAlignment = Alignment.Center
-            ) {
-                item.progress?.let { progress ->
-                    HSCircularProgressIndicator(progress)
-                }
-                when (val icon = item.icon) {
-                    TransactionViewItem.Icon.Failed -> {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_attention_24),
-                            tint = ComposeAppTheme.colors.lucian,
-                            contentDescription = null
-                        )
-                    }
-
-                    is TransactionViewItem.Icon.Platform -> {
-                        Icon(
-                            modifier = Modifier.size(32.dp),
-                            painter = painterResource(icon.iconRes ?: R.drawable.coin_placeholder),
-                            tint = ComposeAppTheme.colors.leah,
-                            contentDescription = null
-                        )
-                    }
-
-                    is TransactionViewItem.Icon.Regular -> {
-                        val shape =
-                            if (icon.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
-                        HsImage(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(shape),
-                            url = icon.url,
-                            alternativeUrl = icon.alternativeUrl,
-                            placeholder = icon.placeholder
-                        )
-                    }
-
-                    is TransactionViewItem.Icon.Double -> {
-                        val backShape =
-                            if (icon.back.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
-                        val frontShape =
-                            if (icon.front.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
-                        HsImage(
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .padding(top = 4.dp, start = 6.dp)
-                                .size(24.dp)
-                                .clip(backShape),
-                            url = icon.back.url,
-                            alternativeUrl = icon.back.alternativeUrl,
-                            placeholder = icon.back.placeholder,
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(bottom = 4.5.dp, end = 6.5.dp)
-                                .size(24.dp)
-                                .clip(frontShape)
-                                .background(ComposeAppTheme.colors.tyler)
-                        )
-
-                        HsImage(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(bottom = 4.dp, end = 6.dp)
-                                .size(24.dp)
-                                .clip(frontShape),
-                            url = icon.front.url,
-                            alternativeUrl = icon.front.alternativeUrl,
-                            placeholder = icon.front.placeholder,
-                        )
-                    }
-
-                    is TransactionViewItem.Icon.ImageResource -> {}
-                }
+            // AML status stripe on left edge
+            item.amlStatus?.let { status ->
+                AmlStatusStripe(status)
             }
-            Row(
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .alpha(if (item.spam) 0.5f else 1f),
-                verticalAlignment = Alignment.CenterVertically
+
+            // Loading indicator in top-left corner
+            if (item.amlStatus == AmlStatus.Loading) {
+                AmlLoadingIndicator()
+            }
+
+            RowUniversal(
+                modifier = Modifier.fillMaxSize()
             ) {
-                Column(
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                        .padding(horizontal = 8.dp)
+                        .size(42.dp)
+                        .alpha(if (item.spam) 0.5f else 1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    body_leah(
-                        modifier = Modifier.padding(end = 24.dp),
-                        text = item.title,
-                        maxLines = 1,
-                    )
-                    subhead2_grey(
-                        text = if (showAmount) item.subtitle else "*****",
-                        maxLines = 2,
-                    )
+                    item.progress?.let { progress ->
+                        HSCircularProgressIndicator(progress)
+                    }
+                    when (val icon = item.icon) {
+                        TransactionViewItem.Icon.Failed -> {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_attention_24),
+                                tint = ComposeAppTheme.colors.lucian,
+                                contentDescription = null
+                            )
+                        }
+
+                        is TransactionViewItem.Icon.Platform -> {
+                            Icon(
+                                modifier = Modifier.size(32.dp),
+                                painter = painterResource(icon.iconRes ?: R.drawable.coin_placeholder),
+                                tint = ComposeAppTheme.colors.leah,
+                                contentDescription = null
+                            )
+                        }
+
+                        is TransactionViewItem.Icon.Regular -> {
+                            val shape =
+                                if (icon.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
+                            HsImage(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(shape),
+                                url = icon.url,
+                                alternativeUrl = icon.alternativeUrl,
+                                placeholder = icon.placeholder
+                            )
+                        }
+
+                        is TransactionViewItem.Icon.Double -> {
+                            val backShape =
+                                if (icon.back.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
+                            val frontShape =
+                                if (icon.front.rectangle) RoundedCornerShape(CornerSize(4.dp)) else CircleShape
+                            HsImage(
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(top = 4.dp, start = 6.dp)
+                                    .size(24.dp)
+                                    .clip(backShape),
+                                url = icon.back.url,
+                                alternativeUrl = icon.back.alternativeUrl,
+                                placeholder = icon.back.placeholder,
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(bottom = 4.5.dp, end = 6.5.dp)
+                                    .size(24.dp)
+                                    .clip(frontShape)
+                                    .background(ComposeAppTheme.colors.tyler)
+                            )
+
+                            HsImage(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(bottom = 4.dp, end = 6.dp)
+                                    .size(24.dp)
+                                    .clip(frontShape),
+                                url = icon.front.url,
+                                alternativeUrl = icon.front.alternativeUrl,
+                                placeholder = icon.front.placeholder,
+                            )
+                        }
+
+                        is TransactionViewItem.Icon.ImageResource -> {}
+                    }
                 }
-                Column(
-                    modifier = Modifier.wrapContentWidth(),
-                    verticalArrangement = Arrangement.spacedBy(1.dp),
-                    horizontalAlignment = Alignment.End
+                Row(
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .alpha(if (item.spam) 0.5f else 1f),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        item.primaryValue?.let { coloredValue ->
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
+                        body_leah(
+                            modifier = Modifier.padding(end = 24.dp),
+                            text = item.title,
+                            maxLines = 1,
+                        )
+                        subhead2_grey(
+                            text = if (showAmount) item.subtitle else "*****",
+                            maxLines = 2,
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.wrapContentWidth(),
+                        verticalArrangement = Arrangement.spacedBy(1.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            item.primaryValue?.let { coloredValue ->
+                                Text(
+                                    text = if (showAmount) coloredValue.value else "*****",
+                                    style = ComposeAppTheme.typography.body,
+                                    color = coloredValue.color.compose(),
+                                    overflow = TextOverflow.Ellipsis,
+                                    maxLines = 1,
+                                    modifier = Modifier.clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onValueClick,
+                                    )
+                                )
+                            }
+
+                            if (item.doubleSpend) {
+                                Image(
+                                    modifier = Modifier.padding(start = 6.dp),
+                                    painter = painterResource(R.drawable.ic_double_spend_20),
+                                    contentDescription = null
+                                )
+                            }
+                            item.locked?.let { locked ->
+                                Image(
+                                    modifier = Modifier.padding(start = 6.dp),
+                                    painter = painterResource(if (locked) R.drawable.ic_lock_20 else R.drawable.ic_unlock_20),
+                                    contentDescription = null
+                                )
+                            }
+                            if (item.sentToSelf) {
+                                Image(
+                                    modifier = Modifier.padding(start = 6.dp),
+                                    painter = painterResource(R.drawable.ic_arrow_return_20),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                        if (item.primaryValue != null || item.secondaryValue != null) {
                             Text(
-                                text = if (showAmount) coloredValue.value else "*****",
-                                style = ComposeAppTheme.typography.body,
-                                color = coloredValue.color.compose(),
-                                overflow = TextOverflow.Ellipsis,
+                                text = if (showAmount) item.secondaryValue?.value.orEmpty() else "*****",
+                                style = ComposeAppTheme.typography.subhead2,
+                                color = item.secondaryValue?.color?.compose() ?: Color.Unspecified,
                                 maxLines = 1,
                                 modifier = Modifier.clickable(
                                     interactionSource = remember { MutableInteractionSource() },
@@ -494,34 +595,10 @@ fun TransactionCell(
                                 )
                             )
                         }
-
-                        if (item.doubleSpend) {
-                            Image(
-                                modifier = Modifier.padding(start = 6.dp),
-                                painter = painterResource(R.drawable.ic_double_spend_20),
-                                contentDescription = null
-                            )
-                        }
-                        item.locked?.let { locked ->
-                            Image(
-                                modifier = Modifier.padding(start = 6.dp),
-                                painter = painterResource(if (locked) R.drawable.ic_lock_20 else R.drawable.ic_unlock_20),
-                                contentDescription = null
-                            )
-                        }
-                        if (item.sentToSelf) {
-                            Image(
-                                modifier = Modifier.padding(start = 6.dp),
-                                painter = painterResource(R.drawable.ic_arrow_return_20),
-                                contentDescription = null
-                            )
-                        }
-                    }
-                    if (item.primaryValue != null || item.secondaryValue != null) {
                         Text(
-                            text = if (showAmount) item.secondaryValue?.value.orEmpty() else "*****",
+                            text = if (showAmount) item.formattedTime else "*****",
                             style = ComposeAppTheme.typography.subhead2,
-                            color = item.secondaryValue?.color?.compose() ?: Color.Unspecified,
+                            color = ComposeAppTheme.colors.grey50,
                             maxLines = 1,
                             modifier = Modifier.clickable(
                                 interactionSource = remember { MutableInteractionSource() },
@@ -530,20 +607,48 @@ fun TransactionCell(
                             )
                         )
                     }
-                    Text(
-                        text = if (showAmount) DateHelper.getOnlyTime(item.date) else "*****",
-                        style = ComposeAppTheme.typography.subhead2,
-                        color = ComposeAppTheme.colors.grey50,
-                        maxLines = 1,
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = onValueClick,
-                        )
-                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AmlStatusStripe(
+    status: AmlStatus
+) {
+    val color = when (status) {
+        AmlStatus.Low -> ComposeAppTheme.colors.remus
+        AmlStatus.Medium -> ComposeAppTheme.colors.jacob
+        AmlStatus.High -> ComposeAppTheme.colors.lucian
+        AmlStatus.Unknown -> ComposeAppTheme.colors.grey50
+        AmlStatus.Loading -> return
+    }
+    Box(
+        modifier = Modifier
+            .size(28.dp)
+            .graphicsLayer {
+                translationX = -14.dp.toPx()
+                translationY = -14.dp.toPx()
+                rotationZ = 45f
+            }
+            .clip(RoundedCornerShape(topStart = 12.dp))
+            .background(color)
+    )
+}
+
+@Composable
+private fun AmlLoadingIndicator() {
+    Box(
+        modifier = Modifier
+            .padding(8.dp)
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .size(12.dp),
+            color = ComposeAppTheme.colors.grey,
+            strokeWidth = 1.5.dp
+        )
     }
 }
 
@@ -551,24 +656,28 @@ fun TransactionCell(
 @Composable
 private fun TransactionCellPreview() {
     ComposeAppTheme {
-        TransactionCell(
-            item = TransactionViewItem(
-                uid = "uid",
-                progress = null,
-                title = "Received Bitcoin",
-                subtitle = "From Alice to My Bitcoin Wallet",
-                icon = TransactionViewItem.Icon.Failed,
-                doubleSpend = true,
-                locked = true,
-                sentToSelf = true,
-                primaryValue = ColoredValue("0.00123 BTC", ColorName.Leah),
-                secondaryValue = ColoredValue("$45.67", ColorName.Leah),
-                date = Date()
-            ),
-            position = SectionItemPosition.Single,
-            onValueClick = {},
-            onClick = {}
-        )
+        Box(modifier = Modifier.wrapContentHeight().padding(horizontal = 16.dp)) {
+            TransactionCell(
+                item = TransactionViewItem(
+                    uid = "uid",
+                    progress = null,
+                    title = "Received Bitcoin",
+                    subtitle = "From Alice to My Bitcoin Wallet",
+                    icon = TransactionViewItem.Icon.Failed,
+                    doubleSpend = true,
+                    locked = true,
+                    sentToSelf = true,
+                    primaryValue = ColoredValue("0.00123 BTC", ColorName.Leah),
+                    secondaryValue = ColoredValue("$45.67", ColorName.Leah),
+                    date = Date(),
+                    formattedTime = "12:00",
+                    amlStatus = AmlStatus.Low
+                ),
+                position = SectionItemPosition.Middle,
+                onValueClick = {},
+                onClick = {}
+            )
+        }
     }
 }
 

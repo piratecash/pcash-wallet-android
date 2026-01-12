@@ -19,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 

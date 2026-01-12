@@ -1631,6 +1631,13 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="alpha_aml_low_risk">Niedriges Risiko</string>
     <string name="alpha_aml_high_risk">Hohes Risiko</string>
     <string name="alpha_aml_very_high_risk">Höchstes Risiko</string>
+    <string name="aml_promo_dismiss_hud">Sie können jederzeit in den Premium-Einstellungen zu dieser Funktion zurückkehren.</string>
+    <string name="aml_check_info_description">Dies ist eine Premium-Funktion zur Überprüfung eingehender Transaktionen. Sie kann in den Premium-Einstellungen deaktiviert werden.</string>
+    <string name="aml_check_info_later">Später</string>
+    <string name="aml_unknown">Unbekannt</string>
+    <string name="aml_low_risk">Niedriges Risiko</string>
+    <string name="aml_medium_risk">Mittleres Risiko</string>
+    <string name="aml_high_risk">Hohes Risiko</string>
     <string name="check_from_aml">Prüfung von alpha-aml.com</string>
     <string name="Send_Address_ErrorMessage_AmlDetected">AML-Problem erkannt!</string>
     <string name="Send_Address_ErrorMessage_AmlDetected_Description">Die eingegebene Adresse befindet sich auf der AML-Schwarzen Liste. Transaktionen an diese Adresse können zu Verlusten oder anderen Risiken führen. Bitte überprüfen Sie die Empfängerdaten vor dem Fortfahren.</string>

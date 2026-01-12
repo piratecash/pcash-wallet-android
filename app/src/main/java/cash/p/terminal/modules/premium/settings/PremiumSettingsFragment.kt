@@ -90,6 +90,11 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                         viewModel.setAddressContractChecking(it)
                     }
                 },
+                onAmlCheckReceivedClick = {
+                    fragmentNavController.premiumAction {
+                        viewModel.setAmlCheckReceivedEnabled(it)
+                    }
+                },
                 onLoginLoggingClick = {
                     fragmentNavController.authorizedLoggingAction {
                         navController.navigate(PremiumSettingsRoute.LoginLogging)
@@ -212,6 +217,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
 internal fun PremiumSettingsScreen(
     uiState: PremiumSettingsUiState,
     onCheckAddressContractClick: (Boolean) -> Unit,
+    onAmlCheckReceivedClick: (Boolean) -> Unit,
     onLoginLoggingClick: () -> Unit,
     onAuthorizationInfoClick: () -> Unit,
     onClose: () -> Unit
@@ -244,6 +250,14 @@ internal fun PremiumSettingsScreen(
                 text = stringResource(R.string.settings_smart_contract_check_description),
             )
             VSpacer(12.dp)
+            SectionUniversalLawrence {
+                SwitchWithText(
+                    text = stringResource(R.string.alpha_aml_title),
+                    checked = uiState.amlCheckReceivedEnabled,
+                    onCheckedChange = onAmlCheckReceivedClick
+                )
+            }
+            VSpacer(12.dp)
             CellUniversalLawrenceSection(
                 listOf(
                     {
@@ -271,9 +285,11 @@ private fun PremiumSettingsScreenPreview() {
     ComposeAppTheme {
         PremiumSettingsScreen(
             uiState = PremiumSettingsUiState(
-                checkEnabled = true
+                checkEnabled = true,
+                amlCheckReceivedEnabled = false
             ),
             onCheckAddressContractClick = {},
+            onAmlCheckReceivedClick = {},
             onLoginLoggingClick = {},
             onAuthorizationInfoClick = {},
             onClose = {}

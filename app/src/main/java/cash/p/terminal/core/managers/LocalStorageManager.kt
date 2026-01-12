@@ -40,7 +40,7 @@ import java.math.BigDecimal
 import java.util.UUID
 
 class LocalStorageManager(
-    private val preferences: SharedPreferences,
+    private val preferences: SharedPreferences
 ) : ILocalStorage, IPinSettingsStorage, ILockoutStorage, IThirdKeyboard, IMarketStorage {
 
     private val THIRD_KEYBOARD_WARNING_MSG = "third_keyboard_warning_msg"

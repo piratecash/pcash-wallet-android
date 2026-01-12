@@ -4,6 +4,8 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
@@ -40,7 +42,9 @@ class TransactionsViewModel(
     private val transactionAdapterManager: TransactionAdapterManager,
     private val walletManager: IWalletManager,
     private val transactionFilterService: TransactionFilterService,
-    private val transactionHiddenManager: TransactionHiddenManager
+    private val transactionHiddenManager: TransactionHiddenManager,
+    private val premiumSettings: PremiumSettings,
+    private val amlStatusManager: AmlStatusManager
 ) : ViewModelUiState<TransactionsUiState>() {
 
     var tmpItemToShow: TransactionItem? = null
@@ -58,6 +62,8 @@ class TransactionsViewModel(
     private var syncing = false
     private var hasHiddenTransactions: Boolean = false
     private var filterVersion = 0
+    private var currentFilterType: FilterTransactionType = FilterTransactionType.All
+    private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
 
     val balanceHidden: Boolean
         get() = balanceHiddenManager.balanceHidden
@@ -114,6 +120,7 @@ class TransactionsViewModel(
 
                 val types = state.transactionTypes
                 val selectedType = state.selectedTransactionType
+                currentFilterType = selectedType
                 val filterTypes = types.map { Filter(it, it == selectedType) }
                 filterTypesLiveData.postValue(filterTypes)
 
@@ -167,6 +174,27 @@ class TransactionsViewModel(
                 service.reload()
             }
         }
+
+        viewModelScope.launch {
+            amlStatusManager.statusUpdates.collect { update ->
+                updateTransactionAmlStatus(update.uid, update.status)
+            }
+        }
+
+        viewModelScope.launch {
+            amlStatusManager.enabledStateFlow.collect { enabled ->
+                if (enabled) {
+                    // Trigger AML checks for currently loaded transactions
+                    transactions?.values?.flatten()?.forEach { viewItem ->
+                        fetchAmlStatusIfNeeded(viewItem.uid)
+                    }
+                } else {
+                    // Remove AML status from all transactions
+                    transactions = transactions?.withClearedAmlStatus()
+                }
+                emitState()
+            }
+        }
     }
 
     fun showAllTransactions(show: Boolean) = transactionHiddenManager.showAllTransactions(show)
@@ -190,6 +218,7 @@ class TransactionsViewModel(
                 }.map {
                     ensureActive()
                     transactionViewItem2Factory.convertToViewItemCached(it)
+                        .let { viewItem -> amlStatusManager.applyStatus(viewItem) }
                 }.groupBy {
                     ensureActive()
                     it.formattedDate
@@ -206,12 +235,21 @@ class TransactionsViewModel(
         }
     }
 
+    private fun shouldShowAmlPromo(): Boolean {
+        val hasTransactions = transactions?.values?.flatten()?.isNotEmpty() == true
+        val isValidFilter = currentFilterType == FilterTransactionType.All ||
+                currentFilterType == FilterTransactionType.Incoming
+        return amlPromoAlertEnabled && hasTransactions && isValidFilter
+    }
+
     override fun createState() = TransactionsUiState(
         transactions = transactions,
         viewState = viewState,
         transactionListId = transactionListId,
         syncing = syncing,
-        hasHiddenTransactions = hasHiddenTransactions
+        hasHiddenTransactions = hasHiddenTransactions,
+        showAmlPromo = shouldShowAmlPromo(),
+        amlCheckEnabled = amlStatusManager.isEnabled
     )
 
     private fun handleUpdatedWallets(wallets: List<Wallet>) {
@@ -244,6 +282,19 @@ class TransactionsViewModel(
 
     fun willShow(viewItem: TransactionViewItem) {
         service.fetchRateIfNeeded(viewItem.uid)
+        fetchAmlStatusIfNeeded(viewItem.uid)
+    }
+
+    private fun fetchAmlStatusIfNeeded(uid: String) {
+        val transactionItem = service.getTransactionItem(uid) ?: return
+        amlStatusManager.fetchStatusIfNeeded(uid, transactionItem.record)
+    }
+
+    private fun updateTransactionAmlStatus(uid: String, status: AmlStatus?) {
+        transactions?.let {
+            transactions = it.withUpdatedAmlStatus(uid, status)
+            emitState()
+        }
     }
 
     override fun onCleared() {
@@ -258,6 +309,16 @@ class TransactionsViewModel(
 
     fun updateFilterHideSuspiciousTx(checked: Boolean) {
         transactionFilterService.updateFilterHideSuspiciousTx(checked)
+    }
+
+    fun setAmlCheckEnabled(enabled: Boolean) {
+        amlStatusManager.setEnabled(enabled)
+    }
+
+    fun dismissAmlPromo() {
+        premiumSettings.setAmlCheckShowAlert(false)
+        amlPromoAlertEnabled = false
+        emitState()
     }
 
 }
@@ -283,6 +344,7 @@ data class TransactionViewItem(
     val primaryValue: ColoredValue?,
     val secondaryValue: ColoredValue?,
     val date: Date,
+    val formattedTime: String,
     val showAmount: Boolean = true,
     val sentToSelf: Boolean = false,
     val doubleSpend: Boolean = false,
@@ -290,7 +352,8 @@ data class TransactionViewItem(
     val locked: Boolean? = null,
     val icon: Icon,
     val changeNowTransactionId: String? = null,
-    val transactionStatusUrl: Pair<String, String>? = null
+    val transactionStatusUrl: Pair<String, String>? = null,
+    val amlStatus: AmlStatus? = null
 ) {
 
     sealed class Icon {
@@ -356,4 +419,21 @@ enum class FilterTransactionType {
             Swap -> R.string.Transactions_Swaps
             Approve -> R.string.Transactions_Approvals
         }
+}
+
+enum class AmlStatus {
+    Loading,
+    Unknown,
+    Low,
+    Medium,
+    High;
+
+    companion object {
+        fun from(result: IncomingAddressCheckResult): AmlStatus = when (result) {
+            IncomingAddressCheckResult.Unknown -> Unknown
+            IncomingAddressCheckResult.Low -> Low
+            IncomingAddressCheckResult.Medium -> Medium
+            IncomingAddressCheckResult.High -> High
+        }
+    }
 }

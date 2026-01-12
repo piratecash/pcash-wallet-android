@@ -38,6 +38,7 @@ import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.isCustom
+import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewModel
@@ -46,6 +47,8 @@ import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendFragment
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
+import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
+import cash.p.terminal.modules.transactions.AmlCheckPromoBanner
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.transactions.transactionList
@@ -90,10 +93,13 @@ fun TokenBalanceScreen(
     onStackingClicked: () -> Unit,
     onShowAllTransactionsClicked: () -> Unit,
     onClickSubtitle: () -> Unit,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     val uiState = viewModel.uiState
     val view = LocalView.current
+
+    var showAmlInfoSheet by remember { mutableStateOf(false) }
 
     val failedIconVisible = uiState.balanceViewItem?.failedIconVisible == true
     val loading = uiState.balanceViewItem?.syncingProgress?.progress != null
@@ -113,6 +119,13 @@ fun TokenBalanceScreen(
                     HsBackButton(onClick = { navController.popBackStack() })
                 },
                 menuItems = buildList {
+                    add(
+                        MenuItem(
+                            title = TranslatableString.ResString(R.string.Settings_Title),
+                            icon = R.drawable.ic_manage_2_24,
+                            onClick = onSettingsClick
+                        )
+                    )
                     if (failedIconVisible && !loading) {
                         add(
                             MenuItem(
@@ -208,6 +221,33 @@ fun TokenBalanceScreen(
                         }
                     }
 
+                    if (uiState.showAmlPromo) {
+                        item {
+                            AmlCheckPromoBanner(
+                                amlCheckEnabled = uiState.amlCheckEnabled,
+                                onToggleChange = { enabled ->
+                                    if (enabled) {
+                                        navController.premiumAction {
+                                            viewModel.setAmlCheckEnabled(true)
+                                        }
+                                    } else {
+                                        viewModel.setAmlCheckEnabled(false)
+                                    }
+                                },
+                                onInfoClick = { showAmlInfoSheet = true },
+                                onClose = {
+                                    viewModel.dismissAmlPromo()
+                                    HudHelper.showPremiumMessage(
+                                        view,
+                                        R.string.aml_promo_dismiss_hud,
+                                        SnackbarDuration.LONG
+                                    )
+                                },
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
+                    }
+
                     transactionList(
                         transactionsMap = transactionItems,
                         willShow = { viewModel.willShow(it) },
@@ -235,6 +275,19 @@ fun TokenBalanceScreen(
                 }
             }
         }
+    }
+
+    if (showAmlInfoSheet) {
+        AmlCheckInfoBottomSheet(
+            onPremiumSettingsClick = {
+                showAmlInfoSheet = false
+                navController.slideFromRight(
+                    R.id.premiumSettingsFragment
+                )
+            },
+            onLaterClick = { showAmlInfoSheet = false },
+            onDismiss = { showAmlInfoSheet = false }
+        )
     }
 }
 

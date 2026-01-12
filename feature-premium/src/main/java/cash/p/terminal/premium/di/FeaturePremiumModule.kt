@@ -1,7 +1,9 @@
 package cash.p.terminal.premium.di
 
+import cash.p.terminal.premium.data.UserPremiumSettings
 import cash.p.terminal.premium.data.database.PremiumDatabase
 import cash.p.terminal.premium.data.repository.PremiumUserRepository
+import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.premium.domain.usecase.ActivateTrialPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.CheckAdapterPremiumBalanceUseCase
 import cash.p.terminal.premium.domain.usecase.CheckAdapterPremiumBalanceUseCaseImpl
@@ -25,6 +27,9 @@ val featurePremiumModule = module {
 
     // Repositories
     factoryOf(::PremiumUserRepository)
+
+    // Settings
+    singleOf(::UserPremiumSettings) bind PremiumSettings::class
 
     // Use Cases
     singleOf(::CheckAdapterPremiumBalanceUseCaseImpl) bind CheckAdapterPremiumBalanceUseCase::class

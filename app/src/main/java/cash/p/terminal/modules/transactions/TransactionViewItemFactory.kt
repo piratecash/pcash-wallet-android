@@ -42,6 +42,7 @@ import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.models.Transaction
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import io.horizontalsystems.core.helpers.DateHelper
 import java.math.BigDecimal
 import java.util.Date
 
@@ -543,6 +544,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             spam = record.spam,
             icon = icon ?: singleValueIconType(record.mainValue)
         )
@@ -580,6 +582,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             sentToSelf = record.sentToSelf,
             spam = record.spam,
             icon = icon ?: singleValueIconType(record.mainValue)
@@ -693,6 +696,7 @@ class TransactionViewItemFactory(
             showAmount = showAmount,
             sentToSelf = sentToSelf,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             icon = icon ?: iconX
         )
     }
@@ -769,6 +773,7 @@ class TransactionViewItemFactory(
             showAmount = showAmount,
             sentToSelf = sentToSelf,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             icon = icon ?: iconX
         )
     }
@@ -797,6 +802,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             spam = record.spam,
             icon = icon ?: iconType(
                 record.blockchainType,
@@ -836,6 +842,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             sentToSelf = record.sentToSelf,
             spam = record.spam,
             icon = icon ?: singleValueIconType(record.mainValue!!, nftMetadata)
@@ -915,6 +922,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             spam = record.spam,
             icon = icon ?: singleValueIconType(record.mainValue!!)
         )
@@ -948,6 +956,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             spam = record.spam,
             icon = icon ?: doubleValueIconType(record.valueOut, record.valueIn)
         )
@@ -970,6 +979,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             spam = record.spam,
             icon = icon ?: doubleValueIconType(record.valueOut, record.valueIn)
         )
@@ -991,6 +1001,7 @@ class TransactionViewItemFactory(
             primaryValue = null,
             secondaryValue = null,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = spam,
             icon = icon ?: TransactionViewItem.Icon.Platform(BlockchainType.Tron)
         )
@@ -1012,6 +1023,7 @@ class TransactionViewItemFactory(
             primaryValue = null,
             secondaryValue = null,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = spam,
             icon = icon ?: TransactionViewItem.Icon.Platform(blockchainType)
         )
@@ -1047,6 +1059,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             sentToSelf = sentToSelf,
             spam = spam,
             icon = icon ?: singleValueIconType(value, nftMetadata)
@@ -1107,6 +1120,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = spam,
             icon = icon ?: singleValueIconType(value)
         )
@@ -1125,6 +1139,7 @@ class TransactionViewItemFactory(
             primaryValue = null,
             secondaryValue = null,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             spam = record.spam,
             icon = icon ?: TransactionViewItem.Icon.Platform(record.blockchainType)
         )
@@ -1161,6 +1176,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = spam,
             icon = icon ?: iconType(blockchainType, incomingValues, outgoingValues, nftMetadata)
         )
@@ -1214,6 +1230,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = spam,
             icon = icon ?: iconType(blockchainType, incomingValues, outgoingValues, nftMetadata)
         )
@@ -1290,6 +1307,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             sentToSelf = record.sentToSelf,
             doubleSpend = record.conflictingHash != null,
             locked = locked,
@@ -1333,6 +1351,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             sentToSelf = false,
             doubleSpend = record.conflictingHash != null,
             locked = locked,
@@ -1481,6 +1500,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = false,
             icon = transactionIcon,
             changeNowTransactionId = transaction.transactionId,
@@ -1690,6 +1710,7 @@ class TransactionViewItemFactory(
             secondaryValue = secondaryValue,
             showAmount = showAmount,
             date = Date(timestamp * 1000),
+            formattedTime = formatTime(timestamp),
             spam = spam,
             icon = icon ?: singleValueIconType(value)
         )
@@ -1825,6 +1846,8 @@ class TransactionViewItemFactory(
         } ?: ""
     }
 
+    private fun formatTime(timestamp: Long): String = DateHelper.getOnlyTime(Date(timestamp * 1000))
+
     private fun createViewItemFromPendingTransactionRecord(
         record: PendingTransactionRecord,
         icon: TransactionViewItem.Icon?,
@@ -1851,6 +1874,7 @@ class TransactionViewItemFactory(
             ),
             secondaryValue = secondaryValue,
             date = Date(record.timestamp * 1000),
+            formattedTime = formatTime(record.timestamp),
             sentToSelf = false,
             doubleSpend = false,
             locked = null,
