@@ -60,6 +60,32 @@ fun ButtonSecondaryDefault(
 }
 
 @Composable
+fun ButtonSecondaryCustom(
+    modifier: Modifier = Modifier,
+    title: String,
+    textColor: Color,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
+    ButtonSecondary(
+        modifier = modifier,
+        onClick = onClick,
+        content = {
+            if (enabled) {
+                E2(
+                    text = title,
+                    maxLines = 1,
+                    color = textColor
+                )
+            } else {
+                captionSB_grey50(text = title, maxLines = 1)
+            }
+        },
+        enabled = enabled
+    )
+}
+
+@Composable
 fun ButtonSecondaryYellow(
     modifier: Modifier = Modifier,
     title: String,

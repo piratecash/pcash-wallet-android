@@ -617,13 +617,7 @@ fun TransactionCell(
 private fun AmlStatusStripe(
     status: AmlStatus
 ) {
-    val color = when (status) {
-        AmlStatus.Low -> ComposeAppTheme.colors.remus
-        AmlStatus.Medium -> ComposeAppTheme.colors.jacob
-        AmlStatus.High -> ComposeAppTheme.colors.lucian
-        AmlStatus.Unknown -> ComposeAppTheme.colors.grey50
-        AmlStatus.Loading -> return
-    }
+    if (status == AmlStatus.Loading) return
     Box(
         modifier = Modifier
             .size(28.dp)
@@ -633,7 +627,7 @@ private fun AmlStatusStripe(
                 rotationZ = 45f
             }
             .clip(RoundedCornerShape(topStart = 12.dp))
-            .background(color)
+            .background(status.riskColor())
     )
 }
 

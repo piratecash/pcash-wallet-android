@@ -296,7 +296,7 @@ private fun SettingSections(
     CellUniversalLawrenceSection(
         listOf({
             HsSettingCell(
-                title = R.string.SettingsAddressChecker_Title,
+                title = R.string.address_checker_title,
                 icon = R.drawable.ic_radar_24,
                 onClick = {
                     navController.slideFromRight(R.id.addressCheckerFragment)

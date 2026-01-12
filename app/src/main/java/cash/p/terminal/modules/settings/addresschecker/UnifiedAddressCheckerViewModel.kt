@@ -43,7 +43,8 @@ class UnifiedAddressCheckerViewModel(
     private val hashDitValidator: HashDitAddressValidator,
     private val chainalysisValidator: ChainalysisAddressValidator,
     private val eip20Validator: Eip20AddressValidator,
-    private val alphaAmlValidator: AlphaAmlAddressValidator
+    private val alphaAmlValidator: AlphaAmlAddressValidator,
+    private val initialAddress: String? = null
 ) : ViewModelUiState<AddressCheckState>() {
     private val checkPremiumUseCase: CheckPremiumUseCase by inject(CheckPremiumUseCase::class.java)
 
@@ -104,6 +105,11 @@ class UnifiedAddressCheckerViewModel(
             }
 
             checkResults = issueTypes.associateWith { CheckState.Idle }
+
+            // Apply initial address if provided
+            initialAddress?.let { address ->
+                onEnterAddress(address)
+            }
         }
     }
 
@@ -293,7 +299,7 @@ class UnifiedAddressCheckerViewModel(
         }
     }
 
-    class Factory : ViewModelProvider.Factory {
+    class Factory(private val initialAddress: String? = null) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val addressHandlerFactory = AddressHandlerFactory(AppConfigProvider.udnApiKey)
@@ -311,7 +317,8 @@ class UnifiedAddressCheckerViewModel(
                     AppConfigProvider.chainalysisApiKey
                 ),
                 Eip20AddressValidator(App.evmSyncSourceManager),
-                alphaAmlAddressValidator
+                alphaAmlAddressValidator,
+                initialAddress
             ) as T
         }
     }

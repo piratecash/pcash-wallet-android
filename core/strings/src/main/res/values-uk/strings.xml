@@ -1673,7 +1673,6 @@
     <string name="Transactions_OperationType_ChangeTrust">Зміна довірчої лінії</string>
     <string name="Info_Reserved_Description">Мережа Stellar блокує 1 XLM для активації гаманця та 0.5 XLM як резерв за кожен токен, активований у вашому гаманці.</string>
     <string name="Info_Reserved_CurrentlyLocked">На даний момент заблоковано:</string>
-    <string name="SettingsAddressChecker_Title">Перевірка адреси</string>
     <string name="SettingsAddressChecker_RecipientCheck">Перевірка одержувача</string>
     <string name="SettingsAddressChecker_CheckTheRecipientInfo">Перевіряє адресу одержувача на ризики перед надсиланням.</string>
     <string name="settings_smart_contract_check">Перевірка одержувача на смарт контракт</string>
@@ -1694,6 +1693,8 @@
     <string name="aml_promo_dismiss_hud">Ви завжди можете повернутися до цієї функції в преміум-налаштуваннях.</string>
     <string name="aml_check_info_description">Це преміум-функція для перевірки вхідних транзакцій. Її можна вимкнути в розділі преміум-налаштувань.</string>
     <string name="aml_check_info_later">Пізніше</string>
+    <string name="address_checker_title">Перевірка адреси</string>
+    <string name="address_checker_choose_address">Виберіть адресу</string>
     <string name="aml_unknown">Невідомо</string>
     <string name="aml_low_risk">Низький ризик</string>
     <string name="aml_medium_risk">Середній ризик</string>

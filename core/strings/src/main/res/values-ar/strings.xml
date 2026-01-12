@@ -1654,6 +1654,8 @@
     <string name="aml_promo_dismiss_hud">يمكنك دائمًا العودة إلى هذه الميزة في إعدادات بريميوم.</string>
     <string name="aml_check_info_description">هذه ميزة مميزة للتحقق من المعاملات الواردة. يمكن تعطيلها في قسم إعدادات بريميوم.</string>
     <string name="aml_check_info_later">لاحقًا</string>
+    <string name="address_checker_title">مدقق العنوان</string>
+    <string name="address_checker_choose_address">اختر العنوان</string>
     <string name="aml_unknown">غير معروف</string>
     <string name="aml_low_risk">مخاطر منخفضة</string>
     <string name="aml_medium_risk">مخاطر متوسطة</string>

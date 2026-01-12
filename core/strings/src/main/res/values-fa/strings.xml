@@ -1645,6 +1645,8 @@
     <string name="aml_promo_dismiss_hud">همیشه می‌توانید در تنظیمات پریمیوم به این ویژگی بازگردید.</string>
     <string name="aml_check_info_description">این یک ویژگی پریمیوم برای بررسی تراکنش‌های ورودی است. می‌توان آن را در بخش تنظیمات پریمیوم غیرفعال کرد.</string>
     <string name="aml_check_info_later">بعداً</string>
+    <string name="address_checker_title">بررسی آدرس</string>
+    <string name="address_checker_choose_address">انتخاب آدرس</string>
     <string name="aml_unknown">ناشناخته</string>
     <string name="aml_low_risk">ریسک پایین</string>
     <string name="aml_medium_risk">ریسک متوسط</string>

@@ -1641,6 +1641,8 @@
     <string name="aml_promo_dismiss_hud">Pode sempre voltar a esta funcionalidade nas definições premium.</string>
     <string name="aml_check_info_description">Esta é uma funcionalidade premium para verificar transações recebidas. Pode ser desativada na secção de definições premium.</string>
     <string name="aml_check_info_later">Mais tarde</string>
+    <string name="address_checker_title">Verificador de Endereço</string>
+    <string name="address_checker_choose_address">Escolher endereço</string>
     <string name="aml_unknown">Desconhecido</string>
     <string name="aml_low_risk">Risco Baixo</string>
     <string name="aml_medium_risk">Risco Médio</string>

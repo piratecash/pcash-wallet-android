@@ -1639,6 +1639,8 @@
     <string name="aml_promo_dismiss_hud">프리미엄 설정에서 언제든지 이 기능으로 돌아올 수 있습니다.</string>
     <string name="aml_check_info_description">이 기능은 들어오는 거래를 확인하기 위한 프리미엄 기능입니다. 프리미엄 설정 섹션에서 비활성화할 수 있습니다.</string>
     <string name="aml_check_info_later">나중에</string>
+    <string name="address_checker_title">주소 확인</string>
+    <string name="address_checker_choose_address">주소 선택</string>
     <string name="aml_unknown">알 수 없음</string>
     <string name="aml_low_risk">낮은 위험</string>
     <string name="aml_medium_risk">중간 위험</string>

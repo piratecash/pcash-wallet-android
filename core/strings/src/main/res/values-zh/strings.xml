@@ -1630,6 +1630,8 @@
     <string name="aml_promo_dismiss_hud">您可以随时在高级设置中返回此功能。</string>
     <string name="aml_check_info_description">这是一项用于检查收到交易的高级功能。可以在高级设置部分禁用它。</string>
     <string name="aml_check_info_later">稍后</string>
+    <string name="address_checker_title">地址检查器</string>
+    <string name="address_checker_choose_address">选择地址</string>
     <string name="aml_unknown">未知</string>
     <string name="aml_low_risk">低风险</string>
     <string name="aml_medium_risk">中等风险</string>

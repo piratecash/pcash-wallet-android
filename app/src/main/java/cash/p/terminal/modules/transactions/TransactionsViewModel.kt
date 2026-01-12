@@ -1,7 +1,10 @@
 package cash.p.terminal.modules.transactions
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.AmlStatusManager
@@ -436,4 +439,22 @@ enum class AmlStatus {
             IncomingAddressCheckResult.High -> High
         }
     }
+}
+
+val AmlStatus.riskTextRes: Int
+    get() = when (this) {
+        AmlStatus.Low -> R.string.aml_low_risk
+        AmlStatus.Medium -> R.string.aml_medium_risk
+        AmlStatus.High -> R.string.aml_high_risk
+        AmlStatus.Loading,
+        AmlStatus.Unknown -> R.string.aml_unknown
+    }
+
+@Composable
+fun AmlStatus.riskColor(): Color = when (this) {
+    AmlStatus.Low -> ComposeAppTheme.colors.remus
+    AmlStatus.Medium -> ComposeAppTheme.colors.jacob
+    AmlStatus.High -> ComposeAppTheme.colors.lucian
+    AmlStatus.Loading,
+    AmlStatus.Unknown -> ComposeAppTheme.colors.grey50
 }

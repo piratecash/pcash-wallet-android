@@ -2,6 +2,7 @@ package cash.p.terminal.modules.transactionInfo
 
 
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
@@ -62,6 +63,12 @@ sealed class TransactionInfoViewItem {
     class WarningMessage(val message: String) : TransactionInfoViewItem()
 
     class Description(val text: String) : TransactionInfoViewItem()
+
+    class AmlCheck(
+        val status: AmlStatus,
+        val senderAddresses: List<String>,
+        val blockchainType: BlockchainType
+    ) : TransactionInfoViewItem()
 }
 
 enum class AmountType {

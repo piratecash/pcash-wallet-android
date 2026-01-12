@@ -483,12 +483,6 @@
         android:id="@+id/duplicateWalletInfoDialog"
         android:name="cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletInfoDialog" />
     <dialog
-        android:id="@+id/proUsersInfoDialog"
-        android:name="cash.p.terminal.modules.profeatures.yakauthorization.ProUsersInfoDialog" />
-    <dialog
-        android:id="@+id/proUsersActivateDialog"
-        android:name="cash.p.terminal.modules.profeatures.yakauthorization.ProUsersActivateDialog" />
-    <dialog
         android:id="@+id/confirmDeleteAllPairingsDialog"
         android:name="cash.p.terminal.modules.walletconnect.pairing.ConfirmDeleteAllPairingsDialog" />
     <dialog
@@ -559,7 +553,13 @@
         android:name="cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityFragment"/>
     <fragment
         android:id="@+id/addressCheckFragment"
-        android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment"/>
+        android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment">
+        <argument
+            android:name="input"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment$Input" />
+    </fragment>
     <fragment
         android:id="@+id/safetyRulesFragment"
         android:name="cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesFragment">

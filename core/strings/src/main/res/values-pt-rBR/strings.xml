@@ -1641,6 +1641,8 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="aml_promo_dismiss_hud">Você sempre pode retornar a este recurso nas configurações premium.</string>
     <string name="aml_check_info_description">Este é um recurso premium para verificar transações recebidas. Pode ser desativado na seção de configurações premium.</string>
     <string name="aml_check_info_later">Mais tarde</string>
+    <string name="address_checker_title">Verificador de Endereço</string>
+    <string name="address_checker_choose_address">Escolher endereço</string>
     <string name="aml_unknown">Desconhecido</string>
     <string name="aml_low_risk">Risco Baixo</string>
     <string name="aml_medium_risk">Risco Médio</string>

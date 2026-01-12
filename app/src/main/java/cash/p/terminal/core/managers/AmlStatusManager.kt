@@ -31,6 +31,7 @@ class AmlStatusManager(
     private val managerScope = CoroutineScope(SupervisorJob() + dispatcherProvider.default)
 
     private val amlStatuses = ConcurrentHashMap<String, AmlStatus>()
+    private val addressStatuses = ConcurrentHashMap<String, AmlStatus>()
 
     // Queue for pending requests (LIFO priority - most recent at end)
     private val pendingQueue = ArrayDeque<PendingRequest>(MAX_QUEUE_SIZE + 1)
@@ -62,6 +63,8 @@ class AmlStatusManager(
     }
 
     fun getStatus(uid: String): AmlStatus? = amlStatuses[uid]
+
+    fun getAddressStatus(address: String): AmlStatus? = addressStatuses[address]
 
     fun fetchStatusIfNeeded(uid: String, record: TransactionRecord) {
         if (!isEnabled) return
@@ -124,9 +127,15 @@ class AmlStatusManager(
         val job = managerScope.launch(dispatcherProvider.io) {
             try {
                 val addresses = record.getSenderAddresses().map { Address(it) }
-                val result = checkAmlIncomingTransaction(addresses, token)
-                val status = AmlStatus.from(result)
+                val results = checkAmlIncomingTransaction(addresses, token)
 
+                // Store per-address statuses
+                results.perAddress.forEach { (address, result) ->
+                    addressStatuses[address] = AmlStatus.from(result)
+                }
+
+                // Store overall transaction status
+                val status = AmlStatus.from(results.overall)
                 amlStatuses[uid] = status
                 evictCacheIfNeeded()
                 emitUpdate(uid, status)
@@ -150,6 +159,7 @@ class AmlStatusManager(
         activeRequests.values.forEach { it.cancel() }
         activeRequests.clear()
         amlStatuses.clear()
+        addressStatuses.clear()
 
         // Clear queue synchronously using tryLock to avoid blocking
         if (queueMutex.tryLock()) {
@@ -168,6 +178,10 @@ class AmlStatusManager(
         if (amlStatuses.size > MAX_CACHE_SIZE) {
             val toRemove = amlStatuses.keys.take(MAX_CACHE_SIZE / 5)
             toRemove.forEach { amlStatuses.remove(it) }
+        }
+        if (addressStatuses.size > MAX_ADDRESS_CACHE_SIZE) {
+            val toRemove = addressStatuses.keys.take(MAX_ADDRESS_CACHE_SIZE / 5)
+            toRemove.forEach { addressStatuses.remove(it) }
         }
     }
 
@@ -196,5 +210,6 @@ class AmlStatusManager(
         private const val MAX_QUEUE_SIZE = 20
         private const val MAX_CONCURRENT_REQUESTS = 10
         private const val MAX_CACHE_SIZE = 500
+        private const val MAX_ADDRESS_CACHE_SIZE = 1000
     }
 }

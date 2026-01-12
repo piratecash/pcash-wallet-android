@@ -1642,6 +1642,8 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="aml_promo_dismiss_hud">Premium ayarlarından bu özelliğe her zaman geri dönebilirsiniz.</string>
     <string name="aml_check_info_description">Bu, gelen işlemleri kontrol etmek için premium bir özelliktir. Premium ayarlar bölümünden devre dışı bırakılabilir.</string>
     <string name="aml_check_info_later">Daha sonra</string>
+    <string name="address_checker_title">Adres Denetleyici</string>
+    <string name="address_checker_choose_address">Adres seçin</string>
     <string name="aml_unknown">Bilinmiyor</string>
     <string name="aml_low_risk">Düşük Risk</string>
     <string name="aml_medium_risk">Orta Risk</string>

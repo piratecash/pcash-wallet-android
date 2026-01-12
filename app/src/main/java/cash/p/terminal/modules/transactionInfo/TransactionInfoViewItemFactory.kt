@@ -35,6 +35,13 @@ class TransactionInfoViewItemFactory(
 
         var sentToSelf = false
 
+        // Create AML item once, to be added to the first receive section
+        var amlItem: TransactionInfoViewItem.AmlCheck? = TransactionViewItemFactoryHelper.getAmlCheckItem(
+            amlStatus = transactionItem.amlStatus,
+            record = transaction,
+            blockchainType = blockchainType
+        )
+
         if (transactionItem.record.spam) {
             itemSections.add(
                 listOf(
@@ -59,6 +66,7 @@ class TransactionInfoViewItemFactory(
                                 coinPrice = rates[transactionType.value.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
+                                amlItem = amlItem.also { amlItem = null },
                             )
                         )
 
@@ -145,6 +153,7 @@ class TransactionInfoViewItemFactory(
                                 coinPrice = rates[transaction.value.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
+                                amlItem = amlItem.also { amlItem = null },
                             )
                         )
                     }
@@ -252,6 +261,7 @@ class TransactionInfoViewItemFactory(
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
                                     blockchainType = blockchainType,
+                                    amlItem = amlItem.also { amlItem = null },
                                 )
                             )
                         }
@@ -281,6 +291,7 @@ class TransactionInfoViewItemFactory(
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
                                     blockchainType = blockchainType,
+                                    amlItem = amlItem.also { amlItem = null },
                                 )
                             )
                         }
@@ -316,6 +327,7 @@ class TransactionInfoViewItemFactory(
                                 coinPrice = rates[transaction.value.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
+                                amlItem = amlItem.also { amlItem = null },
                             )
                         )
 
@@ -377,6 +389,7 @@ class TransactionInfoViewItemFactory(
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
                                     blockchainType = blockchainType,
+                                    amlItem = amlItem.also { amlItem = null },
                                 )
                             )
                         }
@@ -406,6 +419,7 @@ class TransactionInfoViewItemFactory(
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
                                     blockchainType = blockchainType,
+                                    amlItem = amlItem.also { amlItem = null },
                                 )
                             )
                         }
@@ -439,6 +453,7 @@ class TransactionInfoViewItemFactory(
                                 coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
+                                amlItem = amlItem.also { amlItem = null },
                             )
                         )
 
@@ -491,6 +506,7 @@ class TransactionInfoViewItemFactory(
                                 hideAmount = transactionItem.hideAmount,
                                 nftMetadata = nftMetadata,
                                 blockchainType = blockchainType,
+                                amlItem = amlItem.also { amlItem = null },
                             )
                         )
                     }
@@ -534,6 +550,7 @@ class TransactionInfoViewItemFactory(
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
                                     blockchainType = blockchainType,
+                                    amlItem = amlItem.also { amlItem = null },
                                 )
                             )
                         }
@@ -554,6 +571,7 @@ class TransactionInfoViewItemFactory(
                                 coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
                                 blockchainType = blockchainType,
+                                amlItem = amlItem.also { amlItem = null },
                             )
                         )
                     }

@@ -1674,7 +1674,6 @@
     <string name="Transactions_OperationType_ChangeTrust">Изменение доверительной линии</string>
     <string name="Info_Reserved_Description">Сеть Stellar блокирует 1 XLM для активации кошелька и 0.5 XLM в качестве резерва за каждый токен, активированный в вашем кошельке.</string>
     <string name="Info_Reserved_CurrentlyLocked">В данный момент заблокировано:</string>
-    <string name="SettingsAddressChecker_Title">Проверка адреса</string>
     <string name="SettingsAddressChecker_RecipientCheck">Проверка получателя</string>
     <string name="SettingsAddressChecker_CheckTheRecipientInfo">Проверяет адрес получателя на риски перед отправкой.</string>
     <string name="settings_smart_contract_check">Проверка получателя на смарт контракт</string>
@@ -1695,6 +1694,8 @@
     <string name="aml_promo_dismiss_hud">Вы всегда сможете вернуться к этой функции в настройках премиум.</string>
     <string name="aml_check_info_description">Это премиум-функция для проверки входящих транзакций. Её можно отключить в разделе премиум-настроек.</string>
     <string name="aml_check_info_later">Позже</string>
+    <string name="address_checker_title">Проверка адреса</string>
+    <string name="address_checker_choose_address">Выберите адрес</string>
     <string name="aml_unknown">Неизвестно</string>
     <string name="aml_low_risk">Низкий риск</string>
     <string name="aml_medium_risk">Средний риск</string>

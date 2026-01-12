@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,7 +23,12 @@ import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.orHide
+import org.koin.compose.koinInject
+import cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment
+import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
+import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.navigation.slideFromRight
@@ -35,6 +44,7 @@ import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui.compose.components.TransactionInfoDoubleSpendCell
 import cash.p.terminal.ui.compose.components.TransactionInfoExplorerCell
 import cash.p.terminal.ui.compose.components.TransactionInfoRawTransaction
+import cash.p.terminal.ui.compose.components.TransactionInfoAmlCheckCell
 import cash.p.terminal.ui.compose.components.TransactionInfoSentToSelfCell
 import cash.p.terminal.ui.compose.components.TransactionInfoSpeedUpCell
 import cash.p.terminal.ui.compose.components.TransactionInfoStatusCell
@@ -82,8 +92,11 @@ class TransactionInfoFragment : BaseComposeFragment() {
 @Composable
 fun TransactionInfoScreen(
     viewModel: TransactionInfoViewModel,
-    navController: NavController
+    navController: NavController,
+    amlStatusManager: AmlStatusManager = koinInject()
 ) {
+    var showAmlInfoSheet by remember { mutableStateOf(false) }
+    var amlAddressSelectionData by remember { mutableStateOf<AmlAddressSelectionData?>(null) }
 
     Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
         AppBar(
@@ -99,7 +112,25 @@ fun TransactionInfoScreen(
             )
         )
         Box(modifier = Modifier.weight(1f)) {
-            TransactionInfo(viewModel, navController)
+            TransactionInfo(
+                viewModel = viewModel,
+                navController = navController,
+                onAmlInfoClick = { showAmlInfoSheet = true },
+                onAmlRiskClick = { addresses, status ->
+                    if (addresses.size == 1) {
+                        navController.slideFromRight(
+                            R.id.addressCheckFragment,
+                            AddressCheckFragment.Input(addresses.first())
+                        )
+                    } else {
+                        amlAddressSelectionData = AmlAddressSelectionData(
+                            addresses = addresses.map { address ->
+                                address to (amlStatusManager.getAddressStatus(address) ?: status)
+                            }
+                        )
+                    }
+                }
+            )
             ConnectionStatusView(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -107,12 +138,44 @@ fun TransactionInfoScreen(
             )
         }
     }
+
+    if (showAmlInfoSheet) {
+        AmlCheckInfoBottomSheet(
+            onPremiumSettingsClick = {
+                showAmlInfoSheet = false
+                navController.slideFromRight(R.id.premiumSettingsFragment)
+            },
+            onLaterClick = { showAmlInfoSheet = false },
+            onDismiss = { showAmlInfoSheet = false }
+        )
+    }
+
+    amlAddressSelectionData?.let { data ->
+        AmlAddressSelectionBottomSheet(
+            addresses = data.addresses,
+            onAddressSelected = { address ->
+                amlAddressSelectionData = null
+                navController.slideFromRight(
+                    R.id.addressCheckFragment,
+                    AddressCheckFragment.Input(address)
+                )
+            },
+            onLaterClick = { amlAddressSelectionData = null },
+            onDismiss = { amlAddressSelectionData = null }
+        )
+    }
 }
+
+private data class AmlAddressSelectionData(
+    val addresses: List<Pair<String, AmlStatus>>
+)
 
 @Composable
 fun TransactionInfo(
     viewModel: TransactionInfoViewModel,
-    navController: NavController
+    navController: NavController,
+    onAmlInfoClick: () -> Unit = {},
+    onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -127,7 +190,9 @@ fun TransactionInfo(
                     viewModel.toggleBalanceVisibility()
                 },
                 getRawTransaction = viewModel::getRawTransaction,
-                hideSensitiveInfo = viewModel.balanceHidden
+                hideSensitiveInfo = viewModel.balanceHidden,
+                onAmlInfoClick = onAmlInfoClick,
+                onAmlRiskClick = onAmlRiskClick
             )
         }
     }
@@ -139,7 +204,9 @@ fun TransactionInfoSection(
     navController: NavController,
     onSensitiveValueClick: () -> Unit,
     getRawTransaction: () -> String?,
-    hideSensitiveInfo: Boolean
+    hideSensitiveInfo: Boolean,
+    onAmlInfoClick: () -> Unit = {},
+    onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
 ) {
     //items without background
     if (section.size == 1) {
@@ -348,6 +415,21 @@ fun TransactionInfoSection(
                     is TransactionInfoViewItem.SentToSelf -> {
                         add {
                             TransactionInfoSentToSelfCell()
+                        }
+                    }
+
+                    is TransactionInfoViewItem.AmlCheck -> {
+                        add {
+                            TransactionInfoAmlCheckCell(
+                                status = viewItem.status,
+                                onInfoClick = onAmlInfoClick,
+                                onRiskClick = {
+                                    onAmlRiskClick(
+                                        viewItem.senderAddresses,
+                                        viewItem.status
+                                    )
+                                }
+                            )
                         }
                     }
 

@@ -18,7 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,7 +47,10 @@ import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem
 import cash.p.terminal.modules.transactionInfo.options.SpeedUpCancelType
 import cash.p.terminal.modules.transactionInfo.options.TransactionSpeedUpCancelFragment
 import cash.p.terminal.modules.transactionInfo.resendbitcoin.ResendBitcoinFragment
+import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.modules.transactions.riskColor
+import cash.p.terminal.modules.transactions.riskTextRes
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.shorten
@@ -55,6 +59,7 @@ import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryCustom
 import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
@@ -721,6 +726,56 @@ fun TransactionInfoCell(title: String, value: String) {
             text = value,
             textAlign = TextAlign.Right
         )
+    }
+}
+
+@Composable
+fun TransactionInfoAmlCheckCell(
+    status: AmlStatus,
+    onInfoClick: () -> Unit,
+    onRiskClick: () -> Unit
+) {
+    RowUniversal(
+        modifier = Modifier.padding(horizontal = 16.dp),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_star_filled_20),
+            contentDescription = null,
+            tint = ComposeAppTheme.colors.jacob,
+            modifier = Modifier.size(20.dp)
+        )
+        HSpacer(16.dp)
+        subhead2_grey(text = stringResource(R.string.alpha_aml_title))
+        HSpacer(8.dp)
+        HsIconButton(
+            modifier = Modifier.size(20.dp),
+            onClick = onInfoClick
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_info_20),
+                contentDescription = null,
+                tint = ComposeAppTheme.colors.grey
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        when (status) {
+            AmlStatus.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = ComposeAppTheme.colors.grey
+                )
+            }
+
+            else -> {
+                ButtonSecondaryCustom(
+                    modifier = Modifier.height(28.dp),
+                    title = stringResource(status.riskTextRes),
+                    textColor = status.riskColor(),
+                    onClick = onRiskClick
+                )
+            }
+        }
     }
 }
 

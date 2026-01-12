@@ -1043,7 +1043,6 @@ Proceed only if you\'re sure.</string>
     <string name="mev_protection">MEV Protection</string>
 
     <!--Address Checker-->
-    <string name="SettingsAddressChecker_Title">Address Checker</string>
     <string name="SettingsAddressChecker_RecipientCheck">Recipient Check</string>
     <string name="SettingsAddressChecker_CheckTheRecipientInfo">Checks the recipient address for risks before sending.</string>
     <string name="settings_smart_contract_check">Smart contract recipient check</string>
@@ -1066,6 +1065,8 @@ Proceed only if you\'re sure.</string>
     <string name="aml_promo_dismiss_hud">You can always return to this feature in the premium settings.</string>
     <string name="aml_check_info_description">This is a premium feature for checking incoming transactions. It can be disabled in the premium settings section.</string>
     <string name="aml_check_info_later">Later</string>
+    <string name="address_checker_title">Address Checker</string>
+    <string name="address_checker_choose_address">Choose address</string>
     <string name="aml_unknown">Unknown</string>
     <string name="aml_low_risk">Low Risk</string>
     <string name="aml_medium_risk">Medium Risk</string>

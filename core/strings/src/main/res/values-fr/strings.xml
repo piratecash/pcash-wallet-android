@@ -1639,6 +1639,8 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="aml_promo_dismiss_hud">Vous pouvez toujours revenir à cette fonctionnalité dans les paramètres premium.</string>
     <string name="aml_check_info_description">Il s\'agit d\'une fonctionnalité premium pour vérifier les transactions entrantes. Elle peut être désactivée dans la section des paramètres premium.</string>
     <string name="aml_check_info_later">Plus tard</string>
+    <string name="address_checker_title">Vérificateur d\'Adresse</string>
+    <string name="address_checker_choose_address">Choisir l\'adresse</string>
     <string name="aml_unknown">Inconnu</string>
     <string name="aml_low_risk">Risque Faible</string>
     <string name="aml_medium_risk">Risque Moyen</string>

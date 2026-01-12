@@ -71,11 +71,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UnifiedAddressCheckScreen(
+    initialAddress: String? = null,
     onClose: () -> Unit,
     onPremiumClick: () -> Unit,
 ) {
     val viewModel =
-        viewModel<UnifiedAddressCheckerViewModel>(factory = UnifiedAddressCheckerViewModel.Factory())
+        viewModel<UnifiedAddressCheckerViewModel>(factory = UnifiedAddressCheckerViewModel.Factory(initialAddress))
 
     val coroutineScope = rememberCoroutineScope()
     val infoModalBottomSheetState =

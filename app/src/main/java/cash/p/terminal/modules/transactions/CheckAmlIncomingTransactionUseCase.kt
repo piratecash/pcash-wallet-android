@@ -11,6 +11,11 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import timber.log.Timber
 
+data class AmlCheckResults(
+    val perAddress: Map<String, IncomingAddressCheckResult>,
+    val overall: IncomingAddressCheckResult
+)
+
 class CheckAmlIncomingTransactionUseCase(
     private val addressCheckManager: AddressCheckManager
 ) {
@@ -24,32 +29,42 @@ class CheckAmlIncomingTransactionUseCase(
     suspend operator fun invoke(
         addresses: List<Address>,
         token: Token
-    ): IncomingAddressCheckResult {
+    ): AmlCheckResults {
         if (addresses.isEmpty()) {
-            return IncomingAddressCheckResult.Unknown
+            return AmlCheckResults(emptyMap(), IncomingAddressCheckResult.Unknown)
         }
 
         val supportedTypes = addressCheckManager.availableCheckTypes(token)
             .filter { it in checkTypes }
 
         if (supportedTypes.isEmpty()) {
-            return IncomingAddressCheckResult.Unknown
+            return AmlCheckResults(emptyMap(), IncomingAddressCheckResult.Unknown)
         }
 
-        val results = coroutineScope {
+        // Check each (address, type) pair and keep address association
+        val resultsWithAddress = coroutineScope {
             addresses.flatMap { address ->
                 supportedTypes.map { type ->
                     async {
-                        checkWithRetry(type, address, token)
+                        address.hex to checkWithRetry(type, address, token).toIncomingResult()
                     }
                 }
             }.awaitAll()
         }
 
-        return results
-            .map { it.toIncomingResult() }
+        // Group by address and take worst result per address
+        val perAddress = resultsWithAddress
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, results) ->
+                results.maxByOrNull { it.ordinal } ?: IncomingAddressCheckResult.Unknown
+            }
+
+        // Overall worst across all addresses
+        val overall = perAddress.values
             .maxByOrNull { it.ordinal }
             ?: IncomingAddressCheckResult.Unknown
+
+        return AmlCheckResults(perAddress, overall)
     }
 
     private suspend fun checkWithRetry(

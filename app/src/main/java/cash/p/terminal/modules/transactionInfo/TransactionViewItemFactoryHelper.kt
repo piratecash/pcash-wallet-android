@@ -20,8 +20,11 @@ import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRec
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.TransactionViewItem
+import cash.p.terminal.modules.transactions.getSenderAddresses
+import cash.p.terminal.modules.transactions.isIncomingForAmlCheck
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
@@ -248,6 +251,7 @@ object TransactionViewItemFactoryHelper {
         hideAmount: Boolean,
         nftMetadata: Map<NftUid, NftAssetBriefMetadata> = mapOf(),
         blockchainType: BlockchainType,
+        amlItem: TransactionInfoViewItem.AmlCheck? = null,
     ): List<TransactionInfoViewItem> {
         val mint = fromAddress == zeroAddress
         val title: String =
@@ -313,6 +317,7 @@ object TransactionViewItemFactoryHelper {
             )
         }
 
+        amlItem?.let { items.add(it) }
         rate?.let { items.add(it) }
 
         return items
@@ -801,6 +806,24 @@ object TransactionViewItemFactoryHelper {
         }
 
         return items
+    }
+
+    fun getAmlCheckItem(
+        amlStatus: AmlStatus?,
+        record: TransactionRecord,
+        blockchainType: BlockchainType
+    ): TransactionInfoViewItem.AmlCheck? {
+        if (amlStatus == null) return null
+        if (!record.isIncomingForAmlCheck()) return null
+
+        val senderAddresses = record.getSenderAddresses()
+        if (senderAddresses.isEmpty()) return null
+
+        return TransactionInfoViewItem.AmlCheck(
+            status = amlStatus,
+            senderAddresses = senderAddresses,
+            blockchainType = blockchainType
+        )
     }
 
 }

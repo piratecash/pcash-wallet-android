@@ -1332,6 +1332,7 @@ fun D1(
     textAlign: TextAlign? = null,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
+    textColor: Color = ComposeAppTheme.colors.grey,
     onTextLayout: (TextLayoutResult) -> Unit = {}
 ) {
     Text(
@@ -1342,7 +1343,7 @@ fun D1(
         maxLines = maxLines,
         onTextLayout = onTextLayout,
         style = ComposeAppTheme.typography.subhead2,
-        color = ComposeAppTheme.colors.grey,
+        color = textColor,
     )
 }
 @Composable
@@ -1887,6 +1888,7 @@ fun E2(
     textAlign: TextAlign? = null,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
+    color: Color = ComposeAppTheme.colors.leah,
     onTextLayout: (TextLayoutResult) -> Unit = {}
 ) {
     Text(
@@ -1897,7 +1899,7 @@ fun E2(
         maxLines = maxLines,
         onTextLayout = onTextLayout,
         style = ComposeAppTheme.typography.captionSB,
-        color = ComposeAppTheme.colors.leah,
+        color = color
     )
 }
 @Composable

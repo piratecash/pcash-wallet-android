@@ -11,6 +11,7 @@ import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
+import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionStatus
@@ -77,7 +78,9 @@ data class TransactionInfoItem(
     val swapAmountOutReal: BigDecimal? = null,
     val swapAmountIn: BigDecimal? = null,
     val swapCoinCodeOut: String? = null,
-    val swapCoinCodeIn: String? = null
+    val swapCoinCodeIn: String? = null,
+    // AML status
+    val amlStatus: AmlStatus? = null
 )
 
 val BlockchainType.resendable: Boolean

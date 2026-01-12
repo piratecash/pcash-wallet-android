@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
@@ -54,6 +55,7 @@ class TransactionInfoService(
     private val pendingTransactionMatcher: PendingTransactionMatcher by inject(
         PendingTransactionMatcher::class.java
     )
+    private val amlStatusManager: AmlStatusManager by inject(AmlStatusManager::class.java)
 
     private val mutex = Mutex()
 
@@ -336,8 +338,17 @@ class TransactionInfoService(
                 }
         }
 
+        launch {
+            amlStatusManager.statusUpdates.collect { update ->
+                if (update.uid == transactionRecord.uid) {
+                    handleAmlStatusUpdate(update.status)
+                }
+            }
+        }
+
         fetchRates()
         fetchNftMetadata()
+        fetchAmlStatus()
     }
 
     private fun findMatchingRealTransaction(
@@ -418,6 +429,20 @@ class TransactionInfoService(
 
     fun getRawTransaction(): String? {
         return adapter.getRawTransaction(transactionRecord.transactionHash)
+    }
+
+    private fun fetchAmlStatus() {
+        amlStatusManager.fetchStatusIfNeeded(transactionRecord.uid, transactionRecord)
+        // Apply cached status immediately if available
+        amlStatusManager.getStatus(transactionRecord.uid)?.let { status ->
+            transactionInfoItem = transactionInfoItem.copy(amlStatus = status)
+        }
+    }
+
+    private suspend fun handleAmlStatusUpdate(status: cash.p.terminal.modules.transactions.AmlStatus?) {
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(amlStatus = status)
+        }
     }
 
 }

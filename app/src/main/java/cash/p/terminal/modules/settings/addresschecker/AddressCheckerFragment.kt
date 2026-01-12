@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -41,9 +42,9 @@ class AddressCheckerFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         AddressCheckerScreen(
             onCheckAddressClick = {
-                navController.navigate(R.id.addressCheckFragment)
+                navController.slideFromRight(R.id.addressCheckFragment)
             },
-            onClose = { navController.popBackStack() }
+            onClose = navController::navigateUp
         )
     }
 
@@ -60,7 +61,7 @@ fun AddressCheckerScreen(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
             AppBar(
-                title = stringResource(R.string.SettingsAddressChecker_Title),
+                title = stringResource(R.string.address_checker_title),
                 navigationIcon = {
                     HsBackButton(onClick = onClose)
                 },
