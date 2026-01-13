@@ -59,7 +59,7 @@ class MoneroAdapter(
         amount: BigDecimal,
         address: String,
         memo: String?
-    ) = moneroKitWrapper.send(amount, address, memo)
+    ): String = moneroKitWrapper.send(amount, address, memo)
 
     override suspend fun estimateFee(
         amount: BigDecimal,

@@ -22,7 +22,6 @@ class DefaultUserManager(
 
     override fun setUserLevel(level: Int) {
         if (level == currentUserLevel) {
-            logger.info("User level is already set to $level")
             return
         }
 

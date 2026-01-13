@@ -12,6 +12,7 @@ sealed class SendTransactionResult {
     data class Stellar(val transactionResponse: TransactionResponse) : SendTransactionResult()
     data class Solana(val result: SendResult) : SendTransactionResult()
     data class ZCash(val result: SendResult) : SendTransactionResult()
+    data class Monero(val result: SendResult) : SendTransactionResult()
 
     fun getRecordUid(): String? {
         return when (this) {
@@ -35,6 +36,11 @@ sealed class SendTransactionResult {
 
             is Stellar -> transactionResponse.hash
             is Solana -> when (result) {
+                is SendResult.Sent -> result.recordUid
+                is SendResult.Failed,
+                SendResult.Sending -> null
+            }
+            is Monero -> when (result) {
                 is SendResult.Sent -> result.recordUid
                 is SendResult.Failed,
                 SendResult.Sending -> null

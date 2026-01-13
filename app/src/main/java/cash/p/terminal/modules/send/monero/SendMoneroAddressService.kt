@@ -16,7 +16,7 @@ class SendMoneroAddressService {
         State(
             address = address,
             addressError = addressError,
-            canBeSend = address != null,
+            canBeSend = address != null && addressError == null,
         )
     )
     val stateFlow = _stateFlow.asStateFlow()
@@ -43,7 +43,7 @@ class SendMoneroAddressService {
             State(
                 address = address,
                 addressError = addressError,
-                canBeSend = address != null
+                canBeSend = address != null && addressError == null
             )
         }
     }

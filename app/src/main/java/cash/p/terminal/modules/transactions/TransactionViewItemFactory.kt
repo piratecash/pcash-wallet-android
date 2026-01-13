@@ -470,7 +470,11 @@ class TransactionViewItemFactory(
             }
 
             is MoneroTransactionRecord -> {
-                createViewItemFromMoneroTransactionRecord(
+                tryConvertToUserSwapProviderViewItemSwap(
+                    transactionItem = transactionItem,
+                    token = record.token,
+                    isIncoming = record.transactionRecordType == TransactionRecordType.MONERO_INCOMING
+                ) ?: createViewItemFromMoneroTransactionRecord(
                     record = record,
                     transactionItem = transactionItem,
                     progress = progress,

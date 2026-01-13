@@ -40,6 +40,7 @@ import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.sizeInMb
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +51,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.io.File
@@ -192,6 +197,10 @@ class MoneroKitWrapper(
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     val transactionsStateUpdatedFlow = _transactionsStateUpdatedFlow.asSharedFlow()
+
+    private val sendMutex = Mutex()
+    @Volatile
+    private var pendingTxDeferred: CompletableDeferred<String>? = null
 
     private suspend fun restoreFromBip39(
         account: Account,
@@ -468,15 +477,31 @@ class MoneroKitWrapper(
         }
     }
 
-    fun send(
+    suspend fun send(
         amount: BigDecimal,
         address: String,
         memo: String?
-    ) {
-        val txData = buildTxData(amount, address, memo)
+    ): String {
+        val deferred = CompletableDeferred<String>()
+        pendingTxDeferred = deferred
 
-        moneroWalletService.prepareTransaction("send", txData)
-        moneroWalletService.sendTransaction(memo)
+        try {
+            val wallet = moneroWalletService.wallet
+                ?: throw IllegalStateException("Monero wallet not initialized")
+            val txData = buildTxData(amount, address, memo, wallet)
+            moneroWalletService.prepareTransaction("send", txData)
+            moneroWalletService.sendTransaction(memo)
+
+            return withTimeout(SEND_TIMEOUT_MS) { deferred.await() }
+        } catch (e: TimeoutCancellationException) {
+            val timeoutError = IllegalStateException("Transaction timed out after ${SEND_TIMEOUT_MS}ms")
+            deferred.completeExceptionally(timeoutError)
+            throw timeoutError
+        } finally {
+            if (pendingTxDeferred === deferred) {
+                pendingTxDeferred = null
+            }
+        }
     }
 
     fun estimateFee(
@@ -484,22 +509,29 @@ class MoneroKitWrapper(
         address: String,
         memo: String?
     ): Long {
-        val txData = buildTxData(amount, address, memo)
-        return moneroWalletService.wallet!!.estimateTransactionFee(txData)
+        val wallet = moneroWalletService.wallet
+            ?: throw IllegalStateException("Monero wallet not initialized")
+        val txData = buildTxData(amount, address, memo, wallet)
+        return wallet.estimateTransactionFee(txData)
     }
 
     private fun buildTxData(
         amount: BigDecimal,
         address: String,
-        memo: String?
+        memo: String?,
+        wallet: Wallet
     ) = TxData().apply {
         this.destination = address
         this.amount = amount.movePointRight(MoneroAdapter.decimal).toLong()
-        this.mixin = moneroWalletService.wallet!!.defaultMixin
+        this.mixin = wallet.defaultMixin
         this.priority = PendingTransaction.Priority.Priority_Default
         memo?.let {
             this.userNotes = UserNotes(it)
         }
+    }
+
+    companion object {
+        private const val SEND_TIMEOUT_MS = 60_000L
     }
 
     fun statusInfo(): Map<String, Any> {
@@ -536,7 +568,7 @@ class MoneroKitWrapper(
             moneroWalletService.wallet!!.address
         } catch (e: Exception) {
             logger.warning("getAddress: failed to fetch address", e)
-            Log.e("MoneroKitWrapper", "Failed to get address", e)
+            Timber.d("getAddress: Failed to get address $e")
             ""
         }
     }
@@ -669,11 +701,37 @@ class MoneroKitWrapper(
     override fun onTransactionSent(txid: String?) {
         logger.info("onTransactionSent: txid=${txid ?: "null"}")
         Timber.d("onTransactionSent: $txid")
+
+        val deferred = pendingTxDeferred
+        if (deferred == null) {
+            logger.info("onTransactionSent: no pending deferred to complete (may have timed out)")
+            Timber.w("onTransactionSent: no pending deferred to complete")
+            return
+        }
+
+        if (txid != null) {
+            deferred.complete(txid)
+        } else {
+            deferred.completeExceptionally(
+                IllegalStateException("Transaction sent without txid")
+            )
+        }
     }
 
     override fun onSendTransactionFailed(error: String?) {
         logger.info("onSendTransactionFailed: error=$error")
         Timber.d("onSendTransactionFailed: $error")
+
+        val deferred = pendingTxDeferred
+        if (deferred == null) {
+            logger.info("onSendTransactionFailed: no pending deferred to complete")
+            Timber.w("onSendTransactionFailed: no pending deferred to complete")
+            return
+        }
+
+        deferred.completeExceptionally(
+            IllegalStateException(error ?: "Transaction failed")
+        )
     }
 
     override fun onWalletStarted(walletStatus: Wallet.Status?) {

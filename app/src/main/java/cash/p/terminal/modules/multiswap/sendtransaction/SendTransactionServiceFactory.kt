@@ -8,6 +8,7 @@ import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactio
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceSolana
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceTon
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceTron
+import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceMonero
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceZCash
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
@@ -86,6 +87,10 @@ object SendTransactionServiceFactory {
 
                 BlockchainType.Ton -> {
                     SendTransactionServiceTon(token)
+                }
+
+                BlockchainType.Monero -> {
+                    SendTransactionServiceMonero(token)
                 }
 
                 else -> throw UnsupportedException("Unsupported token type: $tokenType")
