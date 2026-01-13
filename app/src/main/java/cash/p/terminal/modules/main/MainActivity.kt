@@ -91,7 +91,7 @@ class MainActivity : BaseActivity() {
 
                     is Wallet.Model.SessionProposal -> {
                         navController.slideFromBottom(
-                        MainGraphDirections.actionGlobalToWcSessionFragment(null)
+                            MainGraphDirections.actionGlobalToWcSessionFragment(null)
                         )
                     }
 
@@ -128,13 +128,15 @@ class MainActivity : BaseActivity() {
                 viewModel.onTcDappRequestHandled()
             }
         }
+
+        // Handle deeplink on cold start (only on fresh launch, not on recreation)
+        if (savedInstanceState == null && intent.data != null && intent.action == Intent.ACTION_VIEW) {
+            viewModel.setIntent(intent)
+        }
     }
 
     private fun closeAfterDelay() {
-        val handler = android.os.Handler()
-        handler.postDelayed({
-            finish()
-        }, 1000)
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ finish() }, 1000)
     }
 
     private fun validate() = try {

@@ -85,5 +85,5 @@ object MainModule {
 
 data class DeeplinkPage(
     val navigationId: Int,
-    val input: Parcelable
+    val input: Parcelable?
 )

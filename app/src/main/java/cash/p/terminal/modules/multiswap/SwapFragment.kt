@@ -105,15 +105,20 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class SwapDeeplinkInput(val tokenOut: Token?) : Parcelable
 
 class SwapFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
-        val tokeIn: Token? =
-            navController.currentBackStackEntry?.arguments?.parcelable(SwapParams.TOKEN_IN)
-        val tokeOut: Token? =
-            navController.currentBackStackEntry?.arguments?.parcelable(SwapParams.TOKEN_OUT)
-        SwapScreen(navController = navController, tokenIn = tokeIn, tokenOut = tokeOut)
+        val args = navController.currentBackStackEntry?.arguments
+        val tokenIn: Token? = args?.parcelable(SwapParams.TOKEN_IN)
+        val tokenOut: Token? = args?.parcelable(SwapParams.TOKEN_OUT)
+            ?: args?.parcelable<SwapDeeplinkInput>("input")?.tokenOut
+        SwapScreen(navController = navController, tokenIn = tokenIn, tokenOut = tokenOut)
     }
 }
 

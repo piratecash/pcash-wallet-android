@@ -93,6 +93,7 @@
 
                 <data android:scheme="tc" />
                 <data android:scheme="p.cash" />
+                <data android:scheme="pcash" />
             </intent-filter>
             <intent-filter android:label="@string/App_Name">
                 <action android:name="android.intent.action.VIEW" />
