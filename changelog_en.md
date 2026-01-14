@@ -1,3 +1,62 @@
+## 🚀 Version 0.51.0 Update
+_Release date: January 14, 2026_
+
+### ✨ New Features
+
+- **Premium: Authorization & Security Event Logging**
+  A new advanced logging system has been added to store data about failed login attempts, *Duress Mode* logins, and other security-related events. This provides greater transparency and control over wallet access.
+
+- **Premium: Incoming Transaction Sanctions & Risk Check**
+  Incoming transactions are now checked against sanctions lists, blacklists, and “dirty funds” indicators to improve compliance and user safety.
+
+- **Updated App Icons**
+  The app now includes a refreshed set of icons. You can use not only the default p.cash icons, but also logos of your favorite apps to personalize the interface.
+
+- **QR Scanner Type Indicator**
+  The type of QR scanner in use is now displayed, making scanning more transparent and easier to debug.
+
+- **Real-time Balance Updates**
+  Your balance now updates instantly without waiting for transaction confirmation, providing a true real-time view of your funds.
+
+- **Automatic Leading Zero for Decimals**
+  Improved number handling: a `0` is now automatically added before decimal points to ensure correct formatting.
+
+### 🧭 Improvements
+
+- **More Informative 403 Errors with VPN Suggestion**
+  403 error messages now indicate possible regional blocking and suggest using a VPN to restore access.
+
+- **Smart Lock Disable Recommendation**
+  Error messages now include a recommendation to disable *Smart Lock*, as some recovery methods may reduce security (for example, reset on fingerprint addition).
+
+- **Improved Hidden Value Inheritance**
+  Stability and predictability of hidden wallet and hidden parameter inheritance has been improved.
+
+- **Correct Localization of Number Formatting on the Main Screen**
+  Synchronization values now use the correct decimal separator (dot or comma) based on the selected language.
+
+### 🔧 Stability & Bug Fixes
+
+- **Fixed SWAP errors when there were not enough tokens for gas fees**
+  Resolved an issue where swaps could fail due to insufficient funds to pay transaction fees.
+
+- **Fixed Zcash restore by date**
+  An issue that caused Zcash wallet recovery by date to behave incorrectly has been fixed.
+
+- **Fixed PirateCash and Cosanta balance display**
+  Balances for PirateCash and Cosanta are now shown correctly.
+
+- **Fixed “Token not supported” error during swap**
+  Eliminated cases where a supported token was incorrectly reported as unsupported during a SWAP.
+
+- **Fixed Ton Connect connection to https://getgems.io**
+  Restored proper Ton Connect functionality when interacting with GetGems.
+
+- **Fixed endless BNB synchronization and swap creation issue**
+  Resolved a bug where BNB could get stuck in continuous synchronization and prevent swap creation.
+
+
+
 ## 🚀 Version 0.50.4 Update
 _Release date: December 23, 2025_
 
