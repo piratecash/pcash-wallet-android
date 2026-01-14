@@ -37,6 +37,7 @@ class MainSettingsViewModel(
     private val accountManager: IAccountManager,
     private val languageManager: LanguageManager,
     private val currencyManager: CurrencyManager,
+    private val localStorage: ILocalStorage,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
 ) : ViewModelUiState<MainSettingUiState>() {
 
