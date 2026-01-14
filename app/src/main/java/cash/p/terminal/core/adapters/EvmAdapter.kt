@@ -60,10 +60,6 @@ internal class EvmAdapter(evmTransactionRepository: EvmTransactionRepository, co
             // Syncing balance
             balanceSyncState is EthereumKit.SyncState.Syncing -> AdapterState.Syncing()
 
-            // Balance synced, but transactions still syncing
-            balanceSyncState is EthereumKit.SyncState.Synced &&
-                txSyncState is EthereumKit.SyncState.Syncing -> AdapterState.SearchingTxs(0)
-
             // Transaction sync error (balance is synced)
             balanceSyncState is EthereumKit.SyncState.Synced &&
                 txSyncState is EthereumKit.SyncState.NotSynced &&
