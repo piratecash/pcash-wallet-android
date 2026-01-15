@@ -1,10 +1,8 @@
 package cash.p.terminal.core.usecase
 
-import androidx.room.withTransaction
 import cash.p.terminal.core.App
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.managers.WalletActivator
-import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.tangem.domain.TangemConfig
 import cash.p.terminal.tangem.domain.model.ScanResponse
 import cash.p.terminal.tangem.domain.totalSignedHashes
@@ -21,8 +19,7 @@ import kotlinx.coroutines.withContext
 
 internal class CreateHardwareWalletUseCase(
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
-    private val accountManager: IAccountManager,
-    private val appDatabase: AppDatabase
+    private val accountManager: IAccountManager
 ) : ICreateHardwareWalletUseCase {
 
     private val accountFactory: IAccountFactory = App.accountFactory
@@ -52,18 +49,21 @@ internal class CreateHardwareWalletUseCase(
         val blockchainTypes = defaultTokens.distinct()
         val publicKeys =
             BuildHardwarePublicKeyUseCase().invoke(scanResponse, account.id, blockchainTypes)
+        // Save account first - it's the parent for FK constraints
+        accountManager.save(account = account, updateActive = false)
+
         withContext(Dispatchers.IO) {
-            appDatabase.withTransaction {
-                hardwarePublicKeyStorage.save(publicKeys)
-                activateDefaultWallets(
-                    account = account,
-                    tokenQueries = defaultTokens.filter { defaultToken ->
-                        publicKeys.find { it.blockchainType == defaultToken.blockchainType.uid } != null
-                    }
-                )
-                accountManager.save(account = account, updateActive = false)
-            }
+            // Save public keys after account exists (FK constraint)
+            hardwarePublicKeyStorage.save(publicKeys)
         }
+
+        // Activate wallets after account and public keys exist
+        activateDefaultWallets(
+            account = account,
+            tokenQueries = defaultTokens.filter { defaultToken ->
+                publicKeys.find { it.blockchainType == defaultToken.blockchainType.uid } != null
+            }
+        )
 
         accountManager.setActiveAccountId(account.id)
         return accountType
