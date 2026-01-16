@@ -231,7 +231,7 @@ fun HsChartLineHeader(
                             )
                         }
 
-                        if (extraData.rsi != null) {
+                        if (extraData.rsi != null && extraData.rsi.isFinite()) {
                             subhead2_jacob(
                                 text = numberFormatter.formatFiatShort(
                                     extraData.rsi.toBigDecimal(),
