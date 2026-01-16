@@ -1,3 +1,22 @@
+## 🚀 Version 0.51.1 Update
+_Release date: January 16, 2026_
+
+### 🔧 Fixes & Stability Improvements
+
+- **Fixed an issue preventing Tangem hardware wallets from being added**
+  Resolved a problem where, in some cases, Tangem hardware wallets could not be added to the app.
+
+- **Fixed missing RSI indicator values**
+  Addressed an issue where the RSI indicator could display no value or fail to calculate correctly.
+
+- **Fixed approve transactions on the BNB network**
+  Resolved issues with `approve` transactions on the Binance Smart Chain, improving contract interaction reliability.
+
+- **Refactored token balance navigation**
+  Refactored token balance navigation to fix application crashes on some devices and improve overall stability.
+
+
+
 ## 🚀 Version 0.51.0 Update
 _Release date: January 14, 2026_
 
