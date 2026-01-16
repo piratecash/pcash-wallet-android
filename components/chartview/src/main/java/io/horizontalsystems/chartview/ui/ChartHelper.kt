@@ -164,6 +164,7 @@ class ChartHelper(
     private fun initRsiCurve() {
         rsiCurve = target.rsi?.let { chartIndicatorRsi ->
             val values = chartIndicatorRsi.points
+            if (values.isEmpty()) return@let null
             CurveAnimator2(
                 values,
                 minKey,
