@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.openQrScanner
@@ -37,7 +38,6 @@ import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
-import cash.p.terminal.modules.main.MainFragmentDirections
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.navigation.slideFromBottom
@@ -156,10 +156,8 @@ fun BalanceForAccount(
             val uiState = viewModel.uiState
 
             val navigateToTokenBalance: (BalanceViewItem2) -> Unit = rememberDebouncedAction { item ->
-                navController.slideFromRight(
-                    MainFragmentDirections.actionToTokenBalance(
-                        wallet = item.wallet
-                    )
+                navController.navigate(
+                    MainGraphDirections.actionToTokenBalance(item.wallet)
                 )
             }
 

@@ -40,12 +40,17 @@
         android:id="@+id/actionGlobalToBackupRecoveryPhraseDialog"
         app:destination="@id/backupRecoveryPhraseDialog" />
 
+    <action
+        android:id="@+id/action_to_tokenBalance"
+        app:destination="@id/tokenBalanceFragment"
+        app:enterAnim="@anim/slide_from_right"
+        app:exitAnim="@android:anim/fade_out"
+        app:popEnterAnim="@android:anim/fade_in"
+        app:popExitAnim="@anim/slide_to_right" />
+
     <fragment
         android:id="@+id/mainFragment"
         android:name="cash.p.terminal.modules.main.MainFragment">
-        <action
-            android:id="@+id/action_to_tokenBalance"
-            app:destination="@id/tokenBalanceFragment" />
     </fragment>
     <fragment
         android:id="@+id/sendEvmConfirmationFragment"
