@@ -17,6 +17,30 @@ plugins {
     id 'androidx.navigation.safeargs.kotlin'
 }
 
+// Git version information helpers (using modern providers.exec API)
+def gitHashProvider = providers.exec {
+    commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    ignoreExitValue = true
+}.standardOutput.asText.map { it.trim() }
+
+def gitDirtyProvider = providers.exec {
+    commandLine 'git', 'diff-index', '--quiet', 'HEAD', '--'
+    ignoreExitValue = true
+}.result.map { it.exitValue != 0 }
+
+def getGitVersionSuffix = { ->
+    try {
+        def hash = gitHashProvider.getOrElse("unknown")
+        if (hash == "unknown" || hash.isEmpty()) {
+            return "unknown"
+        }
+        def dirty = gitDirtyProvider.getOrElse(false) ? "-dirty" : ""
+        return "${hash}${dirty}"
+    } catch (Exception ignored) {
+        return "unknown"
+    }
+}
+
 android {
 
     defaultConfig {
@@ -26,6 +50,7 @@ android {
         targetSdkVersion compile_sdk_version
         versionCode 203
         versionName "0.51.0"
+        buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {

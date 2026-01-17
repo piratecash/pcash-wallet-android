@@ -12,6 +12,7 @@ object AppConfigProvider {
 
     val appVersion by lazy { BuildConfig.VERSION_NAME }
     val appBuild by lazy { BuildConfig.VERSION_CODE }
+    val appGitHash by lazy { BuildConfig.GIT_HASH }
     val companyWebPageLink by lazy { Translator.getString(R.string.companyWebPageLink) }
     val appWebPageLink by lazy { Translator.getString(R.string.appWebPageLink) }
     val analyticsLink by lazy { Translator.getString(R.string.analyticsLink) }

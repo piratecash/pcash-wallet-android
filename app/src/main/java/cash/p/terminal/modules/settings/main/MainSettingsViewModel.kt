@@ -46,6 +46,13 @@ class MainSettingsViewModel(
     val appVersion: String
         get() {
             var appVersion = systemInfoManager.appVersion
+
+            // Add git hash suffix
+            val gitHash = AppConfigProvider.appGitHash
+            if (gitHash.isNotEmpty()) {
+                appVersion += "-$gitHash"
+            }
+
             if (cash.p.terminal.strings.helpers.Translator.getString(R.string.is_release) == "false") {
                 appVersion += " (${AppConfigProvider.appBuild})"
             }
