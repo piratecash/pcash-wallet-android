@@ -138,7 +138,11 @@ class TokenBalanceViewModel(
 
         viewModelScope.launch {
             balanceHiddenManager.anyTransactionVisibilityChangedFlow.collect {
-                transactionsService.refreshList()
+                // Directly re-transform items with updated visibility
+                val currentItems = transactionsService.transactionItemsFlow.value
+                if (currentItems.isNotEmpty()) {
+                    updateTransactions(currentItems)
+                }
             }
         }
 
