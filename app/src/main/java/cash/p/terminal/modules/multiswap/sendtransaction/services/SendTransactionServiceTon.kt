@@ -233,7 +233,12 @@ class SendTransactionServiceTon(
             val availableBalance = adapterManager.getAdjustedBalanceData(feeWalletLocal)?.available
             if (availableBalance != null) {
                 feeCaution = if (availableBalance < fee) {
-                    createCaution(LocalizedException(R.string.not_enough_ton_for_fee))
+                    val formattedBalance = numberFormatter.formatCoinFull(
+                        availableBalance,
+                        null,
+                        feeToken.decimals
+                    )
+                    createCaution(LocalizedException(R.string.not_enough_ton_for_fee, formattedBalance))
                 } else {
                     null
                 }

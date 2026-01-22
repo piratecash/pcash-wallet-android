@@ -69,7 +69,7 @@ abstract class IEvmGasPriceService : ServiceState<DataState<GasPriceInfo>>() {
 }
 
 abstract class FeeSettingsError : Throwable() {
-    object InsufficientBalance : FeeSettingsError()
+    data class InsufficientBalance(val balance: BigInteger) : FeeSettingsError()
     object UsedNonce : FeeSettingsError()
     class InvalidGasPriceType(override val message: String) : FeeSettingsError()
 }

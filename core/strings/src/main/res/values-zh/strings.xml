@@ -51,7 +51,7 @@
     <string name="Button_Apply">应用</string>
     <string name="Button_SetAmount">设定金额</string>
     <string name="button_info">Info</string>
-    <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="not_enough_ton_for_fee">TON不足以支付费用。您当前余额为%s TON。</string>
     <string name="check_fee_warning">请确保至少有 %s 用于手续费，否则交易可能会失败</string>
     <string name="Error_OutOfRange">不能小于 %1$s 或大于 %2$s</string>
     <string name="Error_NotInteger">错误的整数</string>
@@ -484,7 +484,8 @@
     <string name="EthereumTransaction_Warning_Title">警告</string>
     <string name="EthereumTransaction_Error_Title">出错</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">可用额度不足</string>
-    <string name="Error_InsufficientBalanceForFee">当前%s余额低于此交易所需金额，包括交易费用。</string>
+    <string name="Error_InsufficientBalanceForFee">当前%1$s余额为%2$s %1$s，低于此交易所需金额（包括交易费用）。</string>
+    <string name="EthereumTransaction_Error_InsufficientBalanceWithFee">%s余额不足，无法完成此交易（包括交易费用）。</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">低费用</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">当前设置的交易费用金额不足以处理此交易。</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">流动性不足</string>

@@ -51,7 +51,7 @@
     <string name="Button_Apply">Übernehmen</string>
     <string name="Button_SetAmount">Setze Betrag</string>
     <string name="button_info">Info</string>
-    <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="not_enough_ton_for_fee">Nicht genug TON für die Gebühr. Ihr aktuelles Guthaben beträgt %s TON.</string>
     <string name="check_fee_warning">Stellen Sie sicher, dass Sie mindestens %s für Gebühren haben, sonst kann die Transaktion fehlschlagen</string>
     <string name="Error_OutOfRange">Es muss mindestens %1$s enthalten und darf maximal %2$s Zeichen lang sein</string>
     <string name="Error_NotInteger">Die von Dir angegebenen Zahlen sind nicht richtig</string>
@@ -482,7 +482,8 @@
     <string name="EthereumTransaction_Warning_Title">Warnung</string>
     <string name="EthereumTransaction_Error_Title">Fehler</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Unzureichendes Guthaben</string>
-    <string name="Error_InsufficientBalanceForFee">Das aktuelle %s-Guthaben liegt unter dem für die Abwicklung dieser Transaktion erforderlichen Betrag einschließlich der Transaktionsgebühr.</string>
+    <string name="Error_InsufficientBalanceForFee">Das aktuelle %1$s-Guthaben beträgt %2$s %1$s und liegt unter dem für diese Transaktion erforderlichen Betrag, einschließlich Transaktionsgebühr.</string>
+    <string name="EthereumTransaction_Error_InsufficientBalanceWithFee">Unzureichendes %s-Guthaben für diese Transaktion einschließlich Gebühr.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Niedrige Gebühr</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">Der eingestellte Betrag der Transaktionsgebühr reicht nicht aus, um diese Transaktion jetzt zu bearbeiten.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Unzureichende Liquidität</string>

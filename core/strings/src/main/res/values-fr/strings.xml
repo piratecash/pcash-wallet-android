@@ -51,7 +51,7 @@
     <string name="Button_Apply">Appliquer</string>
     <string name="Button_SetAmount">Définir le montant</string>
     <string name="button_info">Info</string>
-    <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="not_enough_ton_for_fee">TON insuffisant pour les frais. Votre solde actuel est de %s TON.</string>
     <string name="check_fee_warning">Assurez-vous de disposer d\'au moins %s pour les frais, sinon la transaction risque d\'échouer</string>
     <string name="Error_OutOfRange">Il doit contenir au moins %1$s et faire un maximum de %2$s caractères</string>
     <string name="Error_NotInteger">Les chiffres que vous avez fournis sont incorrects</string>
@@ -484,7 +484,8 @@
     <string name="EthereumTransaction_Warning_Title">Attention</string>
     <string name="EthereumTransaction_Error_Title">Erreur</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Solde insuffisant</string>
-    <string name="Error_InsufficientBalanceForFee">Le solde actuel des %s est inférieur au montant requis pour traiter cette transaction, frais de transaction compris.</string>
+    <string name="Error_InsufficientBalanceForFee">Le solde actuel de %1$s est de %2$s %1$s, inférieur au montant requis pour traiter cette transaction, frais inclus.</string>
+    <string name="EthereumTransaction_Error_InsufficientBalanceWithFee">Solde %s insuffisant pour effectuer cette transaction, frais inclus.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Frais faibles</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">Le montant des frais de transaction défini est insuffisant pour traiter cette transaction immédiatement.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Liquidité insuffisante</string>

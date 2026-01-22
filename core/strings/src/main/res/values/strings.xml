@@ -62,7 +62,7 @@
     <string name="Button_SetAmount">Set Amount</string>
     <string name="Button_ContinueAnyway">Continue Anyway</string>
     <string name="button_info">Info</string>
-    <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="not_enough_ton_for_fee">Not enough TON for fee. Your current balance is %s TON.</string>
     <string name="check_fee_warning">Make sure you have at least %s for fees or the transaction may fail</string>
     <string name="Error_AssetNotEnabled">The recipient hasn\'t enabled %s, therefore they are unable to receive it.</string>
 
@@ -681,7 +681,8 @@ Proceed only if you\'re sure.</string>
     <string name="EthereumTransaction_Warning_Title">Warning</string>
     <string name="EthereumTransaction_Error_Title">Error</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Insufficient Balance</string>
-    <string name="Error_InsufficientBalanceForFee">The current %s balance is below the amount required to process this transaction, including the transaction fee.</string>
+    <string name="Error_InsufficientBalanceForFee">The current %1$s balance is %2$s %1$s and below the amount required to process this transaction, including the transaction fee.</string>
+    <string name="EthereumTransaction_Error_InsufficientBalanceWithFee">Insufficient %s balance to complete this transaction including the transaction fee.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Low Fee</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">The set transaction fee amount is insufficient for processing this transaction now.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Insufficient Liquidity</string>

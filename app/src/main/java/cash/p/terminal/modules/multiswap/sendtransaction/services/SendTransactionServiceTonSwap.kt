@@ -222,10 +222,14 @@ class SendTransactionServiceTonSwap(
         if (feeWalletLocal != null) {
             val availableBalance = adapterManager.getAdjustedBalanceData(feeWalletLocal)?.available
             if (availableBalance != null) {
-                feeCaution = if (availableBalance < data.forwardGas.toBigDecimal()
-                        .movePointLeft(feeToken.decimals)
-                ) {
-                    createCaution(LocalizedException(R.string.not_enough_ton_for_fee))
+                val feeRequired = data.forwardGas.toBigDecimal().movePointLeft(feeToken.decimals)
+                feeCaution = if (availableBalance < feeRequired) {
+                    val formattedBalance = numberFormatter.formatCoinFull(
+                        availableBalance,
+                        null,
+                        feeToken.decimals
+                    )
+                    createCaution(LocalizedException(R.string.not_enough_ton_for_fee, formattedBalance))
                 } else {
                     null
                 }

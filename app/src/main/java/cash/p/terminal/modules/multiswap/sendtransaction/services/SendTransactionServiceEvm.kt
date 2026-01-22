@@ -114,7 +114,7 @@ internal class SendTransactionServiceEvm(
     private val settingsService by lazy { SendEvmSettingsService(feeService, nonceService) }
 
     private val baseCoinService = coinServiceFactory.baseCoinService
-    private val cautionViewItemFactory by lazy { CautionViewItemFactory(baseCoinService) }
+    private val cautionViewItemFactory by lazy { CautionViewItemFactory(baseCoinService, numberFormatter) }
 
     private val _sendTransactionSettingsFlow = MutableStateFlow(
         SendTransactionSettings.Evm(null, evmKitWrapper.evmKit.receiveAddress)

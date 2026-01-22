@@ -51,7 +51,7 @@
     <string name="Button_Apply">적용</string>
     <string name="Button_SetAmount">금액 설정</string>
     <string name="button_info">Info</string>
-    <string name="not_enough_ton_for_fee">Not enough TON for fee</string>
+    <string name="not_enough_ton_for_fee">수수료를 위한 TON이 부족합니다. 현재 잔액: %s TON.</string>
     <string name="check_fee_warning">수수료로 최소 %s를 보유하고 있는지 확인하세요. 그렇지 않으면 거래가 실패할 수 있습니다</string>
     <string name="Error_OutOfRange">Can\'t be less than %1$s or more than %2$s</string>
     <string name="Error_NotInteger">Wrong integer number</string>
@@ -488,7 +488,8 @@
     <string name="EthereumTransaction_Warning_Title">경고</string>
     <string name="EthereumTransaction_Error_Title">오류</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">잔액 부족</string>
-    <string name="Error_InsufficientBalanceForFee">현재 %s 잔액은 거래 수수료를 포함하여이 거래를 처리하는 데 필요한 금액보다 적습니다.</string>
+    <string name="Error_InsufficientBalanceForFee">현재 %1$s 잔액은 %2$s %1$s이며, 거래 수수료를 포함한 필요 금액보다 적습니다.</string>
+    <string name="EthereumTransaction_Error_InsufficientBalanceWithFee">거래 수수료를 포함하여 이 거래를 완료하기에 %s 잔액이 부족합니다.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">적은 수수료</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">설정된 거래 수수료 금액이 현재 이 거래를 처리하기에 충분하지 않습니다.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">유동성 부족</string>

@@ -20,6 +20,7 @@ import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
     private val baseCurrency = App.currencyManager.baseCurrency
     protected var uuid = UUID.randomUUID().toString()
     private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
+    protected val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
 
     protected val rate: CurrencyValue?
         get() {

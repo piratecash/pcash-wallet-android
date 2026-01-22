@@ -107,7 +107,7 @@ class EvmFeeService(
             val gasData = gasDataSingle(gasPrice, gasPriceDefault, BigInteger.ONE, transactionData)
             val adjustedValue = transactionData.value - gasData.fee
             if (adjustedValue <= BigInteger.ZERO) {
-                throw FeeSettingsError.InsufficientBalance
+                throw FeeSettingsError.InsufficientBalance(evmBalance)
             } else {
                 val transactionDataAdjusted =
                     TransactionData(transactionData.to, adjustedValue, byteArrayOf())
@@ -170,7 +170,7 @@ class EvmFeeService(
     private fun sync(transaction: Transaction) {
         _transactionStatusFlow.tryEmit(
             if (transaction.totalAmount > evmBalance) {
-                DataState.Success(transaction.copy(errors = transaction.errors + FeeSettingsError.InsufficientBalance))
+                DataState.Success(transaction.copy(errors = transaction.errors + FeeSettingsError.InsufficientBalance(evmBalance)))
             } else {
                 DataState.Success(transaction)
             }

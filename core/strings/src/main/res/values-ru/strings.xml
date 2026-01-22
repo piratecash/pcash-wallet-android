@@ -56,7 +56,7 @@
     <string name="Button_SetAmount">Установить сумму</string>
     <string name="Button_ContinueAnyway">Всё равно продолжить</string>
     <string name="button_info">Info</string>
-    <string name="not_enough_ton_for_fee">Недостаточно TON для оплаты комиссии</string>
+    <string name="not_enough_ton_for_fee">Недостаточно TON для комиссии. Ваш текущий баланс: %s TON.</string>
     <string name="check_fee_warning">Убедитесь, что у вас есть как минимум %s для комиссий, иначе транзакция может не пройти</string>
     <string name="Error_AssetNotEnabled">Получатель не включил %s, поэтому не может получить.</string>
     <string name="Error_OutOfRange">Не может быть меньше %1$s или более чем %2$s</string>
@@ -495,7 +495,8 @@
     <string name="EthereumTransaction_Warning_Title">Внимание</string>
     <string name="EthereumTransaction_Error_Title">Ошибка</string>
     <string name="EthereumTransaction_Error_InsufficientBalance_Title">Недостаточный баланс</string>
-    <string name="Error_InsufficientBalanceForFee">Текущий баланс %s ниже суммы, необходимой для обработки этой транзакции, включая комиссию за транзакцию.</string>
+    <string name="Error_InsufficientBalanceForFee">Текущий баланс %1$s составляет %2$s %1$s, что ниже суммы, необходимой для обработки этой транзакции, включая комиссию.</string>
+    <string name="EthereumTransaction_Error_InsufficientBalanceWithFee">Недостаточный баланс %s для совершения транзакции, включая комиссию.</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit_Title">Низкая комиссия</string>
     <string name="EthereumTransaction_Error_LowerThanBaseGasLimit">Установленная сумма комиссии недостаточно для обработки этой транзакции.</string>
     <string name="EthereumTransaction_Error_InsufficientLiquidity_Title">Недостаточно ликвидности</string>

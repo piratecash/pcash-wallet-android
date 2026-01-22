@@ -228,8 +228,13 @@ class SendTransactionServiceTron(
 
         hasEnoughFeeBalance = trxBalance >= requiredTrx
         feeCaution = if (!hasEnoughFeeBalance) {
+            val formattedBalance = numberFormatter.formatCoinFull(
+                trxBalance,
+                null,
+                feeToken.decimals
+            )
             createCaution(
-                LocalizedException(R.string.Error_InsufficientBalanceForFee, feeToken.coin.code)
+                LocalizedException(R.string.Error_InsufficientBalanceForFee, feeToken.coin.code, formattedBalance)
             )
         } else {
             null

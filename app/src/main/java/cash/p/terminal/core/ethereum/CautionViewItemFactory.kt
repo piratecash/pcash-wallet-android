@@ -8,9 +8,11 @@ import cash.p.terminal.modules.evmfee.CalculateWarning
 import cash.p.terminal.modules.evmfee.FeeSettingsError
 import cash.p.terminal.modules.evmfee.FeeSettingsWarning
 import cash.p.terminal.strings.helpers.Translator
+import io.horizontalsystems.core.IAppNumberFormatter
 
 class CautionViewItemFactory(
-    private val baseCoinService: EvmCoinService
+    private val baseCoinService: EvmCoinService,
+    private val numberFormatter: IAppNumberFormatter
 ) {
     fun cautionViewItems(warnings: List<Warning>, errors: List<Throwable>): List<CautionViewItem> {
         return warnings.map { cautionViewItem(it) } + errors.map { cautionViewItem(it) }
@@ -60,12 +62,19 @@ class CautionViewItemFactory(
 
     private fun cautionViewItem(error: Throwable): CautionViewItem {
         return when (error) {
-            FeeSettingsError.InsufficientBalance -> {
+            is FeeSettingsError.InsufficientBalance -> {
+                val balance = baseCoinService.convertToMonetaryValue(error.balance)
+                val formattedBalance = numberFormatter.formatCoinFull(
+                    balance,
+                    null,
+                    baseCoinService.token.decimals
+                )
                 CautionViewItem(
                     Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalance_Title),
                     Translator.getString(
                         R.string.Error_InsufficientBalanceForFee,
-                        baseCoinService.token.coin.code
+                        baseCoinService.token.coin.code,
+                        formattedBalance
                     ),
                     CautionViewItem.Type.Error
                 )
@@ -90,7 +99,7 @@ class CautionViewItemFactory(
                 Pair(
                     Translator.getString(R.string.EthereumTransaction_Error_Title),
                     Translator.getString(
-                        R.string.Error_InsufficientBalanceForFee,
+                        R.string.EthereumTransaction_Error_InsufficientBalanceWithFee,
                         baseCoinService.token.coin.code
                     )
                 )
