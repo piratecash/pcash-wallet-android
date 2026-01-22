@@ -349,16 +349,7 @@ class TransactionRecordRepository(
                         .map { transactionRecords ->
                             extraRecordsCount += transactionRecords.size
                             transactionRecords.mapNotNull { record ->
-                                val shortOutgoingTransactionRecord = record.getShortOutgoingTransactionRecord()
-
-                                if (shortOutgoingTransactionRecord?.token != null &&
-                                    swapProviderTransactionsStorage.getByCoinUidIn(
-                                        coinUid = shortOutgoingTransactionRecord.token.coin.uid,
-                                        blockchainType = shortOutgoingTransactionRecord.token.blockchainType.uid,
-                                        amountIn = shortOutgoingTransactionRecord.amountOut,
-                                        timestamp = shortOutgoingTransactionRecord.timestamp
-                                    ) != null
-                                ) {
+                                if (isMatchingSwapProviderTransaction(record)) {
                                     record
                                 } else {
                                     null
@@ -416,6 +407,27 @@ class TransactionRecordRepository(
 
         loadedPageNumber = page
         itemsSubject.onNext((normalSortedRecords + extraSortedRecords).sortedDescending())
+    }
+
+    private fun isMatchingSwapProviderTransaction(record: TransactionRecord): Boolean {
+        // First check by outgoingRecordUid (fast, already matched)
+        swapProviderTransactionsStorage.getByOutgoingRecordUid(record.uid)?.let {
+            return true
+        }
+
+        // Fall back to matching by token, amount and timestamp
+        val shortOutgoingTransactionRecord = record.getShortOutgoingTransactionRecord()
+            ?: return false
+
+        val token = shortOutgoingTransactionRecord.token
+            ?: return false
+
+        return swapProviderTransactionsStorage.getByCoinUidIn(
+            coinUid = token.coin.uid,
+            blockchainType = token.blockchainType.uid,
+            amountIn = shortOutgoingTransactionRecord.amountOut,
+            timestamp = shortOutgoingTransactionRecord.timestamp
+        ) != null
     }
 
     companion object {
