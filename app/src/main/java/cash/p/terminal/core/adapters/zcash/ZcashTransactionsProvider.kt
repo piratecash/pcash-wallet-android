@@ -74,7 +74,8 @@ class ZcashTransactionsProvider(private val synchronizer: SdkSynchronizer) {
     ) = buildList<(ZcashTransaction) -> Boolean> {
         when (transactionType) {
             FilterTransactionType.All -> Unit
-            FilterTransactionType.Incoming -> add { it.isIncoming }
+            // For Incoming, exclude change transactions - they are part of outgoing transactions
+            FilterTransactionType.Incoming -> add { it.isIncoming && !it.isChange }
             FilterTransactionType.Outgoing -> add { !it.isIncoming }
             FilterTransactionType.Swap,
             FilterTransactionType.Approve,
@@ -83,7 +84,7 @@ class ZcashTransactionsProvider(private val synchronizer: SdkSynchronizer) {
 
         if (address != null) {
             add {
-                it.toAddress?.lowercase() == address.lowercase()
+                it.toAddress.equals(address, ignoreCase = true)
             }
         }
     }

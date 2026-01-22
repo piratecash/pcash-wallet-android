@@ -19,6 +19,7 @@ class ZcashTransaction : Comparable<ZcashTransaction> {
     val memo: String?
     val failed: Boolean
     val isIncoming: Boolean
+    val isChange: Boolean
 
     constructor(confirmedTransaction: TransactionOverview, recipient: String?, memo: String?) {
         confirmedTransaction.let {
@@ -37,6 +38,7 @@ class ZcashTransaction : Comparable<ZcashTransaction> {
             this.memo = memo
             failed = false
             isIncoming = !it.isSentTransaction
+            isChange = it.isChange
         }
     }
 
