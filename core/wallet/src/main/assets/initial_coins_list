@@ -5146,7 +5146,7 @@ INSERT OR REPLACE INTO Coin VALUES('mates', 'MATES', 'MATES', 7089, 'mates', 'ht
 INSERT OR REPLACE INTO Coin VALUES('math', 'MATH', 'MATH', 1532, 'math', 'https://assets.coingecko.com/coins/images/11335/large/2020-05-19-token-200.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('matic-aave-usdc', 'Matic Aave Interest Bearing USDC', 'MAUSDC', null, 'matic-aave-usdc', 'https://assets.coingecko.com/coins/images/14074/large/maUSDC.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('matic-dai-stablecoin', 'Matic DAI Stablecoin', 'DAI-MATIC', null, 'matic-dai-stablecoin', 'https://assets.coingecko.com/coins/images/19344/large/io1v25anp7t7nz954gdam2m27eqp4arr93jly4maa.png', 100);
-INSERT OR REPLACE INTO Coin VALUES('matic-network', 'Polygon', 'POL', null, 'matic-network', 'https://assets.coingecko.com/coins/images/4713/large/polygon.png', 100);
+INSERT OR REPLACE INTO Coin VALUES('matic-network', 'Polygon', 'POL', null, 'polygon-ecosystem-token', 'https://assets.coingecko.com/coins/images/4713/large/polygon.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('matr1x', 'Matr1x', 'MAX', 3988, 'matr1x', 'https://assets.coingecko.com/coins/images/39481/large/t05.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('matr1x-fire', 'Matr1x Fire', 'FIRE', 7426, 'matr1x-fire', 'https://assets.coingecko.com/coins/images/34961/large/4Lw6OZcs_400x400.jpg', 100);
 INSERT OR REPLACE INTO Coin VALUES('matrix-ai-network', 'Matrix AI Network', 'MAN', 2948, 'matrix-ai-network', 'https://assets.coingecko.com/coins/images/2698/large/Matrix_logo.png', 100);
