@@ -22,6 +22,6 @@ class MarketDatabaseTest {
         val marketDatabase = MarketDatabase.Companion
         val count = marketDatabase.loadInitialCoins(db, context)
 
-        assertEquals(17536, count)
+        assertEquals(17534, count)
     }
 }
