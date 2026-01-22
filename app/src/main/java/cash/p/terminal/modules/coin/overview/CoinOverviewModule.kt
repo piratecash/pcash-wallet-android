@@ -42,7 +42,7 @@ object CoinOverviewModule {
                     val chartService = CoinOverviewChartService(
                         App.marketKit,
                         App.currencyManager,
-                        fullCoin.coin.uid,
+                        fullCoin.coin.coinGeckoId ?: fullCoin.coin.uid,
                         App.chartIndicatorManager
                     )
                     val chartNumberFormatter = ChartCurrencyValueFormatterSignificant()
