@@ -41,8 +41,16 @@ class CoinStorage(val marketDatabase: MarketDatabase) {
         coinDao.getFullCoins(uids).map { it.fullCoin }
 
     fun getToken(query: TokenQuery): Token? {
-        val (sql, args) = buildTokenQuerySql(query, limit = 1)
-        return coinDao.getToken(SimpleSQLiteQuery(sql, args))?.token
+        val (clause, args) = buildTokenQueryClause(query)
+        // Order by marketCapRank to prefer canonical coin when duplicates exist
+        val sql = """
+            SELECT * FROM TokenEntity
+            JOIN Coin ON Coin.uid = TokenEntity.coinUid
+            WHERE $clause
+            ORDER BY ${canonicalCoinOrderBy()}
+            LIMIT 1
+        """.trimIndent()
+        return coinDao.getToken(SimpleSQLiteQuery(sql, args.toTypedArray()))?.token
     }
 
     fun getTokens(queries: List<TokenQuery>): List<Token> {
@@ -58,9 +66,18 @@ class CoinStorage(val marketDatabase: MarketDatabase) {
             args.addAll(queryArgs)
         }
 
-        val sql = "SELECT * FROM TokenEntity WHERE ${whereClauses.joinToString(" OR ")}"
+        // Order by marketCapRank to prefer canonical coin when duplicates exist
+        val sql = """
+            SELECT * FROM TokenEntity
+            JOIN Coin ON Coin.uid = TokenEntity.coinUid
+            WHERE ${whereClauses.joinToString(" OR ")}
+            ORDER BY ${canonicalCoinOrderBy()}
+        """.trimIndent()
 
-        return coinDao.getTokens(SimpleSQLiteQuery(sql, args.toTypedArray())).map { it.token }
+        // Deduplicate by tokenQuery - keep only first (canonical) token per contract
+        return coinDao.getTokens(SimpleSQLiteQuery(sql, args.toTypedArray()))
+            .map { it.token }
+            .distinctBy { it.tokenQuery }
     }
 
     fun getTokens(reference: String): List<Token> {
@@ -124,6 +141,15 @@ class CoinStorage(val marketDatabase: MarketDatabase) {
 
     private fun filterWhereStatement() =
         "`Coin`.`name` LIKE ? OR `Coin`.`code` LIKE ?"
+
+    /**
+     * Orders tokens to prefer canonical coins (lower marketCapRank = more authoritative).
+     * Used to ensure consistent token resolution when multiple coins map to same contract.
+     */
+    private fun canonicalCoinOrderBy() = """
+        CASE WHEN Coin.marketCapRank IS NULL THEN 1 ELSE 0 END,
+        Coin.marketCapRank ASC
+    """.trimIndent()
 
     private fun filterOrderByStatement() = """
         priority ASC,

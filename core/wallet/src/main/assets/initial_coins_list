@@ -6194,7 +6194,6 @@ INSERT OR REPLACE INTO Coin VALUES('polycule', 'Polycule', 'PCULE', 1058, 'polyc
 INSERT OR REPLACE INTO Coin VALUES('polydoge', 'PolyDoge', 'POLYDOGE', 5043, 'polydoge', 'https://assets.coingecko.com/coins/images/15146/large/p1kSco1h_400x400.jpg', 100);
 INSERT OR REPLACE INTO Coin VALUES('polyfactual', 'Polyfactual', 'POLYFACTS', 2298, 'polyfactual', 'https://assets.coingecko.com/coins/images/68903/large/gwpvfnw9uxvc8ojohahvy2gp1jzy.', 100);
 INSERT OR REPLACE INTO Coin VALUES('polygod', 'PolyGod', 'GULL', null, 'polygod', 'https://assets.coingecko.com/coins/images/20590/large/polygod.PNG', 100);
-INSERT OR REPLACE INTO Coin VALUES('polygon-bridged-usdt-polygon', 'Polygon Bridged USDT (Polygon)', 'USDT', 98, 'polygon-bridged-usdt-polygon', 'https://assets.coingecko.com/coins/images/35023/large/USDT.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('polygon-bridged-wbtc-polygon-pos', 'Polygon Bridged WBTC (Polygon POS)', 'WBTC', 264, 'polygon-bridged-wbtc-polygon-pos', 'https://assets.coingecko.com/coins/images/39530/large/wbtc.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('polygon-bridged-weeth-katana', 'Polygon Bridged weETH (Katana)', 'WEETH', 322, 'polygon-bridged-weeth-katana', 'https://assets.coingecko.com/coins/images/69607/large/weeth.png', 100);
 INSERT OR REPLACE INTO Coin VALUES('polygon-ecosystem-token', 'Polygon Ecosystem Token', 'POL', 65, 'polygon-ecosystem-token', 'https://assets.coingecko.com/coins/images/32440/large/pol.png', 100);
@@ -14509,7 +14508,6 @@ INSERT OR REPLACE INTO TokenEntity VALUES('polycule','solana','spl',9,'J27UYHX5o
 INSERT OR REPLACE INTO TokenEntity VALUES('polydoge','polygon-pos','eip20',18,'0x8a953cfe442c5e8855cc6c61b1293fa648bae472');
 INSERT OR REPLACE INTO TokenEntity VALUES('polyfactual','solana','spl',6,'FfixAeHevSKBZWoXPTbLk4U4X9piqvzGKvQaFo3cpump');
 INSERT OR REPLACE INTO TokenEntity VALUES('polygod','binance-smart-chain','eip20',18,'0xca830317146bfdde71e7c0b880e2ec1f66e273ee');
-INSERT OR REPLACE INTO TokenEntity VALUES('polygon-bridged-usdt-polygon','polygon-pos','eip20',6,'0xc2132d05d31c914a87c6611c10748aeb04b58e8f');
 INSERT OR REPLACE INTO TokenEntity VALUES('polygon-bridged-wbtc-polygon-pos','polygon-pos','eip20',8,'0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6');
 INSERT OR REPLACE INTO TokenEntity VALUES('polygon-ecosystem-token','ethereum','eip20',18,'0x455e53cbb86018ac2b8092fdcd39d8444affc3f6');
 INSERT OR REPLACE INTO TokenEntity VALUES('polygon-pos-bridged-dai-polygon-pos','polygon-pos','eip20',18,'0x8f3cf7ad23cd3cadbd9735aff958023239c6a063');
