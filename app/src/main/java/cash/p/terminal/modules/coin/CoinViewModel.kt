@@ -16,11 +16,18 @@ import kotlinx.coroutines.rx2.asFlow
 class CoinViewModel(
     private val service: CoinService,
     private val clearables: List<Clearable>,
-    private val localStorage: ILocalStorage,
+    localStorage: ILocalStorage,
     private val subscriptionManager: SubscriptionManager
 ) : ViewModel() {
 
-    val tabs = CoinModule.Tab.values()
+    val tabs: Array<CoinModule.Tab> = CoinModule.Tab.entries
+        .filter { tab ->
+            when (tab) {
+                CoinModule.Tab.Details -> service.fullCoin.isAnalyticsEnabled()
+                else -> true
+            }
+        }
+        .toTypedArray()
     val fullCoin by service::fullCoin
 
     val isWatchlistEnabled = localStorage.marketsTabEnabled

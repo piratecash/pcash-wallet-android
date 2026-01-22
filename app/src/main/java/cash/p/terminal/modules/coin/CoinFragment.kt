@@ -131,7 +131,7 @@ fun CoinTabs(
             }
             Tabs(tabItems, onClick = { tab ->
                 coroutineScope.launch {
-                    pagerState.scrollToPage(tab.ordinal)
+                    pagerState.scrollToPage(tabs.indexOf(tab))
 
                     if (tab == CoinModule.Tab.Details && viewModel.shouldShowSubscriptionInfo()) {
                         viewModel.subscriptionInfoShown()
