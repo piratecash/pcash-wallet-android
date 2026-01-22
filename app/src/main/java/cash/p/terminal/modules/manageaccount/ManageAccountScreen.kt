@@ -37,6 +37,7 @@ import cash.p.terminal.modules.balance.ui.NoteWarning
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.BackupItem
 import cash.p.terminal.modules.manageaccount.ManageAccountModule.KeyAction
 import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseFragment
+import cash.p.terminal.navigation.BackupKeyInput
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment.Input
@@ -412,7 +413,7 @@ private fun BackupActions(
                         navController.authorizedAction {
                             navController.slideFromBottom(
                                 R.id.backupKeyFragment,
-                                account
+                                BackupKeyInput(account.id)
                             )
                         }
                     }

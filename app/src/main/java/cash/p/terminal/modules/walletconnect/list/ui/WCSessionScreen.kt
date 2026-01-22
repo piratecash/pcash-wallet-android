@@ -29,7 +29,7 @@ import cash.p.terminal.core.Caution
 import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
-import cash.p.terminal.core.openQrScanner
+import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListUiState
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel

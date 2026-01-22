@@ -129,7 +129,12 @@
         android:name="cash.p.terminal.modules.manageaccount.showextendedkey.ShowExtendedKeyFragment"/>
     <fragment
         android:id="@+id/backupKeyFragment"
-        android:name="cash.p.terminal.modules.manageaccount.backupkey.BackupKeyFragment"/>
+        android:name="cash.p.terminal.modules.manageaccount.backupkey.BackupKeyFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.navigation.BackupKeyInput"
+            app:nullable="true" />
+    </fragment>
     <fragment
         android:id="@+id/backupConfirmationKeyFragment"
         android:name="cash.p.terminal.modules.manageaccount.backupconfirmkey.BackupConfirmKeyFragment" />
@@ -313,10 +318,10 @@
         android:id="@+id/marketSignalsFragment"
         android:name="cash.p.terminal.modules.market.favorites.MarketSignalsFragment" />
     <fragment
-        android:id="@+id/createAccountFragment"
+        android:id="@id/createAccountFragment"
         android:name="cash.p.terminal.modules.createaccount.CreateAccountFragment" />
     <fragment
-        android:id="@+id/restoreAccountFragment"
+        android:id="@id/restoreAccountFragment"
         android:name="cash.p.terminal.modules.restoreaccount.RestoreAccountFragment" />
     <fragment
         android:id="@+id/importWalletFragment"
@@ -540,11 +545,11 @@
         android:id="@id/aboutPremiumFragment"
         android:name="cash.p.terminal.modules.premium.about.AboutPremiumFragment"/>
     <fragment
-        android:id="@+id/qrScannerFragment"
+        android:id="@id/qrScannerFragment"
         android:name="cash.p.terminal.modules.qrscanner.QRScannerFragment">
         <argument
             android:name="input"
-            app:argType="cash.p.terminal.modules.qrscanner.QRScannerFragment$Input"
+            app:argType="cash.p.terminal.navigation.QrScannerInput"
             app:nullable="true" />
     </fragment>
     <fragment
@@ -571,5 +576,16 @@
         <argument
             android:name="input"
             app:argType="cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule$Input" />
+    </fragment>
+    <fragment
+        android:id="@id/miniAppFragment"
+        android:name="cash.p.terminal.feature.miniapp.ui.miniapp.MiniAppFragment" />
+    <fragment
+        android:id="@id/connectMiniAppFragment"
+        android:name="cash.p.terminal.feature.miniapp.ui.connect.ConnectMiniAppFragment">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.feature.miniapp.ui.connect.ConnectMiniAppDeeplinkInput"
+            app:nullable="true" />
     </fragment>
 </navigation>

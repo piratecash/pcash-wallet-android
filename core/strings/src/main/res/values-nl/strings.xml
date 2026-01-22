@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">Parameter is not set</string>
+    <string name="error_account_not_found">Account niet gevonden</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">Cancel</string>
     <string name="Alert_Copy">Copy</string>
@@ -757,7 +758,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Open Telegram</string>
     <string name="Settings_Donate_Info">Together, with your support, we can make this app even better!</string>
     <string name="Settings_Donate">Donate</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">Mini App</string>
+    <string name="mini_app_title">Mini App verbinden</string>
+    <string name="mini_app_bonus_title">+10% Bonus met Premium</string>
+    <string name="mini_app_bonus_description">Verbind de mini-app met P.Cash Premium en ontvang +10% bonus op je spelbalans.</string>
+    <string name="mini_app_bonus_guaranteed">Krijg gegarandeerd</string>
+    <string name="mini_app_not_connected">Mini App is niet verbonden</string>
+    <string name="mini_app_connected">Mini App verbonden</string>
+    <string name="mini_app_connection">Verbinding</string>
+    <string name="mini_app_start_earning">Begin met verdienen</string>
     <string name="Settings_DonateToken">Donate %s</string>
     <string name="Settings_DonateWith">Donate with</string>
     <string name="Settings_Donate_GetAddress">Donation Address</string>
@@ -1696,4 +1705,54 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="required_coins_for_transaction">Vereiste munten voor transactie</string>
     <string name="test_sms">SMS testen</string>
     <string name="no_zec_wallets_available">Geen portemonnees met ZEC-tokens gevonden</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">Mini-app verbinden</string>
+    <string name="connect_mini_app_step_1">Stap 1</string>
+    <string name="connect_mini_app_step_1_description">Om verbinding te maken, moet u een wallet aanmaken of importeren.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">Kies alstublieft uw wallet met premium abonnement</string>
+    <string name="connect_mini_app_premium_bonus">+10% Bonus met Premium</string>
+    <string name="connect_mini_app_checking_tokens">Beschikbaarheid van %s controleren</string>
+    <string name="connect_mini_app_missing_tokens">U heeft geen %s</string>
+    <string name="connect_mini_app_add_tokens">Toevoegen</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">Stap 2</string>
+    <string name="connect_mini_app_step_2_description">Accepteer alstublieft de gebruiksvoorwaarden</string>
+    <string name="connect_mini_app_terms_title">Verzameling van technische apparaatgegevens</string>
+    <string name="connect_mini_app_terms_body">De app verzamelt <b>eenmalig</b> een beperkte set <b>technische apparaatgegevens</b> bij het <b>koppelen van de wallet aan het spel</b>, waaronder:</string>
+    <string name="connect_mini_app_terms_bullet_1">gegevens van bepaalde sensoren (bijv. gyroscoop en versnellingsmeter),</string>
+    <string name="connect_mini_app_terms_bullet_2">batterijstatus en of de oplader is aangesloten,</string>
+    <string name="connect_mini_app_terms_bullet_3">model en basiskenmerken van het apparaat.</string>
+    <string name="connect_mini_app_terms_fingerprint">Deze gegevens worden <b>uitsluitend</b> gebruikt om een <b>unieke technische vingerafdruk</b> voor het apparaat te genereren als onderdeel van <b>SWAP 5</b> (bescherming tegen meerdere accounts en misbruik).</string>
+    <string name="connect_mini_app_terms_important_title">Belangrijk:</string>
+    <string name="connect_mini_app_terms_important_1">gegevensverzameling vindt <b>precies twee keer plaats en alleen op initiatief van de gebruiker</b>,</string>
+    <string name="connect_mini_app_terms_important_2">de app <b>verzamelt geen gegevens op de achtergrond</b>,</string>
+    <string name="connect_mini_app_terms_important_3">de gegevens worden <b>niet gebruikt om de gebruiker te volgen</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>alle verzamelde gegevens worden automatisch van de server verwijderd na voltooiing van SWAP 5</b>,</string>
+    <string name="connect_mini_app_terms_important_5">gegevens worden niet overgedragen aan derden.</string>
+    <string name="connect_mini_app_terms_agreement">Ik ga akkoord met de voorwaarden en geef toestemming om een digitale vingerafdruk van het apparaat te maken.</string>
+    <!-- Step 4: Captcha -->
+    <string name="connect_mini_app_step_4">Stap 4</string>
+    <string name="connect_mini_app_step_4_description">Voer de code van de afbeelding in</string>
+    <string name="connect_mini_app_captcha_update">Bijwerken</string>
+    <string name="connect_mini_app_captcha_send">Verzenden</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">Verkeerde code, probeer het opnieuw</string>
+    <string name="connect_mini_app_captcha_error_expired">Captcha verlopen, vernieuw alstublieft</string>
+    <string name="connect_mini_app_step_5">Stap 5</string>
+    <string name="connect_mini_app_step_5_description">Speciale aanbieding voor premium leden</string>
+    <string name="connect_mini_app_bonus_text_prefix">Ontvang een gegarandeerde bonus + 10% van</string>
+    <string name="connect_mini_app_bonus_text_suffix">bij het aanmelden voor premium.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">Niet genoeg</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">Maandelijks inkomen</string>
+    <string name="connect_mini_app_buy_pirate">PIRATE kopen</string>
+    <string name="connect_mini_app_buy_cosanta">COSANTA kopen</string>
+    <string name="connect_mini_app_connect">Verbinden</string>
+    <string name="connect_mini_app_connect_without_premium">Verbinding zonder Premium</string>
+    <string name="connect_mini_app_step_finish">Voltooien</string>
+    <string name="connect_mini_app_connection_successful">De verbinding is geslaagd.</string>
+    <string name="connect_mini_app_connection_failed">De verbinding is mislukt.</string>
+    <string name="connect_mini_app_close">Sluiten</string>
+    <string name="connect_mini_app_try_again">Opnieuw proberen</string>
 </resources>

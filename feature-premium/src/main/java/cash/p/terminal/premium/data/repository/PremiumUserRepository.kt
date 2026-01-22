@@ -19,7 +19,11 @@ internal class PremiumUserRepository(
     suspend fun deleteByAccount(accountId: String) = withContext(Dispatchers.IO) {
         premiumUserDao.deleteByAccount(accountId)
     }
-    
+
+    suspend fun getByAccountId(accountId: String) = withContext(Dispatchers.IO) {
+        premiumUserDao.getByAccountId(accountId)
+    }
+
     suspend fun insert(premiumUser: PremiumUser) = withContext(Dispatchers.IO) {
         premiumUserDao.insert(premiumUser)
     }

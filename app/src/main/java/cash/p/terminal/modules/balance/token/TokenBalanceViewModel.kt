@@ -48,7 +48,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 
 class TokenBalanceViewModel(
     private val totalBalance: TotalBalance,
@@ -115,7 +114,7 @@ class TokenBalanceViewModel(
         }
 
         viewModelScope.launch {
-            transactionsService.itemsObservable.asFlow().collect {
+            transactionsService.transactionItemsFlow.collect {
                 updateTransactions(it)
             }
         }
@@ -204,7 +203,7 @@ class TokenBalanceViewModel(
             while (isActive) {
                 adapterManager.getReceiveAdapterForWallet(wallet)?.let { adapter ->
                     if (updateSwapProviderTransactionsStatusUseCase(wallet.token, adapter.receiveAddress)) {
-                        transactionsService.refreshList(true)
+                        transactionsService.refreshList()
                     }
                 }
                 delay(30_000) // update status every 30 seconds
@@ -281,7 +280,7 @@ class TokenBalanceViewModel(
         val account =
             accountManager.activeAccount ?: throw IllegalStateException("Active account is not set")
         when {
-            account.hasAnyBackup || !wallet.account.accountSupportsBackup -> return wallet
+            account.hasAnyBackup || !wallet.account.supportsBackup -> return wallet
             else -> throw BackupRequiredError(account, wallet.coin.name)
         }
     }

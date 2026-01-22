@@ -6,14 +6,18 @@ import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IMarketStorage
+import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
+import io.horizontalsystems.core.ILanguageManager
 import io.horizontalsystems.core.ILoggingSettings
 import io.horizontalsystems.core.ISmsNotificationSettings
 import io.horizontalsystems.core.ISilentPhotoCapture
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.AppHeadersProviderImpl
+import cash.p.terminal.network.data.AppHeadersProvider
 import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
@@ -49,7 +53,13 @@ import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.core.managers.SystemInfoManager
 import cash.p.terminal.core.managers.TokenAutoEnableManager
 import cash.p.terminal.core.managers.TonKitManager
+import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
+import cash.p.terminal.core.managers.GetPirateJettonAddressUseCaseImpl
+import cash.p.terminal.core.managers.CreateRequiredTokensUseCaseImpl
 import cash.p.terminal.core.managers.TorManager
+import cash.p.terminal.feature.miniapp.domain.usecase.GetTonAddressUseCase
+import cash.p.terminal.feature.miniapp.domain.usecase.GetPirateJettonAddressUseCase
+import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.SpamManager
@@ -57,6 +67,7 @@ import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.address.AddressCheckManager
 import cash.p.terminal.modules.transactions.CheckAmlIncomingTransactionUseCase
 import cash.p.terminal.core.managers.DefaultUserManager
+import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.p.terminal.modules.pin.PinComponent
 import cash.p.terminal.modules.pin.core.ILockoutManager
 import cash.p.terminal.modules.pin.core.ILockoutUntilDateFactory
@@ -110,7 +121,8 @@ import org.koin.dsl.module
 val managerModule = module {
     singleOf(::SystemInfoManager) bind ISystemInfoManager::class
     singleOf(::BackupManager) bind IBackupManager::class
-    singleOf(::LanguageManager)
+    singleOf(::LanguageManager) bind ILanguageManager::class
+    singleOf(::AppHeadersProviderImpl) bind AppHeadersProvider::class
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)
     singleOf(::AdapterManager) bind IAdapterManager::class
@@ -122,6 +134,7 @@ val managerModule = module {
         bind<ILockoutStorage>()
         bind<IThirdKeyboard>()
         bind<IMarketStorage>()
+        bind<IUniqueCodeStorage>()
     }
     single { PreferenceManager.getDefaultSharedPreferences(get()) }
     singleOf(::BackgroundManager)
@@ -133,6 +146,9 @@ val managerModule = module {
     singleOf(::SolanaKitManager)
     singleOf(::StellarKitManager)
     singleOf(::TonKitManager)
+    single<GetTonAddressUseCase> { GetTonAddressUseCaseImpl(get()) }
+    single<GetPirateJettonAddressUseCase> { GetPirateJettonAddressUseCaseImpl(get(), get()) }
+    single<CreateRequiredTokensUseCase> { CreateRequiredTokensUseCaseImpl(get()) }
     singleOf(::TronKitManager)
     factoryOf(::StackingManager)
     singleOf(::RestoreSettingsManager)
@@ -183,6 +199,7 @@ val managerModule = module {
 
     singleOf(::SpamManager)
     singleOf(::AddressCheckManager)
+    singleOf(::DeeplinkParser)
     singleOf(::CheckAmlIncomingTransactionUseCase)
     singleOf(::TransactionAdapterManager)
     singleOf(::TransactionSyncStateRepository)

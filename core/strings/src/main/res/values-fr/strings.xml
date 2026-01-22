@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">Le paramètre n\'est pas défini</string>
+    <string name="error_account_not_found">Compte introuvable</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">Annuler</string>
     <string name="Alert_Copy">Copier</string>
@@ -753,7 +754,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Ouvrir Telegram</string>
     <string name="Settings_Donate_Info">Ensemble, avec votre soutien, nous pouvons encore améliorer cette application!</string>
     <string name="Settings_Donate">Faire un don</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">Mini App</string>
+    <string name="mini_app_title">Connecter Mini App</string>
+    <string name="mini_app_bonus_title">+10% Bonus avec Premium</string>
+    <string name="mini_app_bonus_description">Connectez la mini-app avec P.Cash Premium et recevez +10% de bonus sur votre solde de jeu.</string>
+    <string name="mini_app_bonus_guaranteed">Obtenez garanti</string>
+    <string name="mini_app_not_connected">Mini App n\'est pas connectée</string>
+    <string name="mini_app_connected">Mini App connectée</string>
+    <string name="mini_app_connection">Connexion</string>
+    <string name="mini_app_start_earning">Commencer à gagner</string>
     <string name="Settings_DonateToken">Donate %s</string>
     <string name="Settings_DonateWith">Donnez avec</string>
     <string name="Settings_Donate_GetAddress">Adresse du don</string>
@@ -1688,4 +1697,53 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="required_coins_for_transaction">Jetons requis pour la transaction</string>
     <string name="test_sms">Tester SMS</string>
     <string name="no_zec_wallets_available">Aucun portefeuille avec des tokens ZEC trouvé</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">Connecter Mini App</string>
+    <string name="connect_mini_app_step_1">Étape 1</string>
+    <string name="connect_mini_app_step_1_description">Pour vous connecter, vous devez créer ou importer un portefeuille.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">Veuillez choisir votre portefeuille avec abonnement premium</string>
+    <string name="connect_mini_app_premium_bonus">+10% Bonus avec Premium</string>
+    <string name="connect_mini_app_checking_tokens">Vérification de la disponibilité de %s</string>
+    <string name="connect_mini_app_missing_tokens">Vous n\'avez pas %s</string>
+    <string name="connect_mini_app_add_tokens">Ajouter</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">Étape 2</string>
+    <string name="connect_mini_app_step_2_description">Veuillez accepter les conditions d\'utilisation</string>
+    <string name="connect_mini_app_terms_title">Collecte des données techniques de l\'appareil</string>
+    <string name="connect_mini_app_terms_body">L\'application collectera <b>une seule fois</b> un ensemble limité de <b>données techniques de l\'appareil</b> lors de la <b>liaison du portefeuille au jeu</b>, notamment :</string>
+    <string name="connect_mini_app_terms_bullet_1">les données de certains capteurs (ex. gyroscope et accéléromètre),</string>
+    <string name="connect_mini_app_terms_bullet_2">l\'état de la batterie et si le chargeur est connecté,</string>
+    <string name="connect_mini_app_terms_bullet_3">le modèle et les caractéristiques de base de l\'appareil.</string>
+    <string name="connect_mini_app_terms_fingerprint">Ces données sont utilisées <b>exclusivement</b> pour générer une <b>empreinte technique unique</b> de l\'appareil dans le cadre de <b>SWAP 5</b> (protection contre les comptes multiples et les abus).</string>
+    <string name="connect_mini_app_terms_important_title">Important :</string>
+    <string name="connect_mini_app_terms_important_1">la collecte de données se produit <b>exactement deux fois et uniquement à l\'initiative de l\'utilisateur</b>,</string>
+    <string name="connect_mini_app_terms_important_2">l\'application <b>ne collecte pas de données en arrière-plan</b>,</string>
+    <string name="connect_mini_app_terms_important_3">les données <b>ne sont pas utilisées pour suivre l\'utilisateur</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>toutes les données collectées sont automatiquement supprimées du serveur après la fin de SWAP 5</b>,</string>
+    <string name="connect_mini_app_terms_important_5">les données ne sont pas transférées à des tiers.</string>
+    <string name="connect_mini_app_terms_agreement">J\'accepte les conditions et j\'autorise la création d\'une empreinte numérique de l\'appareil.</string>
+    <string name="connect_mini_app_step_4">Étape 4</string>
+    <string name="connect_mini_app_step_4_description">Entrez le code de l\'image</string>
+    <string name="connect_mini_app_captcha_update">Actualiser</string>
+    <string name="connect_mini_app_captcha_send">Envoyer</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">Code incorrect, veuillez réessayer</string>
+    <string name="connect_mini_app_captcha_error_expired">Le captcha a expiré, veuillez actualiser</string>
+    <string name="connect_mini_app_step_5">Étape 5</string>
+    <string name="connect_mini_app_step_5_description">Offre spéciale pour les membres premium</string>
+    <string name="connect_mini_app_bonus_text_prefix">Obtenez un bonus garanti + 10% de</string>
+    <string name="connect_mini_app_bonus_text_suffix">lors de votre inscription premium.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">Pas assez</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">Revenu mensuel</string>
+    <string name="connect_mini_app_buy_pirate">Acheter PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">Acheter COSANTA</string>
+    <string name="connect_mini_app_connect">Connecter</string>
+    <string name="connect_mini_app_connect_without_premium">Connexion sans Premium</string>
+    <string name="connect_mini_app_step_finish">Terminer</string>
+    <string name="connect_mini_app_connection_successful">La connexion a réussi.</string>
+    <string name="connect_mini_app_connection_failed">La connexion a échoué.</string>
+    <string name="connect_mini_app_close">Fermer</string>
+    <string name="connect_mini_app_try_again">Réessayer</string>
 </resources>

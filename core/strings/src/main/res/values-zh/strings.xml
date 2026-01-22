@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">参数未设置</string>
+    <string name="error_account_not_found">未找到账户</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">取消</string>
     <string name="Alert_Copy">复制</string>
@@ -753,7 +754,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">打开 Telegram</string>
     <string name="Settings_Donate_Info">在你的支持下，我们可以使这个应用更好！</string>
     <string name="Settings_Donate">捐助</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">迷你应用</string>
+    <string name="mini_app_title">连接迷你应用</string>
+    <string name="mini_app_bonus_title">Premium +10% 奖励</string>
+    <string name="mini_app_bonus_description">连接迷你应用与P.Cash Premium，即可获得+10%的游戏余额奖励。</string>
+    <string name="mini_app_bonus_guaranteed">保证获得</string>
+    <string name="mini_app_not_connected">迷你应用未连接</string>
+    <string name="mini_app_connected">迷你应用已连接</string>
+    <string name="mini_app_connection">连接</string>
+    <string name="mini_app_start_earning">开始赚取</string>
     <string name="Settings_DonateToken">捐赠%s</string>
     <string name="Settings_DonateWith">捐赠方式</string>
     <string name="Settings_Donate_GetAddress">捐款地址</string>
@@ -1679,4 +1688,53 @@
     <string name="required_coins_for_transaction">交易所需代币</string>
     <string name="test_sms">测试短信</string>
     <string name="no_zec_wallets_available">未找到包含 ZEC 代币的钱包</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">连接迷你应用</string>
+    <string name="connect_mini_app_step_1">步骤 1</string>
+    <string name="connect_mini_app_step_1_description">要连接，您需要创建或导入钱包。</string>
+    <string name="connect_mini_app_step_1_choose_wallet">请选择具有高级订阅的钱包</string>
+    <string name="connect_mini_app_premium_bonus">Premium +10% 奖励</string>
+    <string name="connect_mini_app_checking_tokens">正在检查 %s 的可用性</string>
+    <string name="connect_mini_app_missing_tokens">您没有 %s</string>
+    <string name="connect_mini_app_add_tokens">添加</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">步骤 2</string>
+    <string name="connect_mini_app_step_2_description">请接受使用条款</string>
+    <string name="connect_mini_app_terms_title">设备技术数据收集</string>
+    <string name="connect_mini_app_terms_body">在<b>将钱包连接到游戏</b>时，应用程序将<b>一次性</b>收集有限的<b>设备技术数据</b>，包括：</string>
+    <string name="connect_mini_app_terms_bullet_1">某些传感器的数据（例如陀螺仪和加速度计），</string>
+    <string name="connect_mini_app_terms_bullet_2">电池状态以及充电器是否连接，</string>
+    <string name="connect_mini_app_terms_bullet_3">设备型号和基本特性。</string>
+    <string name="connect_mini_app_terms_fingerprint">这些数据<b>仅</b>用于作为<b>SWAP 5</b>的一部分为设备生成<b>唯一的技术指纹</b>（防止多账户和滥用）。</string>
+    <string name="connect_mini_app_terms_important_title">重要：</string>
+    <string name="connect_mini_app_terms_important_1">数据收集<b>仅发生两次且仅在用户主动操作时</b>，</string>
+    <string name="connect_mini_app_terms_important_2">应用程序<b>不会在后台收集数据</b>，</string>
+    <string name="connect_mini_app_terms_important_3">数据<b>不会用于追踪用户</b>，</string>
+    <string name="connect_mini_app_terms_important_4"><b>所有收集的数据将在SWAP 5完成后自动从服务器删除</b>，</string>
+    <string name="connect_mini_app_terms_important_5">数据不会转移给第三方。</string>
+    <string name="connect_mini_app_terms_agreement">我同意条款和条件，并授权创建设备的数字指纹。</string>
+    <string name="connect_mini_app_step_4">第4步</string>
+    <string name="connect_mini_app_step_4_description">请输入图片中的验证码</string>
+    <string name="connect_mini_app_captcha_update">更新</string>
+    <string name="connect_mini_app_captcha_send">发送</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">验证码错误，请重试</string>
+    <string name="connect_mini_app_captcha_error_expired">验证码已过期，请刷新</string>
+    <string name="connect_mini_app_step_5">第5步</string>
+    <string name="connect_mini_app_step_5_description">高级会员专属优惠</string>
+    <string name="connect_mini_app_bonus_text_prefix">获得保证奖金 + 10%</string>
+    <string name="connect_mini_app_bonus_text_suffix">注册高级会员时。</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">不足</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">月收入</string>
+    <string name="connect_mini_app_buy_pirate">购买 PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">购买 COSANTA</string>
+    <string name="connect_mini_app_connect">连接</string>
+    <string name="connect_mini_app_connect_without_premium">无高级会员连接</string>
+    <string name="connect_mini_app_step_finish">完成</string>
+    <string name="connect_mini_app_connection_successful">连接成功。</string>
+    <string name="connect_mini_app_connection_failed">连接失败。</string>
+    <string name="connect_mini_app_close">关闭</string>
+    <string name="connect_mini_app_try_again">重试</string>
 </resources>

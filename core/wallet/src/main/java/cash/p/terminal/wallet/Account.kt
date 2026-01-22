@@ -31,7 +31,7 @@ data class Account(
 ) : Parcelable {
 
     @IgnoredOnParcel
-    val accountSupportsBackup: Boolean
+    val supportsBackup: Boolean
         get() = !isHardwareWalletAccount
 
     @IgnoredOnParcel

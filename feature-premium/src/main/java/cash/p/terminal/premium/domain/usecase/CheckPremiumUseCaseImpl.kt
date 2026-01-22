@@ -393,6 +393,29 @@ internal class CheckPremiumUseCaseImpl(
     private fun updateTrialPremiumCache(address: String) {
         _trialPremiumCache.value += (address to true)
     }
+
+    override suspend fun checkPremiumByBalanceForAccount(account: Account, checkTrial: Boolean): PremiumType {
+        // Check trial premium first
+        if (checkTrial && _trialPremiumCache.value[account.id] == true) {
+            return PremiumType.TRIAL
+        }
+
+        if (!account.eligibleForPremium()) return PremiumType.NONE
+
+        val address = getBnbAddressUseCase.getAddress(account) ?: return PremiumType.NONE
+
+        for (coinType in coinConfigs.keys) {
+            val result = isPremiumByBalance(coinType, address)
+            if (result == true) {
+                return if (coinType == PremiumConfig.COIN_TYPE_PIRATE) {
+                    PremiumType.PIRATE
+                } else {
+                    PremiumType.COSA
+                }
+            }
+        }
+        return PremiumType.NONE
+    }
 }
 
 internal data class CoinConfig(

@@ -4,6 +4,7 @@
     <!--Common-->
 
     <string name="Error_ParameterNotSet">Parameter is not set</string>
+    <string name="error_account_not_found">Account not found</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
 
     <string name="Alert_Cancel">Cancel</string>
@@ -1023,7 +1024,15 @@ Proceed only if you\'re sure.</string>
 
     <string name="Settings_Donate_Info">Together, with your support, we can make this app even better!</string>
     <string name="Settings_Donate">Donate</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">Mini App</string>
+    <string name="mini_app_title">Connect Mini App</string>
+    <string name="mini_app_bonus_title">+10% Bonus with Premium</string>
+    <string name="mini_app_bonus_description">Connect mini-app with P.Cash Premium and receive +10% bonus to your game balance.</string>
+    <string name="mini_app_bonus_guaranteed">Get a guaranteed</string>
+    <string name="mini_app_not_connected">Mini App is not connected</string>
+    <string name="mini_app_connected">Mini App connected</string>
+    <string name="mini_app_connection">Connection</string>
+    <string name="mini_app_start_earning">Start Earning</string>
     <string name="Settings_DonateToken">Donate %s</string>
     <string name="Settings_DonateWith">Donate with</string>
     <string name="Settings_Donate_GetAddress">Donation Address</string>
@@ -2129,4 +2138,54 @@ Proceed only if you\'re sure.</string>
     <string name="safety_rules_checkbox_1">I understand that the seed phrase is confidential and should not be disclosed to third parties.</string>
     <string name="safety_rules_checkbox_2">I understand that I cannot store my seed phrase in digital form.</string>
     <string name="safety_rules_checkbox_3">I understand that the p.cash team does not have access to my keys and cannot recover them.</string>
+
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">Connect Mini App</string>
+    <string name="connect_mini_app_step_1">Step 1</string>
+    <string name="connect_mini_app_step_1_description">To connect, you need to create or import a wallet.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">Please choose your wallet with premium subscription</string>
+    <string name="connect_mini_app_premium_bonus">+10% Bonus with Premium</string>
+    <string name="connect_mini_app_checking_tokens">Checking availability %s</string>
+    <string name="connect_mini_app_missing_tokens">You don\'t have %s</string>
+    <string name="connect_mini_app_add_tokens">Add</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">Step 2</string>
+    <string name="connect_mini_app_step_2_description">Please accept the user terms</string>
+    <string name="connect_mini_app_terms_title">Collection of technical data on the device</string>
+    <string name="connect_mini_app_terms_body">The app will collect a limited set of <b>technical data about the device</b> once when <b>linking the wallet to the game</b>, including:</string>
+    <string name="connect_mini_app_terms_bullet_1">data from certain sensors (e.g., gyroscope and accelerometer),</string>
+    <string name="connect_mini_app_terms_bullet_2">battery status and whether charging is connected,</string>
+    <string name="connect_mini_app_terms_bullet_3">model and basic characteristics of the device.</string>
+    <string name="connect_mini_app_terms_fingerprint">This data is used <b>exclusively</b> to generate a <b>unique technical fingerprint</b> for the device as part of <b>SWAP 5</b> (protection against multiple accounts and abuse).</string>
+    <string name="connect_mini_app_terms_important_title">Important:</string>
+    <string name="connect_mini_app_terms_important_1">data collection occurs <b>exactly twice and only at the user\'s initiative</b>,</string>
+    <string name="connect_mini_app_terms_important_2">the app <b>does not collect data in the background</b>,</string>
+    <string name="connect_mini_app_terms_important_3">the data is <b>not used to track the user</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>all collected data is automatically deleted from the server after SWAP 5 is completed</b>,</string>
+    <string name="connect_mini_app_terms_important_5">data is not transferred to third parties.</string>
+    <string name="connect_mini_app_terms_agreement">I agree to the terms and conditions and give permission to create a digital fingerprint of the device.</string>
+    <string name="connect_mini_app_step_4">Step 4</string>
+    <string name="connect_mini_app_step_4_description">Enter the code from the image</string>
+    <string name="connect_mini_app_captcha_update">Update</string>
+    <string name="connect_mini_app_captcha_send">Send</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">Wrong code, please try again</string>
+    <string name="connect_mini_app_captcha_error_expired">Captcha expired, please refresh</string>
+    <string name="connect_mini_app_step_5">Step 5</string>
+    <string name="connect_mini_app_step_5_description">Special proposal for premium members</string>
+    <string name="connect_mini_app_bonus_text_prefix">Get a guaranteed bonus + 10% from</string>
+    <string name="connect_mini_app_bonus_text_suffix">when you sign up for premium.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">Not enough</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">Monthly income</string>
+    <string name="connect_mini_app_buy_pirate">Buy PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">Buy COSANTA</string>
+    <string name="connect_mini_app_connect">Connect</string>
+    <string name="connect_mini_app_connect_without_premium">Connection Without Premium</string>
+    <string name="connect_mini_app_step_finish">Finish</string>
+    <string name="connect_mini_app_connection_successful">The connection was successful.</string>
+    <string name="connect_mini_app_connection_failed">The connection was failure.</string>
+    <string name="connect_mini_app_close">Close</string>
+    <string name="connect_mini_app_try_again">Try again</string>
 </resources>

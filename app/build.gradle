@@ -398,6 +398,7 @@ dependencies {
     implementation project(':feature-tangem')
     implementation project(':feature-premium')
     implementation project(':feature-logging')
+    implementation project(':feature-mini-app')
 
     // Integration with activities
     implementation libs.androidx.activity.compose

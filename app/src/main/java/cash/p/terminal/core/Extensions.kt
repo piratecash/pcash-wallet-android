@@ -29,7 +29,6 @@ import androidx.navigation.compose.composable
 import cash.p.terminal.R
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.premium.about.AboutPremiumFragment
-import cash.p.terminal.modules.qrscanner.QRScannerFragment
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.ui_compose.components.ImageSource
@@ -328,19 +327,6 @@ inline fun <T> tryOrNull(block: () -> T): T? {
 fun Context.hasNFC(): Boolean {
     val pm = getSystemService(Context.NFC_SERVICE) as android.nfc.NfcManager
     return pm.defaultAdapter?.isEnabled == true
-}
-
-fun NavController.openQrScanner(
-    title: String,
-    showPasteButton: Boolean = false,
-    onResult: (String) -> Unit,
-) {
-    slideFromBottomForResult<QRScannerFragment.Result>(
-        R.id.qrScannerFragment,
-        QRScannerFragment.Input(title, showPasteButton)
-    ) { result ->
-        onResult(result.text)
-    }
 }
 
 fun NavController.premiumAction(block: () -> Unit) {

@@ -2,8 +2,6 @@ package cash.p.terminal.core.utils
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
@@ -11,17 +9,21 @@ import kotlinx.coroutines.delay
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.UnknownHostException
-import java.security.MessageDigest
 
 object Utils {
 
     fun isUsingCustomKeyboard(context: Context): Boolean {
 
-        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val inputMethodManager =
+            context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         val inputMethodProperties = inputMethodManager.enabledInputMethodList
         for (i in 0 until inputMethodProperties.size) {
             val imi = inputMethodProperties[i]
-            if (imi.id == Settings.Secure.getString(context.contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)) {
+            if (imi.id == Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.DEFAULT_INPUT_METHOD
+                )
+            ) {
                 if ((imi.serviceInfo.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0) {
                     return true
                 }
@@ -47,39 +49,6 @@ object Utils {
     } catch (e: UnknownHostException) {
         Log.d("Utils", "getIpByUrl: $host not found")
         null
-    }
-
-    fun getSigningCertFingerprint(context: Context): String? {
-        return try {
-            val pm = context.packageManager
-            val packageName = context.packageName
-
-            val cert = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val signingInfo = pm.getPackageInfo(
-                    packageName,
-                    PackageManager.GET_SIGNING_CERTIFICATES
-                ).signingInfo
-
-                when {
-                    signingInfo?.hasMultipleSigners() == true ->
-                        signingInfo.apkContentsSigners?.firstOrNull()
-                    else ->
-                        signingInfo?.signingCertificateHistory?.firstOrNull()
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-                    .signatures?.firstOrNull()
-            }
-
-            cert?.let {
-                val md = MessageDigest.getInstance("SHA-256")
-                val digest = md.digest(it.toByteArray())
-                digest.joinToString(":") { byte -> "%02X".format(byte) }
-            }
-        } catch (e: Exception) {
-            null
-        }
     }
 }
 

@@ -20,20 +20,20 @@ import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.entities.CurrencyValue
-import io.reactivex.Observable
-import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import org.koin.java.KoinJavaComponent.inject
-import timber.log.Timber
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 
 class TokenTransactionsService(
@@ -48,11 +48,10 @@ class TokenTransactionsService(
     private val transactionRecordRepository: ITransactionRecordRepository by inject(
         ITransactionRecordRepository::class.java
     )
-    private val transactionItems = CopyOnWriteArrayList<TransactionItem>()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val _transactionItems = MutableStateFlow<List<TransactionItem>>(emptyList())
+    val transactionItemsFlow: StateFlow<List<TransactionItem>> = _transactionItems.asStateFlow()
 
-    private val itemsSubject = BehaviorSubject.create<List<TransactionItem>>()
-    val itemsObservable: Observable<List<TransactionItem>> get() = itemsSubject
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     fun start() {
         coroutineScope.launch {
@@ -111,97 +110,69 @@ class TokenTransactionsService(
         )
     }
 
-    @Synchronized
     private fun handleContactsUpdate() {
-        if (transactionItems.isEmpty()) return
-
-        val tmpList = mutableListOf<TransactionItem>()
-        transactionItems.forEach {
-            tmpList.add(it.copy())
+        _transactionItems.update { currentList ->
+            if (currentList.isEmpty()) currentList else currentList.map { it.copy() }
         }
-
-        transactionItems.clear()
-        transactionItems.addAll(tmpList)
-
-        itemsSubject.onNext(transactionItems)
     }
 
-    @Synchronized
     private fun handle(assetBriefMetadataMap: Map<NftUid, NftAssetBriefMetadata>) {
-        var updated = false
-        transactionItems.forEachIndexed { index, item ->
-            val tmpMetadata = item.nftMetadata.toMutableMap()
-            item.record.nftUids.forEach { nftUid ->
-                assetBriefMetadataMap[nftUid]?.let {
-                    tmpMetadata[nftUid] = it
+        // Original behavior: always rebuild items and emit if list not empty
+        // (updated was set to true unconditionally in the loop)
+        _transactionItems.update { currentList ->
+            if (currentList.isEmpty()) return@update currentList
+            currentList.map { item ->
+                val updatedMetadata = item.nftMetadata.toMutableMap()
+                item.record.nftUids.forEach { nftUid ->
+                    assetBriefMetadataMap[nftUid]?.let { updatedMetadata[nftUid] = it }
                 }
+                item.copy(nftMetadata = updatedMetadata)
             }
-            transactionItems[index] = item.copy(nftMetadata = tmpMetadata)
-            updated = true
-        }
-
-        if (updated) {
-            itemsSubject.onNext(transactionItems)
         }
     }
 
-    @Synchronized
     private fun handleLastBlockInfo(source: TransactionSource, lastBlockInfo: LastBlockInfo) {
-        var updated = false
-        transactionItems.forEachIndexed { index, item ->
-            if (item.record.source == source && item.record.changedBy(
-                    item.lastBlockInfo,
-                    lastBlockInfo
-                )
-            ) {
-                transactionItems[index] = item.copy(lastBlockInfo = lastBlockInfo)
-                updated = true
-            }
-        }
-
-        if (updated) {
-            itemsSubject.onNext(transactionItems)
-        }
-    }
-
-    @Synchronized
-    private fun handleUpdatedHistoricalRate(key: HistoricalRateKey, rate: CurrencyValue) {
-        var updated = false
-        for (i in 0 until transactionItems.size) {
-            val item = transactionItems[i]
-
-            item.record.mainValue?.let { mainValue ->
-                mainValue.decimalValue?.let { decimalValue ->
-                    if (mainValue.coin?.uid == key.coinUid && item.record.timestamp == key.timestamp) {
-                        val currencyValue = CurrencyValue(rate.currency, decimalValue * rate.value)
-
-                        transactionItems[i] = item.copy(currencyValue = currencyValue)
-                        updated = true
-                    }
+        _transactionItems.update { currentList ->
+            var updated = false
+            val newList = currentList.map { item ->
+                if (item.record.source == source && item.record.changedBy(item.lastBlockInfo, lastBlockInfo)) {
+                    updated = true
+                    item.copy(lastBlockInfo = lastBlockInfo)
+                } else {
+                    item
                 }
             }
-        }
-
-        if (updated) {
-            itemsSubject.onNext(transactionItems)
+            if (updated) newList else currentList
         }
     }
 
-    @Synchronized
-    private fun handleUpdatedHistoricalRates() {
-        for (i in 0 until transactionItems.size) {
-            val item = transactionItems[i]
-            val currencyValue = getCurrencyValue(item.record)
-
-            transactionItems[i] = item.copy(currencyValue = currencyValue)
+    private fun handleUpdatedHistoricalRate(key: HistoricalRateKey, rate: CurrencyValue) {
+        _transactionItems.update { currentList ->
+            var updated = false
+            val newList = currentList.map { item ->
+                val mainValue = item.record.mainValue
+                val decimalValue = mainValue?.decimalValue
+                if (decimalValue != null && mainValue.coin?.uid == key.coinUid && item.record.timestamp == key.timestamp) {
+                    updated = true
+                    val currencyValue = CurrencyValue(rate.currency, decimalValue * rate.value)
+                    item.copy(currencyValue = currencyValue)
+                } else {
+                    item
+                }
+            }
+            if (updated) newList else currentList
         }
+    }
 
-        itemsSubject.onNext(transactionItems)
+    private fun handleUpdatedHistoricalRates() {
+        _transactionItems.update { currentList ->
+            currentList.map { item ->
+                item.copy(currencyValue = getCurrencyValue(item.record))
+            }
+        }
     }
 
     private suspend fun handleUpdatedRecords(transactionRecords: List<TransactionRecord>) {
-        val tmpList = mutableListOf<TransactionItem>()
-
         val nftUids = transactionRecords.nftUids
         val nftMetadata = nftMetadataService.assetsBriefMetadata(nftUids)
 
@@ -212,33 +183,41 @@ class TokenTransactionsService(
             }
         }
 
-        val newRecords = mutableListOf<TransactionRecord>()
-        transactionRecords.forEach { record ->
-            var transactionItem = transactionItems.find { it.record == record }
-            if (transactionItem == null) {
-                newRecords.add(record)
+        var shouldLoadNext = false
+
+        // Atomically update the transaction items
+        _transactionItems.update { currentItems ->
+            // Calculate new records using data class equality (same as original)
+            // A record is "new" if no existing item has an equal record (all fields match)
+            val newRecords = transactionRecords.filter { record ->
+                currentItems.none { it.record == record }
             }
 
-            if (record.spam && spamManager.hideSuspiciousTx) return@forEach
-
-            transactionItem = if (transactionItem == null) {
-                val lastBlockInfo = transactionSyncStateRepository.getLastBlockInfo(record.source)
-                val currencyValue = getCurrencyValue(record)
-
-                TransactionItem(record, currencyValue, lastBlockInfo, nftMetadata)
-            } else {
-                transactionItem.copy(record = record)
+            // If all new records are spam, don't update UI - just trigger loading more
+            // This preserves original behavior and prevents UI flickering
+            if (newRecords.isNotEmpty() && newRecords.all { it.spam }) {
+                shouldLoadNext = true
+                return@update currentItems  // Keep current list unchanged, no UI update
             }
 
-            tmpList.add(transactionItem)
+            transactionRecords.mapNotNull { record ->
+                val existingItem = currentItems.find { it.record == record }
+
+                if (record.spam && spamManager.hideSuspiciousTx) return@mapNotNull null
+
+                if (existingItem == null) {
+                    val lastBlockInfo = transactionSyncStateRepository.getLastBlockInfo(record.source)
+                    val currencyValue = getCurrencyValue(record)
+                    TransactionItem(record, currencyValue, lastBlockInfo, nftMetadata)
+                } else {
+                    existingItem.copy(record = record)
+                }
+            }
         }
 
-        if (newRecords.isNotEmpty() && newRecords.all { it.spam }) {
+        // If all new records were spam, load more to fill the list
+        if (shouldLoadNext) {
             loadNext()
-        } else {
-            transactionItems.clear()
-            transactionItems.addAll(tmpList)
-            itemsSubject.onNext(transactionItems)
         }
     }
 
@@ -252,20 +231,19 @@ class TokenTransactionsService(
 
     private val executorService = Executors.newCachedThreadPool()
 
-    fun refreshList(forceLoadData: Boolean = false) {
-        if (transactionItems.isEmpty()) return
-
-        if (forceLoadData) {
-            val tmpList = mutableListOf<TransactionItem>()
-            transactionItems.forEach {
-                tmpList.add(it.copy())
-            }
-
-            transactionItems.clear()
-            transactionItems.addAll(tmpList)
+    fun refreshList() {
+        // Original behavior:
+        // - forceLoadData=true: copy items (new references), then emit
+        // - forceLoadData=false: emit same items (same references)
+        //
+        // With StateFlow, emission only happens if value changes (structural equality).
+        // To preserve the "always emit" behavior for callers that depend on it (e.g.,
+        // when cache/visibility changes), we always copy items. This changes referential
+        // identity when forceLoadData=false, but Compose uses structural equality anyway.
+        _transactionItems.update { currentList ->
+            if (currentList.isEmpty()) return@update currentList
+            currentList.map { it.copy() }
         }
-
-        itemsSubject.onNext(transactionItems)
     }
 
     fun loadNext() {
@@ -276,7 +254,7 @@ class TokenTransactionsService(
 
     fun fetchRateIfNeeded(recordUid: String) {
         executorService.submit {
-            transactionItems.find { it.record.uid == recordUid }?.let { transactionItem ->
+            _transactionItems.value.find { it.record.uid == recordUid }?.let { transactionItem ->
                 if (transactionItem.currencyValue == null) {
                     transactionItem.record.mainValue?.coin?.uid?.let { coinUid ->
                         rateRepository.fetchHistoricalRate(
@@ -292,7 +270,7 @@ class TokenTransactionsService(
     }
 
     fun getTransactionItem(recordUid: String): TransactionItem? {
-        return transactionItems.find { it.record.uid == recordUid }
+        return _transactionItems.value.find { it.record.uid == recordUid }
     }
 
 

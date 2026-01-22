@@ -17,12 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
+import cash.p.terminal.navigation.BackupKeyInput
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaultWithIcon
+import cash.p.terminal.ui_compose.components.BackupButtons
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
-import cash.p.terminal.ui_compose.components.ButtonPrimaryYellowWithIcon
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.findNavController
@@ -71,28 +71,17 @@ fun BackupRecoveryPhraseScreen(
             )
 
             VSpacer(32.dp)
-            ButtonPrimaryYellowWithIcon(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                title = stringResource(R.string.BackupRecoveryPhrase_ManualBackup),
-                icon = R.drawable.ic_edit_24,
-                iconTint = ComposeAppTheme.colors.dark,
-                onClick = {
-                    navController.slideFromBottom(R.id.backupKeyFragment, account)
-                }
-            )
-            VSpacer(12.dp)
-            ButtonPrimaryDefaultWithIcon(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                title = stringResource(R.string.BackupRecoveryPhrase_LocalBackup),
-                icon = R.drawable.ic_file_24,
-                iconTint = ComposeAppTheme.colors.claude,
-                onClick = {
+            BackupButtons(
+                onManualBackupClick = {
+                    navController.slideFromBottom(
+                        R.id.backupKeyFragment,
+                        BackupKeyInput(account.id)
+                    )
+                },
+                onLocalBackupClick = {
                     navController.slideFromBottom(R.id.backupLocalFragment, account)
-                }
+                },
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
             VSpacer(12.dp)
             ButtonPrimaryTransparent(

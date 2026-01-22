@@ -7,8 +7,14 @@ import androidx.lifecycle.ViewModel
 import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseModule
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAccountManager
 
-class BackupKeyViewModel(val account: Account) : ViewModel() {
+class BackupKeyViewModel(
+    accountId: String,
+    accountManager: IAccountManager
+) : ViewModel() {
+
+    val account: Account? = accountManager.account(accountId)
 
     var passphrase by mutableStateOf("")
         private set
@@ -19,19 +25,30 @@ class BackupKeyViewModel(val account: Account) : ViewModel() {
     var wordsNumbered by mutableStateOf<List<RecoveryPhraseModule.WordNumbered>>(listOf())
         private set
 
-    init {
-        showPassphraseBlock = account.type is AccountType.Mnemonic
+    var accountNotFound by mutableStateOf(false)
+        private set
 
-        if (account.type is AccountType.Mnemonic) {
-            wordsNumbered = (account.type as AccountType.Mnemonic).words.mapIndexed { index, word ->
-                RecoveryPhraseModule.WordNumbered(word, index + 1)
+    init {
+        if (account == null) {
+            accountNotFound = true
+        } else {
+            showPassphraseBlock = account.type is AccountType.Mnemonic
+
+            when (val type = account.type) {
+                is AccountType.Mnemonic -> {
+                    wordsNumbered = type.words.mapIndexed { index, word ->
+                        RecoveryPhraseModule.WordNumbered(word, index + 1)
+                    }
+                    passphrase = type.passphrase
+                }
+                is AccountType.MnemonicMonero -> {
+                    wordsNumbered = type.words.mapIndexed { index, word ->
+                        RecoveryPhraseModule.WordNumbered(word, index + 1)
+                    }
+                    passphrase = type.password
+                }
+                else -> Unit
             }
-            passphrase = (account.type as AccountType.Mnemonic).passphrase
-        } else if (account.type is AccountType.MnemonicMonero) {
-            wordsNumbered = (account.type as AccountType.MnemonicMonero).words.mapIndexed { index, word ->
-                RecoveryPhraseModule.WordNumbered(word, index + 1)
-            }
-            passphrase = (account.type as AccountType.MnemonicMonero).password
         }
     }
 }

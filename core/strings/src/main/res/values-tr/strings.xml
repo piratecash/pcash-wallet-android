@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">Parametre ayarlanmadı</string>
+    <string name="error_account_not_found">Hesap bulunamadı</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">İptal</string>
     <string name="Alert_Copy">Kopyala</string>
@@ -757,7 +758,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Abrir Telegram</string>
     <string name="Settings_Donate_Info">Desteğinizle birlikte bu uygulamayı daha da iyi hale getirebiliriz!</string>
     <string name="Settings_Donate">Bağış yapmak</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">Mini Uygulama</string>
+    <string name="mini_app_title">Mini Uygulama Bağla</string>
+    <string name="mini_app_bonus_title">Premium ile +10% Bonus</string>
+    <string name="mini_app_bonus_description">Mini uygulamayı P.Cash Premium ile bağlayın ve oyun bakiyenize +10% bonus alın.</string>
+    <string name="mini_app_bonus_guaranteed">Garantili alın</string>
+    <string name="mini_app_not_connected">Mini Uygulama bağlı değil</string>
+    <string name="mini_app_connected">Mini Uygulama bağlandı</string>
+    <string name="mini_app_connection">Bağlantı</string>
+    <string name="mini_app_start_earning">Kazanmaya Başla</string>
     <string name="Settings_DonateToken">Bağış yapmak %s</string>
     <string name="Settings_DonateWith">Bağış yapın</string>
     <string name="Settings_Donate_GetAddress">Bağış Adresi</string>
@@ -1691,4 +1700,54 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="required_coins_for_transaction">İşlem için gerekli coinler</string>
     <string name="test_sms">SMS Test Et</string>
     <string name="no_zec_wallets_available">ZEC tokeni olan cüzdan bulunamadı</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">Mini Uygulamayı Bağla</string>
+    <string name="connect_mini_app_step_1">Adım 1</string>
+    <string name="connect_mini_app_step_1_description">Bağlanmak için bir cüzdan oluşturmanız veya içe aktarmanız gerekir.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">Lütfen premium abonelikli cüzdanınızı seçin</string>
+    <string name="connect_mini_app_premium_bonus">Premium ile +%10 Bonus</string>
+    <string name="connect_mini_app_checking_tokens">%s kullanılabilirliği kontrol ediliyor</string>
+    <string name="connect_mini_app_missing_tokens">%s yok</string>
+    <string name="connect_mini_app_add_tokens">Ekle</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">Adım 2</string>
+    <string name="connect_mini_app_step_2_description">Lütfen kullanım koşullarını kabul edin</string>
+    <string name="connect_mini_app_terms_title">Cihaz teknik verilerinin toplanması</string>
+    <string name="connect_mini_app_terms_body">Uygulama, <b>cüzdanı oyuna bağlarken</b> <b>bir kez</b> sınırlı bir <b>cihaz teknik verisi</b> seti toplayacaktır, bunlar şunları içerir:</string>
+    <string name="connect_mini_app_terms_bullet_1">belirli sensörlerden gelen veriler (örn. jiroskop ve ivmeölçer),</string>
+    <string name="connect_mini_app_terms_bullet_2">pil durumu ve şarj cihazının bağlı olup olmadığı,</string>
+    <string name="connect_mini_app_terms_bullet_3">cihazın modeli ve temel özellikleri.</string>
+    <string name="connect_mini_app_terms_fingerprint">Bu veriler, <b>SWAP 5</b> kapsamında cihaz için <b>benzersiz bir teknik parmak izi</b> oluşturmak amacıyla <b>yalnızca</b> kullanılmaktadır (çoklu hesaplara ve kötüye kullanıma karşı koruma).</string>
+    <string name="connect_mini_app_terms_important_title">Önemli:</string>
+    <string name="connect_mini_app_terms_important_1">veri toplama <b>tam olarak iki kez ve yalnızca kullanıcı inisiyatifiyle</b> gerçekleşir,</string>
+    <string name="connect_mini_app_terms_important_2">uygulama <b>arka planda veri toplamaz</b>,</string>
+    <string name="connect_mini_app_terms_important_3">veriler <b>kullanıcıyı izlemek için kullanılmaz</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>toplanan tüm veriler SWAP 5 tamamlandıktan sonra sunucudan otomatik olarak silinir</b>,</string>
+    <string name="connect_mini_app_terms_important_5">veriler üçüncü taraflara aktarılmaz.</string>
+    <string name="connect_mini_app_terms_agreement">Şartları ve koşulları kabul ediyorum ve cihazın dijital parmak izinin oluşturulmasına izin veriyorum.</string>
+    <!-- Step 4: Captcha -->
+    <string name="connect_mini_app_step_4">Adım 4</string>
+    <string name="connect_mini_app_step_4_description">Lütfen görseldeki kodu girin</string>
+    <string name="connect_mini_app_captcha_update">Güncelle</string>
+    <string name="connect_mini_app_captcha_send">Gönder</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">Yanlış kod, lütfen tekrar deneyin</string>
+    <string name="connect_mini_app_captcha_error_expired">Captcha süresi doldu, lütfen yenileyin</string>
+    <string name="connect_mini_app_step_5">Adım 5</string>
+    <string name="connect_mini_app_step_5_description">Premium üyeler için özel teklif</string>
+    <string name="connect_mini_app_bonus_text_prefix">Garantili bonus + %10 alın</string>
+    <string name="connect_mini_app_bonus_text_suffix">premium\'a kaydolduğunuzda.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">Yetersiz</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">Aylık gelir</string>
+    <string name="connect_mini_app_buy_pirate">PIRATE satın al</string>
+    <string name="connect_mini_app_buy_cosanta">COSANTA satın al</string>
+    <string name="connect_mini_app_connect">Bağlan</string>
+    <string name="connect_mini_app_connect_without_premium">Premium olmadan bağlantı</string>
+    <string name="connect_mini_app_step_finish">Bitir</string>
+    <string name="connect_mini_app_connection_successful">Bağlantı başarılı oldu.</string>
+    <string name="connect_mini_app_connection_failed">Bağlantı başarısız oldu.</string>
+    <string name="connect_mini_app_close">Kapat</string>
+    <string name="connect_mini_app_try_again">Tekrar dene</string>
 </resources>

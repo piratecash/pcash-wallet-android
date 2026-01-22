@@ -60,7 +60,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
 fun SettingsScreen(
-    navController: NavController,
+    fragmentNavController: NavController,
     paddingValues: PaddingValues,
     viewModel: MainSettingsViewModel = koinViewModel(),
 ) {
@@ -76,7 +76,7 @@ fun SettingsScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 Spacer(modifier = Modifier.height(12.dp))
-                SettingSections(viewModel, navController)
+                SettingSections(viewModel, fragmentNavController)
                 SettingsFooter(viewModel.appVersion, viewModel.companyWebPage)
             }
         }
@@ -127,13 +127,10 @@ private fun SettingSections(
     CellUniversalLawrenceSection(
         listOf {
             HsSettingCell(
-                R.string.Settings_GetYourTokens,
+                R.string.settings_mini_app,
                 R.drawable.ic_uwt2_24,
                 onClick = {
-                    LinkHelper.openLinkInAppBrowser(
-                        context,
-                        "https://t.me/piratecash_bot?start=mobile"
-                    )
+                    navController.slideFromRight(R.id.miniAppFragment)
                 }
             )
         }

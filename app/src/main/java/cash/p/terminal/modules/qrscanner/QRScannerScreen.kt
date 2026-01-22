@@ -71,9 +71,9 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.ui.helpers.TextHelper
-import cash.p.terminal.ui_compose.components.ButtonPrimary
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaultWithIcon
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults
+import cash.p.terminal.ui_compose.components.ButtonPrimaryNeutral
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -84,7 +84,6 @@ import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.components.title3_lucian
 import cash.p.terminal.ui_compose.components.title3_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.theme.Dark
 import cash.p.terminal.ui_compose.theme.SteelLight
 import cash.p.terminal.ui_compose.theme.YellowD
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -100,6 +99,7 @@ fun QRScannerScreen(
     title: String,
     navController: NavController,
     showPasteButton: Boolean,
+    allowGalleryWithoutPremium: Boolean = false,
     onScan: (String) -> Unit,
     onCloseClick: () -> Unit,
     onCameraPermissionSettingsClick: () -> Unit,
@@ -184,40 +184,40 @@ fun QRScannerScreen(
                     )
                 }
 
-                ButtonPrimaryDefaultWithIcon(
-                    icon = R.drawable.star_filled_yellow_16,
-                    iconTint = YellowD,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    title = stringResource(R.string.choose_from_photos),
-                    enabled = !uiState.isDecodingFromImage,
-                    onClick = {
-                        navController.premiumAction {
+                if (allowGalleryWithoutPremium) {
+                    ButtonPrimaryNeutral(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        title = stringResource(R.string.choose_from_photos),
+                        enabled = !uiState.isDecodingFromImage,
+                        onClick = {
                             galleryLauncher.launch(GALLERY_MIME_TYPE)
                         }
-                    }
-                )
+                    )
+                } else {
+                    ButtonPrimaryDefaultWithIcon(
+                        icon = R.drawable.star_filled_yellow_16,
+                        iconTint = YellowD,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        title = stringResource(R.string.choose_from_photos),
+                        enabled = !uiState.isDecodingFromImage,
+                        onClick = {
+                            navController.premiumAction {
+                                galleryLauncher.launch(GALLERY_MIME_TYPE)
+                            }
+                        }
+                    )
+                }
 
-                ButtonPrimary(
+                ButtonPrimaryNeutral(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
+                    title = stringResource(R.string.Button_Cancel),
                     enabled = !uiState.isDecodingFromImage,
-                    content = {
-                        Text(
-                            text = stringResource(R.string.Button_Cancel),
-                            maxLines = 1,
-                            color = Dark,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    buttonColors = ButtonPrimaryDefaults.textButtonColors(
-                        backgroundColor = SteelLight,
-                        contentColor = ComposeAppTheme.colors.dark,
-                        disabledBackgroundColor = ComposeAppTheme.colors.steel20,
-                        disabledContentColor = ComposeAppTheme.colors.grey50,
-                    ),
                     onClick = onCloseClick
                 )
                 Spacer(Modifier.height(48.dp))

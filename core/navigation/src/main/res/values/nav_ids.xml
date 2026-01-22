@@ -4,4 +4,11 @@
     <item name="addAccessCodeDialog" type="id"/>
     <item name="resetBackupDialog" type="id"/>
     <item name="aboutPremiumFragment" type="id"/>
+    <item name="qrScannerFragment" type="id"/>
+    <item name="miniAppFragment" type="id"/>
+    <item name="connectMiniAppFragment" type="id"/>
+    <item name="createAccountFragment" type="id"/>
+    <item name="restoreAccountFragment" type="id"/>
+    <item name="backupKeyFragment" type="id"/>
+    <item name="backupLocalFragment" type="id"/>
 </resources>

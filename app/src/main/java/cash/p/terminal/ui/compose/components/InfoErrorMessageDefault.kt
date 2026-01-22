@@ -55,7 +55,7 @@ fun InfoErrorMessageDefault(painter: Painter, text: String) {
 @Preview
 @Composable
 fun InfoErrorMessageDefaultPreview() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme(darkTheme = true) {
+    ComposeAppTheme(darkTheme = true) {
         InfoErrorMessageDefault(
             painter = painterResource(id = R.drawable.ic_wallet_48),
             text = "You don't have any wallets"

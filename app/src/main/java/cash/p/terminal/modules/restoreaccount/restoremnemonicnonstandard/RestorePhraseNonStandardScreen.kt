@@ -59,7 +59,7 @@ import cash.p.terminal.core.displayNameStringRes
 import cash.p.terminal.core.utils.Utils
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.createaccount.MnemonicLanguageCell
-import cash.p.terminal.core.openQrScanner
+import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.SuggestionsBar
 import cash.p.terminal.ui.compose.Keyboard

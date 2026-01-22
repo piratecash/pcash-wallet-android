@@ -2,6 +2,8 @@ package cash.p.terminal.core.di
 
 import android.app.Application
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
+import cash.p.terminal.feature.miniapp.ui.connect.ConnectMiniAppViewModel
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
@@ -51,6 +53,7 @@ class KoinGraphTest : KoinTest {
                 definition<PassphraseTermsViewModel>(Array<String>::class),
                 definition<ConfiguredTokenInfoViewModel>(Token::class),
                 definition<SafetyRulesViewModel>(SafetyRulesModule.SafetyRulesMode::class, List::class),
+                definition<ConnectMiniAppViewModel>(SavedStateHandle::class),
             )
         )
     }

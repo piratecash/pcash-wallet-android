@@ -32,7 +32,7 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.core.navigateWithTermsAccepted
-import cash.p.terminal.core.openQrScanner
+import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.navigation.slideFromBottom
 import android.util.Base64
 import cash.p.terminal.modules.backuplocal.BackupLocalModule

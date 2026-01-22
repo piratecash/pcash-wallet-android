@@ -2,6 +2,8 @@ package cash.p.terminal.core.managers
 
 import android.app.Activity
 import android.app.KeyguardManager
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
@@ -10,12 +12,26 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.providers.AppConfigProvider
 import io.horizontalsystems.core.ISystemInfoManager
+import java.security.MessageDigest
 
 class SystemInfoManager(
-    private val localStorage: ILocalStorage
+    private val localStorage: ILocalStorage,
+    private val context: Context
 ) : ISystemInfoManager {
 
     override val appVersion: String = AppConfigProvider.appVersion
+
+    override val appVersionFull: String by lazy {
+        var version = AppConfigProvider.appVersion
+
+        // Add git hash suffix
+        val gitHash = AppConfigProvider.appGitHash
+        if (gitHash.isNotEmpty()) {
+            version += "-$gitHash"
+        }
+
+        version
+    }
 
     private val biometricManager by lazy { BiometricManager.from(App.instance) }
 
@@ -42,5 +58,40 @@ class SystemInfoManager(
 
     override val osVersion: String
         get() = "Android ${Build.VERSION.RELEASE} (${Build.VERSION.SDK_INT})"
+
+
+    override fun getSigningCertFingerprint(): String? {
+        return try {
+            val pm = context.packageManager
+            val packageName = context.packageName
+
+            val cert = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val signingInfo = pm.getPackageInfo(
+                    packageName,
+                    PackageManager.GET_SIGNING_CERTIFICATES
+                ).signingInfo
+
+                when {
+                    signingInfo?.hasMultipleSigners() == true ->
+                        signingInfo.apkContentsSigners?.firstOrNull()
+                    else ->
+                        signingInfo?.signingCertificateHistory?.firstOrNull()
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+                    .signatures?.firstOrNull()
+            }
+
+            cert?.let {
+                val md = MessageDigest.getInstance("SHA-256")
+                val digest = md.digest(it.toByteArray())
+                digest.joinToString(":") { byte -> "%02X".format(byte) }
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
 
 }

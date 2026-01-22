@@ -13,6 +13,7 @@ import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.supportsTonConnect
 import cash.z.ecc.android.sdk.ext.collectWith
@@ -53,7 +54,7 @@ class MainSettingsViewModel(
                 appVersion += "-$gitHash"
             }
 
-            if (cash.p.terminal.strings.helpers.Translator.getString(R.string.is_release) == "false") {
+            if (Translator.getString(R.string.is_release) == "false") {
                 appVersion += " (${AppConfigProvider.appBuild})"
             }
 

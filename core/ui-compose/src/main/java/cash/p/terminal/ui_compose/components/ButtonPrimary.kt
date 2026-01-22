@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -31,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cash.p.terminal.ui_compose.R
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
@@ -249,6 +252,27 @@ fun ButtonPrimaryRed(
 }
 
 @Composable
+fun ButtonPrimaryNeutral(
+    modifier: Modifier = Modifier,
+    title: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
+) {
+    ButtonPrimary(
+        modifier = modifier,
+        onClick = onClick,
+        buttonColors = ButtonPrimaryDefaults.textButtonColors(
+            backgroundColor = ComposeAppTheme.colors.steelLight,
+            contentColor = ComposeAppTheme.colors.dark,
+            disabledBackgroundColor = ComposeAppTheme.colors.steel20,
+            disabledContentColor = ComposeAppTheme.colors.grey50,
+        ),
+        content = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        enabled = enabled
+    )
+}
+
+@Composable
 fun ButtonPrimaryYellowWithSpinner(
     modifier: Modifier = Modifier,
     title: String,
@@ -385,3 +409,202 @@ object ButtonPrimaryDefaults {
         disabledContentColor = disabledContentColor,
     )
 }
+
+// region Previews
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryDefaultPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryDefault(
+                title = "Primary Default",
+                onClick = {}
+            )
+            ButtonPrimaryDefault(
+                title = "Primary Default Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryDefaultWithIconPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryDefaultWithIcon(
+                icon = R.drawable.ic_back,
+                title = "With Icon",
+                onClick = {}
+            )
+            ButtonPrimaryDefaultWithIcon(
+                icon = R.drawable.ic_back,
+                title = "With Tinted Icon",
+                iconTint = ComposeAppTheme.colors.jacob,
+                onClick = {}
+            )
+            ButtonPrimaryDefaultWithIcon(
+                icon = R.drawable.ic_back,
+                title = "With Icon Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryTransparentPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryTransparent(
+                title = "Transparent",
+                onClick = {}
+            )
+            ButtonPrimaryTransparent(
+                title = "Transparent Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryYellowPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryYellow(
+                title = "Yellow Button",
+                onClick = {}
+            )
+            ButtonPrimaryYellow(
+                title = "Yellow Loading",
+                onClick = {},
+                loadingIndicator = true
+            )
+            ButtonPrimaryYellow(
+                title = "Yellow Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryYellowWithIconPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryYellowWithIcon(
+                icon = R.drawable.ic_back,
+                title = "Yellow With Icon",
+                onClick = {}
+            )
+            ButtonPrimaryYellowWithIcon(
+                icon = R.drawable.ic_back,
+                title = "Yellow With Tint",
+                iconTint = ComposeAppTheme.colors.lucian,
+                onClick = {}
+            )
+            ButtonPrimaryYellowWithIcon(
+                icon = R.drawable.ic_back,
+                title = "Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryRedPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryRed(
+                title = "Red Button",
+                onClick = {}
+            )
+            ButtonPrimaryRed(
+                title = "Red Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryNeutralPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryNeutral(
+                title = "Neutral Button",
+                onClick = {}
+            )
+            ButtonPrimaryNeutral(
+                title = "Neutral Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonPrimaryYellowWithSpinnerPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonPrimaryYellowWithSpinner(
+                title = "Yellow Spinner",
+                onClick = {},
+                showSpinner = false
+            )
+            ButtonPrimaryYellowWithSpinner(
+                title = "Showing Spinner",
+                onClick = {},
+                showSpinner = true
+            )
+            ButtonPrimaryYellowWithSpinner(
+                title = "Spinner Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+// endregion

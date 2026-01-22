@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">Не задано параметр</string>
+    <string name="error_account_not_found">Обліковий запис не знайдено</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">Скасувати</string>
     <string name="Alert_Copy">Скопіювати</string>
@@ -771,7 +772,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Відкрити Telegram</string>
     <string name="Settings_Donate_Info">З вашою підтримкою ми разом зможемо зробити цю програму ще кращою!</string>
     <string name="Settings_Donate">Підтримай нас</string>
-    <string name="Settings_GetYourTokens">Заробляйте PIRATE, граючи!</string>
+    <string name="settings_mini_app">Міні-додаток</string>
+    <string name="mini_app_title">Підключити міні-додаток</string>
+    <string name="mini_app_bonus_title">+10% бонус з Premium</string>
+    <string name="mini_app_bonus_description">Підключіть міні-додаток з P.Cash Premium та отримайте +10% бонус до ігрового балансу.</string>
+    <string name="mini_app_bonus_guaranteed">Отримайте гарантовано</string>
+    <string name="mini_app_not_connected">Міні-додаток не підключено</string>
+    <string name="mini_app_connected">Міні-додаток підключено</string>
+    <string name="mini_app_connection">Підключення</string>
+    <string name="mini_app_start_earning">Почати заробляти</string>
     <string name="Settings_DonateToken">Пожертвувати %s</string>
     <string name="Settings_DonateWith">Підтримай нас</string>
     <string name="Settings_Donate_GetAddress">Отримати адресу</string>
@@ -1852,4 +1861,53 @@
     <string name="required_coins_for_transaction">Необхідно монет для транзакції</string>
     <string name="test_sms">Тест SMS</string>
     <string name="no_zec_wallets_available">Гаманці з токеном ZEC не знайдено</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">Підключити міні-застосунок</string>
+    <string name="connect_mini_app_step_1">Крок 1</string>
+    <string name="connect_mini_app_step_1_description">Для підключення вам потрібно створити або імпортувати гаманець.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">Будь ласка, оберіть гаманець з преміум-підпискою</string>
+    <string name="connect_mini_app_premium_bonus">+10% бонус з Premium</string>
+    <string name="connect_mini_app_checking_tokens">Перевірка наявності %s</string>
+    <string name="connect_mini_app_missing_tokens">У вас немає %s</string>
+    <string name="connect_mini_app_add_tokens">Додати</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">Крок 2</string>
+    <string name="connect_mini_app_step_2_description">Будь ласка, прийміть умови використання</string>
+    <string name="connect_mini_app_terms_title">Збір технічних даних пристрою</string>
+    <string name="connect_mini_app_terms_body">Додаток <b>один раз</b> збере обмежений набір <b>технічних даних пристрою</b> під час <b>прив\'язки гаманця до гри</b>, включаючи:</string>
+    <string name="connect_mini_app_terms_bullet_1">дані деяких датчиків (наприклад, гіроскоп і акселерометр),</string>
+    <string name="connect_mini_app_terms_bullet_2">стан акумулятора та факт підключення зарядки,</string>
+    <string name="connect_mini_app_terms_bullet_3">модель та базові характеристики пристрою.</string>
+    <string name="connect_mini_app_terms_fingerprint">Ці дані використовуються <b>виключно</b> для формування <b>унікального технічного відбитка пристрою</b> в рамках проведення <b>SWAP 5</b> (захист від мультиакаунтів та зловживань).</string>
+    <string name="connect_mini_app_terms_important_title">Важливо:</string>
+    <string name="connect_mini_app_terms_important_1">збір даних відбувається <b>рівно два рази і тільки за ініціативою користувача</b>,</string>
+    <string name="connect_mini_app_terms_important_2">додаток <b>не збирає дані у фоновому режимі</b>,</string>
+    <string name="connect_mini_app_terms_important_3">дані <b>не використовуються для відстеження користувача</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>всі зібрані дані автоматично видаляються з сервера після завершення SWAP 5</b>,</string>
+    <string name="connect_mini_app_terms_important_5">дані не передаються третім особам.</string>
+    <string name="connect_mini_app_terms_agreement">Погоджуюсь з умовами та даю дозвіл на створення цифрового відбитка пристрою.</string>
+    <string name="connect_mini_app_step_4">Крок 4</string>
+    <string name="connect_mini_app_step_4_description">Введіть код із зображення</string>
+    <string name="connect_mini_app_captcha_update">Оновити</string>
+    <string name="connect_mini_app_captcha_send">Надіслати</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">Невірний код, спробуйте ще раз</string>
+    <string name="connect_mini_app_captcha_error_expired">Термін дії капчі закінчився, оновіть</string>
+    <string name="connect_mini_app_step_5">Крок 5</string>
+    <string name="connect_mini_app_step_5_description">Спеціальна пропозиція для преміум-учасників</string>
+    <string name="connect_mini_app_bonus_text_prefix">Отримайте гарантований бонус + 10% від</string>
+    <string name="connect_mini_app_bonus_text_suffix">при оформленні преміум-підписки.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">Не вистачає</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">Щомісячний дохід</string>
+    <string name="connect_mini_app_buy_pirate">Купити PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">Купити COSANTA</string>
+    <string name="connect_mini_app_connect">Підключити</string>
+    <string name="connect_mini_app_connect_without_premium">Підключення без Преміум</string>
+    <string name="connect_mini_app_step_finish">Завершення</string>
+    <string name="connect_mini_app_connection_successful">Підключення виконано успішно.</string>
+    <string name="connect_mini_app_connection_failed">Не вдалося виконати підключення.</string>
+    <string name="connect_mini_app_close">Закрити</string>
+    <string name="connect_mini_app_try_again">Спробувати знову</string>
 </resources>

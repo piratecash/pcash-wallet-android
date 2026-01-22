@@ -25,11 +25,13 @@ interface IEncryptionManager {
 
 interface ISystemInfoManager {
     val appVersion: String
+    val appVersionFull: String
     val isDeviceSecure: Boolean
     val isSystemLockOff: Boolean
     val biometricAuthSupported: Boolean
     val deviceModel: String
     val osVersion: String
+    fun getSigningCertFingerprint(): String?
 }
 
 interface IPinComponent {
@@ -102,4 +104,8 @@ interface IKeyProvider {
 
 interface ICurrentDateProvider {
     val currentDate: Date
+}
+
+interface ILanguageManager {
+    val currentLanguage: String
 }

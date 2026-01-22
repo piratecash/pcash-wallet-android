@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.IBackupManager
-import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
@@ -27,9 +26,8 @@ import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.wallet.IAccountManager
-import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
-import cash.p.terminal.modules.multiswap.SwapDeeplinkInput
+import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
@@ -53,7 +51,7 @@ class MainViewModel(
     wcSessionManager: WCSessionManager,
     private val wcManager: WCManager,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
-    private val coinManager: ICoinManager
+    private val deeplinkParser: DeeplinkParser
 ) : ViewModelUiState<MainModule.UiState>() {
 
     private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
@@ -322,6 +320,12 @@ class MainViewModel(
         var tab = currentMainTab
         var deeplinkPage: DeeplinkPage? = null
         val deeplinkString = deepLink.toString()
+
+        // Try parsing with shared DeeplinkParser first (handles premium and swap)
+        deeplinkParser.parse(deepLink)?.let { parsedPage ->
+            return MainNavigation.Balance to parsedPage
+        }
+
         val deeplinkScheme: String =
             cash.p.terminal.strings.helpers.Translator.getString(R.string.DeeplinkScheme)
         when {
@@ -353,26 +357,6 @@ class MainViewModel(
                             deeplinkPage = DeeplinkPage(R.id.marketPlatformFragment, platform)
                             tab = MainNavigation.Market
                         }
-                    }
-
-                    deeplinkString.contains("premium") -> {
-                        deeplinkPage = DeeplinkPage(R.id.aboutPremiumFragment, null)
-                        tab = MainNavigation.Balance
-                    }
-
-                    deeplinkString.contains("swap") -> {
-                        val toTokenParam = deepLink.getQueryParameter("to_token")
-                        val tokenQuery = when (toTokenParam?.uppercase()) {
-                            "PIRATE" -> TokenQuery.PirateCashBnb
-                            "COSA" -> TokenQuery.CosantaBnb
-                            else -> null
-                        }
-                        val token = tokenQuery?.let { coinManager.getToken(it) }
-                        deeplinkPage = DeeplinkPage(
-                            R.id.multiswap,
-                            SwapDeeplinkInput(token)
-                        )
-                        tab = MainNavigation.Balance
                     }
                 }
             }

@@ -7,15 +7,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -27,31 +29,46 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.InfoText
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.wallet.Account
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 class BackupKeyFragment : BaseComposeFragment(screenshotEnabled = false) {
 
+    private val args: BackupKeyFragmentArgs by navArgs()
+
     @Composable
     override fun GetContent(navController: NavController) {
-        val account = navController.getInput<Account>()
-        if (account == null) {
-            navController.popBackStack(R.id.mainFragment, false)
-            return
+        val accountId = args.input?.accountId
+        LaunchedEffect(accountId) {
+            if (accountId == null) {
+                navController.popBackStack()
+            }
         }
-        RecoveryPhraseScreen(navController, account)
+        if (accountId == null) return
+        RecoveryPhraseScreen(navController, accountId)
     }
-
 }
 
 @Composable
 fun RecoveryPhraseScreen(
     navController: NavController,
-    account: Account
+    accountId: String
 ) {
-    val viewModel = viewModel<BackupKeyViewModel>(factory = BackupKeyModule.Factory(account))
+    val viewModel = koinViewModel<BackupKeyViewModel> { parametersOf(accountId) }
+    val account = viewModel.account
+    val view = LocalView.current
+
+    LaunchedEffect(viewModel.accountNotFound, account) {
+        if (viewModel.accountNotFound || account == null) {
+            HudHelper.showErrorMessage(view, R.string.error_account_not_found)
+            navController.popBackStack()
+        }
+    }
+
+    if (viewModel.accountNotFound || account == null) return
 
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -102,7 +119,7 @@ fun RecoveryPhraseScreen(
                     onClick = {
                         navController.slideFromRight(
                             R.id.backupConfirmationKeyFragment,
-                            viewModel.account
+                            account
                         )
                     },
                 )

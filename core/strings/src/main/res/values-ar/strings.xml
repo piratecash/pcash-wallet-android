@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">لم يتم تحديد الإعدادات</string>
+    <string name="error_account_not_found">الحساب غير موجود</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">إلغاء</string>
     <string name="Alert_Copy">نسخ</string>
@@ -757,7 +758,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Open Telegram</string>
     <string name="Settings_Donate_Info">Together, with your support, we can make this app even better!</string>
     <string name="Settings_Donate">Donate</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">تطبيق مصغر</string>
+    <string name="mini_app_title">توصيل التطبيق المصغر</string>
+    <string name="mini_app_bonus_title">+10% مكافأة مع Premium</string>
+    <string name="mini_app_bonus_description">قم بتوصيل التطبيق المصغر مع P.Cash Premium واحصل على +10% مكافأة لرصيد لعبتك.</string>
+    <string name="mini_app_bonus_guaranteed">احصل على مضمون</string>
+    <string name="mini_app_not_connected">التطبيق المصغر غير متصل</string>
+    <string name="mini_app_connected">التطبيق المصغر متصل</string>
+    <string name="mini_app_connection">اتصال</string>
+    <string name="mini_app_start_earning">ابدأ الربح</string>
     <string name="Settings_DonateToken">Donate %s</string>
     <string name="Settings_DonateWith">Donate with</string>
     <string name="Settings_Donate_GetAddress">Donation Address</string>
@@ -1703,4 +1712,53 @@
     <string name="required_coins_for_transaction">العملات المطلوبة للمعاملة</string>
     <string name="test_sms">اختبار SMS</string>
     <string name="no_zec_wallets_available">لم يتم العثور على محافظ بها رموز ZEC</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">ربط التطبيق المصغر</string>
+    <string name="connect_mini_app_step_1">الخطوة 1</string>
+    <string name="connect_mini_app_step_1_description">للاتصال، تحتاج إلى إنشاء أو استيراد محفظة.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">يرجى اختيار محفظتك مع اشتراك Premium</string>
+    <string name="connect_mini_app_premium_bonus">+10% مكافأة مع Premium</string>
+    <string name="connect_mini_app_checking_tokens">جارٍ التحقق من توفر %s</string>
+    <string name="connect_mini_app_missing_tokens">ليس لديك %s</string>
+    <string name="connect_mini_app_add_tokens">إضافة</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">الخطوة 2</string>
+    <string name="connect_mini_app_step_2_description">يرجى قبول شروط الاستخدام</string>
+    <string name="connect_mini_app_terms_title">جمع البيانات التقنية للجهاز</string>
+    <string name="connect_mini_app_terms_body">سيجمع التطبيق <b>مرة واحدة</b> مجموعة محدودة من <b>البيانات التقنية للجهاز</b> عند <b>ربط المحفظة باللعبة</b>، بما في ذلك:</string>
+    <string name="connect_mini_app_terms_bullet_1">بيانات بعض المستشعرات (مثل الجيروسكوب ومقياس التسارع)،</string>
+    <string name="connect_mini_app_terms_bullet_2">حالة البطارية وما إذا كان الشاحن متصلاً،</string>
+    <string name="connect_mini_app_terms_bullet_3">طراز الجهاز وخصائصه الأساسية.</string>
+    <string name="connect_mini_app_terms_fingerprint">تُستخدم هذه البيانات <b>حصرياً</b> لإنشاء <b>بصمة تقنية فريدة</b> للجهاز كجزء من <b>SWAP 5</b> (الحماية من الحسابات المتعددة وإساءة الاستخدام).</string>
+    <string name="connect_mini_app_terms_important_title">مهم:</string>
+    <string name="connect_mini_app_terms_important_1">يحدث جمع البيانات <b>مرتين فقط وبمبادرة المستخدم فقط</b>،</string>
+    <string name="connect_mini_app_terms_important_2">التطبيق <b>لا يجمع البيانات في الخلفية</b>،</string>
+    <string name="connect_mini_app_terms_important_3">البيانات <b>لا تُستخدم لتتبع المستخدم</b>،</string>
+    <string name="connect_mini_app_terms_important_4"><b>تُحذف جميع البيانات المجمعة تلقائياً من الخادم بعد اكتمال SWAP 5</b>،</string>
+    <string name="connect_mini_app_terms_important_5">لا يتم نقل البيانات إلى أطراف ثالثة.</string>
+    <string name="connect_mini_app_terms_agreement">أوافق على الشروط والأحكام وأعطي الإذن بإنشاء بصمة رقمية للجهاز.</string>
+    <string name="connect_mini_app_step_4">الخطوة 4</string>
+    <string name="connect_mini_app_step_4_description">أدخل الرمز من الصورة</string>
+    <string name="connect_mini_app_captcha_update">تحديث</string>
+    <string name="connect_mini_app_captcha_send">إرسال</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">رمز خاطئ، يرجى المحاولة مرة أخرى</string>
+    <string name="connect_mini_app_captcha_error_expired">انتهت صلاحية الكابتشا، يرجى التحديث</string>
+    <string name="connect_mini_app_step_5">الخطوة 5</string>
+    <string name="connect_mini_app_step_5_description">عرض خاص للأعضاء المميزين</string>
+    <string name="connect_mini_app_bonus_text_prefix">احصل على مكافأة مضمونة + 10% من</string>
+    <string name="connect_mini_app_bonus_text_suffix">عند التسجيل في Premium.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">غير كافٍ</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">الدخل الشهري</string>
+    <string name="connect_mini_app_buy_pirate">شراء PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">شراء COSANTA</string>
+    <string name="connect_mini_app_connect">اتصال</string>
+    <string name="connect_mini_app_connect_without_premium">الاتصال بدون Premium</string>
+    <string name="connect_mini_app_step_finish">إنهاء</string>
+    <string name="connect_mini_app_connection_successful">تم الاتصال بنجاح.</string>
+    <string name="connect_mini_app_connection_failed">فشل الاتصال.</string>
+    <string name="connect_mini_app_close">إغلاق</string>
+    <string name="connect_mini_app_try_again">حاول مرة أخرى</string>
 </resources>

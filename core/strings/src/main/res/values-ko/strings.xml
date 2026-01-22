@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">매개 변수가 설정되지 않았습니다</string>
+    <string name="error_account_not_found">계정을 찾을 수 없습니다</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">취소</string>
     <string name="Alert_Copy">복사</string>
@@ -757,7 +758,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">오픈 텔레그램</string>
     <string name="Settings_Donate_Info">함께, 여러분의 지원으로 우리는 이 앱을 더 좋게 만들 수 있습니다!</string>
     <string name="Settings_Donate">후원하기</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">미니 앱</string>
+    <string name="mini_app_title">미니 앱 연결</string>
+    <string name="mini_app_bonus_title">프리미엄으로 +10% 보너스</string>
+    <string name="mini_app_bonus_description">P.Cash 프리미엄으로 미니 앱을 연결하고 게임 잔액에 +10% 보너스를 받으세요.</string>
+    <string name="mini_app_bonus_guaranteed">보장 받기</string>
+    <string name="mini_app_not_connected">미니 앱이 연결되지 않음</string>
+    <string name="mini_app_connected">미니 앱 연결됨</string>
+    <string name="mini_app_connection">연결</string>
+    <string name="mini_app_start_earning">수익 시작</string>
     <string name="Settings_DonateToken">기부하기 %s</string>
     <string name="Settings_DonateWith">기부하기</string>
     <string name="Settings_Donate_GetAddress">기부 주소</string>
@@ -1688,4 +1697,53 @@
     <string name="required_coins_for_transaction">트랜잭션에 필요한 코인</string>
     <string name="test_sms">SMS 테스트</string>
     <string name="no_zec_wallets_available">ZEC 토큰이 있는 지갑을 찾을 수 없습니다</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">미니 앱 연결</string>
+    <string name="connect_mini_app_step_1">1단계</string>
+    <string name="connect_mini_app_step_1_description">연결하려면 지갑을 생성하거나 가져와야 합니다.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">프리미엄 구독이 있는 지갑을 선택해 주세요</string>
+    <string name="connect_mini_app_premium_bonus">Premium +10% 보너스</string>
+    <string name="connect_mini_app_checking_tokens">%s 가용성 확인 중</string>
+    <string name="connect_mini_app_missing_tokens">%s이(가) 없습니다</string>
+    <string name="connect_mini_app_add_tokens">추가</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">2단계</string>
+    <string name="connect_mini_app_step_2_description">이용 약관에 동의해 주세요</string>
+    <string name="connect_mini_app_terms_title">기기 기술 데이터 수집</string>
+    <string name="connect_mini_app_terms_body">앱은 <b>지갑을 게임에 연결</b>할 때 <b>한 번</b> 제한된 <b>기기 기술 데이터</b>를 수집합니다. 여기에는 다음이 포함됩니다:</string>
+    <string name="connect_mini_app_terms_bullet_1">특정 센서 데이터 (예: 자이로스코프 및 가속도계),</string>
+    <string name="connect_mini_app_terms_bullet_2">배터리 상태 및 충전기 연결 여부,</string>
+    <string name="connect_mini_app_terms_bullet_3">기기 모델 및 기본 특성.</string>
+    <string name="connect_mini_app_terms_fingerprint">이 데이터는 <b>SWAP 5</b>의 일환으로 기기의 <b>고유한 기술 지문</b>을 생성하는 데 <b>독점적으로</b> 사용됩니다 (다중 계정 및 남용 방지).</string>
+    <string name="connect_mini_app_terms_important_title">중요:</string>
+    <string name="connect_mini_app_terms_important_1">데이터 수집은 <b>정확히 두 번, 사용자의 주도로만</b> 이루어집니다,</string>
+    <string name="connect_mini_app_terms_important_2">앱은 <b>백그라운드에서 데이터를 수집하지 않습니다</b>,</string>
+    <string name="connect_mini_app_terms_important_3">데이터는 <b>사용자를 추적하는 데 사용되지 않습니다</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>수집된 모든 데이터는 SWAP 5 완료 후 서버에서 자동으로 삭제됩니다</b>,</string>
+    <string name="connect_mini_app_terms_important_5">데이터는 제3자에게 전송되지 않습니다.</string>
+    <string name="connect_mini_app_terms_agreement">약관에 동의하며 기기의 디지털 지문 생성을 허용합니다.</string>
+    <string name="connect_mini_app_step_4">4단계</string>
+    <string name="connect_mini_app_step_4_description">이미지의 코드를 입력하세요</string>
+    <string name="connect_mini_app_captcha_update">업데이트</string>
+    <string name="connect_mini_app_captcha_send">보내기</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">잘못된 코드입니다. 다시 시도해주세요</string>
+    <string name="connect_mini_app_captcha_error_expired">캡차가 만료되었습니다. 새로고침해주세요</string>
+    <string name="connect_mini_app_step_5">5단계</string>
+    <string name="connect_mini_app_step_5_description">프리미엄 회원을 위한 특별 제안</string>
+    <string name="connect_mini_app_bonus_text_prefix">보장된 보너스 + 10%</string>
+    <string name="connect_mini_app_bonus_text_suffix">프리미엄 가입 시 받으세요.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">부족</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">월 수입</string>
+    <string name="connect_mini_app_buy_pirate">PIRATE 구매</string>
+    <string name="connect_mini_app_buy_cosanta">COSANTA 구매</string>
+    <string name="connect_mini_app_connect">연결</string>
+    <string name="connect_mini_app_connect_without_premium">프리미엄 없이 연결</string>
+    <string name="connect_mini_app_step_finish">완료</string>
+    <string name="connect_mini_app_connection_successful">연결에 성공했습니다.</string>
+    <string name="connect_mini_app_connection_failed">연결에 실패했습니다.</string>
+    <string name="connect_mini_app_close">닫기</string>
+    <string name="connect_mini_app_try_again">다시 시도</string>
 </resources>

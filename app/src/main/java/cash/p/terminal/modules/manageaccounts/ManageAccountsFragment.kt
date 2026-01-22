@@ -28,7 +28,7 @@ import cash.p.terminal.modules.manageaccount.ManageAccountFragment
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule.AccountViewItem
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule.ActionViewItem
 import cash.p.terminal.navigation.slideFromRight
-import cash.p.terminal.ui.compose.components.HsRadioButton
+import cash.p.terminal.ui_compose.components.HsRadioButton
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle

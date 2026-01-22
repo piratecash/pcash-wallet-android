@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 class BackupManager(private val accountManager: IAccountManager) : IBackupManager {
 
     override val allBackedUp: Boolean
-        get() = accountManager.accounts.all { !it.accountSupportsBackup || it.isBackedUp }
+        get() = accountManager.accounts.all { !it.supportsBackup || it.isBackedUp }
 
     override val allBackedUpFlow: Flow<Boolean>
         get() = accountManager.accountsFlow.map { accounts ->

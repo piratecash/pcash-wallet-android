@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">Parameter is not set</string>
+    <string name="error_account_not_found">Conta não encontrada</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">Cancelar</string>
     <string name="Alert_Copy">Copiar</string>
@@ -757,7 +758,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Open Telegram</string>
     <string name="Settings_Donate_Info">Together, with your support, we can make this app even better!</string>
     <string name="Settings_Donate">Donate</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">Mini App</string>
+    <string name="mini_app_title">Conectar Mini App</string>
+    <string name="mini_app_bonus_title">+10% Bónus com Premium</string>
+    <string name="mini_app_bonus_description">Conecte a mini-app com P.Cash Premium e receba +10% de bónus no seu saldo de jogo.</string>
+    <string name="mini_app_bonus_guaranteed">Obtenha garantido</string>
+    <string name="mini_app_not_connected">Mini App não está conectada</string>
+    <string name="mini_app_connected">Mini App conectada</string>
+    <string name="mini_app_connection">Conexão</string>
+    <string name="mini_app_start_earning">Começar a ganhar</string>
     <string name="Settings_DonateToken">Donate %s</string>
     <string name="Settings_DonateWith">Donate with</string>
     <string name="Settings_Donate_GetAddress">Get Address</string>
@@ -1690,4 +1699,53 @@
     <string name="required_coins_for_transaction">Moedas necessárias para a transação</string>
     <string name="test_sms">Testar SMS</string>
     <string name="no_zec_wallets_available">Nenhuma carteira com tokens ZEC encontrada</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">Conectar Mini App</string>
+    <string name="connect_mini_app_step_1">Passo 1</string>
+    <string name="connect_mini_app_step_1_description">Para conectar, precisa de criar ou importar uma carteira.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">Por favor, escolha a sua carteira com subscrição premium</string>
+    <string name="connect_mini_app_premium_bonus">+10% Bónus com Premium</string>
+    <string name="connect_mini_app_checking_tokens">A verificar disponibilidade de %s</string>
+    <string name="connect_mini_app_missing_tokens">Não tem %s</string>
+    <string name="connect_mini_app_add_tokens">Adicionar</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">Passo 2</string>
+    <string name="connect_mini_app_step_2_description">Por favor, aceite os termos de utilização</string>
+    <string name="connect_mini_app_terms_title">Recolha de dados técnicos do dispositivo</string>
+    <string name="connect_mini_app_terms_body">A aplicação irá recolher <b>uma vez</b> um conjunto limitado de <b>dados técnicos do dispositivo</b> ao <b>vincular a carteira ao jogo</b>, incluindo:</string>
+    <string name="connect_mini_app_terms_bullet_1">dados de certos sensores (ex. giroscópio e acelerómetro),</string>
+    <string name="connect_mini_app_terms_bullet_2">estado da bateria e se o carregador está ligado,</string>
+    <string name="connect_mini_app_terms_bullet_3">modelo e características básicas do dispositivo.</string>
+    <string name="connect_mini_app_terms_fingerprint">Estes dados são utilizados <b>exclusivamente</b> para gerar uma <b>impressão digital técnica única</b> do dispositivo como parte do <b>SWAP 5</b> (proteção contra múltiplas contas e abuso).</string>
+    <string name="connect_mini_app_terms_important_title">Importante:</string>
+    <string name="connect_mini_app_terms_important_1">a recolha de dados ocorre <b>exatamente duas vezes e apenas por iniciativa do utilizador</b>,</string>
+    <string name="connect_mini_app_terms_important_2">a aplicação <b>não recolhe dados em segundo plano</b>,</string>
+    <string name="connect_mini_app_terms_important_3">os dados <b>não são utilizados para rastrear o utilizador</b>,</string>
+    <string name="connect_mini_app_terms_important_4"><b>todos os dados recolhidos são automaticamente eliminados do servidor após a conclusão do SWAP 5</b>,</string>
+    <string name="connect_mini_app_terms_important_5">os dados não são transferidos para terceiros.</string>
+    <string name="connect_mini_app_terms_agreement">Aceito os termos e condições e autorizo a criação de uma impressão digital do dispositivo.</string>
+    <string name="connect_mini_app_step_4">Passo 4</string>
+    <string name="connect_mini_app_step_4_description">Introduza o código da imagem</string>
+    <string name="connect_mini_app_captcha_update">Atualizar</string>
+    <string name="connect_mini_app_captcha_send">Enviar</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">Código incorreto, tente novamente</string>
+    <string name="connect_mini_app_captcha_error_expired">O captcha expirou, atualize</string>
+    <string name="connect_mini_app_step_5">Passo 5</string>
+    <string name="connect_mini_app_step_5_description">Oferta especial para membros premium</string>
+    <string name="connect_mini_app_bonus_text_prefix">Receba um bónus garantido + 10% de</string>
+    <string name="connect_mini_app_bonus_text_suffix">ao inscrever-se no premium.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">Não é suficiente</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">Rendimento mensal</string>
+    <string name="connect_mini_app_buy_pirate">Comprar PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">Comprar COSANTA</string>
+    <string name="connect_mini_app_connect">Conectar</string>
+    <string name="connect_mini_app_connect_without_premium">Conexão sem Premium</string>
+    <string name="connect_mini_app_step_finish">Concluir</string>
+    <string name="connect_mini_app_connection_successful">A conexão foi bem-sucedida.</string>
+    <string name="connect_mini_app_connection_failed">A conexão falhou.</string>
+    <string name="connect_mini_app_close">Fechar</string>
+    <string name="connect_mini_app_try_again">Tentar novamente</string>
 </resources>

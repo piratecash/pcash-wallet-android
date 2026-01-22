@@ -38,6 +38,8 @@ data class TokenQuery(
 
         val CosantaBnb = eip20(BlockchainType.BinanceSmartChain, BuildConfig.COSANTA_CONTRACT)
 
+        val PirateJetton = TokenQuery(BlockchainType.Ton, TokenType.Jetton(BuildConfig.PIRATE_JETTON_ADDRESS))
+
         fun eip20(blockchainType: BlockchainType, address: String): TokenQuery {
             val normalized = if (blockchainType.isEvmLike()) {
                 address.lowercase(Locale.US)

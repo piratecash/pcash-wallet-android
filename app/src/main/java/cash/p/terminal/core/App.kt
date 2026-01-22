@@ -1,7 +1,6 @@
 package cash.p.terminal.core
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
@@ -115,7 +114,6 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
-import java.security.MessageDigest
 import java.util.logging.Level
 import java.util.logging.Logger
 import androidx.work.Configuration as WorkConfiguration
@@ -484,31 +482,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
     }
 
     override val isSwapEnabled = true
-
-    override fun getApplicationSignatures() = try {
-        val signatureList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val signingInfo = packageManager.getPackageInfo(
-                packageName,
-                PackageManager.GET_SIGNING_CERTIFICATES
-            ).signingInfo
-
-            when {
-                signingInfo?.hasMultipleSigners() == true -> signingInfo.apkContentsSigners // Send all with apkContentsSigners
-                else -> signingInfo?.signingCertificateHistory // Send one with signingCertificateHistory
-            }
-        } else {
-            packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures
-        }
-
-        signatureList?.map {
-            val digest = MessageDigest.getInstance("SHA")
-            digest.update(it.toByteArray())
-            digest.digest()
-        } ?: emptyList()
-    } catch (e: Exception) {
-        // Handle error
-        emptyList()
-    }
 
     private fun startTasks() {
         coroutineScope.launch {

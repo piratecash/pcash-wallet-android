@@ -26,7 +26,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.riskColor
 import cash.p.terminal.modules.transactions.riskTextRes
-import cash.p.terminal.ui.compose.components.HsRadioButton
+import cash.p.terminal.ui_compose.components.HsRadioButton
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow

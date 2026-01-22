@@ -10,6 +10,7 @@ import cash.p.terminal.core.valueOrDefault
 import cash.p.terminal.entities.AppVersion
 import cash.p.terminal.entities.LaunchPage
 import cash.p.terminal.entities.SyncMode
+import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.modules.amount.AmountInputType
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
@@ -41,7 +42,7 @@ import java.util.UUID
 
 class LocalStorageManager(
     private val preferences: SharedPreferences
-) : ILocalStorage, IPinSettingsStorage, ILockoutStorage, IThirdKeyboard, IMarketStorage {
+) : ILocalStorage, IPinSettingsStorage, ILockoutStorage, IThirdKeyboard, IMarketStorage, IUniqueCodeStorage {
 
     private val THIRD_KEYBOARD_WARNING_MSG = "third_keyboard_warning_msg"
     private val SEND_INPUT_TYPE = "send_input_type"
@@ -774,5 +775,10 @@ class LocalStorageManager(
     override var safetyRulesAgreed by preferences.delegate(
         key = "safety_rules_agreed",
         default = false
+    )
+
+    override var uniqueCode by preferences.delegate(
+        key = "unique_code_mini_app",
+        default = ""
     )
 }

@@ -69,7 +69,7 @@ import cash.p.terminal.core.displayNameStringRes
 import cash.p.terminal.core.utils.Utils
 import cash.p.terminal.modules.createaccount.MnemonicLanguageCell
 import cash.p.terminal.modules.createaccount.PassphraseCell
-import cash.p.terminal.core.openQrScanner
+import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreByMenu
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel

@@ -10,6 +10,7 @@ import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.importwallet.ImportWalletViewModel
 import cash.p.terminal.modules.main.MainActivityViewModel
+import cash.p.terminal.modules.manageaccount.backupkey.BackupKeyViewModel
 import cash.p.terminal.modules.main.MainViewModel
 import cash.p.terminal.modules.pin.unlock.PinUnlockViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
@@ -93,6 +94,9 @@ val viewModelModule = module {
             restoreSettingsManager = get(),
             localStorage = get()
         )
+    }
+    viewModel { (accountId: String) ->
+        BackupKeyViewModel(accountId = accountId, accountManager = get())
     }
     viewModelOf(::AdvancedSecurityViewModel)
     viewModelOf(::HiddenWalletTermsViewModel)

@@ -129,7 +129,7 @@ class ManageAccountViewModel(
         }
 
         val items = mutableListOf<BackupItem>()
-        if (account.accountSupportsBackup) {
+        if (account.supportsBackup) {
             if (!account.isBackedUp && !account.isFileBackedUp) {
                 items.add(BackupItem.ManualBackup(true))
                 items.add(BackupItem.LocalBackup(true))
@@ -157,7 +157,7 @@ class ManageAccountViewModel(
     }
 
     private suspend fun getKeyActions(account: Account): List<KeyAction> {
-        if (!account.isBackedUp && !account.isFileBackedUp && account.accountSupportsBackup) {
+        if (!account.isBackedUp && !account.isFileBackedUp && account.supportsBackup) {
             return emptyList()
         }
         return when (account.type) {

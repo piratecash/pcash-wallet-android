@@ -32,8 +32,11 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
+import cash.p.terminal.ui_compose.R
 import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults.buttonColors
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -320,3 +323,167 @@ object SecondaryButtonDefaults {
         disabledContentColor = disabledContentColor,
     )
 }
+
+// region Previews
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonSecondaryDefaultPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonSecondaryDefault(
+                title = "Secondary Default",
+                onClick = {}
+            )
+            ButtonSecondaryDefault(
+                title = "Secondary Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonSecondaryCustomPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonSecondaryCustom(
+                title = "Custom Color",
+                textColor = ComposeAppTheme.colors.jacob,
+                onClick = {}
+            )
+            ButtonSecondaryCustom(
+                title = "Custom Red",
+                textColor = ComposeAppTheme.colors.lucian,
+                onClick = {}
+            )
+            ButtonSecondaryCustom(
+                title = "Custom Disabled",
+                textColor = ComposeAppTheme.colors.jacob,
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonSecondaryYellowPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonSecondaryYellow(
+                title = "Yellow Button",
+                onClick = {}
+            )
+            ButtonSecondaryYellow(
+                title = "Yellow Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonSecondaryWithIconPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonSecondaryWithIcon(
+                title = "With Icon",
+                iconRight = painterResource(R.drawable.ic_back),
+                onClick = {}
+            )
+            ButtonSecondaryWithIcon(
+                title = "With Icon Disabled",
+                iconRight = painterResource(R.drawable.ic_back),
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonSecondaryTransparentPreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonSecondaryTransparent(
+                title = "Transparent",
+                onClick = {}
+            )
+            ButtonSecondaryTransparent(
+                title = "With Icon",
+                iconRight = R.drawable.ic_back,
+                onClick = {}
+            )
+            ButtonSecondaryTransparent(
+                title = "Transparent Disabled",
+                onClick = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+private enum class PreviewToggleOption : WithTranslatableTitle {
+    Option1, Option2, Option3;
+
+    override val title: TranslatableString
+        get() = TranslatableString.PlainString(name)
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF1C1C1E)
+@Composable
+private fun ButtonSecondaryTogglePreview() {
+    ComposeAppTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ButtonSecondaryToggle(
+                select = Select(
+                    selected = PreviewToggleOption.Option1,
+                    options = PreviewToggleOption.entries
+                ),
+                onSelect = {}
+            )
+            ButtonSecondaryToggle(
+                select = Select(
+                    selected = PreviewToggleOption.Option2,
+                    options = PreviewToggleOption.entries
+                ),
+                onSelect = {}
+            )
+            ButtonSecondaryToggle(
+                select = Select(
+                    selected = PreviewToggleOption.Option1,
+                    options = PreviewToggleOption.entries
+                ),
+                onSelect = {},
+                enabled = false
+            )
+        }
+    }
+}
+
+// endregion

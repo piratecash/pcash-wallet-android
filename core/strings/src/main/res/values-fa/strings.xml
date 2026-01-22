@@ -2,6 +2,7 @@
 <resources>
     <!--Common-->
     <string name="Error_ParameterNotSet">Parameter is not set</string>
+    <string name="error_account_not_found">حساب یافت نشد</string>
     <string name="LargeNumberFormat">%1$s%2$s</string>
     <string name="Alert_Cancel">انصراف</string>
     <string name="Alert_Copy">رونوشت</string>
@@ -757,7 +758,15 @@
     <string name="Settings_PersonalSupport_OpenTelegram">Open Telegram</string>
     <string name="Settings_Donate_Info">Together, with your support, we can make this app even better!</string>
     <string name="Settings_Donate">Donate</string>
-    <string name="Settings_GetYourTokens">Earn PIRATE by playing!</string>
+    <string name="settings_mini_app">مینی اپ</string>
+    <string name="mini_app_title">اتصال مینی اپ</string>
+    <string name="mini_app_bonus_title">+10% پاداش با Premium</string>
+    <string name="mini_app_bonus_description">مینی اپ را با P.Cash Premium متصل کنید و +10% پاداش به موجودی بازی خود دریافت کنید.</string>
+    <string name="mini_app_bonus_guaranteed">دریافت تضمینی</string>
+    <string name="mini_app_not_connected">مینی اپ متصل نیست</string>
+    <string name="mini_app_connected">مینی اپ متصل است</string>
+    <string name="mini_app_connection">اتصال</string>
+    <string name="mini_app_start_earning">شروع کسب درآمد</string>
     <string name="Settings_DonateToken">Donate %s</string>
     <string name="Settings_DonateWith">Donate with</string>
     <string name="Settings_Donate_GetAddress">Donation Address</string>
@@ -1694,4 +1703,54 @@
     <string name="required_coins_for_transaction">سکه‌های مورد نیاز برای تراکنش</string>
     <string name="test_sms">تست پیامک</string>
     <string name="no_zec_wallets_available">کیف پولی با توکن ZEC یافت نشد</string>
+    <!-- Connect Mini App -->
+    <string name="connect_mini_app_title">اتصال مینی اپلیکیشن</string>
+    <string name="connect_mini_app_step_1">مرحله ۱</string>
+    <string name="connect_mini_app_step_1_description">برای اتصال، باید یک کیف پول ایجاد یا وارد کنید.</string>
+    <string name="connect_mini_app_step_1_choose_wallet">لطفاً کیف پول خود را با اشتراک پریمیوم انتخاب کنید</string>
+    <string name="connect_mini_app_premium_bonus">+۱۰٪ پاداش با Premium</string>
+    <string name="connect_mini_app_checking_tokens">بررسی در دسترس بودن %s</string>
+    <string name="connect_mini_app_missing_tokens">شما %s ندارید</string>
+    <string name="connect_mini_app_add_tokens">افزودن</string>
+    <!-- Step 2: Accept Terms -->
+    <string name="connect_mini_app_step_2">مرحله ۲</string>
+    <string name="connect_mini_app_step_2_description">لطفاً شرایط استفاده را بپذیرید</string>
+    <string name="connect_mini_app_terms_title">جمع‌آوری داده‌های فنی دستگاه</string>
+    <string name="connect_mini_app_terms_body">برنامه <b>یک بار</b> مجموعه محدودی از <b>داده‌های فنی دستگاه</b> را هنگام <b>اتصال کیف پول به بازی</b> جمع‌آوری می‌کند، از جمله:</string>
+    <string name="connect_mini_app_terms_bullet_1">داده‌های برخی سنسورها (مانند ژیروسکوپ و شتاب‌سنج)،</string>
+    <string name="connect_mini_app_terms_bullet_2">وضعیت باتری و اتصال شارژر،</string>
+    <string name="connect_mini_app_terms_bullet_3">مدل و مشخصات پایه دستگاه.</string>
+    <string name="connect_mini_app_terms_fingerprint">این داده‌ها <b>منحصراً</b> برای ایجاد یک <b>اثر انگشت فنی منحصر به فرد</b> برای دستگاه به عنوان بخشی از <b>SWAP 5</b> استفاده می‌شود (محافظت در برابر حساب‌های چندگانه و سوءاستفاده).</string>
+    <string name="connect_mini_app_terms_important_title">مهم:</string>
+    <string name="connect_mini_app_terms_important_1">جمع‌آوری داده‌ها <b>دقیقاً دو بار و فقط به ابتکار کاربر</b> انجام می‌شود،</string>
+    <string name="connect_mini_app_terms_important_2">برنامه <b>داده‌ها را در پس‌زمینه جمع‌آوری نمی‌کند</b>،</string>
+    <string name="connect_mini_app_terms_important_3">داده‌ها <b>برای ردیابی کاربر استفاده نمی‌شود</b>،</string>
+    <string name="connect_mini_app_terms_important_4"><b>تمام داده‌های جمع‌آوری شده پس از اتمام SWAP 5 به طور خودکار از سرور حذف می‌شوند</b>،</string>
+    <string name="connect_mini_app_terms_important_5">داده‌ها به اشخاص ثالث منتقل نمی‌شود.</string>
+    <string name="connect_mini_app_terms_agreement">با شرایط و ضوابط موافقم و اجازه ایجاد اثر انگشت دیجیتال دستگاه را می‌دهم.</string>
+    <!-- Step 4: Captcha -->
+    <string name="connect_mini_app_step_4">مرحله ۴</string>
+    <string name="connect_mini_app_step_4_description">لطفاً کد تصویر را وارد کنید</string>
+    <string name="connect_mini_app_captcha_update">به‌روزرسانی</string>
+    <string name="connect_mini_app_captcha_send">ارسال</string>
+    <string name="connect_mini_app_captcha_error_wrong_code">کد اشتباه است، لطفاً دوباره تلاش کنید</string>
+    <string name="connect_mini_app_captcha_error_expired">کد امنیتی منقضی شده، لطفاً بازنشانی کنید</string>
+    <string name="connect_mini_app_step_5">مرحله ۵</string>
+    <string name="connect_mini_app_step_5_description">پیشنهاد ویژه برای اعضای پریمیوم</string>
+    <string name="connect_mini_app_bonus_text_prefix">پاداش تضمینی + ۱۰٪ از</string>
+    <string name="connect_mini_app_bonus_text_suffix">هنگام ثبت‌نام پریمیوم دریافت کنید.</string>
+    <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
+    <string name="connect_mini_app_tab_cosanta">Cosanta</string>
+    <string name="connect_mini_app_not_enough">کافی نیست</string>
+    <string name="connect_mini_app_roi">ROI</string>
+    <string name="connect_mini_app_monthly_income">درآمد ماهانه</string>
+    <string name="connect_mini_app_buy_pirate">خرید PIRATE</string>
+    <string name="connect_mini_app_buy_cosanta">خرید COSANTA</string>
+    <string name="connect_mini_app_connect">اتصال</string>
+    <string name="connect_mini_app_connect_without_premium">اتصال بدون پریمیوم</string>
+    <string name="connect_mini_app_step_finish">پایان</string>
+    <string name="connect_mini_app_connection_successful">اتصال با موفقیت انجام شد.</string>
+    <string name="connect_mini_app_connection_failed">اتصال ناموفق بود.</string>
+    <string name="connect_mini_app_close">بستن</string>
+    <string name="connect_mini_app_try_again">تلاش مجدد</string>
 </resources>

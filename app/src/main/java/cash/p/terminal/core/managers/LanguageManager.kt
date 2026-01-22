@@ -2,9 +2,10 @@ package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.App
 import cash.p.terminal.strings.helpers.LocaleHelper
+import io.horizontalsystems.core.ILanguageManager
 import java.util.*
 
-class LanguageManager {
+class LanguageManager : ILanguageManager {
 
     val fallbackLocale by LocaleHelper::fallbackLocale
 
@@ -24,7 +25,7 @@ class LanguageManager {
     val currentLanguageName: String
         get() = getName(currentLocaleTag)
 
-    val currentLanguage: String
+    override val currentLanguage: String
         get() = currentLocale.language
 
     fun getName(tag: String): String {

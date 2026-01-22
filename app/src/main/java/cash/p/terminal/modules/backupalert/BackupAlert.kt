@@ -22,7 +22,7 @@ fun BackupAlert(navController: NavController) {
     }
 
     val account = viewModel.account
-    if (account != null && account.accountSupportsBackup) {
+    if (account != null && account.supportsBackup) {
         LaunchedEffect(account) {
             delay(300)
             viewModel.onHandled()
