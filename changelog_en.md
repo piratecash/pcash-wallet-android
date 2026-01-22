@@ -1,3 +1,28 @@
+## 🚀 Version 0.51.2 Update
+_Release date: January 22, 2026_
+
+### 🔧 Fixes and Improvements
+
+- **Fixed an issue with Polygon (charts and swaps)**
+  Resolved a problem where charts for the Polygon coin were not displayed correctly. Additional diagnostic information was added to help investigate swap issues on some devices.
+
+- **Fixed ChangeNOW transaction display**
+  Restored correct display of swap transactions via ChangeNOW in the history section.
+
+- **Fixed application version copyright**
+  Updated and corrected the copyright information shown in the app version details.
+
+- **Updated Zcash SDK to version 2.4.4**
+  The Zcash SDK has been updated to improve compatibility, stability, and security.
+
+- **Added build and download source information**
+  Added details about the app build and the download source to improve issue diagnostics.
+
+- **Removed non-working Cosanta tool from the Analytics section**
+  The Cosanta tool, which was not functioning properly, has been removed from the Analytics section.
+
+
+
 ## 🚀 Version 0.51.1 Update
 _Release date: January 16, 2026_
 
