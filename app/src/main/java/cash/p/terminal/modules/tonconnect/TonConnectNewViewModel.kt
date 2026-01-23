@@ -12,6 +12,7 @@ import com.tonapps.wallet.data.tonconnect.entities.DAppManifestEntity
 import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
+import cash.p.terminal.core.retryWhen
 import io.horizontalsystems.tonkit.tonconnect.TonConnectKit
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -58,10 +59,12 @@ class TonConnectNewViewModel(
 
         viewModelScope.launch(dispatchers.io) {
             try {
-                manifest = tonConnectKit.getManifest(requestEntity.payload.manifestUrl)
+                manifest = retryWhen(times = 3, predicate = { true }) {
+                    tonConnectKit.getManifest(requestEntity.payload.manifestUrl)
+                }
                 emitState()
             } catch (e: Throwable) {
-                error = NoManifestError()
+                error = NoManifestError(e.message)
                 emitState()
             }
         }
@@ -115,7 +118,7 @@ class TonConnectNewViewModel(
 }
 
 sealed class TonConnectError : Error()
-class NoManifestError : TonConnectError()
+class NoManifestError(override val message: String? = null) : TonConnectError()
 class NoTonAccountError : TonConnectError()
 
 data class TonConnectNewUiState(

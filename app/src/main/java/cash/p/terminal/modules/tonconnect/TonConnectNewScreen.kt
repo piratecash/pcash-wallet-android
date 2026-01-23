@@ -186,7 +186,7 @@ fun TonConnectNewScreen(
                                 onResult.invoke(true)
                             }
                         },
-                        enabled = uiState.connectEnabled
+                        enabled = uiState.connectEnabled && uiState.manifest != null
                     )
                     VSpacer(16.dp)
                     ButtonPrimaryDefault(
