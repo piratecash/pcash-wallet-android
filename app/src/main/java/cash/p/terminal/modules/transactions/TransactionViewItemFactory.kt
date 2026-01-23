@@ -33,7 +33,8 @@ import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.imageUrl
+import cash.p.terminal.wallet.alternativeImageUrl
+import cash.p.terminal.wallet.coinImageUrl
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.BlockchainType
@@ -205,18 +206,14 @@ class TransactionViewItemFactory(
     private fun getIconForToken(
         coinUid: String,
         blockchainType: String
-    ): TransactionViewItem.Icon.Regular =
-        walletUseCase.getWallet(coinUid, blockchainType)?.let { wallet ->
-            return TransactionViewItem.Icon.Regular(
-                url = wallet.token.coin.imageUrl,
-                alternativeUrl = null,
-                placeholder = null
-            )
-        } ?: TransactionViewItem.Icon.Regular(
-            url = null,
-            alternativeUrl = null,
+    ): TransactionViewItem.Icon.Regular {
+        val wallet = walletUseCase.getWallet(coinUid, blockchainType)
+        return TransactionViewItem.Icon.Regular(
+            url = coinImageUrl(coinUid),
+            alternativeUrl = wallet?.token?.coin?.alternativeImageUrl,
             placeholder = R.drawable.coin_placeholder
         )
+    }
 
     private fun iconType(
         blockchainType: BlockchainType,
