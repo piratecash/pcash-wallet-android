@@ -509,7 +509,7 @@
     <string name="Swap_ErrorNoProviders">Keine Anbieter</string>
     <string name="Swap_ErrorNoQuote">Keine Angebote</string>
     <string name="Swap_ErrorInsufficientBalance">Ungenügendes Guthaben</string>
-    <string name="swap_out_of_min_amount">Out of min amount %s</string>
+    <string name="swap_out_of_min_amount">Unter Mindestbetrag %s</string>
     <string name="Swap_ErrorHighPriceImpact">Hohe Preisauswirkung</string>
     <string name="Swap_ErrorWalletSyncing">Wallet wird synchronisiert</string>
     <string name="Swap_ErrorWalletNotSynced">Wallet nicht synchronisiert</string>

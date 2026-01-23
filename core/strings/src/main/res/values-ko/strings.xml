@@ -515,7 +515,7 @@
     <string name="Swap_ErrorNoProviders">제공자 없음</string>
     <string name="Swap_ErrorNoQuote">제안이 없습니다</string>
     <string name="Swap_ErrorInsufficientBalance">잔액이 부족합니다</string>
-    <string name="swap_out_of_min_amount">Out of min amount %s</string>
+    <string name="swap_out_of_min_amount">최소 금액 미만 %s</string>
     <string name="Swap_ErrorHighPriceImpact">높은 가격 영향</string>
     <string name="Swap_ErrorWalletSyncing">지갑 동기화 중</string>
     <string name="Swap_ErrorWalletNotSynced">지갑이 동기화되지 않음</string>

@@ -511,7 +511,7 @@
     <string name="Swap_ErrorNoProviders">没有提供者</string>
     <string name="Swap_ErrorNoQuote">没有报价</string>
     <string name="Swap_ErrorInsufficientBalance">余额不足</string>
-    <string name="swap_out_of_min_amount">Out of min amount %s</string>
+    <string name="swap_out_of_min_amount">低于最小金额 %s</string>
     <string name="Swap_ErrorHighPriceImpact">高价格影响</string>
     <string name="Swap_ErrorWalletSyncing">正在同步钱包</string>
     <string name="Swap_ErrorWalletNotSynced">钱包未同步</string>

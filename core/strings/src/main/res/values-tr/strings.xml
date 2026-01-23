@@ -515,7 +515,7 @@
     <string name="Swap_ErrorNoProviders">Sağlayıcı Yok</string>
     <string name="Swap_ErrorNoQuote">Teklif Yok</string>
     <string name="Swap_ErrorInsufficientBalance">Yetersiz bakiye</string>
-    <string name="swap_out_of_min_amount">Out of min amount %s</string>
+    <string name="swap_out_of_min_amount">Minimum tutarın altında %s</string>
     <string name="Swap_ErrorHighPriceImpact">Yüksek fiyat etkisi</string>
     <string name="Swap_ErrorWalletSyncing">Cüzdan senkronize ediliyor</string>
     <string name="Swap_ErrorWalletNotSynced">Cüzdan Senkronize Edilmedi</string>
