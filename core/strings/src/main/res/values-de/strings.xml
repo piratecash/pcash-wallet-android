@@ -1725,6 +1725,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="connect_mini_app_captcha_send">Senden</string>
     <string name="connect_mini_app_captcha_error_wrong_code">Falscher Code, bitte erneut versuchen</string>
     <string name="connect_mini_app_captcha_error_expired">Captcha abgelaufen, bitte aktualisieren</string>
+    <string name="connect_mini_app_captcha_error_qr_expired">QR-Code abgelaufen, bitte erneut scannen</string>
     <string name="connect_mini_app_step_5">Schritt 5</string>
     <string name="connect_mini_app_step_5_description">Sonderangebot für Premium-Mitglieder</string>
     <string name="connect_mini_app_bonus_text_prefix">Erhalten Sie einen garantierten Bonus + 10% von</string>

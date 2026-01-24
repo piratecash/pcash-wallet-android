@@ -36,6 +36,8 @@ import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import cash.p.terminal.strings.R
+import cash.p.terminal.strings.helpers.Translator
 import timber.log.Timber
 
 class ConnectMiniAppViewModel(
@@ -280,8 +282,11 @@ class ConnectMiniAppViewModel(
                 .onFailure { error ->
                     Timber.e(error, "Failed to load captcha")
                     val errorMessage = when (error) {
-                        is MiniAppApiException -> error.message
-                        else -> "Failed to load captcha"
+                        is MiniAppApiException -> when (error.statusCode) {
+                            401 -> Translator.getString(R.string.connect_mini_app_captcha_error_qr_expired)
+                            else -> error.message
+                        }
+                        else -> error.message ?: "Failed to load captcha"
                     }
                     uiState = uiState.copy(
                         isCaptchaLoading = false,
@@ -317,18 +322,21 @@ class ConnectMiniAppViewModel(
                         uiState = uiState.copy(isCaptchaVerifying = false)
                         checkPremiumAndProceed()
                     } else {
-                        // Wrong code
                         uiState = uiState.copy(
                             isCaptchaVerifying = false,
-                            captchaError = "Wrong code, please try again"
+                            captchaError = Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
                         )
                     }
                 }
                 .onFailure { error ->
                     Timber.e(error, "Failed to verify captcha")
                     val errorMessage = when (error) {
-                        is MiniAppApiException -> error.message
-                        else -> "Verification failed, please try again"
+                        is MiniAppApiException -> when (error.statusCode) {
+                            400 -> Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
+                            401 -> Translator.getString(R.string.connect_mini_app_captcha_error_qr_expired)
+                            else -> error.message
+                        }
+                        else -> error.message ?: "Verification failed"
                     }
                     uiState = uiState.copy(
                         isCaptchaVerifying = false,

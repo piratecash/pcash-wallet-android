@@ -1734,6 +1734,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="connect_mini_app_captcha_send">Gönder</string>
     <string name="connect_mini_app_captcha_error_wrong_code">Yanlış kod, lütfen tekrar deneyin</string>
     <string name="connect_mini_app_captcha_error_expired">Captcha süresi doldu, lütfen yenileyin</string>
+    <string name="connect_mini_app_captcha_error_qr_expired">QR kod süresi doldu, tekrar tarayın</string>
     <string name="connect_mini_app_step_5">Adım 5</string>
     <string name="connect_mini_app_step_5_description">Premium üyeler için özel teklif</string>
     <string name="connect_mini_app_bonus_text_prefix">Garantili bonus + %10 alın</string>

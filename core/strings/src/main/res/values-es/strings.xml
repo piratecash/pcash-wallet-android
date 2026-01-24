@@ -1724,6 +1724,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="connect_mini_app_captcha_send">Enviar</string>
     <string name="connect_mini_app_captcha_error_wrong_code">Código incorrecto, inténtelo de nuevo</string>
     <string name="connect_mini_app_captcha_error_expired">El captcha ha caducado, actualícelo</string>
+    <string name="connect_mini_app_captcha_error_qr_expired">El código QR ha caducado, escanee de nuevo</string>
     <string name="connect_mini_app_step_5">Paso 5</string>
     <string name="connect_mini_app_step_5_description">Oferta especial para miembros premium</string>
     <string name="connect_mini_app_bonus_text_prefix">Obtenga un bono garantizado + 10% de</string>

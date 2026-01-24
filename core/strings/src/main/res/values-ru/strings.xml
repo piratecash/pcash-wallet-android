@@ -1915,6 +1915,7 @@
     <string name="connect_mini_app_captcha_send">Отправить</string>
     <string name="connect_mini_app_captcha_error_wrong_code">Неверный код, попробуйте ещё раз</string>
     <string name="connect_mini_app_captcha_error_expired">Срок действия капчи истёк, обновите</string>
+    <string name="connect_mini_app_captcha_error_qr_expired">QR-код истёк, отсканируйте снова</string>
     <string name="connect_mini_app_step_5">Шаг 5</string>
     <string name="connect_mini_app_step_5_description">Специальное предложение для премиум-участников</string>
     <string name="connect_mini_app_bonus_text_prefix">Получите гарантированный бонус + 10% от</string>

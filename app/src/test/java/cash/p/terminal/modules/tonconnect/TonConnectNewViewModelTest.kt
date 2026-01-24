@@ -92,7 +92,7 @@ class TonConnectNewViewModelTest {
         setAccounts(listOf(tonAccount, hardwareAccount, watchAccount), tonAccount)
 
         val manifest = manifest()
-        every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
+        coEvery { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
 
         val viewModel = TonConnectNewViewModel(request, tonConnectKit)
         advanceUntilIdle()
@@ -111,7 +111,7 @@ class TonConnectNewViewModelTest {
         val hardwareAccount = hardwareTonAccount("hw-filter")
         val unsupported = watchAccount("watch-filter")
         setAccounts(listOf(tonAccount, unsupported, hardwareAccount), tonAccount)
-        every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest()
+        coEvery { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest()
 
         val viewModel = TonConnectNewViewModel(request, tonConnectKit)
         advanceUntilIdle()
@@ -127,7 +127,7 @@ class TonConnectNewViewModelTest {
         val secondary = hardwareTonAccount("hw-fallback")
         val activeUnsupported = watchAccount("watch-active")
         setAccounts(listOf(activeUnsupported, fallback, secondary), activeUnsupported)
-        every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest()
+        coEvery { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest()
 
         val viewModel = TonConnectNewViewModel(request, tonConnectKit)
         advanceUntilIdle()
@@ -141,7 +141,7 @@ class TonConnectNewViewModelTest {
     fun `init without ton accounts exposes error`() = runTest(dispatcher) {
         val watchAccount = watchAccount("watch-only")
         setAccounts(listOf(watchAccount), watchAccount)
-        every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest()
+        coEvery { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest()
 
         val viewModel = TonConnectNewViewModel(request, tonConnectKit)
         advanceUntilIdle()
@@ -162,7 +162,7 @@ class TonConnectNewViewModelTest {
         every {
             any<Account>().toTonWalletFullAccess(any(), any(), any())
         } returns mockk(relaxed = true)
-        every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
+        coEvery { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
         coEvery { tonConnectKit.connect(any(), any(), any(), any()) } returns mockk(relaxed = true)
 
         val viewModel = TonConnectNewViewModel(request, tonConnectKit)
@@ -189,7 +189,7 @@ class TonConnectNewViewModelTest {
         every {
             any<Account>().toTonWalletFullAccess(any(), any(), any())
         } returns mockk(relaxed = true)
-        every { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
+        coEvery { tonConnectKit.getManifest(request.payload.manifestUrl) } returns manifest
         coEvery {
             tonConnectKit.connect(
                 any(),
