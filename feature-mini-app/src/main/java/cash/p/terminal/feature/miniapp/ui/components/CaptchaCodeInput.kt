@@ -15,19 +15,21 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,11 +48,7 @@ fun CaptchaCodeInput(
     codeLength: Int = 5
 ) {
     val focusRequester = remember { FocusRequester() }
-
-    // Auto-focus on initial composition
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    var hasFocus by remember { mutableStateOf(false) }
 
     Column(modifier = modifier) {
         BasicTextField(
@@ -66,6 +64,7 @@ fun CaptchaCodeInput(
             enabled = enabled,
             modifier = Modifier
                 .focusRequester(focusRequester)
+                .onFocusChanged { hasFocus = it.isFocused }
                 .fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -77,13 +76,16 @@ fun CaptchaCodeInput(
             decorationBox = {
                 // Visual character cells
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        8.dp,
+                        Alignment.CenterHorizontally
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     repeat(codeLength) { index ->
                         CharacterCell(
                             char = code.getOrNull(index),
-                            isFocused = enabled && code.length == index,
+                            isFocused = enabled && hasFocus && code.length == index,
                             isError = isError,
                             enabled = enabled
                         )
