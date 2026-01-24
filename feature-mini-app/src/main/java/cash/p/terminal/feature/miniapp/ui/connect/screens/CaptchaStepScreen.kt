@@ -105,9 +105,9 @@ fun CaptchaStepScreen(
                 // Captcha image container
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 55.dp)
                         .fillMaxWidth()
-                        .height(100.dp)
+                        .height(150.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(ComposeAppTheme.colors.light)
                         .border(1.dp, ComposeAppTheme.colors.steel20, RoundedCornerShape(12.dp)),
@@ -159,7 +159,7 @@ fun CaptchaStepScreen(
                     textAlign = TextAlign.End,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                        .padding(horizontal = 65.dp),
                 )
 
                 VSpacer(24.dp)
@@ -174,7 +174,7 @@ fun CaptchaStepScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(2f))
         }
     )
 }

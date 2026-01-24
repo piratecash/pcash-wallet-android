@@ -46,7 +46,6 @@ fun AcceptTermsStepScreen(
         stepIndicatorState = stepIndicatorState,
         modifier = modifier,
         bottomContent = {
-            VSpacer(16.dp)
             ButtonPrimaryYellow(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.Button_Continue),

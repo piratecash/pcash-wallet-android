@@ -69,8 +69,7 @@ fun CaptchaCodeInput(
                 .fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Ascii,
-                capitalization = KeyboardCapitalization.Characters,
+                keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done
             ),
             // Hide the default cursor since we draw our own in the cells
