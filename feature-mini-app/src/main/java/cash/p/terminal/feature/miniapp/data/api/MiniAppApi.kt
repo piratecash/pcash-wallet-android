@@ -66,8 +66,23 @@ class MiniAppApi(
         }.parseResponse()
     }
 
+    suspend fun getWalletBalance(
+        endpoint: String,
+        request: BalanceRequestDto
+    ): BalanceResponseDto = withContext(Dispatchers.IO) {
+        httpClient.post {
+            url("${endpoint}miniapp/users/wallet/pcash/balance")
+            appHeaders()
+            setJsonBody(request)
+        }.parseResponse()
+    }
+
     private fun HttpRequestBuilder.authHeaders(jwt: String) {
         header(HttpHeaders.Authorization, "Bearer $jwt")
+        appHeaders()
+    }
+
+    private fun HttpRequestBuilder.appHeaders() {
         header("App-Version", appHeadersProvider.appVersion)
         header(HttpHeaders.AcceptLanguage, appHeadersProvider.currentLanguage)
         appHeadersProvider.appSignature?.let { header("App-Signature", it) }

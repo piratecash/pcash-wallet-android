@@ -7,6 +7,7 @@ import cash.p.terminal.feature.miniapp.domain.usecase.CaptchaUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.CheckIfEmulatorUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.CheckRequiredTokensUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.CollectDeviceEnvironmentUseCase
+import cash.p.terminal.feature.miniapp.domain.usecase.GetMiniAppBalanceUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.GetSpecialProposalDataUseCase
 import cash.p.terminal.feature.miniapp.ui.connect.ConnectMiniAppViewModel
 import cash.p.terminal.feature.miniapp.ui.miniapp.MiniAppViewModel
@@ -32,6 +33,7 @@ val featureMiniAppModule = module {
     singleOf(::CaptchaUseCase)
     singleOf(::GetSpecialProposalDataUseCase)
     singleOf(::CheckRequiredTokensUseCase)
+    singleOf(::GetMiniAppBalanceUseCase)
 
     // ViewModels
     viewModelOf(::MiniAppViewModel)

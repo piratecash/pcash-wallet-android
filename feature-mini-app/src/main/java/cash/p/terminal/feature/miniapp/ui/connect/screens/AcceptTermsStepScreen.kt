@@ -25,7 +25,6 @@ import cash.p.terminal.feature.miniapp.ui.components.StepDescriptionStyle
 import cash.p.terminal.feature.miniapp.ui.components.StepIndicatorState
 import cash.p.terminal.feature.miniapp.ui.components.rememberStepIndicatorState
 import cash.p.terminal.ui_compose.annotatedStringResource
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HsCheckbox
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -35,10 +34,8 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 @Composable
 fun AcceptTermsStepScreen(
     isAgreed: Boolean,
-    showBackButton: Boolean,
     onAgreedChange: (Boolean) -> Unit,
     onContinueClick: () -> Unit,
-    onBackClick: () -> Unit,
     stepIndicatorState: StepIndicatorState? = null,
     modifier: Modifier = Modifier
 ) {
@@ -56,16 +53,6 @@ fun AcceptTermsStepScreen(
                 onClick = onContinueClick,
                 enabled = isAgreed
             )
-
-            if (showBackButton) {
-                VSpacer(16.dp)
-
-                ButtonPrimaryDefault(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.Button_Back),
-                    onClick = onBackClick
-                )
-            }
         },
         content = {
             VSpacer(24.dp)
@@ -205,10 +192,8 @@ private fun AcceptTermsStepScreenPreview() {
     ComposeAppTheme {
         AcceptTermsStepScreen(
             isAgreed = false,
-            showBackButton = false,
             onAgreedChange = {},
             onContinueClick = {},
-            onBackClick = {},
             stepIndicatorState = rememberStepIndicatorState(initialStep = 2)
         )
     }
@@ -220,10 +205,8 @@ private fun AcceptTermsStepScreenWithBackPreview() {
     ComposeAppTheme {
         AcceptTermsStepScreen(
             isAgreed = false,
-            showBackButton = true,
             onAgreedChange = {},
             onContinueClick = {},
-            onBackClick = {},
             stepIndicatorState = rememberStepIndicatorState(initialStep = 2)
         )
     }
@@ -235,10 +218,8 @@ private fun AcceptTermsStepScreenAgreedPreview() {
     ComposeAppTheme {
         AcceptTermsStepScreen(
             isAgreed = true,
-            showBackButton = true,
             onAgreedChange = {},
             onContinueClick = {},
-            onBackClick = {},
             stepIndicatorState = rememberStepIndicatorState(initialStep = 2)
         )
     }

@@ -162,10 +162,8 @@ private fun ConnectMiniAppNavHost(
                     ConnectMiniAppViewModel.STEP_TERMS -> {
                         AcceptTermsStepScreen(
                             isAgreed = uiState.termsAgreed,
-                            showBackButton = uiState.walletItems.size > 1,
                             onAgreedChange = viewModel::onTermsAgreedChange,
                             onContinueClick = viewModel::onTermsAccepted,
-                            onBackClick = viewModel::onBackToWalletSelection,
                             stepIndicatorState = stepIndicatorState,
                             modifier = Modifier.padding(paddingValues)
                         )

@@ -786,4 +786,19 @@ class LocalStorageManager(
         key = "connected_account_id_mini_app",
         default = ""
     )
+
+    override var connectedEvmAddress by preferences.delegate(
+        key = "connected_evm_address_mini_app",
+        default = ""
+    )
+
+    override var connectedEndpoint by preferences.delegate(
+        key = "connected_endpoint_mini_app",
+        default = ""
+    )
+
+    override var cachedBalance by preferences.delegate(
+        key = "cached_balance_mini_app",
+        default = ""
+    )
 }

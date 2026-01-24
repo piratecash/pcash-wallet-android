@@ -148,7 +148,7 @@ val managerModule = module {
     singleOf(::TonKitManager)
     single<GetTonAddressUseCase> { GetTonAddressUseCaseImpl(get()) }
     single<GetPirateJettonAddressUseCase> { GetPirateJettonAddressUseCaseImpl(get(), get()) }
-    single<CreateRequiredTokensUseCase> { CreateRequiredTokensUseCaseImpl(get()) }
+    single<CreateRequiredTokensUseCase> { CreateRequiredTokensUseCaseImpl(get(), get()) }
     singleOf(::TronKitManager)
     factoryOf(::StackingManager)
     singleOf(::RestoreSettingsManager)

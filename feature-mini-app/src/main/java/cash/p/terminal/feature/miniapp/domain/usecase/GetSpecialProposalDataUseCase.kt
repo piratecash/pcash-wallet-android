@@ -4,6 +4,7 @@ import cash.p.terminal.feature.miniapp.data.api.MiniAppApi
 import cash.p.terminal.feature.miniapp.data.api.toDomain
 import cash.p.terminal.feature.miniapp.domain.model.CoinType
 import cash.p.terminal.feature.miniapp.domain.model.SpecialProposalData
+import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.network.binance.api.BinanceApi
 import cash.p.terminal.network.pirate.domain.enity.PeriodType
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
@@ -29,7 +30,8 @@ class GetSpecialProposalDataUseCase(
     private val binanceApi: BinanceApi,
     private val getBnbAddressUseCase: GetBnbAddressUseCase,
     private val accountManager: IAccountManager,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val codeStorage: IUniqueCodeStorage
 ) {
     suspend operator fun invoke(
         selectedAccountId: String,
@@ -96,6 +98,11 @@ class GetSpecialProposalDataUseCase(
         val profile = profileDeferred.await().toDomain()
         val pirateCalcData = pirateCalcDeferred.await()
         val cosaCalcData = cosaCalcDeferred.await()
+
+        // Cache balance for MiniApp screen (same format as GetMiniAppBalanceUseCase)
+        profile.balance.movePointLeft(8).let {
+            codeStorage.cachedBalance = it.toPlainString()
+        }
 
         // Calculate guaranteed bonus
         // 8 decimal places and take 10%

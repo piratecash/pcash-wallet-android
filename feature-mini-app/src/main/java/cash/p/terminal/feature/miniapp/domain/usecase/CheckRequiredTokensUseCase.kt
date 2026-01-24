@@ -27,7 +27,7 @@ class CheckRequiredTokensUseCase(
             TokenQuery.CosantaBnb
         )
 
-        val activeWalletTokens = walletManager.activeWallets.map { it.token }.toSet()
+        val activeWalletTokens = walletManager.getWallets(account).map { it.token }.toSet()
         val tokensByQuery = requiredQueries.associateWith { marketKitWrapper.token(it) }
 
         val allTokens = tokensByQuery.values.filterNotNull()

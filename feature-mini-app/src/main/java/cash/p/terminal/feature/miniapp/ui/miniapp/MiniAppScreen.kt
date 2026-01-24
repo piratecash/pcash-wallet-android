@@ -7,8 +7,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -67,6 +69,8 @@ fun MiniAppScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             PremiumBonusCard(
+                isConnected = uiState.isConnected,
+                pirateBalanceText = uiState.pirateBalanceText,
                 bonusFiatValue = uiState.bonusFiatValue,
                 modifier = Modifier.padding(top = 24.dp)
             )
@@ -112,6 +116,8 @@ fun MiniAppScreen(
 
 @Composable
 private fun PremiumBonusCard(
+    isConnected: Boolean,
+    pirateBalanceText: String?,
     bonusFiatValue: String,
     modifier: Modifier
 ) {
@@ -147,23 +153,28 @@ private fun PremiumBonusCard(
                     .size(74.dp)
             )
         }
-        val guaranteedText = buildAnnotatedString {
-            withStyle(SpanStyle(color = ComposeAppTheme.colors.leah)) {
-                append(stringResource(R.string.mini_app_bonus_guaranteed))
-                append(" ")
-            }
-            withStyle(SpanStyle(color = ComposeAppTheme.colors.jacob)) {
-                append("+1000 PIRATE")
-            }
-        }
-        Text(
-            text = guaranteedText,
-            style = ComposeAppTheme.typography.subhead2,
-            modifier = Modifier.padding(top = 6.dp)
-        )
 
-        if (bonusFiatValue.isNotEmpty()) {
-            caption_yellow50(bonusFiatValue)
+        if (isConnected && pirateBalanceText != null) {
+            val guaranteedText = buildAnnotatedString {
+                withStyle(SpanStyle(color = ComposeAppTheme.colors.leah)) {
+                    append(stringResource(R.string.mini_app_bonus_guaranteed))
+                    append(" ")
+                }
+                withStyle(SpanStyle(color = ComposeAppTheme.colors.jacob)) {
+                    append(pirateBalanceText)
+                }
+            }
+            Text(
+                text = guaranteedText,
+                style = ComposeAppTheme.typography.subhead2,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+
+            if (bonusFiatValue.isNotEmpty()) {
+                caption_yellow50(bonusFiatValue)
+            }
+        } else {
+            Spacer(Modifier.height(10.dp))
         }
     }
 }
@@ -194,7 +205,7 @@ private fun GamepadIcon(
 private fun MiniAppScreenPreview() {
     ComposeAppTheme {
         MiniAppScreen(
-            uiState = MiniAppUiState(bonusFiatValue = "+$20"),
+            uiState = MiniAppUiState(bonusFiatValue = "+$20", pirateBalanceText = "100", isConnected = true),
             onConnectionClick = {},
             onStartEarningClick = {},
             onClose = {}

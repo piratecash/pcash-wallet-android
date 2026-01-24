@@ -258,10 +258,6 @@ class ConnectMiniAppViewModel(
         }
     }
 
-    fun onBackToWalletSelection() {
-        uiState = uiState.copy(currentStep = STEP_WALLET, termsAgreed = false)
-    }
-
     // Captcha methods
     fun loadCaptcha() {
         val currentJwt = jwt ?: return
@@ -421,6 +417,7 @@ class ConnectMiniAppViewModel(
         uiState = uiState.copy(currentStep = STEP_FINISH, finishState = FinishState.Loading)
 
         viewModelScope.launch {
+            var evmAddress: String? = null
             runCatching {
                 val account = accountManager.account(accountId)
                     ?: throw IllegalStateException("Account not found")
@@ -431,7 +428,7 @@ class ConnectMiniAppViewModel(
                     ?: throw IllegalStateException("Pirate JETTON wallet address not found")
 
                 // Get EVM address
-                val evmAddress = getBnbAddressUseCase.getAddress(account)
+                evmAddress = getBnbAddressUseCase.getAddress(account)
                     ?: throw IllegalStateException("EVM address not found")
 
                 val emulatorResult = checkIfEmulatorUseCase()
@@ -469,9 +466,12 @@ class ConnectMiniAppViewModel(
 
                 captchaUseCase.submitPCashWallet(currentJwt, endpoint, request).getOrThrow()
             }.onSuccess { response ->
-                // Save returned uniqueCode to storage
-                uniqueCodeStorage.connectedAccountId = accountId
-                uniqueCodeStorage.uniqueCode = response.uniqueCode.orEmpty()
+                with(uniqueCodeStorage) {
+                    connectedAccountId = accountId
+                    uniqueCode = response.uniqueCode.orEmpty()
+                    evmAddress?.let { connectedEvmAddress = it }
+                    connectedEndpoint = endpoint
+                }
                 uiState = uiState.copy(finishState = FinishState.Success)
             }.onFailure { error ->
                 Timber.e(error, "Failed to submit pcash wallet")
