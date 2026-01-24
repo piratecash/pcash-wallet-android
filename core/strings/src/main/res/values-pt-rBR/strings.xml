@@ -1733,6 +1733,8 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="connect_mini_app_captcha_error_wrong_code">Código incorreto, tente novamente</string>
     <string name="connect_mini_app_captcha_error_expired">O captcha expirou, atualize</string>
     <string name="connect_mini_app_captcha_error_qr_expired">Código QR expirado, digitalize novamente</string>
+    <string name="connect_mini_app_link_expired">Link expirado, use um novo do mini app para iniciar a conexão</string>
+    <string name="connect_mini_app_open_mini_app">Abrir Mini App</string>
     <string name="connect_mini_app_step_5">Passo 5</string>
     <string name="connect_mini_app_step_5_description">Oferta especial para membros premium</string>
     <string name="connect_mini_app_bonus_text_prefix">Receba um bônus garantido + 10% de</string>

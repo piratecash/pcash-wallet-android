@@ -1731,6 +1731,8 @@
     <string name="connect_mini_app_captcha_error_wrong_code">잘못된 코드입니다. 다시 시도해주세요</string>
     <string name="connect_mini_app_captcha_error_expired">캡차가 만료되었습니다. 새로고침해주세요</string>
     <string name="connect_mini_app_captcha_error_qr_expired">QR 코드가 만료되었습니다. 다시 스캔해주세요</string>
+    <string name="connect_mini_app_link_expired">링크가 만료되었습니다. 미니 앱에서 새 링크를 사용하여 연결을 시작하세요</string>
+    <string name="connect_mini_app_open_mini_app">미니 앱 열기</string>
     <string name="connect_mini_app_step_5">5단계</string>
     <string name="connect_mini_app_step_5_description">프리미엄 회원을 위한 특별 제안</string>
     <string name="connect_mini_app_bonus_text_prefix">보장된 보너스 + 10%</string>

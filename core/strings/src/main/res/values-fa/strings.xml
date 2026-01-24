@@ -1738,6 +1738,8 @@
     <string name="connect_mini_app_captcha_error_wrong_code">کد اشتباه است، لطفاً دوباره تلاش کنید</string>
     <string name="connect_mini_app_captcha_error_expired">کد امنیتی منقضی شده، لطفاً بازنشانی کنید</string>
     <string name="connect_mini_app_captcha_error_qr_expired">کد QR منقضی شده، لطفاً دوباره اسکن کنید</string>
+    <string name="connect_mini_app_link_expired">لینک منقضی شده، لطفاً از مینی اپ یک لینک جدید برای شروع اتصال استفاده کنید</string>
+    <string name="connect_mini_app_open_mini_app">باز کردن مینی اپ</string>
     <string name="connect_mini_app_step_5">مرحله ۵</string>
     <string name="connect_mini_app_step_5_description">پیشنهاد ویژه برای اعضای پریمیوم</string>
     <string name="connect_mini_app_bonus_text_prefix">پاداش تضمینی + ۱۰٪ از</string>

@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":core:ui-compose"))
     implementation(project(":core:strings"))
     implementation(project(":core:resources"))
+    implementation(project(":components:icons"))
     implementation(project(":core:navigation"))
     implementation(project(":core:wallet"))
     implementation(project(":core:network"))

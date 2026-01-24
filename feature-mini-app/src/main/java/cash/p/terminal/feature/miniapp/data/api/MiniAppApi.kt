@@ -108,4 +108,6 @@ private suspend inline fun <reified T : Any> HttpResponse.parseResponse(): T {
 class MiniAppApiException(
     val statusCode: Int,
     override val message: String
-) : Exception(message)
+) : Exception(message) {
+    val isJwtExpired: Boolean get() = statusCode == 401
+}

@@ -1,5 +1,6 @@
 package cash.p.terminal.feature.miniapp.ui.connect
 
+import android.content.Intent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -7,13 +8,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.feature.miniapp.R
+import cash.p.terminal.feature.miniapp.ui.TELEGRAM_BOT_URL
 import cash.p.terminal.feature.miniapp.ui.components.rememberStepIndicatorState
 import cash.p.terminal.feature.miniapp.ui.connect.screens.AcceptTermsStepScreen
 import cash.p.terminal.feature.miniapp.ui.connect.screens.CaptchaStepScreen
@@ -50,8 +54,16 @@ class ConnectMiniAppFragment : BaseComposeFragment() {
         ConnectMiniAppNavHost(
             viewModel = viewModel,
             fragmentNavController = navController,
-            navController = internalNavController
+            navController = internalNavController,
+            onOpenMiniAppClick = ::openMiniApp
         )
+    }
+
+    private fun openMiniApp() {
+        val context = requireContext()
+        findNavController().popBackStack()
+        val intent = Intent(Intent.ACTION_VIEW, TELEGRAM_BOT_URL.toUri())
+        context.startActivity(intent)
     }
 }
 
@@ -65,7 +77,8 @@ private sealed class ConnectMiniAppRoute {
 private fun ConnectMiniAppNavHost(
     viewModel: ConnectMiniAppViewModel,
     fragmentNavController: NavController,
-    navController: NavHostController
+    navController: NavHostController,
+    onOpenMiniAppClick: () -> Unit
 ) {
     val uiState = viewModel.uiState
 
@@ -176,9 +189,11 @@ private fun ConnectMiniAppNavHost(
                             error = uiState.captchaError,
                             isLoading = uiState.isCaptchaLoading,
                             isVerifying = uiState.isCaptchaVerifying,
+                            isJwtExpired = uiState.isJwtExpired,
                             onCodeChange = viewModel::onCaptchaCodeChange,
                             onRefreshClick = viewModel::refreshCaptcha,
                             onVerifyClick = viewModel::verifyCaptcha,
+                            onOpenMiniAppClick = onOpenMiniAppClick,
                             stepIndicatorState = stepIndicatorState,
                             modifier = Modifier.padding(paddingValues)
                         )
@@ -196,7 +211,8 @@ private fun ConnectMiniAppNavHost(
                                 selectedTab = uiState.selectedCoinTab,
                                 isLoading = uiState.isSpecialProposalLoading,
                                 isPremium = uiState.isPremiumUser,
-                                error = uiState.specialProposalError
+                                error = uiState.specialProposalError,
+                                isJwtExpired = uiState.isJwtExpired
                             ),
                             stepIndicatorState = stepIndicatorState,
                             onTabSelected = viewModel::onCoinTabSelected,
@@ -212,6 +228,7 @@ private fun ConnectMiniAppNavHost(
                             },
                             onConnectClick = viewModel::connectWallet,
                             onRetryClick = viewModel::loadSpecialProposalData,
+                            onOpenMiniAppClick = onOpenMiniAppClick,
                             modifier = Modifier.padding(paddingValues)
                         )
                     }
@@ -228,6 +245,7 @@ private fun ConnectMiniAppNavHost(
                                 finishState = finishState,
                                 onCloseClick = viewModel::onFinishClose,
                                 onRetryClick = viewModel::onRetryClick,
+                                onOpenMiniAppClick = onOpenMiniAppClick,
                                 stepIndicatorState = stepIndicatorState,
                                 modifier = Modifier.padding(paddingValues)
                             )

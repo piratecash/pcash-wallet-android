@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import cash.p.terminal.feature.miniapp.R
+import cash.p.terminal.feature.miniapp.ui.TELEGRAM_BOT_URL
 import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -43,9 +44,5 @@ class MiniAppFragment : BaseComposeFragment() {
     override fun onResume() {
         super.onResume()
         viewModel.updateConnectionStatus()
-    }
-
-    companion object {
-        private const val TELEGRAM_BOT_URL = "https://t.me/piratecash_bot?start=mobile"
     }
 }

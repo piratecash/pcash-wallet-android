@@ -283,17 +283,21 @@ class ConnectMiniAppViewModel(
                 }
                 .onFailure { error ->
                     Timber.e(error, "Failed to load captcha")
-                    val errorMessage = when (error) {
-                        is MiniAppApiException -> when (error.statusCode) {
-                            401 -> Translator.getString(R.string.connect_mini_app_captcha_error_qr_expired)
-                            else -> error.message
+                    if (error is MiniAppApiException && error.isJwtExpired) {
+                        uiState = uiState.copy(
+                            isCaptchaLoading = false,
+                            isJwtExpired = true
+                        )
+                    } else {
+                        val errorMessage = when (error) {
+                            is MiniAppApiException -> error.message
+                            else -> error.message ?: "Failed to load captcha"
                         }
-                        else -> error.message ?: "Failed to load captcha"
+                        uiState = uiState.copy(
+                            isCaptchaLoading = false,
+                            captchaError = errorMessage
+                        )
                     }
-                    uiState = uiState.copy(
-                        isCaptchaLoading = false,
-                        captchaError = errorMessage
-                    )
                 }
         }
     }
@@ -332,18 +336,24 @@ class ConnectMiniAppViewModel(
                 }
                 .onFailure { error ->
                     Timber.e(error, "Failed to verify captcha")
-                    val errorMessage = when (error) {
-                        is MiniAppApiException -> when (error.statusCode) {
-                            400 -> Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
-                            401 -> Translator.getString(R.string.connect_mini_app_captcha_error_qr_expired)
-                            else -> error.message
+                    if (error is MiniAppApiException && error.isJwtExpired) {
+                        uiState = uiState.copy(
+                            isCaptchaVerifying = false,
+                            isJwtExpired = true
+                        )
+                    } else {
+                        val errorMessage = when (error) {
+                            is MiniAppApiException -> when (error.statusCode) {
+                                400 -> Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
+                                else -> error.message
+                            }
+                            else -> error.message ?: "Verification failed"
                         }
-                        else -> error.message ?: "Verification failed"
+                        uiState = uiState.copy(
+                            isCaptchaVerifying = false,
+                            captchaError = errorMessage
+                        )
                     }
-                    uiState = uiState.copy(
-                        isCaptchaVerifying = false,
-                        captchaError = errorMessage
-                    )
                 }
         }
     }
@@ -392,14 +402,21 @@ class ConnectMiniAppViewModel(
                 )
             }.onFailure { error ->
                 Timber.e(error, "Failed to load special proposal data")
-                val errorMessage = when (error) {
-                    is MiniAppApiException -> error.message
-                    else -> "Failed to load data"
+                if (error is MiniAppApiException && error.isJwtExpired) {
+                    uiState = uiState.copy(
+                        isSpecialProposalLoading = false,
+                        isJwtExpired = true
+                    )
+                } else {
+                    val errorMessage = when (error) {
+                        is MiniAppApiException -> error.message
+                        else -> "Failed to load data"
+                    }
+                    uiState = uiState.copy(
+                        isSpecialProposalLoading = false,
+                        specialProposalError = errorMessage
+                    )
                 }
-                uiState = uiState.copy(
-                    isSpecialProposalLoading = false,
-                    specialProposalError = errorMessage
-                )
             }
         }
     }
@@ -485,11 +502,15 @@ class ConnectMiniAppViewModel(
                 uiState = uiState.copy(finishState = FinishState.Success)
             }.onFailure { error ->
                 Timber.e(error, "Failed to submit pcash wallet")
-                val errorMessage = when (error) {
-                    is MiniAppApiException -> error.message
-                    else -> error.message ?: "Connection failed"
+                if (error is MiniAppApiException && error.isJwtExpired) {
+                    uiState = uiState.copy(finishState = FinishState.JwtExpired)
+                } else {
+                    val errorMessage = when (error) {
+                        is MiniAppApiException -> error.message
+                        else -> error.message ?: "Connection failed"
+                    }
+                    uiState = uiState.copy(finishState = FinishState.Error(errorMessage))
                 }
-                uiState = uiState.copy(finishState = FinishState.Error(errorMessage))
             }
         }
     }
@@ -510,6 +531,7 @@ class ConnectMiniAppViewModel(
 sealed class FinishState {
     data object Loading : FinishState()
     data object Success : FinishState()
+    data object JwtExpired : FinishState()
     data class Error(val message: String?) : FinishState()
 }
 
@@ -536,6 +558,7 @@ data class ConnectMiniAppUiState(
     val captchaError: String? = null,
     val isCaptchaLoading: Boolean = false,
     val isCaptchaVerifying: Boolean = false,
+    val isJwtExpired: Boolean = false,
     // Step 5 - Special Proposal state
     val specialProposalData: SpecialProposalData? = null,
     val selectedCoinTab: CoinType = CoinType.PIRATE,

@@ -1731,6 +1731,8 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="connect_mini_app_captcha_error_wrong_code">Code incorrect, veuillez réessayer</string>
     <string name="connect_mini_app_captcha_error_expired">Le captcha a expiré, veuillez actualiser</string>
     <string name="connect_mini_app_captcha_error_qr_expired">Le code QR a expiré, veuillez scanner à nouveau</string>
+    <string name="connect_mini_app_link_expired">Lien expiré, veuillez en utiliser un nouveau depuis la mini app pour démarrer la connexion</string>
+    <string name="connect_mini_app_open_mini_app">Ouvrir Mini App</string>
     <string name="connect_mini_app_step_5">Étape 5</string>
     <string name="connect_mini_app_step_5_description">Offre spéciale pour les membres premium</string>
     <string name="connect_mini_app_bonus_text_prefix">Obtenez un bonus garanti + 10% de</string>

@@ -16,8 +16,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Spacer
 import cash.p.terminal.feature.miniapp.domain.model.CoinType
 import cash.p.terminal.feature.miniapp.domain.model.SpecialProposalData
+import cash.p.terminal.feature.miniapp.ui.components.JwtExpiredStepContent
 import cash.p.terminal.feature.miniapp.ui.components.MiniAppStepScaffold
 import cash.p.terminal.feature.miniapp.ui.components.StepDescriptionStyle
 import cash.p.terminal.feature.miniapp.ui.components.StepIndicatorState
@@ -43,8 +45,20 @@ internal fun SpecialProposalStepScreen(
     onBuyClick: () -> Unit,
     onConnectClick: () -> Unit,
     onRetryClick: () -> Unit,
+    onOpenMiniAppClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Show JWT expired state
+    if (uiState.isJwtExpired) {
+        JwtExpiredStepContent(
+            stepTitle = stringResource(R.string.connect_mini_app_step_5),
+            stepIndicatorState = stepIndicatorState,
+            onOpenMiniAppClick = onOpenMiniAppClick,
+            modifier = modifier
+        )
+        return
+    }
+
     // Show error state with retry
     if (uiState.error != null) {
         MiniAppStepScaffold(
@@ -233,7 +247,8 @@ data class SpecialProposalUiState(
     val selectedTab: CoinType = CoinType.PIRATE,
     val isLoading: Boolean = false,
     val isPremium: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isJwtExpired: Boolean = false
 )
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -269,7 +284,8 @@ private fun SpecialProposalStepScreenPreview() {
             onTabSelected = {},
             onBuyClick = {},
             onConnectClick = {},
-            onRetryClick = {}
+            onRetryClick = {},
+            onOpenMiniAppClick = {}
         )
     }
 }
@@ -307,7 +323,8 @@ private fun SpecialProposalStepScreenCosaTabPreview() {
             onTabSelected = {},
             onBuyClick = {},
             onConnectClick = {},
-            onRetryClick = {}
+            onRetryClick = {},
+            onOpenMiniAppClick = {}
         )
     }
 }
@@ -345,7 +362,8 @@ private fun SpecialProposalStepScreenPremiumPreview() {
             onTabSelected = {},
             onBuyClick = {},
             onConnectClick = {},
-            onRetryClick = {}
+            onRetryClick = {},
+            onOpenMiniAppClick = {}
         )
     }
 }
@@ -360,7 +378,8 @@ private fun SpecialProposalStepScreenLoadingPreview() {
             onTabSelected = {},
             onBuyClick = {},
             onConnectClick = {},
-            onRetryClick = {}
+            onRetryClick = {},
+            onOpenMiniAppClick = {}
         )
     }
 }
@@ -375,7 +394,24 @@ private fun SpecialProposalStepScreenErrorPreview() {
             onTabSelected = {},
             onBuyClick = {},
             onConnectClick = {},
-            onRetryClick = {}
+            onRetryClick = {},
+            onOpenMiniAppClick = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SpecialProposalStepScreenJwtExpiredPreview() {
+    ComposeAppTheme {
+        SpecialProposalStepScreen(
+            uiState = SpecialProposalUiState(isJwtExpired = true),
+            stepIndicatorState = rememberStepIndicatorState(initialStep = 5),
+            onTabSelected = {},
+            onBuyClick = {},
+            onConnectClick = {},
+            onRetryClick = {},
+            onOpenMiniAppClick = {}
         )
     }
 }

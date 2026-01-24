@@ -32,12 +32,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import cash.p.terminal.feature.miniapp.R
 import cash.p.terminal.feature.miniapp.ui.components.CaptchaCodeInput
+import cash.p.terminal.feature.miniapp.ui.components.JwtExpiredStepContent
 import cash.p.terminal.feature.miniapp.ui.components.MiniAppStepScaffold
 import cash.p.terminal.feature.miniapp.ui.components.StepDescriptionStyle
 import cash.p.terminal.feature.miniapp.ui.components.StepIndicatorState
 import cash.p.terminal.feature.miniapp.ui.components.rememberStepIndicatorState
+import cash.p.terminal.strings.R
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -55,12 +56,25 @@ fun CaptchaStepScreen(
     error: String?,
     isLoading: Boolean,
     isVerifying: Boolean,
+    isJwtExpired: Boolean,
     onCodeChange: (String) -> Unit,
     onRefreshClick: () -> Unit,
     onVerifyClick: () -> Unit,
+    onOpenMiniAppClick: () -> Unit,
     stepIndicatorState: StepIndicatorState? = null,
     modifier: Modifier = Modifier
 ) {
+    // Show link expired state
+    if (isJwtExpired) {
+        JwtExpiredStepContent(
+            stepTitle = stringResource(R.string.connect_mini_app_step_4),
+            stepIndicatorState = stepIndicatorState,
+            onOpenMiniAppClick = onOpenMiniAppClick,
+            modifier = modifier
+        )
+        return
+    }
+
     // Countdown timer state
     var remainingSeconds by remember(expiresInSeconds) { mutableLongStateOf(expiresInSeconds) }
 
@@ -212,9 +226,11 @@ private fun CaptchaStepScreenLoadingPreview() {
             error = null,
             isLoading = true,
             isVerifying = false,
+            isJwtExpired = false,
             onCodeChange = {},
             onRefreshClick = {},
             onVerifyClick = {},
+            onOpenMiniAppClick = {},
             stepIndicatorState = rememberStepIndicatorState(initialStep = 4)
         )
     }
@@ -231,9 +247,11 @@ private fun CaptchaStepScreenWithCodePreview() {
             error = null,
             isLoading = false,
             isVerifying = false,
+            isJwtExpired = false,
             onCodeChange = {},
             onRefreshClick = {},
             onVerifyClick = {},
+            onOpenMiniAppClick = {},
             stepIndicatorState = rememberStepIndicatorState(initialStep = 4)
         )
     }
@@ -250,9 +268,32 @@ private fun CaptchaStepScreenErrorPreview() {
             error = "Wrong code, please try again",
             isLoading = false,
             isVerifying = false,
+            isJwtExpired = false,
             onCodeChange = {},
             onRefreshClick = {},
             onVerifyClick = {},
+            onOpenMiniAppClick = {},
+            stepIndicatorState = rememberStepIndicatorState(initialStep = 4)
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CaptchaStepScreenJwtExpiredPreview() {
+    ComposeAppTheme {
+        CaptchaStepScreen(
+            captchaImageBase64 = null,
+            expiresInSeconds = 0,
+            code = "",
+            error = null,
+            isLoading = false,
+            isVerifying = false,
+            isJwtExpired = true,
+            onCodeChange = {},
+            onRefreshClick = {},
+            onVerifyClick = {},
+            onOpenMiniAppClick = {},
             stepIndicatorState = rememberStepIndicatorState(initialStep = 4)
         )
     }

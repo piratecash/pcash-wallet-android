@@ -1740,6 +1740,8 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="connect_mini_app_captcha_error_wrong_code">Verkeerde code, probeer het opnieuw</string>
     <string name="connect_mini_app_captcha_error_expired">Captcha verlopen, vernieuw alstublieft</string>
     <string name="connect_mini_app_captcha_error_qr_expired">QR-code verlopen, scan opnieuw</string>
+    <string name="connect_mini_app_link_expired">Link verlopen, gebruik een nieuwe uit de mini-app om de verbinding te starten</string>
+    <string name="connect_mini_app_open_mini_app">Mini-app openen</string>
     <string name="connect_mini_app_step_5">Stap 5</string>
     <string name="connect_mini_app_step_5_description">Speciale aanbieding voor premium leden</string>
     <string name="connect_mini_app_bonus_text_prefix">Ontvang een gegarandeerde bonus + 10% van</string>

@@ -1722,6 +1722,8 @@
     <string name="connect_mini_app_captcha_error_wrong_code">验证码错误，请重试</string>
     <string name="connect_mini_app_captcha_error_expired">验证码已过期，请刷新</string>
     <string name="connect_mini_app_captcha_error_qr_expired">二维码已过期，请重新扫描</string>
+    <string name="connect_mini_app_link_expired">链接已过期，请从小程序获取新链接以开始连接</string>
+    <string name="connect_mini_app_open_mini_app">打开小程序</string>
     <string name="connect_mini_app_step_5">第5步</string>
     <string name="connect_mini_app_step_5_description">高级会员专属优惠</string>
     <string name="connect_mini_app_bonus_text_prefix">获得保证奖金 + 10%</string>
