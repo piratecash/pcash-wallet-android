@@ -107,6 +107,7 @@
     <string name="Restore_Error_MnemonicWordCount">Número incorreto de palavras. Deve ter entre 12 ou 24 palavras. Você inseriu: %d</string>
     <string name="invalid_height">Altura inválida</string>
     <string name="invalid_height_format">Altura inválida, certifique-se de que inseriu AAAA-MM-DD ou altura de nascimento</string>
+    <string name="invalid_qr_code">Código QR inválido</string>
     <string name="blockchair_height_by_date_connection_error">Não foi possível conectar ao Blockchair para encontrar a altura pela data</string>
     <string name="Restore_Error_EmptyPassphrase">A senha não pode estar vazia</string>
     <string name="Restore_InvalidChecksum">Soma de Verificação Inválida</string>

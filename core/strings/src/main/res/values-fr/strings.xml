@@ -107,6 +107,7 @@
     <string name="Restore_Error_MnemonicWordCount">Le nombre de mots est incorrect. Il doit être compris entre 12 et 24 mots. Vous avez saisi : %d</string>
     <string name="invalid_height">Hauteur invalide</string>
     <string name="invalid_height_format">Hauteur invalide, assurez-vous d\'avoir entré AAAA-MM-JJ ou la hauteur de naissance</string>
+    <string name="invalid_qr_code">Code QR invalide</string>
     <string name="blockchair_height_by_date_connection_error">Impossible de se connecter à Blockchair pour trouver la hauteur par date</string>
     <string name="Restore_Error_EmptyPassphrase">La phrase d\'authentification ne peut pas être laissée en blanc</string>
     <string name="Restore_InvalidChecksum">Somme de contrôle invalide</string>

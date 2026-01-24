@@ -1633,6 +1633,7 @@
     <string name="Restore_Error_MnemonicWordCount_monero">Неверное количество слов. Должно быть 25. Вы ввели: %d</string>
     <string name="invalid_height">Неверное значение высоты</string>
     <string name="invalid_height_format">Неверное значение высоты, убедитесь, что вы ввели ГГГГ-ММ-ДД или высоту рождения</string>
+    <string name="invalid_qr_code">Неверный QR-код</string>
     <string name="blockchair_height_by_date_connection_error">Не удалось подключиться к Blockchair, чтобы найти высоту по дате</string>
     <string name="view_key">Ключ просмотра</string>
     <string name="Balance_Receive_Trustline">Доверительная линия</string>

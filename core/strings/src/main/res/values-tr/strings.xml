@@ -107,6 +107,7 @@
     <string name="Restore_Error_MnemonicWordCount">Hatalı sözcük sayısı. 12-24 arası sözcük olmalıdır. Girilen: %d</string>
     <string name="invalid_height">Geçersiz yükseklik</string>
     <string name="invalid_height_format">Geçersiz yükseklik, YYYY-AA-GG veya doğum yüksekliği girdiğinizden emin olun</string>
+    <string name="invalid_qr_code">Geçersiz QR Kodu</string>
     <string name="blockchair_height_by_date_connection_error">Tarihe göre yüksekliği bulmak için Blockchair\'a bağlanılamıyor</string>
     <string name="Restore_Error_EmptyPassphrase">Parola boş olamaz</string>
     <string name="Restore_InvalidChecksum">Geçersiz sağlama toplamı</string>

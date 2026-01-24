@@ -107,6 +107,7 @@
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
     <string name="invalid_height">Ongeldige hoogte</string>
     <string name="invalid_height_format">Ongeldige hoogte, zorg ervoor dat u JJJJ-MM-DD of geboortehoogte hebt ingevoerd</string>
+    <string name="invalid_qr_code">Ongeldige QR-code</string>
     <string name="blockchair_height_by_date_connection_error">Kan geen verbinding maken met Blockchair om de hoogte op basis van de datum te vinden</string>
     <string name="Restore_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="Restore_InvalidChecksum">Invalid Checksum</string>

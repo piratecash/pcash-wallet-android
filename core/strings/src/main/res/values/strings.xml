@@ -137,6 +137,7 @@
     <string name="Restore_Error_MnemonicWordCount_monero">Wrong words count. It must be 25 words. You entered: %d</string>
     <string name="invalid_height">Invalid height</string>
     <string name="invalid_height_format">Invalid height, make sure you entered YYYY-MM-DD or birth height</string>
+    <string name="invalid_qr_code">Invalid QR Code</string>
     <string name="blockchair_height_by_date_connection_error">Can\'t connect to Blockchair to find the height by date</string>
     <string name="monero_restore_error">Monero restore error</string>
     <string name="Restore_Error_EmptyPassphrase">Passphrase cannot be empty</string>

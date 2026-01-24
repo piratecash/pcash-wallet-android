@@ -8,6 +8,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.feature.miniapp.R
 import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.components.HudHelper
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MiniAppFragment : BaseComposeFragment() {
@@ -25,7 +26,11 @@ class MiniAppFragment : BaseComposeFragment() {
                     title = context.getString(R.string.mini_app_connection),
                     showPasteButton = true,
                     allowGalleryWithoutPremium = true
-                ) { _ -> }
+                ) { _ ->
+                    requireView().post {
+                        HudHelper.showErrorMessage(requireView(), R.string.invalid_qr_code)
+                    }
+                }
             },
             onStartEarningClick = {
                 val intent = Intent(Intent.ACTION_VIEW, TELEGRAM_BOT_URL.toUri())

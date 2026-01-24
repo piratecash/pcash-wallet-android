@@ -107,6 +107,7 @@
     <string name="Restore_Error_MnemonicWordCount">个数有误。必须为12到24个单词。您输入了：%d</string>
     <string name="invalid_height">无效高度</string>
     <string name="invalid_height_format">无效高度，请确保您输入的是 YYYY-MM-DD 格式或出生高度</string>
+    <string name="invalid_qr_code">无效的二维码</string>
     <string name="blockchair_height_by_date_connection_error">无法连接到 Blockchair 以按日期查找高度</string>
     <string name="Restore_Error_EmptyPassphrase">助记词不能为空</string>
     <string name="Restore_InvalidChecksum">校验和无效</string>
