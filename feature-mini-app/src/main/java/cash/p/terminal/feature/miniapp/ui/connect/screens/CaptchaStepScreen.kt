@@ -95,7 +95,7 @@ fun CaptchaStepScreen(
                     .padding(top = 16.dp),
                 title = stringResource(R.string.connect_mini_app_captcha_update),
                 onClick = onRefreshClick,
-                enabled = isTimerExpired && !isLoading
+                enabled = !isLoading
             )
         },
         content = {
@@ -109,7 +109,7 @@ fun CaptchaStepScreen(
                         .fillMaxWidth()
                         .height(100.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(ComposeAppTheme.colors.lawrence)
+                        .background(ComposeAppTheme.colors.light)
                         .border(1.dp, ComposeAppTheme.colors.steel20, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
