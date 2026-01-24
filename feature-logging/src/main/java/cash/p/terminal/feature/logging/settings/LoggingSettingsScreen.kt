@@ -58,7 +58,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import io.horizontalsystems.core.entities.AutoDeletePeriod
 import io.horizontalsystems.core.ui.dialogs.ConfirmationDialogBottomSheet
-import io.horizontalsystems.icons.R as IconsR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -135,7 +134,7 @@ fun LoggingSettingsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     title = stringResource(R.string.login_logging_subscription_expired_title),
                     text = stringResource(R.string.login_logging_subscription_expired_description),
-                    icon = IconsR.drawable.icon_24_warning_2
+                    icon = R.drawable.icon_24_warning_2
                 )
                 VSpacer(16.dp)
             }

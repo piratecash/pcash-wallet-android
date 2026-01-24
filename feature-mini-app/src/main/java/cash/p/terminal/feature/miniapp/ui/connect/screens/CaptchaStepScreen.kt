@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.feature.miniapp.ui.components.CaptchaCodeInput
@@ -38,10 +38,13 @@ import cash.p.terminal.feature.miniapp.ui.components.MiniAppStepScaffold
 import cash.p.terminal.feature.miniapp.ui.components.StepDescriptionStyle
 import cash.p.terminal.feature.miniapp.ui.components.StepIndicatorState
 import cash.p.terminal.feature.miniapp.ui.components.rememberStepIndicatorState
-import cash.p.terminal.strings.R
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
+import cash.p.terminal.feature.miniapp.R
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.ButtonSecondary
+import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults
 import cash.p.terminal.ui_compose.components.VSpacer
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.delay
@@ -103,14 +106,6 @@ fun CaptchaStepScreen(
                 onClick = onVerifyClick,
                 enabled = isCodeComplete && !isVerifying && !isLoading
             )
-            ButtonPrimaryDefault(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                title = stringResource(R.string.connect_mini_app_captcha_update),
-                onClick = onRefreshClick,
-                enabled = !isLoading
-            )
         },
         content = {
             Spacer(Modifier.weight(1f))
@@ -158,23 +153,47 @@ fun CaptchaStepScreen(
                     }
                 }
 
-                VSpacer(8.dp)
-
                 val timerText = formatTime(remainingSeconds)
                 val timerColor = if (isTimerExpired) {
                     ComposeAppTheme.colors.lucian
                 } else {
                     ComposeAppTheme.colors.grey
                 }
-                Text(
-                    text = timerText,
-                    style = ComposeAppTheme.typography.subhead1,
-                    color = timerColor,
-                    textAlign = TextAlign.End,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 65.dp),
-                )
+                        .padding(start = 40.dp, end = 55.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ButtonSecondary(
+                        onClick = onRefreshClick,
+                        enabled = !isLoading,
+                        buttonColors = SecondaryButtonDefaults.buttonColors(
+                            backgroundColor = ComposeAppTheme.colors.transparent,
+                            contentColor = ComposeAppTheme.colors.grey,
+                            disabledBackgroundColor = ComposeAppTheme.colors.transparent,
+                            disabledContentColor = ComposeAppTheme.colors.grey50,
+                        )
+                    ) {
+                        Icon(
+                            modifier = Modifier.padding(end = 8.dp),
+                            painter = painterResource(R.drawable.ic_refresh_20),
+                            contentDescription = null,
+                            tint = ComposeAppTheme.colors.grey
+                        )
+                        Text(
+                            text = stringResource(R.string.connect_mini_app_captcha_update),
+                            maxLines = 1,
+                            color = ComposeAppTheme.colors.grey
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = timerText,
+                        style = ComposeAppTheme.typography.subhead1,
+                        color = timerColor
+                    )
+                }
 
                 VSpacer(24.dp)
 

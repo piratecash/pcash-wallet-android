@@ -19,11 +19,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import cash.p.terminal.strings.R
+import cash.p.terminal.feature.miniapp.R
 import cash.p.terminal.ui_compose.components.ButtonPrimaryLight
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import io.horizontalsystems.icons.R as IconsR
 
 @Composable
 fun LinkExpiredContent(modifier: Modifier = Modifier) {
@@ -39,7 +38,7 @@ fun LinkExpiredContent(modifier: Modifier = Modifier) {
         ) {
             Icon(
                 modifier = Modifier.size(48.dp),
-                painter = painterResource(IconsR.drawable.ic_not_found_48),
+                painter = painterResource(R.drawable.ic_not_found_48),
                 contentDescription = null,
                 tint = ComposeAppTheme.colors.grey
             )
