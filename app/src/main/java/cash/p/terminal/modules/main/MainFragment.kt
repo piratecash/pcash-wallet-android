@@ -324,10 +324,17 @@ private fun MainScreen(
     uiState.deeplinkPage?.let { deepLinkPage ->
         LaunchedEffect(Unit) {
             delay(500)
-            fragmentNavController.slideFromRight(
-                deepLinkPage.navigationId,
-                deepLinkPage.input
-            )
+            if (deepLinkPage.navigationId == R.id.connectMiniAppFragment) {
+                fragmentNavController.slideFromBottom(
+                    deepLinkPage.navigationId,
+                    deepLinkPage.input
+                )
+            } else {
+                fragmentNavController.slideFromRight(
+                    deepLinkPage.navigationId,
+                    deepLinkPage.input
+                )
+            }
             viewModel.deeplinkPageHandled()
         }
     }

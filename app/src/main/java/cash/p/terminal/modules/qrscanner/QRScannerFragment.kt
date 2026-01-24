@@ -13,7 +13,9 @@ import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.p.terminal.navigation.QrScannerInput
 import cash.p.terminal.navigation.QrScannerResult
 import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import kotlinx.coroutines.flow.collectLatest
@@ -61,7 +63,11 @@ class QRScannerFragment : BaseComposeFragment() {
         if (deeplinkPage != null) {
             // Pop QR scanner first, then navigate to deeplink destination
             navController.popBackStack()
-            navController.slideFromRight(deeplinkPage.navigationId, deeplinkPage.input)
+            if (deeplinkPage.navigationId == R.id.connectMiniAppFragment) {
+                navController.slideFromBottom(deeplinkPage.navigationId, deeplinkPage.input)
+            } else {
+                navController.slideFromRight(deeplinkPage.navigationId, deeplinkPage.input)
+            }
         } else {
             // Return result to caller as before
             navController.setNavigationResultX(QrScannerResult(decoded))
