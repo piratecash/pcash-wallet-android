@@ -127,10 +127,12 @@ class ConnectMiniAppViewModel(
                         .isPremium()
                 )
             }
+            val storedAccountId = uniqueCodeStorage.connectedAccountId
             uiState = uiState.copy(
                 walletItems = walletItems,
                 isLoading = false,
-                preselectedAccountId = uniqueCodeStorage.connectedAccountId.takeIf { it.isNotBlank() }
+                preselectedAccountId = storedAccountId
+                    .takeIf { it.isNotBlank() && walletItems.any { item -> item.accountId == storedAccountId } }
                     ?: walletItems.firstOrNull { it.isPremium }?.accountId
                     ?: walletItems.firstOrNull()?.accountId
             )
