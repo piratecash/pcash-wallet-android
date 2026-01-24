@@ -9,23 +9,23 @@ import java.math.BigDecimal
 data class SpecialProposalData(
     // Guaranteed bonus (calculated from API balance)
     val guaranteedBonus: Int,           // floor(balance * 0.1), min 1
-    val guaranteedBonusUsd: String,     // USD equivalent
+    val guaranteedBonusFiat: String,    // Fiat equivalent
 
     // PIRATE tab data
     val pirateBalance: BigDecimal,
     val pirateNotEnough: String,        // Formatted, e.g., "10,000 PIRATE"
-    val pirateNotEnoughUsd: String,
+    val pirateNotEnoughFiat: String,
     val pirateRoi: String,              // e.g., "7.5%"
     val pirateMonthlyIncome: String,    // e.g., "+56.873 PIRATE"
-    val pirateMonthlyIncomeUsd: String, // e.g., "+$1.1888"
+    val pirateMonthlyIncomeFiat: String, // e.g., "+$1.1888"
 
     // COSA tab data
     val cosaBalance: BigDecimal,
     val cosaNotEnough: String,          // Formatted, e.g., "100 COSA"
-    val cosaNotEnoughUsd: String,
+    val cosaNotEnoughFiat: String,
     val cosaRoi: String,                // e.g., "23.5%"
     val cosaMonthlyIncome: String,      // e.g., "+2.1255 COSA"
-    val cosaMonthlyIncomeUsd: String,   // e.g., "+$2.9237"
+    val cosaMonthlyIncomeFiat: String,   // e.g., "+$2.9237"
 
     // Tab selection
     val cheaperOption: CoinType,        // Which tab requires less USD to reach premium

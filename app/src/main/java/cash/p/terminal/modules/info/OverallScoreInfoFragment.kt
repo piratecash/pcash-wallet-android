@@ -133,11 +133,9 @@ private fun InfoScreen(
     }
 }
 
-private fun formatUsd(number: Int): String {
-    val symbol = "$"
-    val decimals = 0
-
-    return App.numberFormatter.formatFiatShort(BigDecimal(number), symbol, decimals)
+private fun formatFiat(number: Int): String {
+    val currency = App.currencyManager.baseCurrency
+    return App.numberFormatter.formatFiatShort(BigDecimal(number), currency.symbol, 0)
 }
 
 private fun formatNumber(number: Int): String {
@@ -148,28 +146,28 @@ private fun getScores(scoreCategory: ScoreCategory?): Map<OverallScore, String> 
     return when (scoreCategory) {
         ScoreCategory.CexScoreCategory -> {
             mapOf(
-                OverallScore.Excellent to "> " + formatUsd(10_000_000),
-                OverallScore.Good to "> " + formatUsd(5_000_000),
-                OverallScore.Fair to "> " + formatUsd(1_000_000),
-                OverallScore.Poor to "< " + formatUsd(1_000_000),
+                OverallScore.Excellent to "> " + formatFiat(10_000_000),
+                OverallScore.Good to "> " + formatFiat(5_000_000),
+                OverallScore.Fair to "> " + formatFiat(1_000_000),
+                OverallScore.Poor to "< " + formatFiat(1_000_000),
             )
         }
 
         ScoreCategory.DexVolumeScoreCategory -> {
             mapOf(
-                OverallScore.Excellent to "> " + formatUsd(1_000_000),
-                OverallScore.Good to "> " + formatUsd(500_000),
-                OverallScore.Fair to "> " + formatUsd(100_000),
-                OverallScore.Poor to "< " + formatUsd(100_000),
+                OverallScore.Excellent to "> " + formatFiat(1_000_000),
+                OverallScore.Good to "> " + formatFiat(500_000),
+                OverallScore.Fair to "> " + formatFiat(100_000),
+                OverallScore.Poor to "< " + formatFiat(100_000),
             )
         }
 
         ScoreCategory.DexLiquidityScoreCategory -> {
             mapOf(
-                OverallScore.Excellent to "> " + formatUsd(1_000_000),
-                OverallScore.Good to "> " + formatUsd(1_000_000),
-                OverallScore.Fair to "> " + formatUsd(500_000),
-                OverallScore.Poor to "< " + formatUsd(500_000),
+                OverallScore.Excellent to "> " + formatFiat(1_000_000),
+                OverallScore.Good to "> " + formatFiat(1_000_000),
+                OverallScore.Fair to "> " + formatFiat(500_000),
+                OverallScore.Poor to "< " + formatFiat(500_000),
             )
         }
 
@@ -202,10 +200,10 @@ private fun getScores(scoreCategory: ScoreCategory?): Map<OverallScore, String> 
 
         ScoreCategory.TvlScoreCategory -> {
             mapOf(
-                OverallScore.Excellent to "> " + formatUsd(200_000_000),
-                OverallScore.Good to "> " + formatUsd(100_000_000),
-                OverallScore.Fair to "> " + formatUsd(50_000_000),
-                OverallScore.Poor to "< " + formatUsd(50_000_000),
+                OverallScore.Excellent to "> " + formatFiat(200_000_000),
+                OverallScore.Good to "> " + formatFiat(100_000_000),
+                OverallScore.Fair to "> " + formatFiat(50_000_000),
+                OverallScore.Poor to "< " + formatFiat(50_000_000),
             )
         }
 

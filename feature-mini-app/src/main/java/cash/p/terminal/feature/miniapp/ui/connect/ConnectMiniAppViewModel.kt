@@ -128,7 +128,8 @@ class ConnectMiniAppViewModel(
             uiState = uiState.copy(
                 walletItems = walletItems,
                 isLoading = false,
-                preselectedAccountId = walletItems.firstOrNull { it.isPremium }?.accountId
+                preselectedAccountId = uniqueCodeStorage.connectedAccountId.takeIf { it.isNotBlank() }
+                    ?: walletItems.firstOrNull { it.isPremium }?.accountId
                     ?: walletItems.firstOrNull()?.accountId
             )
         }
@@ -445,7 +446,8 @@ class ConnectMiniAppViewModel(
                     gyro = deviceEnv.gyroscopeAverage?.toDto() ?: Vector3DDto.ZERO,
                     accelerometer = deviceEnv.accelerometerAverage?.toDto() ?: Vector3DDto.ZERO,
                     gyroVariance = deviceEnv.gyroscopeVariance?.toDto() ?: Vector3DDto.ZERO,
-                    accelerometerVariance = deviceEnv.accelerometerVariance?.toDto() ?: Vector3DDto.ZERO,
+                    accelerometerVariance = deviceEnv.accelerometerVariance?.toDto()
+                        ?: Vector3DDto.ZERO,
                     batteryPercent = deviceEnv.batteryLevel,
                     isCharging = deviceEnv.isCharging,
                     chargingType = deviceEnv.chargingType.name,
@@ -468,6 +470,7 @@ class ConnectMiniAppViewModel(
                 captchaUseCase.submitPCashWallet(currentJwt, endpoint, request).getOrThrow()
             }.onSuccess { response ->
                 // Save returned uniqueCode to storage
+                uniqueCodeStorage.connectedAccountId = accountId
                 uniqueCodeStorage.uniqueCode = response.uniqueCode.orEmpty()
                 uiState = uiState.copy(finishState = FinishState.Success)
             }.onFailure { error ->

@@ -11,6 +11,7 @@ import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCase
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.MarketKitWrapper
+import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.BlockchainType
@@ -20,6 +21,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 class GetSpecialProposalDataUseCase(
+    private val currencyManager: CurrencyManager,
     private val numberFormatter: IAppNumberFormatter,
     private val miniAppApi: MiniAppApi,
     private val piratePlaceRepository: PiratePlaceRepository,
@@ -98,7 +100,7 @@ class GetSpecialProposalDataUseCase(
         // Calculate guaranteed bonus
         // 8 decimal places and take 10%
         val guaranteedBonus = profile.balance.movePointLeft(9).max(BigDecimal.ONE).toInt()
-        val guaranteedBonusUsd = formatUsd(BigDecimal(guaranteedBonus) * piratePrice)
+        val guaranteedBonusFiat = formatFiat(BigDecimal(guaranteedBonus) * piratePrice)
 
         // Calculate "not enough" amounts
         val pirateNotEnoughAmount = maxOf(
@@ -111,19 +113,19 @@ class GetSpecialProposalDataUseCase(
         )
         val pirateNotEnough = numberFormatter.formatCoinFull(pirateNotEnoughAmount, "PIRATE", 8)
         val cosaNotEnough = numberFormatter.formatCoinFull(cosaNotEnoughAmount, "COSA", 8)
-        val pirateNotEnoughUsd = formatUsd(pirateNotEnoughAmount * piratePrice)
-        val cosaNotEnoughUsd = formatUsd(cosaNotEnoughAmount * cosaPrice)
+        val pirateNotEnoughFiat = formatFiat(pirateNotEnoughAmount * piratePrice)
+        val cosaNotEnoughFiat = formatFiat(cosaNotEnoughAmount * cosaPrice)
 
         // Get monthly income
         val pirateMonthlyData = pirateCalcData?.items?.find { it.periodType == PeriodType.MONTH }
         val cosaMonthlyData = cosaCalcData?.items?.find { it.periodType == PeriodType.MONTH }
 
         val pirateMonthlyIncome = formatCoinAmount(pirateMonthlyData?.amount ?: 0.0, "PIRATE")
-        val pirateMonthlyIncomeUsd = formatUsd(
+        val pirateMonthlyIncomeFiat = formatFiat(
             BigDecimal(pirateMonthlyData?.amount ?: 0.0) * piratePrice
         )
         val cosaMonthlyIncome = formatCoinAmount(cosaMonthlyData?.amount ?: 0.0, "COSA")
-        val cosaMonthlyIncomeUsd = formatUsd(
+        val cosaMonthlyIncomFiat = formatFiat(
             BigDecimal(cosaMonthlyData?.amount ?: 0.0) * cosaPrice
         )
 
@@ -150,19 +152,19 @@ class GetSpecialProposalDataUseCase(
 
         SpecialProposalData(
             guaranteedBonus = guaranteedBonus,
-            guaranteedBonusUsd = guaranteedBonusUsd,
+            guaranteedBonusFiat = guaranteedBonusFiat,
             pirateBalance = pirateBalance,
             pirateNotEnough = pirateNotEnough,
-            pirateNotEnoughUsd = pirateNotEnoughUsd,
+            pirateNotEnoughFiat = pirateNotEnoughFiat,
             pirateRoi = pirateRoi,
             pirateMonthlyIncome = pirateMonthlyIncome,
-            pirateMonthlyIncomeUsd = pirateMonthlyIncomeUsd,
+            pirateMonthlyIncomeFiat = pirateMonthlyIncomeFiat,
             cosaBalance = cosaBalance,
             cosaNotEnough = cosaNotEnough,
-            cosaNotEnoughUsd = cosaNotEnoughUsd,
+            cosaNotEnoughFiat = cosaNotEnoughFiat,
             cosaRoi = cosaRoi,
             cosaMonthlyIncome = cosaMonthlyIncome,
-            cosaMonthlyIncomeUsd = cosaMonthlyIncomeUsd,
+            cosaMonthlyIncomeFiat = cosaMonthlyIncomFiat,
             cheaperOption = cheaperOption,
             hasPiratePremium = hasPiratePremium,
             hasCosaPremium = hasCosaPremium,
@@ -184,8 +186,9 @@ class GetSpecialProposalDataUseCase(
         }.getOrNull() ?: BigDecimal.ZERO
     }
 
-    private fun formatUsd(amount: BigDecimal): String {
-        return "$${amount.setScale(2, RoundingMode.HALF_UP)}"
+    private fun formatFiat(amount: BigDecimal): String {
+        val currency = currencyManager.baseCurrency
+        return numberFormatter.formatFiatShort(amount, currency.symbol, currency.decimal)
     }
 
     private fun formatCoinAmount(amount: Double, symbol: String): String {

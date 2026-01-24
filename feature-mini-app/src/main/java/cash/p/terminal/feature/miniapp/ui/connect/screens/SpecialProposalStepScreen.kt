@@ -104,7 +104,7 @@ internal fun SpecialProposalStepScreen(
             uiState.data?.let { data ->
                 GuaranteedBonusText(
                     bonus = data.guaranteedBonus,
-                    bonusUsd = data.guaranteedBonusUsd,
+                    bonusFiat = data.guaranteedBonusFiat,
                     modifier = Modifier.padding(
                         start = 16.dp,
                         end = 16.dp,
@@ -163,12 +163,12 @@ internal fun SpecialProposalStepScreen(
 @Composable
 private fun GuaranteedBonusText(
     bonus: Int,
-    bonusUsd: String,
+    bonusFiat: String,
     modifier: Modifier = Modifier
 ) {
     val prefix = stringResource(R.string.connect_mini_app_bonus_text_prefix)
     val suffix = stringResource(R.string.connect_mini_app_bonus_text_suffix)
-    val bonusText = "+$bonus PIRATE ($bonusUsd)"
+    val bonusText = "+$bonus PIRATE ($bonusFiat)"
 
     val annotatedText = buildAnnotatedString {
         withStyle(SpanStyle(color = ComposeAppTheme.colors.leah)) {
@@ -199,10 +199,10 @@ private fun StatsCard(
 ) {
     val isPirate = selectedTab == CoinType.PIRATE
     val notEnough = if (isPirate) data.pirateNotEnough else data.cosaNotEnough
-    val notEnoughUsd = if (isPirate) data.pirateNotEnoughUsd else data.cosaNotEnoughUsd
+    val notEnoughFiat = if (isPirate) data.pirateNotEnoughFiat else data.cosaNotEnoughFiat
     val roi = if (isPirate) data.pirateRoi else data.cosaRoi
     val monthlyIncome = if (isPirate) data.pirateMonthlyIncome else data.cosaMonthlyIncome
-    val monthlyIncomeUsd = if (isPirate) data.pirateMonthlyIncomeUsd else data.cosaMonthlyIncomeUsd
+    val monthlyIncomeFiat = if (isPirate) data.pirateMonthlyIncomeFiat else data.cosaMonthlyIncomeFiat
 
     CellUniversalLawrenceSection(
         listOf(
@@ -210,7 +210,7 @@ private fun StatsCard(
                 TitleAndTwoValuesCell(
                     stringResource(R.string.connect_mini_app_not_enough),
                     notEnough,
-                    notEnoughUsd
+                    notEnoughFiat
                 )
             },
             { TitleAndValueCell(stringResource(R.string.connect_mini_app_roi), roi) },
@@ -218,7 +218,7 @@ private fun StatsCard(
                 TitleAndTwoValuesCell(
                     stringResource(R.string.connect_mini_app_monthly_income),
                     monthlyIncome,
-                    monthlyIncomeUsd
+                    monthlyIncomeFiat
                 )
             }
         )
@@ -244,19 +244,19 @@ private fun SpecialProposalStepScreenPreview() {
             uiState = SpecialProposalUiState(
                 data = SpecialProposalData(
                     guaranteedBonus = 1000,
-                    guaranteedBonusUsd = "$20",
+                    guaranteedBonusFiat = "$20",
                     pirateBalance = BigDecimal.ZERO,
                     pirateNotEnough = "10,000 PIRATE",
-                    pirateNotEnoughUsd = "$234",
+                    pirateNotEnoughFiat = "$234",
                     pirateRoi = "7.5%",
                     pirateMonthlyIncome = "+56.873 PIRATE",
-                    pirateMonthlyIncomeUsd = "+$1.1888",
+                    pirateMonthlyIncomeFiat = "+$1.1888",
                     cosaBalance = BigDecimal.ZERO,
                     cosaNotEnough = "100 COSA",
-                    cosaNotEnoughUsd = "$143",
+                    cosaNotEnoughFiat = "$143",
                     cosaRoi = "23.5%",
                     cosaMonthlyIncome = "+2.1255 COSA",
-                    cosaMonthlyIncomeUsd = "+$2.9237",
+                    cosaMonthlyIncomeFiat = "+$2.9237",
                     cheaperOption = CoinType.COSA,
                     hasPiratePremium = false,
                     hasCosaPremium = false,
@@ -282,19 +282,19 @@ private fun SpecialProposalStepScreenCosaTabPreview() {
             uiState = SpecialProposalUiState(
                 data = SpecialProposalData(
                     guaranteedBonus = 1000,
-                    guaranteedBonusUsd = "$20",
+                    guaranteedBonusFiat = "$20",
                     pirateBalance = BigDecimal.ZERO,
                     pirateNotEnough = "10,000 PIRATE",
-                    pirateNotEnoughUsd = "$234",
+                    pirateNotEnoughFiat = "$234",
                     pirateRoi = "7.5%",
                     pirateMonthlyIncome = "+56.873 PIRATE",
-                    pirateMonthlyIncomeUsd = "+$1.1888",
+                    pirateMonthlyIncomeFiat = "+$1.1888",
                     cosaBalance = BigDecimal.ZERO,
                     cosaNotEnough = "100 COSA",
-                    cosaNotEnoughUsd = "$143",
+                    cosaNotEnoughFiat = "$143",
                     cosaRoi = "23.5%",
                     cosaMonthlyIncome = "+2.1255 COSA",
-                    cosaMonthlyIncomeUsd = "+$2.9237",
+                    cosaMonthlyIncomeFiat = "+$2.9237",
                     cheaperOption = CoinType.COSA,
                     hasPiratePremium = false,
                     hasCosaPremium = false,
@@ -320,19 +320,19 @@ private fun SpecialProposalStepScreenPremiumPreview() {
             uiState = SpecialProposalUiState(
                 data = SpecialProposalData(
                     guaranteedBonus = 1000,
-                    guaranteedBonusUsd = "$20",
+                    guaranteedBonusFiat = "$20",
                     pirateBalance = BigDecimal(15000),
                     pirateNotEnough = "0 PIRATE",
-                    pirateNotEnoughUsd = "$0",
+                    pirateNotEnoughFiat = "$0",
                     pirateRoi = "7.5%",
                     pirateMonthlyIncome = "+112.5 PIRATE",
-                    pirateMonthlyIncomeUsd = "+$2.34",
+                    pirateMonthlyIncomeFiat = "+$2.34",
                     cosaBalance = BigDecimal(150),
                     cosaNotEnough = "0 COSA",
-                    cosaNotEnoughUsd = "$0",
+                    cosaNotEnoughFiat = "$0",
                     cosaRoi = "23.5%",
                     cosaMonthlyIncome = "+3.5 COSA",
-                    cosaMonthlyIncomeUsd = "+$5.00",
+                    cosaMonthlyIncomeFiat = "+$5.00",
                     cheaperOption = CoinType.PIRATE,
                     hasPiratePremium = true,
                     hasCosaPremium = true,

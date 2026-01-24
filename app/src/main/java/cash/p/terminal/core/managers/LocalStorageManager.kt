@@ -781,4 +781,9 @@ class LocalStorageManager(
         key = "unique_code_mini_app",
         default = ""
     )
+
+    override var connectedAccountId by preferences.delegate(
+        key = "connected_account_id_mini_app",
+        default = ""
+    )
 }
