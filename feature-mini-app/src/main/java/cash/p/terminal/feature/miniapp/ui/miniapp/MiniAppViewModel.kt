@@ -70,7 +70,7 @@ class MiniAppViewModel(
         )?.value ?: return ""
 
         val value = piratePrice * pirateAmount
-        return "+${numberFormatter.formatFiatShort(value, currency.symbol, 0)}"
+        return "${numberFormatter.formatFiatShort(value, currency.symbol, 0)}"
     }
 }
 
