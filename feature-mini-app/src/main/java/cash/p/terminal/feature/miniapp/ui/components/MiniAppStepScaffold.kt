@@ -2,6 +2,7 @@ package cash.p.terminal.feature.miniapp.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,11 +10,14 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -119,12 +123,32 @@ fun MiniAppStepScaffold(
                 content()
             }
 
-            // FIXED BOTTOM (if provided)
             if (bottomContent != null) {
-                Column(Modifier.padding(horizontal = 16.dp)) {
-                    bottomContent()
+                Column(
+                    modifier = Modifier.offset(y = -(24.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(24.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    listOf(
+                                        ComposeAppTheme.colors.transparent,
+                                        ComposeAppTheme.colors.tyler
+                                    )
+                                )
+                            )
+                    )
+                    Column(
+                        modifier = Modifier
+                            .background(ComposeAppTheme.colors.tyler)
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 8.dp)
+                    ) {
+                        bottomContent()
+                    }
                 }
-                VSpacer(32.dp)
             }
         }
     }
