@@ -1,3 +1,21 @@
+## 🚀 Version 0.51.3 Update
+_Release date: January 25, 2026_
+
+### ✨ New Features
+
+- **Added P.CASH wallet connection mode to the mini-app @piratecash_bot**
+  Implemented the ability to connect the P.CASH wallet to the Telegram mini-app to participate in **SWAP 5**, simplifying interaction with the ecosystem.
+
+### 🔧 Fixes and Improvements
+
+- **Fixed Polygon price fetching issue**
+  Resolved an issue with incorrect fetching and display of the Polygon price.
+
+- **Fixed crash when importing a wallet from Google Drive**
+  Fixed an application crash that occurred when attempting to import a wallet from a Google Drive backup.
+
+
+
 ## 🚀 Version 0.51.2 Update
 _Release date: January 22, 2026_
 
