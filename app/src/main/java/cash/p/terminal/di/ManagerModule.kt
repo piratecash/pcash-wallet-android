@@ -6,7 +6,6 @@ import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IMarketStorage
-import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.ITorManager
 import cash.p.terminal.core.address.AddressCheckManager
