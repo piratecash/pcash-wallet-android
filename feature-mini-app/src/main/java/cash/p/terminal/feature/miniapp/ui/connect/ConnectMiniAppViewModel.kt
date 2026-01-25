@@ -18,11 +18,13 @@ import cash.p.terminal.feature.miniapp.domain.usecase.CheckIfEmulatorUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.CheckRequiredTokensUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.CollectDeviceEnvironmentUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
-import cash.p.terminal.feature.miniapp.domain.usecase.GetPirateJettonAddressUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.GetSpecialProposalDataUseCase
+import cash.p.terminal.feature.miniapp.domain.usecase.GetTonAddressUseCase
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCase
 import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.strings.R
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.BuildConfig
@@ -36,8 +38,6 @@ import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import cash.p.terminal.strings.R
-import cash.p.terminal.strings.helpers.Translator
 import timber.log.Timber
 
 class ConnectMiniAppViewModel(
@@ -48,12 +48,12 @@ class ConnectMiniAppViewModel(
     private val getSpecialProposalDataUseCase: GetSpecialProposalDataUseCase,
     private val checkRequiredTokensUseCase: CheckRequiredTokensUseCase,
     private val createRequiredTokensUseCase: CreateRequiredTokensUseCase,
-    private val getPirateJettonAddressUseCase: GetPirateJettonAddressUseCase,
     private val accountManager: IAccountManager,
     private val marketKitWrapper: MarketKitWrapper,
     private val balanceService: BalanceService,
     private val getBnbAddressUseCase: GetBnbAddressUseCase,
     private val uniqueCodeStorage: IUniqueCodeStorage,
+    private val getTonAddressUseCase: GetTonAddressUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -347,6 +347,7 @@ class ConnectMiniAppViewModel(
                                 400 -> Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
                                 else -> error.message
                             }
+
                             else -> error.message ?: "Verification failed"
                         }
                         uiState = uiState.copy(
@@ -450,8 +451,8 @@ class ConnectMiniAppViewModel(
                     ?: throw IllegalStateException("Account not found")
                 val deviceEnv = collectDeviceEnvironmentUseCase.stopCollection()
 
-                // Get Pirate JETTON wallet address (this is the wallet address to send to API)
-                val pirateJettonAddress = getPirateJettonAddressUseCase.getAddress(account)
+                // Get Pirate JETTON wallet address(the same like TON) (this is the wallet address to send to API)
+                val pirateJettonAddress = getTonAddressUseCase.getAddress(account)
                     ?: throw IllegalStateException("Pirate JETTON wallet address not found")
 
                 // Get EVM address

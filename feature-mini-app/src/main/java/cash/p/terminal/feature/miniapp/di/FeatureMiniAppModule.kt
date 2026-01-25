@@ -46,13 +46,13 @@ val featureMiniAppModule = module {
             getSpecialProposalDataUseCase = get(),
             checkRequiredTokensUseCase = get(),
             createRequiredTokensUseCase = get(),
-            getPirateJettonAddressUseCase = get(),
             accountManager = get(),
             marketKitWrapper = get(),
             balanceService = get(named("wallet")),
             getBnbAddressUseCase = get(),
             uniqueCodeStorage = get(),
-            savedStateHandle = get()
+            savedStateHandle = get(),
+            getTonAddressUseCase = get()
         )
     }
 }
