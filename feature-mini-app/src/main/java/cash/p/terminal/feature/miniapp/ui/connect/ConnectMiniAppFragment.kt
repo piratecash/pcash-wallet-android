@@ -12,10 +12,10 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.fragment.findNavController
 import cash.p.terminal.feature.miniapp.R
 import cash.p.terminal.feature.miniapp.ui.TELEGRAM_BOT_URL
 import cash.p.terminal.feature.miniapp.ui.components.rememberStepIndicatorState
@@ -28,20 +28,20 @@ import cash.p.terminal.feature.miniapp.ui.connect.screens.SpecialProposalUiState
 import cash.p.terminal.feature.miniapp.ui.connect.screens.TokenCheckingScreen
 import cash.p.terminal.feature.miniapp.ui.connect.screens.TokenMissingScreen
 import cash.p.terminal.feature.miniapp.ui.connect.screens.WalletSelectionScreen
-import cash.p.terminal.navigation.entity.SwapParams
-import kotlinx.coroutines.launch
 import cash.p.terminal.navigation.BackupKeyInput
+import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
-import cash.p.terminal.wallet.IAccountManager
-import org.koin.java.KoinJavaComponent.inject
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.IAccountManager
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.java.KoinJavaComponent.inject
 
 class ConnectMiniAppFragment : BaseComposeFragment() {
 
@@ -119,6 +119,7 @@ private fun ConnectMiniAppNavHost(
                                     modifier = Modifier.padding(paddingValues)
                                 )
                             }
+
                             uiState.missingTokenNames.isNotEmpty() -> {
                                 TokenMissingScreen(
                                     allTokensText = uiState.allTokensText,
@@ -129,6 +130,7 @@ private fun ConnectMiniAppNavHost(
                                     modifier = Modifier.padding(paddingValues)
                                 )
                             }
+
                             uiState.walletItems.size > 1 && uiState.chosenAccountId == null -> {
                                 WalletSelectionScreen(
                                     isLoading = uiState.isLoading,
@@ -140,6 +142,7 @@ private fun ConnectMiniAppNavHost(
                                     modifier = Modifier.padding(paddingValues)
                                 )
                             }
+
                             else -> {
                                 CreateWalletStepScreen(
                                     isLoading = uiState.isLoading,
@@ -160,10 +163,16 @@ private fun ConnectMiniAppNavHost(
                                     },
                                     onLocalBackupClick = {
                                         uiState.chosenAccountId?.let { chosenAccountId ->
-                                            val accountManager: IAccountManager by inject(IAccountManager::class.java)
-                                            accountManager.account(chosenAccountId)?.let { account ->
-                                                fragmentNavController.slideFromBottom(R.id.backupLocalFragment, account)
-                                            }
+                                            val accountManager: IAccountManager by inject(
+                                                IAccountManager::class.java
+                                            )
+                                            accountManager.account(chosenAccountId)
+                                                ?.let { account ->
+                                                    fragmentNavController.slideFromBottom(
+                                                        R.id.backupLocalFragment,
+                                                        account
+                                                    )
+                                                }
                                         }
                                     },
                                     stepIndicatorState = stepIndicatorState,
@@ -172,6 +181,7 @@ private fun ConnectMiniAppNavHost(
                             }
                         }
                     }
+
                     ConnectMiniAppViewModel.STEP_TERMS -> {
                         AcceptTermsStepScreen(
                             isAgreed = uiState.termsAgreed,
@@ -181,6 +191,7 @@ private fun ConnectMiniAppNavHost(
                             modifier = Modifier.padding(paddingValues)
                         )
                     }
+
                     ConnectMiniAppViewModel.STEP_CAPTCHA -> {
                         CaptchaStepScreen(
                             captchaImageBase64 = uiState.captchaImageBase64,
@@ -198,6 +209,7 @@ private fun ConnectMiniAppNavHost(
                             modifier = Modifier.padding(paddingValues)
                         )
                     }
+
                     ConnectMiniAppViewModel.STEP_SPECIAL_PROPOSAL -> {
                         // Refresh data when returning from buy screen
                         LifecycleResumeEffect(Unit) {
@@ -232,6 +244,7 @@ private fun ConnectMiniAppNavHost(
                             modifier = Modifier.padding(paddingValues)
                         )
                     }
+
                     ConnectMiniAppViewModel.STEP_FINISH -> {
                         uiState.finishState?.let { finishState ->
                             // Handle close event
