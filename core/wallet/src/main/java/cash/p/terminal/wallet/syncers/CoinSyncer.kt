@@ -117,7 +117,10 @@ class CoinSyncer(
         blockchainEntities: List<BlockchainEntity>,
         tokenEntities: List<TokenEntity>
     ) {
-        storage.update(coins, blockchainEntities, transform(tokenEntities))
+        val transformedTokens = transform(tokenEntities)
+        val validTokens = filterValidTokens(transformedTokens, blockchainEntities)
+
+        storage.update(coins, blockchainEntities, validTokens)
 
         updateCounts()
 
@@ -217,4 +220,13 @@ class CoinSyncer(
         )
     }
 
+    companion object {
+        internal fun filterValidTokens(
+            tokens: List<TokenEntity>,
+            blockchainEntities: List<BlockchainEntity>
+        ): List<TokenEntity> {
+            val blockchainUids = blockchainEntities.map { it.uid }.toSet()
+            return tokens.filter { it.blockchainUid in blockchainUids }
+        }
+    }
 }
