@@ -1737,8 +1737,8 @@
     <string name="connect_mini_app_open_mini_app">Abrir Mini App</string>
     <string name="connect_mini_app_step_5">Passo 5</string>
     <string name="connect_mini_app_step_5_description">Oferta especial para membros premium</string>
-    <string name="connect_mini_app_bonus_text_prefix">Receba um bónus garantido + 10% de</string>
-    <string name="connect_mini_app_bonus_text_suffix">ao inscrever-se no premium.</string>
+    <string name="connect_mini_app_bonus_text_prefix">Ative o Premium no P.CASH e receba garantido a partir de</string>
+    <string name="connect_mini_app_bonus_text_suffix">devido ao coeficiente de distribuição orçamental aumentado.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">Não é suficiente</string>

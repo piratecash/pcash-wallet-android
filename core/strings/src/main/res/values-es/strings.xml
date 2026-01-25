@@ -1729,8 +1729,8 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="connect_mini_app_open_mini_app">Abrir Mini App</string>
     <string name="connect_mini_app_step_5">Paso 5</string>
     <string name="connect_mini_app_step_5_description">Oferta especial para miembros premium</string>
-    <string name="connect_mini_app_bonus_text_prefix">Obtenga un bono garantizado + 10% de</string>
-    <string name="connect_mini_app_bonus_text_suffix">al registrarse en premium.</string>
+    <string name="connect_mini_app_bonus_text_prefix">Active Premium en P.CASH y reciba garantizado desde</string>
+    <string name="connect_mini_app_bonus_text_suffix">debido al coeficiente de distribución de presupuesto aumentado.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">No es suficiente</string>

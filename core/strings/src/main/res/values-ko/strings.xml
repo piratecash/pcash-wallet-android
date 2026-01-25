@@ -1735,8 +1735,8 @@
     <string name="connect_mini_app_open_mini_app">미니 앱 열기</string>
     <string name="connect_mini_app_step_5">5단계</string>
     <string name="connect_mini_app_step_5_description">프리미엄 회원을 위한 특별 제안</string>
-    <string name="connect_mini_app_bonus_text_prefix">보장된 보너스 + 10%</string>
-    <string name="connect_mini_app_bonus_text_suffix">프리미엄 가입 시 받으세요.</string>
+    <string name="connect_mini_app_bonus_text_prefix">P.CASH에서 프리미엄을 활성화하고</string>
+    <string name="connect_mini_app_bonus_text_suffix">증가된 예산 분배 계수 덕분에 보장된 수령.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">부족</string>

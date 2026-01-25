@@ -16,7 +16,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.Spacer
 import cash.p.terminal.feature.miniapp.domain.model.CoinType
 import cash.p.terminal.feature.miniapp.domain.model.SpecialProposalData
 import cash.p.terminal.feature.miniapp.ui.components.JwtExpiredStepContent
@@ -148,12 +147,16 @@ internal fun SpecialProposalStepScreen(
                 initialPage = tabs.indexOfFirst { it.selected }
             ) { tabs.size }
 
-            Tabs(tabs = tabs, onClick = { coinType ->
-                onTabSelected(coinType)
-                coroutineScope.launch {
-                    pagerState.scrollToPage(if (coinType == CoinType.PIRATE) 0 else 1)
+            Tabs(
+                tabs = tabs,
+                modifier = Modifier.padding(horizontal = 16.dp),
+                onClick = { coinType ->
+                    onTabSelected(coinType)
+                    coroutineScope.launch {
+                        pagerState.scrollToPage(if (coinType == CoinType.PIRATE) 0 else 1)
+                    }
                 }
-            })
+            )
 
             VSpacer(16.dp)
 
@@ -182,15 +185,18 @@ private fun GuaranteedBonusText(
 ) {
     val prefix = stringResource(R.string.connect_mini_app_bonus_text_prefix)
     val suffix = stringResource(R.string.connect_mini_app_bonus_text_suffix)
-    val bonusText = "+$bonus PIRATE ($bonusFiat)"
 
     val annotatedText = buildAnnotatedString {
         withStyle(SpanStyle(color = ComposeAppTheme.colors.leah)) {
             append(prefix)
         }
-        append("\n")
+        append(" ")
         withStyle(SpanStyle(color = ComposeAppTheme.colors.jacob)) {
-            append(bonusText)
+            append("$bonus PIRATE")
+        }
+        append(" ")
+        withStyle(SpanStyle(color = ComposeAppTheme.colors.grey)) {
+            append("($bonusFiat)")
         }
         append(" ")
         withStyle(SpanStyle(color = ComposeAppTheme.colors.leah)) {
@@ -216,7 +222,8 @@ private fun StatsCard(
     val notEnoughFiat = if (isPirate) data.pirateNotEnoughFiat else data.cosaNotEnoughFiat
     val roi = if (isPirate) data.pirateRoi else data.cosaRoi
     val monthlyIncome = if (isPirate) data.pirateMonthlyIncome else data.cosaMonthlyIncome
-    val monthlyIncomeFiat = if (isPirate) data.pirateMonthlyIncomeFiat else data.cosaMonthlyIncomeFiat
+    val monthlyIncomeFiat =
+        if (isPirate) data.pirateMonthlyIncomeFiat else data.cosaMonthlyIncomeFiat
 
     CellUniversalLawrenceSection(
         listOf(

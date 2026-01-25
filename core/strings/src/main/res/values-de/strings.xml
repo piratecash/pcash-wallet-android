@@ -1730,8 +1730,8 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="connect_mini_app_open_mini_app">Mini-App öffnen</string>
     <string name="connect_mini_app_step_5">Schritt 5</string>
     <string name="connect_mini_app_step_5_description">Sonderangebot für Premium-Mitglieder</string>
-    <string name="connect_mini_app_bonus_text_prefix">Erhalten Sie einen garantierten Bonus + 10% von</string>
-    <string name="connect_mini_app_bonus_text_suffix">bei der Premium-Anmeldung.</string>
+    <string name="connect_mini_app_bonus_text_prefix">Aktivieren Sie Premium in P.CASH und erhalten Sie garantiert ab</string>
+    <string name="connect_mini_app_bonus_text_suffix">aufgrund des erhöhten Budgetverteilungskoeffizienten.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">Nicht genug</string>

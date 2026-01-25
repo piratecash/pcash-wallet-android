@@ -1899,8 +1899,8 @@
     <string name="connect_mini_app_open_mini_app">Відкрити міні-додаток</string>
     <string name="connect_mini_app_step_5">Крок 5</string>
     <string name="connect_mini_app_step_5_description">Спеціальна пропозиція для преміум-учасників</string>
-    <string name="connect_mini_app_bonus_text_prefix">Отримайте гарантований бонус + 10% від</string>
-    <string name="connect_mini_app_bonus_text_suffix">при оформленні преміум-підписки.</string>
+    <string name="connect_mini_app_bonus_text_prefix">Активуйте Преміум у P.CASH і гарантовано отримайте від</string>
+    <string name="connect_mini_app_bonus_text_suffix">завдяки збільшеному коефіцієнту розподілу бюджету.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">Не вистачає</string>

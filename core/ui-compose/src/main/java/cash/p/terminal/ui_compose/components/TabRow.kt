@@ -32,11 +32,11 @@ data class TabItem<T>(
 )
 
 @Composable
-fun <T> Tabs(tabs: List<TabItem<T>>, onClick: (T) -> Unit) {
+fun <T> Tabs(tabs: List<TabItem<T>>, modifier: Modifier = Modifier, onClick: (T) -> Unit) {
     val selectedIndex = tabs.indexOfFirst { it.selected }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .background(ComposeAppTheme.colors.tyler)
             .height(44.dp)
     ) {

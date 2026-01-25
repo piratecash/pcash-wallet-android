@@ -2177,8 +2177,8 @@ Proceed only if you\'re sure.</string>
     <string name="connect_mini_app_open_mini_app">Open Mini App</string>
     <string name="connect_mini_app_step_5">Step 5</string>
     <string name="connect_mini_app_step_5_description">Special proposal for premium members</string>
-    <string name="connect_mini_app_bonus_text_prefix">Get a guaranteed bonus + 10% from</string>
-    <string name="connect_mini_app_bonus_text_suffix">when you sign up for premium.</string>
+    <string name="connect_mini_app_bonus_text_prefix">Activate Premium in P.CASH and guaranteed receive from</string>
+    <string name="connect_mini_app_bonus_text_suffix">due to the increased budget distribution coefficient.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">Not enough</string>

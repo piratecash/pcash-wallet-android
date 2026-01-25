@@ -1739,8 +1739,8 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="connect_mini_app_open_mini_app">Mini Uygulamayı Aç</string>
     <string name="connect_mini_app_step_5">Adım 5</string>
     <string name="connect_mini_app_step_5_description">Premium üyeler için özel teklif</string>
-    <string name="connect_mini_app_bonus_text_prefix">Garantili bonus + %10 alın</string>
-    <string name="connect_mini_app_bonus_text_suffix">premium\'a kaydolduğunuzda.</string>
+    <string name="connect_mini_app_bonus_text_prefix">P.CASH\'te Premium\'u etkinleştirin ve garantili olarak</string>
+    <string name="connect_mini_app_bonus_text_suffix">artırılmış bütçe dağıtım katsayısı sayesinde alın.</string>
     <string name="connect_mini_app_tab_pirate_cash">PirateCash</string>
     <string name="connect_mini_app_tab_cosanta">Cosanta</string>
     <string name="connect_mini_app_not_enough">Yetersiz</string>

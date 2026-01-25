@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +42,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 fun CaptchaCodeInput(
     code: String,
     onCodeChange: (String) -> Unit,
+    onDone: () -> Unit = {},
     isError: Boolean = false,
     errorMessage: String? = null,
     enabled: Boolean = true,
@@ -71,6 +73,7 @@ fun CaptchaCodeInput(
                 keyboardType = KeyboardType.Number,
                 imeAction = ImeAction.Done
             ),
+            keyboardActions = KeyboardActions(onDone = { onDone() }),
             // Hide the default cursor since we draw our own in the cells
             cursorBrush = SolidColor(Color.Transparent),
             decorationBox = {
