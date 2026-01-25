@@ -196,6 +196,10 @@ class BackupLocalPasswordViewModel(
                     }
                 }
             }
+
+            // Clear the backup required flow since backup is now done
+            accountManager.onHandledBackupRequiredNewAccount()
+
             delay(1700) //Wait for showing Snackbar (SHORT duration ~ 1500ms)
             closeScreen = true
             emitState()

@@ -11,7 +11,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class BackupAlertViewModel : ViewModel() {
-    var account by mutableStateOf<cash.p.terminal.wallet.Account?>(null)
+    var account by mutableStateOf<Account?>(null)
         private set
 
     private var job: Job? = null

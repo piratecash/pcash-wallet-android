@@ -2,6 +2,7 @@ package cash.p.terminal.modules.manageaccount.backupconfirmkey
 
 import cash.p.terminal.R
 import cash.p.terminal.core.IRandomProvider
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -78,7 +79,7 @@ class BackupConfirmKeyViewModel(
         val hiddenWordItem = hiddenWordItems[currentHiddenWordItemIndex]
         if (hiddenWordItem.word != wordOption.word) {
             reset()
-            error = Exception(cash.p.terminal.strings.helpers.Translator.getString(R.string.BackupConfirmKey_Error_InvalidWord))
+            error = Exception(Translator.getString(R.string.BackupConfirmKey_Error_InvalidWord))
         } else {
             hiddenWordItems = hiddenWordItems.toMutableList().apply {
                 set(currentHiddenWordItemIndex, hiddenWordItem.copy(isRevealed = true))
@@ -93,6 +94,7 @@ class BackupConfirmKeyViewModel(
                 currentHiddenWordItemIndex++
             } else {
                 accountManager.update(account.copy(isBackedUp = true))
+                accountManager.onHandledBackupRequiredNewAccount()
                 confirmed = true
             }
         }

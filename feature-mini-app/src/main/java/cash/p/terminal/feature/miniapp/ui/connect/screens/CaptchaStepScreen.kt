@@ -44,7 +44,6 @@ import cash.p.terminal.ui_compose.components.ButtonSecondary
 import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults
 import cash.p.terminal.ui_compose.components.VSpacer
 import androidx.compose.material3.Icon
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -93,7 +92,6 @@ fun CaptchaStepScreen(
 
     val isTimerExpired = remainingSeconds <= 0
     val isCodeComplete = code.length == CODE_LENGTH
-    val keyboardController = LocalSoftwareKeyboardController.current
 
     MiniAppStepScaffold(
         stepTitle = stringResource(R.string.connect_mini_app_step_4),
@@ -204,7 +202,6 @@ fun CaptchaStepScreen(
                     code = code,
                     onCodeChange = onCodeChange,
                     onDone = {
-                        keyboardController?.hide()
                         if (isCodeComplete && !isVerifying && !isLoading) {
                             onVerifyClick()
                         }
