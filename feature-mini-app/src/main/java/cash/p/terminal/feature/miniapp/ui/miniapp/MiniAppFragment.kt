@@ -2,6 +2,9 @@ package cash.p.terminal.feature.miniapp.ui.miniapp
 
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import androidx.navigation.NavController
@@ -28,8 +31,11 @@ class MiniAppFragment : BaseComposeFragment() {
                     showPasteButton = true,
                     allowGalleryWithoutPremium = true
                 ) { _ ->
-                    requireView().post {
-                        HudHelper.showErrorMessage(requireView(), R.string.invalid_qr_code)
+                    lifecycleScope.launch {
+                        delay(100)
+                        view?.let {
+                            HudHelper.showErrorMessage(it, R.string.invalid_qr_code)
+                        }
                     }
                 }
             },
