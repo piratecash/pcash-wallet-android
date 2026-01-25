@@ -344,7 +344,10 @@ class ConnectMiniAppViewModel(
                     } else {
                         val errorMessage = when (error) {
                             is MiniAppApiException -> when (error.statusCode) {
-                                400 -> Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
+                                400 -> {
+                                    refreshCaptcha() // Server changes captcha on wrong code
+                                    Translator.getString(R.string.connect_mini_app_captcha_error_wrong_code)
+                                }
                                 else -> error.message
                             }
 
