@@ -20,6 +20,16 @@ class CoinStorage(val marketDatabase: MarketDatabase) {
     fun coins(coinUids: List<String>): List<Coin> =
         coinDao.getCoins(coinUids)
 
+    fun getCoinGeckoIds(uids: List<String>): Map<String, String> =
+        coinDao.getCoinGeckoIds(uids)
+            .mapNotNull { mapping ->
+                mapping.coinGeckoId?.let { mapping.uid to it }
+            }
+            .toMap()
+
+    fun getCoinGeckoId(uid: String): String? =
+        coinDao.getCoinGeckoId(uid)
+
     fun allCoins(): List<Coin> = coinDao.getAllCoins()
 
     fun fullCoins(filter: String, limit: Int): List<FullCoin> {

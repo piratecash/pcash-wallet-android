@@ -379,18 +379,20 @@ class TransactionInfoService(
     }
 
     private suspend fun fetchRates() = withContext(Dispatchers.IO) {
-        val coinUids = coinUidsForRates
+        val originalUids = coinUidsForRates
+        val uidToGeckoId = marketKit.coinGeckoIds(originalUids)
         val timestamp = transactionRecord.timestamp
 
-        val rates = coinUids.mapNotNull { coinUid ->
+        val rates = originalUids.mapNotNull { uid ->
+            val geckoId = uidToGeckoId[uid] ?: uid
             try {
                 marketKit
                     .coinHistoricalPriceSingle(
-                        coinUid,
+                        geckoId,
                         currencyManager.baseCurrency.code,
                         timestamp
                     ).takeIf { it != BigDecimal.ZERO }?.let {
-                        Pair(coinUid, CurrencyValue(currencyManager.baseCurrency, it))
+                        Pair(uid, CurrencyValue(currencyManager.baseCurrency, it))
                     }
             } catch (error: Exception) {
                 null

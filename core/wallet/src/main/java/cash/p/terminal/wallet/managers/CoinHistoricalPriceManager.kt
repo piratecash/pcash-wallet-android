@@ -14,19 +14,19 @@ class CoinHistoricalPriceManager(
 ) {
 
     suspend fun coinHistoricalPriceSingle(
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         timestamp: Long
     ): BigDecimal {
 
-        storage.coinPrice(coinUid, currencyCode, timestamp)?.let {
+        storage.coinPrice(coinGeckoUid, currencyCode, timestamp)?.let {
             return it.value
         }
 
-        val response = hsProvider.historicalCoinPriceSingle(coinUid, currencyCode, timestamp)
+        val response = hsProvider.historicalCoinPriceSingle(coinGeckoUid, currencyCode, timestamp)
         if (abs(timestamp - response.timestamp) < 24 * 60 * 60) {
             val coinHistoricalPrice =
-                CoinHistoricalPrice(coinUid, currencyCode, response.price, timestamp)
+                CoinHistoricalPrice(coinGeckoUid, currencyCode, response.price, timestamp)
             Log.d("CoinHistoricalPriceManager", "Saving coinHistoricalPrice: $coinHistoricalPrice")
             storage.save(coinHistoricalPrice)
             return response.price
@@ -34,8 +34,8 @@ class CoinHistoricalPriceManager(
         throw ProviderError.ReturnedTimestampIsVeryInaccurate()
     }
 
-    fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
-        return storage.coinPrice(coinUid, currencyCode, timestamp)?.value
+    fun coinHistoricalPrice(coinGeckoUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
+        return storage.coinPrice(coinGeckoUid, currencyCode, timestamp)?.value
     }
 
 }

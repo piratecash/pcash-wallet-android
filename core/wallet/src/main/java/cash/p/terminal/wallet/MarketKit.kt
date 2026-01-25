@@ -100,6 +100,8 @@ class MarketKit(
 
     fun allCoins(): List<Coin> = coinManager.allCoins()
 
+    fun coinGeckoIds(uids: List<String>) = coinManager.getCoinGeckoIds(uids)
+
     fun token(query: TokenQuery): Token? =
         coinManager.token(query)
 
@@ -267,15 +269,17 @@ class MarketKit(
         currencyCode: String,
         timestamp: Long
     ): BigDecimal {
+        val coinGeckoUid = coinManager.getCoinGeckoId(coinUid) ?: coinUid
         return coinHistoricalPriceManager.coinHistoricalPriceSingle(
-            coinUid,
+            coinGeckoUid,
             currencyCode,
             timestamp
         )
     }
 
     fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
-        return coinHistoricalPriceManager.coinHistoricalPrice(coinUid, currencyCode, timestamp)
+        val coinGeckoUid = coinManager.getCoinGeckoId(coinUid) ?: coinUid
+        return coinHistoricalPriceManager.coinHistoricalPrice(coinGeckoUid, currencyCode, timestamp)
     }
 
     // Posts

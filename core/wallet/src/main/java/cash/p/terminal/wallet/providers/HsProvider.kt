@@ -167,16 +167,16 @@ class HsProvider(baseUrl: String, apiKey: String) {
         )
 
     suspend fun historicalCoinPriceSingle(
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         timestamp: Long
     ): HistoricalCoinPriceResponse {
         return try {
             withTimeout(2000) {
-                service.getHistoricalCoinPrice(coinUid, currencyCode, timestamp).await()
+                service.getHistoricalCoinPrice(coinGeckoUid, currencyCode, timestamp).await()
             }
         } catch (e: Exception) {
-            val response = piratePlaceRepository.getCoinInfo(coinUid)
+            val response = piratePlaceRepository.getCoinInfo(coinGeckoUid)
             val price = response.price[currencyCode.lowercase()]
                 ?: throw Exception("Price not found")
             HistoricalCoinPriceResponse(

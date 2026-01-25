@@ -29,6 +29,12 @@ interface CoinDao {
     @Query("SELECT * FROM Coin WHERE uid IN (:uids)")
     fun getCoins(uids: List<String>): List<Coin>
 
+    @Query("SELECT uid, coinGeckoId FROM Coin WHERE uid IN (:uids)")
+    fun getCoinGeckoIds(uids: List<String>): List<CoinUidMapping>
+
+    @Query("SELECT coinGeckoId FROM Coin WHERE uid = :uid LIMIT 1")
+    fun getCoinGeckoId(uid: String): String?
+
     @Query("SELECT * FROM Coin")
     fun getAllCoins(): List<Coin>
 
@@ -153,5 +159,10 @@ interface CoinDao {
             get() = TokenEntityWrapper(tokenEntity, blockchainEntity).token(coin)
 
     }
+
+    data class CoinUidMapping(
+        val uid: String,
+        val coinGeckoId: String?
+    )
 
 }

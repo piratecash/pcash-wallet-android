@@ -56,6 +56,8 @@ class MarketKitWrapper(
 
     fun allCoins() = marketKit.allCoins()
 
+    fun coinGeckoIds(uids: List<String>) = marketKit.coinGeckoIds(uids)
+
     fun token(query: TokenQuery) = marketKit.token(query)
 
     fun tokens(queries: List<TokenQuery>) = marketKit.tokens(queries)
