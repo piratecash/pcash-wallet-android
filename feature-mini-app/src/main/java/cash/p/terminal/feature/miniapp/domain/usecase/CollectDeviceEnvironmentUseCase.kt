@@ -464,7 +464,7 @@ class CollectDeviceEnvironmentUseCase(
         private const val HAND_HELD_VARIANCE_THRESHOLD = 0.05f
 
         // Movement detection threshold (acceleration change in m/s²)
-        private const val MOVEMENT_THRESHOLD = 0.4f
+        private const val MOVEMENT_THRESHOLD = 0.2f
 
         private const val MAX_SAMPLES = 10_000
     }
