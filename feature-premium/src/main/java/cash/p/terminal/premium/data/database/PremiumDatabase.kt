@@ -10,6 +10,7 @@ import cash.p.terminal.premium.data.dao.DemoPremiumUserDao
 import cash.p.terminal.premium.data.dao.PremiumUserDao
 import cash.p.terminal.premium.data.database.migrations.Migration_5_6
 import cash.p.terminal.premium.data.database.migrations.Migration_6_7
+import cash.p.terminal.premium.data.database.migrations.Migration_7_8
 import cash.p.terminal.premium.data.model.BnbPremiumAddress
 import cash.p.terminal.premium.data.model.DemoPremiumUser
 import cash.p.terminal.premium.data.model.PremiumUser
@@ -20,7 +21,7 @@ import cash.p.terminal.premium.data.model.PremiumUser
         DemoPremiumUser::class,
         BnbPremiumAddress::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(PremiumTypeConverter::class)
@@ -42,6 +43,7 @@ internal abstract class PremiumDatabase : RoomDatabase() {
                 .addMigrations(
                     Migration_5_6,
                     Migration_6_7,
+                    Migration_7_8,
                 )
                 .build()
         }

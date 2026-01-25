@@ -19,7 +19,7 @@ internal object Migration_6_7 : Migration(6, 7) {
         db.execSQL("""
             INSERT INTO premium_users_temp (level, accountId, address, lastCheckDate, coinType, isPremium)
             SELECT level, accountId, address, lastCheckDate, coinType,
-                   CASE 
+                   CASE
                        WHEN isPremium = 1 THEN 'COSA'
                        ELSE 'NONE'
                    END
