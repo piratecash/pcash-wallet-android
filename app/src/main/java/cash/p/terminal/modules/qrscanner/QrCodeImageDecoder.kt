@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import cash.p.terminal.core.openInputStreamSafe
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
@@ -63,7 +64,7 @@ class QrCodeImageDecoder(
         val boundsOptions = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
         }
-        resolver.openInputStream(uri)?.use { stream ->
+        resolver.openInputStreamSafe(uri)?.use { stream ->
             BitmapFactory.decodeStream(stream, null, boundsOptions)
         }
 
@@ -75,7 +76,7 @@ class QrCodeImageDecoder(
             inPreferredConfig = Bitmap.Config.ARGB_8888
         }
 
-        return resolver.openInputStream(uri)?.use { stream ->
+        return resolver.openInputStreamSafe(uri)?.use { stream ->
             BitmapFactory.decodeStream(stream, null, decodeOptions)
         } ?: error("Unable to decode image")
     }

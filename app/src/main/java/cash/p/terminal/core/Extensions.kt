@@ -1,10 +1,14 @@
 package cash.p.terminal.core
 
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Parcelable
+import android.provider.DocumentsContract
 import android.widget.ImageView
 import androidx.annotation.IdRes
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -283,6 +287,42 @@ fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
+}
+
+/**
+ * Safely opens an InputStream from a content URI, handling virtual documents
+ * (e.g., files from Google Drive that don't exist locally).
+ *
+ * Virtual documents cannot be opened with openInputStream() directly and require
+ * openTypedAssetFileDescriptor() to stream the content.
+ */
+fun ContentResolver.openInputStreamSafe(uri: Uri): java.io.InputStream? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isVirtualDocument(uri)) {
+        openTypedAssetFileDescriptor(uri, "*/*", null)
+            ?.createInputStream()
+    } else {
+        openInputStream(uri)
+    }
+}
+
+private fun ContentResolver.isVirtualDocument(uri: Uri): Boolean {
+    if (!DocumentsContract.isDocumentUri(App.instance, uri)) return false
+
+    return try {
+        val cursor = query(
+            uri,
+            arrayOf(DocumentsContract.Document.COLUMN_FLAGS),
+            null, null, null
+        )
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val flags = it.getInt(0)
+                flags and DocumentsContract.Document.FLAG_VIRTUAL_DOCUMENT != 0
+            } else false
+        } ?: false
+    } catch (_: Exception) {
+        false
+    }
 }
 
 fun String?.extractBigDecimal(): BigDecimal? =

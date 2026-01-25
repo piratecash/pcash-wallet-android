@@ -27,6 +27,7 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.navigateWithTermsAccepted
+import cash.p.terminal.core.openInputStreamSafe
 import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
@@ -85,7 +86,7 @@ private fun BackupManagerScreen(
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { uriNonNull ->
-            context.contentResolver.openInputStream(uriNonNull)?.use { inputStream ->
+            context.contentResolver.openInputStreamSafe(uriNonNull)?.use { inputStream ->
                 try {
                     // Read as bytes to detect format
                     val bytes = inputStream.readBytes()

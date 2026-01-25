@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.Caution
+import cash.p.terminal.core.openInputStreamSafe
 import cash.p.terminal.modules.contacts.ContactsModule
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.contacts.viewmodel.ContactsViewModel
@@ -74,7 +75,7 @@ fun ContactsScreen(
 
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let {
-            context.contentResolver.openInputStream(it)?.use { inputStream ->
+            context.contentResolver.openInputStreamSafe(it)?.use { inputStream ->
                 try {
                     inputStream.bufferedReader().use { br ->
                         viewModel.restore(br.readText())
