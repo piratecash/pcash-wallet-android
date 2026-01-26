@@ -468,9 +468,12 @@ configurations.all {
 
 // Disable baseline profile generation for F-Droid reproducible builds
 // https://f-droid.org/docs/Reproducible_Builds/
-tasks.whenTaskAdded { task ->
-    if (task.name.contains("ArtProfile")) {
-        task.enabled = false
+// F-Droid builds should pass -Pfdroid=true to disable baseline profiles
+if (project.hasProperty('fdroid')) {
+    tasks.whenTaskAdded { task ->
+        if (task.name.contains("ArtProfile")) {
+            task.enabled = false
+        }
     }
 }
 
