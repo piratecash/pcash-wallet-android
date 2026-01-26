@@ -26,8 +26,8 @@ class DefaultUserManager(
         }
 
         currentUserLevel = level
-        _currentUserLevelFlow.update { level }
-        accountManager.setLevel(level)
+        accountManager.setLevel(level)          // Load accounts FIRST
+        _currentUserLevelFlow.update { level }  // Then emit to flow
     }
 
     override fun allowAccountsForDuress(accountIds: List<String>) {
