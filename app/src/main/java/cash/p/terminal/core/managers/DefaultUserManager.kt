@@ -2,7 +2,6 @@ package cash.p.terminal.core.managers
 
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.managers.UserManager
-import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,8 +10,6 @@ import kotlinx.coroutines.flow.update
 class DefaultUserManager(
     private val accountManager: IAccountManager
 ): UserManager {
-    private val logger: AppLogger = AppLogger("DefaultUserManager")
-
     private var currentUserLevel = UserManager.DEFAULT_USER_LEVEL
 
     private val _currentUserLevelFlow = MutableStateFlow(currentUserLevel)
