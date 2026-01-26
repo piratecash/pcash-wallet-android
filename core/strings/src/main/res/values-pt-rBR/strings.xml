@@ -1506,7 +1506,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="balance_sync_error_text">Erro de sincronização</string>
     <string name="balance_sync_error_changeable_source">Falha ao obter dados da fonte atual. Você pode tentar novamente ou alternar para uma fonte de sincronização diferente.</string>
     <string name="balance_sync_error_fixed_source">Falha ao buscar dados da fonte atual. Tente novamente mais tarde.</string>
-    <string name="balance_sync_error_monero">Falha ao buscar dados da fonte atual.\n\nVocê pode:\n• Tentar novamente mais tarde\n• Ativar VPN e tentar sincronizar novamente\n\nSe você recebeu um erro <b>403</b>, <b>seu endereço IP pode estar bloqueado</b>. Usar uma VPN geralmente <b>resolve este problema</b>.</string>
+    <string name="source_blocked_by_provider_error">Falha ao buscar dados da fonte atual.\n\nVocê pode:\n• Tentar novamente mais tarde\n• Ativar VPN e tentar sincronizar novamente\n\nSe você recebeu um erro <b>403</b>, <b>seu endereço IP pode estar bloqueado</b>. Usar uma VPN geralmente <b>resolve este problema</b>.</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Ativar</string>
     <!--Widget-->

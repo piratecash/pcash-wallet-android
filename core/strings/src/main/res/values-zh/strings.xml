@@ -1497,7 +1497,7 @@
     <string name="balance_sync_error_text">同步错误</string>
     <string name="balance_sync_error_changeable_source">无法从当前源获取数据。您可以重试或切换到不同的同步源。</string>
     <string name="balance_sync_error_fixed_source">无法从当前源获取数据。请稍后再试。</string>
-    <string name="balance_sync_error_monero">无法从当前源获取数据。\n\n您可以：\n• 稍后重试\n• 启用VPN并重新同步\n\n如果您收到<b>403</b>错误，<b>您的IP地址可能被封锁</b>。使用VPN通常可以<b>解决此问题</b>。</string>
+    <string name="source_blocked_by_provider_error">无法从当前源获取数据。\n\n您可以：\n• 稍后重试\n• 启用VPN并重新同步\n\n如果您收到<b>403</b>错误，<b>您的IP地址可能被封锁</b>。使用VPN通常可以<b>解决此问题</b>。</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">激活</string>
     <!--Widget-->

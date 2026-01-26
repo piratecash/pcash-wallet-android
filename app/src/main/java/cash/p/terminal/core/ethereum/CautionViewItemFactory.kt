@@ -134,6 +134,12 @@ class CautionViewItemFactory(
                     Translator.getString(R.string.EthereumTransaction_Error_InsufficientLiquidity)
                 )
             }
+            is EvmError.BlockedByProvider -> {
+                Pair(
+                    Translator.getString(R.string.EthereumTransaction_Error_Title),
+                    Translator.getString(R.string.source_blocked_by_provider_error)
+                )
+            }
             else -> {
                 Pair(
                     Translator.getString(R.string.EthereumTransaction_Error_Title),

@@ -1504,7 +1504,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="balance_sync_error_text">Erreur de synchronisation</string>
     <string name="balance_sync_error_changeable_source">Impossible de récupérer les données de la source actuelle. Vous pouvez réessayer ou basculer vers une source de synchronisation différente.</string>
     <string name="balance_sync_error_fixed_source">Impossible de récupérer les données de la source actuelle. Veuillez réessayer plus tard.</string>
-    <string name="balance_sync_error_monero">Impossible de récupérer les données de la source actuelle.\n\nVous pouvez :\n• Réessayer plus tard\n• Activer le VPN et relancer la synchronisation\n\nSi vous avez reçu une erreur <b>403</b>, <b>votre adresse IP est peut-être bloquée</b>. L\'utilisation d\'un VPN <b>résout généralement ce problème</b>.</string>
+    <string name="source_blocked_by_provider_error">Impossible de récupérer les données de la source actuelle.\n\nVous pouvez :\n• Réessayer plus tard\n• Activer le VPN et relancer la synchronisation\n\nSi vous avez reçu une erreur <b>403</b>, <b>votre adresse IP est peut-être bloquée</b>. L\'utilisation d\'un VPN <b>résout généralement ce problème</b>.</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Activer</string>
     <!--Widget-->

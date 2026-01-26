@@ -82,7 +82,7 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
             onCloseClick = { navController.popBackStack() }
         ) {
             val errorDescription = when {
-                wallet.token.isMonero() || wallet.token.blockchainType.isEvm -> annotatedStringResource(R.string.balance_sync_error_monero)
+                wallet.token.isMonero() || wallet.token.blockchainType.isEvm -> annotatedStringResource(R.string.source_blocked_by_provider_error)
                 viewModel.sourceChangeable -> annotatedStringResource(R.string.balance_sync_error_changeable_source)
                 else -> annotatedStringResource(R.string.balance_sync_error_fixed_source)
             }

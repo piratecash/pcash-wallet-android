@@ -1497,7 +1497,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="balance_sync_error_text">Sync-Fehler</string>
     <string name="balance_sync_error_changeable_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Sie können erneut versuchen oder zu einer anderen Sync-Quelle wechseln.</string>
     <string name="balance_sync_error_fixed_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Bitte versuchen Sie es später erneut.</string>
-    <string name="balance_sync_error_monero">Fehler beim Abrufen der Daten aus der aktuellen Quelle.\n\nSie können:\n• Später erneut versuchen\n• VPN aktivieren und Synchronisierung wiederholen\n\nWenn Sie einen <b>403</b>-Fehler erhalten haben, ist <b>Ihre IP-Adresse möglicherweise gesperrt</b>. Die Verwendung eines VPN <b>behebt dieses Problem normalerweise</b>.</string>
+    <string name="source_blocked_by_provider_error">Fehler beim Abrufen der Daten aus der aktuellen Quelle.\n\nSie können:\n• Später erneut versuchen\n• VPN aktivieren und Synchronisierung wiederholen\n\nWenn Sie einen <b>403</b>-Fehler erhalten haben, ist <b>Ihre IP-Adresse möglicherweise gesperrt</b>. Die Verwendung eines VPN <b>behebt dieses Problem normalerweise</b>.</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Aktivieren</string>
     <!--Widget-->

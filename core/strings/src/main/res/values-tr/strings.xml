@@ -1507,7 +1507,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="balance_sync_error_text">Senkronizasyon hatası</string>
     <string name="balance_sync_error_changeable_source">Mevcut kaynaktan veri alınamadı. Yeniden deneyebilir veya farklı bir senkronizasyon kaynağına geçebilirsiniz.</string>
     <string name="balance_sync_error_fixed_source">Mevcut kaynaktan veri alınamadı. Lütfen daha sonra tekrar deneyin.</string>
-    <string name="balance_sync_error_monero">Mevcut kaynaktan veri alınamadı.\n\nYapabilecekleriniz:\n• Daha sonra tekrar deneyin\n• VPN\'i etkinleştirin ve senkronizasyonu yeniden deneyin\n\n<b>403</b> hatası aldıysanız, <b>IP adresiniz engellenmiş olabilir</b>. VPN kullanmak genellikle <b>bu sorunu çözer</b>.</string>
+    <string name="source_blocked_by_provider_error">Mevcut kaynaktan veri alınamadı.\n\nYapabilecekleriniz:\n• Daha sonra tekrar deneyin\n• VPN\'i etkinleştirin ve senkronizasyonu yeniden deneyin\n\n<b>403</b> hatası aldıysanız, <b>IP adresiniz engellenmiş olabilir</b>. VPN kullanmak genellikle <b>bu sorunu çözer</b>.</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Activate</string>
     <!--Widget-->

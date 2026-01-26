@@ -47,6 +47,7 @@ sealed class EvmError(message: String? = null) : Throwable(message) {
     object CannotEstimateSwap : EvmError()
     object InsufficientLiquidity : EvmError()
     object LowerThanBaseGasLimit : EvmError()
+    object BlockedByProvider : EvmError()
     class ExecutionReverted(message: String?) : EvmError(message)
     class RpcError(message: String?) : EvmError(message)
 }
@@ -83,19 +84,23 @@ val Throwable.convertedError: Throwable
         }
 
         is retrofit2.HttpException -> {
-            val errorBody = response()?.errorBody()?.string()
-            if (errorBody?.contains("Try to leave the buffer of ETH for gas") == true ||
-                errorBody?.contains("you may not have enough ETH balance for gas fee") == true ||
-                errorBody?.contains("Not enough ETH balance") == true ||
-                errorBody?.contains("insufficient funds for transfer") == true
-            ) {
-                EvmError.InsufficientBalanceWithFee
-            } else if (errorBody?.contains("cannot estimate") == true) {
-                EvmError.CannotEstimateSwap
-            } else if (errorBody?.contains("insufficient liquidity") == true) {
-                EvmError.InsufficientLiquidity
+            if (code() == 403) {
+                EvmError.BlockedByProvider
             } else {
-                this
+                val errorBody = response()?.errorBody()?.string()
+                if (errorBody?.contains("Try to leave the buffer of ETH for gas") == true ||
+                    errorBody?.contains("you may not have enough ETH balance for gas fee") == true ||
+                    errorBody?.contains("Not enough ETH balance") == true ||
+                    errorBody?.contains("insufficient funds for transfer") == true
+                ) {
+                    EvmError.InsufficientBalanceWithFee
+                } else if (errorBody?.contains("cannot estimate") == true) {
+                    EvmError.CannotEstimateSwap
+                } else if (errorBody?.contains("insufficient liquidity") == true) {
+                    EvmError.InsufficientLiquidity
+                } else {
+                    this
+                }
             }
         }
 
