@@ -466,14 +466,6 @@ configurations.all {
     }
 }
 
-// Disable baseline profile generation for F-Droid reproducible builds
-// https://f-droid.org/docs/Reproducible_Builds/
-tasks.whenTaskAdded { task ->
-    if (task.name.contains("ArtProfile")) {
-        task.enabled = false
-    }
-}
-
 task copyChangelogs(type: Copy) {
     description = 'Copy changelog files from root to assets'
     group = 'build'
