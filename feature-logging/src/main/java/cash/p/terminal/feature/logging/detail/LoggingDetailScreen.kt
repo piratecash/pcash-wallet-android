@@ -408,7 +408,12 @@ private fun MetadataSection(record: LoginRecordViewItem) {
     ) {
         // Title: "Entrance to the [wallet]"
         headline1_leah(
-            text = stringResource(R.string.auth_info_entrance_to, record.walletName)
+            text = record.walletName?.let { walletName ->
+                stringResource(
+                    R.string.auth_info_entrance_to,
+                    walletName
+                )
+            }.orEmpty()
         )
 
         VSpacer(32.dp)
@@ -514,6 +519,15 @@ private fun AuthorizationDetailContentPreview() {
             isDuressMode = true,
             walletName = "Main Wallet",
             formattedTime = "11:15 12.08.2025",
+            relativeTime = "(1 day ago)"
+        ),
+        LoginRecordViewItem(
+            id = 4,
+            photoPath = null,
+            isSuccessful = false,
+            isDuressMode = false,
+            walletName = null,
+            formattedTime = "07:30 12.08.2025",
             relativeTime = "(1 day ago)"
         )
     )

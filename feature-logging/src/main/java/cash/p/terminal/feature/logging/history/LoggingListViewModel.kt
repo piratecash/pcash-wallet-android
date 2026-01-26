@@ -49,7 +49,7 @@ class LoggingListViewModel(
             photoPath = record.photoPath,
             isSuccessful = record.isSuccessful,
             isDuressMode = record.userLevel > 0,
-            walletName = account?.name ?: "Unknown",
+            walletName = account?.name,
             formattedTime = formatDateTime(date),
             relativeTime = DateHelper.formatRelativeTime(record.timestamp)
         )

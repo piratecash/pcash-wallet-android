@@ -280,12 +280,13 @@ private fun LoginRecordItemContent(
                 style = ComposeAppTheme.typography.body
             )
 
-            VSpacer(4.dp)
-
-            // Wallet name
-            body_leah(
-                text = stringResource(R.string.auth_info_entrance_to, item.walletName)
-            )
+            // Wallet name - only show if known
+            item.walletName?.let { name ->
+                VSpacer(4.dp)
+                body_leah(
+                    text = stringResource(R.string.auth_info_entrance_to, name)
+                )
+            }
 
             VSpacer(4.dp)
 
@@ -343,6 +344,15 @@ private fun LoggingListScreenPreview() {
             walletName = "Wallet 1",
             formattedTime = "09:15 13.08.2025",
             relativeTime = "(2 hours ago)"
+        ),
+        LoginRecordViewItem(
+            id = 3,
+            photoPath = null,
+            isSuccessful = false,
+            isDuressMode = false,
+            walletName = null,
+            formattedTime = "08:00 13.08.2025",
+            relativeTime = "(3 hours ago)"
         )
     )
 
