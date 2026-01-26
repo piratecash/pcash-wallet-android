@@ -330,7 +330,7 @@ class MainViewModel(
             cash.p.terminal.strings.helpers.Translator.getString(R.string.DeeplinkScheme)
         when {
             deeplinkString.startsWith("$deeplinkScheme:") -> {
-                val uid = deepLink.getQueryParameter("uid")
+                val uid = deepLink.getQueryParameterSafe("uid")
                 when {
                     deeplinkString.contains("coin-page") -> {
                         uid?.let {
@@ -340,7 +340,7 @@ class MainViewModel(
                     }
 
                     deeplinkString.contains("nft-collection") -> {
-                        val blockchainTypeUid = deepLink.getQueryParameter("blockchainTypeUid")
+                        val blockchainTypeUid = deepLink.getQueryParameterSafe("blockchainTypeUid")
                         if (uid != null && blockchainTypeUid != null) {
                             deeplinkPage = DeeplinkPage(
                                 R.id.nftCollectionFragment,
@@ -351,7 +351,7 @@ class MainViewModel(
                     }
 
                     deeplinkString.contains("top-platforms") -> {
-                        val title = deepLink.getQueryParameter("title")
+                        val title = deepLink.getQueryParameterSafe("title")
                         if (title != null && uid != null) {
                             val platform = Platform(uid, title)
                             deeplinkPage = DeeplinkPage(R.id.marketPlatformFragment, platform)
@@ -427,7 +427,7 @@ class MainViewModel(
     fun handleDeepLink(uri: Uri) {
         val deeplinkString = uri.toString()
         if (deeplinkString.startsWith("pcash.money:") || deeplinkString.startsWith("tc:")) {
-            val returnParam = uri.getQueryParameter("ret")
+            val returnParam = uri.getQueryParameterSafe("ret")
             // when app is opened from camera app, it returns "none" as ret param
             // so we don't need closing app in this case
             val closeApp = returnParam != "none"
@@ -472,5 +472,33 @@ class MainViewModel(
     fun onSendOpened() {
         openSendTokenSelect = null
         emitState()
+    }
+}
+
+/**
+ * Safely extracts a query parameter from both hierarchical and opaque URIs.
+ *
+ * Hierarchical: `pcash://coin-page?uid=bitcoin`
+ * Opaque: `pcash:coin-page?uid=bitcoin`
+ *
+ * Returns null for parameters without `=` (e.g., `?uid`), matching Android's behavior.
+ * Returns empty string for parameters with empty value (e.g., `?uid=`).
+ */
+private fun Uri.getQueryParameterSafe(key: String): String? {
+    return if (isHierarchical) {
+        getQueryParameter(key)
+    } else {
+        // For opaque URIs, parse schemeSpecificPart manually
+        // e.g., "coin-page?uid=bitcoin&foo=bar"
+        val ssp = schemeSpecificPart ?: return null
+        val queryStart = ssp.indexOf('?')
+        if (queryStart == -1) return null
+
+        val queryString = ssp.substring(queryStart + 1)
+        queryString.split('&')
+            .map { it.split('=', limit = 2) }
+            .firstOrNull { it.size == 2 && it[0] == key }
+            ?.get(1)
+            ?.let { java.net.URLDecoder.decode(it, "UTF-8") }
     }
 }
