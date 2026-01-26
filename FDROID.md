@@ -20,13 +20,6 @@ Builds:
       - fdroid=true
 ```
 
-Alternatively, you can pass it directly in the gradle array:
-
-```yaml
-    gradle:
-      - -Pfdroid=true
-```
-
 ### Manual Building for F-Droid
 
 If building manually, pass the `fdroid` property to Gradle:
