@@ -1915,4 +1915,7 @@
     <string name="connect_mini_app_connection_failed">Не вдалося виконати підключення.</string>
     <string name="connect_mini_app_close">Закрити</string>
     <string name="connect_mini_app_try_again">Спробувати знову</string>
+    <string name="native_library_error_title">Неможливо запустити</string>
+    <string name="native_library_error_message">Не вдалося завантажити необхідний компонент. Будь ласка, спробуйте перевстановити додаток з Play Store.</string>
+    <string name="native_library_error_close">Закрити</string>
 </resources>

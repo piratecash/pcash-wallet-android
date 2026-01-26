@@ -1751,4 +1751,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="connect_mini_app_connection_failed">La connexion a échoué.</string>
     <string name="connect_mini_app_close">Fermer</string>
     <string name="connect_mini_app_try_again">Réessayer</string>
+    <string name="native_library_error_title">Impossible de démarrer</string>
+    <string name="native_library_error_message">Un composant requis n\'a pas pu être chargé. Veuillez réinstaller l\'application depuis le Play Store.</string>
+    <string name="native_library_error_close">Fermer</string>
 </resources>

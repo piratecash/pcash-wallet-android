@@ -57,6 +57,9 @@ class MainActivity : BaseActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
+        // If SQLCipher failed, BaseActivity redirected to error screen - don't continue
+        if (App.sqlCipherLoadFailed) return
+
         setContentView(R.layout.activity_main)
 
         val navHost =

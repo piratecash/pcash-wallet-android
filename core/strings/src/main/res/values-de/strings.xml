@@ -1746,4 +1746,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="connect_mini_app_connection_failed">Die Verbindung ist fehlgeschlagen.</string>
     <string name="connect_mini_app_close">Schließen</string>
     <string name="connect_mini_app_try_again">Erneut versuchen</string>
+    <string name="native_library_error_title">Start nicht möglich</string>
+    <string name="native_library_error_message">Eine erforderliche Komponente konnte nicht geladen werden. Bitte versuchen Sie, die App aus dem Play Store neu zu installieren.</string>
+    <string name="native_library_error_close">Schließen</string>
 </resources>

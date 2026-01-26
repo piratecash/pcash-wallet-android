@@ -1755,4 +1755,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="connect_mini_app_connection_failed">Bağlantı başarısız oldu.</string>
     <string name="connect_mini_app_close">Kapat</string>
     <string name="connect_mini_app_try_again">Tekrar dene</string>
+    <string name="native_library_error_title">Başlatılamıyor</string>
+    <string name="native_library_error_message">Gerekli bir bileşen yüklenemedi. Lütfen uygulamayı Play Store\'dan yeniden yüklemeyi deneyin.</string>
+    <string name="native_library_error_close">Kapat</string>
 </resources>

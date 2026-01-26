@@ -1745,4 +1745,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="connect_mini_app_connection_failed">La conexión falló.</string>
     <string name="connect_mini_app_close">Cerrar</string>
     <string name="connect_mini_app_try_again">Intentar de nuevo</string>
+    <string name="native_library_error_title">No se puede iniciar</string>
+    <string name="native_library_error_message">No se pudo cargar un componente requerido. Por favor, intente reinstalar la aplicación desde Play Store.</string>
+    <string name="native_library_error_close">Cerrar</string>
 </resources>

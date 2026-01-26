@@ -121,6 +121,7 @@ import androidx.work.Configuration as WorkConfiguration
 class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory {
 
     companion object : ICoreApp by CoreApp {
+        var sqlCipherLoadFailed = false
 
         lateinit var feeRateProvider: FeeRateProvider
         val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
@@ -191,7 +192,13 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             Timber.plant(Timber.DebugTree())
         }
 
-        preloadSqlCipher()
+        instance = this
+
+        val errorLoading = preloadSqlCipher()
+        if (errorLoading != null) {
+            showFatalErrorAndExit(errorLoading)
+            return
+        }
 
         startKoin {
             androidContext(this@App)
@@ -219,8 +226,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         RxJavaPlugins.setErrorHandler { e: Throwable? ->
             Timber.tag("RxJava ErrorHandler").e(e ?: return@setErrorHandler)
         }
-
-        instance = this
 
         pinSettingsStorage = get()
         lockoutStorage = get()
@@ -347,19 +352,35 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
      * (Fatal Exception: java.lang.UnsatisfiedLinkError
      * dlopen failed: library "libsqlcipher.so" not found)
      */
-    private fun preloadSqlCipher() {
+    private fun preloadSqlCipher(): Throwable? {
+        val libraryName = "sqlcipher"
+
+        // Attempt 1: System.loadLibrary
         try {
-            System.loadLibrary("sqlcipher")
+            System.loadLibrary(libraryName)
             Timber.i("sqlcipher library loaded via System.loadLibrary")
+            return null
         } catch (error: Throwable) {
-            Timber.w(error, "System.loadLibrary(sqlcipher) failed, attempting ReLinker")
-            try {
-                ReLinker.force().loadLibrary(this, "sqlcipher")
-                Timber.i("sqlcipher library loaded via ReLinker")
-            } catch (fallbackError: Throwable) {
-                Timber.e(fallbackError, "Error loading sqlcipher library")
-            }
+            Timber.w(error, "System.loadLibrary failed")
         }
+
+        // Attempt 2: ReLinker (handles corrupted/missing extractions)
+        try {
+            ReLinker.force().loadLibrary(this, libraryName)
+            Timber.i("sqlcipher library loaded via ReLinker")
+            return null
+        } catch (error: Throwable) {
+            Timber.e(error, "All sqlcipher loading methods failed")
+            return error
+        }
+    }
+
+    private fun showFatalErrorAndExit(t: Throwable) {
+        Timber.e("FATAL: SQLCipher native library could not be loaded")
+        logError(t, "FATAL: SQLCipher native library could not be loaded")
+
+        // Set flag so MainActivity knows to redirect to error screen
+        sqlCipherLoadFailed = true
     }
 
     private fun initCipherForMonero() {

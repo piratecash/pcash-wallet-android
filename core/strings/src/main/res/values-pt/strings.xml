@@ -1753,4 +1753,7 @@
     <string name="connect_mini_app_connection_failed">A conexão falhou.</string>
     <string name="connect_mini_app_close">Fechar</string>
     <string name="connect_mini_app_try_again">Tentar novamente</string>
+    <string name="native_library_error_title">Não foi possível iniciar</string>
+    <string name="native_library_error_message">Não foi possível carregar um componente necessário. Por favor, reinstale a aplicação a partir da Play Store.</string>
+    <string name="native_library_error_close">Fechar</string>
 </resources>

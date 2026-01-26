@@ -1742,4 +1742,7 @@
     <string name="connect_mini_app_connection_failed">连接失败。</string>
     <string name="connect_mini_app_close">关闭</string>
     <string name="connect_mini_app_try_again">重试</string>
+    <string name="native_library_error_title">无法启动</string>
+    <string name="native_library_error_message">无法加载所需组件。请尝试从 Play 商店重新安装应用。</string>
+    <string name="native_library_error_close">关闭</string>
 </resources>

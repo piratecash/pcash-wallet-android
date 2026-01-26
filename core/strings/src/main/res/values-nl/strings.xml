@@ -1760,4 +1760,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="connect_mini_app_connection_failed">De verbinding is mislukt.</string>
     <string name="connect_mini_app_close">Sluiten</string>
     <string name="connect_mini_app_try_again">Opnieuw proberen</string>
+    <string name="native_library_error_title">Kan niet starten</string>
+    <string name="native_library_error_message">Een vereist onderdeel kon niet worden geladen. Probeer de app opnieuw te installeren vanuit de Play Store.</string>
+    <string name="native_library_error_close">Sluiten</string>
 </resources>

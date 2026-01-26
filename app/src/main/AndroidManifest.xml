@@ -113,6 +113,10 @@
         <activity
             android:name=".modules.keystore.KeyStoreActivity"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".core.NativeLibraryErrorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
