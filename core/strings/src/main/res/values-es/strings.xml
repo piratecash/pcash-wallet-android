@@ -1688,6 +1688,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="send_sms_test_error">Se produjo un error al enviar su mensaje.</string>
     <string name="send_sms_insufficient_balance">Saldo insuficiente</string>
     <string name="send_sms_transparent_address_not_allowed">Las direcciones transparentes no están permitidas. Por favor, use una dirección blindada (z).</string>
+    <string name="send_sms_same_wallet_error">No puede enviar notificaciones a su propia dirección de billetera. Por favor, ingrese una dirección de destinatario diferente.</string>
     <string name="choose_wallet">Elegir billetera</string>
     <string name="choose_wallet_none">Ninguna</string>
     <string name="required_coins_for_transaction">Monedas requeridas para la transacción</string>

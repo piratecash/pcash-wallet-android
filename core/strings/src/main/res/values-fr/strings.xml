@@ -1694,6 +1694,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="send_sms_test_error">Une erreur s\'est produite lors de l\'envoi de votre message.</string>
     <string name="send_sms_insufficient_balance">Solde insuffisant</string>
     <string name="send_sms_transparent_address_not_allowed">Les adresses transparentes ne sont pas autorisées. Veuillez utiliser une adresse protégée (z).</string>
+    <string name="send_sms_same_wallet_error">Vous ne pouvez pas envoyer de notifications à votre propre adresse de portefeuille. Veuillez saisir une adresse de destinataire différente.</string>
     <string name="choose_wallet">Choisir le portefeuille</string>
     <string name="choose_wallet_none">Aucun</string>
     <string name="required_coins_for_transaction">Jetons requis pour la transaction</string>

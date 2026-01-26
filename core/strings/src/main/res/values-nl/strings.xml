@@ -1702,6 +1702,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="send_sms_test_error">Er is een fout opgetreden bij het verzenden van uw bericht.</string>
     <string name="send_sms_insufficient_balance">Onvoldoende saldo</string>
     <string name="send_sms_transparent_address_not_allowed">Transparante adressen zijn niet toegestaan. Gebruik een afgeschermd (z) adres.</string>
+    <string name="send_sms_same_wallet_error">U kunt geen meldingen naar uw eigen portemonnee-adres sturen. Voer een ander ontvangersadres in.</string>
     <string name="choose_wallet">Portemonnee kiezen</string>
     <string name="choose_wallet_none">Geen</string>
     <string name="required_coins_for_transaction">Vereiste munten voor transactie</string>

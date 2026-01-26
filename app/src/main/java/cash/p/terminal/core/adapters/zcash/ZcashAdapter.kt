@@ -6,6 +6,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.UnsupportedAccountException
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
@@ -598,6 +599,14 @@ class ZcashAdapter(
             proposal = proposal,
             usk = spendingKey
         ).first().txId
+    }
+
+    override suspend fun getOwnAddresses(): List<String> {
+        val account = getFirstAccount()
+        return listOfNotNull(
+            tryOrNull { synchronizer.getSaplingAddress(account) },
+            tryOrNull { synchronizer.getUnifiedAddress(account) }
+        )
     }
 
     suspend fun proposeShielding(): FirstClassByteArray = withContext(Dispatchers.IO) {

@@ -1858,6 +1858,7 @@
     <string name="send_sms_test_error">Під час надсилання повідомлення сталася помилка.</string>
     <string name="send_sms_insufficient_balance">Недостатній баланс</string>
     <string name="send_sms_transparent_address_not_allowed">Прозорі адреси не підтримуються. Будь ласка, використовуйте захищену (z) адресу.</string>
+    <string name="send_sms_same_wallet_error">Ви не можете надсилати сповіщення на власну адресу гаманця. Будь ласка, введіть іншу адресу отримувача.</string>
     <string name="choose_wallet">Обрати гаманець</string>
     <string name="choose_wallet_none">Не обрано</string>
     <string name="required_coins_for_transaction">Необхідно монет для транзакції</string>

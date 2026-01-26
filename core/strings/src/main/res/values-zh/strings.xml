@@ -1685,6 +1685,7 @@
     <string name="send_sms_test_error">发送消息时发生错误。</string>
     <string name="send_sms_insufficient_balance">余额不足</string>
     <string name="send_sms_transparent_address_not_allowed">不支持透明地址。请使用屏蔽(z)地址。</string>
+    <string name="send_sms_same_wallet_error">您不能向自己的钱包地址发送通知。请输入其他收件人地址。</string>
     <string name="choose_wallet">选择钱包</string>
     <string name="choose_wallet_none">无</string>
     <string name="required_coins_for_transaction">交易所需代币</string>

@@ -1694,6 +1694,7 @@
     <string name="send_sms_test_error">메시지 전송 중 오류가 발생했습니다.</string>
     <string name="send_sms_insufficient_balance">잔액 부족</string>
     <string name="send_sms_transparent_address_not_allowed">투명 주소는 허용되지 않습니다. 차폐(z) 주소를 사용해 주세요.</string>
+    <string name="send_sms_same_wallet_error">본인의 지갑 주소로 알림을 보낼 수 없습니다. 다른 수신자 주소를 입력해 주세요.</string>
     <string name="choose_wallet">지갑 선택</string>
     <string name="choose_wallet_none">없음</string>
     <string name="required_coins_for_transaction">트랜잭션에 필요한 코인</string>

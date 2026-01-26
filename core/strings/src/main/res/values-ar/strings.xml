@@ -1709,6 +1709,7 @@
     <string name="send_sms_test_error">حدث خطأ أثناء إرسال رسالتك.</string>
     <string name="send_sms_insufficient_balance">رصيد غير كافٍ</string>
     <string name="send_sms_transparent_address_not_allowed">العناوين الشفافة غير مسموح بها. يرجى استخدام عنوان محمي (z).</string>
+    <string name="send_sms_same_wallet_error">لا يمكنك إرسال إشعارات إلى عنوان محفظتك الخاصة. يرجى إدخال عنوان مستلم مختلف.</string>
     <string name="choose_wallet">اختر المحفظة</string>
     <string name="choose_wallet_none">لا شيء</string>
     <string name="required_coins_for_transaction">العملات المطلوبة للمعاملة</string>

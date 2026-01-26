@@ -1696,6 +1696,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="send_sms_test_error">Ocorreu um erro ao enviar sua mensagem.</string>
     <string name="send_sms_insufficient_balance">Saldo insuficiente</string>
     <string name="send_sms_transparent_address_not_allowed">Endereços transparentes não são permitidos. Por favor, use um endereço blindado (z).</string>
+    <string name="send_sms_same_wallet_error">Você não pode enviar notificações para o seu próprio endereço de carteira. Por favor, insira um endereço de destinatário diferente.</string>
     <string name="choose_wallet">Escolher carteira</string>
     <string name="choose_wallet_none">Nenhuma</string>
     <string name="required_coins_for_transaction">Moedas necessárias para a transação</string>

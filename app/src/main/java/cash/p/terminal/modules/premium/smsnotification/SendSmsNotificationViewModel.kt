@@ -42,6 +42,9 @@ class SendSmsNotificationViewModel(
     private var savedAddress: String = ""
     private var savedMemo: String = ""
 
+    // Cache own addresses for self-send validation
+    private var ownAddresses: List<String> = emptyList()
+
     var uiState by mutableStateOf(
         SendSmsNotificationUiState(
             requiredCoins = ISmsNotificationSettings.AMOUNT_TO_SEND_ZEC.add(ZcashAdapter.MINERS_FEE)
@@ -108,6 +111,17 @@ class SendSmsNotificationViewModel(
             selectedWallet = walletItem,
             requiredCoins = ISmsNotificationSettings.AMOUNT_TO_SEND_ZEC.add(fee)
         )
+
+        // Load own addresses for self-send validation
+        viewModelScope.launch {
+            ownAddresses = adapter?.getOwnAddresses() ?: emptyList()
+
+            // Re-validate if address is already entered
+            if (uiState.address.isNotBlank()) {
+                validateAddress(uiState.address)
+            }
+        }
+
         updateButtonStates()
     }
 
@@ -159,6 +173,15 @@ class SendSmsNotificationViewModel(
         if (ZcashAddressValidator.isTransparentAddress(address)) {
             uiState = uiState.copy(
                 addressError = Exception(Translator.getString(R.string.send_sms_transparent_address_not_allowed))
+            )
+            updateButtonStates()
+            return
+        }
+
+        // Check for same wallet address (self-send) - checks ALL address types
+        if (ownAddresses.contains(address)) {
+            uiState = uiState.copy(
+                addressError = Exception(Translator.getString(R.string.send_sms_same_wallet_error))
             )
             updateButtonStates()
             return

@@ -1689,6 +1689,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="send_sms_test_error">Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten.</string>
     <string name="send_sms_insufficient_balance">Unzureichendes Guthaben</string>
     <string name="send_sms_transparent_address_not_allowed">Transparente Adressen sind nicht erlaubt. Bitte verwenden Sie eine geschützte (z) Adresse.</string>
+    <string name="send_sms_same_wallet_error">Sie können keine Benachrichtigungen an Ihre eigene Wallet-Adresse senden. Bitte geben Sie eine andere Empfängeradresse ein.</string>
     <string name="choose_wallet">Wallet auswählen</string>
     <string name="choose_wallet_none">Keine</string>
     <string name="required_coins_for_transaction">Erforderliche Coins für Transaktion</string>

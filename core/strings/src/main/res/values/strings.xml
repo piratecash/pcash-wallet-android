@@ -2114,6 +2114,7 @@ Proceed only if you\'re sure.</string>
     <string name="send_sms_test_error">An error occurred while sending your message.</string>
     <string name="send_sms_insufficient_balance">Insufficient balance</string>
     <string name="send_sms_transparent_address_not_allowed">Transparent addresses are not allowed. Please use a shielded (z) address.</string>
+    <string name="send_sms_same_wallet_error">You cannot send notifications to your own wallet address. Please enter a different recipient address.</string>
     <string name="choose_wallet">Choose Wallet</string>
     <string name="choose_wallet_none">None</string>
     <string name="required_coins_for_transaction">Required coins for transaction</string>

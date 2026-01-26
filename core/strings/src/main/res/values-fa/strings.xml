@@ -1700,6 +1700,7 @@
     <string name="send_sms_test_error">هنگام ارسال پیام خطایی رخ داد.</string>
     <string name="send_sms_insufficient_balance">موجودی ناکافی</string>
     <string name="send_sms_transparent_address_not_allowed">آدرس‌های شفاف مجاز نیستند. لطفاً از آدرس محافظت‌شده (z) استفاده کنید.</string>
+    <string name="send_sms_same_wallet_error">شما نمی‌توانید اعلان‌ها را به آدرس کیف پول خودتان ارسال کنید. لطفاً آدرس گیرنده دیگری وارد کنید.</string>
     <string name="choose_wallet">انتخاب کیف پول</string>
     <string name="choose_wallet_none">هیچکدام</string>
     <string name="required_coins_for_transaction">سکه‌های مورد نیاز برای تراکنش</string>

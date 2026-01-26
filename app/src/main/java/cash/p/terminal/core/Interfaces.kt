@@ -204,6 +204,7 @@ interface ISendZcashAdapter {
 
     suspend fun validate(address: String): ZcashAdapter.ZCashAddressType
     suspend fun send(amount: BigDecimal, address: String, memo: String, logger: AppLogger?): FirstClassByteArray
+    suspend fun getOwnAddresses(): List<String>
 }
 
 interface ISendSolanaAdapter {
