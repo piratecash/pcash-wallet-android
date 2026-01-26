@@ -1,3 +1,19 @@
+## 🚀 Version 0.51.4 Update
+_Release date: January 26, 2026_
+
+### 🔧 Fixes and Improvements
+
+- **Fixed Tangem card connection issue with @piratecash_bot**
+  Resolved issues that prevented Tangem cards from connecting to the Telegram mini-app game.
+
+- **Improved handling of BNB data fetch failures**
+  Improved UI behavior for cases when BNB data cannot be retrieved due to country-based IP restrictions. In such cases, the app correctly suggests using a VPN.
+
+- **Added error handling for SQLCipher loading failures**
+  Implemented proper handling for SQLCipher loading errors and added a dedicated error screen to clearly inform the user.
+
+
+
 ## 🚀 Version 0.51.3 Update
 _Release date: January 25, 2026_
 
