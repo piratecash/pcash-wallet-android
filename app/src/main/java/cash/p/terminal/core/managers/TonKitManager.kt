@@ -99,14 +99,13 @@ class TonKitManager(
         account: Account,
         blockchainType: BlockchainType?,
         tokenType: TokenType?
-    ) =
-        createKitInstance(
-            account.toTonWallet(
-                hardwarePublicKeyStorage,
-                blockchainType,
-                tokenType
-            ), account
-        )
+    ) = createKitInstance(
+        account.toTonWallet(
+            hardwarePublicKeyStorage,
+            blockchainType,
+            tokenType
+        ), account
+    )
 
     private fun createKitInstance(
         tonWallet: TonWallet,

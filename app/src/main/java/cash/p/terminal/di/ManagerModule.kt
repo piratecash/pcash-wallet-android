@@ -144,8 +144,8 @@ val managerModule = module {
     singleOf(::SolanaKitManager)
     singleOf(::StellarKitManager)
     singleOf(::TonKitManager)
-    single<GetTonAddressUseCase> { GetTonAddressUseCaseImpl(get()) }
-    single<CreateRequiredTokensUseCase> { CreateRequiredTokensUseCaseImpl(get(), get()) }
+    singleOf(::GetTonAddressUseCaseImpl) bind GetTonAddressUseCase::class
+    singleOf(::CreateRequiredTokensUseCaseImpl) bind CreateRequiredTokensUseCase::class
     singleOf(::TronKitManager)
     factoryOf(::StackingManager)
     singleOf(::RestoreSettingsManager)
