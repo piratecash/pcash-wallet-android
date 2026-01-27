@@ -4,8 +4,6 @@
     android:viewportWidth="32"
     android:viewportHeight="32">
   <group>
-    <clip-path
-        android:pathData="M0,0h32v32h-32z"/>
     <path
         android:pathData="M8.705,18.668C6.757,18.676 5.096,20.085 4.776,22.009C4.369,24.447 6.251,26.667 8.721,26.667H23.277C25.749,26.667 27.629,24.447 27.223,22.009C26.903,20.087 25.241,18.676 23.293,18.668"
         android:strokeLineJoin="round"

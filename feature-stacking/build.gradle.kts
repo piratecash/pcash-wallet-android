@@ -19,6 +19,7 @@ android {
 
     defaultConfig {
         minSdk = 27
+        vectorDrawables.generatedDensities?.clear()
         buildFeatures {
             compose = true
         }
