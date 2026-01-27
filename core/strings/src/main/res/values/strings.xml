@@ -482,6 +482,7 @@ Proceed only if you\'re sure.</string>
     <string name="Send_RiskyAddress_AlertText">You are about to send funds to a high-risk address. Proceeding may result in loss or other security risks. By continuing, you accept the potential dangers. Are you sure you want to proceed?</string>
 
     <string name="Send_Success">\u2713 Sent</string>
+    <string name="send_success_queued">Transaction queued, will be sent when peers connect</string>
 
     <string name="ScanQr_CameraPermission_Title">Camera permission</string>
     <string name="ScanQr_PleaseGrantCameraPermission">Please grant the camera permission</string>

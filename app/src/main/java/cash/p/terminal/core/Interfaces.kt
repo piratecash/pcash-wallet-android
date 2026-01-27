@@ -178,6 +178,8 @@ interface ISendBitcoinAdapter {
         utxoFilters: UtxoFilters
     ): String
 
+    fun isTransactionInSendQueue(txHash: String): Boolean
+
     fun satoshiToBTC(value: Long): BigDecimal
 }
 

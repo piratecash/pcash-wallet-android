@@ -27,6 +27,7 @@ import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
+import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.ui.DataFieldFee
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -150,7 +151,11 @@ fun SwapConfirmScreen(
                                 val result = viewModel.swap()
                                 viewModel.onTransactionCompleted(result)
 
-                                HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+                                if (result is SendTransactionResult.Btc && result.isQueued) {
+                                    HudHelper.showWarningMessage(view, R.string.send_success_queued)
+                                } else {
+                                    HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+                                }
                                 delay(1200)
 
                                 fragmentNavController.navigateUp()

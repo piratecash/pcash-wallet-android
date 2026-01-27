@@ -362,6 +362,7 @@
     <string name="no_checks_available">Aucune vérification disponible</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Envoyé</string>
+    <string name="send_success_queued">Transaction en file d\'attente, sera envoyée lors de la connexion aux pairs</string>
     <string name="ScanQr_CameraPermission_Title">Besoin d\'un accès à la caméra</string>
     <string name="ScanQr_PleaseGrantCameraPermission">Veuillez autoriser l\'accès à l\'appareil photo</string>
     <string name="ScanQr_NoCameraPermission">Pas de permission caméra</string>

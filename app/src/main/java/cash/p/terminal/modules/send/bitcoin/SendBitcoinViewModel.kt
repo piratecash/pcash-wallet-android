@@ -327,8 +327,15 @@ class SendBitcoinViewModel(
                 pendingRegistrar.updateTxId(it, transactionRecord)
             }
 
-            logger.info("success")
-            sendResult = SendResult.Sent(transactionRecord)
+            // 5. Check if transaction is still in queue
+            val isQueued = adapter.isTransactionInSendQueue(transactionRecord)
+
+            logger.info("success, queued=$isQueued")
+            sendResult = if (isQueued) {
+                SendResult.SentButQueued(transactionRecord)
+            } else {
+                SendResult.Sent(transactionRecord)
+            }
 
             address?.let {
                 recentAddressManager.setRecentAddress(address, blockchainType)

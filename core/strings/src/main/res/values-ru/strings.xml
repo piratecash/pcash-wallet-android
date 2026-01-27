@@ -371,6 +371,7 @@
     <string name="Send_Confirmation_Action">Действие</string>
     <string name="Send_RiskyAddress_AlertText">Вы собираетесь отправить средства на адрес с высоким уровнем риска. Продолжение может привести к потере средств или другим угрозам безопасности. Продолжая, вы принимаете возможные риски. Вы уверены, что хотите продолжить?</string>
     <string name="Send_Success">\u2713 Отправлено</string>
+    <string name="send_success_queued">Транзакция в очереди, будет отправлена при подключении к пирам</string>
     <string name="ScanQr_CameraPermission_Title">Разрешение камеры</string>
     <string name="ScanQr_PleaseGrantCameraPermission">Пожалуйста, дайте разрешение на доступ к камере</string>
     <string name="ScanQr_NoCameraPermission">Нет разрешения для камеры</string>

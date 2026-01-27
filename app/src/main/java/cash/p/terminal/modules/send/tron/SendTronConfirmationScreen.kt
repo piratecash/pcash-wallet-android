@@ -117,6 +117,7 @@ fun SendTronConfirmationScreen(
             HudHelper.showErrorMessage(view, sendResult.caution.getString())
         }
 
+        is SendResult.SentButQueued,
         null -> Unit
     }
 

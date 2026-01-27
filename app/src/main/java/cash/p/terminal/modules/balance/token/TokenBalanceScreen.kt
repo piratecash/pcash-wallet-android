@@ -164,6 +164,14 @@ fun TokenBalanceScreen(
                 )
             }
 
+            is SendResult.SentButQueued -> {
+                HudHelper.showWarningMessage(
+                    view,
+                    R.string.send_success_queued,
+                    SnackbarDuration.LONG
+                )
+            }
+
             is SendResult.Failed -> {
                 HudHelper.showErrorMessage(
                     view,

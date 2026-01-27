@@ -362,6 +362,7 @@
     <string name="no_checks_available">사용 가능한 검사가 없습니다</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 보냄</string>
+    <string name="send_success_queued">거래가 대기열에 추가됨, 피어 연결 시 전송됩니다</string>
     <string name="ScanQr_CameraPermission_Title">카메라 접근 권한</string>
     <string name="ScanQr_PleaseGrantCameraPermission">카메라 권한을 허용하십시오</string>
     <string name="ScanQr_NoCameraPermission">카메라 권한이 없습니다</string>

@@ -360,6 +360,7 @@
     <string name="no_checks_available">Keine Prüfungen verfügbar</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Gesendet</string>
+    <string name="send_success_queued">Transaktion in Warteschlange, wird gesendet wenn Peers verbunden sind</string>
     <string name="ScanQr_CameraPermission_Title">Erlaubnis nötig, um die Kamera zu verwalten</string>
     <string name="ScanQr_PleaseGrantCameraPermission">Bitte erteilen Sie der Kamera Genehmigung</string>
     <string name="ScanQr_NoCameraPermission">Keine Kamerarechte</string>

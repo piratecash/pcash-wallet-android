@@ -362,6 +362,7 @@
     <string name="no_checks_available">没有可用的检查</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713已发送</string>
+    <string name="send_success_queued">交易已排队，将在连接到节点后发送</string>
     <string name="ScanQr_CameraPermission_Title">允许打开相机权限</string>
     <string name="ScanQr_PleaseGrantCameraPermission">请授予相机权限</string>
     <string name="ScanQr_NoCameraPermission">没有拍照权限</string>

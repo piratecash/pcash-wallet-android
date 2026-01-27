@@ -362,6 +362,7 @@
     <string name="no_checks_available">Kullanılabilir kontrol yok</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Gönderilen</string>
+    <string name="send_success_queued">İşlem sıraya alındı, eşler bağlandığında gönderilecek</string>
     <string name="ScanQr_CameraPermission_Title">Kamera izni bulunmamaktadır</string>
     <string name="ScanQr_PleaseGrantCameraPermission">Lütfen kamere erişim izni verin</string>
     <string name="ScanQr_NoCameraPermission">Kamera izni bulunmamaktadır</string>

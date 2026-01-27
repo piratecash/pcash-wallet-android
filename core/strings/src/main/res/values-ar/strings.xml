@@ -362,6 +362,7 @@
     <string name="no_checks_available">لا توجد فحوصات متاحة</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 Sent</string>
+    <string name="send_success_queued">المعاملة في قائمة الانتظار، سيتم إرسالها عند الاتصال بالأقران</string>
     <string name="ScanQr_CameraPermission_Title">Camera permission</string>
     <string name="ScanQr_PleaseGrantCameraPermission">Please grant the camera permission</string>
     <string name="ScanQr_NoCameraPermission">No camera permission</string>

@@ -106,6 +106,14 @@ class ResendBitcoinFragment : BaseComposeFragment() {
                 )
             }
 
+            is SendResult.SentButQueued -> {
+                HudHelper.showWarningMessage(
+                    view,
+                    R.string.send_success_queued,
+                    SnackbarDuration.LONG
+                )
+            }
+
             is SendResult.Failed -> {
                 HudHelper.showErrorMessage(view, uiState.sendResult.caution.getString())
             }
@@ -114,7 +122,7 @@ class ResendBitcoinFragment : BaseComposeFragment() {
         }
 
         LaunchedEffect(uiState.sendResult) {
-            if (uiState.sendResult is SendResult.Sent) {
+            if (uiState.sendResult is SendResult.Sent || uiState.sendResult is SendResult.SentButQueued) {
                 delay(1200)
                 navController.popBackStack(closeUntilDestId, true)
             }
@@ -122,7 +130,7 @@ class ResendBitcoinFragment : BaseComposeFragment() {
 
         LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
             //additional close for cases when user closes app immediately after sending
-            if (uiState.sendResult is SendResult.Sent) {
+            if (uiState.sendResult is SendResult.Sent || uiState.sendResult is SendResult.SentButQueued) {
                 navController.popBackStack(closeUntilDestId, true)
             }
         }
@@ -278,7 +286,8 @@ class ResendBitcoinFragment : BaseComposeFragment() {
                 )
             }
 
-            SendResult.Sent() -> {
+            is SendResult.Sent,
+            is SendResult.SentButQueued -> {
                 ButtonPrimaryYellow(
                     modifier = modifier,
                     title = stringResource(R.string.Send_Success),

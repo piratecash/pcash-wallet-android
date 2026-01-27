@@ -362,6 +362,7 @@
     <string name="no_checks_available">هیچ بررسی در دسترس نیست</string>
     <string name="Send_Confirmation_Action">Action</string>
     <string name="Send_Success">\u2713 ارسال شد</string>
+    <string name="send_success_queued">تراکنش در صف قرار گرفت، پس از اتصال به همتایان ارسال می‌شود</string>
     <string name="ScanQr_CameraPermission_Title">مجوز دوربین</string>
     <string name="ScanQr_PleaseGrantCameraPermission">لطفا مجوز دسترسی به دوربین را تایید کنید</string>
     <string name="ScanQr_NoCameraPermission">اجازه دسترسی به دوربین وجود ندارد</string>

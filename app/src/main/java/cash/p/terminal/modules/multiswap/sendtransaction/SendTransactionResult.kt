@@ -6,7 +6,7 @@ import org.stellar.sdk.responses.TransactionResponse
 
 sealed class SendTransactionResult {
     data class Evm(val fullTransaction: FullTransaction) : SendTransactionResult()
-    data class Btc(val uid: String) : SendTransactionResult()
+    data class Btc(val uid: String, val isQueued: Boolean = false) : SendTransactionResult()
     data class Ton(val result: SendResult) : SendTransactionResult()
     data class Tron(val result: SendResult) : SendTransactionResult()
     data class Stellar(val transactionResponse: TransactionResponse) : SendTransactionResult()
@@ -20,16 +20,19 @@ sealed class SendTransactionResult {
             is Btc -> uid
             is Tron -> when (result) {
                 is SendResult.Sent -> result.recordUid
+                is SendResult.SentButQueued -> result.recordUid
                 is SendResult.Failed,
                 SendResult.Sending -> null
             }
             is Ton -> when (result) {
                 is SendResult.Sent -> result.recordUid
+                is SendResult.SentButQueued -> result.recordUid
                 is SendResult.Failed,
                 SendResult.Sending -> null
             }
             is ZCash -> when (result) {
                 is SendResult.Sent -> result.recordUid
+                is SendResult.SentButQueued -> result.recordUid
                 is SendResult.Failed,
                 SendResult.Sending -> null
             }
@@ -37,11 +40,13 @@ sealed class SendTransactionResult {
             is Stellar -> transactionResponse.hash
             is Solana -> when (result) {
                 is SendResult.Sent -> result.recordUid
+                is SendResult.SentButQueued -> result.recordUid
                 is SendResult.Failed,
                 SendResult.Sending -> null
             }
             is Monero -> when (result) {
                 is SendResult.Sent -> result.recordUid
+                is SendResult.SentButQueued -> result.recordUid
                 is SendResult.Failed,
                 SendResult.Sending -> null
             }

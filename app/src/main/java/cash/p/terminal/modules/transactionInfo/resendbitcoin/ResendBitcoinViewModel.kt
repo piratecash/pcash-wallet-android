@@ -205,11 +205,17 @@ class ResendBitcoinViewModel(
                 sendResult = SendResult.Sending
                 emitState()
 
-                adapter.send(replacementTransaction)
+                val fullTransaction = adapter.send(replacementTransaction)
+                val txHash = fullTransaction.header.uid
 
-                logger.info("success")
+                val isQueued = adapter.isTransactionInSendQueue(txHash)
+                logger.info("success, queued=$isQueued")
 
-                sendResult = SendResult.Sent()
+                sendResult = if (isQueued) {
+                    SendResult.SentButQueued(txHash)
+                } else {
+                    SendResult.Sent(txHash)
+                }
                 emitState()
             } catch (e: Throwable) {
                 logger.warning("failed", e)

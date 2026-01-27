@@ -3,6 +3,8 @@ package cash.p.terminal.core.adapters
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.UnsupportedFilterException
+import cash.p.terminal.core.hexToByteArray
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionDataSortMode
 import cash.p.terminal.entities.TransactionValue
@@ -555,6 +557,11 @@ abstract class BitcoinBaseAdapter(
 
     override fun satoshiToBTC(value: Long): BigDecimal {
         return BigDecimal(value).movePointLeft(decimal)
+    }
+
+    override fun isTransactionInSendQueue(txHash: String): Boolean {
+        val hashBytes = tryOrNull { txHash.hexToByteArray() } ?: return false
+        return kit.getTransactionsInSendQueue().any { it.contentEquals(hashBytes) }
     }
 
     companion object {

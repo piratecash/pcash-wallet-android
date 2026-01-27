@@ -110,6 +110,14 @@ fun SendConfirmationScreen(
             )
         }
 
+        is SendResult.SentButQueued -> {
+            currentSnackbar = HudHelper.showWarningMessage(
+                view,
+                R.string.send_success_queued,
+                SnackbarDuration.LONG
+            )
+        }
+
         is SendResult.Failed -> {
             currentSnackbar = HudHelper.showErrorMessage(view, sendResult.caution.getDescription() ?: sendResult.caution.getString())
         }
@@ -120,14 +128,14 @@ fun SendConfirmationScreen(
     }
 
     LaunchedEffect(sendResult) {
-        if (sendResult is SendResult.Sent) {
+        if (sendResult is SendResult.Sent || sendResult is SendResult.SentButQueued) {
             delay(1200)
             navController.popBackStack(closeUntilDestId, true)
         }
     }
 
     LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
-        if (sendResult is SendResult.Sent) {
+        if (sendResult is SendResult.Sent || sendResult is SendResult.SentButQueued) {
             navController.popBackStack(closeUntilDestId, true)
         }
     }
@@ -257,7 +265,8 @@ fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> U
             )
         }
 
-        SendResult.Sent() -> {
+        is SendResult.Sent,
+        is SendResult.SentButQueued -> {
             ButtonPrimaryYellow(
                 modifier = modifier,
                 title = stringResource(R.string.Send_Success),
