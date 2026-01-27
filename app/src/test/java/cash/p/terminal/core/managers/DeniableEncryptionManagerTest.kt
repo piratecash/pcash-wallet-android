@@ -136,14 +136,12 @@ class DeniableEncryptionManagerTest {
     fun `createContainerBytes with two messages succeeds`() {
         val message1 = "Public message".toByteArray()
         val message2 = "Hidden message".toByteArray()
-        val salt = DeniableEncryptionManager.generateSalt()
 
         val container = DeniableEncryptionManager.createContainerBytes(
             message1 = message1,
             password1 = "password1",
             message2 = message2,
-            password2 = "password2",
-            salt = salt
+            password2 = "password2"
         )
 
         assertNotNull(container)

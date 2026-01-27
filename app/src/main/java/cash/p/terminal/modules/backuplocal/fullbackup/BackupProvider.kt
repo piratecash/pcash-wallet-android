@@ -760,28 +760,13 @@ class BackupProvider(
         payload2: ByteArray?,
         passphrase2: String?
     ): ByteArray {
-        val maxRetries = DeniableEncryptionManager.RECOMMENDED_MAX_RETRIES
-        var lastException: DeniableEncryptionManager.PasswordCollisionException? = null
-
-        repeat(maxRetries) {
-            val salt = DeniableEncryptionManager.generateSalt()
-            try {
-                val containerBytes = DeniableEncryptionManager.createContainerBytes(
-                    message1 = payload1,
-                    password1 = passphrase1,
-                    message2 = payload2,
-                    password2 = passphrase2,
-                    salt = salt
-                )
-                return BackupLocalModule.BackupV4Binary.create(containerBytes)
-            } catch (e: DeniableEncryptionManager.PasswordCollisionException) {
-                lastException = e
-            }
-        }
-
-        throw lastException ?: DeniableEncryptionManager.PasswordCollisionException(
-            "Failed to create backup after $maxRetries attempts due to offset collisions"
+        val containerBytes = DeniableEncryptionManager.createContainerBytes(
+            message1 = payload1,
+            password1 = passphrase1,
+            message2 = payload2,
+            password2 = passphrase2
         )
+        return BackupLocalModule.BackupV4Binary.create(containerBytes)
     }
 
     /**

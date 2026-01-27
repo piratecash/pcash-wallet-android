@@ -254,6 +254,38 @@ object DeniableEncryptionManager {
 
     /**
      * Create deniable encryption container with one or two messages.
+     * Automatically retries with new salt if password collision occurs.
+     *
+     * @param message1 Primary message (required)
+     * @param password1 Primary password (required)
+     * @param message2 Secondary/hidden message (optional)
+     * @param password2 Secondary password (optional, required if message2 provided)
+     * @param maxRetries Maximum retry attempts for collision resolution
+     * @return Container as raw ByteArray
+     * @throws PasswordCollisionException if collision persists after maxRetries
+     * @throws IllegalArgumentException if data exceeds maximum container size
+     */
+    @Throws(PasswordCollisionException::class)
+    fun createContainerBytes(
+        message1: ByteArray,
+        password1: String,
+        message2: ByteArray?,
+        password2: String?,
+        maxRetries: Int = RECOMMENDED_MAX_RETRIES
+    ): ByteArray {
+        repeat(maxRetries) {
+            val salt = generateSalt()
+            try {
+                return createContainerBytes(message1, password1, message2, password2, salt)
+            } catch (e: PasswordCollisionException) {
+                // Retry with new salt
+            }
+        }
+        throw PasswordCollisionException("Failed to create container after $maxRetries attempts due to password collisions")
+    }
+
+    /**
+     * Create deniable encryption container with one or two messages using provided salt.
      * Container size is dynamically calculated based on data size and rounded
      * to size buckets for deniability.
      *
