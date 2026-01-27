@@ -32,11 +32,15 @@ def getGitVersionSuffix = { ->
     try {
         def hash = gitHashProvider.getOrElse("unknown")
         if (hash == "unknown" || hash.isEmpty()) {
+            println "GIT_HASH: unknown (empty or failed)"
             return "unknown"
         }
         def dirty = gitDirtyProvider.getOrElse(false) ? "-dirty" : ""
-        return "${hash}${dirty}"
+        def result = "${hash}${dirty}"
+        println "GIT_HASH: ${result}"
+        return result
     } catch (Exception ignored) {
+        println "GIT_HASH: unknown (exception: ${ignored.message})"
         return "unknown"
     }
 }
