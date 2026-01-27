@@ -46,8 +46,9 @@ function buildApk () {
     echo "Starting docker container  ${DOCKER_IMAGE} ..."
     echo "Building apk file ..."
 
+    # Pass -Pfdroid=true to disable baseline profiles for reproducible builds
     docker run -it --volume $PWD/app:/mnt --workdir /mnt ${DOCKER_IMAGE} bash -x -c \
-      './gradlew clean :app:assembleRelease'
+      './gradlew clean :app:assembleRelease -Pfdroid=true'
 
 }
 

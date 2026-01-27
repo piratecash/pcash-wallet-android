@@ -140,9 +140,9 @@ testPCASH() {
 
   prepare
 
-  # build
+  # build with -Pfdroid=true to disable baseline profiles for reproducible builds
   docker run -it --volume $PWD:/mnt --workdir /mnt --rm $wsDocker bash -x -c \
-      'apt update && DEBIAN_FRONTEND=noninteractive apt install openjdk-11-jdk --yes && ./gradlew clean :app:assembleRelease'
+      'apt update && DEBIAN_FRONTEND=noninteractive apt install openjdk-11-jdk --yes && ./gradlew clean :app:assembleRelease -Pfdroid=true'
 
   # collect results
   result

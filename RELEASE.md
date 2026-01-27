@@ -85,3 +85,7 @@ APK-FILE-NAME: Name of the apk file<br>
 ### 10. Make sure P.CASH Wallet is 'Reproducible'
 
 * After apk is uploaded to Google Play make sure that new version of P.CASH Terminal-Wallet is 'Reproducible' in WalletScrutiny.
+
+### 11. F-Droid Release
+
+* See [FDROID.md](FDROID.md) for F-Droid reproducible build instructions and metadata configuration.
