@@ -9,6 +9,7 @@ android {
 
     defaultConfig {
         consumerProguardFiles("consumer-rules.pro")
+        vectorDrawables.generatedDensities?.clear()
     }
 
     buildTypes {
