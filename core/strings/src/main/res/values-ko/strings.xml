@@ -1041,6 +1041,7 @@
     <string name="local_backup_confirm_duress_password">긴급 비밀번호 확인</string>
     <string name="local_backup_password_collision">기본 비밀번호와 긴급 비밀번호는 같을 수 없습니다.</string>
     <string name="local_backup_error_empty_password">비밀번호는 비어 있을 수 없습니다.</string>
+    <string name="error_no_file_manager">파일 관리자를 사용할 수 없습니다. 백업을 저장하려면 파일 관리자 앱을 설치하세요.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">암호문 약관</string>

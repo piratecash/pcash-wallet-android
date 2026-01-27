@@ -1064,6 +1064,7 @@
     <string name="local_backup_confirm_duress_password">Подтвердите Duress пароль</string>
     <string name="local_backup_password_collision">Основной пароль и duress пароль не могут совпадать.</string>
     <string name="local_backup_error_empty_password">Пароль не может быть пустым.</string>
+    <string name="error_no_file_manager">Файловый менеджер не найден. Пожалуйста, установите приложение для управления файлами, чтобы сохранить резервные копии.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Условия использования кодовой фразы</string>

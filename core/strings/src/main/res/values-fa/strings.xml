@@ -1044,6 +1044,7 @@
     <string name="local_backup_confirm_duress_password">تأیید رمز عبور اضطراری</string>
     <string name="local_backup_password_collision">رمز عبور اصلی و رمز عبور اضطراری نمی‌توانند یکسان باشند.</string>
     <string name="local_backup_error_empty_password">رمز عبور نمی‌تواند خالی باشد.</string>
+    <string name="error_no_file_manager">مدیر فایل در دسترس نیست. لطفاً برای ذخیره پشتیبان‌ها یک برنامه مدیریت فایل نصب کنید.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">شرایط عبارت عبور</string>

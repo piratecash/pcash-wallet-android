@@ -1042,6 +1042,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="local_backup_confirm_duress_password">Acil Durum Şifresini Onayla</string>
     <string name="local_backup_password_collision">Ana şifre ve acil durum şifresi aynı olamaz.</string>
     <string name="local_backup_error_empty_password">Şifre boş olamaz.</string>
+    <string name="error_no_file_manager">Dosya yöneticisi bulunamadı. Yedekleri kaydetmek için lütfen bir dosya yöneticisi uygulaması yükleyin.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Parola Koşulları</string>

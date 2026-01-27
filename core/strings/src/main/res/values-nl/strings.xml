@@ -1046,6 +1046,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="local_backup_confirm_duress_password">Bevestig Noodwachtwoord</string>
     <string name="local_backup_password_collision">Hoofdwachtwoord en noodwachtwoord mogen niet hetzelfde zijn.</string>
     <string name="local_backup_error_empty_password">Wachtwoord mag niet leeg zijn.</string>
+    <string name="error_no_file_manager">Geen bestandsbeheerder beschikbaar. Installeer een bestandsbeheerder-app om back-ups op te slaan.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase Voorwaarden</string>

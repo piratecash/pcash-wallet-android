@@ -1038,6 +1038,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="local_backup_confirm_duress_password">Confirmer le Mot de Passe d\'Urgence</string>
     <string name="local_backup_password_collision">Le mot de passe principal et le mot de passe d\'urgence ne peuvent pas être identiques.</string>
     <string name="local_backup_error_empty_password">Le mot de passe ne peut pas être vide.</string>
+    <string name="error_no_file_manager">Aucun gestionnaire de fichiers disponible. Veuillez installer une application de gestion de fichiers pour sauvegarder les backups.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Conditions de la Phrase Secrète</string>

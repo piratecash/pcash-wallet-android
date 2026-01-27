@@ -1032,6 +1032,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="local_backup_confirm_duress_password">Confirmar Contraseña de Emergencia</string>
     <string name="local_backup_password_collision">La contraseña principal y la contraseña de emergencia no pueden ser iguales.</string>
     <string name="local_backup_error_empty_password">La contraseña no puede estar vacía.</string>
+    <string name="error_no_file_manager">No hay gestor de archivos disponible. Por favor, instale una aplicación de gestor de archivos para guardar las copias de seguridad.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Términos de la Frase de Contraseña</string>

@@ -1032,6 +1032,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="local_backup_confirm_duress_password">Notfall-Passwort bestätigen</string>
     <string name="local_backup_password_collision">Hauptpasswort und Notfall-Passwort dürfen nicht identisch sein.</string>
     <string name="local_backup_error_empty_password">Das Passwort darf nicht leer sein.</string>
+    <string name="error_no_file_manager">Kein Dateimanager verfügbar. Bitte installieren Sie eine Dateimanager-App, um Backups zu speichern.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase-Bedingungen</string>

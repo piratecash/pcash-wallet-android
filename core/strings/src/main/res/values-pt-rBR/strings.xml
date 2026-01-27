@@ -1040,6 +1040,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="local_backup_confirm_duress_password">Confirmar Senha de Emergência</string>
     <string name="local_backup_password_collision">A senha principal e a senha de emergência não podem ser iguais.</string>
     <string name="local_backup_error_empty_password">A senha não pode estar vazia.</string>
+    <string name="error_no_file_manager">Gerenciador de arquivos não disponível. Por favor, instale um aplicativo gerenciador de arquivos para salvar backups.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Termos da Frase-Senha</string>

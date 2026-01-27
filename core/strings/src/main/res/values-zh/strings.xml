@@ -1031,6 +1031,7 @@
     <string name="local_backup_confirm_duress_password">确认紧急密码</string>
     <string name="local_backup_password_collision">主密码和紧急密码不能相同。</string>
     <string name="local_backup_error_empty_password">密码不能为空。</string>
+    <string name="error_no_file_manager">没有可用的文件管理器。请安装文件管理器应用程序以保存备份。</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">密码短语条款</string>

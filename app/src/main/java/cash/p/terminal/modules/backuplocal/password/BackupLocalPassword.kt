@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.backuplocal.password
 
+import android.content.ActivityNotFoundException
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -105,7 +106,12 @@ fun LocalBackupPasswordScreen(
 
     if (uiState.backupData != null) {
         App.pinComponent.keepUnlocked()
-        backupLauncher.launch(viewModel.backupFileName)
+        try {
+            backupLauncher.launch(viewModel.backupFileName)
+        } catch (_: ActivityNotFoundException) {
+            HudHelper.showErrorMessage(view, R.string.error_no_file_manager)
+            viewModel.backupCanceled()
+        }
     }
 
     if (uiState.closeScreen) {

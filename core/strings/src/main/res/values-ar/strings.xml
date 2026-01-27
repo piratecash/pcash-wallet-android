@@ -1045,6 +1045,7 @@
     <string name="local_backup_confirm_duress_password">تأكيد كلمة المرور القسرية</string>
     <string name="local_backup_password_collision">لا يمكن أن تكون كلمة المرور الرئيسية وكلمة المرور القسرية متطابقتين.</string>
     <string name="local_backup_error_empty_password">لا يمكن أن تكون كلمة المرور فارغة.</string>
+    <string name="error_no_file_manager">لا يوجد مدير ملفات متاح. يرجى تثبيت تطبيق مدير ملفات لحفظ النسخ الاحتياطية.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">شروط عبارة المرور</string>

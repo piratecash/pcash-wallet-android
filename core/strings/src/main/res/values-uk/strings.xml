@@ -1063,6 +1063,7 @@
     <string name="local_backup_confirm_duress_password">Підтвердіть Duress пароль</string>
     <string name="local_backup_password_collision">Основний пароль та duress пароль не можуть бути однаковими.</string>
     <string name="local_backup_error_empty_password">Пароль не може бути порожнім.</string>
+    <string name="error_no_file_manager">Файловий менеджер недоступний. Будь ласка, встановіть додаток для керування файлами, щоб зберігати резервні копії.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Умови використання кодової фрази</string>

@@ -1420,6 +1420,7 @@ Proceed only if you\'re sure.</string>
     <string name="local_backup_confirm_duress_password">Confirm Duress Password</string>
     <string name="local_backup_password_collision">Main password and duress password cannot be the same.</string>
     <string name="local_backup_error_empty_password">Password cannot be empty.</string>
+    <string name="error_no_file_manager">No file manager available. Please install a file manager app to save backups.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase Terms</string>

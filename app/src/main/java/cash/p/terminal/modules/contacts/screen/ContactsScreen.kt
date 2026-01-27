@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.contacts.screen
 
+import android.content.ActivityNotFoundException
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -277,7 +278,11 @@ fun ContactsScreen(
 
                                 ContactsModule.ContactsAction.Backup -> {
                                     App.pinComponent.keepUnlocked()
-                                    backupLauncher.launch(viewModel.backupFileName)
+                                    try {
+                                        backupLauncher.launch(viewModel.backupFileName)
+                                    } catch (_: ActivityNotFoundException) {
+                                        HudHelper.showErrorMessage(view, R.string.error_no_file_manager)
+                                    }
                                 }
                             }
                         })

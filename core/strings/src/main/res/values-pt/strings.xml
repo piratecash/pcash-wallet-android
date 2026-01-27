@@ -1040,6 +1040,7 @@
     <string name="local_backup_confirm_duress_password">Confirmar Palavra-passe de Emergência</string>
     <string name="local_backup_password_collision">A palavra-passe principal e a palavra-passe de emergência não podem ser iguais.</string>
     <string name="local_backup_error_empty_password">A palavra-passe não pode estar vazia.</string>
+    <string name="error_no_file_manager">Gestor de ficheiros não disponível. Por favor, instale uma aplicação de gestor de ficheiros para guardar cópias de segurança.</string>
 
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Termos da Frase-Senha</string>
