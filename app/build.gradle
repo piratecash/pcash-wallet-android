@@ -57,6 +57,7 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas".toString())
         }
         vectorDrawables.useSupportLibrary = true
+        vectorDrawables.generatedDensities = []
         lintOptions {
             checkReleaseBuilds false
         }
@@ -83,6 +84,10 @@ android {
         compose true
         viewBinding true
         buildConfig true
+    }
+
+    aaptOptions {
+        cruncherEnabled = false
     }
 
     bundle {
