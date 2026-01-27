@@ -21,11 +21,6 @@ def gitHashProvider = providers.exec {
     ignoreExitValue = true
 }.standardOutput.asText.map { it.trim() }
 
-def gitDirtyProvider = providers.exec {
-    commandLine 'git', 'diff-index', '--quiet', 'HEAD', '--'
-    ignoreExitValue = true
-}.result.map { it.exitValue != 0 }
-
 def getGitVersionSuffix = { ->
     try {
         def hash = gitHashProvider.getOrElse("unknown")
@@ -33,8 +28,7 @@ def getGitVersionSuffix = { ->
             println "GIT_HASH: unknown (empty or failed)"
             return "unknown"
         }
-        def dirty = gitDirtyProvider.getOrElse(false) ? "-dirty" : ""
-        def result = "${hash}${dirty}"
+        def result = "${hash}-fdroid"
         println "GIT_HASH: ${result}"
         return result
     } catch (Exception ignored) {
