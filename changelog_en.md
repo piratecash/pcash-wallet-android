@@ -1,3 +1,28 @@
+## 🚀 Version 0.51.5 Update
+_Release date: January 28, 2026_
+
+### 🔧 Fixes and Improvements
+
+- **Redesigned asset display logic during swap**
+  Fixed an issue where asset prices were not displayed and assets could appear at the bottom of the list during swap operations.
+
+- **Fixed Solana constant updating transactions message**
+  Resolved an issue causing the transactions message to update continuously on the Solana network.
+
+- **Added error handling for backup file manager absence**
+  Implemented proper error handling when the backup file manager is not available.
+
+- **Added support for queued transaction notifications in Bitcoin sending flow**
+  Added support for notifications for Bitcoin transactions that are queued for sending.
+
+- **Fixed continuous syncing after swap with Tangem card**
+  Fixed an issue where the app remained in a continuous syncing state after a swap when using a Tangem card.
+
+- **Fixed swap provider for BEP-20**
+  Fixed an issue where, in some BEP-20 transactions, a provider address (e.g. PancakeSwap) was shown instead of the actual swap provider.
+
+
+
 ## 🚀 Version 0.51.4 Update
 _Release date: January 26, 2026_
 
