@@ -32,7 +32,7 @@ class CoinPriceSchedulerProvider(
         get() = manager.lastSyncTimeStamp(allCoinUids, currencyCode)
 
     override val expirationInterval: Long
-        get() = CoinPrice.expirationInterval
+        get() = CoinPrice.EXPIRATION_SECONDS
 
     override val syncSingle: Single<Unit>
         get() {

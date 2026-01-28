@@ -8,8 +8,8 @@ import cash.p.terminal.network.pirate.data.database.entity.ChangeNowAssociationC
 
 @Dao
 internal interface CacheChangeNowCoinAssociationDao {
-    @Query("SELECT * FROM change_now_coins WHERE uid = :uid")
-    suspend fun getCoins(uid: String): ChangeNowAssociationCoin?
+    @Query("SELECT * FROM change_now_coins WHERE uid = :coinGeckoUid")
+    suspend fun getCoins(coinGeckoUid: String): ChangeNowAssociationCoin?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCoins(entity: ChangeNowAssociationCoin)

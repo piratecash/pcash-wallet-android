@@ -65,7 +65,7 @@ internal class CalculatorViewModel(
             }
                 ?.let { pcashItem ->
                     val items = piratePlaceRepository.getCalculatorData(
-                        coin = uiState.value.stackingType.value.lowercase(),
+                        coinGeckoUid = uiState.value.stackingType.value.lowercase(),
                         amount = doubleValue
                     ).items.map {
                         val amountBigDecimal = it.amount.toBigDecimal()

@@ -149,7 +149,7 @@ internal abstract class StackingCoinViewModel(
     private fun loadAnnualInterest() = viewModelScope.launch {
         try {
             val data = piratePlaceRepository.getCalculatorData(
-                coin = stackingType.value,
+                coinGeckoUid = stackingType.value,
                 amount = 100.0
             )
             data.items.find { it.periodType == PeriodType.YEAR }?.let {
@@ -274,7 +274,7 @@ internal abstract class StackingCoinViewModel(
             if (wallet != null) {
                 adapterManager.getReceiveAdapterForWallet(wallet)?.receiveAddress?.let { receiveAddress ->
                     val investmentData = piratePlaceRepository.getInvestmentData(
-                        coin = stackingType.value.lowercase(),
+                        coinGeckoUid = stackingType.value.lowercase(),
                         address = receiveAddress
                     )
                     unpaid = investmentData.unrealizedValue.toBigDecimal()
@@ -329,7 +329,7 @@ internal abstract class StackingCoinViewModel(
 
     private suspend fun loadPayouts(address: String, coinPrice: CoinPrice?) {
         val payouts = piratePlaceRepository.getStakeData(
-            coin = stackingType.value,
+            coinGeckoUid = stackingType.value,
             address = address
         ).stakes.map {
             val date = Date(it.createdAt)

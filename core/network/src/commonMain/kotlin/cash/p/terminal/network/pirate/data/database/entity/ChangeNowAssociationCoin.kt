@@ -7,7 +7,7 @@ import cash.p.terminal.network.pirate.domain.enity.ChangeNowAssociatedCoin
 @Entity(tableName = "change_now_coins")
 internal data class ChangeNowAssociationCoin(
     @PrimaryKey
-    val uid: String,
+    val uid: String, // coinGeckoUid
     val coinData: List<ChangeNowAssociatedCoin>,
     val timestamp: Long
 )
