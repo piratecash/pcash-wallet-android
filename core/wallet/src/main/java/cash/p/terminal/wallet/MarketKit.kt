@@ -88,6 +88,11 @@ class MarketKit(
     private fun coinGeckoUid(coinUid: String): String =
         coinManager.getCoinGeckoId(coinUid) ?: coinUid
 
+    private fun coinGeckoUids(uids: List<String>): List<String> {
+        val mapping = coinManager.getCoinGeckoIds(uids)
+        return uids.map { uid -> mapping[uid] ?: uid }
+    }
+
     // Coins
 
     val fullCoinsUpdatedObservable: Observable<Unit>
@@ -155,8 +160,7 @@ class MarketKit(
         coinUids: List<String>,
         currencyCode: String,
     ): Single<List<MarketInfo>> {
-        val coinGeckoUidList = coinManager.getCoinGeckoIds(coinUids).values
-        return hsProvider.marketInfosSingle(coinGeckoUidList, currencyCode).map {
+        return hsProvider.marketInfosSingle(coinGeckoUids(coinUids), currencyCode).map {
             coinManager.getMarketInfos(it)
         }
     }
@@ -210,12 +214,10 @@ class MarketKit(
 
     //Signals
 
-    fun coinsSignalsSingle(coinsUids: List<String>): Single<Map<String, Analytics.TechnicalAdvice.Advice>> {
-        val coinGeckoUidList = coinManager.getCoinGeckoIds(coinsUids).values
-        return hsProvider.coinsSignalsSingle(coinGeckoUidList).map { list ->
+    fun coinsSignalsSingle(coinUids: List<String>): Single<Map<String, Analytics.TechnicalAdvice.Advice>> {
+        return hsProvider.coinsSignalsSingle(coinGeckoUids(coinUids)).map { list ->
             list.mapNotNull { coinSignal ->
-                if (coinSignal.signal == null) null
-                else coinSignal.uid to coinSignal.signal
+                coinSignal.signal?.let { coinSignal.uid to it }
             }.toMap()
         }
     }
