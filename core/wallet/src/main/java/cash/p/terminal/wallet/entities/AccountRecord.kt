@@ -5,12 +5,16 @@ import androidx.room.Entity
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-class SecretString(val value: String) : Parcelable
+data class SecretString(val value: String) : Parcelable {
+    override fun toString(): String = "SecretString(***)"
+}
 
 @JvmInline
 value class EncryptedString(val value: String)
 
-class SecretList(val list: List<String>)
+data class SecretList(val list: List<String>) {
+    override fun toString(): String = "SecretList(***)"
+}
 
 @Entity(primaryKeys = ["id"])
 data class AccountRecord(
