@@ -171,13 +171,7 @@ class SwapSelectCoinViewModel(private val otherSelectedToken: Token?) : ViewMode
 
     private fun getXRate(token: Token): BigDecimal? {
         val currency = currencyManager.baseCurrency
-        return marketKit.coinPrice(token.coin.uid, currency.code)?.let {
-            if (it.expired) {
-                null
-            } else {
-                it.value
-            }
-        }
+        return marketKit.coinPrice(token.coin.uid, currency.code)?.value
     }
 
     class Factory(private val otherSelectedToken: Token?) : ViewModelProvider.Factory {

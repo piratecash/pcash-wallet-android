@@ -96,11 +96,11 @@ class HsProvider(baseUrl: String, apiKey: String) {
     }
 
     fun marketInfosSingle(
-        coinUids: List<String>,
+        coinGeckoUid: Collection<String>,
         currencyCode: String,
     ): Single<List<MarketInfoRaw>> {
         return service.getMarketInfos(
-            uids = coinUids.joinToString(","),
+            uids = coinGeckoUid.joinToString(","),
             currencyCode = currencyCode
         )
     }
@@ -187,14 +187,14 @@ class HsProvider(baseUrl: String, apiKey: String) {
     }
 
     suspend fun coinPriceChartSingle(
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         periodType: HsTimePeriod?,
         pointPeriodType: HsPointTimePeriod,
         fromTimestamp: Long?
     ): List<ChartCoinPriceResponse> {
         var cartPrices =
-            service.getCoinPriceChart(coinUid, currencyCode, fromTimestamp, pointPeriodType.value)
+            service.getCoinPriceChart(coinGeckoUid, currencyCode, fromTimestamp, pointPeriodType.value)
                 .await()
         if (cartPrices.isEmpty()) {
             val period = if (fromTimestamp == null) {
@@ -210,7 +210,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
                 }
             }
             cartPrices = piratePlaceRepository.getCoinPriceChart(
-                coin = coinUid,
+                coinGeckoUid = coinGeckoUid,
                 periodType = period
             ).map {
                 ChartCoinPriceResponse(
@@ -223,8 +223,8 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return cartPrices
     }
 
-    fun coinPriceChartStartTime(coinUid: String): Single<Long> {
-        return service.getCoinPriceChartStart(coinUid).map { it.timestamp }
+    fun coinPriceChartStartTime(coinGeckoUid: String): Single<Long> {
+        return service.getCoinPriceChartStart(coinGeckoUid).map { it.timestamp }
     }
 
     fun topPlatformMarketCapStartTime(platform: String): Single<Long> {
@@ -232,18 +232,18 @@ class HsProvider(baseUrl: String, apiKey: String) {
     }
 
     suspend fun getMarketInfoOverview(
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         language: String,
     ): MarketInfoOverviewRaw {
         return try {
             service.getMarketInfoOverview(
-                coinUid = coinUid,
+                coinGeckoUid = coinGeckoUid,
                 currencyCode = currencyCode,
                 language = language
             ).await()
         } catch (e: Exception) {
-            piratePlaceRepository.getCoinInfo(coinUid).let(pirateCoinInfoMapper::mapCoinInfo)
+            piratePlaceRepository.getCoinInfo(coinGeckoUid).let(pirateCoinInfoMapper::mapCoinInfo)
         }
     }
 
@@ -259,11 +259,11 @@ class HsProvider(baseUrl: String, apiKey: String) {
     }
 
     fun marketInfoTvlSingle(
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         timePeriod: HsTimePeriod
     ): Single<List<ChartPoint>> {
-        return service.getMarketInfoTvl(coinUid, currencyCode, timePeriod.value)
+        return service.getMarketInfoTvl(coinGeckoUid, currencyCode, timePeriod.value)
             .map { responseList ->
                 responseList.mapNotNull {
                     it.tvl?.let { tvl -> ChartPoint(tvl, it.timestamp, null) }
@@ -280,7 +280,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return service.getMarketInfoGlobalTvl(
             currencyCode,
             timePeriod.value,
-            blockchain = if (chain.isNotBlank()) chain else null
+            blockchain = chain.ifBlank { null }
         ).map { responseList ->
             responseList.mapNotNull {
                 it.tvl?.let { tvl ->
@@ -292,14 +292,14 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
     fun tokenHoldersSingle(
         authToken: String,
-        coinUid: String,
+        coinGeckoUid: String,
         blockchainUid: String
     ): Single<TokenHolders> {
-        return service.getTokenHolders(authToken, coinUid, blockchainUid)
+        return service.getTokenHolders(authToken, coinGeckoUid, blockchainUid)
     }
 
-    fun coinTreasuriesSingle(coinUid: String, currencyCode: String): Single<List<CoinTreasury>> {
-        return service.getCoinTreasuries(coinUid, currencyCode).map { responseList ->
+    fun coinTreasuriesSingle(coinGeckoUid: String, currencyCode: String): Single<List<CoinTreasury>> {
+        return service.getCoinTreasuries(coinGeckoUid, currencyCode).map { responseList ->
             responseList.mapNotNull {
                 try {
                     CoinTreasury(
@@ -317,12 +317,12 @@ class HsProvider(baseUrl: String, apiKey: String) {
         }
     }
 
-    fun investmentsSingle(coinUid: String): Single<List<CoinInvestment>> {
-        return service.getInvestments(coinUid)
+    fun investmentsSingle(coinGeckoUid: String): Single<List<CoinInvestment>> {
+        return service.getInvestments(coinGeckoUid)
     }
 
-    fun coinReportsSingle(coinUid: String): Single<List<CoinReport>> {
-        return service.getCoinReports(coinUid)
+    fun coinReportsSingle(coinGeckoUid: String): Single<List<CoinReport>> {
+        return service.getCoinReports(coinGeckoUid)
     }
 
     fun topPlatformsSingle(currencyCode: String): Single<List<TopPlatformResponse>> {
@@ -355,37 +355,37 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
     fun dexLiquiditySingle(
         authToken: String,
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         timePeriod: HsTimePeriod
     ): Single<List<Analytics.VolumePoint>> {
-        return service.getDexLiquidities(authToken, coinUid, currencyCode, timePeriod.value)
+        return service.getDexLiquidities(authToken, coinGeckoUid, currencyCode, timePeriod.value)
     }
 
     fun dexVolumesSingle(
         authToken: String,
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
         timePeriod: HsTimePeriod
     ): Single<List<Analytics.VolumePoint>> {
-        return service.getDexVolumes(authToken, coinUid, currencyCode, timePeriod.value)
+        return service.getDexVolumes(authToken, coinGeckoUid, currencyCode, timePeriod.value)
     }
 
     fun transactionDataSingle(
         authToken: String,
-        coinUid: String,
+        coinGeckoUid: String,
         timePeriod: HsTimePeriod,
         platform: String?
     ): Single<List<Analytics.CountVolumePoint>> {
-        return service.getTransactions(authToken, coinUid, timePeriod.value, platform)
+        return service.getTransactions(authToken, coinGeckoUid, timePeriod.value, platform)
     }
 
     fun activeAddressesSingle(
         authToken: String,
-        coinUid: String,
+        coinGeckoUid: String,
         timePeriod: HsTimePeriod
     ): Single<List<Analytics.CountPoint>> {
-        return service.getActiveAddresses(authToken, coinUid, timePeriod.value)
+        return service.getActiveAddresses(authToken, coinGeckoUid, timePeriod.value)
     }
 
     fun marketOverviewSingle(currencyCode: String): Single<MarketOverviewResponse> {
@@ -396,11 +396,11 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return service.getMarketGlobal(currencyCode)
     }
 
-    suspend fun marketTickers(coinUid: String, currencyCode: String): List<MarketTicker> {
+    suspend fun marketTickers(coinGeckoUid: String, currencyCode: String): List<MarketTicker> {
         return try {
-            service.getMarketTickers(coinUid, currencyCode).await()
+            service.getMarketTickers(coinGeckoUid, currencyCode).await()
         } catch (e: Exception) {
-            piratePlaceRepository.getMarketTickers(coinUid).map {
+            piratePlaceRepository.getMarketTickers(coinGeckoUid).map {
                 MarketTicker(
                     base = it.fromSymbol,
                     target = "USD",
@@ -435,21 +435,21 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return pirateService.getAllTokens()
     }
 
-    fun analyticsPreviewSingle(coinUid: String, addresses: List<String>): Single<AnalyticsPreview> {
+    fun analyticsPreviewSingle(coinGeckoUid: String, addresses: List<String>): Single<AnalyticsPreview> {
         return service.getAnalyticsPreview(
-            coinUid = coinUid,
+            coinGeckoUid = coinGeckoUid,
             address = if (addresses.isEmpty()) null else addresses.joinToString(",")
         )
     }
 
     fun analyticsSingle(
         authToken: String,
-        coinUid: String,
+        coinGeckoUid: String,
         currencyCode: String,
     ): Single<Analytics> {
         return service.getAnalyticsData(
             authToken = authToken,
-            coinUid = coinUid,
+            coinGeckoUid = coinGeckoUid,
             currencyCode = currencyCode
         )
     }
@@ -507,8 +507,8 @@ class HsProvider(baseUrl: String, apiKey: String) {
         )
     }
 
-    fun coinsSignalsSingle(uids: List<String>): Single<List<SignalResponse>> {
-        return service.getCoinsSignals(uids.joinToString(separator = ","))
+    fun coinsSignalsSingle(coinGeckoUidList: Collection<String>): Single<List<SignalResponse>> {
+        return service.getCoinsSignals(coinGeckoUidList.joinToString(separator = ","))
     }
 
     fun etfsSingle(currencyCode: String): Single<List<EtfResponse>> {
@@ -579,7 +579,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("coins/{coinUid}/price_chart")
         fun getCoinPriceChart(
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
             @Query("from_timestamp") timestamp: Long?,
             @Query("interval") interval: String,
@@ -587,12 +587,12 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("coins/{coinUid}/price_chart_start")
         fun getCoinPriceChartStart(
-            @Path("coinUid") coinUid: String
+            @Path("coinUid") coinGeckoUid: String
         ): Single<ChartStart>
 
         @GET("coins/{coinUid}")
         fun getMarketInfoOverview(
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
             @Query("language") language: String,
         ): Single<MarketInfoOverviewRaw>
@@ -610,21 +610,21 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("analytics/{coinUid}/preview")
         fun getAnalyticsPreview(
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("address") address: String?,
         ): Single<AnalyticsPreview>
 
         @GET("analytics/{coinUid}")
         fun getAnalyticsData(
             @Header("authorization") authToken: String,
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
         ): Single<Analytics>
 
         @GET("analytics/{coinUid}/dex-liquidity")
         fun getDexLiquidities(
             @Header("authorization") auth: String,
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
             @Query("interval") interval: String,
         ): Single<List<Analytics.VolumePoint>>
@@ -632,7 +632,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
         @GET("analytics/{coinUid}/dex-volumes")
         fun getDexVolumes(
             @Header("authorization") auth: String,
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
             @Query("interval") interval: String
         ): Single<List<Analytics.VolumePoint>>
@@ -640,7 +640,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
         @GET("analytics/{coinUid}/transactions")
         fun getTransactions(
             @Header("authorization") auth: String,
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("interval") interval: String,
             @Query("platform") platform: String?
         ): Single<List<Analytics.CountVolumePoint>>
@@ -648,14 +648,14 @@ class HsProvider(baseUrl: String, apiKey: String) {
         @GET("analytics/{coinUid}/addresses")
         fun getActiveAddresses(
             @Header("authorization") auth: String,
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("interval") interval: String
         ): Single<List<Analytics.CountPoint>>
 
         @GET("analytics/{coinUid}/holders")
         fun getTokenHolders(
             @Header("authorization") authToken: String,
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("blockchain_uid") blockchainUid: String
         ): Single<TokenHolders>
 
@@ -680,7 +680,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("defi-protocols/{coinUid}/tvls")
         fun getMarketInfoTvl(
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
             @Query("interval") interval: String
         ): Single<List<MarketInfoTvlResponse>>
@@ -694,18 +694,18 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("funds/treasuries")
         fun getCoinTreasuries(
-            @Query("coin_uid") coinUid: String,
+            @Query("coin_uid") coinGeckoUid: String,
             @Query("currency") currencyCode: String
         ): Single<List<CoinTreasuryResponse>>
 
         @GET("funds/investments")
         fun getInvestments(
-            @Query("coin_uid") coinUid: String,
+            @Query("coin_uid") coinGeckoUid: String,
         ): Single<List<CoinInvestment>>
 
         @GET("reports")
         fun getCoinReports(
-            @Query("coin_uid") coinUid: String
+            @Query("coin_uid") coinGeckoUid: String
         ): Single<List<CoinReport>>
 
         @GET("global-markets")
@@ -751,7 +751,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("exchanges/tickers/{coinUid}")
         fun getMarketTickers(
-            @Path("coinUid") coinUid: String,
+            @Path("coinUid") coinGeckoUid: String,
             @Query("currency") currencyCode: String,
         ): Single<List<MarketTicker>>
 
@@ -816,7 +816,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
         @GET("coins/signals")
         fun getCoinsSignals(
-            @Query("uids") uids: String,
+            @Query("uids") coinGeckoUidList: String,
         ): Single<List<SignalResponse>>
 
         @GET("etfs")

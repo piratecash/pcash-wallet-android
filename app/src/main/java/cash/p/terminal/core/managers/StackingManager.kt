@@ -60,7 +60,7 @@ class StackingManager(
                 _unpaidFlow.value = BigDecimal.ZERO
             }) {
             piratePlaceRepository.getInvestmentData(
-                coin = coin.lowercase(),
+                coinGeckoUid = coin.lowercase(),
                 address = address
             ).unrealizedValue.toBigDecimal().also {
                 localStorageManager.setStackingUnpaid(wallet, it)

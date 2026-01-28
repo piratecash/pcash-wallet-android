@@ -2,7 +2,6 @@ package cash.p.terminal.wallet.models
 
 import androidx.room.Entity
 import java.math.BigDecimal
-import java.util.*
 
 @Entity(primaryKeys = ["coinUid", "currencyCode"])
 data class CoinPrice(
@@ -18,13 +17,13 @@ data class CoinPrice(
     val timestamp: Long
 ) {
     val expired: Boolean
-        get() = Date().time / 1000 - expirationInterval > timestamp
+        get() = System.currentTimeMillis() / 1000 - timestamp > EXPIRATION_SECONDS
 
     override fun toString(): String {
         return "CoinPrice [coinUid: $coinUid; currencyCode: $currencyCode; value: $value; diff24h: $diff24h; timestamp: $timestamp]"
     }
 
     companion object {
-        const val expirationInterval: Long = 240
+        const val EXPIRATION_SECONDS: Long = 300
     }
 }

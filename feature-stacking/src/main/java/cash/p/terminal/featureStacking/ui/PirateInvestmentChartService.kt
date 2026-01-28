@@ -17,10 +17,10 @@ class PirateInvestmentChartService(
 ) : AbstractChartService() {
 
     private var receiveAddress: String = ""
-    private var coinCode: String = ""
+    private var coinGeckoUid: String = ""
 
     fun setData(coinCode: String, address: String) {
-        this.coinCode = coinCode
+        this.coinGeckoUid = coinCode
         receiveAddress = address
         refresh()
     }
@@ -52,7 +52,7 @@ class PirateInvestmentChartService(
             }
             mapToChartPointsWrapper(
                 piratePlaceRepository.getInvestmentChart(
-                    coin = coinCode,
+                    coinGeckoUid = coinGeckoUid,
                     address = receiveAddress,
                     period = period
                 )

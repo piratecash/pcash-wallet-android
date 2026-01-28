@@ -85,6 +85,9 @@ class MarketKit(
 ) {
     private val coinsMap by lazy { coinManager.allCoins().associateBy { it.uid } }
 
+    private fun coinGeckoUid(coinUid: String): String =
+        coinManager.getCoinGeckoId(coinUid) ?: coinUid
+
     // Coins
 
     val fullCoinsUpdatedObservable: Observable<Unit>
@@ -152,7 +155,8 @@ class MarketKit(
         coinUids: List<String>,
         currencyCode: String,
     ): Single<List<MarketInfo>> {
-        return hsProvider.marketInfosSingle(coinUids, currencyCode).map {
+        val coinGeckoUidList = coinManager.getCoinGeckoIds(coinUids).values
+        return hsProvider.marketInfosSingle(coinGeckoUidList, currencyCode).map {
             coinManager.getMarketInfos(it)
         }
     }
@@ -172,7 +176,7 @@ class MarketKit(
         language: String,
     ): MarketInfoOverview {
         return hsProvider.getMarketInfoOverview(
-            coinUid = coinUid,
+            coinGeckoUid = coinGeckoUid(coinUid),
             currencyCode = currencyCode,
             language = language,
         ).let { rawOverview ->
@@ -187,7 +191,7 @@ class MarketKit(
         currencyCode: String,
         timePeriod: HsTimePeriod
     ): Single<List<ChartPoint>> {
-        return hsProvider.marketInfoTvlSingle(coinUid, currencyCode, timePeriod)
+        return hsProvider.marketInfoTvlSingle(coinGeckoUid(coinUid), currencyCode, timePeriod)
     }
 
     fun marketInfoGlobalTvlSingle(
@@ -207,7 +211,8 @@ class MarketKit(
     //Signals
 
     fun coinsSignalsSingle(coinsUids: List<String>): Single<Map<String, Analytics.TechnicalAdvice.Advice>> {
-        return hsProvider.coinsSignalsSingle(coinsUids).map { list ->
+        val coinGeckoUidList = coinManager.getCoinGeckoIds(coinsUids).values
+        return hsProvider.coinsSignalsSingle(coinGeckoUidList).map { list ->
             list.mapNotNull { coinSignal ->
                 if (coinSignal.signal == null) null
                 else coinSignal.uid to coinSignal.signal
@@ -269,18 +274,15 @@ class MarketKit(
         currencyCode: String,
         timestamp: Long
     ): BigDecimal {
-        val coinGeckoUid = coinManager.getCoinGeckoId(coinUid) ?: coinUid
         return coinHistoricalPriceManager.coinHistoricalPriceSingle(
-            coinGeckoUid,
+            coinGeckoUid(coinUid),
             currencyCode,
             timestamp
         )
     }
 
-    fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? {
-        val coinGeckoUid = coinManager.getCoinGeckoId(coinUid) ?: coinUid
-        return coinHistoricalPriceManager.coinHistoricalPrice(coinGeckoUid, currencyCode, timestamp)
-    }
+    fun coinHistoricalPrice(coinUid: String, currencyCode: String, timestamp: Long): BigDecimal? =
+        coinHistoricalPriceManager.coinHistoricalPrice(coinGeckoUid(coinUid), currencyCode, timestamp)
 
     // Posts
 
@@ -290,9 +292,8 @@ class MarketKit(
 
     // Market Tickers
 
-    suspend fun marketTickersSingle(coinUid: String, currencyCode: String): List<MarketTicker> {
-        return hsProvider.marketTickers(coinUid, currencyCode)
-    }
+    suspend fun marketTickersSingle(coinUid: String, currencyCode: String): List<MarketTicker> =
+        hsProvider.marketTickers(coinGeckoUid(coinUid), currencyCode)
 
     // Details
 
@@ -300,21 +301,17 @@ class MarketKit(
         authToken: String,
         coinUid: String,
         blockchainUid: String
-    ): Single<TokenHolders> {
-        return hsProvider.tokenHoldersSingle(authToken, coinUid, blockchainUid)
-    }
+    ): Single<TokenHolders> =
+        hsProvider.tokenHoldersSingle(authToken, coinGeckoUid(coinUid), blockchainUid)
 
-    fun treasuriesSingle(coinUid: String, currencyCode: String): Single<List<CoinTreasury>> {
-        return hsProvider.coinTreasuriesSingle(coinUid, currencyCode)
-    }
+    fun treasuriesSingle(coinUid: String, currencyCode: String): Single<List<CoinTreasury>> =
+        hsProvider.coinTreasuriesSingle(coinGeckoUid(coinUid), currencyCode)
 
-    fun investmentsSingle(coinUid: String): Single<List<CoinInvestment>> {
-        return hsProvider.investmentsSingle(coinUid)
-    }
+    fun investmentsSingle(coinUid: String): Single<List<CoinInvestment>> =
+        hsProvider.investmentsSingle(coinGeckoUid(coinUid))
 
-    fun coinReportsSingle(coinUid: String): Single<List<CoinReport>> {
-        return hsProvider.coinReportsSingle(coinUid)
-    }
+    fun coinReportsSingle(coinUid: String): Single<List<CoinReport>> =
+        hsProvider.coinReportsSingle(coinGeckoUid(coinUid))
 
     // Pro Data
 
@@ -328,7 +325,7 @@ class MarketKit(
         val fromTimestamp = HsChartRequestHelper.fromTimestamp(currentTime, periodType)
         val interval = HsPointTimePeriod.Day1
         return hsProvider.coinPriceChartSingle(
-            coinUid = coinUid,
+            coinGeckoUid = coinGeckoUid(coinUid),
             currencyCode = currencyCode,
             periodType = timePeriod,
             pointPeriodType = interval,
@@ -348,41 +345,38 @@ class MarketKit(
         coinUid: String,
         currencyCode: String,
         timePeriod: HsTimePeriod
-    ): Single<List<Analytics.VolumePoint>> {
-        return hsProvider.dexLiquiditySingle(authToken, coinUid, currencyCode, timePeriod)
-    }
+    ): Single<List<Analytics.VolumePoint>> =
+        hsProvider.dexLiquiditySingle(authToken, coinGeckoUid(coinUid), currencyCode, timePeriod)
 
     fun dexVolumesSingle(
         authToken: String,
         coinUid: String,
         currencyCode: String,
         timePeriod: HsTimePeriod
-    ): Single<List<Analytics.VolumePoint>> {
-        return hsProvider.dexVolumesSingle(authToken, coinUid, currencyCode, timePeriod)
-    }
+    ): Single<List<Analytics.VolumePoint>> =
+        hsProvider.dexVolumesSingle(authToken, coinGeckoUid(coinUid), currencyCode, timePeriod)
 
     fun transactionDataSingle(
         authToken: String,
         coinUid: String,
         timePeriod: HsTimePeriod,
         platform: String?
-    ): Single<List<Analytics.CountVolumePoint>> {
-        return hsProvider.transactionDataSingle(authToken, coinUid, timePeriod, platform)
-    }
+    ): Single<List<Analytics.CountVolumePoint>> =
+        hsProvider.transactionDataSingle(authToken, coinGeckoUid(coinUid), timePeriod, platform)
 
     fun activeAddressesSingle(
         authToken: String,
         coinUid: String,
         timePeriod: HsTimePeriod
     ): Single<List<Analytics.CountPoint>> {
-        return hsProvider.activeAddressesSingle(authToken, coinUid, timePeriod)
+        return hsProvider.activeAddressesSingle(authToken, coinGeckoUid(coinUid), timePeriod)
     }
 
     fun analyticsPreviewSingle(
         coinUid: String,
         addresses: List<String>,
     ): Single<AnalyticsPreview> {
-        return hsProvider.analyticsPreviewSingle(coinUid, addresses)
+        return hsProvider.analyticsPreviewSingle(coinGeckoUid(coinUid), addresses)
     }
 
     fun analyticsSingle(
@@ -390,7 +384,7 @@ class MarketKit(
         coinUid: String,
         currencyCode: String,
     ): Single<Analytics> {
-        return hsProvider.analyticsSingle(authToken, coinUid, currencyCode)
+        return hsProvider.analyticsSingle(authToken, coinGeckoUid(coinUid), currencyCode)
     }
 
     fun cexVolumeRanksSingle(
@@ -484,7 +478,7 @@ class MarketKit(
     ): Pair<Long, List<ChartPoint>> {
         val data = intervalData(periodType)
         return hsProvider.coinPriceChartSingle(
-            coinUid = coinUid,
+            coinGeckoUid = coinGeckoUid(coinUid),
             currencyCode = currencyCode,
             periodType = periodType.timePeriod,
             pointPeriodType = data.interval,
@@ -522,7 +516,7 @@ class MarketKit(
     }
 
     fun chartStartTimeSingle(coinUid: String): Single<Long> {
-        return hsProvider.coinPriceChartStartTime(coinUid)
+        return hsProvider.coinPriceChartStartTime(coinGeckoUid(coinUid))
     }
 
     fun topPlatformMarketCapStartTimeSingle(platform: String): Single<Long> {
