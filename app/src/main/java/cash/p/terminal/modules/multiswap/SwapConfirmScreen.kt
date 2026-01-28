@@ -7,11 +7,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,9 +23,9 @@ import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
-import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.ui.DataFieldFee
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
+import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.ui.compose.components.CoinImage
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -52,11 +48,9 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.imageUrl
-import io.horizontalsystems.bitcoincore.managers.SendValueErrors
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 @Composable
@@ -66,7 +60,6 @@ fun SwapConfirmScreen(
     swapViewModel: SwapViewModel,
     onOpenSettings: (() -> Unit)? = null
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val view = LocalView.current
 
     val currentQuote = remember { swapViewModel.getCurrentQuote() } ?: run {
@@ -84,6 +77,40 @@ fun SwapConfirmScreen(
     )
 
     val uiState = viewModel.uiState
+    val sendResult = viewModel.sendResult
+
+    // Handle send result UI - must be in Composable context for getString()
+    when (sendResult) {
+        SendResult.Sending -> {
+            HudHelper.showInProcessMessage(
+                view,
+                R.string.Swap_Swapping,
+                SnackbarDuration.INDEFINITE
+            )
+        }
+
+        is SendResult.Sent -> {
+            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+        }
+
+        is SendResult.SentButQueued -> {
+            HudHelper.showWarningMessage(view, R.string.send_success_queued)
+        }
+
+        is SendResult.Failed -> {
+            HudHelper.showErrorMessage(view, sendResult.caution.getString())
+        }
+
+        null -> Unit
+    }
+
+    // Handle navigation after success
+    LaunchedEffect(sendResult) {
+        if (sendResult is SendResult.Sent || sendResult is SendResult.SentButQueued) {
+            delay(1200)
+            fragmentNavController.navigateUp()
+        }
+    }
 
     ConfirmTransactionScreen(
         onClickBack = swapNavController::navigateUp,
@@ -133,46 +160,14 @@ fun SwapConfirmScreen(
                 VSpacer(height = 12.dp)
                 subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteExpired))
             } else {
-                var buttonEnabled by remember { mutableStateOf(true) }
+                // Disable button during swap and navigation delay (allow retry only on Failed)
+                val swapInProgress = sendResult != null && sendResult !is SendResult.Failed
                 ButtonPrimaryYellow(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap),
-                    enabled = buttonEnabled && uiState.amountOut != null && uiState.cautions.none { it.type == CautionViewItem.Type.Error },
-                    onClick = {
-                        coroutineScope.launch {
-                            buttonEnabled = false
-                            HudHelper.showInProcessMessage(
-                                view,
-                                R.string.Swap_Swapping,
-                                SnackbarDuration.INDEFINITE
-                            )
-
-                            try {
-                                val result = viewModel.swap()
-                                viewModel.onTransactionCompleted(result)
-
-                                if (result is SendTransactionResult.Btc && result.isQueued) {
-                                    HudHelper.showWarningMessage(view, R.string.send_success_queued)
-                                } else {
-                                    HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-                                }
-                                delay(1200)
-
-                                fragmentNavController.navigateUp()
-                            } catch (t: Throwable) {
-                                if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
-                                    HudHelper.showErrorMessage(
-                                        view,
-                                        R.string.EthereumTransaction_Error_InsufficientBalance_Title
-                                    )
-                                } else {
-                                    HudHelper.showErrorMessage(view, t.javaClass.simpleName)
-                                }
-                            }
-
-                            buttonEnabled = true
-                        }
-                    },
+                    enabled = !swapInProgress && uiState.amountOut != null &&
+                            uiState.cautions.none { it.type == CautionViewItem.Type.Error },
+                    onClick = viewModel::executeSwap,
                 )
                 if (uiState.expiresIn != null) {
                     VSpacer(height = 12.dp)

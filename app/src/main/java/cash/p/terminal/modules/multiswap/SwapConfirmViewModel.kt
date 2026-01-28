@@ -3,6 +3,9 @@ package cash.p.terminal.modules.multiswap
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -27,7 +30,10 @@ import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.network.changenow.data.entity.BackendChangeNowResponseError
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
+import com.tangem.common.core.TangemSdkError
+import io.horizontalsystems.bitcoincore.managers.SendValueErrors
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
@@ -57,6 +63,9 @@ class SwapConfirmViewModel(
     private val priceImpactService: PriceImpactService
 ) : ViewModelUiState<SwapConfirmUiState>() {
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
+
+    var sendResult by mutableStateOf<SendResult?>(null)
+        private set
 
     private var sendTransactionSettings: SendTransactionSettings? = null
     private val currency = currencyManager.baseCurrency
@@ -303,6 +312,38 @@ class SwapConfirmViewModel(
         localStorage.swapMevProtectionEnabled = enabled
 
         emitState()
+    }
+
+    fun executeSwap() {
+        if (sendResult == SendResult.Sending) return
+
+        sendResult = SendResult.Sending
+
+        viewModelScope.launch {
+            try {
+                val result = swap()
+                onTransactionCompleted(result)
+
+                sendResult = if (result is SendTransactionResult.Btc && result.isQueued) {
+                    SendResult.SentButQueued()
+                } else {
+                    SendResult.Sent()
+                }
+            } catch (e: TangemSdkError.UserCancelled) {
+                // User cancelled - just reset state, no error message
+                sendResult = null
+            } catch (e: TangemSdkError) {
+                // Other Tangem errors - reset state
+                sendResult = null
+            } catch (t: Throwable) {
+                val caution = if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
+                    HSCaution(TranslatableString.ResString(R.string.EthereumTransaction_Error_InsufficientBalance_Title))
+                } else {
+                    HSCaution(TranslatableString.PlainString(t.javaClass.simpleName))
+                }
+                sendResult = SendResult.Failed(caution)
+            }
+        }
     }
 
     fun onTransactionCompleted(result: SendTransactionResult) {
