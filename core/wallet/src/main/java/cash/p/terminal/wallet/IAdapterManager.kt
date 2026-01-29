@@ -37,4 +37,10 @@ interface IAdapterManager {
      * Finds the active wallet for the token and returns adjusted balance.
      */
     fun getAdjustedBalanceDataForToken(token: Token): BalanceData?
+
+    /**
+     * Get receive address with fallback when adapter not available.
+     * First tries adapter, then fallback providers.
+     */
+    suspend fun getReceiveAddressForWallet(wallet: Wallet): String?
 }

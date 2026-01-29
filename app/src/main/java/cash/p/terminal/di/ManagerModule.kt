@@ -61,9 +61,12 @@ import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.core.providers.CompositeFallbackAddressProvider
 import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
+import cash.p.terminal.core.providers.TonFallbackAddressProvider
+import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.feature.miniapp.domain.storage.IUniqueCodeStorage
 import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
 import cash.p.terminal.feature.miniapp.domain.usecase.GetTonAddressUseCase
@@ -123,6 +126,12 @@ val managerModule = module {
     singleOf(::AppHeadersProviderImpl) bind AppHeadersProvider::class
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)
+    singleOf(::TonFallbackAddressProvider)
+    single<FallbackAddressProvider> {
+        CompositeFallbackAddressProvider(
+            providers = listOf(get<TonFallbackAddressProvider>())
+        )
+    }
     singleOf(::AdapterManager) bind IAdapterManager::class
     singleOf(::LocalStorageManager) {
         bind<ILocalStorage>()

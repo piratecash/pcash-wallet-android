@@ -2,6 +2,7 @@ package cash.p.terminal.core.managers
 
 import android.os.HandlerThread
 import cash.p.terminal.core.factories.AdapterFactory
+import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -45,7 +46,8 @@ class AdapterManager(
     private val tonKitManager: TonKitManager,
     private val moneroKitManager: MoneroKitManager,
     private val stellarKitManager: StellarKitManager,
-    private val pendingBalanceCalculator: PendingBalanceCalculator
+    private val pendingBalanceCalculator: PendingBalanceCalculator,
+    private val fallbackAddressProvider: FallbackAddressProvider
 ) : IAdapterManager, HandlerThread("A") {
 
     private val mutex = Mutex()
@@ -289,5 +291,10 @@ class AdapterManager(
     override fun getAdjustedBalanceDataForToken(token: Token): BalanceData? {
         val wallet = walletManager.activeWallets.firstOrNull { it.token == token } ?: return null
         return getAdjustedBalanceData(wallet)
+    }
+
+    override suspend fun getReceiveAddressForWallet(wallet: Wallet): String? {
+        getReceiveAdapterForWallet(wallet)?.receiveAddress?.let { return it }
+        return fallbackAddressProvider.getAddress(wallet)
     }
 }

@@ -22,8 +22,8 @@ class GetTonAddressUseCaseImpl(
 
         tokenTypes.firstNotNullOfOrNull { tokenType ->
             tryOrNull {
-                tonKitManager.getNonActiveTonKitWrapper(account, BlockchainType.Ton, tokenType)
-                    .tonKit.receiveAddress.toUserFriendly(false)
+                val wrapper = tonKitManager.getNonActiveTonKitWrapper(account, BlockchainType.Ton, tokenType)
+                wrapper.tonKit.receiveAddress.toUserFriendly(false)
             }
         }
     }

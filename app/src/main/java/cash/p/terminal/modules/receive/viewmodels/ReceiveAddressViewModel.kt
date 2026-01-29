@@ -109,7 +109,14 @@ class ReceiveAddressViewModel(
                 false
             }
         } else {
-            viewState = ViewState.Error(NullPointerException())
+            val fallbackAddress = adapterManager.getReceiveAddressForWallet(wallet)
+            if (fallbackAddress != null) {
+                address = fallbackAddress
+                uri = getUri()
+                viewState = ViewState.Success
+            } else {
+                viewState = ViewState.Error(NullPointerException())
+            }
         }
         emitState()
     }
