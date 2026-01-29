@@ -119,12 +119,23 @@ class CoinSyncer(
     ) {
         val transformedTokens = transform(tokenEntities)
         val validTokens = filterValidTokens(transformedTokens, blockchainEntities)
+        val tokensWithVirtual = injectVirtualTokens(coins, validTokens)
 
-        storage.update(coins, blockchainEntities, validTokens)
+        storage.update(coins, blockchainEntities, tokensWithVirtual)
 
         updateCounts()
 
         fullCoinsUpdatedObservable.onNext(Unit)
+    }
+
+    private fun injectVirtualTokens(coins: List<Coin>, tokens: List<TokenEntity>): List<TokenEntity> {
+        val bscUsdCoin = coins.find { it.code == "BSC-USD" } ?: return tokens
+        val bscUsdToken = tokens.find {
+            it.coinUid == bscUsdCoin.uid && it.blockchainUid == BlockchainType.BinanceSmartChain.uid
+        } ?: return tokens
+
+        val virtualUsdtBep20 = bscUsdToken.copy(coinUid = "tether")
+        return tokens + virtualUsdtBep20
     }
 
     private fun updateCounts() {

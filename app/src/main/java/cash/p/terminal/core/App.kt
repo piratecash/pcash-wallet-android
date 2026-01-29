@@ -539,12 +539,22 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         }
     }
 
-    /*** Check if we don't have new zcash coins in the market kit */
-    private fun needForceUpdateCoins() = marketKit.token(
-        TokenQuery(
-            BlockchainType.Zcash, TokenType.AddressSpecTyped(
-                AddressSpecType.Shielded
+    /*** Check if we don't have new tokens in the market kit */
+    private fun needForceUpdateCoins(): Boolean {
+        val hasZcashShielded = marketKit.token(
+            TokenQuery(
+                BlockchainType.Zcash, TokenType.AddressSpecTyped(AddressSpecType.Shielded)
             )
-        )
-    ) == null
+        ) != null
+
+        if (!hasZcashShielded) return true
+
+        // Check if Tether has a BSC token (virtual USDT BEP-20)
+        val tetherFullCoin = marketKit.fullCoins(listOf("tether")).firstOrNull()
+        val hasTetherOnBsc = tetherFullCoin?.tokens?.any {
+            it.blockchainType == BlockchainType.BinanceSmartChain
+        } == true
+
+        return !hasTetherOnBsc
+    }
 }
