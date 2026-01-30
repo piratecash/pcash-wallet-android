@@ -6,15 +6,17 @@ import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.feature.miniapp.ui.components.CaptchaCodeInput
 import cash.p.terminal.feature.miniapp.ui.components.JwtExpiredStepContent
@@ -92,12 +95,26 @@ fun CaptchaStepScreen(
 
     val isTimerExpired = remainingSeconds <= 0
     val isCodeComplete = code.length == CODE_LENGTH
+    val scrollState = rememberScrollState()
+
+    // Detect keyboard visibility and scroll to bottom
+    val density = LocalDensity.current
+    val imeBottom = WindowInsets.ime.getBottom(density)
+    val isKeyboardVisible = imeBottom > 0
+
+    LaunchedEffect(isKeyboardVisible) {
+        if (isKeyboardVisible) {
+            delay(100)
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
 
     MiniAppStepScaffold(
         stepTitle = stringResource(R.string.connect_mini_app_step_4),
         stepDescription = stringResource(R.string.connect_mini_app_step_4_description),
         descriptionStyle = StepDescriptionStyle.Grey,
         stepIndicatorState = stepIndicatorState,
+        scrollState = scrollState,
         modifier = modifier,
         bottomContent = {
             ButtonPrimaryYellow(
@@ -109,7 +126,7 @@ fun CaptchaStepScreen(
         },
         content = {
             Spacer(Modifier.weight(1f))
-            Column(Modifier.imePadding()) {
+            Column {
 
                 // Captcha image container
                 Box(
