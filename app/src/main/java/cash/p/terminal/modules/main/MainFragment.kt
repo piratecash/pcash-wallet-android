@@ -167,10 +167,12 @@ private fun MainScreen(
     val pagerState = rememberPagerState(initialPage = selectedPage) { uiState.mainNavItems.size }
 
     var showWalletSheet by remember { mutableStateOf(false) }
-    LaunchedEffect(intentLiveData) {
-        intentLiveData?.data?.let {
-            intentHandled()
-            viewModel.handleDeepLink(it)
+    LaunchedEffect(intentLiveData, uiState.contentHidden) {
+        if (!uiState.contentHidden) {
+            intentLiveData?.data?.let {
+                intentHandled()
+                viewModel.handleDeepLink(it)
+            }
         }
     }
 

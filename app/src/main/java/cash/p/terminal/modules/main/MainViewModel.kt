@@ -97,7 +97,7 @@ class MainViewModel(
     private var deeplinkPage: DeeplinkPage? = null
     private var mainNavItems = navigationItems()
     private var showRateAppDialog = false
-    private var contentHidden = false
+    private var contentHidden = pinComponent.isPinSet
     private var showWhatsNew = false
     private var activeWallet = accountManager.activeAccount
     private var wcSupportState: WCManager.SupportState? = null
