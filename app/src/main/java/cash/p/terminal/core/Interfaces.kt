@@ -268,14 +268,6 @@ interface ITorManager {
     val torStatusFlow: StateFlow<TorStatus>
 }
 
-interface IRateAppManager {
-    val showRateAppFlow: Flow<Boolean>
-
-    fun onBalancePageActive()
-    fun onBalancePageInactive()
-    fun onAppLaunch()
-}
-
 interface ICoinManager {
     fun getToken(query: TokenQuery): Token?
 }
