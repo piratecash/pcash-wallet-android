@@ -598,6 +598,7 @@
     <string name="Transactions_Mint">Mint</string>
     <string name="Transactions_Approve">Approuvé</string>
     <string name="Transactions_Swap">Échangé</string>
+    <string name="transactions_swap_failed">Échange échoué</string>
     <string name="transaction_swap_status_new">New</string>
     <string name="transaction_swap_status_waiting">Waiting</string>
     <string name="transaction_swap_status_confirming">Confirming</string>

@@ -674,7 +674,7 @@ class TransactionViewItemFactory(
 
                 is TonTransactionRecord.Action.Type.Swap -> {
                     iconX = doubleValueIconType(actionType.valueOut, actionType.valueIn)
-                    title = Translator.getString(R.string.Transactions_Swap)
+                    title = Translator.getString(getSwapTitleStringRes(icon is TransactionViewItem.Icon.Failed))
                     subtitle = actionType.routerName ?: actionType.routerAddress.shorten()
                     primaryValue = getColoredValue(actionType.valueOut, ColorName.Remus)
                     secondaryValue = getColoredValue(actionType.valueIn, ColorName.Lucian)
@@ -943,6 +943,7 @@ class TransactionViewItemFactory(
         progress: Float?,
         icon: TransactionViewItem.Icon?
     ): TransactionViewItem {
+        val isFailed = icon is TransactionViewItem.Icon.Failed
         val primaryValue = record.valueOut?.let {
             getColoredValue(it, if (record.recipient != null) ColorName.Grey else ColorName.Remus)
         }
@@ -951,7 +952,7 @@ class TransactionViewItemFactory(
         return TransactionViewItem(
             uid = record.uid,
             progress = progress,
-            title = Translator.getString(R.string.Transactions_Swap),
+            title = Translator.getString(getSwapTitleStringRes(isFailed)),
             subtitle = mapped(record.exchangeAddress!!, record.blockchainType),
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
@@ -968,13 +969,14 @@ class TransactionViewItemFactory(
         progress: Float?,
         icon: TransactionViewItem.Icon?
     ): TransactionViewItem {
+        val isFailed = icon is TransactionViewItem.Icon.Failed
         val primaryValue = record.valueOut?.let { getColoredValue(it, ColorName.Remus) }
         val secondaryValue = record.valueIn?.let { getColoredValue(it, ColorName.Lucian) }
 
         return TransactionViewItem(
             uid = record.uid,
             progress = progress,
-            title = Translator.getString(R.string.Transactions_Swap),
+            title = Translator.getString(getSwapTitleStringRes(isFailed)),
             subtitle = mapped(record.exchangeAddress!!, record.blockchainType),
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
@@ -1073,6 +1075,9 @@ class TransactionViewItemFactory(
             else -> ColorName.Leah
         }
     }
+
+    private fun getSwapTitleStringRes(isFailed: Boolean): Int =
+        if (isFailed) R.string.transactions_swap_failed else R.string.Transactions_Swap
 
     private fun getColoredValue(
         value: Any,

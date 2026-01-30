@@ -598,6 +598,7 @@
     <string name="Transactions_Mint">薄荷绿</string>
     <string name="Transactions_Approve">批准</string>
     <string name="Transactions_Swap">已交换</string>
+    <string name="transactions_swap_failed">交换失败</string>
     <string name="transaction_swap_status_new">New</string>
     <string name="transaction_swap_status_waiting">Waiting</string>
     <string name="transaction_swap_status_confirming">Confirming</string>

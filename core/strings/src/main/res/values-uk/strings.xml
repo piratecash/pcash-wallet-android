@@ -611,6 +611,7 @@
     <string name="Transactions_Mint">Мінт</string>
     <string name="Transactions_Approve">Дозволено</string>
     <string name="Transactions_Swap">Обмін виконано</string>
+    <string name="transactions_swap_failed">Обмін не виконано</string>
     <string name="transaction_swap_status_new">Нова</string>
     <string name="transaction_swap_status_waiting">В очікуванні</string>
     <string name="transaction_swap_status_confirming">Підтверджується</string>

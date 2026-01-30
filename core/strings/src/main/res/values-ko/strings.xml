@@ -602,6 +602,7 @@
     <string name="Transactions_Mint">민트</string>
     <string name="Transactions_Approve">승인됨</string>
     <string name="Transactions_Swap">스왑됨</string>
+    <string name="transactions_swap_failed">스왑 실패</string>
     <string name="transaction_swap_status_new">New</string>
     <string name="transaction_swap_status_waiting">Waiting</string>
     <string name="transaction_swap_status_confirming">Confirming</string>
