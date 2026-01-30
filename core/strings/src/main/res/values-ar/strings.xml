@@ -645,6 +645,7 @@
     <string name="TransactionInfo_Title">Transaction Info</string>
     <string name="TransactionInfo_Status">Status</string>
     <string name="TransactionInfo_Date">Date</string>
+    <string name="transaction_info_sync_source">مصدر المزامنة</string>
     <string name="TransactionInfo_Id">ID</string>
     <string name="TransactionInfo_Service">Service</string>
     <string name="TransactionInfo_RawTransaction">Raw Transaction</string>

@@ -656,6 +656,7 @@
     <string name="TransactionInfo_Title">Деталі транзакції</string>
     <string name="TransactionInfo_Status">Статус</string>
     <string name="TransactionInfo_Date">Дата</string>
+    <string name="transaction_info_sync_source">Джерело синхронізації</string>
     <string name="TransactionInfo_Id">ID Транзакції</string>
     <string name="TransactionInfo_Service">Сервіс</string>
     <string name="TransactionInfo_RawTransaction">Непідтверджена транзакція</string>

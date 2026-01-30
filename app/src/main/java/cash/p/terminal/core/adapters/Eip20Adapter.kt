@@ -42,7 +42,8 @@ internal class Eip20Adapter(
         evmTransactionRepository = evmTransactionRepository,
         source = wallet.transactionSource,
         baseToken = baseToken,
-        evmLabelManager = evmLabelManager
+        evmLabelManager = evmLabelManager,
+        syncSourceStorage = evmTransactionRepository.transactionSyncSourceStorage
     )
 
     private val contractAddress: Address = Address(contractAddress)

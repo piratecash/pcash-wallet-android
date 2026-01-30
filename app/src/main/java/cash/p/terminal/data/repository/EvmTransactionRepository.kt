@@ -63,6 +63,9 @@ internal class EvmTransactionRepository(
     val accountStateFlowable: Flowable<AccountState>
         get() = evmKit.accountStateFlowable
 
+    val transactionSyncSourceStorage
+        get() = evmKit.transactionSyncSourceStorage
+
     fun debugInfo(): String = evmKit.debugInfo()
 
     fun statusInfo(): Map<String, Any> = evmKit.statusInfo()

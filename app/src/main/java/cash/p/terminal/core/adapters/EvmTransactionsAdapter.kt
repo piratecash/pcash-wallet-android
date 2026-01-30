@@ -38,7 +38,8 @@ internal class EvmTransactionsAdapter(
         evmTransactionRepository,
         source,
         baseToken,
-        evmLabelManager
+        evmLabelManager,
+        evmKit.transactionSyncSourceStorage
     )
 
     override val explorerTitle: String

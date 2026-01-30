@@ -215,7 +215,8 @@ class EvmKitManager(
             context = App.instance,
             walletId = account.id,
             transactionManager = evmKit.transactionManager,
-            sourceTag = "pcash-wallet-android"
+            sourceTag = "pcash-wallet-android",
+            transactionSyncSourceStorage = evmKit.transactionSyncSourceStorage
         )
         merkleTransactionAdapter?.registerInKit(evmKit)
 

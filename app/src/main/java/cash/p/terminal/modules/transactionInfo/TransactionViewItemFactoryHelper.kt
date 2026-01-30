@@ -648,6 +648,16 @@ object TransactionViewItemFactoryHelper {
                     items.add(getFeeItem(transaction.fee, rates[transaction.fee.coinUid], status))
                 }
 
+                // Show sync source if available (for debugging/transparency)
+                transaction.syncSource?.let { source ->
+                    items.add(
+                        TransactionInfoViewItem.Value(
+                            Translator.getString(R.string.transaction_info_sync_source),
+                            source
+                        )
+                    )
+                }
+
                 if (transaction.transactionRecordType == TransactionRecordType.EVM_SWAP && transaction.valueOut != null) {
                     val recipientItems = mutableListOf<TransactionInfoViewItem>()
 

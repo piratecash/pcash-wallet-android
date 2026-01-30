@@ -640,6 +640,7 @@
     <string name="TransactionInfo_Title">Información de la transacción</string>
     <string name="TransactionInfo_Status">Estado</string>
     <string name="TransactionInfo_Date">Fecha</string>
+    <string name="transaction_info_sync_source">Fuente de sincronización</string>
     <string name="TransactionInfo_Id">ID</string>
     <string name="TransactionInfo_Service">Servicio</string>
     <string name="TransactionInfo_RawTransaction">Transacción sin procesar</string>

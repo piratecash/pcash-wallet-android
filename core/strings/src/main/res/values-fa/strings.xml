@@ -645,6 +645,7 @@
     <string name="TransactionInfo_Title">اطلاعات تراکنش</string>
     <string name="TransactionInfo_Status">وضعیت</string>
     <string name="TransactionInfo_Date">تاریخ</string>
+    <string name="transaction_info_sync_source">منبع همگام‌سازی</string>
     <string name="TransactionInfo_Id">شناسه</string>
     <string name="TransactionInfo_Service">خدمات</string>
     <string name="TransactionInfo_RawTransaction">تراکنش خام</string>

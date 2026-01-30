@@ -32,6 +32,7 @@ class EvmTransactionRecord(
     val valueOut: TransactionValue? = amountOut?.value,
     val recipient: String? = null,
     val foreignTransaction: Boolean = false,
+    val syncSource: String? = null, // Source that discovered this transaction (ETHERSCAN, ERC20_SYNCER, MERKLE, RPC)
 ) : TransactionRecord(
     uid = transaction.hashString,
     transactionHash = transaction.hashString,

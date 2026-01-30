@@ -638,6 +638,7 @@
     <string name="TransactionInfo_Title">Transaktionsdaten</string>
     <string name="TransactionInfo_Status">Status</string>
     <string name="TransactionInfo_Date">Datum</string>
+    <string name="transaction_info_sync_source">Sync-Quelle</string>
     <string name="TransactionInfo_Id">Transaktion ID</string>
     <string name="TransactionInfo_Service">Dienst</string>
     <string name="TransactionInfo_RawTransaction">Rohdaten der Transaktion</string>
