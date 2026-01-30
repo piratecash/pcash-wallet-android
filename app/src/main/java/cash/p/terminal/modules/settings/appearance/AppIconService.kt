@@ -1,9 +1,11 @@
 package cash.p.terminal.modules.settings.appearance
 
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.ui_compose.Select
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,19 +20,57 @@ class AppIconService(private val localStorage: ILocalStorage) {
     val optionsFlow = _optionsFlow.asStateFlow()
 
     init {
-        migrateFromLegacyIconIfNeeded()
+        normalizeAppIconState()
     }
 
     /**
-     * Migrates users from legacy app icons (Dark, Duck, IVFun, Mono, Yellow) to Main.
-     * These icons were removed but users may still have them stored in preferences.
-     * When a stored icon name doesn't match any current AppIcon, we migrate to Main.
+     * Ensures only one app icon alias is enabled and legacy aliases are disabled.
+     * Handles both legacy icon migration and cases where multiple aliases are enabled.
      */
-    private fun migrateFromLegacyIconIfNeeded() {
-        val rawIconName = localStorage.appIconRaw
-        // If there's a stored value but it doesn't map to a valid AppIcon, it's a legacy icon
-        if (rawIconName != null && localStorage.appIcon == null) {
-            setAppIcon(AppIcon.Main)
+    private fun normalizeAppIconState() {
+        // Disable any legacy aliases not in current AppIcon enum
+        getLegacyAliases().forEach { disableComponentSafely(it) }
+
+        // Determine the correct icon: use stored value, or Main if stored value is a legacy icon
+        val appIcon = localStorage.appIcon ?: AppIcon.Main
+
+        // Always apply to ensure only one alias is enabled
+        setAppIcon(appIcon)
+    }
+
+    /**
+     * Discovers all launcher aliases dynamically using PackageManager.
+     * Returns component names of all activities matching MAIN/LAUNCHER intent.
+     */
+    private fun getAllLauncherAliases(): List<String> {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+        return tryOrNull {
+            App.instance.packageManager.queryIntentActivities(intent, PackageManager.MATCH_ALL)
+        }?.filter {
+            it.activityInfo.packageName == App.instance.packageName
+        }?.map {
+            it.activityInfo.name
+        } ?: emptyList()
+    }
+
+    /**
+     * Returns aliases that exist in manifest but are not in current AppIcon enum.
+     * These are legacy aliases that should be disabled.
+     */
+    private fun getLegacyAliases(): List<String> {
+        val currentAliases = AppIcon.entries.map { it.launcherName }.toSet()
+        return getAllLauncherAliases().filter { it !in currentAliases }
+    }
+
+    private fun disableComponentSafely(componentName: String) {
+        tryOrNull {
+            App.instance.packageManager.setComponentEnabledSetting(
+                ComponentName(App.instance, componentName),
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP
+            )
         }
     }
 
