@@ -162,6 +162,7 @@ class TronKitManager(
 
     private fun start() {
         tronKitWrapper?.tronKit?.start()
+        tronKitWrapper?.tronKit?.refresh()
         job = scope.launch {
             backgroundManager.stateFlow.collect { state ->
                 if (state == BackgroundManagerState.EnterForeground) {
