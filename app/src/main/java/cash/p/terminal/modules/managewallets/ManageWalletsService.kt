@@ -8,6 +8,7 @@ import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.receive.FullCoinsProvider
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.IWalletManager
@@ -44,6 +45,7 @@ class ManageWalletsService(
         GetHardwarePublicKeyForWalletUseCase::class.java
     )
     private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
+    private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
 
     private val _itemsFlow = MutableStateFlow<List<Item>>(listOf())
     val itemsFlow = _itemsFlow.asStateFlow()
@@ -80,7 +82,16 @@ class ManageWalletsService(
     }
 
     private fun isEnabled(token: Token): Boolean {
-        return walletManager.activeWallets.any { it.token == token }
+        val contractAddress = (token.type as? TokenType.Eip20)?.address
+        return if (contractAddress != null) {
+            // For EIP20 tokens, check if any wallet with same contract exists
+            walletManager.activeWallets.any {
+                it.token.blockchainType == token.blockchainType &&
+                    (it.token.type as? TokenType.Eip20)?.address == contractAddress
+            }
+        } else {
+            walletManager.activeWallets.any { it.token == token }
+        }
     }
 
     private fun sync(walletList: List<Wallet>) {
@@ -152,12 +163,13 @@ class ManageWalletsService(
     }
 
     private suspend fun updateSortedItems(token: Token, enable: Boolean) {
+        val relatedTokens = getTokensWithSameContract(token)
         mutex.withLock {
             items = items.map { item ->
-                if (item.token == token) {
+                if (relatedTokens.any { it == item.token }) {
                     item.copy(
                         enabled = enable,
-                        hasInfo = hasInfo(token, enable)
+                        hasInfo = hasInfo(item.token, enable)
                     )
                 } else {
                     item
@@ -202,6 +214,8 @@ class ManageWalletsService(
         val account = this.account ?: return
 
         coroutineScope.launch {
+            // Only create wallet for the clicked token (not all with same contract)
+            // Toggle sync is handled by isEnabled() checking by contract address
             if (token.blockchainType.restoreSettingTypes.isNotEmpty()) {
                 restoreSettingsService.approveSettings(
                     token = token,
@@ -217,15 +231,39 @@ class ManageWalletsService(
 
     fun disable(token: Token) {
         coroutineScope.launch {
-            walletManager.activeWallets
-                .firstOrNull { it.token == token }
-                ?.let {
-                    userDeletedWalletManager.markAsDeleted(it)
-                    walletManager.deleteByWallet(it)
-                    updateSortedItems(token, false)
-                    syncState()
+            // Find and delete wallet with same contract address
+            val contractAddress = (token.type as? TokenType.Eip20)?.address
+            val walletToDelete = if (contractAddress != null) {
+                walletManager.activeWallets.firstOrNull {
+                    it.token.blockchainType == token.blockchainType &&
+                        (it.token.type as? TokenType.Eip20)?.address == contractAddress
                 }
+            } else {
+                walletManager.activeWallets.firstOrNull { it.token == token }
+            }
+
+            walletToDelete?.let {
+                userDeletedWalletManager.markAsDeleted(it)
+                walletManager.deleteByWallet(it)
+                // Update UI state for all related tokens
+                updateSortedItems(token, false)
+                syncState()
+            }
         }
+    }
+
+    /**
+     * Find all tokens with the same contract address on the same blockchain.
+     * Used for syncing toggles between virtual USDT and real BSC-USD.
+     * Queries MarketKit directly to get ALL tokens with matching contract.
+     */
+    private fun getTokensWithSameContract(token: Token): List<Token> {
+        val contractAddress = (token.type as? TokenType.Eip20)?.address ?: return listOf(token)
+
+        // Query MarketKit for all tokens with this contract address
+        return marketKit.tokens(contractAddress)
+            .filter { it.blockchainType == token.blockchainType }
+            .ifEmpty { listOf(token) }
     }
 
     override fun clear() {

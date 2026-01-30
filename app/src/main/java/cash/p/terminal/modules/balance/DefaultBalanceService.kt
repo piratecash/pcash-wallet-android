@@ -11,6 +11,7 @@ import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.balance.BalanceItem
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.balance.BalanceService
 import cash.p.terminal.wallet.balance.BalanceXRateRepository
 import cash.p.terminal.wallet.models.CoinPrice
@@ -110,10 +111,28 @@ class DefaultBalanceService private constructor(
     ) {
         _balanceItemsState.update { currentItems ->
             val updatedItems = transform(currentItems)
-            val uniqueItems = updatedItems.distinctBy { it.wallet.token.tokenQuery.id }
+            // First deduplicate by contract address (for virtual + real tokens like USDT/BSC-USD)
+            val contractDeduped = deduplicateByContract(updatedItems)
+            val uniqueItems = contractDeduped.distinctBy { it.wallet.token.tokenQuery.id }
             val sortedItems = balanceSorter.sort(uniqueItems, sortType)
             getFilteredItems(sortedItems)
         }
+    }
+
+    /**
+     * Deduplicate tokens with same contract address on same blockchain.
+     * Keeps the first added token (virtual USDT or real BSC-USD).
+     */
+    private fun deduplicateByContract(items: List<BalanceItem>): List<BalanceItem> {
+        return items
+            .groupBy { extractContractKey(it.wallet) }
+            .map { (_, group) -> group.first() }
+    }
+
+    private fun extractContractKey(wallet: Wallet): String {
+        val address = (wallet.token.type as? TokenType.Eip20)?.address
+            ?: return wallet.token.tokenQuery.id
+        return "${wallet.token.blockchainType.uid}|$address"
     }
 
     /**
