@@ -5,7 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class BalanceRequestDto(
     val uniqueCode: String,
-    val evmAddress: String
+    val evmAddress: String,
+    val apiVersion: Int = 2
 )
 
 @Serializable

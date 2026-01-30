@@ -29,9 +29,9 @@ class MiniAppViewModel(
         val isConnected = codeStorage.uniqueCode.isNotBlank()
 
         // Show cached balance immediately to avoid UI jumping
-        val cachedBalance = codeStorage.cachedBalance.toBigDecimalOrNull()
-        val cachedFormatted = cachedBalance?.let { formatBalance(it) }
-        val cachedFiatValue = cachedBalance?.let { calculateFiatValue(it) } ?: ""
+        val (cachedFormatted, cachedFiatValue) = calculateRewardData(
+            codeStorage.cachedBalance.toBigDecimalOrNull()
+        )
 
         uiState = uiState.copy(
             isConnected = isConnected,
@@ -45,8 +45,7 @@ class MiniAppViewModel(
     private fun fetchBalance() {
         viewModelScope.launch {
             val balance = getMiniAppBalanceUseCase()
-            val formatted = balance?.let { formatBalance(it) }
-            val fiatValue = balance?.let { calculateFiatValue(it) } ?: ""
+            val (formatted, fiatValue) = calculateRewardData(balance)
 
             // Cache the balance for next time
             balance?.let { codeStorage.cachedBalance = it.toPlainString() }
@@ -58,7 +57,14 @@ class MiniAppViewModel(
         }
     }
 
-    private fun formatBalance(balance: BigDecimal): String {
+    private fun calculateRewardData(balance: BigDecimal?): Pair<String?, String> {
+        val reward = balance?.movePointLeft(1)
+        val formatted = reward?.let { formatReward(it) }
+        val fiatValue = reward?.let { calculateFiatValue(it) } ?: ""
+        return formatted to fiatValue
+    }
+
+    private fun formatReward(balance: BigDecimal): String {
         return "+${numberFormatter.formatCoinShort(balance, "PIRATE", 8)}"
     }
 
