@@ -38,7 +38,6 @@ import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
-import cash.p.terminal.core.managers.RateAppManager
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.balance.ui.BalanceScreen
@@ -47,7 +46,6 @@ import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.market.MarketScreen
 import cash.p.terminal.modules.pin.ConfirmPinFragment
 import cash.p.terminal.modules.pin.PinType
-import cash.p.terminal.modules.rateapp.RateApp
 import cash.p.terminal.modules.releasenotes.ReleaseNotesFragment
 import cash.p.terminal.modules.rooteddevice.RootedDeviceModule
 import cash.p.terminal.modules.rooteddevice.RootedDeviceScreen
@@ -280,17 +278,6 @@ private fun MainScreen(
             )
             viewModel.whatsNewShown()
         }
-    }
-
-    if (uiState.showRateAppDialog) {
-        val context = LocalContext.current
-        RateApp(
-            onRateClick = {
-                RateAppManager.openPlayMarket(context)
-                viewModel.closeRateDialog()
-            },
-            onCancelClick = { viewModel.closeRateDialog() }
-        )
     }
 
     if (uiState.wcSupportState != null) {
