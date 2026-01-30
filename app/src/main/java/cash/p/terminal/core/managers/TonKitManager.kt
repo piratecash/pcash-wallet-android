@@ -95,13 +95,23 @@ class TonKitManager(
         return this.tonKitWrapper!!
     }
 
+    fun getTonWallet(
+        account: Account,
+        blockchainType: BlockchainType?,
+        tokenType: TokenType?
+    ) = account.toTonWallet(
+        hardwarePublicKeyStorage,
+        blockchainType,
+        tokenType
+    )
+
     fun getNonActiveTonKitWrapper(
         account: Account,
         blockchainType: BlockchainType?,
         tokenType: TokenType?
     ) = createKitInstance(
-        account.toTonWallet(
-            hardwarePublicKeyStorage,
+        getTonWallet(
+            account,
             blockchainType,
             tokenType
         ), account

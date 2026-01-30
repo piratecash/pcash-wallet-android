@@ -14,17 +14,21 @@ class GetTonAddressUseCaseImpl(
     private val dispatcherProvider: DispatcherProvider
 ) : GetTonAddressUseCase {
 
-    override suspend fun getAddress(account: Account): String? = withContext(dispatcherProvider.io) {
-        val tokenTypes = listOf(
-            TokenType.Native,
-            TokenType.Jetton(PIRATE_JETTON_ADDRESS)
-        )
+    override suspend fun getAddress(account: Account): String? =
+        withContext(dispatcherProvider.io) {
+            val tokenTypes = listOf(
+                TokenType.Native,
+                TokenType.Jetton(PIRATE_JETTON_ADDRESS)
+            )
 
-        tokenTypes.firstNotNullOfOrNull { tokenType ->
-            tryOrNull {
-                val wrapper = tonKitManager.getNonActiveTonKitWrapper(account, BlockchainType.Ton, tokenType)
-                wrapper.tonKit.receiveAddress.toUserFriendly(false)
+            tokenTypes.firstNotNullOfOrNull { tokenType ->
+                tryOrNull {
+                    tonKitManager.getTonWallet(
+                        account,
+                        BlockchainType.Ton,
+                        tokenType
+                    ).address.toUserFriendly(false)
+                }
             }
         }
-    }
 }

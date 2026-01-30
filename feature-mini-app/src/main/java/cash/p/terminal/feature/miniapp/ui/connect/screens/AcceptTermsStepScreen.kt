@@ -36,8 +36,8 @@ fun AcceptTermsStepScreen(
     isAgreed: Boolean,
     onAgreedChange: (Boolean) -> Unit,
     onContinueClick: () -> Unit,
+    modifier: Modifier = Modifier,
     stepIndicatorState: StepIndicatorState? = null,
-    modifier: Modifier = Modifier
 ) {
     MiniAppStepScaffold(
         stepTitle = stringResource(R.string.connect_mini_app_step_2),

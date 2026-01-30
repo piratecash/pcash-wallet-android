@@ -187,8 +187,8 @@ private fun ConnectMiniAppNavHost(
                             isAgreed = uiState.termsAgreed,
                             onAgreedChange = viewModel::onTermsAgreedChange,
                             onContinueClick = viewModel::onTermsAccepted,
-                            stepIndicatorState = stepIndicatorState,
-                            modifier = Modifier.padding(paddingValues)
+                            modifier = Modifier.padding(paddingValues),
+                            stepIndicatorState = stepIndicatorState
                         )
                     }
 
