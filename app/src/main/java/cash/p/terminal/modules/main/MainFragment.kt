@@ -34,7 +34,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
@@ -58,6 +57,7 @@ import cash.p.terminal.modules.transactions.TransactionsScreen
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager.SupportState
+import cash.p.terminal.navigation.safeGetBackStackEntry
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ConnectionStatusView
 import cash.p.terminal.ui.compose.components.BadgeText
@@ -408,13 +408,5 @@ private fun BadgedIcon(
                 icon()
             }
         }
-    }
-}
-
-fun NavController.safeGetBackStackEntry(destinationId: Int): NavBackStackEntry? {
-    return try {
-        this.getBackStackEntry(destinationId)
-    } catch (e: IllegalArgumentException) {
-        null
     }
 }

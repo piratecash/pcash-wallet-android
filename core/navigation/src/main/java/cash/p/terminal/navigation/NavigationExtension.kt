@@ -4,6 +4,7 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.IdRes
 import androidx.core.os.bundleOf
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDirections
 import androidx.navigation.NavOptions
@@ -155,4 +156,12 @@ fun NavController.slideFromRightClearingBackStack(
         bundleOf("input" to it)
     }
     navigate(resId, args, navOptions)
+}
+
+fun NavController.safeGetBackStackEntry(@IdRes destinationId: Int): NavBackStackEntry? {
+    return try {
+        getBackStackEntry(destinationId)
+    } catch (e: IllegalArgumentException) {
+        null
+    }
 }
