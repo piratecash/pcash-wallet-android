@@ -1,3 +1,30 @@
+## 🚀 Version 0.51.6 Update
+_Release date: January 30, 2026_
+
+### ✨ New Features
+
+- **Added virtual USDT (BEP-20) asset**
+  A virtual USDT (BEP-20) asset has been created that references BSC-USD to improve UX and make it easier for users to find it in the USDT section.
+
+- **Added information source for diagnostics**
+  Display of the data source from which the information was obtained has been added to simplify diagnostics when users report issues.
+
+### 🔧 Fixes and Improvements
+
+- **Fixed miniapp registration when app password is enabled**
+  Resolved an issue where miniapp registration failed in the p.cash app when an app-level password was enabled.
+
+- **Fixed information display when swap fails on DEX side**
+  Corrected information display in cases where the swap did not complete on the DEX side.
+
+- **Fixed Pirate Jetton address retrieval**
+  Resolved an issue with obtaining the Pirate Jetton address that could prevent miniapp registration.
+
+- **Fixed rare crash on back navigation with restored fragments**
+  Resolved a rare crash that could occur when navigating back on restored fragments.
+
+
+
 ## 🚀 Version 0.51.5 Update
 _Release date: January 28, 2026_
 
