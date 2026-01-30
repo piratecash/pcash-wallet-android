@@ -1,3 +1,22 @@
+## 🚀 Version 0.51.7 Update
+_Release date: January 30, 2026_
+
+### 🔧 Fixes and Improvements
+
+- **Fixed guaranteed receive balance display when activating Premium**
+  Resolved an issue where the guaranteed receive balance could be displayed incorrectly after enabling the Premium subscription.
+
+- **Improved request versioning for Mini App connectivity**
+  Enhanced the request versioning mechanism used to determine the minimum supported app version for Mini App connections.
+
+- **Improved auto-scrolling behavior during captcha input**
+  Fixed issues with screen auto-scrolling that occurred while entering captcha on certain devices.
+
+- **Fixed TON wallet issues**
+  Resolved problems that caused incorrect behavior of the TON wallet.
+
+
+
 ## 🚀 Version 0.51.6 Update
 _Release date: January 30, 2026_
 
