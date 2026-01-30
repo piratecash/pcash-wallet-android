@@ -31,6 +31,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import cash.p.terminal.R
+import cash.p.terminal.modules.main.MainActivity
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.premium.about.AboutPremiumFragment
 import cash.p.terminal.navigation.slideFromBottomForResult
@@ -439,4 +440,15 @@ suspend fun Clipboard.getText(): String? {
     } else {
         null
     }
+}
+
+/**
+ * Restarts the app by launching MainActivity with clear flags.
+ * Use this as a fallback when navigation state is corrupted after process death.
+ */
+fun Activity.restartMain() {
+    val intent = Intent(this, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
+    startActivity(intent)
 }

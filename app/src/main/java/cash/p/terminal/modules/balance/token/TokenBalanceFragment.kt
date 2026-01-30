@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.balance.token
 
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
@@ -13,9 +12,10 @@ import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.premiumAction
+import cash.p.terminal.core.restartMain
 import cash.p.terminal.featureStacking.ui.staking.StackingType
-import cash.p.terminal.modules.main.MainActivity
 import cash.p.terminal.modules.pin.ConfirmPinFragment
+import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
@@ -46,12 +46,7 @@ class TokenBalanceFragment : BaseComposeFragment() {
         }
 
         if (transactionsViewModel == null) {
-            activity?.let {
-                val intent = Intent(it, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                it.startActivity(intent)
-            }
+            navController.popBackStackOrExecute { activity?.restartMain() }
             return
         }
 

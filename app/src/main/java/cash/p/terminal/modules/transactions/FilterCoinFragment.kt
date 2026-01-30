@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.transactions
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -27,8 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.iconPlaceholder
+import cash.p.terminal.core.restartMain
+import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.wallet.imageUrl
 import cash.p.terminal.ui.compose.components.Badge
 import cash.p.terminal.ui_compose.components.CellMultilineClear
@@ -49,12 +49,11 @@ class FilterCoinFragment : BaseComposeFragment() {
         val viewModel: TransactionsViewModel? = try {
             navGraphViewModels<TransactionsViewModel>(R.id.mainFragment) { TransactionsModule.Factory() }.value
         } catch (e: IllegalStateException) {
-            Toast.makeText(App.instance, "ViewModel is Null", Toast.LENGTH_SHORT).show()
             null
         }
 
         if (viewModel == null) {
-            navController.popBackStack(R.id.filterCoinFragment, true)
+            navController.popBackStackOrExecute(R.id.filterCoinFragment, true) { activity?.restartMain() }
             return
         }
 

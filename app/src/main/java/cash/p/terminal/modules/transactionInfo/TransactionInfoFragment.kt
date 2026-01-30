@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.transactionInfo
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +23,8 @@ import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.core.restartMain
+import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.core.orHide
 import org.koin.compose.koinInject
 import cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment
@@ -70,13 +71,12 @@ class TransactionInfoFragment : BaseComposeFragment() {
         val viewModelTxs: TransactionsViewModel? = try {
             navGraphViewModels<TransactionsViewModel>(R.id.mainFragment) { TransactionsModule.Factory() }.value
         } catch (e: IllegalStateException) {
-            Toast.makeText(App.instance, "ViewModel is Null", Toast.LENGTH_SHORT).show()
             null
         }
 
         val viewItem = viewModelTxs?.tmpItemToShow
         if (viewItem == null) {
-            navController.popBackStack(R.id.transactionInfoFragment, true)
+            navController.popBackStackOrExecute(R.id.transactionInfoFragment, true) { activity?.restartMain() }
             return
         }
 

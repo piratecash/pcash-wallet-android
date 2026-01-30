@@ -165,3 +165,22 @@ fun NavController.safeGetBackStackEntry(@IdRes destinationId: Int): NavBackStack
         null
     }
 }
+
+/**
+ * Tries to pop back stack. If pop fails, executes the fallback action.
+ * Use this for graceful navigation recovery after process death.
+ */
+inline fun NavController.popBackStackOrExecute(
+    @IdRes destinationId: Int? = null,
+    inclusive: Boolean = false,
+    onPopFailed: () -> Unit
+) {
+    val popped = if (destinationId != null) {
+        popBackStack(destinationId, inclusive)
+    } else {
+        popBackStack()
+    }
+    if (!popped) {
+        onPopFailed()
+    }
+}

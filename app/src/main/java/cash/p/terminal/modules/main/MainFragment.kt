@@ -39,6 +39,8 @@ import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.RateAppManager
+import cash.p.terminal.core.restartMain
+import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.balance.ui.BalanceScreen
 import cash.p.terminal.modules.main.MainModule.MainNavigation
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -98,9 +100,8 @@ class MainFragment : BaseComposeFragment() {
                 }
             )
         } ?: run {
-            // Back stack entry doesn't exist, restart activity
-            val intent = Intent(context, MainActivity::class.java)
-            requireActivity().startActivity(intent)
+            // Back stack entry doesn't exist, try to pop or restart activity
+            navController.popBackStackOrExecute { activity?.restartMain() }
         }
     }
 
