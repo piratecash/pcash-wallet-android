@@ -5,18 +5,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cash.p.terminal.modules.multiswap.providers.AllBridgeProvider
+import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.MayaProvider
 import cash.p.terminal.modules.multiswap.providers.OneInchProvider
 import cash.p.terminal.modules.multiswap.providers.PancakeSwapProvider
 import cash.p.terminal.modules.multiswap.providers.PancakeSwapV3Provider
 import cash.p.terminal.modules.multiswap.providers.QuickSwapProvider
+import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.modules.multiswap.providers.StonFiProvider
 import cash.p.terminal.modules.multiswap.providers.ThorChainProvider
 import cash.p.terminal.modules.multiswap.providers.UniswapProvider
 import cash.p.terminal.modules.multiswap.providers.UniswapV3Provider
-import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
-import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.wallet.Token
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +43,7 @@ class SwapQuoteService(
     private companion object {
         const val DEBOUNCE_INPUT_MSEC: Long = 300
     }
+
     private var runQuotationJob: Job? = null
 
     private val allProviders = listOf(
@@ -120,6 +121,10 @@ class SwapQuoteService(
             quote = null
         }
         error = null
+
+        if (clearQuotes) {
+            emitState()
+        }
 
         val tokenIn = tokenIn
         val tokenOut = tokenOut
