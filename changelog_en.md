@@ -1,4 +1,25 @@
 ## 🚀 Version 0.51.7 Update
+_Release date: January 31, 2026_
+
+### ✨ Improvements
+
+- **More swap details**
+  Transaction details for swaps now show additional information, including which coins were used and which provider executed the swap. This helps you better understand how the swap was completed.
+
+### 🔧 Fixes and stability improvements
+
+- **Improved input handling when speeding up or canceling transactions**
+  Fixed an issue where navigation between screens could occasionally behave incorrectly in these scenarios.
+
+- **Fixed an issue with USDT**
+  Resolved a token synchronization problem that could cause USDT (Tether) to be missing from the coin list.
+
+- **Fixed token selection for swaps on slow devices**
+  Resolved an issue where selecting a token for a swap could take too long or not respond properly on slower or heavily loaded devices.
+
+
+
+## 🚀 Version 0.51.7 Update
 _Release date: January 30, 2026_
 
 ### 🔧 Fixes and Improvements
