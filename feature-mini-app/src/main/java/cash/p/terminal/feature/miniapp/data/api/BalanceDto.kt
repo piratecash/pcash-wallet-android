@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class BalanceRequestDto(
     val uniqueCode: String,
     val evmAddress: String,
-    val apiVersion: Int = 2
+    val apiVersion: Int = MiniAppApi.API_VERSION
 )
 
 @Serializable

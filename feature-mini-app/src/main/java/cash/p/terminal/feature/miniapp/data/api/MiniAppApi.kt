@@ -22,6 +22,10 @@ class MiniAppApi(
     private val appHeadersProvider: AppHeadersProvider
 ) {
 
+    internal companion object {
+        const val API_VERSION = 2
+    }
+
     suspend fun getCaptcha(
         jwt: String,
         endpoint: String

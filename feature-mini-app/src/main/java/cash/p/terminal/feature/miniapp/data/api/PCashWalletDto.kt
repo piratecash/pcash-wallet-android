@@ -38,7 +38,8 @@ data class PCashWalletRequestDto(
     val isRooted: Boolean,
     // Collection metadata
     val collectionDurationMs: Long,
-    val sampleCount: Int
+    val sampleCount: Int,
+    val apiVersion: Int = MiniAppApi.API_VERSION
 )
 
 @Serializable
