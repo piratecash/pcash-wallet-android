@@ -105,9 +105,9 @@ sealed interface TransactionValue {
         val tokenCode: String,
         val tokenDecimals: Int,
         val value: BigDecimal,
-        override val coinIconPlaceholder: Int? = null
-    ) : TransactionValue {
+        override val coinIconPlaceholder: Int? = null,
         override val coinUid: String = ""
+    ) : TransactionValue {
         override val coin: Coin? = null
         override val badge: String? = null
         override val coinIconUrl = null

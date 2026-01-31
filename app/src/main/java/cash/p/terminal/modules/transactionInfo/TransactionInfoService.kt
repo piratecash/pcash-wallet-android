@@ -269,6 +269,10 @@ class TransactionInfoService(
 
             coinUids.addAll(txCoinTypes)
 
+            // Add swap coin UIDs for ChangeNow and similar swap providers
+            transactionInfoItem.swapCoinUidIn?.let { coinUids.add(it) }
+            transactionInfoItem.swapCoinUidOut?.let { coinUids.add(it) }
+
             return coinUids.filterNotNull().filter { it.isNotBlank() }.distinct()
         }
 
@@ -286,7 +290,10 @@ class TransactionInfoService(
                     swapAmountOutReal = swapTransaction.amountOutReal,
                     swapAmountIn = swapTransaction.amountIn,
                     swapCoinCodeOut = getCoinCode(swapTransaction.coinUidOut),
-                    swapCoinCodeIn = getCoinCode(swapTransaction.coinUidIn)
+                    swapCoinCodeIn = getCoinCode(swapTransaction.coinUidIn),
+                    swapCoinUidOut = swapTransaction.coinUidOut,
+                    swapCoinUidIn = swapTransaction.coinUidIn,
+                    swapProvider = swapTransaction.provider
                 )
             }
         }

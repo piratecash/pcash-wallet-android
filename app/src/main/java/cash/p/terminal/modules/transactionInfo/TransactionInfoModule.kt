@@ -15,6 +15,7 @@ import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.network.swaprepository.SwapProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import java.math.BigDecimal
 
@@ -79,8 +80,11 @@ data class TransactionInfoItem(
     val swapAmountIn: BigDecimal? = null,
     val swapCoinCodeOut: String? = null,
     val swapCoinCodeIn: String? = null,
+    val swapCoinUidOut: String? = null,
+    val swapCoinUidIn: String? = null,
     // AML status
-    val amlStatus: AmlStatus? = null
+    val amlStatus: AmlStatus? = null,
+    val swapProvider: SwapProvider? = null
 )
 
 val BlockchainType.resendable: Boolean

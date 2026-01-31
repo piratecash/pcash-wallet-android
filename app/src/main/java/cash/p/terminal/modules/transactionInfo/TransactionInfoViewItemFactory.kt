@@ -1,8 +1,8 @@
 package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.R
-import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.core.managers.TonHelper
+import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
@@ -10,6 +10,7 @@ import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
 import cash.p.terminal.entities.transactionrecords.monero.MoneroTransactionRecord
 import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecord
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
+import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.SentToSelf
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.SpeedUpCancel
@@ -36,11 +37,12 @@ class TransactionInfoViewItemFactory(
         var sentToSelf = false
 
         // Create AML item once, to be added to the first receive section
-        var amlItem: TransactionInfoViewItem.AmlCheck? = TransactionViewItemFactoryHelper.getAmlCheckItem(
-            amlStatus = transactionItem.amlStatus,
-            record = transaction,
-            blockchainType = blockchainType
-        )
+        var amlItem: TransactionInfoViewItem.AmlCheck? =
+            TransactionViewItemFactoryHelper.getAmlCheckItem(
+                amlStatus = transactionItem.amlStatus,
+                record = transaction,
+                blockchainType = blockchainType
+            )
 
         if (transactionItem.record.spam) {
             itemSections.add(
@@ -545,7 +547,7 @@ class TransactionInfoViewItemFactory(
                                 TransactionViewItemFactoryHelper.getReceiveSectionItems(
                                     value = transfer.value,
                                     fromAddress = transfer.address,
-                                    toAddress =  transfer.addressForIncomingAddress?.let(::listOf),
+                                    toAddress = transfer.addressForIncomingAddress?.let(::listOf),
                                     coinPrice = rates[transfer.value.coinUid],
                                     hideAmount = transactionItem.hideAmount,
                                     nftMetadata = nftMetadata,
@@ -628,6 +630,36 @@ class TransactionInfoViewItemFactory(
                     hideAmount = transactionItem.hideAmount
                 )
             )
+
+            transactionItem.swapProvider?.let { provider ->
+                // tokenDecimals is arbitrary - the BigDecimal values from swap provider
+                // already have correct precision, decimals only affect isMaxValue check
+                val valueIn = TransactionValue.TokenValue(
+                    tokenName = transactionItem.swapCoinCodeIn,
+                    tokenCode = transactionItem.swapCoinCodeIn,
+                    tokenDecimals = 8,
+                    value = transactionItem.swapAmountIn,
+                    coinUid = transactionItem.swapCoinUidIn ?: ""
+                )
+                val valueOut = transactionItem.swapAmountOutReal?.let { amount ->
+                    TransactionValue.TokenValue(
+                        tokenName = transactionItem.swapCoinCodeOut,
+                        tokenCode = transactionItem.swapCoinCodeOut,
+                        tokenDecimals = 8,
+                        value = amount,
+                        coinUid = transactionItem.swapCoinUidOut ?: ""
+                    )
+                }
+                itemSections.add(
+                    TransactionViewItemFactoryHelper.getSwapDetailsSectionItems(
+                        rates = rates,
+                        exchangeAddress = provider.title,
+                        valueOut = valueOut,
+                        valueIn = valueIn,
+                        serviceName = provider.title,
+                    )
+                )
+            }
         }
 
         if (sentToSelf) {
