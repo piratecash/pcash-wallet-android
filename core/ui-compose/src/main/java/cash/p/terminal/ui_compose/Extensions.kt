@@ -45,7 +45,7 @@ inline fun <reified T : Parcelable> NavController.getInput(): T? {
 }
 
 inline fun <reified T : Parcelable> NavController.requireInput(): T {
-    return getInput()!!
+    return requireNotNull(getInput()) { "Navigation input of type ${T::class.simpleName} is required but was null" }
 }
 
 internal inline fun <reified T> getKoinInstance(): T {
