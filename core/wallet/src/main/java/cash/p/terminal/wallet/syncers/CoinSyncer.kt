@@ -129,6 +129,7 @@ class CoinSyncer(
     }
 
     private fun injectVirtualTokens(coins: List<Coin>, tokens: List<TokenEntity>): List<TokenEntity> {
+        coins.find { it.uid == "tether" } ?: return tokens
         val bscUsdCoin = coins.find { it.code == "BSC-USD" } ?: return tokens
         val bscUsdToken = tokens.find {
             it.coinUid == bscUsdCoin.uid && it.blockchainUid == BlockchainType.BinanceSmartChain.uid
