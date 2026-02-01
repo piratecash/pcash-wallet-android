@@ -793,7 +793,7 @@
     <string name="Appearance_HideMarketsTab">隐藏市场</string>
     <string name="Appearance_HideBalanceTabButtons">隐藏按钮</string>
     <string name="Appearance_BalanceAutoHide">自动隐藏余额</string>
-    <string name="show_all_transactions">Show All Transactions</string>
+    <string name="show_all_transactions">显示所有交易</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>
