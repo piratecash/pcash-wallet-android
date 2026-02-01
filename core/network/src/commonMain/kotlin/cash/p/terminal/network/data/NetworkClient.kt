@@ -26,6 +26,7 @@ internal fun buildNetworkClient() = HttpClient(OkHttp) {
         json(Json {
             ignoreUnknownKeys = true
             isLenient = true
+            encodeDefaults = true
         })
     }
 
