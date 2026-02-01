@@ -151,6 +151,7 @@ class SendTonViewModel(
     fun onEnterMemo(memo: String) {
         viewModelScope.launch(Dispatchers.Default) {
             this@SendTonViewModel.memo = memo.ifBlank { null }
+            amountService.setMemo(this@SendTonViewModel.memo)
             feeService.setMemo(this@SendTonViewModel.memo)
         }
     }
@@ -205,6 +206,7 @@ class SendTonViewModel(
         this.amountState = amountState
 
         feeService.setAmount(amountState.amount)
+        feeService.setMemo(amountState.memo)
 
         emitState()
     }

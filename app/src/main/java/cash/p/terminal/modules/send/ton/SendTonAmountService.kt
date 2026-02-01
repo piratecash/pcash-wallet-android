@@ -14,11 +14,13 @@ class SendTonAmountService(
     private val leaveSomeBalanceForFee: Boolean = false
 ) {
     private var amount: BigDecimal? = null
+    private var memo: String? = null
     private var amountCaution: HSCaution? = null
 
     private val _stateFlow = MutableStateFlow(
         State(
             amount = amount,
+            memo = memo,
             amountCaution = amountCaution,
             availableBalance = availableBalance,
             canBeSend = false,
@@ -37,6 +39,7 @@ class SendTonAmountService(
         _stateFlow.update {
             State(
                 amount = amount,
+                memo = memo,
                 amountCaution = amountCaution,
                 availableBalance = availableBalance,
                 canBeSend = canBeSend
@@ -61,8 +64,14 @@ class SendTonAmountService(
         emitState()
     }
 
+    fun setMemo(memo: String?) {
+        this.memo = memo
+        emitState()
+    }
+
     data class State(
         val amount: BigDecimal?,
+        val memo: String?,
         val amountCaution: HSCaution?,
         val availableBalance: BigDecimal?,
         val canBeSend: Boolean

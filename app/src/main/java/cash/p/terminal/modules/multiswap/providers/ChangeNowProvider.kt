@@ -449,7 +449,8 @@ class ChangeNowProvider(
             tokenIn.blockchainType == BlockchainType.Ton ->
                 SendTransactionData.Ton(
                     amount = amountIn,
-                    address = transaction.payinAddress
+                    address = transaction.payinAddress,
+                    memo = transaction.mandatoryMemo,
                 )
 
             tokenIn.blockchainType == BlockchainType.Monero ->

@@ -529,7 +529,8 @@ class QuickexProvider(
             tokenIn.blockchainType == BlockchainType.Ton ->
                 SendTransactionData.Ton(
                     amount = amountIn,
-                    address = transaction.depositAddress.depositAddress
+                    address = transaction.depositAddress.depositAddress,
+                    memo = transaction.depositAddress.depositAddressMemo
                 )
 
             tokenIn.blockchainType == BlockchainType.Monero ->

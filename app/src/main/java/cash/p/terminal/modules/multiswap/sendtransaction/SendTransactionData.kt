@@ -58,7 +58,8 @@ sealed class SendTransactionData {
 
     class Ton(
         val address: String,
-        val amount: BigDecimal
+        val amount: BigDecimal,
+        val memo: String?
     ) : SendTransactionData()
 
     data class TonSwap(

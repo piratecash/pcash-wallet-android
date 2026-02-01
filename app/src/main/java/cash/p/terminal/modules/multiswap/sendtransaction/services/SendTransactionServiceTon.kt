@@ -69,7 +69,6 @@ class SendTransactionServiceTon(
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
     private var feeState = feeService.stateFlow.value
-    private var memo: String? = null
 
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
     private var pendingTxId: String? = null
@@ -97,6 +96,7 @@ class SendTransactionServiceTon(
         this.amountState = amountState
 
         feeService.setAmount(amountState.amount)
+        feeService.setMemo(amountState.memo)
 
         emitState()
     }
@@ -187,6 +187,7 @@ class SendTransactionServiceTon(
     override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Ton)
         amountService.setAmount(data.amount)
+        amountService.setMemo(data.memo)
         addressService.setAddress(addressHandlerTon.parseAddress(data.address))
     }
 
@@ -203,14 +204,14 @@ class SendTransactionServiceTon(
                 sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // TON doesn't require from address
                 toAddress = addressState.address!!.hex,
-                memo = memo,
+                memo = amountState.memo,
                 txHash = null
             )
 
             // 2. Register pending transaction
             pendingTxId = pendingRegistrar.register(draft)
 
-            adapter.send(amountState.amount!!, addressState.tonAddress!!, memo)
+            adapter.send(amountState.amount!!, addressState.tonAddress!!, amountState.memo)
             return SendTransactionResult.Ton(SendResult.Sent())
         } catch (e: Throwable) {
             pendingTxId?.let {
