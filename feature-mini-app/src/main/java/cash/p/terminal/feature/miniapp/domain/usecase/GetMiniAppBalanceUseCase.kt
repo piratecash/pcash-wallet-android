@@ -19,7 +19,11 @@ class GetMiniAppBalanceUseCase(
         return runCatching {
             val response = miniAppApi.getWalletBalance(
                 endpoint = endpoint,
-                request = BalanceRequestDto(uniqueCode, evmAddress)
+                request = BalanceRequestDto(
+                    uniqueCode = uniqueCode,
+                    evmAddress = evmAddress,
+                    apiVersion = MiniAppApi.API_VERSION
+                )
             )
             response.balance.toBigDecimalOrNull()?.movePointLeft(8)
         }.getOrNull()

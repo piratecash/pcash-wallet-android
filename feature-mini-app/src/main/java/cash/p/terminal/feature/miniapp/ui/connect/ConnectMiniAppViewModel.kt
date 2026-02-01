@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.feature.miniapp.data.api.MiniAppApi
 import cash.p.terminal.feature.miniapp.data.api.MiniAppApiException
 import cash.p.terminal.feature.miniapp.data.api.PCashWalletRequestDto
 import cash.p.terminal.feature.miniapp.data.api.Vector3DDto
@@ -492,7 +493,8 @@ class ConnectMiniAppViewModel(
                     isAdb = deviceEnv.isAdbEnabled,
                     isRooted = deviceEnv.isRooted,
                     collectionDurationMs = deviceEnv.collectionDurationMs,
-                    sampleCount = deviceEnv.sampleCount
+                    sampleCount = deviceEnv.sampleCount,
+                    apiVersion = MiniAppApi.API_VERSION
                 )
 
                 captchaUseCase.submitPCashWallet(currentJwt, endpoint, request).getOrThrow()
