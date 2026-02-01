@@ -127,6 +127,7 @@ class TokenBalanceViewModel(
         viewModelScope.launch {
             transactionHiddenManager.transactionHiddenFlow.collectLatest {
                 transactionsService.refreshList()
+                refreshTransactionsFromCache()
             }
         }
 
@@ -138,11 +139,7 @@ class TokenBalanceViewModel(
 
         viewModelScope.launch {
             balanceHiddenManager.anyTransactionVisibilityChangedFlow.collect {
-                // Directly re-transform items with updated visibility
-                val currentItems = transactionsService.transactionItemsFlow.value
-                if (currentItems.isNotEmpty()) {
-                    updateTransactions(currentItems)
-                }
+                refreshTransactionsFromCache()
             }
         }
 
@@ -200,6 +197,13 @@ class TokenBalanceViewModel(
                         ) != null)
 
     fun showAllTransactions(show: Boolean) = transactionHiddenManager.showAllTransactions(show)
+
+    private fun refreshTransactionsFromCache() {
+        val currentItems = transactionsService.transactionItemsFlow.value
+        if (currentItems.isNotEmpty()) {
+            updateTransactions(currentItems)
+        }
+    }
 
     fun startStatusChecker() {
         statusCheckerJob?.cancel()
