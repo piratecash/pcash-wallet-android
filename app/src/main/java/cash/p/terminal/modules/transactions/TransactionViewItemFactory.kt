@@ -41,11 +41,10 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
 import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.models.Transaction
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import io.horizontalsystems.core.helpers.DateHelper
 import java.math.BigDecimal
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 class TransactionViewItemFactory(
     private val evmLabelManager: EvmLabelManager,
@@ -56,20 +55,19 @@ class TransactionViewItemFactory(
     private val walletUseCase: WalletUseCase,
     private val numberFormatter: IAppNumberFormatter
 ) {
-    private val mutex = Mutex()
     private var showAmount = !balanceHiddenManager.balanceHidden
-    private val cache = mutableMapOf<String, Map<Long, TransactionViewItem>>()
+    private val cache = ConcurrentHashMap<String, Map<Long, TransactionViewItem>>()
 
-    suspend fun updateCache() = mutex.withLock {
+    fun updateCache() {
         showAmount = !balanceHiddenManager.balanceHidden
-        val updated = cache.mapValues { (uid, map) ->
-            val perItemShowAmount = !balanceHiddenManager.isTransactionInfoHidden(uid)
-            map.mapValues { (_, viewItem) ->
-                viewItem.copy(showAmount = perItemShowAmount)
+        for (uid in cache.keys) {
+            cache.computeIfPresent(uid) { _, map ->
+                val perItemShowAmount = !balanceHiddenManager.isTransactionInfoHidden(uid)
+                map.mapValues { (_, viewItem) ->
+                    viewItem.copy(showAmount = perItemShowAmount)
+                }
             }
         }
-        cache.clear()
-        cache.putAll(updated)
     }
 
     fun convertToViewItemCached(
