@@ -1,3 +1,19 @@
+## 🚀 Version 0.51.9 Update
+_Release date: February 1, 2026_
+
+### 🔧 Fixes and Stability Improvements
+
+- **Fixed issues with USDT and TON swaps via Quickex**
+  Resolved a problem where USDT (Jetton) and TON swaps through the Quickex provider could work incorrectly or fail.
+
+- **Fixed auto-hide balances behavior**
+  Resolved an issue where, when auto-hide balances was enabled, transactions were sometimes not displayed.
+
+- **Improved MiniApp connection mechanism for SWAP 5**
+  Enhanced the application’s MiniApp connection logic, improving the stability and reliability of SWAP 5.
+
+
+
 ## 🚀 Version 0.51.8 Update
 _Release date: January 31, 2026_
 
