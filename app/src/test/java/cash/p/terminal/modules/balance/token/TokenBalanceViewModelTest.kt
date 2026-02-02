@@ -3,6 +3,7 @@ package cash.p.terminal.modules.balance.token
 import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.balance.BalanceViewItemFactory
 import cash.p.terminal.modules.balance.TotalBalance
@@ -34,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -49,7 +51,7 @@ import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
 
 /**
- * Unit tests for TokenBalanceViewModel focusing on the auto-hide transactions feature (MOBILE-469).
+ * Unit tests for TokenBalanceViewModel focusing on the auto-hide transactions feature.
  *
  * These tests verify that when transactionHiddenFlow emits:
  * 1. The flow is collected (transactionsService.refreshList() is called)
@@ -91,7 +93,16 @@ class TokenBalanceViewModelTest : KoinTest {
         modules(
             module {
                 single { mockk<cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase>(relaxed = true) }
-                single { mockk<cash.p.terminal.wallet.IAdapterManager>(relaxed = true) }
+                single {
+                    mockk<cash.p.terminal.wallet.IAdapterManager>(relaxed = true) {
+                        coEvery { awaitAdapterForWallet<cash.p.terminal.wallet.IReceiveAdapter>(any(), any()) } returns null
+                    }
+                }
+                single {
+                    mockk<SwapProviderTransactionsStorage>(relaxed = true) {
+                        every { observeByToken(any(), any(), any()) } returns flowOf(emptyList())
+                    }
+                }
             }
         )
     }
@@ -124,7 +135,7 @@ class TokenBalanceViewModelTest : KoinTest {
         every { amlStatusManager.applyStatus(any()) } answers { firstArg() }
         every { premiumSettings.getAmlCheckShowAlert() } returns false
         coEvery { getChangeNowAssociatedCoinTickerUseCase(any(), any()) } returns null
-        every { transactionViewItemFactory.convertToViewItemCached(any(), any()) } answers {
+        every { transactionViewItemFactory.convertToViewItemCached(any(), any(), any()) } answers {
             createMockTransactionViewItem(firstArg<TransactionItem>().record.uid)
         }
     }

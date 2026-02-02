@@ -117,8 +117,14 @@ class MainFragment : BaseComposeFragment() {
             })
     }
 
+    override fun onResume() {
+        super.onResume()
+        transactionsViewModelRef?.get()?.startStatusChecker()
+    }
+
     override fun onPause() {
         super.onPause()
+        transactionsViewModelRef?.get()?.stopStatusChecker()
         if (!skipHideTransactions()) {
             transactionsViewModelRef?.get()?.showAllTransactions(false)
         }

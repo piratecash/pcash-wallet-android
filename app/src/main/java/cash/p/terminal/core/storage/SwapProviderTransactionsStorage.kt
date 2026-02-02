@@ -4,6 +4,7 @@ import cash.p.terminal.core.utils.SwapTransactionMatcher
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.DispatcherProvider
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
@@ -34,6 +35,19 @@ class SwapProviderTransactionsStorage(
         statusesExcluded = statusesExcluded,
         limit = limit
     )
+
+    fun observeByToken(
+        token: Token,
+        address: String,
+        limit: Int = 50
+    ): Flow<List<SwapProviderTransaction>> = dao.observeByToken(
+        coinUid = token.coin.uid,
+        blockchainType = token.blockchainType.uid,
+        address = address,
+        limit = limit
+    )
+
+    fun observeAll(): Flow<List<SwapProviderTransaction>> = dao.observeAll()
 
     suspend fun getTransaction(transactionId: String) =
         withContext(dispatcherProvider.io) {
@@ -124,4 +138,13 @@ class SwapProviderTransactionsStorage(
         tolerance = tolerance,
         limit = limit
     )
+}
+
+fun List<SwapProviderTransaction>.toRecordUidMap(): Map<String, SwapProviderTransaction> {
+    return flatMap { swap ->
+        listOfNotNull(
+            swap.incomingRecordUid?.let { it to swap },
+            swap.outgoingRecordUid?.let { it to swap }
+        )
+    }.toMap()
 }

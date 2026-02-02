@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import cash.p.terminal.entities.SwapProviderTransaction
+import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 
 @Dao
@@ -27,8 +28,24 @@ interface SwapProviderTransactionsDao {
         limit: Int
     ): List<SwapProviderTransaction>
 
+    @Query(
+        "SELECT * FROM SwapProviderTransaction WHERE " +
+                "((coinUidIn = :coinUid AND blockchainTypeIn = :blockchainType AND addressIn = :address) OR " +
+                "(coinUidOut = :coinUid AND blockchainTypeOut = :blockchainType AND addressOut = :address)) " +
+                "ORDER BY date DESC LIMIT :limit"
+    )
+    fun observeByToken(
+        coinUid: String,
+        blockchainType: String,
+        address: String,
+        limit: Int
+    ): Flow<List<SwapProviderTransaction>>
+
     @Query("SELECT * FROM SwapProviderTransaction WHERE transactionId = :transactionId")
     suspend fun getTransaction(transactionId: String): SwapProviderTransaction?
+
+    @Query("SELECT * FROM SwapProviderTransaction ORDER BY date DESC LIMIT 100")
+    fun observeAll(): Flow<List<SwapProviderTransaction>>
 
     @Query(
         "SELECT * FROM SwapProviderTransaction WHERE " +

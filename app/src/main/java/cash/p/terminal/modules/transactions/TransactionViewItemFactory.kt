@@ -56,7 +56,8 @@ class TransactionViewItemFactory(
     private val numberFormatter: IAppNumberFormatter
 ) {
     private var showAmount = !balanceHiddenManager.balanceHidden
-    private val cache = ConcurrentHashMap<String, Map<Long, TransactionViewItem>>()
+    // Cache key includes swap status to avoid bypassing cache when status is unchanged
+    private val cache = ConcurrentHashMap<String, Map<Pair<Long, String?>, TransactionViewItem>>()
 
     fun updateCache() {
         showAmount = !balanceHiddenManager.balanceHidden
@@ -72,7 +73,8 @@ class TransactionViewItemFactory(
 
     fun convertToViewItemCached(
         transactionItem: TransactionItem,
-        walletUid: String? = null
+        walletUid: String? = null,
+        matchedSwap: SwapProviderTransaction? = null
     ): TransactionViewItem {
         val perItemShowAmount = if (walletUid != null) {
             !balanceHiddenManager.isTransactionInfoHiddenForWallet(transactionItem.record.uid, walletUid)
@@ -80,19 +82,20 @@ class TransactionViewItemFactory(
             !balanceHiddenManager.isTransactionInfoHidden(transactionItem.record.uid)
         }
 
-        cache[transactionItem.record.uid]?.get(transactionItem.createdAt)?.let { cached ->
-            // Return cached item with updated showAmount
+        val cacheKey = transactionItem.createdAt to matchedSwap?.status
+
+        cache[transactionItem.record.uid]?.get(cacheKey)?.let { cached ->
             return if (cached.showAmount != perItemShowAmount) {
                 cached.copy(showAmount = perItemShowAmount).also {
-                    cache[transactionItem.record.uid] = mapOf(transactionItem.createdAt to it)
+                    cache[transactionItem.record.uid] = mapOf(cacheKey to it)
                 }
             } else {
                 cached
             }
         }
 
-        val transactionViewItem = convertToViewItem(transactionItem).copy(showAmount = perItemShowAmount)
-        cache[transactionItem.record.uid] = mapOf(transactionItem.createdAt to transactionViewItem)
+        val transactionViewItem = convertToViewItem(transactionItem, matchedSwap).copy(showAmount = perItemShowAmount)
+        cache[transactionItem.record.uid] = mapOf(cacheKey to transactionViewItem)
 
         return transactionViewItem
     }
@@ -240,7 +243,8 @@ class TransactionViewItemFactory(
         record: EvmTransactionRecord,
         transactionItem: TransactionItem,
         progress: Float?,
-        icon: TransactionViewItem.Icon?
+        icon: TransactionViewItem.Icon?,
+        matchedSwap: SwapProviderTransaction? = null
     ): TransactionViewItem = when (record.transactionRecordType) {
         TransactionRecordType.EVM_APPROVE ->
             createViewItemFromApproveTransactionRecord(
@@ -282,21 +286,23 @@ class TransactionViewItemFactory(
                 outgoingEvents = record.outgoingEvents!!
             )
             val transactionViewItem = if (outgoingValues.isEmpty() && incomingValues.isNotEmpty()) {
-                incomingValues.firstOrNull()?.let { firstIncomingValue ->
+                // Use matchedSwap if provided, otherwise fall back to DB lookup
+                val swap = matchedSwap ?: incomingValues.firstOrNull()?.let { firstIncomingValue ->
                     getSwapProviderTransactionForIncoming(
                         recordUid = transactionItem.record.uid,
                         amount = firstIncomingValue.decimalValue,
                         timestamp = record.timestamp,
                         addressesTo = record.incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
                         token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: record.token
-                    )?.let {
-                        createViewItemFromUserSwapProviderRecord(
-                            transaction = it,
-                            recordUid = transactionItem.record.uid,
-                            timestamp = record.timestamp,
-                            direct = false
-                        )
-                    }
+                    )
+                }
+                swap?.let {
+                    createViewItemFromUserSwapProviderRecord(
+                        transaction = it,
+                        recordUid = transactionItem.record.uid,
+                        timestamp = record.timestamp,
+                        direct = false
+                    )
                 }
             } else {
                 null
@@ -326,7 +332,8 @@ class TransactionViewItemFactory(
             tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = record.token,
-                isIncoming = true
+                isIncoming = true,
+                matchedSwap = matchedSwap
             ) ?: createViewItemFromEvmIncomingTransactionRecord(
                 uid = record.uid,
                 value = record.value!!,
@@ -343,7 +350,8 @@ class TransactionViewItemFactory(
             tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = (record.mainValue as? TransactionValue.CoinValue)?.token,
-                isIncoming = false
+                isIncoming = false,
+                matchedSwap = matchedSwap
             ) ?: createViewItemFromEvmOutgoingTransactionRecord(
                 uid = record.uid,
                 value = record.value!!,
@@ -382,7 +390,10 @@ class TransactionViewItemFactory(
         else -> throw IllegalStateException("Undefined record type ${record.javaClass.name}")
     }
 
-    private fun convertToViewItem(transactionItem: TransactionItem): TransactionViewItem {
+    private fun convertToViewItem(
+        transactionItem: TransactionItem,
+        matchedSwap: SwapProviderTransaction? = null
+    ): TransactionViewItem {
         val record = transactionItem.record
         val status = record.status(transactionItem.lastBlockInfo?.height)
         val progress = when (status) {
@@ -399,7 +410,8 @@ class TransactionViewItemFactory(
                 record = record,
                 transactionItem = transactionItem,
                 progress = progress,
-                icon = icon
+                icon = icon,
+                matchedSwap = matchedSwap
             )
 
             is BitcoinTransactionRecord ->
@@ -409,7 +421,8 @@ class TransactionViewItemFactory(
                     currencyValue = transactionItem.currencyValue,
                     progress = progress,
                     lastBlockTimestamp = lastBlockTimestamp,
-                    icon = icon
+                    icon = icon,
+                    matchedSwap = matchedSwap
                 )
 
             is SolanaTransactionRecord -> createViewItemFromSolanaTransactionRecord(
@@ -417,6 +430,7 @@ class TransactionViewItemFactory(
                 transactionItem = transactionItem,
                 progress = progress,
                 icon = icon,
+                matchedSwap = matchedSwap
             )
 
             is TronTransactionRecord -> createViewItemFromTronTransactionRecord(
@@ -437,14 +451,16 @@ class TransactionViewItemFactory(
                 contractAddress = record.contractAddress,
                 incomingEvents = record.incomingEvents,
                 outgoingEvents = record.outgoingEvents,
-                icon = icon
+                icon = icon,
+                matchedSwap = matchedSwap
             )
 
             is TonTransactionRecord -> {
                 tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
-                    isIncoming = record.actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Receive
+                    isIncoming = record.actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Receive,
+                    matchedSwap = matchedSwap
                 ) ?: createViewItemFromTonTransactionRecord(
                     icon = icon,
                     record = record,
@@ -456,7 +472,8 @@ class TransactionViewItemFactory(
                 tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
-                    isIncoming = record.type is StellarTransactionRecord.Type.Receive
+                    isIncoming = record.type is StellarTransactionRecord.Type.Receive,
+                    matchedSwap = matchedSwap
                 ) ?: createViewItemFromStellarTransactionRecord(
                     icon = icon,
                     record = record,
@@ -468,7 +485,8 @@ class TransactionViewItemFactory(
                 tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
-                    isIncoming = record.transactionRecordType == TransactionRecordType.MONERO_INCOMING
+                    isIncoming = record.transactionRecordType == TransactionRecordType.MONERO_INCOMING,
+                    matchedSwap = matchedSwap
                 ) ?: createViewItemFromMoneroTransactionRecord(
                     record = record,
                     transactionItem = transactionItem,
@@ -853,13 +871,15 @@ class TransactionViewItemFactory(
         transactionItem: TransactionItem,
         progress: Float?,
         icon: TransactionViewItem.Icon.Failed?,
+        matchedSwap: SwapProviderTransaction? = null
     ): TransactionViewItem {
         return when (record.transactionRecordType) {
             TransactionRecordType.SOLANA_INCOMING -> {
                 tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
-                    isIncoming = true
+                    isIncoming = true,
+                    matchedSwap = matchedSwap
                 ) ?: createViewItemFromSolanaIncomingTransactionRecord(
                     record = record,
                     currencyValue = transactionItem.currencyValue,
@@ -873,7 +893,8 @@ class TransactionViewItemFactory(
                 tryConvertToUserSwapProviderViewItemSwap(
                     transactionItem = transactionItem,
                     token = record.token,
-                    isIncoming = false
+                    isIncoming = false,
+                    matchedSwap = matchedSwap
                 ) ?: createViewItemFromSolanaOutgoingTransactionRecord(
                     record = record,
                     currencyValue = transactionItem.currencyValue,
@@ -1246,12 +1267,14 @@ class TransactionViewItemFactory(
         currencyValue: CurrencyValue?,
         progress: Float?,
         lastBlockTimestamp: Long?,
-        icon: TransactionViewItem.Icon?
+        icon: TransactionViewItem.Icon?,
+        matchedSwap: SwapProviderTransaction? = null
     ): TransactionViewItem {
         return tryConvertToUserSwapProviderViewItemSwap(
             transactionItem = transactionItem,
             token = record.token,
-            isIncoming = record.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING
+            isIncoming = record.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING,
+            matchedSwap = matchedSwap
         ) ?: if (record.transactionRecordType == TransactionRecordType.BITCOIN_INCOMING) {
             createViewItemFromBitcoinIncomingTransactionRecord(
                 record = record,
@@ -1367,38 +1390,44 @@ class TransactionViewItemFactory(
     private fun tryConvertToUserSwapProviderViewItemSwap(
         transactionItem: TransactionItem,
         token: Token?,
-        isIncoming: Boolean
-    ) = if (token == null) {
-        null
-    } else if (isIncoming) {
-        // First check if already matched by incomingRecordUid (fast lookup)
-        getSwapProviderTransactionForIncoming(
-            recordUid = transactionItem.record.uid,
-            amount = transactionItem.record.mainValue?.decimalValue,
-            timestamp = transactionItem.record.timestamp,
-            addressesTo = transactionItem.record.to,
-            token = token
-        )
-    } else {
-        swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
-            ?: swapProviderTransactionsStorage.getByCoinUidIn(
-                coinUid = transactionItem.record.mainValue?.coinUid ?: token.coin.uid,
-                blockchainType = token.blockchainType.uid,
-                amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
-                timestamp = transactionItem.record.timestamp * 1000
-            )?.also { swap ->
-                swapProviderTransactionsStorage.setOutgoingRecordUid(
-                    date = swap.date,
-                    outgoingRecordUid = transactionItem.record.uid
-                )
-            }
-    }?.let {
-        createViewItemFromUserSwapProviderRecord(
-            transaction = it,
-            recordUid = transactionItem.record.uid,
-            timestamp = transactionItem.record.timestamp,
-            direct = !isIncoming
-        )
+        isIncoming: Boolean,
+        matchedSwap: SwapProviderTransaction? = null
+    ): TransactionViewItem? {
+        if (token == null) return null
+
+        // If matchedSwap is provided by ViewModel, use it directly (no DB lookup)
+        val swap = matchedSwap ?: if (isIncoming) {
+            // First check if already matched by incomingRecordUid (fast lookup)
+            getSwapProviderTransactionForIncoming(
+                recordUid = transactionItem.record.uid,
+                amount = transactionItem.record.mainValue?.decimalValue,
+                timestamp = transactionItem.record.timestamp,
+                addressesTo = transactionItem.record.to,
+                token = token
+            )
+        } else {
+            swapProviderTransactionsStorage.getByOutgoingRecordUid(transactionItem.record.uid)
+                ?: swapProviderTransactionsStorage.getByCoinUidIn(
+                    coinUid = transactionItem.record.mainValue?.coinUid ?: token.coin.uid,
+                    blockchainType = token.blockchainType.uid,
+                    amountIn = transactionItem.record.mainValue?.decimalValue?.abs(),
+                    timestamp = transactionItem.record.timestamp * 1000
+                )?.also { foundSwap ->
+                    swapProviderTransactionsStorage.setOutgoingRecordUid(
+                        date = foundSwap.date,
+                        outgoingRecordUid = transactionItem.record.uid
+                    )
+                }
+        }
+
+        return swap?.let {
+            createViewItemFromUserSwapProviderRecord(
+                transaction = it,
+                recordUid = transactionItem.record.uid,
+                timestamp = transactionItem.record.timestamp,
+                direct = !isIncoming
+            )
+        }
     }
 
     private fun getSwapProviderTransactionForIncoming(
@@ -1548,7 +1577,8 @@ class TransactionViewItemFactory(
         contractAddress: String?,
         incomingEvents: List<TransferEvent>?,
         outgoingEvents: List<TransferEvent>?,
-        icon: TransactionViewItem.Icon?
+        icon: TransactionViewItem.Icon?,
+        matchedSwap: SwapProviderTransaction? = null
     ): TransactionViewItem = when (transactionItem.record.transactionRecordType) {
         TransactionRecordType.TRON_APPROVE ->
             createViewItemFromApproveTransactionRecord(
@@ -1591,21 +1621,23 @@ class TransactionViewItemFactory(
                 outgoingEvents!!
             )
             val transactionViewItem = if (outgoingValues.isEmpty() && incomingValues.isNotEmpty() && baseToken != null) {
-                incomingValues.firstOrNull()?.let { firstIncomingValue ->
+                // Use matchedSwap if provided, otherwise fall back to DB lookup
+                val swap = matchedSwap ?: incomingValues.firstOrNull()?.let { firstIncomingValue ->
                     getSwapProviderTransactionForIncoming(
                         recordUid = transactionItem.record.uid,
                         amount = firstIncomingValue.decimalValue,
                         timestamp = timestamp,
                         addressesTo = incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
                         token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: baseToken
-                    )?.let {
-                        createViewItemFromUserSwapProviderRecord(
-                            transaction = it,
-                            recordUid = transactionItem.record.uid,
-                            timestamp = timestamp,
-                            direct = false
-                        )
-                    }
+                    )
+                }
+                swap?.let {
+                    createViewItemFromUserSwapProviderRecord(
+                        transaction = it,
+                        recordUid = transactionItem.record.uid,
+                        timestamp = timestamp,
+                        direct = false
+                    )
                 }
             } else {
                 null
@@ -1629,7 +1661,8 @@ class TransactionViewItemFactory(
             tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = baseToken,
-                isIncoming = true
+                isIncoming = true,
+                matchedSwap = matchedSwap
             ) ?: createViewItemFromEvmIncomingTransactionRecord(
                 uid = uid,
                 value = value!!,
@@ -1647,7 +1680,8 @@ class TransactionViewItemFactory(
             tryConvertToUserSwapProviderViewItemSwap(
                 transactionItem = transactionItem,
                 token = baseToken,
-                isIncoming = false
+                isIncoming = false,
+                matchedSwap = matchedSwap
             ) ?: createViewItemFromEvmOutgoingTransactionRecord(
                 uid = uid,
                 value = value!!,

@@ -6,9 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
-import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.core.storage.toRecordUidMap
+import cash.p.terminal.entities.SwapProviderTransaction
+import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.swappable
@@ -31,6 +34,7 @@ import cash.p.terminal.modules.transactions.withUpdatedAmlStatus
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.badge
@@ -48,6 +52,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+private const val ADAPTER_AWAIT_TIMEOUT_MS = 5000L
 
 class TokenBalanceViewModel(
     private val totalBalance: TotalBalance,
@@ -68,6 +74,7 @@ class TokenBalanceViewModel(
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
     private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase = getKoinInstance()
     private val adapterManager: IAdapterManager = getKoinInstance()
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage = getKoinInstance()
 
     private val title = wallet.token.coin.code + wallet.token.badge?.let { " ($it)" }.orEmpty()
 
@@ -75,6 +82,9 @@ class TokenBalanceViewModel(
     private var transactions: Map<String, List<TransactionViewItem>>? = null
     private var hasHiddenTransactions: Boolean = false
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
+
+    // Maps transaction record UID to SwapProviderTransaction for reactive updates
+    private var swapStatusMap = emptyMap<String, SwapProviderTransaction>()
 
     private var statusCheckerJob: Job? = null
     var sendResult by mutableStateOf<SendResult?>(null)
@@ -164,6 +174,19 @@ class TokenBalanceViewModel(
             }
         }
 
+        viewModelScope.launch {
+            val adapter = adapterManager.awaitAdapterForWallet<IReceiveAdapter>(wallet, ADAPTER_AWAIT_TIMEOUT_MS)
+            if (adapter != null) {
+                swapProviderTransactionsStorage.observeByToken(
+                    token = wallet.token,
+                    address = adapter.receiveAddress
+                ).collect { swaps ->
+                    swapStatusMap = swaps.toRecordUidMap()
+                    refreshTransactionsFromCache()
+                }
+            }
+        }
+
         totalBalance.start(viewModelScope)
     }
 
@@ -210,11 +233,9 @@ class TokenBalanceViewModel(
         statusCheckerJob = viewModelScope.launch {
             while (isActive) {
                 adapterManager.getReceiveAdapterForWallet(wallet)?.let { adapter ->
-                    if (updateSwapProviderTransactionsStatusUseCase(wallet.token, adapter.receiveAddress)) {
-                        transactionsService.refreshList()
-                    }
+                    updateSwapProviderTransactionsStatusUseCase(wallet.token, adapter.receiveAddress)
                 }
-                delay(30_000) // update status every 30 seconds
+                delay(30_000)
             }
         }
     }
@@ -249,7 +270,14 @@ class TokenBalanceViewModel(
             } else {
                 items.also { hasHiddenTransactions = false }
             }.distinctBy { it.record.uid }
-                .map { transactionViewItem2Factory.convertToViewItemCached(it, wallet.tokenQueryId) }
+                .map { item ->
+                    val matchedSwap = swapStatusMap[item.record.uid]
+                    transactionViewItem2Factory.convertToViewItemCached(
+                        transactionItem = item,
+                        walletUid = wallet.tokenQueryId,
+                        matchedSwap = matchedSwap
+                    )
+                }
                 .map { amlStatusManager.applyStatus(it) }
                 .groupBy { it.formattedDate }
 

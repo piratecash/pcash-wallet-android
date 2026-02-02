@@ -8,10 +8,14 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.core.storage.toRecordUidMap
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
@@ -29,10 +33,15 @@ import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.helpers.DateHelper
+import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import java.util.Calendar
@@ -47,7 +56,9 @@ class TransactionsViewModel(
     private val transactionFilterService: TransactionFilterService,
     private val transactionHiddenManager: TransactionHiddenManager,
     private val premiumSettings: PremiumSettings,
-    private val amlStatusManager: AmlStatusManager
+    private val amlStatusManager: AmlStatusManager,
+    private val adapterManager: IAdapterManager,
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage
 ) : ViewModelUiState<TransactionsUiState>() {
 
     var tmpItemToShow: TransactionItem? = null
@@ -67,6 +78,12 @@ class TransactionsViewModel(
     private var filterVersion = 0
     private var currentFilterType: FilterTransactionType = FilterTransactionType.All
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
+
+    // Maps transaction record UID to SwapProviderTransaction for reactive updates
+    private val swapStatusMap = MutableStateFlow(emptyMap<String, SwapProviderTransaction>())
+    private var swapObservationJob: Job? = null
+    private var statusCheckerJob: Job? = null
+    private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase = getKoinInstance()
 
     val balanceHidden: Boolean
         get() = balanceHiddenManager.balanceHidden
@@ -143,6 +160,9 @@ class TransactionsViewModel(
                     service.reload()
                 }
                 filterHideSuspiciousTx.postValue(state.hideSuspiciousTx)
+
+                // Observe swap transactions for selected token
+                observeSwapsForToken(state.selectedToken)
             }
         }
 
@@ -218,10 +238,13 @@ class TransactionsViewModel(
                     }.also { hasHiddenTransactions = items.size != it.size }
                 } else {
                     items.also { hasHiddenTransactions = false }
-                }.map {
+                }.map { item ->
                     ensureActive()
-                    transactionViewItem2Factory.convertToViewItemCached(it)
-                        .let { viewItem -> amlStatusManager.applyStatus(viewItem) }
+                    val matchedSwap = swapStatusMap.value[item.record.uid]
+                    transactionViewItem2Factory.convertToViewItemCached(
+                        transactionItem = item,
+                        matchedSwap = matchedSwap
+                    ).let { viewItem -> amlStatusManager.applyStatus(viewItem) }
                 }.groupBy {
                     ensureActive()
                     it.formattedDate
@@ -234,6 +257,37 @@ class TransactionsViewModel(
                 transactions = viewItems
                 viewState = ViewState.Success
                 emitState()
+            }
+        }
+    }
+
+    private fun observeSwapsForToken(filterToken: FilterToken?) {
+        swapObservationJob?.cancel()
+        if (filterToken == null) {
+            // Observe all swaps when no token is filtered
+            swapObservationJob = viewModelScope.launch {
+                swapProviderTransactionsStorage.observeAll().collect { swaps ->
+                    swapStatusMap.value = swaps.toRecordUidMap()
+                    service.refreshList()
+                }
+            }
+            return
+        }
+
+        val wallet = walletManager.activeWallets.find {
+            it.token == filterToken.token
+        } ?: return
+
+        val adapter = adapterManager.getReceiveAdapterForWallet(wallet) ?: return
+
+        swapObservationJob = viewModelScope.launch {
+            swapProviderTransactionsStorage.observeByToken(
+                token = filterToken.token,
+                address = adapter.receiveAddress
+            ).collect { swaps ->
+                swapStatusMap.value = swaps.toRecordUidMap()
+                // Refresh current items with updated swap status
+                service.refreshList()
             }
         }
     }
@@ -297,6 +351,28 @@ class TransactionsViewModel(
         transactions?.let {
             transactions = it.withUpdatedAmlStatus(uid, status)
             emitState()
+        }
+    }
+
+    fun startStatusChecker() {
+        statusCheckerJob?.cancel()
+        statusCheckerJob = viewModelScope.launch {
+            while (isActive) {
+                updateAllUnfinishedSwapStatuses()
+                delay(30_000)
+            }
+        }
+    }
+
+    fun stopStatusChecker() {
+        statusCheckerJob?.cancel()
+    }
+
+    private suspend fun updateAllUnfinishedSwapStatuses() {
+        walletManager.activeWallets.forEach { wallet ->
+            adapterManager.getReceiveAdapterForWallet(wallet)?.let { adapter ->
+                updateSwapProviderTransactionsStatusUseCase(wallet.token, adapter.receiveAddress)
+            }
         }
     }
 
