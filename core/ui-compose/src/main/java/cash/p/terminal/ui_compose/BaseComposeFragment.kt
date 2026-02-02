@@ -70,8 +70,8 @@ abstract class BaseComposeFragment(
     ) {
         val input = try {
             navController.requireInput<T>()
-        } catch (e: NullPointerException) {
-            navController.popBackStack()
+        } catch (e: Exception) {
+            navController.navigateUp()
             return
         }
         content(input)
