@@ -496,7 +496,12 @@ class TransactionViewItemFactory(
             }
 
             is PendingTransactionRecord -> {
-                createViewItemFromPendingTransactionRecord(
+                tryConvertToUserSwapProviderViewItemSwap(
+                    transactionItem = transactionItem,
+                    token = record.token,
+                    isIncoming = false, // Pending transactions are always outgoing
+                    matchedSwap = matchedSwap
+                ) ?: createViewItemFromPendingTransactionRecord(
                     record = record,
                     icon = icon,
                     currencyValue = transactionItem.currencyValue
