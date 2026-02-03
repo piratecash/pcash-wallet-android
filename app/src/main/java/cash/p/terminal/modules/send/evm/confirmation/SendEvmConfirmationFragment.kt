@@ -42,7 +42,7 @@ class SendEvmConfirmationFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         val input = try {
             navController.requireInput<Input>()
-        } catch (e: NullPointerException) {
+        } catch (e: Exception) {
             navController.popBackStack()
             return
         }
