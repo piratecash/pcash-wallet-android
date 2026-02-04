@@ -7,7 +7,6 @@ import cash.p.terminal.wallet.models.NftTopCollection
 import cash.p.terminal.wallet.providers.HsNftProvider
 import cash.p.terminal.wallet.providers.TopCollectionRaw
 import io.horizontalsystems.core.entities.BlockchainType
-import managers.CoinManager
 import java.math.BigDecimal
 
 class NftManager(

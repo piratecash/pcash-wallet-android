@@ -1,4 +1,4 @@
-package managers
+package cash.p.terminal.wallet.managers
 
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.Token
@@ -13,12 +13,14 @@ import cash.p.terminal.wallet.models.MarketInfoRaw
 import cash.p.terminal.wallet.storage.CoinStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.collections.get
 
 class CoinManager(
     private val storage: CoinStorage,
 ) {
 
     fun coin(coinUid: String) = storage.coin(coinUid)
+
     fun coins(coinUids: List<String>) = storage.coins(coinUids)
 
     fun getCoinGeckoIds(uids: List<String>) = storage.getCoinGeckoIds(uids)
