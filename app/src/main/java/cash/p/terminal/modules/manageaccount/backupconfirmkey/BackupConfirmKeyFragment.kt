@@ -44,7 +44,7 @@ class BackupConfirmKeyFragment : BaseComposeFragment() {
         val input = try {
             navController.requireInput<Account>()
         } catch (e: Exception) {
-            navController.popBackStack()
+            navController.navigateUp()
             return
         }
         RecoveryPhraseVerifyScreen(navController, input)

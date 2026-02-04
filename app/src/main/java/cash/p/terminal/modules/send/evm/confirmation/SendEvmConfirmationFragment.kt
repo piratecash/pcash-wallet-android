@@ -43,7 +43,7 @@ class SendEvmConfirmationFragment : BaseComposeFragment() {
         val input = try {
             navController.requireInput<Input>()
         } catch (e: Exception) {
-            navController.popBackStack()
+            navController.navigateUp()
             return
         }
         SendEvmConfirmationScreen(navController, input)

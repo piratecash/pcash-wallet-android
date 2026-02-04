@@ -50,7 +50,7 @@ class ManageAccountsFragment : BaseComposeFragment() {
         val input = try {
             navController.requireInput<ManageAccountsModule.Mode>()
         } catch (e: Exception) {
-            navController.popBackStack()
+            navController.navigateUp()
             return
         }
         ManageAccountsScreen(navController, input)
