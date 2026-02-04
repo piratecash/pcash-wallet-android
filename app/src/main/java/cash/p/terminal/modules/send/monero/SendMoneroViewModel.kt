@@ -187,7 +187,7 @@ class SendMoneroViewModel(
     private fun createCaution(error: Throwable) = when (error) {
         is UnknownHostException -> HSCaution(TranslatableString.ResString(R.string.Hud_Text_NoInternet))
         is LocalizedException -> HSCaution(TranslatableString.ResString(error.errorTextRes))
-        is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(sendToken.coin.code)
+        is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(sendToken.coin.code, amountState.availableBalance.toPlainString())
         else -> HSCaution(
             TranslatableString.PlainString(
                 error.cause?.message ?: error.message ?: ""

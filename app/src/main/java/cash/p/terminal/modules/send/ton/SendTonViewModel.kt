@@ -104,7 +104,10 @@ class SendTonViewModel(
         availableBalance = amountState.availableBalance,
         amountCaution = amountState.amountCaution
             ?: if(feeState.feeStatus is FeeStatus.NoEnoughBalance) { HSCaution(
-                TranslatableString.ResString(R.string.not_enough_ton_for_fee),
+                TranslatableString.ResString(
+                    R.string.not_enough_ton_for_fee,
+                    amountState.availableBalance?.toPlainString() ?: "0"
+                ),
                 HSCaution.Type.Error
             ) } else { null },
         addressError = addressState.addressError,
