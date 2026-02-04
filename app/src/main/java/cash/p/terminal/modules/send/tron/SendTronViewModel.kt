@@ -21,7 +21,6 @@ import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
@@ -152,23 +151,19 @@ class SendTronViewModel(
         cautions = if (trxAmount + totalFee > availableBalance) {
             listOf(
                 HSCaution(
-                    TranslatableString.PlainString(
-                        Translator.getString(
-                            R.string.Error_InsufficientBalanceForFee,
-                            feeToken.coin.code,
-                            availableBalance.toPlainString()
-                        )
+                    TranslatableString.ResString(
+                        R.string.Error_InsufficientBalanceForFee,
+                        feeToken.coin.code,
+                        availableBalance.toPlainString()
                     )
                 )
             )
         } else if (sendToken == feeToken && confirmationData.amount <= BigDecimal.ZERO) {
             listOf(
                 HSCaution(
-                    TranslatableString.PlainString(
-                        Translator.getString(
-                            R.string.Tron_ZeroAmountTrxNotAllowed,
-                            sendToken.coin.code
-                        )
+                    TranslatableString.ResString(
+                        R.string.Tron_ZeroAmountTrxNotAllowed,
+                        sendToken.coin.code
                     )
                 )
             )
