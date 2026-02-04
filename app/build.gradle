@@ -52,8 +52,8 @@ android {
         compileSdk compile_sdk_version
         minSdkVersion min_sdk_version
         targetSdkVersion compile_sdk_version
-        versionCode 212
-        versionName "0.51.9"
+        versionCode 213
+        versionName "0.51.10"
         buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

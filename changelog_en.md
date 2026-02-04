@@ -1,3 +1,31 @@
+## 🚀 Version 0.51.10 Update
+_Release date: February 4, 2026_
+
+### 🔧 Fixes and stability improvements
+
+- **Fixed transaction details disappearing**
+  Resolved an issue where detailed transaction information (swaps via PancakeSwap, ChangeNow, and other services) was displayed correctly when opening the screen but was replaced with a minimal view after 5–15 seconds.
+
+- **Fixed crash when navigating to the Receive screen**
+  Fixed an application crash when navigating to the Receive screen (ReceiveFragment) with a missing or invalid navigation input parameter.
+
+- **Fixed crash when TON balance is insufficient to pay the fee**
+  The app no longer crashes when attempting to send TON with an insufficient balance to cover the network fee. An appropriate error message is now shown instead.
+
+- **Fixed Binance Bridged USDT name display**
+  Improved the display of the virtual asset name Binance Bridged USDT (BNB Smart Chain) to avoid an overly long and inconvenient string in the UI.
+
+- **Fixed crash on the seed phrase confirmation screen**
+  Resolved an issue where the app could crash when rapidly double-tapping a word on the backup seed phrase confirmation screen (BackupConfirmKeyFragment).
+
+- **Improved Quickex exchange status handling**
+  Optimized exchange status update logic to ensure the correct status is displayed in all scenarios.
+
+- **Fixed crash when opening the account management screen**
+  Fixed incorrect exception handling when navigating to the ManageAccount screen. The app no longer crashes when the input parameter is missing and now correctly handles IllegalArgumentException.
+
+
+
 ## 🚀 Version 0.51.9 Update
 _Release date: February 1, 2026_
 
