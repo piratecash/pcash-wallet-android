@@ -47,12 +47,11 @@ class MarketKitWrapper(
 
     // Coins
 
-    val fullCoinsUpdatedObservable: Observable<Unit>
-        get() = marketKit.fullCoinsUpdatedObservable
-
     suspend fun fullCoins(filter: String, limit: Int = 20) = marketKit.fullCoins(filter, limit)
 
     fun fullCoins(coinUids: List<String>) = marketKit.fullCoins(coinUids)
+
+    fun coin(coinUid: String) = marketKit.coin(coinUid)
 
     fun allCoins() = marketKit.allCoins()
 

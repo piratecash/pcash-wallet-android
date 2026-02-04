@@ -62,7 +62,7 @@ import io.horizontalsystems.core.models.HsPeriodType
 import io.horizontalsystems.core.models.HsTimePeriod
 import io.reactivex.Observable
 import io.reactivex.Single
-import managers.CoinManager
+import cash.p.terminal.wallet.managers.CoinManager
 import org.koin.java.KoinJavaComponent.get
 import org.koin.java.KoinJavaComponent.inject
 import retrofit2.Response
@@ -94,10 +94,6 @@ class MarketKit(
     }
 
     // Coins
-
-    val fullCoinsUpdatedObservable: Observable<Unit>
-        get() = coinSyncer.fullCoinsUpdatedObservable
-
     suspend fun fullCoins(filter: String, limit: Int = 20): List<FullCoin> {
         return coinManager.fullCoins(filter, limit)
     }
@@ -105,6 +101,8 @@ class MarketKit(
     fun fullCoins(coinUids: List<String>): List<FullCoin> {
         return coinManager.fullCoins(coinUids)
     }
+
+    fun coin(coinUid: String): Coin? = coinManager.coin(coinUid)
 
     fun allCoins(): List<Coin> = coinManager.allCoins()
 

@@ -32,16 +32,16 @@ import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.coinImageUrl
-import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
+import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.models.Transaction
-import io.horizontalsystems.core.helpers.DateHelper
 import java.math.BigDecimal
 import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
@@ -52,8 +52,8 @@ class TransactionViewItemFactory(
     private val balanceHiddenManager: BalanceHiddenManager,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val swapTransactionMatcher: SwapTransactionMatcher,
-    private val walletUseCase: WalletUseCase,
-    private val numberFormatter: IAppNumberFormatter
+    private val numberFormatter: IAppNumberFormatter,
+    private val marketKit: MarketKitWrapper
 ) {
     private var showAmount = !balanceHiddenManager.balanceHidden
     private val cache = ConcurrentHashMap<String, Map<Long, TransactionViewItem>>()
@@ -75,7 +75,10 @@ class TransactionViewItemFactory(
         walletUid: String? = null
     ): TransactionViewItem {
         val perItemShowAmount = if (walletUid != null) {
-            !balanceHiddenManager.isTransactionInfoHiddenForWallet(transactionItem.record.uid, walletUid)
+            !balanceHiddenManager.isTransactionInfoHiddenForWallet(
+                transactionItem.record.uid,
+                walletUid
+            )
         } else {
             !balanceHiddenManager.isTransactionInfoHidden(transactionItem.record.uid)
         }
@@ -91,7 +94,8 @@ class TransactionViewItemFactory(
             }
         }
 
-        val transactionViewItem = convertToViewItem(transactionItem).copy(showAmount = perItemShowAmount)
+        val transactionViewItem =
+            convertToViewItem(transactionItem).copy(showAmount = perItemShowAmount)
         cache[transactionItem.record.uid] = mapOf(transactionItem.createdAt to transactionViewItem)
 
         return transactionViewItem
@@ -202,13 +206,12 @@ class TransactionViewItemFactory(
     }
 
     private fun getIconForToken(
-        coinUid: String,
-        blockchainType: String
+        coinUid: String
     ): TransactionViewItem.Icon.Regular {
-        val wallet = walletUseCase.getWallet(coinUid, blockchainType)
+        val coin = marketKit.coin(coinUid)
         return TransactionViewItem.Icon.Regular(
             url = coinImageUrl(coinUid),
-            alternativeUrl = wallet?.token?.coin?.alternativeImageUrl,
+            alternativeUrl = coin?.alternativeImageUrl,
             placeholder = R.drawable.coin_placeholder
         )
     }
@@ -287,8 +290,11 @@ class TransactionViewItemFactory(
                         recordUid = transactionItem.record.uid,
                         amount = firstIncomingValue.decimalValue,
                         timestamp = record.timestamp,
-                        addressesTo = record.incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
-                        token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: record.token
+                        addressesTo = record.incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(
+                            ::listOf
+                        ),
+                        token = (firstIncomingValue as? TransactionValue.CoinValue)?.token
+                            ?: record.token
                     )?.let {
                         createViewItemFromUserSwapProviderRecord(
                             transaction = it,
@@ -672,7 +678,8 @@ class TransactionViewItemFactory(
 
                 is TonTransactionRecord.Action.Type.Swap -> {
                     iconX = doubleValueIconType(actionType.valueOut, actionType.valueIn)
-                    title = Translator.getString(getSwapTitleStringRes(icon is TransactionViewItem.Icon.Failed))
+                    title =
+                        Translator.getString(getSwapTitleStringRes(icon is TransactionViewItem.Icon.Failed))
                     subtitle = actionType.routerName ?: actionType.routerAddress.shorten()
                     primaryValue = getColoredValue(actionType.valueOut, ColorName.Remus)
                     secondaryValue = getColoredValue(actionType.valueIn, ColorName.Lucian)
@@ -1426,12 +1433,10 @@ class TransactionViewItemFactory(
         direct: Boolean
     ): TransactionViewItem {
         val iconIn = getIconForToken(
-            coinUid = transaction.coinUidIn,
-            blockchainType = transaction.blockchainTypeIn
+            coinUid = transaction.coinUidIn
         )
         val iconOut = getIconForToken(
-            coinUid = transaction.coinUidOut,
-            blockchainType = transaction.blockchainTypeOut
+            coinUid = transaction.coinUidOut
         )
 
         val transactionIcon = TransactionViewItem.Icon.Double(
@@ -1441,14 +1446,12 @@ class TransactionViewItemFactory(
 
         val valueInFormatted = getFormattedAmount(
             coinUid = transaction.coinUidIn,
-            blockchainType = transaction.blockchainTypeIn,
             amount = transaction.amountIn,
             negative = true
         )
 
         val valueOutFormatted = getFormattedAmount(
             coinUid = transaction.coinUidOut,
-            blockchainType = transaction.blockchainTypeOut,
             amount = transaction.amountOut,
             negative = false
         )
@@ -1514,13 +1517,11 @@ class TransactionViewItemFactory(
 
     private fun getFormattedAmount(
         coinUid: String,
-        blockchainType: String,
         amount: BigDecimal,
         negative: Boolean
     ): String {
         val sign = if (negative) "-" else "+"
-        val coinCode =
-            walletUseCase.getWallet(coinUid, blockchainType)?.coin?.code ?: coinUid.uppercase()
+        val coinCode = marketKit.coin(coinUid)?.code ?: coinUid.uppercase()
 
         val numberFormatted = numberFormatter.formatCoinShort(
             amount,
@@ -1590,26 +1591,30 @@ class TransactionViewItemFactory(
                 incomingEvents!!,
                 outgoingEvents!!
             )
-            val transactionViewItem = if (outgoingValues.isEmpty() && incomingValues.isNotEmpty() && baseToken != null) {
-                incomingValues.firstOrNull()?.let { firstIncomingValue ->
-                    getSwapProviderTransactionForIncoming(
-                        recordUid = transactionItem.record.uid,
-                        amount = firstIncomingValue.decimalValue,
-                        timestamp = timestamp,
-                        addressesTo = incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(::listOf),
-                        token = (firstIncomingValue as? TransactionValue.CoinValue)?.token ?: baseToken
-                    )?.let {
-                        createViewItemFromUserSwapProviderRecord(
-                            transaction = it,
+            val transactionViewItem =
+                if (outgoingValues.isEmpty() && incomingValues.isNotEmpty() && baseToken != null) {
+                    incomingValues.firstOrNull()?.let { firstIncomingValue ->
+                        getSwapProviderTransactionForIncoming(
                             recordUid = transactionItem.record.uid,
+                            amount = firstIncomingValue.decimalValue,
                             timestamp = timestamp,
-                            direct = false
-                        )
+                            addressesTo = incomingEvents.firstOrNull()?.addressForIncomingAddress?.let(
+                                ::listOf
+                            ),
+                            token = (firstIncomingValue as? TransactionValue.CoinValue)?.token
+                                ?: baseToken
+                        )?.let {
+                            createViewItemFromUserSwapProviderRecord(
+                                transaction = it,
+                                recordUid = transactionItem.record.uid,
+                                timestamp = timestamp,
+                                direct = false
+                            )
+                        }
                     }
+                } else {
+                    null
                 }
-            } else {
-                null
-            }
             transactionViewItem ?: createViewItemFromExternalContractCallTransactionRecord(
                 uid = uid,
                 incomingValues = incomingValues,
@@ -1882,7 +1887,7 @@ class TransactionViewItemFactory(
             sentToSelf = false,
             doubleSpend = false,
             locked = null,
-            icon = icon ?: getIconForToken(record.token.coin.uid, record.blockchainType.uid),
+            icon = icon ?: getIconForToken(record.token.coin.uid),
             spam = false,
             showAmount = showAmount
         )
