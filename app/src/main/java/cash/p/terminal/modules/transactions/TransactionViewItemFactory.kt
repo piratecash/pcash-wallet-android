@@ -1641,6 +1641,9 @@ class TransactionViewItemFactory(
                         direct = false
                     )
                 }
+            } else {
+                null
+            }
             transactionViewItem ?: createViewItemFromExternalContractCallTransactionRecord(
                 uid = uid,
                 incomingValues = incomingValues,
