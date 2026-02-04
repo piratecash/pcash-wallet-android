@@ -11,6 +11,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.math.BigDecimal
@@ -24,11 +28,18 @@ class PendingBalanceCalculator(
     private val observingJobs = ConcurrentHashMap<String, Job>()
     private val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
 
+    private val _pendingChangedFlow = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val pendingChangedFlow: SharedFlow<Unit> = _pendingChangedFlow.asSharedFlow()
+
     fun startObserving(accountId: String) {
         observingJobs.computeIfAbsent(accountId) {
             scope.launch {
                 pendingRepository.getActivePendingFlow(accountId).collect { list ->
                     pendingCache[accountId] = list
+                    _pendingChangedFlow.tryEmit(Unit)
                 }
             }
         }
