@@ -10,6 +10,7 @@ import cash.p.terminal.wallet.PassphraseValidator
 import cash.p.terminal.wallet.SubscriptionManager
 import cash.p.terminal.wallet.WalletManager
 import cash.p.terminal.wallet.WalletStorage
+import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.providers.CryptoCompareProvider
 import cash.p.terminal.wallet.providers.RetrofitUtils
 import cash.p.terminal.wallet.storage.MarketDatabase
@@ -47,6 +48,7 @@ val walletFeatureModule = module {
     singleOf(::WalletManager) bind IWalletManager::class
     singleOf(::AccountManager) bind IAccountManager::class
     singleOf(::WalletStorage) bind IWalletStorage::class
+    singleOf(::VirtualCoinMapper)
     singleOf(::MarketKitWrapper)
     singleOf(::SubscriptionManager)
     factoryOf(::WalletUseCase)

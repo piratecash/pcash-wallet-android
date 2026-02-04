@@ -4,6 +4,8 @@ import android.content.Context
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.exceptions.InvalidAuthTokenException
 import cash.p.terminal.wallet.exceptions.NoAuthTokenException
+import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.models.CoinPrice
 import cash.p.terminal.wallet.models.MarketInfo
 import cash.p.terminal.wallet.models.NftTopCollection
@@ -20,7 +22,8 @@ import java.math.BigDecimal
 
 class MarketKitWrapper(
     context: Context,
-    private val subscriptionManager: SubscriptionManager
+    private val subscriptionManager: SubscriptionManager,
+    private val virtualCoinMapper: VirtualCoinMapper
 ) {
     private val marketKit: MarketKit by lazy {
         MarketKit.getInstance(
@@ -47,12 +50,16 @@ class MarketKitWrapper(
 
     // Coins
 
-    val fullCoinsUpdatedObservable: Observable<Unit>
-        get() = marketKit.fullCoinsUpdatedObservable
-
     suspend fun fullCoins(filter: String, limit: Int = 20) = marketKit.fullCoins(filter, limit)
 
     fun fullCoins(coinUids: List<String>) = marketKit.fullCoins(coinUids)
+
+    fun coin(coinUid: String): Coin? {
+        val coin = marketKit.coin(coinUid)
+        // If the coin's code maps to a virtual coin, return the virtual coin instead
+        val virtualCoinUid = coin?.let { virtualCoinMapper.getVirtualCoinUidForRealCoinCode(it.code) }
+        return if (virtualCoinUid != null) marketKit.coin(virtualCoinUid) else coin
+    }
 
     fun allCoins() = marketKit.allCoins()
 

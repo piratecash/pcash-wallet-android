@@ -14,6 +14,7 @@ import cash.p.terminal.wallet.managers.GlobalMarketInfoManager
 import cash.p.terminal.wallet.managers.MarketOverviewManager
 import cash.p.terminal.wallet.managers.NftManager
 import cash.p.terminal.wallet.managers.PostManager
+import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.models.Analytics
 import cash.p.terminal.wallet.models.AnalyticsPreview
 import cash.p.terminal.wallet.models.ChartPoint
@@ -62,7 +63,7 @@ import io.horizontalsystems.core.models.HsPeriodType
 import io.horizontalsystems.core.models.HsTimePeriod
 import io.reactivex.Observable
 import io.reactivex.Single
-import managers.CoinManager
+import cash.p.terminal.wallet.managers.CoinManager
 import org.koin.java.KoinJavaComponent.get
 import org.koin.java.KoinJavaComponent.inject
 import retrofit2.Response
@@ -94,10 +95,6 @@ class MarketKit(
     }
 
     // Coins
-
-    val fullCoinsUpdatedObservable: Observable<Unit>
-        get() = coinSyncer.fullCoinsUpdatedObservable
-
     suspend fun fullCoins(filter: String, limit: Int = 20): List<FullCoin> {
         return coinManager.fullCoins(filter, limit)
     }
@@ -105,6 +102,8 @@ class MarketKit(
     fun fullCoins(coinUids: List<String>): List<FullCoin> {
         return coinManager.fullCoins(coinUids)
     }
+
+    fun coin(coinUid: String): Coin? = coinManager.coin(coinUid)
 
     fun allCoins(): List<Coin> = coinManager.allCoins()
 
@@ -637,7 +636,8 @@ class MarketKit(
             val coinManager = CoinManager(coinStorage)
             val nftManager = NftManager(coinManager, hsNftProvider)
             val marketOverviewManager = MarketOverviewManager(nftManager, hsProvider)
-            val coinSyncer = CoinSyncer(hsProvider, coinStorage, marketDatabase.syncerStateDao())
+            val virtualCoinMapper: VirtualCoinMapper = get(VirtualCoinMapper::class.java)
+            val coinSyncer = CoinSyncer(hsProvider, coinStorage, marketDatabase.syncerStateDao(), virtualCoinMapper)
             val coinPriceManager = CoinPriceManager(CoinPriceStorage(marketDatabase))
             val coinHistoricalPriceManager = CoinHistoricalPriceManager(
                 CoinHistoricalPriceStorage(marketDatabase),

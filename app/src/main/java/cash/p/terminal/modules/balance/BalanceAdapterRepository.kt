@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.balance
 
+import cash.p.terminal.core.managers.PendingBalanceCalculator
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.Clearable
@@ -20,7 +21,8 @@ import java.math.BigDecimal
 
 class BalanceAdapterRepository(
     private val adapterManager: IAdapterManager,
-    private val balanceCache: BalanceCache
+    private val balanceCache: BalanceCache,
+    private val pendingBalanceCalculator: PendingBalanceCalculator
 ) : Clearable {
     private var wallets = listOf<Wallet>()
 
@@ -50,6 +52,11 @@ class BalanceAdapterRepository(
                 subscribeForAdapterUpdates()
             }
         }
+        coroutineScope.launch {
+            pendingBalanceCalculator.pendingChangedFlow.collect {
+                wallets.forEach(::notifyWalletUpdate)
+            }
+        }
     }
 
     override fun clear() {
@@ -68,6 +75,13 @@ class BalanceAdapterRepository(
         subscriptionsScope = null
     }
 
+    private fun notifyWalletUpdate(wallet: Wallet) {
+        updatesSubject.onNext(wallet)
+        adapterManager.getAdjustedBalanceData(wallet)?.let {
+            balanceCache.setCache(wallet, it)
+        }
+    }
+
     private fun subscribeForAdapterUpdates() {
         subscriptionsScope = CoroutineScope(coroutineScope.coroutineContext + Job())
 
@@ -81,11 +95,7 @@ class BalanceAdapterRepository(
 
                 subscriptionsScope?.launch {
                     adapter.balanceUpdatedFlow.collect {
-                        updatesSubject.onNext(wallet)
-
-                        adapterManager.getAdjustedBalanceData(wallet)?.let {
-                            balanceCache.setCache(wallet, it)
-                        }
+                        notifyWalletUpdate(wallet)
                     }
                 }
             }

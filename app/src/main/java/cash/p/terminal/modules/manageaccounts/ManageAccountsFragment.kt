@@ -49,7 +49,7 @@ class ManageAccountsFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         val input = try {
             navController.requireInput<ManageAccountsModule.Mode>()
-        } catch (e: NullPointerException) {
+        } catch (e: Exception) {
             navController.popBackStack()
             return
         }
