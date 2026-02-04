@@ -21,7 +21,7 @@ class AmountValidator {
         coinAmount == null -> null
         coinAmount == BigDecimal.ZERO -> null
         coinAmount > availableBalance -> {
-            SendErrorInsufficientBalance(coinCode)
+            SendErrorInsufficientBalance(coinCode, availableBalance.toPlainString())
         }
         minimumSendAmount != null && coinAmount < minimumSendAmount -> {
             SendErrorMinimumSendAmount(minimumSendAmount)

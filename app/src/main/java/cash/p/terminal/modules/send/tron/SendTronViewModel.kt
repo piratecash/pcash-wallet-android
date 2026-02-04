@@ -21,6 +21,7 @@ import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
@@ -152,9 +153,10 @@ class SendTronViewModel(
             listOf(
                 HSCaution(
                     TranslatableString.PlainString(
-                        cash.p.terminal.strings.helpers.Translator.getString(
+                        Translator.getString(
                             R.string.Error_InsufficientBalanceForFee,
-                            feeToken.coin.code
+                            feeToken.coin.code,
+                            availableBalance.toPlainString()
                         )
                     )
                 )
@@ -163,7 +165,7 @@ class SendTronViewModel(
             listOf(
                 HSCaution(
                     TranslatableString.PlainString(
-                        cash.p.terminal.strings.helpers.Translator.getString(
+                        Translator.getString(
                             R.string.Tron_ZeroAmountTrxNotAllowed,
                             sendToken.coin.code
                         )

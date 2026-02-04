@@ -2,6 +2,7 @@ package cash.p.terminal.modules.manageaccount.backupconfirmkey
 
 import cash.p.terminal.R
 import cash.p.terminal.core.IRandomProvider
+import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.wallet.Account
@@ -86,6 +87,9 @@ class BackupConfirmKeyViewModel(
             }
 
             val indexOfWordOption = wordOptions.indexOf(wordOption)
+            if (indexOfWordOption == -1) {
+                return
+            }
             wordOptions = wordOptions.toMutableList().apply {
                 set(indexOfWordOption, wordOption.copy(enabled = false))
             }

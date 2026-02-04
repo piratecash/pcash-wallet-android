@@ -83,12 +83,13 @@ object SendErrorLowFee : HSCaution(
     TranslatableString.ResString(R.string.Send_Error_LowFee_Description)
 )
 
-class SendErrorInsufficientBalance(coinCode: Any) : HSCaution(
+class SendErrorInsufficientBalance(coinCode: Any, balance: Any) : HSCaution(
     TranslatableString.ResString(R.string.Swap_ErrorInsufficientBalance),
     Type.Error,
     TranslatableString.ResString(
         R.string.Error_InsufficientBalanceForFee,
-        coinCode
+        coinCode,
+        balance
     )
 )
 

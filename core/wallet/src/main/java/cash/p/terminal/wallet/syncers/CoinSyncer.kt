@@ -4,6 +4,7 @@ import android.util.Log
 import cash.p.terminal.wallet.SyncInfo
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.models.BlockchainEntity
 import cash.p.terminal.wallet.models.BlockchainResponse
 import cash.p.terminal.wallet.models.CoinResponse
@@ -21,7 +22,8 @@ import io.reactivex.subjects.PublishSubject
 class CoinSyncer(
     private val hsProvider: HsProvider,
     private val storage: CoinStorage,
-    private val syncerStateDao: SyncerStateDao
+    private val syncerStateDao: SyncerStateDao,
+    private val virtualCoinMapper: VirtualCoinMapper
 ) {
     private val keyCoinsLastSyncTimestamp = "coin-syncer-coins-last-sync-timestamp"
     private val keyBlockchainsLastSyncTimestamp = "coin-syncer-blockchains-last-sync-timestamp"
@@ -128,15 +130,21 @@ class CoinSyncer(
         fullCoinsUpdatedObservable.onNext(Unit)
     }
 
-    private fun injectVirtualTokens(coins: List<Coin>, tokens: List<TokenEntity>): List<TokenEntity> {
-        coins.find { it.uid == "tether" } ?: return tokens
-        val bscUsdCoin = coins.find { it.code == "BSC-USD" } ?: return tokens
-        val bscUsdToken = tokens.find {
-            it.coinUid == bscUsdCoin.uid && it.blockchainUid == BlockchainType.BinanceSmartChain.uid
-        } ?: return tokens
+    internal fun injectVirtualTokens(coins: List<Coin>, tokens: List<TokenEntity>): List<TokenEntity> {
+        val coinsMap = coins.associateBy { it.code }
+        val coinsUidMap = coins.associateBy { it.uid }
+        val tokensIndex = tokens.associateBy { it.coinUid to it.blockchainUid }
 
-        val virtualUsdtBep20 = bscUsdToken.copy(coinUid = "tether")
-        return tokens + virtualUsdtBep20
+        val virtualTokens = virtualCoinMapper.allMappings.mapNotNull { mapping ->
+            coinsUidMap[mapping.virtualCoinUid] ?: return@mapNotNull null
+            val realCoin = coinsMap[mapping.realCoinCode] ?: return@mapNotNull null
+            val realToken = tokensIndex[realCoin.uid to mapping.blockchainType.uid]
+                ?: return@mapNotNull null
+
+            realToken.copy(coinUid = mapping.virtualCoinUid)
+        }
+
+        return tokens + virtualTokens
     }
 
     private fun updateCounts() {
