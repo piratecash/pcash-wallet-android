@@ -224,6 +224,7 @@ interface ISendMoneroAdapter {
 
 interface ISendTonAdapter {
     val availableBalance: BigDecimal
+    val fee: StateFlow<BigDecimal>
     suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?)
     suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)
     suspend fun estimateFee(amount: BigDecimal, address: FriendlyAddress, memo: String?) : BigDecimal

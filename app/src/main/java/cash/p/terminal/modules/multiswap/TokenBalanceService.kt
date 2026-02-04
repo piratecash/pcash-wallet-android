@@ -4,6 +4,7 @@ import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.core.ServiceState
+import cash.p.terminal.core.adapters.TonAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.wallet.Token
 import java.math.BigDecimal
@@ -67,10 +68,10 @@ class TokenBalanceService(
     }
 
     fun getFeeToTransferAll(): BigDecimal? {
-        return if(adapter is ZcashAdapter) {
-            (adapter as ZcashAdapter).fee.value
-        } else {
-            BigDecimal.ZERO
+        return when (adapter) {
+            is ZcashAdapter -> (adapter as ZcashAdapter).fee.value
+            is TonAdapter -> (adapter as TonAdapter).fee.value
+            else -> BigDecimal.ZERO
         }
     }
 

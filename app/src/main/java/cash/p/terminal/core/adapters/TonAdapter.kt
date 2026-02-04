@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.TonKitWrapper
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.tonkit.FriendlyAddress
@@ -14,6 +15,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
@@ -28,11 +32,14 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     private var balance = getBalanceFromAccount(tonKit.account)
+    private val _fee = MutableStateFlow(BigDecimal.ZERO)
+    override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
 
     override fun start() {
         coroutineScope.launch {
             tonKit.accountFlow.collect { account ->
                 balance = getBalanceFromAccount(account)
+                estimateFeeForMax()
                 balanceUpdatedSubject.onNext(Unit)
             }
         }
@@ -84,6 +91,18 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
         return account?.balance?.toBigDecimal()?.movePointLeft(decimals) ?: BigDecimal.ZERO
     }
 
+    private suspend fun estimateFeeForMax() {
+        if (balance <= BigDecimal.ZERO) {
+            _fee.value = BigDecimal.ZERO
+            return
+        }
+        tryOrNull {
+            val selfAddress = FriendlyAddress.parse(receiveAddress, false)
+            val estimatedFee = tonKit.estimateFee(selfAddress, SendAmount.Max, null)
+            _fee.value = estimatedFee.toBigDecimal().movePointLeft(decimals).stripTrailingZeros()
+        }
+    }
+
     override fun stop() {
         coroutineScope.cancel()
     }
@@ -112,7 +131,7 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
         get() = balanceUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
 
     override val availableBalance: BigDecimal
-        get() = balance
+        get() = maxOf(balance - fee.value, BigDecimal.ZERO)
 
     private fun getSendAmount(amount: BigDecimal) = when {
         amount.compareTo(availableBalance) == 0 -> SendAmount.Max

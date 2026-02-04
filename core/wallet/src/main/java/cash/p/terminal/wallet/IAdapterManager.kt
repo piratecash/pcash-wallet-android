@@ -3,6 +3,7 @@ package cash.p.terminal.wallet
 import cash.p.terminal.wallet.entities.BalanceData
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.StateFlow
+import java.math.BigDecimal
 
 interface IAdapterManager {
     val adaptersReadyObservable: Flowable<Map<Wallet, IAdapter>>
@@ -43,4 +44,19 @@ interface IAdapterManager {
      * First tries adapter, then fallback providers.
      */
     suspend fun getReceiveAddressForWallet(wallet: Wallet): String?
+}
+
+/**
+ * Get max sendable balance considering both:
+ * 1. Adjusted balance (pending transactions subtracted)
+ * 2. Adapter's available balance (fees subtracted for some chains)
+ * Returns the minimum of both when adjusted data is available.
+ */
+fun IAdapterManager.getMaxSendableBalance(wallet: Wallet, adapterAvailableBalance: BigDecimal): BigDecimal {
+    val adjusted = getAdjustedBalanceData(wallet)?.available
+    return if (adjusted != null) {
+        minOf(adjusted, adapterAvailableBalance)
+    } else {
+        adapterAvailableBalance
+    }
 }
