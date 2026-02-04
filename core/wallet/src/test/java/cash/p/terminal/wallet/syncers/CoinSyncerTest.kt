@@ -1,12 +1,134 @@
 package cash.p.terminal.wallet.syncers
 
+import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.models.BlockchainEntity
 import cash.p.terminal.wallet.models.TokenEntity
+import cash.p.terminal.wallet.providers.HsProvider
+import cash.p.terminal.wallet.storage.CoinStorage
+import cash.p.terminal.wallet.storage.SyncerStateDao
+import io.mockk.mockk
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class CoinSyncerTest {
+
+    private val hsProvider: HsProvider = mockk(relaxed = true)
+    private val coinStorage: CoinStorage = mockk(relaxed = true)
+    private val syncerStateDao: SyncerStateDao = mockk(relaxed = true)
+    private val virtualCoinMapper = VirtualCoinMapper()
+
+    private val coinSyncer = CoinSyncer(
+        hsProvider = hsProvider,
+        storage = coinStorage,
+        syncerStateDao = syncerStateDao,
+        virtualCoinMapper = virtualCoinMapper
+    )
+
+    private fun createCoin(uid: String, code: String) = Coin(
+        uid = uid,
+        name = code,
+        code = code,
+        marketCapRank = null,
+        coinGeckoId = null,
+        image = null,
+        priority = 0
+    )
+
+    // region injectVirtualTokens tests
+
+    @Test
+    fun injectVirtualTokens_bscUsdWithTether_addsVirtualUsdtToken() {
+        val coins = listOf(
+            createCoin("tether", "USDT"),
+            createCoin("bsc-usd", "BSC-USD")
+        )
+        val tokens = listOf(
+            createToken("bsc-usd", "binance-smart-chain")
+        )
+
+        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+
+        assertEquals(2, result.size)
+        assertTrue(result.any { it.coinUid == "bsc-usd" && it.blockchainUid == "binance-smart-chain" })
+        assertTrue(result.any { it.coinUid == "tether" && it.blockchainUid == "binance-smart-chain" })
+    }
+
+    @Test
+    fun injectVirtualTokens_missingTetherCoin_returnsOriginalTokens() {
+        val coins = listOf(
+            createCoin("bsc-usd", "BSC-USD")
+        )
+        val tokens = listOf(
+            createToken("bsc-usd", "binance-smart-chain")
+        )
+
+        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+
+        assertEquals(1, result.size)
+        assertEquals("bsc-usd", result[0].coinUid)
+    }
+
+    @Test
+    fun injectVirtualTokens_missingBscUsdCoin_returnsOriginalTokens() {
+        val coins = listOf(
+            createCoin("tether", "USDT")
+        )
+        val tokens = listOf(
+            createToken("some-token", "binance-smart-chain")
+        )
+
+        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+
+        assertEquals(1, result.size)
+        assertEquals("some-token", result[0].coinUid)
+    }
+
+    @Test
+    fun injectVirtualTokens_bscUsdTokenOnWrongBlockchain_returnsOriginalTokens() {
+        val coins = listOf(
+            createCoin("tether", "USDT"),
+            createCoin("bsc-usd", "BSC-USD")
+        )
+        val tokens = listOf(
+            createToken("bsc-usd", "ethereum")
+        )
+
+        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+
+        assertEquals(1, result.size)
+        assertEquals("bsc-usd", result[0].coinUid)
+    }
+
+    @Test
+    fun injectVirtualTokens_emptyCoins_returnsOriginalTokens() {
+        val coins = emptyList<Coin>()
+        val tokens = listOf(
+            createToken("bsc-usd", "binance-smart-chain")
+        )
+
+        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+
+        assertEquals(tokens, result)
+    }
+
+    @Test
+    fun injectVirtualTokens_emptyTokens_returnsEmptyList() {
+        val coins = listOf(
+            createCoin("tether", "USDT"),
+            createCoin("bsc-usd", "BSC-USD")
+        )
+        val tokens = emptyList<TokenEntity>()
+
+        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+
+        assertTrue(result.isEmpty())
+    }
+
+    // endregion
+
+    // region filterValidTokens tests
 
     @Test
     fun filterValidTokens_validBlockchainUid_retainsToken() {
@@ -86,6 +208,8 @@ class CoinSyncerTest {
         assertEquals("eth", result[0].coinUid)
         assertEquals("bnb", result[1].coinUid)
     }
+
+    // endregion
 
     private fun createToken(
         coinUid: String,

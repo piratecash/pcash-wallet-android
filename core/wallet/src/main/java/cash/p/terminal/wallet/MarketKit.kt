@@ -14,6 +14,7 @@ import cash.p.terminal.wallet.managers.GlobalMarketInfoManager
 import cash.p.terminal.wallet.managers.MarketOverviewManager
 import cash.p.terminal.wallet.managers.NftManager
 import cash.p.terminal.wallet.managers.PostManager
+import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.models.Analytics
 import cash.p.terminal.wallet.models.AnalyticsPreview
 import cash.p.terminal.wallet.models.ChartPoint
@@ -635,7 +636,8 @@ class MarketKit(
             val coinManager = CoinManager(coinStorage)
             val nftManager = NftManager(coinManager, hsNftProvider)
             val marketOverviewManager = MarketOverviewManager(nftManager, hsProvider)
-            val coinSyncer = CoinSyncer(hsProvider, coinStorage, marketDatabase.syncerStateDao())
+            val virtualCoinMapper: VirtualCoinMapper = get(VirtualCoinMapper::class.java)
+            val coinSyncer = CoinSyncer(hsProvider, coinStorage, marketDatabase.syncerStateDao(), virtualCoinMapper)
             val coinPriceManager = CoinPriceManager(CoinPriceStorage(marketDatabase))
             val coinHistoricalPriceManager = CoinHistoricalPriceManager(
                 CoinHistoricalPriceStorage(marketDatabase),
