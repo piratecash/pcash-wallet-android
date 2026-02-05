@@ -113,7 +113,7 @@ class SendStellarViewModel(
         minimumAmountError = minimumAmountState.error,
         canBeSend = amountState.canBeSend && addressState.canBeSend && minimumAmountState.canBeSend,
         showAddressInput = showAddressInput,
-        fee = fee,
+        fee = fee.value,
         address = addressState.address
     )
 
@@ -151,7 +151,7 @@ class SendStellarViewModel(
         ).firstOrNull()
         return SendConfirmationData(
             amount = amountState.amount!!,
-            fee = fee,
+            fee = fee.value,
             address = address,
             contact = contact,
             coin = wallet.coin,

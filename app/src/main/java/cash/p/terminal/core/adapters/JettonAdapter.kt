@@ -77,9 +77,6 @@ class JettonAdapter(
     override suspend fun refresh() {
     }
 
-    override val availableBalance: BigDecimal
-        get() = balance
-
     override val fee: StateFlow<BigDecimal> = MutableStateFlow(BigDecimal.ZERO)
 
     override suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?) {

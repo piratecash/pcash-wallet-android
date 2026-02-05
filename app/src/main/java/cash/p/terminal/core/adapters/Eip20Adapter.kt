@@ -19,6 +19,8 @@ import io.horizontalsystems.ethereumkit.models.DefaultBlockParameter
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.reactivex.Single
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -88,6 +90,9 @@ internal class Eip20Adapter(
             .map { }
 
     // ISendEthereumAdapter
+
+    // For ERC-20 tokens, fee is paid in native token, not the token itself
+    override val fee: StateFlow<BigDecimal> = MutableStateFlow(BigDecimal.ZERO)
 
     override fun getTransactionData(amount: BigDecimal, address: Address): TransactionData {
         val amountBigInt = amount.movePointRight(decimal).toBigInteger()

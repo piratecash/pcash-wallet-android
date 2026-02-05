@@ -34,7 +34,7 @@ object SendTonModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
-                    val availableBalance = adapterManager.getMaxSendableBalance(wallet, adapter.availableBalance)
+                    val availableBalance = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
                     val amountService = SendTonAmountService(
                         amountValidator = amountValidator,
                         coinCode = wallet.coin.code,

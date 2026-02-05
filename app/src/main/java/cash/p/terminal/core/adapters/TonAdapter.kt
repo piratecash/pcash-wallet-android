@@ -130,11 +130,11 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     override val balanceUpdatedFlow: Flow<Unit>
         get() = balanceUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
 
-    override val availableBalance: BigDecimal
+    override val maxSpendableBalance: BigDecimal
         get() = maxOf(balance - fee.value, BigDecimal.ZERO)
 
     private fun getSendAmount(amount: BigDecimal) = when {
-        amount.compareTo(availableBalance) == 0 -> SendAmount.Max
+        amount.compareTo(maxSpendableBalance) == 0 -> SendAmount.Max
         else -> SendAmount.Amount(amount.movePointRight(decimals).toBigInteger())
     }
 

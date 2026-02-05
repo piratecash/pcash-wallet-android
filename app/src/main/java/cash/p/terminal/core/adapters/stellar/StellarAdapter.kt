@@ -13,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
@@ -114,11 +116,10 @@ class StellarAdapter(
     private val availableBalance: BigDecimal
         get() = totalBalance?.let { it - minimumBalance } ?: BigDecimal.ZERO
 
-    override val maxSendableBalance: BigDecimal
-        get() = availableBalance - fee
+    override val fee: StateFlow<BigDecimal> = MutableStateFlow(stellarKit.sendFee)
 
-    override val fee: BigDecimal
-        get() = stellarKit.sendFee
+    override val maxSpendableBalance: BigDecimal
+        get() = availableBalance - fee.value
 
     override suspend fun getMinimumSendAmount(address: String) = when {
         !stellarKit.doesAccountExist(address) -> BigDecimal.ONE

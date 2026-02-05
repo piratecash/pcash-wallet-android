@@ -57,7 +57,7 @@ class SendTransactionServiceTonSwap(
     private var pendingTxId: String? = null
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getMaxSendableBalance(wallet, adapter.availableBalance)
+        get() = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
 
     private val amountService = SendTonAmountService(
         amountValidator = amountValidator,

@@ -50,7 +50,7 @@ class SendTransactionServiceTon(
     private val amountValidator = AmountValidator()
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getMaxSendableBalance(wallet, adapter.availableBalance)
+        get() = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
 
     private val amountService = SendTonAmountService(
         amountValidator = amountValidator,

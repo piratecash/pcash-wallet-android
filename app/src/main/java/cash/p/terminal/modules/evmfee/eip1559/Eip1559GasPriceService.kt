@@ -30,9 +30,12 @@ class Eip1559GasPriceService(
 ) : IEvmGasPriceService() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
-    private val blocksCount: Long = 10
-    private val rewardPercentile = listOf(50)
-    private val lastNRecommendedBaseFees = 2
+
+    companion object {
+        const val BLOCKS_COUNT = 10L
+        val REWARD_PERCENTILE = listOf(50)
+        const val LAST_N_RECOMMENDED_BASE_FEES = 2
+    }
 
     private val minBaseFee: Long? = minGasPrice?.let { it.maxFeePerGas - it.maxPriorityFeePerGas }
     private val minPriorityFee: Long? = minGasPrice?.maxPriorityFeePerGas
@@ -152,7 +155,7 @@ class Eip1559GasPriceService(
 
     private suspend fun syncRecommended() {
         try {
-            val feeHistory = gasProvider.feeHistorySingle(blocksCount, DefaultBlockParameter.Latest, rewardPercentile).await()
+            val feeHistory = gasProvider.feeHistorySingle(BLOCKS_COUNT, DefaultBlockParameter.Latest, REWARD_PERCENTILE).await()
             handle(feeHistory)
         } catch (error: Throwable) {
             handle(error)
@@ -190,7 +193,7 @@ class Eip1559GasPriceService(
     }
 
     private fun recommendedBaseFee(feeHistory: FeeHistory): Long {
-        val lastNRecommendedBaseFeesList = feeHistory.baseFeePerGas.takeLast(lastNRecommendedBaseFees)
+        val lastNRecommendedBaseFeesList = feeHistory.baseFeePerGas.takeLast(LAST_N_RECOMMENDED_BASE_FEES)
         return lastNRecommendedBaseFeesList.max()
     }
 

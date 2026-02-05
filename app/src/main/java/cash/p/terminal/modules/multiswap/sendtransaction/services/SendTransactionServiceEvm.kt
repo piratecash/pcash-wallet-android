@@ -55,6 +55,7 @@ import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.getMaxSendableBalance
 import io.horizontalsystems.ethereumkit.core.LegacyGasPriceProvider
 import io.horizontalsystems.ethereumkit.core.eip1559.Eip1559GasPriceProvider
 import io.horizontalsystems.ethereumkit.decorations.TransactionDecoration
@@ -130,8 +131,9 @@ internal class SendTransactionServiceEvm(
     private var fields = listOf<DataField>()
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-            ?: tryOrNull { adapter.balanceData.available },
+        availableBalance = tryOrNull {
+            adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
+        },
         networkFee = feeAmountData,
         cautions = cautions,
         sendable = sendable,

@@ -1,33 +1,67 @@
 package cash.p.terminal.core.adapters
 
-import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.core.App
-import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.core.ICoinManager
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.data.repository.EvmTransactionRepository
+import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.TransactionData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
 
 internal class EvmAdapter(evmTransactionRepository: EvmTransactionRepository, coinManager: ICoinManager) :
     BaseEvmAdapter(evmTransactionRepository, decimal, coinManager) {
 
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val _fee = MutableStateFlow(BigDecimal.ZERO)
+    override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+
+    override val maxSpendableBalance: BigDecimal
+        get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
+
     // IAdapter
 
     override fun start() {
-        // started via EthereumKitManager
+        coroutineScope.launch {
+            evmTransactionRepository.accountStateFlowable.asFlow().collect {
+                estimateFeeForMax()
+            }
+        }
+        // Initial fee estimation
+        coroutineScope.launch {
+            estimateFeeForMax()
+        }
     }
 
     override fun stop() {
-        // stopped via EthereumKitManager
+        coroutineScope.cancel()
     }
 
     override suspend fun refresh() {
         // refreshed via EthereumKitManager
+    }
+
+    private suspend fun estimateFeeForMax() {
+        if (balanceData.available <= BigDecimal.ZERO) {
+            _fee.value = BigDecimal.ZERO
+            return
+        }
+        tryOrNull {
+            val feeInWei = evmTransactionRepository.estimateNativeTransferFee()
+            _fee.value = feeInWei.toBigDecimal().movePointLeft(decimal).stripTrailingZeros()
+        }
     }
 
     // IBalanceAdapter

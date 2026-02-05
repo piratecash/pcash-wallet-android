@@ -13,6 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.withContext
@@ -68,10 +70,9 @@ class StellarAssetAdapter(
     override val statusInfo: Map<String, Any>
         get() = stellarKit.statusInfo()
 
-    override val fee: BigDecimal
-        get() = stellarKit.sendFee
+    override val fee: StateFlow<BigDecimal> = MutableStateFlow(stellarKit.sendFee)
 
-    override val maxSendableBalance: BigDecimal
+    override val maxSpendableBalance: BigDecimal
         get() = balance
 
     override suspend fun getMinimumSendAmount(address: String) = null
