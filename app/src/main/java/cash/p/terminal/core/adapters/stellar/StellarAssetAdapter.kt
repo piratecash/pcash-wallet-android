@@ -70,7 +70,9 @@ class StellarAssetAdapter(
     override val statusInfo: Map<String, Any>
         get() = stellarKit.statusInfo()
 
-    override val fee: StateFlow<BigDecimal> = MutableStateFlow(stellarKit.sendFee)
+    // Fee is ZERO because Stellar asset transfers are paid in XLM (native token), not the asset itself.
+    // Returning the actual XLM fee here would cause incorrect subtraction when swapping 100% of asset balance.
+    override val fee: StateFlow<BigDecimal> = MutableStateFlow(BigDecimal.ZERO)
 
     override val maxSpendableBalance: BigDecimal
         get() = balance
