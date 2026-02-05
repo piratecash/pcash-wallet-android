@@ -1,6 +1,7 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.derivation
@@ -17,6 +18,7 @@ import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.litecoinkit.LitecoinKit
 import io.horizontalsystems.litecoinkit.LitecoinKit.NetworkType
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.launch
 import cash.p.terminal.wallet.entities.TokenType
 
 class LitecoinAdapter(
@@ -24,14 +26,16 @@ class LitecoinAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD), LitecoinKit.Listener, ISendBitcoinAdapter {
+    feeRateProvider: IFeeRateProvider? = null
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider), LitecoinKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
         syncMode: BitcoinCore.SyncMode,
         backgroundManager: BackgroundManager,
-        derivation: TokenType.Derivation
-    ) : this(createKit(wallet, syncMode, derivation), syncMode, backgroundManager, wallet)
+        derivation: TokenType.Derivation,
+        feeRateProvider: IFeeRateProvider? = null
+    ) : this(createKit(wallet, syncMode, derivation), syncMode, backgroundManager, wallet, feeRateProvider)
 
     init {
         kit.listener = this
@@ -49,7 +53,10 @@ class LitecoinAdapter(
         "https://blockchair.com/litecoin/transaction/$transactionHash"
 
     override fun onBalanceUpdate(balance: BalanceInfo) {
-        balanceUpdatedSubject.onNext(Unit)
+        scope.launch {
+            estimateFeeForMax()
+            balanceUpdatedSubject.onNext(Unit)
+        }
     }
 
     override fun onLastBlockInfoUpdate(blockInfo: BlockInfo) {

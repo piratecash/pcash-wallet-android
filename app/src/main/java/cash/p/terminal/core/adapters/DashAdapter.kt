@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import android.util.Log
 import cash.p.terminal.core.App
+import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.splitToAddresses
@@ -30,8 +31,9 @@ class DashAdapter(
     override val kit: DashKit,
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
-    wallet: Wallet
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
+    wallet: Wallet,
+    feeRateProvider: IFeeRateProvider? = null
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
     DashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
@@ -39,12 +41,14 @@ class DashAdapter(
         syncMode: BitcoinCore.SyncMode,
         backgroundManager: BackgroundManager,
         customPeers: String,
-        masterNodesRepository: MasterNodesRepository
+        masterNodesRepository: MasterNodesRepository,
+        feeRateProvider: IFeeRateProvider? = null
     ) : this(
         kit = createKit(wallet, syncMode, customPeers, masterNodesRepository),
         syncMode = syncMode,
         backgroundManager = backgroundManager,
-        wallet = wallet
+        wallet = wallet,
+        feeRateProvider = feeRateProvider
     )
 
     init {
@@ -62,7 +66,10 @@ class DashAdapter(
         "https://blockchair.com/dash/transaction/$transactionHash"
 
     override fun onBalanceUpdate(balance: BalanceInfo) {
-        balanceUpdatedSubject.onNext(Unit)
+        scope.launch {
+            estimateFeeForMax()
+            balanceUpdatedSubject.onNext(Unit)
+        }
     }
 
     override fun onLastBlockInfoUpdate(blockInfo: BlockInfo) {

@@ -12,6 +12,7 @@ import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
 import cash.p.terminal.wallet.IDeletedWalletChecker
 import cash.p.terminal.core.providers.EvmLabelProvider
+import cash.p.terminal.core.providers.FeeRateProvider
 import cash.p.terminal.core.storage.AccountsStorage
 import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.core.storage.BlockchainSettingsStorage
@@ -64,6 +65,7 @@ val storageModule = module {
     singleOf(::ContactsRepository)
     singleOf(::ZcashBirthdayProvider)
     singleOf(::EvmLabelProvider)
+    singleOf(::FeeRateProvider)
 
     factoryOf(::EvmAccountManagerFactory)
     singleOf(::AdapterFactory)
