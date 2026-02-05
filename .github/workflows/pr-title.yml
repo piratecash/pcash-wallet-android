@@ -1,0 +1,46 @@
+name: PR Title Prefix
+
+on:
+  pull_request:
+    types: [opened, edited]
+
+jobs:
+  prefix-title:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Add MOBILE prefix to PR title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const branch = pr.head.ref;
+            const title = pr.title;
+
+            // Extract MOBILE-xxx from branch name
+            const match = branch.match(/MOBILE-\d+/i);
+            if (!match) {
+              console.log('No MOBILE ticket found in branch:', branch);
+              return;
+            }
+
+            const ticket = match[0].toUpperCase();
+            const prefix = `[${ticket}]`;
+
+            // Skip if already prefixed
+            if (title.startsWith(prefix) || title.match(/^\[MOBILE-\d+\]/i)) {
+              console.log('Title already has prefix');
+              return;
+            }
+
+            // Update PR title
+            const newTitle = `${prefix} ${title}`;
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              title: newTitle
+            });
+
+            console.log(`Updated title: ${newTitle}`);
