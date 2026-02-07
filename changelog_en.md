@@ -1,3 +1,28 @@
+## 🚀 Version 0.51.1 Update
+_Release date: February 7, 2026_
+
+### 🔧 Fixes and Stability Improvements
+
+- **Fixed incorrect message when sending USDT on the TRON network**
+  Resolved an issue where *"Preview mode"* was shown instead of a proper error message when attempting to send USDT.
+
+- **Fixed balance check logic for swaps on the TRX network**
+  Swaps are now correctly blocked when there are insufficient tokens available for sending on the TRON network.
+
+- **Fixed empty token selection screen during swaps**
+  Resolved a race condition that could occasionally cause the token selection screen to appear empty during a swap.
+
+- **Fixed crash when generating a ZCash receive address**
+  Resolved an application crash related to GetAddressException when requesting a ZCash receive address.
+
+- **Fixed incorrect investment chart display**
+  Restored correct data rendering and visualization for the investment chart.
+
+- **Fixed premium wallet balance transfer for PIRATE / COSA**
+  Resolved an issue where premium wallet balances for PIRATE and COSA were not passed to the miniApp during the first wallet connection.
+
+
+
 ## 🚀 Version 0.51.10 Update
 _Release date: February 4, 2026_
 
