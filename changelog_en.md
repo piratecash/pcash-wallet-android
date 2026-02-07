@@ -1,4 +1,4 @@
-## 🚀 Version 0.51.1 Update
+## 🚀 Version 0.51.11 Update
 _Release date: February 7, 2026_
 
 ### 🔧 Fixes and Stability Improvements
