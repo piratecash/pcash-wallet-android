@@ -18,8 +18,12 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
@@ -59,6 +63,14 @@ class AdapterManager(
     private val _initializationInProgressFlow = MutableStateFlow(true)
     override val initializationInProgressFlow = _initializationInProgressFlow.asStateFlow()
 
+    private val _walletBalanceUpdatedFlow = MutableSharedFlow<Wallet>(
+        extraBufferCapacity = 64,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    override val walletBalanceUpdatedFlow: SharedFlow<Wallet> = _walletBalanceUpdatedFlow.asSharedFlow()
+
+    private val balanceSubscriptionJobs = ConcurrentHashMap<Wallet, Job>()
+
     override val adaptersReadyObservable: Flowable<Map<Wallet, IAdapter>> =
         adaptersReadySubject.toFlowable(BackpressureStrategy.BUFFER)
 
@@ -86,54 +98,37 @@ class AdapterManager(
         }
         coroutineScope.launch {
             btcBlockchainManager.restoreModeUpdatedObservable.asFlow().collect {
-                handleUpdatedRestoreMode(it)
+                reinitAdapters(it)
             }
         }
         coroutineScope.launch {
             solanaKitManager.kitStoppedObservable.asFlow().collect {
-                handleUpdatedKit(BlockchainType.Solana)
+                reinitAdapters(BlockchainType.Solana)
             }
         }
         coroutineScope.launch {
             moneroKitManager.kitStoppedObservable.asFlow().collect {
-                handleUpdatedKit(BlockchainType.Monero)
+                reinitAdapters(BlockchainType.Monero)
             }
         }
         for (blockchain in evmBlockchainManager.allBlockchains) {
             coroutineScope.launch {
                 evmBlockchainManager.getEvmKitManager(blockchain.type).evmKitUpdatedObservable.asFlow()
                     .collect {
-                        handleUpdatedKit(blockchain.type)
+                        reinitAdapters(blockchain.type)
                     }
             }
         }
     }
 
-    private fun handleUpdatedKit(blockchainType: BlockchainType) {
-        val wallets = adaptersMap.keys.toList().filter {
-            it.token.blockchain.type == blockchainType
-        }
-
+    private fun reinitAdapters(blockchainType: BlockchainType) {
+        val wallets = adaptersMap.keys.filter { it.token.blockchainType == blockchainType }
         if (wallets.isEmpty()) return
 
-        wallets.forEach {
-            adaptersMap[it]?.stop()
-            adaptersMap.remove(it)
-        }
-
-        requestInitAdapters(walletManager.activeWallets)
-    }
-
-    private fun handleUpdatedRestoreMode(blockchainType: BlockchainType) {
-        val wallets = adaptersMap.keys.toList().filter {
-            it.token.blockchainType == blockchainType
-        }
-
-        if (wallets.isEmpty()) return
-
-        wallets.forEach {
-            adaptersMap[it]?.stop()
-            adaptersMap.remove(it)
+        wallets.forEach { wallet ->
+            balanceSubscriptionJobs.remove(wallet)?.cancel()
+            adaptersMap[wallet]?.stop()
+            adaptersMap.remove(wallet)
         }
 
         requestInitAdapters(walletManager.activeWallets)
@@ -186,7 +181,14 @@ class AdapterManager(
 
         adaptersReadySubject.onNext(adaptersMap)
 
+        adaptersMap.forEach { (wallet, adapter) ->
+            (adapter as? IBalanceAdapter)?.let { balanceAdapter ->
+                subscribeToBalanceUpdates(wallet, balanceAdapter)
+            }
+        }
+
         currentAdapters.forEach { (wallet, adapter) ->
+            balanceSubscriptionJobs.remove(wallet)?.cancel()
             adapter.stop()
             coroutineScope.launch {
                 adapterFactory.unlinkAdapter(wallet)
@@ -214,6 +216,7 @@ class AdapterManager(
 
                 // remove and stop adapters
                 walletsToRefresh.forEach { wallet ->
+                    balanceSubscriptionJobs.remove(wallet)?.cancel()
                     adaptersMap.remove(wallet)?.let { previousAdapter ->
                         previousAdapter.stop()
                         coroutineScope.launch {
@@ -227,6 +230,9 @@ class AdapterManager(
                     adapterFactory.getAdapterOrNull(wallet)?.let { adapter ->
                         adaptersMap[wallet] = adapter
                         adapter.start()
+                        (adapter as? IBalanceAdapter)?.let { balanceAdapter ->
+                            subscribeToBalanceUpdates(wallet, balanceAdapter)
+                        }
                     }
                 }
 
@@ -296,5 +302,17 @@ class AdapterManager(
     override suspend fun getReceiveAddressForWallet(wallet: Wallet): String? {
         getReceiveAdapterForWallet(wallet)?.receiveAddress?.let { return it }
         return fallbackAddressProvider.getAddress(wallet)
+    }
+
+    private fun subscribeToBalanceUpdates(wallet: Wallet, adapter: IBalanceAdapter) {
+        balanceSubscriptionJobs[wallet]?.cancel()
+        balanceSubscriptionJobs[wallet] = coroutineScope.launch {
+            merge(
+                adapter.balanceUpdatedFlow,
+                adapter.balanceStateUpdatedFlow
+            ).collectLatest {
+                _walletBalanceUpdatedFlow.emit(wallet)
+            }
+        }
     }
 }

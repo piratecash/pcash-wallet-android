@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -60,6 +62,10 @@ fun BalanceForAccount(
     paddingValuesParent: PaddingValues
 ) {
     val viewModel = viewModel<BalanceViewModel>(factory = BalanceModule.Factory())
+
+    LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
+        viewModel.onResume()
+    }
 
     val invalidUrlBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()

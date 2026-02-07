@@ -32,6 +32,7 @@ class BalanceAdapterRepositoryTest {
 
         adapterManager = mockk(relaxed = true) {
             every { adaptersReadyObservable } returns Flowable.never()
+            every { walletBalanceUpdatedFlow } returns MutableSharedFlow()
             every { getAdjustedBalanceData(any()) } returns BalanceData(BigDecimal.TEN)
             every { getBalanceAdapterForWallet(any()) } returns mockk<IBalanceAdapter>(relaxed = true) {
                 every { balanceStateUpdatedFlow } returns MutableSharedFlow()

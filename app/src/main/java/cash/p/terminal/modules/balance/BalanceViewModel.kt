@@ -542,6 +542,10 @@ class BalanceViewModel(
         emitState()
         refreshViewItems(service.balanceItemsFlow.value)
     }
+
+    fun onResume() {
+        service.resyncBalanceItems()
+    }
 }
 
 sealed class ReceiveAllowedState {
