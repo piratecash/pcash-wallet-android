@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import cash.p.dogecoinkit.DogecoinKit
 import cash.p.terminal.core.App
+import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -14,20 +15,23 @@ import io.horizontalsystems.bitcoincore.models.BlockInfo
 import io.horizontalsystems.bitcoincore.models.TransactionInfo
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.launch
 
 class DogecoinAdapter(
     override val kit: DogecoinKit,
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
+    feeRateProvider: IFeeRateProvider? = null
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
     DogecoinKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
         syncMode: BitcoinCore.SyncMode,
-        backgroundManager: BackgroundManager
-    ) : this(createKit(wallet, syncMode), syncMode, backgroundManager, wallet)
+        backgroundManager: BackgroundManager,
+        feeRateProvider: IFeeRateProvider? = null
+    ) : this(createKit(wallet, syncMode), syncMode, backgroundManager, wallet, feeRateProvider)
 
     init {
         kit.listener = this
@@ -49,7 +53,10 @@ class DogecoinAdapter(
         "https://blockchair.com/dogecoin/transaction/$transactionHash"
 
     override fun onBalanceUpdate(balance: BalanceInfo) {
-        balanceUpdatedSubject.onNext(Unit)
+        scope.launch {
+            estimateFeeForMax()
+            balanceUpdatedSubject.onNext(Unit)
+        }
     }
 
     override fun onLastBlockInfoUpdate(blockInfo: BlockInfo) {

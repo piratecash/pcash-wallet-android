@@ -47,7 +47,7 @@ class SendTransactionServiceZCash(
     private val amountService = SendAmountService(
         amountValidator = AmountValidator(),
         coinCode = wallet.token.coin.code,
-        availableBalance = adapter.availableBalance,
+        availableBalance = adapter.maxSpendableBalance,
         leaveSomeBalanceForFee = wallet.token.type.isNative
     )
     private val addressService = SendZCashAddressService(adapter)
@@ -107,7 +107,7 @@ class SendTransactionServiceZCash(
     private var fields = listOf<DataField>()
 
     override fun createState() = SendTransactionServiceState(
-        availableBalance = adapter.availableBalance,
+        availableBalance = adapter.maxSpendableBalance,
         networkFee = feeAmountData,
         cautions = cautions,
         sendable = sendable,

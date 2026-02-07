@@ -10,6 +10,7 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.getMaxSendableBalance
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -33,8 +34,7 @@ object SendTonModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
-                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-                        ?: adapter.availableBalance
+                    val availableBalance = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
                     val amountService = SendTonAmountService(
                         amountValidator = amountValidator,
                         coinCode = wallet.coin.code,

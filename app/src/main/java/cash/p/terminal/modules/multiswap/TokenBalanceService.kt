@@ -1,10 +1,9 @@
 package cash.p.terminal.modules.multiswap
 
+import cash.p.terminal.core.ServiceState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
-import cash.p.terminal.core.ServiceState
-import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.wallet.Token
 import java.math.BigDecimal
 
@@ -61,17 +60,19 @@ class TokenBalanceService(
     }
 
     private fun refreshAvailableBalance() {
-        adapter = token?.let { adapterManager.getAdapterForToken(it) as? IBalanceAdapter }
-        balance = token?.let { adapterManager.getAdjustedBalanceDataForToken(it)?.available }
-            ?: adapter?.balanceData?.available
+        val currentAdapter = token?.let { adapterManager.getAdapterForToken(it) as? IBalanceAdapter }
+        adapter = currentAdapter
+        val adapterAvailableBalance = currentAdapter?.maxSpendableBalance
+        val adjusted = token?.let { adapterManager.getAdjustedBalanceDataForToken(it)?.available }
+        balance = if (adjusted != null && adapterAvailableBalance != null) {
+            minOf(adjusted, adapterAvailableBalance)
+        } else {
+            adjusted ?: adapterAvailableBalance
+        }
     }
 
     fun getFeeToTransferAll(): BigDecimal? {
-        return if(adapter is ZcashAdapter) {
-            (adapter as ZcashAdapter).fee.value
-        } else {
-            BigDecimal.ZERO
-        }
+        return adapter?.fee?.value
     }
 
     data class State(val balance: BigDecimal?, val error: Throwable?)

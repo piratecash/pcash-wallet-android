@@ -9,14 +9,21 @@ import io.horizontalsystems.erc20kit.core.Erc20Kit
 import io.horizontalsystems.ethereumkit.api.models.AccountState
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.core.EthereumKit.SyncState
+import io.horizontalsystems.ethereumkit.core.LegacyGasPriceProvider
+import cash.p.terminal.modules.evmfee.eip1559.Eip1559GasPriceService.Companion.BLOCKS_COUNT
+import cash.p.terminal.modules.evmfee.eip1559.Eip1559GasPriceService.Companion.LAST_N_RECOMMENDED_BASE_FEES
+import cash.p.terminal.modules.evmfee.eip1559.Eip1559GasPriceService.Companion.REWARD_PERCENTILE
+import io.horizontalsystems.ethereumkit.core.eip1559.Eip1559GasPriceProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
+import io.horizontalsystems.ethereumkit.models.DefaultBlockParameter
 import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.await
+import java.math.BigInteger
 
 internal class EvmTransactionRepository(
     private val evmBlockchainManager: EvmBlockchainManager
@@ -96,4 +103,42 @@ internal class EvmTransactionRepository(
 
     fun getFullTransactionsFlowable(tags: List<List<String>>): Flow<List<FullTransaction>> =
         evmKit.getFullTransactionsFlowable(tags).asFlow()
+
+    /**
+     * Estimates the fee for a native token transfer.
+     * Returns the fee in wei as BigInteger.
+     */
+    suspend fun estimateNativeTransferFee(): BigInteger {
+        val gasLimit = BigInteger.valueOf(evmKit.defaultGasLimit)
+        val gasPrice = if (chain.isEIP1559Supported) {
+            getEip1559GasPrice()
+        } else {
+            getLegacyGasPrice()
+        }
+        return gasLimit * gasPrice
+    }
+
+    private suspend fun getEip1559GasPrice(): BigInteger {
+        val provider = Eip1559GasPriceProvider(evmKit)
+        val feeHistory = provider.feeHistorySingle(BLOCKS_COUNT, DefaultBlockParameter.Latest, REWARD_PERCENTILE).await()
+
+        val baseFee = feeHistory.baseFeePerGas.takeLast(LAST_N_RECOMMENDED_BASE_FEES).maxOrNull() ?: 0L
+        var priorityFeeSum = 0L
+        var priorityFeeCount = 0
+        feeHistory.reward.forEach { rewards ->
+            rewards.firstOrNull()?.let {
+                priorityFeeSum += it
+                priorityFeeCount++
+            }
+        }
+        val priorityFee = if (priorityFeeCount > 0) priorityFeeSum / priorityFeeCount else 0L
+
+        return BigInteger.valueOf(baseFee + priorityFee)
+    }
+
+    private suspend fun getLegacyGasPrice(): BigInteger {
+        val provider = LegacyGasPriceProvider(evmKit)
+        val gasPrice = provider.gasPriceSingle().await()
+        return BigInteger.valueOf(gasPrice)
+    }
 }

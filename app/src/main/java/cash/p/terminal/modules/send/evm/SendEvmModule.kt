@@ -13,6 +13,7 @@ import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactio
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.getMaxSendableBalance
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.parcelize.Parcelize
 import org.koin.java.KoinJavaComponent.inject
@@ -75,8 +76,7 @@ object SendEvmModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
-                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-                        ?: adapter.balanceData.available
+                    val availableBalance = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,

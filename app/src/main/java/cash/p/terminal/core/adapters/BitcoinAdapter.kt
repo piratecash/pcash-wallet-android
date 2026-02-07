@@ -1,6 +1,7 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.derivation
 import cash.p.terminal.core.purpose
@@ -16,6 +17,7 @@ import io.horizontalsystems.bitcoincore.models.TransactionInfo
 import io.horizontalsystems.bitcoinkit.BitcoinKit
 import io.horizontalsystems.bitcoinkit.BitcoinKit.NetworkType
 import io.horizontalsystems.core.BackgroundManager
+import kotlinx.coroutines.launch
 import io.horizontalsystems.core.entities.BlockchainType
 
 class BitcoinAdapter(
@@ -23,18 +25,21 @@ class BitcoinAdapter(
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
     wallet: Wallet,
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
+    feeRateProvider: IFeeRateProvider? = null
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
     BitcoinKit.Listener {
     constructor(
         wallet: Wallet,
         syncMode: BitcoinCore.SyncMode,
         backgroundManager: BackgroundManager,
-        derivation: TokenType.Derivation
+        derivation: TokenType.Derivation,
+        feeRateProvider: IFeeRateProvider? = null
     ) : this(
         kit = createKit(wallet, syncMode, derivation),
         syncMode = syncMode,
         backgroundManager = backgroundManager,
-        wallet = wallet
+        wallet = wallet,
+        feeRateProvider = feeRateProvider
     )
 
     init {
@@ -53,7 +58,10 @@ class BitcoinAdapter(
         "https://blockchair.com/bitcoin/transaction/$transactionHash"
 
     override fun onBalanceUpdate(balance: BalanceInfo) {
-        balanceUpdatedSubject.onNext(Unit)
+        scope.launch {
+            estimateFeeForMax()
+            balanceUpdatedSubject.onNext(Unit)
+        }
     }
 
     override fun onLastBlockInfoUpdate(blockInfo: BlockInfo) {

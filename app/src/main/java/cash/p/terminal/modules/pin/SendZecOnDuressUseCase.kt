@@ -260,7 +260,7 @@ class SendZecOnDuressUseCase(
         memo: String
     ): SendZecResult {
         val amountToSend = ISmsNotificationSettings.AMOUNT_TO_SEND_ZEC
-        val availableBalance = adapter.availableBalance
+        val availableBalance = adapter.maxSpendableBalance
 
         if (availableBalance < amountToSend) {
             Timber.w("Insufficient balance. Available: $availableBalance, Required: $amountToSend")
@@ -355,7 +355,7 @@ class SendZecOnDuressUseCase(
         adapters.forEach { info ->
             launch {
                 waitForSync(info.adapter)
-                val hasSufficientBalance = info.adapter.availableBalance >= amountToSend
+                val hasSufficientBalance = info.adapter.maxSpendableBalance >= amountToSend
                 resultChannel.send(if (hasSufficientBalance) info else null)
             }
         }

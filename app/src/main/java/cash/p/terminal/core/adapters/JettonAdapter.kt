@@ -18,6 +18,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -75,8 +77,7 @@ class JettonAdapter(
     override suspend fun refresh() {
     }
 
-    override val availableBalance: BigDecimal
-        get() = balance
+    override val fee: StateFlow<BigDecimal> = MutableStateFlow(BigDecimal.ZERO)
 
     override suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?) {
         tonKit.send(

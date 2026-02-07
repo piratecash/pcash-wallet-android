@@ -440,7 +440,7 @@ class SendZecOnDuressUseCaseTest {
         val syncFlow = MutableSharedFlow<Unit>(replay = 1)
         val feeFlow = MutableStateFlow(BigDecimal("0.0001"))
         return mockk<ISendZcashAdapter> {
-            every { availableBalance } returns balance
+            every { maxSpendableBalance } returns balance
             every { balanceState } returns if (synced) AdapterState.Synced else AdapterState.Syncing()
             every { balanceStateUpdatedFlow } returns syncFlow
             every { fee } returns feeFlow

@@ -18,6 +18,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.IBalanceAdapter
 import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.ethereumkit.models.Address
@@ -183,21 +184,13 @@ interface ISendBitcoinAdapter {
     fun satoshiToBTC(value: Long): BigDecimal
 }
 
-internal interface ISendEthereumAdapter {
+internal interface ISendEthereumAdapter : IBalanceAdapter {
     val evmTransactionRepository: EvmTransactionRepository
-    val balanceData: BalanceData
 
     fun getTransactionData(amount: BigDecimal, address: Address): TransactionData
 }
 
-interface ISendZcashAdapter {
-    val availableBalance: BigDecimal
-    val fee: StateFlow<BigDecimal>
-
-    // Balance state for checking sync status
-    val balanceState: AdapterState
-    val balanceStateUpdatedFlow: Flow<Unit>
-
+interface ISendZcashAdapter : IBalanceAdapter {
     // Start syncing the adapter
     fun start()
 
@@ -222,16 +215,13 @@ interface ISendMoneroAdapter {
     suspend fun estimateFee(amount: BigDecimal, address: String, memo: String?): BigDecimal
 }
 
-interface ISendTonAdapter {
-    val availableBalance: BigDecimal
+interface ISendTonAdapter : IBalanceAdapter {
     suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?)
     suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)
     suspend fun estimateFee(amount: BigDecimal, address: FriendlyAddress, memo: String?) : BigDecimal
 }
 
-interface ISendStellarAdapter {
-    val maxSendableBalance: BigDecimal
-    val fee: BigDecimal
+interface ISendStellarAdapter : IBalanceAdapter {
     fun validate(address: String)
     suspend fun getMinimumSendAmount(address: String) : BigDecimal?
     suspend fun send(amount: BigDecimal, address: String, memo: String?)

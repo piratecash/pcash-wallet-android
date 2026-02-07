@@ -1,5 +1,6 @@
 package cash.p.terminal.core.adapters
 
+import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.UnsupportedFilterException
@@ -52,6 +53,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
@@ -67,10 +71,41 @@ abstract class BitcoinBaseAdapter(
     private val backgroundManager: BackgroundManager,
     val wallet: Wallet,
     private val displayConfirmationsThreshold: Int,
-    protected val decimal: Int = 8
+    protected val decimal: Int = 8,
+    protected val feeRateProvider: IFeeRateProvider? = null
 ) : IAdapter, ITransactionsAdapter, IBalanceAdapter, IReceiveAdapter, ISendBitcoinAdapter {
 
-    private val scope = CoroutineScope(Dispatchers.Default)
+    protected val scope = CoroutineScope(Dispatchers.Default)
+
+    // Fee state
+    private val _fee = MutableStateFlow(BigDecimal.ZERO)
+    override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+    private var recommendedFeeRate: Int? = null
+
+    override val maxSpendableBalance: BigDecimal
+        get() {
+            val feeRate = recommendedFeeRate ?: return balanceData.available
+            return availableBalance(
+                feeRate = feeRate,
+                address = null,
+                memo = null,
+                unspentOutputs = null,
+                pluginData = null,
+                changeToFirstInput = false,
+                utxoFilters = UtxoFilters()
+            )
+        }
+
+    protected suspend fun estimateFeeForMax() {
+        tryOrNull {
+            val feeRates = feeRateProvider?.getFeeRates() ?: return@tryOrNull
+            recommendedFeeRate = feeRates.recommended
+
+            val maxSpendable = maxSpendableBalance
+            val totalBalance = balanceData.available
+            _fee.value = maxOf(totalBalance - maxSpendable, BigDecimal.ZERO)
+        }
+    }
 
     //
     // Adapter implementation
@@ -187,6 +222,9 @@ abstract class BitcoinBaseAdapter(
     override fun start() {
         kit.start()
         subscribeToEvents()
+        scope.launch {
+            estimateFeeForMax()
+        }
     }
 
     override fun stop() {

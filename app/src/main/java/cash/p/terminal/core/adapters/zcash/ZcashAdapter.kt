@@ -527,7 +527,7 @@ class ZcashAdapter(
     override fun getTransactionUrl(transactionHash: String): String =
         "https://blockchair.com/zcash/transaction/$transactionHash"
 
-    override val availableBalance: BigDecimal
+    override val maxSpendableBalance: BigDecimal
         get() {
             return with(walletBalance) {
                 val available = available + pending

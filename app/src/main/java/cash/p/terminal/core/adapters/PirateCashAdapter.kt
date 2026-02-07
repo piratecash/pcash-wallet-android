@@ -1,6 +1,7 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -14,25 +15,29 @@ import io.horizontalsystems.bitcoincore.models.TransactionInfo
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.piratecashkit.PirateCashKit
+import kotlinx.coroutines.launch
 import io.horizontalsystems.piratecashkit.PirateCashKit.NetworkType
 
 class PirateCashAdapter(
     override val kit: PirateCashKit,
     syncMode: BitcoinCore.SyncMode,
     backgroundManager: BackgroundManager,
-    wallet: Wallet
-) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD),
+    wallet: Wallet,
+    feeRateProvider: IFeeRateProvider? = null
+) : BitcoinBaseAdapter(kit, syncMode, backgroundManager, wallet, DISPLAY_CONFIRMATIONS_THRESHOLD, feeRateProvider = feeRateProvider),
     PirateCashKit.Listener, ISendBitcoinAdapter {
 
     constructor(
         wallet: Wallet,
         syncMode: BitcoinCore.SyncMode,
-        backgroundManager: BackgroundManager
+        backgroundManager: BackgroundManager,
+        feeRateProvider: IFeeRateProvider? = null
     ) : this(
         kit = createKit(wallet, syncMode),
         syncMode = syncMode,
         backgroundManager = backgroundManager,
-        wallet = wallet
+        wallet = wallet,
+        feeRateProvider = feeRateProvider
     )
 
     init {
@@ -54,7 +59,10 @@ class PirateCashAdapter(
         "https://piratecash.info/tx/$transactionHash"
 
     override fun onBalanceUpdate(balance: BalanceInfo) {
-        balanceUpdatedSubject.onNext(Unit)
+        scope.launch {
+            estimateFeeForMax()
+            balanceUpdatedSubject.onNext(Unit)
+        }
     }
 
     override fun onLastBlockInfoUpdate(blockInfo: BlockInfo) {

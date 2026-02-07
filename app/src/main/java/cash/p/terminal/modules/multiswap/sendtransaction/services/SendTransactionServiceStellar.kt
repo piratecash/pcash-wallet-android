@@ -81,8 +81,8 @@ class SendTransactionServiceStellar(account: Account, token: Token) :
 
     override fun createState(): SendTransactionServiceState {
         val adjustedBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-        val maxSendable = adapter.maxSendableBalance
-        // Use minOf to ensure we don't show more than maxSendableBalance (which accounts for fee)
+        val maxSendable = adapter.maxSpendableBalance
+        // Use minOf to ensure we don't show more than maxSpendableBalance (which accounts for fee)
         val availableBalance = if (adjustedBalance != null) {
             minOf(adjustedBalance, maxSendable)
         } else {

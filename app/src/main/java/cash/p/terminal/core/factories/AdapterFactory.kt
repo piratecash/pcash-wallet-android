@@ -36,6 +36,15 @@ import cash.p.terminal.core.adapters.stellar.StellarTransactionsAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashSingleUseAddressManager
 import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.providers.BitcoinCashFeeRateProvider
+import cash.p.terminal.core.providers.BitcoinFeeRateProvider
+import cash.p.terminal.core.providers.CosantaFeeRateProvider
+import cash.p.terminal.core.providers.DashFeeRateProvider
+import cash.p.terminal.core.providers.DogecoinFeeRateProvider
+import cash.p.terminal.core.providers.ECashFeeRateProvider
+import cash.p.terminal.core.providers.FeeRateProvider
+import cash.p.terminal.core.providers.LitecoinFeeRateProvider
+import cash.p.terminal.core.providers.PirateCashFeeRateProvider
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.EvmLabelManager
@@ -81,7 +90,8 @@ class AdapterFactory(
     private val evmLabelManager: EvmLabelManager,
     private val localStorage: ILocalStorage,
     private val masterNodesRepository: MasterNodesRepository,
-    private val getBnbAddressUseCase: GetBnbAddressUseCase
+    private val getBnbAddressUseCase: GetBnbAddressUseCase,
+    private val feeRateProvider: FeeRateProvider
 ) {
     private fun getEvmAdapter(wallet: Wallet): IAdapter? {
         val blockchainType = evmBlockchainManager.getBlockchain(wallet.token)?.type ?: return null
@@ -199,7 +209,8 @@ class AdapterFactory(
                             wallet = wallet,
                             syncMode = syncMode,
                             backgroundManager = backgroundManager,
-                            derivation = tokenType.derivation
+                            derivation = tokenType.derivation,
+                            feeRateProvider = BitcoinFeeRateProvider(feeRateProvider)
                         )
                     }
 
@@ -212,7 +223,8 @@ class AdapterFactory(
                             wallet = wallet,
                             syncMode = syncMode,
                             backgroundManager = backgroundManager,
-                            derivation = tokenType.derivation
+                            derivation = tokenType.derivation,
+                            feeRateProvider = LitecoinFeeRateProvider(feeRateProvider)
                         )
                     }
 
@@ -230,7 +242,8 @@ class AdapterFactory(
                         wallet = wallet,
                         syncMode = syncMode,
                         backgroundManager = backgroundManager,
-                        addressType = tokenType.type
+                        addressType = tokenType.type,
+                        feeRateProvider = BitcoinCashFeeRateProvider(feeRateProvider)
                     )
                 } else null
             }
@@ -264,7 +277,7 @@ class AdapterFactory(
                 BlockchainType.ECash -> {
                     val syncMode =
                         btcBlockchainManager.syncMode(BlockchainType.ECash, wallet.account.origin)
-                    ECashAdapter(wallet, syncMode, backgroundManager)
+                    ECashAdapter(wallet, syncMode, backgroundManager, ECashFeeRateProvider())
                 }
 
                 BlockchainType.Dash -> {
@@ -275,7 +288,8 @@ class AdapterFactory(
                         syncMode = syncMode,
                         backgroundManager = backgroundManager,
                         customPeers = localStorage.customDashPeers,
-                        masterNodesRepository = masterNodesRepository
+                        masterNodesRepository = masterNodesRepository,
+                        feeRateProvider = DashFeeRateProvider(feeRateProvider)
                     )
                 }
 
@@ -285,7 +299,8 @@ class AdapterFactory(
                     CosantaAdapter(
                         wallet = wallet,
                         syncMode = syncMode,
-                        backgroundManager = backgroundManager
+                        backgroundManager = backgroundManager,
+                        feeRateProvider = CosantaFeeRateProvider(feeRateProvider)
                     )
                 }
 
@@ -298,7 +313,8 @@ class AdapterFactory(
                     PirateCashAdapter(
                         wallet = wallet,
                         syncMode = syncMode,
-                        backgroundManager = backgroundManager
+                        backgroundManager = backgroundManager,
+                        feeRateProvider = PirateCashFeeRateProvider(feeRateProvider)
                     )
                 }
 
@@ -310,7 +326,8 @@ class AdapterFactory(
                     DogecoinAdapter(
                         wallet = wallet,
                         syncMode = syncMode,
-                        backgroundManager = backgroundManager
+                        backgroundManager = backgroundManager,
+                        feeRateProvider = DogecoinFeeRateProvider(feeRateProvider)
                     )
                 }
 

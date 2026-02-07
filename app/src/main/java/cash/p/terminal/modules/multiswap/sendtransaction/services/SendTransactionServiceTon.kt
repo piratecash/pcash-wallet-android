@@ -32,6 +32,7 @@ import cash.p.terminal.modules.send.ton.SendTonFeeService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.getMaxSendableBalance
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +50,7 @@ class SendTransactionServiceTon(
     private val amountValidator = AmountValidator()
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.availableBalance
+        get() = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
 
     private val amountService = SendTonAmountService(
         amountValidator = amountValidator,
