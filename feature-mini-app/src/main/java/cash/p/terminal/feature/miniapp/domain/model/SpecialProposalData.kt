@@ -12,7 +12,6 @@ data class SpecialProposalData(
     val guaranteedBonusFiat: String,    // Fiat equivalent
 
     // PIRATE tab data
-    val pirateBalance: BigDecimal,
     val pirateNotEnough: String,        // Formatted, e.g., "10,000 PIRATE"
     val pirateNotEnoughFiat: String,
     val pirateRoi: String,              // e.g., "7.5%"
@@ -20,7 +19,6 @@ data class SpecialProposalData(
     val pirateMonthlyIncomeFiat: String, // e.g., "+$1.1888"
 
     // COSA tab data
-    val cosaBalance: BigDecimal,
     val cosaNotEnough: String,          // Formatted, e.g., "100 COSA"
     val cosaNotEnoughFiat: String,
     val cosaRoi: String,                // e.g., "23.5%"
