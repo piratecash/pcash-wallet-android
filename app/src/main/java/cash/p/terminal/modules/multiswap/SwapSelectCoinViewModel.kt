@@ -37,7 +37,8 @@ class SwapSelectCoinViewModel(private val otherSelectedToken: Token?) : ViewMode
 
     var uiState by mutableStateOf(
         SwapSelectCoinUiState(
-            coinBalanceItems = coinBalanceItems
+            coinBalanceItems = coinBalanceItems,
+            loading = true
         )
     )
 
@@ -45,7 +46,7 @@ class SwapSelectCoinViewModel(private val otherSelectedToken: Token?) : ViewMode
         coinsProvider.setActiveWallets(App.walletManager.activeWallets)
         viewModelScope.launch {
             reloadItems()
-            emitState()
+            emitState(loading = false)
         }
     }
 
@@ -153,12 +154,11 @@ class SwapSelectCoinViewModel(private val otherSelectedToken: Token?) : ViewMode
             .sortedWith(compareByDescending { it.balance })
     }
 
-    private fun emitState() {
-        viewModelScope.launch {
-            uiState = SwapSelectCoinUiState(
-                coinBalanceItems = coinBalanceItems
-            )
-        }
+    private fun emitState(loading: Boolean = false) {
+        uiState = SwapSelectCoinUiState(
+            coinBalanceItems = coinBalanceItems,
+            loading = loading
+        )
     }
 
     private fun getFiatValue(token: Token, balance: BigDecimal?): CurrencyValue? {
@@ -182,4 +182,7 @@ class SwapSelectCoinViewModel(private val otherSelectedToken: Token?) : ViewMode
     }
 }
 
-data class SwapSelectCoinUiState(val coinBalanceItems: List<CoinBalanceItem>)
+data class SwapSelectCoinUiState(
+    val coinBalanceItems: List<CoinBalanceItem>,
+    val loading: Boolean = true
+)
