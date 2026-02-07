@@ -216,6 +216,22 @@ class DefaultBalanceService private constructor(
         adapterRepository.refresh()
     }
 
+    /**
+     * Re-reads balance data from adapters without triggering network refresh.
+     * Called when returning to balance screen to pick up any changes from token page.
+     */
+    fun resyncBalanceItems() {
+        updateBalanceItems { currentItems ->
+            currentItems.map { balanceItem ->
+                balanceItem.copy(
+                    balanceData = adapterRepository.balanceData(balanceItem.wallet),
+                    state = adapterRepository.state(balanceItem.wallet),
+                    sendAllowed = adapterRepository.sendAllowed(balanceItem.wallet),
+                )
+            }
+        }
+    }
+
     override val disabledWalletSubject = PublishSubject.create<Wallet>()
 
     override suspend fun disable(wallet: Wallet) {

@@ -13,7 +13,6 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
@@ -27,7 +26,6 @@ class BalanceAdapterRepository(
     private var wallets = listOf<Wallet>()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
-    private var subscriptionsScope: CoroutineScope? = null
 
     private val readySubject = PublishSubject.create<Unit>()
     val readyObservable: Observable<Unit> get() = readySubject
@@ -38,18 +36,19 @@ class BalanceAdapterRepository(
     init {
         coroutineScope.launch {
             adapterManager.adaptersReadyObservable.asFlow().collect {
-                unsubscribeFromAdapterUpdates()
                 readySubject.onNext(Unit)
-
                 balanceCache.setCache(
                     wallets.mapNotNull { wallet ->
-                        adapterManager.getAdjustedBalanceData(wallet)?.let {
-                            wallet to it
-                        }
+                        adapterManager.getAdjustedBalanceData(wallet)?.let { wallet to it }
                     }.toMap()
                 )
-
-                subscribeForAdapterUpdates()
+            }
+        }
+        coroutineScope.launch {
+            adapterManager.walletBalanceUpdatedFlow.collect { wallet ->
+                if (wallet in wallets) {
+                    notifyWalletUpdate(wallet)
+                }
             }
         }
         coroutineScope.launch {
@@ -60,45 +59,17 @@ class BalanceAdapterRepository(
     }
 
     override fun clear() {
-        subscriptionsScope?.cancel()
         coroutineScope.cancel()
     }
 
     fun setWallet(wallets: List<Wallet>) {
-        unsubscribeFromAdapterUpdates()
         this.wallets = wallets
-        subscribeForAdapterUpdates()
-    }
-
-    private fun unsubscribeFromAdapterUpdates() {
-        subscriptionsScope?.cancel()
-        subscriptionsScope = null
     }
 
     private fun notifyWalletUpdate(wallet: Wallet) {
         updatesSubject.onNext(wallet)
         adapterManager.getAdjustedBalanceData(wallet)?.let {
             balanceCache.setCache(wallet, it)
-        }
-    }
-
-    private fun subscribeForAdapterUpdates() {
-        subscriptionsScope = CoroutineScope(coroutineScope.coroutineContext + Job())
-
-        wallets.forEach { wallet ->
-            adapterManager.getBalanceAdapterForWallet(wallet)?.let { adapter ->
-                subscriptionsScope?.launch {
-                    adapter.balanceStateUpdatedFlow.collect {
-                        updatesSubject.onNext(wallet)
-                    }
-                }
-
-                subscriptionsScope?.launch {
-                    adapter.balanceUpdatedFlow.collect {
-                        notifyWalletUpdate(wallet)
-                    }
-                }
-            }
         }
     }
 

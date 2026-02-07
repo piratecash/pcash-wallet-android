@@ -2,12 +2,14 @@ package cash.p.terminal.wallet
 
 import cash.p.terminal.wallet.entities.BalanceData
 import io.reactivex.Flowable
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.math.BigDecimal
 
 interface IAdapterManager {
     val adaptersReadyObservable: Flowable<Map<Wallet, IAdapter>>
     val initializationInProgressFlow: StateFlow<Boolean>
+    val walletBalanceUpdatedFlow: SharedFlow<Wallet>
 
     fun startAdapterManager()
     suspend fun refresh()
