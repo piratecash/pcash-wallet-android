@@ -196,15 +196,8 @@ class ZcashAdapter(
             }
         }
 
-        zcashAccount = runBlocking { getFirstAccount() }
-        receiveAddress = runBlocking {
-            when (addressSpecTyped) {
-                AddressSpecType.Shielded -> synchronizer.getSaplingAddress(getFirstAccount())
-                AddressSpecType.Transparent -> synchronizer.getTransparentAddress(getFirstAccount())
-                AddressSpecType.Unified -> synchronizer.getUnifiedAddress(getFirstAccount())
-                null -> synchronizer.getSaplingAddress(getFirstAccount())
-            }
-        }
+        zcashAccount = runBlocking { tryOrNull { getFirstAccount() } }
+        receiveAddress = runBlocking { getReceiveAddressOrEmpty() }
         transactionsProvider =
             ZcashTransactionsProvider(
                 synchronizer = synchronizer as SdkSynchronizer
@@ -245,7 +238,22 @@ class ZcashAdapter(
                 )
             )
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            Timber.e(ex, "Failed to import watch-only ZCash account")
+        }
+    }
+
+    private suspend fun getReceiveAddressOrEmpty(): String {
+        return try {
+            val account = getFirstAccount()
+            when (addressSpecTyped) {
+                AddressSpecType.Shielded -> synchronizer.getSaplingAddress(account)
+                AddressSpecType.Transparent -> synchronizer.getTransparentAddress(account)
+                AddressSpecType.Unified -> synchronizer.getUnifiedAddress(account)
+                null -> synchronizer.getSaplingAddress(account)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get receive address")
+            ""
         }
     }
 
@@ -349,13 +357,8 @@ class ZcashAdapter(
             return
         }
 
-        zcashAccount = getFirstAccount()
-        receiveAddress = when (addressSpecTyped) {
-            AddressSpecType.Shielded -> synchronizer.getSaplingAddress(getFirstAccount())
-            AddressSpecType.Transparent -> synchronizer.getTransparentAddress(getFirstAccount())
-            AddressSpecType.Unified -> synchronizer.getUnifiedAddress(getFirstAccount())
-            null -> synchronizer.getSaplingAddress(getFirstAccount())
-        }
+        zcashAccount = tryOrNull { getFirstAccount() }
+        receiveAddress = getReceiveAddressOrEmpty()
         transactionsProvider =
             ZcashTransactionsProvider(
                 synchronizer = synchronizer as SdkSynchronizer
