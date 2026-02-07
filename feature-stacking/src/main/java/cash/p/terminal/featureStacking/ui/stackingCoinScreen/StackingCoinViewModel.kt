@@ -1,6 +1,6 @@
 package cash.p.terminal.featureStacking.ui.stackingCoinScreen
 
-import android.util.Log
+import timber.log.Timber
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,7 +33,6 @@ import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.models.CoinPrice
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.BackgroundManager
-import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.smartFormat
@@ -57,7 +56,6 @@ internal abstract class StackingCoinViewModel(
     private val marketKitWrapper: MarketKitWrapper,
     private val balanceService: BalanceService,
     private val balanceHiddenManager: IBalanceHiddenManager,
-    private val backgroundManager: BackgroundManager,
     private val checkPremiumUseCase: CheckPremiumUseCase
 ) : ViewModel() {
 
@@ -103,7 +101,9 @@ internal abstract class StackingCoinViewModel(
         }
 
         viewModelScope.launch {
-            daysPremiumLeft = (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft ?: 15
+            daysPremiumLeft =
+                (checkPremiumUseCase.checkTrialPremiumStatus() as? TrialPremiumResult.DemoActive)?.daysLeft
+                    ?: 15
         }
     }
 
@@ -123,7 +123,11 @@ internal abstract class StackingCoinViewModel(
                                     true
                                 )
                     } != null) {
-                    loadBalance()
+                    try {
+                        loadBalance()
+                    } catch (e: Exception) {
+                        Timber.e(e, "Error loading balance")
+                    }
                     cancel()
                 }
             }
@@ -137,7 +141,11 @@ internal abstract class StackingCoinViewModel(
         )
         viewModelScope.launch {
             loadAnnualInterest()
-            loadBalance()
+            try {
+                loadBalance()
+            } catch (e: Exception) {
+                Timber.e(e, "Error refreshing balance")
+            }
             balanceService.refresh()
             delay(1000)
             _uiState.value = uiState.value.copy(
@@ -158,7 +166,7 @@ internal abstract class StackingCoinViewModel(
                 )
             }
         } catch (e: Exception) {
-            Log.e("StackingCoinViewModel", "Error loading annual interest", e)
+            Timber.e(e, "Error loading annual interest")
             _uiState.value = uiState.value.copy(
                 annualInterest = if (stackingType == StackingType.PCASH) {
                     PIRATE_DEFAULT_ANNUAL_INTEREST
@@ -204,7 +212,7 @@ internal abstract class StackingCoinViewModel(
             BuildConfig.COSANTA_CONTRACT
         }
 
-    private fun loadBalance() {
+    private suspend fun loadBalance() {
         val wallet = walletManager.activeWallets.find {
             it.token.type is TokenType.Eip20 && (it.token.type as TokenType.Eip20).address.equals(
                 getContract(),
@@ -232,29 +240,19 @@ internal abstract class StackingCoinViewModel(
             receiveAddress = receiveAddress,
             isWatchAccount = wallet?.account?.isWatchAccount ?: false
         )
-
-        viewModelScope.launch(
-            CoroutineExceptionHandler { _, throwable ->
-                Log.e("StackingCoinViewModel", "Error loading balance", throwable)
-            }
-        ) {
-            balanceService.balanceItemsFlow.collectLatest { items ->
-                if (backgroundManager.stateFlow.value != BackgroundManagerState.EnterForeground) {
-                    return@collectLatest
-                }
-                items?.find { it.wallet.coin.code == stackingType.value }?.let { item ->
-                    loadInvestmentData(
-                        balance = item.balanceData.total,
-                        wallet = wallet,
-                        coinPrice = item.coinPrice
-                    )
-                    uiState.value.receiveAddress?.let {
-                        loadPayouts(
-                            address = it,
-                            coinPrice = item.coinPrice
-                        )
-                    }
-                }
+        balanceService.balanceItemsFlow.value?.find {
+            it.wallet == wallet
+        }?.let { item ->
+            loadInvestmentData(
+                balance = item.balanceData.total,
+                wallet = wallet,
+                coinPrice = item.coinPrice
+            )
+            uiState.value.receiveAddress?.let {
+                loadPayouts(
+                    address = it,
+                    coinPrice = item.coinPrice
+                )
             }
         }
     }
@@ -262,7 +260,7 @@ internal abstract class StackingCoinViewModel(
     private fun loadInvestmentData(balance: BigDecimal, wallet: Wallet?, coinPrice: CoinPrice?) =
         viewModelScope.launch(
             CoroutineExceptionHandler { _, throwable ->
-                Log.e("StackingCoinViewModel", "Error loading investment data", throwable)
+                Timber.e(throwable, "Error loading investment data")
                 _uiState.value = uiState.value.copy(
                     loading = false
                 )

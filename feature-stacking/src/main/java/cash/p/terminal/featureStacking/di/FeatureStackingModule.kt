@@ -24,7 +24,6 @@ val featureStackingModule = module {
             accountManager = get(),
             marketKitWrapper = get(),
             balanceHiddenManager = get(),
-            backgroundManager = get(),
             checkPremiumUseCase = get()
         )
     }
@@ -37,7 +36,6 @@ val featureStackingModule = module {
             accountManager = get(),
             marketKitWrapper = get(),
             balanceHiddenManager = get(),
-            backgroundManager = get(),
             checkPremiumUseCase = get()
         )
     }

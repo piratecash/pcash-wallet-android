@@ -63,7 +63,7 @@ class PirateInvestmentChartService(
     private fun mapToChartPointsWrapper(investmentGraphData: InvestmentGraphData): ChartPointsWrapper {
         val chartPoints = investmentGraphData.points.map {
             ChartPoint(
-                value = it.balance.toFloat(),
+                value = it.value.toFloat(),
                 timestamp = it.from / 1000,
             )
         }

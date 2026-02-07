@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.javax.inject)
     implementation(libs.rxjava)
     implementation(libs.kotlinx.coroutines.rx2)
+    implementation(libs.timber)
 
     implementation(libs.androidx.navigation.runtime.ktx)
     debugImplementation(libs.androidx.ui.tooling)

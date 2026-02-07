@@ -16,7 +16,6 @@ import io.horizontalsystems.core.IAppNumberFormatter
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 internal class CalculatorViewModel(
@@ -58,44 +57,42 @@ internal class CalculatorViewModel(
     }
 
     private suspend fun loadCalculatedData(doubleValue: Double) {
-        balanceService.balanceItemsFlow.collectLatest { items ->
-            items?.find {
-                (uiState.value.stackingType == StackingType.PCASH && it.wallet.isPirateCash()) ||
-                        (uiState.value.stackingType == StackingType.COSANTA && it.wallet.isCosanta())
-            }
-                ?.let { pcashItem ->
-                    val items = piratePlaceRepository.getCalculatorData(
-                        coinGeckoUid = uiState.value.stackingType.value.lowercase(),
-                        amount = doubleValue
-                    ).items.map {
-                        val amountBigDecimal = it.amount.toBigDecimal()
-                        CalculatorItem(
-                            period = it.periodType,
-                            amount = "+" + numberFormatter.formatNumberShort(
-                                amountBigDecimal,
-                                5
-                            ),
-                            amountSecondary = "+" + BalanceViewHelper.currencyValue(
-                                balance = amountBigDecimal,
-                                coinPrice = pcashItem.coinPrice,
-                                visible = true,
-                                fullFormat = false,
-                                currency = balanceService.baseCurrency,
-                                dimmed = false
-                            ).value
-                        )
-                    }
-                    _uiState.value = uiState.value.copy(
-                        calculateResult = items,
-                        coinSecondary = pcashItem.coinPrice?.currencyCode.orEmpty(),
-                        coinExchange = buildExchangeRateString(
-                            amount = doubleValue,
+        balanceService.balanceItemsFlow.value?.find {
+            (uiState.value.stackingType == StackingType.PCASH && it.wallet.isPirateCash()) ||
+                    (uiState.value.stackingType == StackingType.COSANTA && it.wallet.isCosanta())
+        }
+            ?.let { pcashItem ->
+                val items = piratePlaceRepository.getCalculatorData(
+                    coinGeckoUid = uiState.value.stackingType.value.lowercase(),
+                    amount = doubleValue
+                ).items.map {
+                    val amountBigDecimal = it.amount.toBigDecimal()
+                    CalculatorItem(
+                        period = it.periodType,
+                        amount = "+" + numberFormatter.formatNumberShort(
+                            amountBigDecimal,
+                            5
+                        ),
+                        amountSecondary = "+" + BalanceViewHelper.currencyValue(
+                            balance = amountBigDecimal,
                             coinPrice = pcashItem.coinPrice,
-                            coin = uiState.value.stackingType.value.lowercase()
-                        )
+                            visible = true,
+                            fullFormat = false,
+                            currency = balanceService.baseCurrency,
+                            dimmed = false
+                        ).value
                     )
                 }
-        }
+                _uiState.value = uiState.value.copy(
+                    calculateResult = items,
+                    coinSecondary = pcashItem.coinPrice?.currencyCode.orEmpty(),
+                    coinExchange = buildExchangeRateString(
+                        amount = doubleValue,
+                        coinPrice = pcashItem.coinPrice,
+                        coin = uiState.value.stackingType.value.lowercase()
+                    )
+                )
+            }
     }
 
     private fun buildExchangeRateString(
