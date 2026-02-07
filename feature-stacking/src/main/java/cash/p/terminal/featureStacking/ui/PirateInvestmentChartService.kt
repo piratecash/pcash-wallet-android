@@ -55,13 +55,22 @@ class PirateInvestmentChartService(
                     coinGeckoUid = coinGeckoUid,
                     address = receiveAddress,
                     period = period
-                )
+                ),
+                chartInterval
             )
         }
     }
 
-    private fun mapToChartPointsWrapper(investmentGraphData: InvestmentGraphData): ChartPointsWrapper {
-        val chartPoints = investmentGraphData.points.map {
+    private fun mapToChartPointsWrapper(
+        investmentGraphData: InvestmentGraphData,
+        chartInterval: HsTimePeriod
+    ): ChartPointsWrapper {
+        val points = when (chartInterval) {
+            HsTimePeriod.Year1 -> investmentGraphData.points
+            else -> investmentGraphData.points.dropLast(1)
+        }
+
+        val chartPoints = points.map {
             ChartPoint(
                 value = it.value.toFloat(),
                 timestamp = it.from / 1000,
