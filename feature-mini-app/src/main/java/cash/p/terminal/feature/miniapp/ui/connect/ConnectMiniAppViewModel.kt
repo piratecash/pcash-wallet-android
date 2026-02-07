@@ -466,11 +466,13 @@ class ConnectMiniAppViewModel(
                 val emulatorResult = checkIfEmulatorUseCase()
                 val isEmulator = emulatorResult.isEmulator
 
+                val (pirateBalance, cosaBalance) = getSpecialProposalDataUseCase.getPirateCosaBalances(evmAddress)
+
                 val request = PCashWalletRequestDto(
                     walletAddress = pirateJettonAddress,
                     premiumAddress = evmAddress,
-                    pirate = uiState.specialProposalData?.pirateBalance?.toPlainString() ?: "0",
-                    cosa = uiState.specialProposalData?.cosaBalance?.toPlainString() ?: "0",
+                    pirate = pirateBalance.toPlainString(),
+                    cosa = cosaBalance.toPlainString(),
                     uniqueCode = uniqueCodeStorage.uniqueCode.ifBlank { null },
                     gyro = deviceEnv.gyroscopeAverage?.toDto() ?: Vector3DDto.ZERO,
                     accelerometer = deviceEnv.accelerometerAverage?.toDto() ?: Vector3DDto.ZERO,

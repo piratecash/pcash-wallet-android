@@ -48,20 +48,7 @@ class GetSpecialProposalDataUseCase(
         }
 
         // Get remote balances
-        val pirateBalance = evmAddress?.let {
-            getRemoteBalance(
-                PremiumConfig.PIRATE_CONTRACT_ADDRESS,
-                it,
-                PremiumConfig.COIN_TYPE_PIRATE
-            )
-        } ?: BigDecimal.ZERO
-        val cosaBalance = evmAddress?.let {
-            getRemoteBalance(
-                PremiumConfig.COSANTA_CONTRACT_ADDRESS,
-                it,
-                PremiumConfig.COIN_TYPE_COSANTA
-            )
-        } ?: BigDecimal.ZERO
+        val (pirateBalance, cosaBalance) = getPirateCosaBalances(evmAddress)
 
         // Get prices
         val piratePrice =
@@ -160,13 +147,11 @@ class GetSpecialProposalDataUseCase(
         SpecialProposalData(
             guaranteedBonus = guaranteedBonus,
             guaranteedBonusFiat = guaranteedBonusFiat,
-            pirateBalance = pirateBalance,
             pirateNotEnough = pirateNotEnough,
             pirateNotEnoughFiat = pirateNotEnoughFiat,
             pirateRoi = pirateRoi,
             pirateMonthlyIncome = pirateMonthlyIncome,
             pirateMonthlyIncomeFiat = pirateMonthlyIncomeFiat,
-            cosaBalance = cosaBalance,
             cosaNotEnough = cosaNotEnough,
             cosaNotEnoughFiat = cosaNotEnoughFiat,
             cosaRoi = cosaRoi,
@@ -178,6 +163,27 @@ class GetSpecialProposalDataUseCase(
             hasPremium = hasPiratePremium || hasCosaPremium
         )
     }
+
+    suspend fun getPirateCosaBalances(evmAddress: String?): Pair<BigDecimal, BigDecimal> =
+        withContext(dispatcherProvider.io) {
+            if (evmAddress == null) return@withContext BigDecimal.ZERO to BigDecimal.ZERO
+
+            val pirateDeferred = async {
+                getRemoteBalance(
+                    PremiumConfig.PIRATE_CONTRACT_ADDRESS,
+                    evmAddress,
+                    PremiumConfig.COIN_TYPE_PIRATE
+                )
+            }
+            val cosaDeferred = async {
+                getRemoteBalance(
+                    PremiumConfig.COSANTA_CONTRACT_ADDRESS,
+                    evmAddress,
+                    PremiumConfig.COIN_TYPE_COSANTA
+                )
+            }
+            pirateDeferred.await() to cosaDeferred.await()
+        }
 
     private suspend fun getRemoteBalance(
         contractAddress: String,
