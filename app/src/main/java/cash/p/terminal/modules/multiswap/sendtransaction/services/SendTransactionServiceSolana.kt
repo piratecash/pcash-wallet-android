@@ -13,8 +13,11 @@ import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
+import cash.p.terminal.entities.PendingTransactionDraft
+import org.koin.java.KoinJavaComponent.inject
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
@@ -48,7 +51,7 @@ class SendTransactionServiceSolana(
     private val coinMaxAllowedDecimals = wallet.token.decimals
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.availableBalance
+        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.maxSpendableBalance
 
     private val amountService = SendAmountService(
         amountValidator = AmountValidator(),
@@ -67,7 +70,8 @@ class SendTransactionServiceSolana(
         SolanaAdapter.balanceInBigDecimal(balance, solToken.decimals) - SolanaKit.accountRentAmount
     private val addressService = SendSolanaAddressService()
     private val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-
+    private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+    private var pendingTxId: String? = null
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = token.decimals
@@ -78,6 +82,8 @@ class SendTransactionServiceSolana(
 
     private var fee = SolanaKit.fee
     private var rawTransaction: ByteArray? = null
+    private var rawTransactionAddress: String? = null
+    private var rawTransactionAmount: BigDecimal? = null
 
     var coinRate by mutableStateOf(xRateService.getRate(token.coin.uid))
         private set
@@ -151,6 +157,8 @@ class SendTransactionServiceSolana(
             is SendTransactionData.Solana.WithRawTransaction -> {
                 val rawTransaction = data.rawTransactionStr.hexToByteArray()
                 this.rawTransaction = rawTransaction
+                this.rawTransactionAddress = data.rawTransactionAddress
+                this.rawTransactionAmount = data.rawTransactionAmount
 
                 fee = adapter.estimateFee(rawTransaction)
             }
@@ -179,8 +187,24 @@ class SendTransactionServiceSolana(
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         try {
+            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available ?: adjustedAvailableBalance
+            val fromAddress = adapterManager.getReceiveAdapterForWallet(wallet)?.receiveAddress ?: ""
+
             val tmpRawTransaction = rawTransaction
             val transaction = if (tmpRawTransaction != null) {
+                val draft = PendingTransactionDraft(
+                    wallet = wallet,
+                    token = wallet.token,
+                    amount = rawTransactionAmount ?: fee,
+                    fee = fee,
+                    sdkBalanceAtCreation = sdkBalance,
+                    fromAddress = fromAddress,
+                    toAddress = rawTransactionAddress.orEmpty(),
+                    txHash = null
+                )
+                pendingTxId = pendingRegistrar.register(draft)
+
                 adapter.send(tmpRawTransaction)
             } else {
                 val totalSolAmount =
@@ -188,10 +212,30 @@ class SendTransactionServiceSolana(
 
                 if (totalSolAmount > solBalance)
                     throw EvmError.InsufficientBalanceWithFee
+
+                val draft = PendingTransactionDraft(
+                    wallet = wallet,
+                    token = wallet.token,
+                    amount = decimalAmount,
+                    fee = SolanaKit.fee,
+                    sdkBalanceAtCreation = sdkBalance,
+                    fromAddress = fromAddress,
+                    toAddress = addressState.solanaAddress?.publicKey?.toString() ?: "",
+                    txHash = null
+                )
+                pendingTxId = pendingRegistrar.register(draft)
+
                 adapter.send(decimalAmount, addressState.solanaAddress!!)
             }
+
+            pendingTxId?.let { pendingRegistrar.updateTxId(it, transaction.transaction.hash) }
+
             return SendTransactionResult.Solana(SendResult.Sent(transaction.transaction.hash))
         } catch (e: Throwable) {
+            pendingTxId?.let {
+                pendingRegistrar.deleteFailed(it)
+            }
+
             cautions = listOf(createCaution(e))
             emitState()
             throw e

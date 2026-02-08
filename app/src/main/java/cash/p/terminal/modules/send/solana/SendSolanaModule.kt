@@ -42,7 +42,7 @@ object SendSolanaModule {
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
                     val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-                        ?: adapter.availableBalance
+                        ?: adapter.maxSpendableBalance
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,

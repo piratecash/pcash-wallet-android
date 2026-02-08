@@ -43,7 +43,11 @@ sealed class SendTransactionData {
             val amount: BigDecimal
         ) : Solana()
 
-        data class WithRawTransaction(val rawTransactionStr: String) : Solana()
+        data class WithRawTransaction(
+            val rawTransactionStr: String,
+            val rawTransactionAddress: String,
+            val rawTransactionAmount: BigDecimal
+        ) : Solana()
     }
 
     sealed class Stellar : SendTransactionData() {

@@ -44,12 +44,10 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
     override val balanceUpdatedFlow: Flow<Unit>
         get() = solanaKit.balanceFlow.map {}
 
-    // ISendSolanaAdapter
-    override val availableBalance: BigDecimal
+    override val maxSpendableBalance: BigDecimal
         get() {
-            val availableBalance =
-                balanceData.available - SolanaKit.fee - SolanaKit.accountRentAmount
-            return if (availableBalance < BigDecimal.ZERO) BigDecimal.ZERO else availableBalance
+            val spendable = balanceData.available - SolanaKit.fee - SolanaKit.accountRentAmount
+            return maxOf(spendable, BigDecimal.ZERO)
         }
 
     override suspend fun send(amount: BigDecimal, to: Address): FullTransaction {
