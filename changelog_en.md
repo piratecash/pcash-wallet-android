@@ -1,3 +1,16 @@
+## 🚀 Version 0.51.12 Update
+_Release date: to be announced_
+
+### 🐛 Fixes
+
+- **Fixed delayed TRX20 token balance update on the main screen**
+  Resolved an issue where the TRX20 token balance was not updated immediately and appeared with a delay on the main screen.
+
+- **Fixed incorrect asset price changes when switching chart time periods**
+  The asset price is now consistent and no longer depends on the selected chart time interval.
+
+
+
 ## 🚀 Version 0.51.11 Update
 _Release date: February 7, 2026_
 
