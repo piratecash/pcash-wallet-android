@@ -137,11 +137,10 @@ open class ChartViewModel(
             )
         } else {
             val chartItems = chartPointsWrapper.items
-
             val latestItem = chartItems.last()
-            val lastItemValue = latestItem.value
-            val currentValue =
-                valueFormatter.formatValue(service.currency, lastItemValue.toBigDecimal())
+
+            val currentPrice = chartPointsWrapper.currentPrice ?: latestItem.value.toBigDecimal()
+            val currentValue = valueFormatter.formatValue(service.currency, currentPrice)
 
             val dominanceData = latestItem.dominance?.let { dominance ->
                 val earliestItem = chartItems.first()

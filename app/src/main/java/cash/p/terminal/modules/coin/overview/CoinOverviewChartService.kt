@@ -201,7 +201,7 @@ class CoinOverviewChartService(
                 )
             }
 
-        return ChartPointsWrapper(items, indicators = indicators)
+        return ChartPointsWrapper(items, currentPrice = latestCoinPrice.value, indicators = indicators)
     }
 
 }
