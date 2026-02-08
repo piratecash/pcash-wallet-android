@@ -137,6 +137,6 @@ class ProChartService(
             ProChartModule.ChartType.TxCount -> false
         }
 
-        return ChartPointsWrapper(chartDataSingle, isMovementChart)
+        return ChartPointsWrapper(items = chartDataSingle, isMovementChart = isMovementChart)
     }
 }
