@@ -47,6 +47,11 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
     override val balanceUpdatedFlow: Flow<Unit>
         get() = solanaKit.balanceFlow.map {}
 
+    override val maxSpendableBalance: BigDecimal
+        get() {
+            val spendable = balanceData.available - SolanaKit.fee - SolanaKit.accountRentAmount
+            return maxOf(spendable, BigDecimal.ZERO)
+        }
     override val fee: StateFlow<BigDecimal> =
         MutableStateFlow(SolanaKit.fee + SolanaKit.accountRentAmount)
 

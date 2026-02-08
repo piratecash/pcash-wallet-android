@@ -3,6 +3,8 @@ package cash.p.terminal.modules.multiswap.sendtransaction.services
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
+import cash.p.terminal.core.managers.SolanaKitManager
+import cash.p.terminal.core.managers.SolanaKitWrapper
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.wallet.IAdapterManager
@@ -360,6 +362,20 @@ class SendTransactionServiceSolanaTest : KoinTest {
 
     private fun setupAppMocks() {
         mockkObject(App)
+
+        val coinManager = mockk<cash.p.terminal.core.managers.CoinManager>(relaxed = true) {
+            every { getToken(any()) } returns testToken
+        }
+        every { App.coinManager } returns coinManager
+
+        val solanaKit = mockk<SolanaKit>(relaxed = true) {
+            every { balance } returns 1000000000L // 1 SOL in lamports
+        }
+        val solanaKitWrapper = SolanaKitWrapper(solanaKit, null)
+        val solanaKitManager = mockk<SolanaKitManager>(relaxed = true) {
+            every { this@mockk.solanaKitWrapper } returns solanaKitWrapper
+        }
+        every { App.solanaKitManager } returns solanaKitManager
 
         every { App.currencyManager } returns currencyManager
         every { App.marketKit } returns marketKit
