@@ -6,13 +6,13 @@ import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.core.adapters.BaseTronAdapter
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.balance.BalanceWarning
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
@@ -21,11 +21,12 @@ import java.math.BigDecimal
 class BalanceAdapterRepository(
     private val adapterManager: IAdapterManager,
     private val balanceCache: BalanceCache,
-    private val pendingBalanceCalculator: PendingBalanceCalculator
+    private val pendingBalanceCalculator: PendingBalanceCalculator,
+    dispatcherProvider: DispatcherProvider
 ) : Clearable {
     private var wallets = listOf<Wallet>()
 
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(dispatcherProvider.io)
 
     private val readySubject = PublishSubject.create<Unit>()
     val readyObservable: Observable<Unit> get() = readySubject
