@@ -162,7 +162,7 @@ object OneInchProvider : EvmSwapProvider() {
             amountIn = amountIn,
             amountOut = amountOut,
             amountOutMin = amountOutMin,
-            sendTransactionData = SendTransactionData.Evm(TransactionData(swapTx.to, swapTx.value, swapTx.data), swapTx.gasLimit),
+            sendTransactionData = SendTransactionData.Evm(TransactionData(swapTx.to, swapTx.value, swapTx.data), swapTx.gasLimit, amount = amountIn),
             priceImpact = null,
             fields = fields
         )

@@ -341,7 +341,8 @@ abstract class BaseThorChainProvider(
                 SendTransactionData.Evm(
                     transactionData = transactionData,
                     gasLimit = null,
-                    feesMap = feesMap
+                    feesMap = feesMap,
+                    amount = amountIn
                 )
             }
 

@@ -214,8 +214,14 @@ class TransactionAdapterWrapper(
             val pendingEntities = pendingRepository.getPendingForWallet(walletId)
             val pendingRecords = getPending(pendingEntities)
 
-            // Merge and sort by timestamp descending
-            (realRecords + pendingRecords).sortedByDescending { it.timestamp }
+            val realHashes = realRecords.mapNotNullTo(HashSet()) {
+                it.transactionHash.takeIf { hash -> hash.isNotEmpty() }
+            }
+            val filteredPending = pendingRecords.filter { pending ->
+                pending.transactionHash.isEmpty() || pending.transactionHash !in realHashes
+            }
+
+            (realRecords + filteredPending).sortedByDescending { it.timestamp }
         } catch (e: Exception) {
             // If something fails, return real records only
             realRecords

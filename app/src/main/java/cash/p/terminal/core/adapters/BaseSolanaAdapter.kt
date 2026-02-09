@@ -31,6 +31,9 @@ abstract class BaseSolanaAdapter(
     override val isMainNet: Boolean
         get() = solanaKit.isMainnet
 
+    override val maxSpendableBalance: BigDecimal
+        get() = super.maxSpendableBalance
+
     override fun estimateFee(rawTransaction: ByteArray): BigDecimal {
         return solanaKit.estimateFee(rawTransaction)
     }

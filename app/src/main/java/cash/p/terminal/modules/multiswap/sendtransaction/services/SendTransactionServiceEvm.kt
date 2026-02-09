@@ -22,7 +22,10 @@ import cash.p.terminal.core.adapters.BaseEvmAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.CautionViewItemFactory
 import cash.p.terminal.core.ethereum.EvmCoinServiceFactory
+import cash.p.terminal.core.isNative
+import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.evmfee.Eip1559FeeSettings
 import cash.p.terminal.modules.evmfee.EvmCommonGasDataService
@@ -62,6 +65,7 @@ import io.horizontalsystems.ethereumkit.decorations.TransactionDecoration
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.reactivex.Flowable
+import org.koin.java.KoinJavaComponent.inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,6 +117,8 @@ internal class SendTransactionServiceEvm(
         SendEvmNonceService(evmKitWrapper.evmKit, initialNonce)
     }
     private val settingsService by lazy { SendEvmSettingsService(feeService, nonceService) }
+    private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+    private var sendAmount: BigDecimal? = null
 
     private val baseCoinService = coinServiceFactory.baseCoinService
     private val cautionViewItemFactory by lazy { CautionViewItemFactory(baseCoinService, numberFormatter) }
@@ -237,6 +243,7 @@ internal class SendTransactionServiceEvm(
     override suspend fun setSendTransactionData(data: SendTransactionData) {
         check(data is SendTransactionData.Evm)
 
+        sendAmount = data.amount
         feeService.setGasLimit(data.gasLimit)
         feeService.setTransactionData(data.transactionData)
 
@@ -254,14 +261,41 @@ internal class SendTransactionServiceEvm(
         val gasLimit = transaction.gasData.gasLimit
         val nonce = transaction.nonce
 
-        val fullTransaction = evmKitWrapper.sendSingle(
-            transactionData,
-            gasPrice,
-            gasLimit,
-            nonce,
-            mevProtectionEnabled
-        )
-        return SendTransactionResult.Evm(fullTransaction)
+        var pendingTxId: String? = null
+        try {
+            sendAmount?.let { amount ->
+                val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+                    ?.balanceData?.available ?: adapter.maxSpendableBalance
+                val draft = PendingTransactionDraft(
+                    wallet = wallet,
+                    token = wallet.token,
+                    amount = amount,
+                    fee = if (token.type.isNative) BigDecimal(transaction.gasData.estimatedFee, feeToken.decimals) else null,
+                    sdkBalanceAtCreation = sdkBalance,
+                    fromAddress = evmKitWrapper.evmKit.receiveAddress.eip55,
+                    toAddress = transactionData.to.eip55,
+                    nonce = nonce
+                )
+                pendingTxId = pendingRegistrar.register(draft)
+            }
+
+            val fullTransaction = evmKitWrapper.sendSingle(
+                transactionData,
+                gasPrice,
+                gasLimit,
+                nonce,
+                mevProtectionEnabled
+            )
+
+            pendingTxId?.let {
+                pendingRegistrar.updateTxId(it, fullTransaction.transaction.hashString)
+            }
+
+            return SendTransactionResult.Evm(fullTransaction)
+        } catch (e: Throwable) {
+            pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
+            throw e
+        }
     }
 
     fun decorate(transactionData: TransactionData): TransactionDecoration? {
