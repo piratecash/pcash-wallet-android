@@ -185,7 +185,7 @@ class SendTransactionServiceSolana(
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
-        private var pendingTxId: String? = null
+        var pendingTxId: String? = null
         try {
             val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
                 ?.balanceData?.available ?: adjustedAvailableBalance
