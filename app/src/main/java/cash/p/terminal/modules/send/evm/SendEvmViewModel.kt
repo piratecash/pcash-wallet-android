@@ -26,8 +26,6 @@ import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
@@ -43,7 +41,7 @@ internal class SendEvmViewModel(
     private val addressService: SendEvmAddressService,
     val coinMaxAllowedDecimals: Int,
     private val showAddressInput: Boolean,
-    private val address: Address?
+    address: Address?
 ) : ViewModelUiState<SendUiState>() {
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val blockchainType = wallet.token.blockchainType
@@ -84,21 +82,6 @@ internal class SendEvmViewModel(
         }
 
         sendTransactionService.start(viewModelScope)
-
-        amountService.stateFlow.onEach {
-            addressState.address?.let { address ->
-                sendTransactionService.setSendTransactionData(
-                    SendTransactionData.Evm(
-                        adapter.getTransactionData(
-                            amountState.amount ?: BigDecimal.ZERO,
-                            io.horizontalsystems.ethereumkit.models.Address(address.hex)
-                        ),
-                        null
-                    )
-                )
-            }
-        }.launchIn(viewModelScope)
-
     }
 
     override fun createState() = SendUiState(
@@ -154,14 +137,30 @@ internal class SendEvmViewModel(
 
     private fun handleUpdatedAmountState(amountState: SendAmountService.State) {
         this.amountState = amountState
-
+        updateSendTransactionData()
         emitState()
     }
 
     private fun handleUpdatedAddressState(addressState: SendEvmAddressService.State) {
         this.addressState = addressState
-
+        updateSendTransactionData()
         emitState()
+    }
+
+    private fun updateSendTransactionData() {
+        val amount = amountState.amount ?: return
+        val address = addressState.address ?: return
+        viewModelScope.launch {
+            sendTransactionService.setSendTransactionData(
+                SendTransactionData.Evm(
+                    adapter.getTransactionData(
+                        amount,
+                        io.horizontalsystems.ethereumkit.models.Address(address.hex)
+                    ),
+                    null
+                )
+            )
+        }
     }
 
     private fun createCaution(error: Throwable) = when (error) {
