@@ -29,7 +29,6 @@ import cash.p.terminal.wallet.models.EtfPoint
 import cash.p.terminal.wallet.models.EtfPointResponse
 import cash.p.terminal.wallet.models.EtfResponse
 import cash.p.terminal.wallet.models.GlobalMarketPoint
-import cash.p.terminal.wallet.models.HsPointTimePeriod
 import cash.p.terminal.wallet.models.IntervalData
 import cash.p.terminal.wallet.models.MarketGlobal
 import cash.p.terminal.wallet.models.MarketInfo
@@ -324,12 +323,10 @@ class MarketKit(
         val periodType = HsPeriodType.ByPeriod(timePeriod)
         val currentTime = Date().time / 1000
         val fromTimestamp = HsChartRequestHelper.fromTimestamp(currentTime, periodType)
-        val interval = HsPointTimePeriod.Day1
         return hsProvider.coinPriceChartSingle(
             coinGeckoUid = coinGeckoUid(coinUid),
             currencyCode = currencyCode,
             periodType = timePeriod,
-            pointPeriodType = interval,
             fromTimestamp = fromTimestamp
         )
             .let { response ->
@@ -482,7 +479,6 @@ class MarketKit(
             coinGeckoUid = coinGeckoUid(coinUid),
             currencyCode = currencyCode,
             periodType = periodType.timePeriod,
-            pointPeriodType = data.interval,
             fromTimestamp = data.fromTimestamp
         ).let {
             Pair(data.visibleTimestamp, it.map { it.chartPoint })
