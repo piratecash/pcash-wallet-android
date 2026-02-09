@@ -6,6 +6,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.modules.balance.BalanceAdapterRepository
 import cash.p.terminal.modules.balance.BalanceCache
@@ -38,6 +39,7 @@ class TokenBalanceModule {
             val pendingBalanceCalculator: PendingBalanceCalculator by inject(
                 PendingBalanceCalculator::class.java
             )
+            val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
             val balanceService = TokenBalanceService(
                 wallet = wallet,
                 xRateRepository = DefaultBalanceXRateRepository(
@@ -48,7 +50,8 @@ class TokenBalanceModule {
                 balanceAdapterRepository = BalanceAdapterRepository(
                     adapterManager,
                     BalanceCache(App.appDatabase.enabledWalletsCacheDao()),
-                    pendingBalanceCalculator
+                    pendingBalanceCalculator,
+                    dispatcherProvider
                 ),
             )
 
