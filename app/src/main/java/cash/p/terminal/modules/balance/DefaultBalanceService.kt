@@ -5,6 +5,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
+import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.wallet.Account
@@ -265,6 +266,7 @@ class DefaultBalanceService private constructor(
     companion object {
         private val userDeletedWalletManager: UserDeletedWalletManager by inject(UserDeletedWalletManager::class.java)
         private val pendingBalanceCalculator: PendingBalanceCalculator by inject(PendingBalanceCalculator::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
         fun getInstance(tag: String): DefaultBalanceService {
             return DefaultBalanceService(
@@ -277,7 +279,8 @@ class DefaultBalanceService private constructor(
                 BalanceAdapterRepository(
                     App.adapterManager,
                     BalanceCache(App.appDatabase.enabledWalletsCacheDao()),
-                    pendingBalanceCalculator
+                    pendingBalanceCalculator,
+                    dispatcherProvider
                 ),
                 App.localStorage,
                 App.connectivityManager,

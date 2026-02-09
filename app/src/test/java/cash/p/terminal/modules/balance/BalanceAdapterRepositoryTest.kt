@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.balance
 
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.PendingBalanceCalculator
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -10,7 +11,9 @@ import io.mockk.mockk
 import io.reactivex.Flowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -19,6 +22,9 @@ import java.math.BigDecimal
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BalanceAdapterRepositoryTest {
+
+    private val dispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(dispatcher)
 
     private lateinit var adapterManager: IAdapterManager
     private lateinit var balanceCache: BalanceCache
@@ -49,22 +55,14 @@ class BalanceAdapterRepositoryTest {
     }
 
     @Test
-    fun updatesObservable_emitsWhenPendingTransactionsChange() {
-        // Given: BalanceAdapterRepository with wallets set
-        val repository = BalanceAdapterRepository(
-            adapterManager,
-            balanceCache,
-            pendingBalanceCalculator
-        )
+    fun updatesObservable_emitsWhenPendingTransactionsChange() = runTest(dispatcher) {
+        val repository = createRepository()
         repository.setWallet(listOf(testWallet))
 
         val testObserver = repository.updatesObservable.test()
 
-        // When: pending transaction changes
-        runBlocking { pendingChangedFlow.emit(Unit) }
+        pendingChangedFlow.emit(Unit)
 
-        // Then: updatesObservable should emit the wallet
-        testObserver.awaitCount(1, { }, 1000)
         testObserver.assertValueCount(1)
         assertEquals(testWallet, testObserver.values().first())
 
@@ -72,26 +70,18 @@ class BalanceAdapterRepositoryTest {
     }
 
     @Test
-    fun updatesObservable_emitsForAllWalletsWhenPendingTransactionsChange() {
-        // Given: BalanceAdapterRepository with multiple wallets
+    fun updatesObservable_emitsForAllWalletsWhenPendingTransactionsChange() = runTest(dispatcher) {
         val wallet1 = mockk<Wallet>(relaxed = true)
         val wallet2 = mockk<Wallet>(relaxed = true)
         val wallet3 = mockk<Wallet>(relaxed = true)
 
-        val repository = BalanceAdapterRepository(
-            adapterManager,
-            balanceCache,
-            pendingBalanceCalculator
-        )
+        val repository = createRepository()
         repository.setWallet(listOf(wallet1, wallet2, wallet3))
 
         val testObserver = repository.updatesObservable.test()
 
-        // When: pending transaction changes
-        runBlocking { pendingChangedFlow.emit(Unit) }
+        pendingChangedFlow.emit(Unit)
 
-        // Then: updatesObservable should emit all wallets
-        testObserver.awaitCount(3, { }, 1000)
         testObserver.assertValueCount(3)
         assertTrue("Should emit wallet1", testObserver.values().contains(wallet1))
         assertTrue("Should emit wallet2", testObserver.values().contains(wallet2))
@@ -99,4 +89,11 @@ class BalanceAdapterRepositoryTest {
 
         testObserver.dispose()
     }
+
+    private fun createRepository() = BalanceAdapterRepository(
+        adapterManager,
+        balanceCache,
+        pendingBalanceCalculator,
+        TestDispatcherProvider(dispatcher, testScope)
+    )
 }
