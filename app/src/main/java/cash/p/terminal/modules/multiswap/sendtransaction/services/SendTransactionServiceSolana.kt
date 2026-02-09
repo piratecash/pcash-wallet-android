@@ -71,7 +71,6 @@ class SendTransactionServiceSolana(
     private val addressService = SendSolanaAddressService()
     private val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
-    private var pendingTxId: String? = null
 
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = token.decimals
@@ -186,6 +185,7 @@ class SendTransactionServiceSolana(
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
+        private var pendingTxId: String? = null
         try {
             val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
                 ?.balanceData?.available ?: adjustedAvailableBalance
