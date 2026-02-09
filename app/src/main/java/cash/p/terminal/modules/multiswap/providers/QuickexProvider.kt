@@ -488,7 +488,7 @@ class QuickexProvider(
                         amountIn,
                         io.horizontalsystems.ethereumkit.models.Address(transaction.depositAddress.depositAddress)
                     )
-                SendTransactionData.Evm(transactionData, null)
+                SendTransactionData.Evm(transactionData, null, amount = amountIn)
             }
 
             tokenIn.blockchainType == BlockchainType.Tron -> {

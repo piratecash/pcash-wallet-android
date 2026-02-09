@@ -105,7 +105,7 @@ abstract class BaseUniswapProvider : EvmSwapProvider() {
             amountIn = amountIn,
             amountOut = amountOut,
             amountOutMin = amountOutMin,
-            sendTransactionData = SendTransactionData.Evm(transactionData, null),
+            sendTransactionData = SendTransactionData.Evm(transactionData, null, amount = amountIn),
             priceImpact = bestTrade.tradeData.priceImpact,
             fields = fields
         )

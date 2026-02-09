@@ -13,7 +13,8 @@ sealed class SendTransactionData {
     data class Evm(
         val transactionData: TransactionData,
         val gasLimit: Long?,
-        val feesMap: Map<FeeType, CoinValue> = mapOf()
+        val feesMap: Map<FeeType, CoinValue> = mapOf(),
+        val amount: BigDecimal? = null
     ) : SendTransactionData()
 
     data class Btc(

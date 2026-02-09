@@ -410,7 +410,8 @@ object AllBridgeProvider : IMultiSwapProvider {
                         value = rawTransaction.value?.toBigInteger() ?: BigInteger.ZERO,
                         input = rawTransaction.data.hexStringToByteArray(),
                     ),
-                    gasLimit = null
+                    gasLimit = null,
+                    amount = amountIn
                 )
             }
 
