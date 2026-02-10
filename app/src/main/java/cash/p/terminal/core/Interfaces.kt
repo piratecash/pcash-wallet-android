@@ -202,8 +202,7 @@ interface ISendZcashAdapter : IBalanceAdapter {
     suspend fun getOwnAddresses(): List<String>
 }
 
-interface ISendSolanaAdapter {
-    val availableBalance: BigDecimal
+interface ISendSolanaAdapter: IBalanceAdapter {
     suspend fun send(amount: BigDecimal, to: SolanaAddress): FullTransaction
     suspend fun send(rawTransaction: ByteArray): FullTransaction
     fun estimateFee(rawTransaction: ByteArray): BigDecimal

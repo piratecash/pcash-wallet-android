@@ -1,6 +1,5 @@
 package cash.p.terminal.core.adapters
 
-import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.managers.SolanaKitWrapper
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Wallet
@@ -58,7 +57,7 @@ class SplAdapter(
         get() = solanaKit.tokenAccountFlow(mintAddressString).map { }
 
     // ISendSolanaAdapter
-    override val availableBalance: BigDecimal
+    override val maxSpendableBalance: BigDecimal
         get() = balanceData.available
 
     override suspend fun send(amount: BigDecimal, to: Address): FullTransaction {
