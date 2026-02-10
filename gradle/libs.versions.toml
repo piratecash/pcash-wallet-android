@@ -74,7 +74,7 @@ zxing = "3.5.4"
 accompanist = "0.32.0"
 accompanist-permissions = "0.37.3"
 
-tor-android = "0.4.8.17.2"
+tor-android = "0.4.8.22"
 
 [libraries]
 android-bom = { module = "com.reown:android-bom", version.ref = "reownBom" }
