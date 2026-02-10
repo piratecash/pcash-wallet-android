@@ -16,6 +16,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.getMaxSendableBalance
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.SolanaKit
 import org.koin.java.KoinJavaComponent.inject
@@ -41,8 +42,7 @@ object SendSolanaModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
-                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-                        ?: adapter.availableBalance
+                    val availableBalance = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,
