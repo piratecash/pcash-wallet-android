@@ -2,18 +2,36 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ISendMoneroAdapter
 import cash.p.terminal.core.managers.MoneroKitWrapper
+import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.entities.BalanceData
+import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 class MoneroAdapter(
     private val moneroKitWrapper: MoneroKitWrapper,
 ) : IAdapter, IBalanceAdapter, IReceiveAdapter, ISendMoneroAdapter {
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private var collectJob: Job? = null
+    private val _fee = MutableStateFlow(BigDecimal.ZERO)
+    override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+
+    override val maxSpendableBalance: BigDecimal
+        get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
 
     override val debugInfo: String
         get() = "Monero wallet: ${moneroKitWrapper.statusInfo()}"
@@ -29,11 +47,30 @@ class MoneroAdapter(
     // IAdapter
 
     override fun start() {
-        // started via MoneroKitManager
+        collectJob?.cancel()
+        collectJob = coroutineScope.launch {
+            moneroKitWrapper.syncState.collect { state ->
+                if (state is AdapterState.Synced) {
+                    estimateFeeForMax()
+                }
+            }
+        }
     }
 
     override fun stop() {
-        // stopped via MoneroKitManager
+        collectJob?.cancel()
+        collectJob = null
+    }
+
+    private suspend fun estimateFeeForMax() {
+        if (balanceData.available <= BigDecimal.ZERO) {
+            _fee.value = BigDecimal.ZERO
+            return
+        }
+        tryOrNull {
+            val address = AppConfigProvider.donateAddresses[BlockchainType.Monero] ?: return@tryOrNull
+            _fee.value = estimateFee(balanceData.available, address, null)
+        }
     }
 
     override suspend fun refresh() {
