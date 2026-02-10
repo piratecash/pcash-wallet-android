@@ -24,8 +24,10 @@ class MarketFavoritesRepository(
         if (favoriteCoins.isEmpty()) return listOf()
 
         val favoriteCoinUids = favoriteCoins.map { it.coinUid }
+        val favoriteUidSet = favoriteCoinUids.toSet()
         val marketInfoList = marketKit
             .marketInfosSingle(favoriteCoinUids, currency.code).await()
+            .filter { it.fullCoin.coin.uid in favoriteUidSet }
 
         val apiItems = marketInfoList.map { marketInfo ->
             MarketItem.createFromCoinMarket(
