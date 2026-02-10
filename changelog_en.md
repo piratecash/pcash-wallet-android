@@ -9,6 +9,15 @@ _Release date: to be announced_
 - **Fixed incorrect asset price changes when switching chart time periods**
   The asset price is now consistent and no longer depends on the selected chart time interval.
 
+- **Fixed an issue where the “Next” button was inactive when sending coins**
+  In rare cases, the “Next” button did not become active after entering the required transaction details. This behavior has been fixed.
+
+- **Fixed adding COSA to the favorites list**
+  Resolved an issue where the COSA token did not appear in the favorites list after being added.
+
+- **Fixed removing wDASH from the favorites list**
+  The wDASH token can now be removed from the favorites list correctly.
+
 
 
 ## 🚀 Version 0.51.11 Update
