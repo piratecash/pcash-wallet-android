@@ -5,13 +5,12 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import org.koin.compose.viewmodel.koinViewModel
 import cash.p.terminal.R
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -37,10 +36,8 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 fun MarketFavoritesScreen(
     navController: NavController
 ) {
-    val currentBackStackEntry = remember { navController.currentBackStackEntry }
-    val viewModel = viewModel<MarketFavoritesViewModel>(
-        viewModelStoreOwner = currentBackStackEntry!!,
-        factory = MarketFavoritesModule.Factory()
+    val viewModel = koinViewModel<MarketFavoritesViewModel>(
+        viewModelStoreOwner = requireNotNull(navController.currentBackStackEntry)
     )
     val uiState = viewModel.uiState
     var openSortingSelector by rememberSaveable { mutableStateOf(false) }
