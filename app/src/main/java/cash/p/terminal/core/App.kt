@@ -157,9 +157,9 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         val wcManager: WCManager by inject(WCManager::class.java)
         lateinit var wcWalletRequestHandler: WCWalletRequestHandler
         val termsManager: ITermsManager by inject(ITermsManager::class.java)
-        lateinit var marketFavoritesManager: MarketFavoritesManager
+        val marketFavoritesManager: MarketFavoritesManager by inject(MarketFavoritesManager::class.java)
         val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
-        lateinit var priceManager: PriceManager
+        val priceManager: PriceManager by inject(PriceManager::class.java)
         val releaseNotesManager: ReleaseNotesManager by inject(ReleaseNotesManager::class.java)
         val evmSyncSourceManager: EvmSyncSourceManager by inject(EvmSyncSourceManager::class.java)
         val evmBlockchainManager: EvmBlockchainManager by inject(EvmBlockchainManager::class.java)
@@ -171,7 +171,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         lateinit var baseTokenManager: BaseTokenManager
         lateinit var balanceViewTypeManager: BalanceViewTypeManager
         val balanceHiddenManager: BalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
-        lateinit var marketWidgetManager: MarketWidgetManager
+        val marketWidgetManager: MarketWidgetManager by inject(MarketWidgetManager::class.java)
         lateinit var marketWidgetRepository: MarketWidgetRepository
         val contactsRepository: ContactsRepository by inject(ContactsRepository::class.java)
         val subscriptionManager: SubscriptionManager by inject(SubscriptionManager::class.java)
@@ -229,8 +229,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         lockoutStorage = get()
         thirdKeyboardStorage = get()
 
-        priceManager = PriceManager(localStorage)
-
         feeRateProvider = FeeRateProvider()
 
         backgroundManager = get()
@@ -279,10 +277,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         pinComponent = get()
 
         wcWalletRequestHandler = WCWalletRequestHandler(evmBlockchainManager)
-
-        marketWidgetManager = MarketWidgetManager()
-        marketFavoritesManager =
-            MarketFavoritesManager(appDatabase, localStorage, marketWidgetManager)
 
         marketWidgetRepository = MarketWidgetRepository(
             marketKit = marketKit,

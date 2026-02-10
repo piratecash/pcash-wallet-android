@@ -24,6 +24,7 @@ import cash.p.terminal.core.managers.CreateRequiredTokensUseCaseImpl
 import cash.p.terminal.core.managers.DefaultCurrencyManager
 import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
+import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
@@ -31,6 +32,7 @@ import cash.p.terminal.core.managers.KeyStoreCleaner
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
 import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
@@ -72,6 +74,9 @@ import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCas
 import cash.p.terminal.feature.miniapp.domain.usecase.GetTonAddressUseCase
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.addtoken.AddTokenService
+import cash.p.terminal.modules.market.favorites.MarketFavoritesMenuService
+import cash.p.terminal.modules.market.favorites.MarketFavoritesRepository
+import cash.p.terminal.modules.market.favorites.MarketFavoritesService
 import cash.p.terminal.modules.pin.PinComponent
 import cash.p.terminal.modules.pin.core.ILockoutManager
 import cash.p.terminal.modules.pin.core.ILockoutUntilDateFactory
@@ -83,6 +88,7 @@ import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.transactions.CheckAmlIncomingTransactionUseCase
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.modules.walletconnect.WCManager
+import cash.p.terminal.widgets.MarketWidgetManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.handler.WCHandlerEvm
 import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
@@ -244,6 +250,14 @@ val managerModule = module {
             apiKey = AppConfigProvider.alphaAmlApiKey
         )
     }
+
+    // Market favorites
+    singleOf(::MarketWidgetManager)
+    singleOf(::PriceManager)
+    singleOf(::MarketFavoritesManager)
+    singleOf(::MarketFavoritesRepository)
+    singleOf(::MarketFavoritesMenuService)
+    factoryOf(::MarketFavoritesService)
 
     // Pending transactions
     singleOf(::PendingTransactionRepository)
