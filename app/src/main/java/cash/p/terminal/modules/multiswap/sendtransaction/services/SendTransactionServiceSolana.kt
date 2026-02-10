@@ -49,7 +49,7 @@ class SendTransactionServiceSolana(
     private val coinMaxAllowedDecimals = wallet.token.decimals
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
+        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.maxSpendableBalance
 
     private val amountService = SendAmountService(
         amountValidator = AmountValidator(),

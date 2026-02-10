@@ -9,6 +9,8 @@ import io.horizontalsystems.solanakit.SolanaKit
 import io.horizontalsystems.solanakit.models.Address
 import io.horizontalsystems.solanakit.models.FullTransaction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -44,11 +46,11 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
     override val balanceUpdatedFlow: Flow<Unit>
         get() = solanaKit.balanceFlow.map {}
 
+    override val fee: StateFlow<BigDecimal> =
+        MutableStateFlow(SolanaKit.fee + SolanaKit.accountRentAmount)
+
     override val maxSpendableBalance: BigDecimal
-        get() {
-            val spendable = balanceData.available - SolanaKit.fee - SolanaKit.accountRentAmount
-            return maxOf(spendable, BigDecimal.ZERO)
-        }
+        get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
 
     override suspend fun send(amount: BigDecimal, to: Address): FullTransaction {
         if (signer == null) throw Exception()
