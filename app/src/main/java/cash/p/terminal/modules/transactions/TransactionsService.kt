@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.transactions
 
-import cash.p.terminal.core.managers.PendingTransactionMatcher
 import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
@@ -30,8 +29,7 @@ class TransactionsService(
     private val transactionSyncStateRepository: TransactionSyncStateRepository,
     private val contactsRepository: ContactsRepository,
     private val nftMetadataService: NftMetadataService,
-    private val spamManager: SpamManager,
-    private val pendingMatcher: PendingTransactionMatcher
+    private val spamManager: SpamManager
 ) : Clearable {
 
     private val transactionRecordRepository: ITransactionRecordRepository by inject(
@@ -220,7 +218,6 @@ class TransactionsService(
         }
 
         if (newRecords.isNotEmpty()) {
-            pendingMatcher.matchAndResolve(newRecords)
             if (newRecords.all { it.spam }) {
                 loadNext()
             }
