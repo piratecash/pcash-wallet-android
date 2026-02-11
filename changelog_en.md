@@ -1,5 +1,5 @@
 ## 🚀 Version 0.51.12 Update
-_Release date: to be announced_
+_Release date: February 11, 2026_
 
 ### 🐛 Fixes
 
@@ -17,6 +17,9 @@ _Release date: to be announced_
 
 - **Fixed removing wDASH from the favorites list**
   The wDASH token can now be removed from the favorites list correctly.
+
+- **Fixed balance validation during swap execution**
+  A swap can no longer be initiated when there are insufficient tokens.
 
 
 
