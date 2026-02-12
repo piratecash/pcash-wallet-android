@@ -1482,7 +1482,7 @@ class TransactionViewItemFactory(
 
         val valueOutFormatted = getFormattedAmount(
             coinUid = transaction.coinUidOut,
-            amount = transaction.amountOut,
+            amount = transaction.amountOutReal ?: transaction.amountOut,
             negative = false
         )
 
