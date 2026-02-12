@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.SolanaKitWrapper
+import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.core.SafeSuspendedCall
@@ -35,7 +36,7 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
     // IBalanceAdapter
 
     override val balanceState: AdapterState
-        get() = convertToAdapterState(solanaKit.syncState)
+        get() = solanaKit.syncState.toAdapterState()
 
     override val balanceStateUpdatedFlow: Flow<Unit>
         get() = solanaKit.balanceSyncStateFlow.map {}
@@ -59,13 +60,6 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
             solanaKit.sendSol(to, amount.movePointRight(decimal).toLong(), signer)
         }
     }
-
-    private fun convertToAdapterState(syncState: SolanaKit.SyncState): AdapterState =
-        when (syncState) {
-            is SolanaKit.SyncState.Synced -> AdapterState.Synced
-            is SolanaKit.SyncState.NotSynced -> AdapterState.NotSynced(syncState.error)
-            is SolanaKit.SyncState.Syncing -> AdapterState.Syncing()
-        }
 
     companion object {
         const val decimal = 9
