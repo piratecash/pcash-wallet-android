@@ -62,6 +62,9 @@ class HsProvider(baseUrl: String, apiKey: String) {
     private val pirateCoinInfoMapper: PirateCoinInfoMapper by inject(PirateCoinInfoMapper::class.java)
     private val retrofitUtils: RetrofitUtils by inject(RetrofitUtils::class.java)
 
+    @Volatile
+    private var cachedConversionRate: CachedConversionRate? = null
+
     // TODO Remove old base URL https://api-dev.blocksdecoded.com/v1 and switch it to new servers
     private val pirateService by lazy {
         retrofitUtils.build("https://pirate.cash/s1/", mapOf("apikey" to apiKey))
@@ -190,37 +193,58 @@ class HsProvider(baseUrl: String, apiKey: String) {
         coinGeckoUid: String,
         currencyCode: String,
         periodType: HsTimePeriod?,
-        pointPeriodType: HsPointTimePeriod,
         fromTimestamp: Long?
     ): List<ChartCoinPriceResponse> {
-        var cartPrices =
-            service.getCoinPriceChart(coinGeckoUid, currencyCode, fromTimestamp, pointPeriodType.value)
-                .await()
-        if (cartPrices.isEmpty()) {
-            val period = if (fromTimestamp == null) {
-                ChartPeriod.MAX
-            } else {
-                when (periodType) {
-                    HsTimePeriod.Hour1 -> ChartPeriod.HOUR
-                    HsTimePeriod.Day1 -> ChartPeriod.DAY
-                    HsTimePeriod.Week1 -> ChartPeriod.WEEK
-                    HsTimePeriod.Month1 -> ChartPeriod.MONTH
-                    HsTimePeriod.Year1 -> ChartPeriod.YEAR
-                    else -> ChartPeriod.MONTH
-                }
-            }
-            cartPrices = piratePlaceRepository.getCoinPriceChart(
-                coinGeckoUid = coinGeckoUid,
-                periodType = period
-            ).map {
-                ChartCoinPriceResponse(
-                    price = it.price,
-                    timestamp = it.timestamp / 1000,
-                    totalVolume = BigDecimal.ZERO
-                )
+        val period = if (fromTimestamp == null) {
+            ChartPeriod.MAX
+        } else {
+            when (periodType) {
+                HsTimePeriod.Hour1 -> ChartPeriod.HOUR
+                HsTimePeriod.Day1 -> ChartPeriod.DAY
+                HsTimePeriod.Week1 -> ChartPeriod.WEEK
+                HsTimePeriod.Month1 -> ChartPeriod.MONTH
+                HsTimePeriod.Year1 -> ChartPeriod.YEAR
+                else -> ChartPeriod.MONTH
             }
         }
-        return cartPrices
+        val chartPoints = piratePlaceRepository.getCoinPriceChart(
+            coinGeckoUid = coinGeckoUid,
+            periodType = period
+        )
+        val rate = currencyConversionRate(currencyCode)
+        return chartPoints.map {
+            ChartCoinPriceResponse(
+                price = it.price * rate,
+                timestamp = it.timestamp / 1000,
+                totalVolume = BigDecimal.ZERO
+            )
+        }
+    }
+
+    private suspend fun currencyConversionRate(currencyCode: String): BigDecimal {
+        if (currencyCode.equals("USD", ignoreCase = true)) return BigDecimal.ONE
+        val key = currencyCode.lowercase()
+        val cached = cachedConversionRate
+        if (cached != null && cached.currencyCode == key && System.currentTimeMillis() - cached.timestamp < RATE_CACHE_TTL) {
+            return cached.rate
+        }
+        val rate = try {
+            piratePlaceRepository.getCoinInfo("tether").price[key] ?: BigDecimal.ONE
+        } catch (_: Exception) {
+            BigDecimal.ONE
+        }
+        cachedConversionRate = CachedConversionRate(key, rate, System.currentTimeMillis())
+        return rate
+    }
+
+    private data class CachedConversionRate(
+        val currencyCode: String,
+        val rate: BigDecimal,
+        val timestamp: Long,
+    )
+
+    private companion object {
+        const val RATE_CACHE_TTL = 10 * 60 * 1000L // 10 minutes
     }
 
     fun coinPriceChartStartTime(coinGeckoUid: String): Single<Long> {
@@ -576,14 +600,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
             @Query("currency") currencyCode: String,
             @Query("timestamp") timestamp: Long,
         ): Single<HistoricalCoinPriceResponse>
-
-        @GET("coins/{coinUid}/price_chart")
-        fun getCoinPriceChart(
-            @Path("coinUid") coinGeckoUid: String,
-            @Query("currency") currencyCode: String,
-            @Query("from_timestamp") timestamp: Long?,
-            @Query("interval") interval: String,
-        ): Single<List<ChartCoinPriceResponse>>
 
         @GET("coins/{coinUid}/price_chart_start")
         fun getCoinPriceChartStart(
