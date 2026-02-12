@@ -2,9 +2,11 @@ package cash.p.terminal.wallet
 
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface IAccountManager {
+    val authRequiredEvent: SharedFlow<Unit>
     val hasNonStandardAccount: Boolean
     val activeAccount: Account?
     val activeAccountStateFlow: Flow<ActiveAccountState>
