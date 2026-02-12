@@ -101,6 +101,9 @@ class LitecoinAdapter(
             derivation: TokenType.Derivation,
         ): LitecoinKit {
             val account = wallet.account
+            val sharedPeerGroupHolder = LitecoinKit.getOrCreateSharedPeerGroup(
+                App.instance, account.id, NetworkType.MainNet
+            )
 
             when (val accountType = account.type) {
                 is AccountType.HdExtendedKey -> {
@@ -112,6 +115,7 @@ class LitecoinAdapter(
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
+                        sharedPeerGroupHolder = sharedPeerGroupHolder
                     )
                 }
                 is AccountType.Mnemonic -> {
@@ -123,17 +127,19 @@ class LitecoinAdapter(
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        purpose = derivation.purpose
+                        purpose = derivation.purpose,
+                        sharedPeerGroupHolder = sharedPeerGroupHolder
                     )
                 }
                 is AccountType.BitcoinAddress -> {
                     return LitecoinKit(
                         context = App.instance,
-                        watchAddress =  accountType.address,
+                        watchAddress = accountType.address,
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
+                        sharedPeerGroupHolder = sharedPeerGroupHolder
                     )
                 }
                 is AccountType.HardwareCard -> {
@@ -149,14 +155,15 @@ class LitecoinAdapter(
                     )
                     return LitecoinKit(
                         context = App.instance,
-                        extendedKey = wallet.getHDExtendedKey()!!,
+                        extendedKey = requireNotNull(wallet.getHDExtendedKey()),
                         purpose = derivation.purpose,
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
-                        iSchnorrInputSigner = hardwareWalletSchnorrSigner
+                        iSchnorrInputSigner = hardwareWalletSchnorrSigner,
+                        sharedPeerGroupHolder = sharedPeerGroupHolder
                     )
                 }
                 else -> throw UnsupportedAccountException()
