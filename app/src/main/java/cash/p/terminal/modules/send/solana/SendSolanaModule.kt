@@ -80,7 +80,8 @@ object SendSolanaModule {
                         showAddressInput = !hideAddress,
                         address = address,
                         connectivityManager = App.connectivityManager,
-                        pendingRegistrar = pendingRegistrar
+                        pendingRegistrar = pendingRegistrar,
+                        adapterManager = adapterManager
                     ) as T
                 }
 

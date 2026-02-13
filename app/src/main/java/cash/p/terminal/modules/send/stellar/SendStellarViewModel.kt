@@ -16,9 +16,10 @@ import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,7 @@ import org.koin.java.KoinJavaComponent.inject
 import java.net.UnknownHostException
 
 class SendStellarViewModel(
-    val wallet: Wallet,
+    wallet: Wallet,
     private val sendToken: Token,
     val feeToken: Token,
     private val adapter: ISendStellarAdapter,
@@ -42,8 +43,9 @@ class SendStellarViewModel(
     private val amountService: SendAmountService,
     private val addressService: SendStellarAddressService,
     private val contactsRepo: ContactsRepository,
-    private val minimumAmountService: SendStellarMinimumAmountService
-) : ViewModelUiState<SendStellarUiState>() {
+    private val minimumAmountService: SendStellarMinimumAmountService,
+    adapterManager: IAdapterManager
+) : BaseSendViewModel<SendStellarUiState>(wallet, adapterManager) {
     private val fee = adapter.fee
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)

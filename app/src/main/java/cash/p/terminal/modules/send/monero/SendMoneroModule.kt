@@ -54,6 +54,7 @@ object SendMoneroModule {
                         contactsRepo = App.contactsRepository,
                         connectivityManager = App.connectivityManager,
                         address = address,
+                        adapterManager = adapterManager,
                     ) as T
                 }
 

@@ -28,6 +28,7 @@ import cash.p.terminal.modules.multiswap.ui.DataFieldFee
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.ui.compose.components.CoinImage
+import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellUniversal
@@ -161,12 +162,19 @@ fun SwapConfirmScreen(
                 VSpacer(height = 12.dp)
                 subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteExpired))
             } else {
+                if (!viewModel.isSynced) {
+                    TextImportantWarning(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(R.string.send_confirmation_syncing_warning)
+                    )
+                    VSpacer(height = 12.dp)
+                }
                 // Disable button during swap and navigation delay (allow retry only on Failed)
                 val swapInProgress = sendResult != null && sendResult !is SendResult.Failed
                 ButtonPrimaryYellow(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap),
-                    enabled = !swapInProgress && uiState.amountOut != null &&
+                    enabled = viewModel.isSynced && !swapInProgress && uiState.amountOut != null &&
                             uiState.cautions.none { it.type == CautionViewItem.Type.Error },
                     onClick = viewModel::executeSwap,
                 )

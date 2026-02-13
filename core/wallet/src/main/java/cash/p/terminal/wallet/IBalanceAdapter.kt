@@ -19,7 +19,7 @@ interface IBalanceAdapter {
     val maxSpendableBalance: BigDecimal
         get() = balanceData.available
 
-    fun sendAllowed() = balanceState is AdapterState.Synced
+    fun sendAllowed() = balanceState !is AdapterState.NotSynced
 
     companion object {
         private val DEFAULT_FEE: StateFlow<BigDecimal> = MutableStateFlow(BigDecimal.ZERO)

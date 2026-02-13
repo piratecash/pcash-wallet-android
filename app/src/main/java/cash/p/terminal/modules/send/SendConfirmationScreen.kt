@@ -48,6 +48,7 @@ import cash.p.terminal.ui.compose.components.SectionTitleCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui.compose.components.TransactionInfoRbfCell
+import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.subhead1Italic_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead2_grey
@@ -83,6 +84,7 @@ fun SendConfirmationScreen(
     rbfEnabled: Boolean?,
     onClickSend: () -> Unit,
     sendEntryPointDestId: Int,
+    isSynced: Boolean,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
     val closeUntilDestId = if (sendEntryPointDestId == 0) {
@@ -237,24 +239,33 @@ fun SendConfirmationScreen(
                 CellUniversalLawrenceSection(bottomSectionItems)
             }
 
-            SendButton(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp)
                     .navigationBarsPadding()
-                    .padding(bottom = 16.dp),
-                sendResult = sendResult,
-                onClickSend = {
-                    onClickSend()
+                    .padding(bottom = 16.dp)
+            ) {
+                if (!isSynced) {
+                    TextImportantWarning(
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        text = stringResource(R.string.send_confirmation_syncing_warning)
+                    )
                 }
-            )
+                SendButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    sendResult = sendResult,
+                    onClickSend = onClickSend,
+                    enabled = isSynced
+                )
+            }
         }
     }
 }
 
 @Composable
-fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> Unit) {
+fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> Unit, enabled: Boolean = true) {
     when (sendResult) {
         SendResult.Sending -> {
             ButtonPrimaryYellow(
@@ -280,7 +291,7 @@ fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> U
                 modifier = modifier,
                 title = stringResource(R.string.Send_Confirmation_Send_Button),
                 onClick = onClickSend,
-                enabled = true
+                enabled = enabled
             )
         }
     }

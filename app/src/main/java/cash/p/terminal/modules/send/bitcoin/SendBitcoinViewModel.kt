@@ -28,7 +28,7 @@ import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.core.TangemSdkError
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.hodler.LockTimeInterval
@@ -42,7 +42,7 @@ import kotlin.getValue
 
 class SendBitcoinViewModel(
     val adapter: ISendBitcoinAdapter,
-    val wallet: Wallet,
+    wallet: Wallet,
     private val feeRateService: SendBitcoinFeeRateService,
     private val feeService: SendBitcoinFeeService,
     private val amountService: SendBitcoinAmountService,
@@ -54,8 +54,9 @@ class SendBitcoinViewModel(
     private val showAddressInput: Boolean,
     private val localStorage: ILocalStorage,
     private val address: Address?,
-    private val pendingRegistrar: PendingTransactionRegistrar
-) : ViewModelUiState<SendBitcoinUiState>() {
+    private val pendingRegistrar: PendingTransactionRegistrar,
+    private val adapterManager: IAdapterManager
+) : BaseSendViewModel<SendBitcoinUiState>(wallet, adapterManager) {
     private companion object {
         val BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS = listOf(
             BlockchainType.Dogecoin,
@@ -65,7 +66,6 @@ class SendBitcoinViewModel(
     }
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
-    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
     val coinMaxAllowedDecimals = wallet.token.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
