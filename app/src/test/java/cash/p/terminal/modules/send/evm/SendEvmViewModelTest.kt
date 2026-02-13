@@ -3,6 +3,7 @@ package cash.p.terminal.modules.send.evm
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.ServiceStateFlow
 import cash.p.terminal.core.managers.EvmBlockchainManager
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -55,6 +56,7 @@ class SendEvmViewModelTest : KoinTest {
     private val amountService = mockk<SendAmountService>(relaxed = true)
     private val addressService = mockk<SendEvmAddressService>(relaxed = true)
     private val evmBlockchainManager = mockk<EvmBlockchainManager>()
+    private val adapterManager = mockk<IAdapterManager>(relaxed = true)
 
     private lateinit var amountStateFlow: MutableStateFlow<SendAmountService.State>
     private lateinit var addressStateFlow: MutableStateFlow<SendEvmAddressService.State>
@@ -259,7 +261,8 @@ class SendEvmViewModelTest : KoinTest {
         addressService = addressService,
         coinMaxAllowedDecimals = 18,
         showAddressInput = true,
-        address = null
+        address = null,
+        adapterManager = adapterManager
     )
 
     private fun createAmountState(
