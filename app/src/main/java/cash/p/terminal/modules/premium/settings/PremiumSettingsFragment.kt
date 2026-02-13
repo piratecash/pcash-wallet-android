@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import androidx.paging.compose.collectAsLazyPagingItems
 import cash.p.terminal.R
+import cash.p.terminal.core.ObservePendingNavigation
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.authorizedLoggingAction
 import cash.p.terminal.core.composablePage
@@ -56,7 +57,7 @@ class PremiumSettingsFragment : BaseComposeFragment() {
     }
 }
 
-private sealed class PremiumSettingsRoute {
+internal sealed class PremiumSettingsRoute {
     @Serializable
     data object Settings : PremiumSettingsRoute()
 
@@ -77,6 +78,10 @@ private sealed class PremiumSettingsRoute {
 private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
     val navController = rememberNavController()
     val viewModel: PremiumSettingsViewModel = koinViewModel()
+
+    ObservePendingNavigation(viewModel) { route ->
+        navController.navigate(route)
+    }
 
     NavHost(
         navController = navController,
@@ -156,7 +161,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 onSendLoginNotificationClick = {
                     fragmentNavController.premiumAction {
                         fragmentNavController.ensurePinSet(R.string.pin_set_for_login_logging) {
-                            navController.navigate(PremiumSettingsRoute.SendSmsNotification)
+                            viewModel.requestNavigation(PremiumSettingsRoute.SendSmsNotification)
                         }
                     }
                 },
