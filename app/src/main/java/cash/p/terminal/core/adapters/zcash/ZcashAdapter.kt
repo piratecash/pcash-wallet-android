@@ -488,9 +488,6 @@ class ZcashAdapter(
     override val lastBlockUpdatedFlowable: Flowable<Unit>
         get() = lastBlockUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER)
 
-    override fun sendAllowed(): Boolean {
-        return balanceState is AdapterState.Synced || balanceState is AdapterState.Syncing
-    }
 
     override suspend fun getTransactions(
         from: TransactionRecord?,

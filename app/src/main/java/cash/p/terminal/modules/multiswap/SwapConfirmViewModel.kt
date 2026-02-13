@@ -14,6 +14,9 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.modules.send.BaseSendViewModel
+import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
@@ -35,7 +38,6 @@ import cash.p.terminal.wallet.Token
 import com.tangem.common.core.TangemSdkError
 import io.horizontalsystems.bitcoincore.managers.SendValueErrors
 import io.horizontalsystems.core.CurrencyManager
-import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,8 +62,10 @@ class SwapConfirmViewModel(
     private val fiatServiceOutMin: FiatService,
     val sendTransactionService: ISendTransactionService<*>,
     private val timerService: TimerService,
-    private val priceImpactService: PriceImpactService
-) : ViewModelUiState<SwapConfirmUiState>() {
+    private val priceImpactService: PriceImpactService,
+    wallet: Wallet,
+    adapterManager: IAdapterManager
+) : BaseSendViewModel<SwapConfirmUiState>(wallet, adapterManager) {
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
 
     var sendResult by mutableStateOf<SendResult?>(null)
@@ -366,14 +370,19 @@ class SwapConfirmViewModel(
                 modelClass: Class<T>,
                 extras: CreationExtras
             ): T {
+                val wallet = App.walletManager.activeWallets
+                    .find { it.token == quote.tokenIn }
+
                 val sendTransactionService = try {
+                    checkNotNull(wallet) { "Wallet not found for ${quote.tokenIn}" }
                     SwapTransactionServiceFactory.create(quote.tokenIn, quote.provider)
                 } catch (e: Exception) {
                     Toast.makeText(App.instance, R.string.unsupported_token, Toast.LENGTH_SHORT)
                         .show()
                     navController.popBackStack()
 
-                    // Build a dummy service to avoid null pointer exceptions
+                    // Build a dummy service (sendable=false) so the ViewModel is
+                    // inoperable while the screen navigates back.
                     object : ISendTransactionService<Nothing>(quote.tokenIn) {
                         override fun start(coroutineScope: CoroutineScope) = Unit
                         override suspend fun setSendTransactionData(data: SendTransactionData) =
@@ -403,6 +412,9 @@ class SwapConfirmViewModel(
                             )
                     }
                 }
+
+                // When wallet is null the dummy service above (sendable=false)
+                // prevents any swap execution while the screen navigates back.
                 return SwapConfirmViewModel(
                     swapProvider = quote.provider,
                     swapQuote = quote.swapQuote,
@@ -413,7 +425,9 @@ class SwapConfirmViewModel(
                     fiatServiceOutMin = FiatService(App.marketKit),
                     sendTransactionService = sendTransactionService,
                     timerService = TimerService(),
-                    priceImpactService = PriceImpactService()
+                    priceImpactService = PriceImpactService(),
+                    wallet = wallet ?: App.walletManager.activeWallets.first(),
+                    adapterManager = App.adapterManager
                 ) as T
             }
         }

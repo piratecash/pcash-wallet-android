@@ -10,7 +10,6 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.LocalizedException
-import io.horizontalsystems.core.ViewModelUiState
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -18,9 +17,11 @@ import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.modules.send.BaseSendViewModel
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.BlockchainType
@@ -35,7 +36,7 @@ import kotlin.getValue
 import io.horizontalsystems.tronkit.models.Address as TronAddress
 
 class SendTronViewModel(
-    val wallet: Wallet,
+    wallet: Wallet,
     private val sendToken: Token,
     private val feeToken: Token,
     private val adapter: ISendTronAdapter,
@@ -47,7 +48,8 @@ class SendTronViewModel(
     private val showAddressInput: Boolean,
     private val connectivityManager: ConnectivityManager,
     private val address: Address?,
-) : ViewModelUiState<SendUiState>() {
+    adapterManager: IAdapterManager,
+) : BaseSendViewModel<SendUiState>(wallet, adapterManager) {
     val logger: AppLogger = AppLogger("send-tron")
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
