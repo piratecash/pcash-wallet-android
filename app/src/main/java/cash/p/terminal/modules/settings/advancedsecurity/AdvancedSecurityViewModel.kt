@@ -1,11 +1,14 @@
 package cash.p.terminal.modules.settings.advancedsecurity
 
+import cash.p.terminal.core.PendingNavigationDelegate
+import cash.p.terminal.core.PendingNavigationHolder
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
 
 class AdvancedSecurityViewModel(
     private val pinComponent: IPinComponent
-) : ViewModelUiState<AdvancedSecurityUiState>() {
+) : ViewModelUiState<AdvancedSecurityUiState>(),
+    PendingNavigationHolder<String> by PendingNavigationDelegate() {
 
     override fun createState() = AdvancedSecurityUiState(
         isSecureResetPinSet = pinComponent.isSecureResetPinSet()

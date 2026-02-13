@@ -392,7 +392,7 @@ fun NavController.premiumAction(block: () -> Unit) {
 
                             if (backStackEntry.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
                                 backStackEntry.lifecycleScope.launch(Dispatchers.Main) {
-                                    block.invoke()
+                                    tryOrNull { block.invoke() }
                                 }
                             }
                         }
