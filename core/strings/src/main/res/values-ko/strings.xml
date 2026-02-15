@@ -851,6 +851,7 @@
     <string name="AddEvmSyncSource_Error_InvalidUrl">입력한 URL이 잘못되었습니다. 유효한 URL은 http, https, ws, wss 스키마 중 하나여야 합니다.</string>
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
+    <string name="blockchain_status">블록체인 상태</string>
     <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">소스를 변경한 후에는 지갑이 자체적으로 다시 동기화해야 합니다.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">매매거래로 지갑을 복원 할 데이터 소스를 선택하세요.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">입력/출력</string>
