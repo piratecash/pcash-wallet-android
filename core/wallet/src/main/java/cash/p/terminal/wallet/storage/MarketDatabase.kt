@@ -81,7 +81,10 @@ abstract class MarketDatabase : RoomDatabase() {
                 logger.info("onCreate Loaded coins count: $loadedCount")
             }
 
-
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                enableForeignKeys(db)
+            }
 
             override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
                 super.onDestructiveMigration(db)
