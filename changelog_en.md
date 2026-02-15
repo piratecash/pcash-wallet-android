@@ -1,7 +1,10 @@
 ## 🚀 Version 0.51.12 Update
-_Release date: February 11, 2026_
+_Release Date: February 15, 2026_
 
-### 🐛 Fixes
+### 🐛 Bug Fixes
+
+- **Removed redundant connections for Bitcoin / Litecoin when using multiple address types**
+    Optimized the number of network connections when working with different BTC and LTC address types, reducing resource usage and network traffic when multiple address types are present.
 
 - **Fixed delayed TRX20 token balance update on the main screen**
   Resolved an issue where the TRX20 token balance was not updated immediately and appeared with a delay on the main screen.
@@ -20,6 +23,24 @@ _Release date: February 11, 2026_
 
 - **Fixed balance validation during swap execution**
   A swap can no longer be initiated when there are insufficient tokens.
+
+- **Fixed crash when saving an account after Keystore authentication expires**
+  The application could crash with a UserNotAuthenticatedException when attempting to save or update an account in the database after Keystore authentication had expired. This issue occurred rarely and only on certain devices.
+
+- **Fixed SQLiteDatabaseCorruptException crash in Zcash SDK**
+  The application could crash due to a SQLiteDatabaseCorruptException while collecting data from the internal Zcash SDK database. The crash occurred in the queryAndMap method during synchronizer operations.
+
+- **Fixed crash when navigating to Hidden Wallet Terms screen after Premium purchase**
+  The application could crash with an IllegalStateException when navigating to the hidden_wallet_terms_page after returning from the Premium purchase screen.
+
+- **Fixed application crash when using Market widgets**
+  The application could crash with an IllegalStateException when using Market widgets on the main screen.
+
+- **Fixed crash when saving wallet balances: FOREIGN KEY constraint failed**
+  The application could crash in a background thread while saving wallet balance data into cache due to a foreign key constraint failure in the database.
+
+- **Fixed SOL synchronization issues**
+  Resolved an issue where Solana appeared correctly on the main screen, but became unavailable (greyed out) when opened, preventing transactions from being processed.
 
 
 

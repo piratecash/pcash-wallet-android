@@ -132,10 +132,6 @@ class CoinSyncerTest {
 
     @Test
     fun filterValidTokens_validBlockchainUid_retainsToken() {
-        val coins = listOf(
-            createCoin(uid = "eth", code = "ETH"),
-            createCoin(uid = "btc", code = "BTC")
-        )
         val blockchains = listOf(
             BlockchainEntity(uid = "ethereum", name = "Ethereum", eip3091url = null),
             BlockchainEntity(uid = "bitcoin", name = "Bitcoin", eip3091url = null)
@@ -145,7 +141,7 @@ class CoinSyncerTest {
             createToken(coinUid = "btc", blockchainUid = "bitcoin")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, coins, blockchains)
+        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
 
         assertEquals(2, result.size)
         assertEquals("eth", result[0].coinUid)
@@ -154,10 +150,6 @@ class CoinSyncerTest {
 
     @Test
     fun filterValidTokens_invalidBlockchainUid_filtersOutToken() {
-        val coins = listOf(
-            createCoin(uid = "eth", code = "ETH"),
-            createCoin(uid = "canton-token", code = "CANTON")
-        )
         val blockchains = listOf(
             BlockchainEntity(uid = "ethereum", name = "Ethereum", eip3091url = null)
         )
@@ -166,7 +158,7 @@ class CoinSyncerTest {
             createToken(coinUid = "canton-token", blockchainUid = "canton-network")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, coins, blockchains)
+        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
 
         assertEquals(1, result.size)
         assertEquals("eth", result[0].coinUid)
@@ -174,44 +166,31 @@ class CoinSyncerTest {
 
     @Test
     fun filterValidTokens_emptyBlockchainEntities_filtersOutAllTokens() {
-        val coins = listOf(
-            createCoin(uid = "eth", code = "ETH"),
-            createCoin(uid = "btc", code = "BTC")
-        )
         val blockchains = emptyList<BlockchainEntity>()
         val tokens = listOf(
             createToken(coinUid = "eth", blockchainUid = "ethereum"),
             createToken(coinUid = "btc", blockchainUid = "bitcoin")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, coins, blockchains)
+        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
 
         assertTrue(result.isEmpty())
     }
 
     @Test
     fun filterValidTokens_emptyTokens_returnsEmptyList() {
-        val coins = listOf(
-            createCoin(uid = "eth", code = "ETH")
-        )
         val blockchains = listOf(
             BlockchainEntity(uid = "ethereum", name = "Ethereum", eip3091url = null)
         )
         val tokens = emptyList<TokenEntity>()
 
-        val result = CoinSyncer.filterValidTokens(tokens, coins, blockchains)
+        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
 
         assertTrue(result.isEmpty())
     }
 
     @Test
     fun filterValidTokens_mixedValidAndInvalidTokens_retainsOnlyValid() {
-        val coins = listOf(
-            createCoin(uid = "eth", code = "ETH"),
-            createCoin(uid = "bnb", code = "BNB"),
-            createCoin(uid = "orphan1", code = "ORPHAN1"),
-            createCoin(uid = "orphan2", code = "ORPHAN2")
-        )
         val blockchains = listOf(
             BlockchainEntity(uid = "ethereum", name = "Ethereum", eip3091url = null),
             BlockchainEntity(uid = "binance-smart-chain", name = "BSC", eip3091url = null)
@@ -223,30 +202,11 @@ class CoinSyncerTest {
             createToken(coinUid = "orphan2", blockchainUid = "unknown-chain")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, coins, blockchains)
+        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
 
         assertEquals(2, result.size)
         assertEquals("eth", result[0].coinUid)
         assertEquals("bnb", result[1].coinUid)
-    }
-
-    @Test
-    fun filterValidTokens_invalidCoinUid_filtersOutToken() {
-        val coins = listOf(
-            createCoin(uid = "eth", code = "ETH")
-        )
-        val blockchains = listOf(
-            BlockchainEntity(uid = "ethereum", name = "Ethereum", eip3091url = null)
-        )
-        val tokens = listOf(
-            createToken(coinUid = "eth", blockchainUid = "ethereum"),
-            createToken(coinUid = "missing-coin", blockchainUid = "ethereum")
-        )
-
-        val result = CoinSyncer.filterValidTokens(tokens, coins, blockchains)
-
-        assertEquals(1, result.size)
-        assertEquals("eth", result[0].coinUid)
     }
 
     // endregion
