@@ -26,6 +26,8 @@ import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal

@@ -375,7 +375,6 @@ class SendTransactionServiceSolanaTest : KoinTest {
         val solanaKitManager = mockk<SolanaKitManager>(relaxed = true) {
             every { this@mockk.solanaKitWrapper } returns solanaKitWrapper
         }
-        every { App.solanaKitManager } returns solanaKitManager
 
         every { App.currencyManager } returns currencyManager
         every { App.marketKit } returns marketKit
