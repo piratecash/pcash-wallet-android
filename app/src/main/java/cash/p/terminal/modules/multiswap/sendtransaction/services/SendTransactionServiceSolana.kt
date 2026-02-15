@@ -12,8 +12,10 @@ import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.isNative
+import cash.p.terminal.wallet.getMaxSendableBalance
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
+import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.entities.PendingTransactionDraft
@@ -31,10 +33,8 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.solana.SendSolanaAddressService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Token
-import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.z.ecc.android.sdk.ext.collectWith
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
 import io.horizontalsystems.solanakit.SolanaKit
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +51,7 @@ class SendTransactionServiceSolana(
     private val coinMaxAllowedDecimals = wallet.token.decimals
 
     private val adjustedAvailableBalance: BigDecimal
-        get() = adapterManager.getAdjustedBalanceData(wallet)?.available ?: adapter.maxSpendableBalance
+        get() = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
 
     private val amountService = SendAmountService(
         amountValidator = AmountValidator(),
@@ -62,14 +62,9 @@ class SendTransactionServiceSolana(
         ),
         leaveSomeBalanceForFee = wallet.token.type.isNative
     )
-    private val solToken =
-        App.coinManager.getToken(TokenQuery(BlockchainType.Solana, TokenType.Native))
-            ?: throw IllegalArgumentException()
-    private val balance = App.solanaKitManager.solanaKitWrapper?.solanaKit?.balance ?: 0L
-    private val solBalance =
-        SolanaAdapter.balanceInBigDecimal(balance, solToken.decimals) - SolanaKit.accountRentAmount
     private val addressService = SendSolanaAddressService()
     private val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
+    private val solanaKitManager: SolanaKitManager by inject(SolanaKitManager::class.java)
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
 
     val blockchainType = wallet.token.blockchainType
@@ -209,8 +204,11 @@ class SendTransactionServiceSolana(
             } else {
                 val totalSolAmount =
                     (if (token.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
+                val solKitBalance = solanaKitManager.solanaKitWrapper?.solanaKit?.balance ?: 0L
+                val liveSolBalance =
+                    SolanaAdapter.balanceInBigDecimal(solKitBalance, feeToken.decimals) - SolanaKit.accountRentAmount
 
-                if (totalSolAmount > solBalance)
+                if (totalSolAmount > liveSolBalance)
                     throw EvmError.InsufficientBalanceWithFee
 
                 val draft = PendingTransactionDraft(
@@ -228,7 +226,7 @@ class SendTransactionServiceSolana(
                 adapter.send(decimalAmount, addressState.solanaAddress!!)
             }
 
-            pendingTxId?.let { pendingRegistrar.updateTxId(it, transaction.transaction.hash) }
+            pendingRegistrar.updateTxId(pendingTxId, transaction.transaction.hash)
 
             return SendTransactionResult.Solana(SendResult.Sent(transaction.transaction.hash))
         } catch (e: Throwable) {

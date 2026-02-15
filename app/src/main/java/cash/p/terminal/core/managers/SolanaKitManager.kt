@@ -80,8 +80,7 @@ class SolanaKitManager(
             return@withLock existingWrapper
         }
 
-        val accountType = account.type
-        val newWrapper = when (accountType) {
+        val newWrapper = when (val accountType = account.type) {
             is AccountType.Mnemonic -> {
                 createKitInstance(accountType, account)
             }
