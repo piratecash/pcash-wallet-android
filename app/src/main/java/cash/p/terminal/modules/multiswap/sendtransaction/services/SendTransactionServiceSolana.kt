@@ -8,14 +8,12 @@ import androidx.navigation.NavController
 import cash.p.terminal.core.App
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.ISendSolanaAdapter
-import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.isNative
 import cash.p.terminal.wallet.getMaxSendableBalance
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
-import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.entities.PendingTransactionDraft
@@ -64,7 +62,6 @@ class SendTransactionServiceSolana(
     )
     private val addressService = SendSolanaAddressService()
     private val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
-    private val solanaKitManager: SolanaKitManager by inject(SolanaKitManager::class.java)
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
 
     val blockchainType = wallet.token.blockchainType
@@ -204,9 +201,7 @@ class SendTransactionServiceSolana(
             } else {
                 val totalSolAmount =
                     (if (token.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
-                val solKitBalance = solanaKitManager.solanaKitWrapper?.solanaKit?.balance ?: 0L
-                val liveSolBalance =
-                    SolanaAdapter.balanceInBigDecimal(solKitBalance, feeToken.decimals) - SolanaKit.accountRentAmount
+                val liveSolBalance = sdkBalance - SolanaKit.accountRentAmount
 
                 if (totalSolAmount > liveSolBalance)
                     throw EvmError.InsufficientBalanceWithFee

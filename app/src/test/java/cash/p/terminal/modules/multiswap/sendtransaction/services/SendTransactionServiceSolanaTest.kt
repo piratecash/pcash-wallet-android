@@ -3,8 +3,6 @@ package cash.p.terminal.modules.multiswap.sendtransaction.services
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
-import cash.p.terminal.core.managers.SolanaKitManager
-import cash.p.terminal.core.managers.SolanaKitWrapper
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.wallet.IAdapterManager
@@ -65,7 +63,6 @@ class SendTransactionServiceSolanaTest : KoinTest {
     private lateinit var currencyManager: CurrencyManager
     private lateinit var balanceAdapter: IBalanceAdapter
     private lateinit var receiveAdapter: IReceiveAdapter
-    private lateinit var solanaKitManager: SolanaKitManager
 
     // Test data
     private lateinit var testToken: Token
@@ -88,7 +85,6 @@ class SendTransactionServiceSolanaTest : KoinTest {
                 single<MarketKitWrapper> { marketKit }
                 single<IAppNumberFormatter> { numberFormatter }
                 single<CurrencyManager> { currencyManager }
-                single<SolanaKitManager> { solanaKitManager }
             }
         )
     }
@@ -106,7 +102,6 @@ class SendTransactionServiceSolanaTest : KoinTest {
         currencyManager = mockk(relaxed = true)
         balanceAdapter = mockk(relaxed = true)
         receiveAdapter = mockk(relaxed = true)
-        solanaKitManager = mockk(relaxed = true)
 
         setupTestData()
         setupMocks()
@@ -365,12 +360,6 @@ class SendTransactionServiceSolanaTest : KoinTest {
 
     private fun setupAppMocks() {
         mockkObject(App)
-
-        val solanaKit = mockk<SolanaKit>(relaxed = true) {
-            every { balance } returns 1000000000L // 1 SOL in lamports
-        }
-        val solanaKitWrapper = SolanaKitWrapper(solanaKit, null)
-        every { solanaKitManager.solanaKitWrapper } returns solanaKitWrapper
 
         every { App.currencyManager } returns currencyManager
         every { App.marketKit } returns marketKit
