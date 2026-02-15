@@ -5,10 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
-import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
-import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
@@ -31,7 +29,6 @@ object SendSolanaModule {
         private val hideAddress: Boolean,
     ) : ViewModelProvider.Factory {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
-        private val solanaKitManager: SolanaKitManager by inject(SolanaKitManager::class.java)
         private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
         val adapter = (adapterManager.getAdapterForWalletOld(wallet) as? ISendSolanaAdapter)
             ?: throw IllegalStateException("SendSolanaAdapter is null")
@@ -60,11 +57,8 @@ object SendSolanaModule {
                             TokenType.Native
                         )
                     ) ?: throw IllegalArgumentException()
-                    val balance = solanaKitManager.solanaKitWrapper?.solanaKit?.balance ?: 0L
-                    val solBalance = SolanaAdapter.balanceInBigDecimal(
-                        balance,
-                        solToken.decimals
-                    ) - SolanaKit.accountRentAmount
+                    val solBalance = (adapterManager.getAdjustedBalanceDataForToken(solToken)?.available
+                        ?: BigDecimal.ZERO) - SolanaKit.accountRentAmount
                     val addressService = SendSolanaAddressService()
                     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
 

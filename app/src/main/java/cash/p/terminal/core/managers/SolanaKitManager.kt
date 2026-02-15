@@ -8,7 +8,7 @@ import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.tangem.signer.HardwareWalletSolanaAccountSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.entities.HardwarePublicKey
 import cash.z.ecc.android.sdk.ext.fromHex
 import com.solana.core.PublicKey
 import io.horizontalsystems.core.BackgroundManager
@@ -67,6 +67,31 @@ class SolanaKitManager(
     private fun handleUpdateNetwork() {
         stopKit()
         solanaKitStoppedSubject.onNext(Unit)
+    }
+
+    private suspend fun getHardwarePublicKey(accountId: String): HardwarePublicKey {
+        return hardwarePublicKeyStorage.getAllPublicKeys(accountId)
+            .firstOrNull { it.blockchainType == BlockchainType.Solana.uid }
+            ?: throw UnsupportedException("Hardware card does not have a public key for Solana")
+    }
+
+    suspend fun getAddress(account: Account): String = when (val accountType = account.type) {
+        is AccountType.Mnemonic -> Signer.address(accountType.seed)
+        is AccountType.SolanaAddress -> accountType.address
+        is AccountType.HardwareCard -> {
+            val key = getHardwarePublicKey(account.id)
+            Base58.encode(key.key.value.fromHex())
+        }
+        is AccountType.BitcoinAddress,
+        is AccountType.EvmAddress,
+        is AccountType.EvmPrivateKey,
+        is AccountType.HdExtendedKey,
+        is AccountType.MnemonicMonero,
+        is AccountType.StellarAddress,
+        is AccountType.StellarSecretKey,
+        is AccountType.TonAddress,
+        is AccountType.TronAddress,
+        is AccountType.ZCashUfvKey -> throw UnsupportedAccountException()
     }
 
     suspend fun getSolanaKitWrapper(account: Account): SolanaKitWrapper = mutex.withLock {
@@ -143,11 +168,7 @@ class SolanaKitManager(
     private suspend fun createKitInstance(
         accountId: String
     ): SolanaKitWrapper {
-        val hardwarePublicKey = hardwarePublicKeyStorage.getKey(
-            accountId,
-            BlockchainType.Solana,
-            TokenType.Native
-        ) ?: throw UnsupportedException("Hardware card does not have a public key for Solana")
+        val hardwarePublicKey = getHardwarePublicKey(accountId)
 
         val signer = Signer(
             HardwareWalletSolanaAccountSigner(
