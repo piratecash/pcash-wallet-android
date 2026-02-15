@@ -1,16 +1,3 @@
-## 🚀 Version 0.51.13 Update
-_Release Date: February 15, 2026_
-
-### 🐛 Bug Fixes
-
-- **Fixed SOL synchronization issues**
-  Resolved an issue where Solana appeared correctly on the main screen, but became unavailable (greyed out) when opened, preventing transactions from being processed.
-
-- **Fixed crash when opening the coin list**
-  The application could crash when attempting to load the coin list on some Xiaomi devices running Android 14.
-
-
-
 ## 🚀 Version 0.51.12 Update
 _Release Date: February 15, 2026_
 
@@ -51,6 +38,9 @@ _Release Date: February 15, 2026_
 
 - **Fixed crash when saving wallet balances: FOREIGN KEY constraint failed**
   The application could crash in a background thread while saving wallet balance data into cache due to a foreign key constraint failure in the database.
+
+- **Fixed SOL synchronization issues**
+  Resolved an issue where Solana appeared correctly on the main screen, but became unavailable (greyed out) when opened, preventing transactions from being processed.
 
 
 
