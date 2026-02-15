@@ -84,7 +84,6 @@ abstract class MarketDatabase : RoomDatabase() {
             override fun onOpen(db: SupportSQLiteDatabase) {
                 super.onOpen(db)
                 enableForeignKeys(db)
-                deleteOrphanTokens(db)
             }
 
             override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
