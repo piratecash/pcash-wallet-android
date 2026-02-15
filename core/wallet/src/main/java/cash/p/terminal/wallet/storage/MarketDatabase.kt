@@ -93,6 +93,10 @@ abstract class MarketDatabase : RoomDatabase() {
             }
         }
 
+        private fun enableForeignKeys(db: SupportSQLiteDatabase) {
+            db.setForeignKeyConstraintsEnabled(true)
+        }
+
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
         fun loadInitialCoins(db: SupportSQLiteDatabase, context: Context): Int {
             var insertCount = 0 //17536
