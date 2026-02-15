@@ -54,7 +54,9 @@ class BalanceAdapterRepository(
         }
         coroutineScope.launch {
             pendingBalanceCalculator.pendingChangedFlow.collect {
-                wallets.forEach(::notifyWalletUpdate)
+                wallets.forEach { wallet ->
+                    notifyWalletUpdate(wallet)
+                }
             }
         }
     }
@@ -67,7 +69,7 @@ class BalanceAdapterRepository(
         this.wallets = wallets
     }
 
-    private fun notifyWalletUpdate(wallet: Wallet) {
+    private suspend fun notifyWalletUpdate(wallet: Wallet) {
         updatesSubject.onNext(wallet)
         adapterManager.getAdjustedBalanceData(wallet)?.let {
             balanceCache.setCache(wallet, it)
