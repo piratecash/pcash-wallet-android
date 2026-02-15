@@ -1,3 +1,22 @@
+## 🚀 Version 0.51.13 Update
+_Release date: February 15, 2026_
+
+### ✨ Improvements
+
+- **Display of actual amount for ChangeNow / Quickex exchanges**
+  The transaction history now shows the actual received amount after the exchange is completed instead of the initially quoted one. This ensures accurate accounting in cases where the final amount differs from the expected due to market fluctuations or provider fees.
+
+- **Improved synchronization when switching between wallets**
+  Active network connections are no longer fully reinitialized when switching between wallets.
+  Connections for blockchains present in the target wallet are preserved, while those that are not are properly stopped. This improves stability and speeds up the synchronization process.
+
+### 🐛 Fixes
+
+- **Fixed crash when opening the coin list on some Xiaomi devices (Android 14)**
+  Resolved a rare issue that caused the app to crash when attempting to load the available coins list on certain Xiaomi devices running Android 14.
+
+
+
 ## 🚀 Version 0.51.12 Update
 _Release Date: February 15, 2026_
 
