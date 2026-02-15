@@ -120,7 +120,7 @@ class CoinSyncer(
         tokenEntities: List<TokenEntity>
     ) {
         val transformedTokens = transform(tokenEntities)
-        val validTokens = filterValidTokens(transformedTokens, coins, blockchainEntities)
+        val validTokens = filterValidTokens(transformedTokens, blockchainEntities)
         val tokensWithVirtual = injectVirtualTokens(coins, validTokens)
 
         storage.update(coins, blockchainEntities, tokensWithVirtual)
@@ -243,14 +243,10 @@ class CoinSyncer(
     companion object {
         internal fun filterValidTokens(
             tokens: List<TokenEntity>,
-            coins: List<Coin>,
             blockchainEntities: List<BlockchainEntity>
         ): List<TokenEntity> {
-            val coinUids = coins.map { it.uid }.toSet()
             val blockchainUids = blockchainEntities.map { it.uid }.toSet()
-            return tokens.filter {
-                it.coinUid in coinUids && it.blockchainUid in blockchainUids
-            }
+            return tokens.filter { it.blockchainUid in blockchainUids }
         }
     }
 }
