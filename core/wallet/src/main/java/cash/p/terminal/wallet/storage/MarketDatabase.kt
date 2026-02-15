@@ -57,24 +57,7 @@ abstract class MarketDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context): MarketDatabase {
             val db = Room.databaseBuilder(context, MarketDatabase::class.java, "marketKitDatabase")
-                .addCallback(object : Callback() {
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        val loadedCount = loadInitialCoins(db, context)
-                        logger.info("onCreate Loaded coins count: $loadedCount")
-                    }
-
-                    override fun onOpen(db: SupportSQLiteDatabase) {
-                        super.onOpen(db)
-                        enableForeignKeys(db)
-                        deleteOrphanTokens(db)
-                    }
-
-                    override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
-                        super.onDestructiveMigration(db)
-                        val loadedCount = loadInitialCoins(db, context)
-                        logger.info("onDestructiveMigration Loaded coins count: $loadedCount")
-                    }
-                })
+                .addCallback(MarketDatabaseCallback(context))
                 .addMigrations(Migration_13_14, Migration_14_15)
 //                .setQueryCallback({ sqlQuery, bindArgs ->
 //                    println("SQL Query: $sqlQuery SQL Args: $bindArgs")
@@ -87,6 +70,28 @@ abstract class MarketDatabase : RoomDatabase() {
             db.query("select 1", null)
 
             return db
+        }
+
+        @VisibleForTesting
+        internal class MarketDatabaseCallback(
+            private val context: Context
+        ) : Callback() {
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                val loadedCount = loadInitialCoins(db, context)
+                logger.info("onCreate Loaded coins count: $loadedCount")
+            }
+
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                enableForeignKeys(db)
+                deleteOrphanTokens(db)
+            }
+
+            override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+                super.onDestructiveMigration(db)
+                val loadedCount = loadInitialCoins(db, context)
+                logger.info("onDestructiveMigration Loaded coins count: $loadedCount")
+            }
         }
 
         private fun enableForeignKeys(db: SupportSQLiteDatabase) {
