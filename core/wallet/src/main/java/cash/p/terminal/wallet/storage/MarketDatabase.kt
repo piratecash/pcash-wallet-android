@@ -59,12 +59,20 @@ abstract class MarketDatabase : RoomDatabase() {
             val db = Room.databaseBuilder(context, MarketDatabase::class.java, "marketKitDatabase")
                 .addCallback(object : Callback() {
                     override fun onCreate(db: SupportSQLiteDatabase) {
+                        enableForeignKeys(db)
                         val loadedCount = loadInitialCoins(db, context)
                         logger.info("onCreate Loaded coins count: $loadedCount")
                     }
 
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        enableForeignKeys(db)
+                        deleteOrphanTokens(db)
+                    }
+
                     override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
                         super.onDestructiveMigration(db)
+                        enableForeignKeys(db)
                         val loadedCount = loadInitialCoins(db, context)
                         logger.info("onDestructiveMigration Loaded coins count: $loadedCount")
                     }
@@ -81,6 +89,10 @@ abstract class MarketDatabase : RoomDatabase() {
             db.query("select 1", null)
 
             return db
+        }
+
+        private fun enableForeignKeys(db: SupportSQLiteDatabase) {
+            db.setForeignKeyConstraintsEnabled(true)
         }
 
         @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
