@@ -8,9 +8,11 @@ import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
 import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
+import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ISystemInfoManager
 import java.security.MessageDigest
 
@@ -31,6 +33,19 @@ class SystemInfoManager(
         }
 
         version
+    }
+
+    override val appVersionDisplay: String by lazy {
+        buildString {
+            append(appVersionFull)
+            if (Translator.getString(R.string.is_release) == "false") {
+                append(" (${AppConfigProvider.appBuild})")
+            }
+            val branch = AppConfigProvider.appGitBranch
+            if (branch.isNotEmpty() && branch != "master" && branch != "f-droid" && branch != "unknown") {
+                append(" [$branch]")
+            }
+        }
     }
 
     private val biometricManager by lazy { BiometricManager.from(App.instance) }
