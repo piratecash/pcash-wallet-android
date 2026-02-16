@@ -12,9 +12,6 @@ interface EnabledWalletsCacheDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(list: List<EnabledWalletCache>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(cache: EnabledWalletCache)
-
     @Query("SELECT * FROM `EnabledWalletCache`")
     fun getAll() : List<EnabledWalletCache>
 

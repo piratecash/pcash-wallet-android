@@ -52,8 +52,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.koin.java.KoinJavaComponent.inject
@@ -66,7 +64,6 @@ class MoneroKitManager(
     private val backgroundManager: BackgroundManager,
     private val restoreSettingsManager: RestoreSettingsManager
 ) {
-    private val mutex = Mutex()
     private val connectivityManager = App.connectivityManager
     private val coroutineScope =
         CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
@@ -82,7 +79,7 @@ class MoneroKitManager(
     val kitStoppedObservable: Observable<Unit>
         get() = moneroKitStoppedSubject
 
-    suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper = mutex.withLock {
+    suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper {
         if (this.moneroKitWrapper != null && currentAccount != account) {
             stopKit()
             moneroKitWrapper = null
@@ -104,7 +101,7 @@ class MoneroKitManager(
         }
 
         useCount.incrementAndGet()
-        return@withLock requireNotNull(moneroKitWrapper)
+        return this.moneroKitWrapper!!
     }
 
     private fun createKitInstance(
@@ -117,13 +114,13 @@ class MoneroKitManager(
         )
     }
 
-    suspend fun unlinkAll() = mutex.withLock {
+    suspend fun unlinkAll() {
         currentAccount = null
         useCount.set(0)
         stopKit()
     }
 
-    suspend fun unlink(account: Account) = mutex.withLock {
+    suspend fun unlink(account: Account) {
         if (account == currentAccount) {
             if (useCount.decrementAndGet() < 1) {
                 stopKit()

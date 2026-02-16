@@ -15,13 +15,11 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.subjects.PublishSubject
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.coroutineScope as childScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -40,7 +38,6 @@ import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
 
 class AdapterManager(
@@ -59,8 +56,6 @@ class AdapterManager(
 
     private val mutex = Mutex()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    // Cap parallel adapter creates to avoid saturating Dispatchers.IO for other work
-    private val adapterCreationDispatcher = Dispatchers.IO.limitedParallelism(MAX_PARALLEL_ADAPTER_CREATES)
 
     private val adaptersReadySubject = PublishSubject.create<Map<Wallet, IAdapter>>()
     private val adaptersMap = ConcurrentHashMap<Wallet, IAdapter>()
@@ -164,6 +159,7 @@ class AdapterManager(
         adaptersMap.clear()
         _initializationInProgressFlow.value = true
 
+        // Only one account is active at a time
         val activeAccountId = wallets.firstOrNull()?.account?.id
         val previousAccountId = currentAdapters.keys.firstOrNull()?.account?.id
 
@@ -171,43 +167,16 @@ class AdapterManager(
             pendingBalanceCalculator.startObserving(activeAccountId)
         }
 
-        // Reuse existing adapters, collect new ones for parallel creation
-        val toCreate = mutableListOf<Wallet>()
         wallets.forEach { wallet ->
-            val existing = currentAdapters.remove(wallet)
-            if (existing != null) {
-                adaptersMap[wallet] = existing
-            } else {
-                toCreate.add(wallet)
-            }
-        }
-
-        // Create new adapters in parallel on a limited dispatcher to avoid
-        // exhausting Dispatchers.IO. Kit managers' @Synchronized serializes
-        // same-blockchain creates while different blockchains proceed concurrently.
-        try {
-            childScope {
-                toCreate.forEach { wallet ->
-                    launch(adapterCreationDispatcher) {
-                        try {
-                            adapterFactory.getAdapterOrNull(wallet)?.let { adapter ->
-                                adapter.start()
-                                adaptersMap[wallet] = adapter
-                            }
-                        } catch (e: CancellationException) {
-                            throw e
-                        } catch (e: Throwable) {
-                            Timber.e(e, "Failed to create adapter for ${wallet.token.blockchainType}")
-                        }
-                    }
+            var adapter = currentAdapters.remove(wallet)
+            if (adapter == null) {
+                adapterFactory.getAdapterOrNull(wallet)?.let {
+                    it.start()
+                    adapter = it
                 }
             }
-        } catch (e: CancellationException) {
-            // Preserve remaining old adapters so the next init can stop them
-            currentAdapters.forEach { (wallet, adapter) ->
-                adaptersMap.putIfAbsent(wallet, adapter)
-            }
-            throw e
+
+            adapter?.let { adaptersMap[wallet] = it }
         }
 
         adaptersReadySubject.onNext(adaptersMap)
@@ -345,9 +314,5 @@ class AdapterManager(
                 _walletBalanceUpdatedFlow.emit(wallet)
             }
         }
-    }
-
-    private companion object {
-        const val MAX_PARALLEL_ADAPTER_CREATES = 6
     }
 }

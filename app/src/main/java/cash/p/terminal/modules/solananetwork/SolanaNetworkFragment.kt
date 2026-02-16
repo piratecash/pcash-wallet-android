@@ -20,7 +20,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
+import coil3.compose.rememberAsyncImagePainter
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -28,21 +30,23 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
-import cash.p.terminal.ui_compose.components.TitleAndValueCell
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.imageUrl
-import org.koin.compose.viewmodel.koinViewModel
 
 class SolanaNetworkFragment : BaseComposeFragment() {
+
+    private val viewModel by viewModels<SolanaNetworkViewModel> {
+        SolanaNetworkModule.Factory()
+    }
 
     @Composable
     override fun GetContent(navController: NavController) {
         SolanaNetworkScreen(
-            koinViewModel(),
+            viewModel,
             navController
         )
     }
@@ -106,23 +110,6 @@ private fun SolanaNetworkScreen(
                         }
                     }
                     Spacer(Modifier.height(32.dp))
-                }
-
-                viewModel.statusInfo?.let { statusInfo ->
-                    item {
-                        subhead2_grey(
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            text = stringResource(R.string.blockchain_status)
-                        )
-                        VSpacer(12.dp)
-                        CellUniversalLawrenceSection(statusInfo.entries.toList()) { entry ->
-                            TitleAndValueCell(
-                                title = entry.key,
-                                value = entry.value.toString()
-                            )
-                        }
-                        Spacer(Modifier.height(32.dp))
-                    }
                 }
 
             }

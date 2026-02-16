@@ -29,7 +29,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.BlockchainSettingsIcon
-import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.StatusBlockItem
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -44,6 +43,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import coil3.compose.rememberAsyncImagePainter
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 
 @Composable
@@ -102,9 +102,6 @@ internal fun BtcBlockchainSettingsScreen(
                         onCustomPeersChange = onCustomPeersChange
                     )
                 }
-                if (uiState.statusItems.isNotEmpty()) {
-                    BlockchainStatusSection(uiState.statusItems)
-                }
                 Spacer(Modifier.height(32.dp))
                 TextImportantWarning(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -150,27 +147,6 @@ private fun RestoreSourceSettings(
     onSelectRestoreMode: (BtcBlockchainSettingsModule.ViewItem) -> Unit
 ) {
     BlockchainSettingSection(restoreSources, onSelectRestoreMode)
-}
-
-@Composable
-private fun BlockchainStatusSection(statusItems: List<StatusBlockItem>) {
-    VSpacer(32.dp)
-    subhead2_grey(
-        modifier = Modifier.padding(horizontal = 32.dp),
-        text = stringResource(R.string.blockchain_status)
-    )
-    VSpacer(12.dp)
-    CellUniversalLawrenceSection(statusItems) { item ->
-        RowUniversal(
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                body_leah(text = item.label)
-                Spacer(Modifier.height(1.dp))
-                subhead2_grey(text = item.statusText.trimEnd())
-            }
-        }
-    }
 }
 
 @Composable
@@ -278,8 +254,7 @@ private fun BtcBlockchainSettingsScreenPreview() {
                 ),
                 saveButtonEnabled = true,
                 closeScreen = false,
-                customPeers = "",
-                statusItems = emptyList()
+                customPeers = ""
             ),
             onSaveClick = {},
             onSelectRestoreMode = {},

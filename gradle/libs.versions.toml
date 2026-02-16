@@ -41,11 +41,11 @@ timber = "5.0.1"
 
 tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
 piratecash-ton = "2c94941"
-piratecash-bitcoin = "d62eff5"
+piratecash-bitcoin = "dd49b9c"
 stellar-kit = "96bbbc4"
 piratecash-ethereum = "9efd23e"
 horizontalsystems-blockchain-fee = "7d01e63"
-piratecash-solana = "dcabded"
+piratecash-solana = "86386be"
 monero-kit-android = "a7ec141"
 netcipher = "2.1.0"
 solanakt = "0f6072a"

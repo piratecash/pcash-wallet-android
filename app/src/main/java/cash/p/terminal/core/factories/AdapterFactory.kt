@@ -1,7 +1,7 @@
 package cash.p.terminal.core.factories
 
 import android.content.Context
-import timber.log.Timber
+import android.util.Log
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
@@ -178,7 +178,7 @@ class AdapterFactory(
             storeBnbAddresses(it, wallet)
         }
     } catch (e: Throwable) {
-        Timber.e(e, "Failed to create adapter")
+        Log.e("AAA", "get adapter error", e)
         null
     }
 

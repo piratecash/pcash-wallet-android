@@ -45,7 +45,6 @@ import coil3.load
 import io.horizontalsystems.ethereumkit.core.toRawHexString
 import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.hodler.LockTimeInterval
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -391,9 +390,7 @@ fun NavController.premiumAction(block: () -> Unit) {
                             job.cancel()
 
                             if (backStackEntry.lifecycle.currentState.isAtLeast(Lifecycle.State.CREATED)) {
-                                backStackEntry.lifecycleScope.launch(Dispatchers.Main) {
-                                    tryOrNull { block.invoke() }
-                                }
+                                block.invoke()
                             }
                         }
 

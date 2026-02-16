@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.ObservePendingNavigation
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.ensurePinSet
@@ -35,10 +34,6 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
     val navController = rememberNavController()
     val viewModel: AdvancedSecurityViewModel = koinViewModel { parametersOf(App.pinComponent) }
 
-    ObservePendingNavigation(viewModel) { route ->
-        navController.navigate(route)
-    }
-
     NavHost(
         navController = navController,
         startDestination = AdvancedSecurityRoutes.ADVANCED_SECURITY_PAGE
@@ -48,13 +43,13 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                 uiState = viewModel.uiState,
                 onCreateHiddenWalletClick = {
                     fragmentNavController.premiumAction {
-                        viewModel.requestNavigation(AdvancedSecurityRoutes.HIDDEN_WALLET_TERM_SPAGE)
+                        navController.navigate(AdvancedSecurityRoutes.HIDDEN_WALLET_TERM_SPAGE)
                     }
                 },
                 onSecureResetToggle = { enabled ->
                     if (enabled) {
                         fragmentNavController.premiumAction {
-                            viewModel.requestNavigation(AdvancedSecurityRoutes.SECURE_RESET_TERMS_PAGE)
+                            navController.navigate(AdvancedSecurityRoutes.SECURE_RESET_TERMS_PAGE)
                         }
                     } else {
                         fragmentNavController.authorizedAction {

@@ -1,11 +1,11 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.managers.SolanaKitWrapper
-import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.core.SafeSuspendedCall
+import io.horizontalsystems.solanakit.SolanaKit
 import io.horizontalsystems.solanakit.models.Address
 import io.horizontalsystems.solanakit.models.FullTransaction
 import kotlinx.coroutines.flow.Flow
@@ -41,7 +41,7 @@ class SplAdapter(
     // IBalanceAdapter
 
     override val balanceState: AdapterState
-        get() = solanaKit.tokenBalanceSyncState.toAdapterState()
+        get() = convertToAdapterState(solanaKit.tokenBalanceSyncState)
 
     override val balanceStateUpdatedFlow: Flow<Unit>
         get() = solanaKit.tokenBalanceSyncStateFlow.map { }
@@ -66,6 +66,12 @@ class SplAdapter(
         return SafeSuspendedCall.executeSuspendable {
             solanaKit.sendSpl(mintAddress, to, amount.movePointRight(decimal).toLong(), signer)
         }
+    }
+
+    private fun convertToAdapterState(syncState: SolanaKit.SyncState): AdapterState = when (syncState) {
+        is SolanaKit.SyncState.Synced -> AdapterState.Synced
+        is SolanaKit.SyncState.NotSynced -> AdapterState.NotSynced(syncState.error)
+        is SolanaKit.SyncState.Syncing -> AdapterState.Syncing()
     }
 
 }

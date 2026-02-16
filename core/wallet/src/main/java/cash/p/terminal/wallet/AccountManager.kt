@@ -3,7 +3,6 @@ package cash.p.terminal.wallet
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
-import android.security.keystore.UserNotAuthenticatedException
 import io.horizontalsystems.core.logger.AppLogger
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
@@ -58,19 +57,6 @@ class AccountManager(
     private val _newAccountBackupRequiredFlow = MutableStateFlow<Account?>(null)
     override val newAccountBackupRequiredFlow = _newAccountBackupRequiredFlow.asStateFlow()
 
-    private val _authRequiredEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-    override val authRequiredEvent = _authRequiredEvent.asSharedFlow()
-
-    private fun <T> withAuthCheck(block: () -> T): T? {
-        return try {
-            block()
-        } catch (e: UserNotAuthenticatedException) {
-            logger.info("UserNotAuthenticatedException caught, requesting re-authentication")
-            _authRequiredEvent.tryEmit(Unit)
-            null
-        }
-    }
-
     private fun updateCache(account: Account) {
         accountsCache[account.id] = account
     }
@@ -94,7 +80,7 @@ class AccountManager(
                     signedHashes = signedHashes
                 )
             )
-            withAuthCheck { storage.update(updatedAccount) } ?: return
+            storage.update(updatedAccount)
             activeAccount = updatedAccount
             updateCache(updatedAccount)
             _activeAccountStateFlow.update {
@@ -112,7 +98,7 @@ class AccountManager(
     }
 
     override fun save(account: Account, updateActive: Boolean) {
-        withAuthCheck { storage.save(account) } ?: return
+        storage.save(account)
 
         updateCache(account)
         _accountsSharedFlow.tryEmit(accounts)
@@ -129,7 +115,7 @@ class AccountManager(
 
     override fun import(accounts: List<Account>) {
         for (account in accounts) {
-            withAuthCheck { storage.save(account) } ?: return
+            storage.save(account)
             updateCache(account)
         }
 
@@ -156,7 +142,7 @@ class AccountManager(
     }
 
     override fun update(account: Account) {
-        withAuthCheck { storage.update(account) } ?: return
+        storage.update(account)
 
         updateCache(account)
         _accountsSharedFlow.tryEmit(accounts)

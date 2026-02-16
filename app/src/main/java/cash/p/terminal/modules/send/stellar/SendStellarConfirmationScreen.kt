@@ -49,6 +49,7 @@ fun SendStellarConfirmationScreen(
         memo = confirmationData.memo,
         rbfEnabled = confirmationData.rbfEnabled,
         onClickSend = sendViewModel::onClickSend,
-        sendEntryPointDestId = sendEntryPointDestId
+        sendEntryPointDestId = sendEntryPointDestId,
+        isSynced = sendViewModel.isSynced
     )
 }

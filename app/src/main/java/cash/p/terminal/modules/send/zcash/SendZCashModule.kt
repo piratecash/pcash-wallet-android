@@ -48,7 +48,8 @@ object SendZCashModule {
                 contactsRepo = App.contactsRepository,
                 showAddressInput = !hideAddress,
                 address = address,
-                pendingRegistrar = pendingRegistrar
+                pendingRegistrar = pendingRegistrar,
+                adapterManager = adapterManager
             ) as T
         }
     }

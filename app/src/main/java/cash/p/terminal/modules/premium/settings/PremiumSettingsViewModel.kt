@@ -2,8 +2,6 @@ package cash.p.terminal.modules.premium.settings
 
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.PendingNavigationDelegate
-import cash.p.terminal.core.PendingNavigationHolder
 import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -15,8 +13,7 @@ internal class PremiumSettingsViewModel(
     private val checkPremiumUseCase: CheckPremiumUseCase,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
     private val amlStatusManager: AmlStatusManager
-) : ViewModelUiState<PremiumSettingsUiState>(),
-    PendingNavigationHolder<PremiumSettingsRoute> by PendingNavigationDelegate() {
+) : ViewModelUiState<PremiumSettingsUiState>() {
     private var checkEnabled = localStorage.recipientAddressContractCheckEnabled
     private var showLoggingAlert = false
 

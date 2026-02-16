@@ -114,9 +114,6 @@ class BitcoinAdapter(
             derivation: TokenType.Derivation
         ): BitcoinKit {
             val account = wallet.account
-            val sharedPeerGroupHolder = BitcoinKit.getOrCreateSharedPeerGroup(
-                App.instance, account.id, NetworkType.MainNet
-            )
 
             when (val accountType = account.type) {
                 is AccountType.HdExtendedKey -> {
@@ -127,8 +124,7 @@ class BitcoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        sharedPeerGroupHolder = sharedPeerGroupHolder
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -141,8 +137,7 @@ class BitcoinAdapter(
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        purpose = derivation.purpose,
-                        sharedPeerGroupHolder = sharedPeerGroupHolder
+                        purpose = derivation.purpose
                     )
                 }
 
@@ -153,8 +148,7 @@ class BitcoinAdapter(
                         walletId = account.id,
                         syncMode = syncMode,
                         networkType = NetworkType.MainNet,
-                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
-                        sharedPeerGroupHolder = sharedPeerGroupHolder
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD
                     )
                 }
 
@@ -171,7 +165,7 @@ class BitcoinAdapter(
                     )
                     return BitcoinKit(
                         context = App.instance,
-                        extendedKey = requireNotNull(wallet.getHDExtendedKey()),
+                        extendedKey = wallet.getHDExtendedKey()!!,
                         purpose = derivation.purpose,
                         walletId = account.id,
                         syncMode = syncMode,
@@ -179,7 +173,6 @@ class BitcoinAdapter(
                         confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
                         iInputSigner = hardwareWalletEcdaBitcoinSigner,
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner,
-                        sharedPeerGroupHolder = sharedPeerGroupHolder
                     )
                 }
 

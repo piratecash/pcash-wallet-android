@@ -47,7 +47,8 @@ object SendBitcoinModule {
                 showAddressInput = !hideAddress,
                 localStorage = App.localStorage,
                 address = address,
-                pendingRegistrar = pendingRegistrar
+                pendingRegistrar = pendingRegistrar,
+                adapterManager = adapterManager
             ) as T
         }
     }

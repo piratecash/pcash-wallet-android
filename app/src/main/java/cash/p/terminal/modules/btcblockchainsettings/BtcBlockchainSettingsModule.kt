@@ -14,9 +14,7 @@ internal object BtcBlockchainSettingsModule {
 
             val service = BtcBlockchainSettingsService(
                 blockchain,
-                App.btcBlockchainManager,
-                App.walletManager,
-                App.adapterManager
+                App.btcBlockchainManager
             )
 
             return BtcBlockchainSettingsViewModel(service) as T
@@ -35,9 +33,4 @@ internal object BtcBlockchainSettingsModule {
         data class ApiIcon(val resId: Int): BlockchainSettingsIcon()
         data class BlockchainIcon(val url: String): BlockchainSettingsIcon()
     }
-
-    data class StatusBlockItem(
-        val label: String,
-        val statusText: String
-    )
 }

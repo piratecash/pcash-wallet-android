@@ -59,6 +59,7 @@ object SendTronModule {
                         showAddressInput = !hideAddress,
                         connectivityManager = App.connectivityManager,
                         address = address,
+                        adapterManager = adapterManager,
                     ) as T
                 }
 
