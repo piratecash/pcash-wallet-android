@@ -288,7 +288,7 @@
     <!--Balance-->
     <string name="Balance_Title">Guthaben</string>
     <string name="Balance_Send">Senden</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">Guthaben schützen und konsolidieren</string>
     <string name="Balance_Receive">Empfangen</string>
     <string name="Balance_Address">Adresse</string>
     <string name="Balance_RatePerCoin">%1$s pro %2$s</string>

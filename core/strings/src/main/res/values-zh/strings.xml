@@ -290,7 +290,7 @@
     <!--Balance-->
     <string name="Balance_Title">余额</string>
     <string name="Balance_Send">发送​​</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">转移到受保护地址</string>
     <string name="Balance_Receive">接收</string>
     <string name="Balance_Address">地址</string>
     <string name="Balance_RatePerCoin">%1$s / %2$s</string>

@@ -290,7 +290,7 @@
     <!--Balance-->
     <string name="Balance_Title">Bakiye</string>
     <string name="Balance_Send">Gönder</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">Fonları koruma altına al ve birleştir</string>
     <string name="Balance_Receive">Al</string>
     <string name="Balance_Address">Adres</string>
     <string name="Balance_RatePerCoin">%1$s için %2$s</string>

@@ -290,7 +290,7 @@
     <!--Balance-->
     <string name="Balance_Title">Balance</string>
     <string name="Balance_Send">إرسال</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">حماية وتوحيد الأموال</string>
     <string name="Balance_Receive">Receive</string>
     <string name="Balance_Address">Address</string>
     <string name="Balance_RatePerCoin">%1$s per %2$s</string>
