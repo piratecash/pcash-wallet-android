@@ -138,23 +138,23 @@ class HsProvider(baseUrl: String, apiKey: String) {
     }
 
     suspend fun getCoinPrices(
-        coinUids: List<String>,
-        walletCoinUids: List<String>,
+        coinGeckoUidMap: Map<String, String>,
         currencyCode: String
     ): List<CoinPrice> {
-        val additionalParams = mutableMapOf<String, String>()
-        if (walletCoinUids.isNotEmpty()) {
-            additionalParams["enabled_uids"] = walletCoinUids.joinToString(separator = ",")
-        }
-        return piratePlaceRepository.getCoinsPriceChange(coinUids, currencyCode)
-            ?.map {
-                it.toCoinPrice(currencyCode)
-            }.orEmpty()
+        val reverseMap = coinGeckoUidMap.entries
+            .groupBy({ it.value }, { it.key })
+
+        return piratePlaceRepository.getCoinsPriceChange(
+            coinGeckoUidMap.values.distinct(), currencyCode
+        )?.flatMap { priceInfo ->
+            val originalUids = reverseMap[priceInfo.uid] ?: listOf(priceInfo.uid)
+            originalUids.map { coinUid -> priceInfo.toCoinPrice(currencyCode, coinUid) }
+        }.orEmpty()
     }
 
-    private fun PriceChangeCoinInfo.toCoinPrice(currencyCode: String) =
+    private fun PriceChangeCoinInfo.toCoinPrice(currencyCode: String, coinUid: String) =
         CoinPrice(
-            coinUid = uid,
+            coinUid = coinUid,
             currencyCode = currencyCode,
             value = price,
             diff1h = priceChange1h,

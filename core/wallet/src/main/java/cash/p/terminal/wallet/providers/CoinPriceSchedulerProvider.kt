@@ -1,5 +1,6 @@
 package cash.p.terminal.wallet.providers
 
+import cash.p.terminal.wallet.managers.CoinManager
 import cash.p.terminal.wallet.managers.CoinPriceManager
 import cash.p.terminal.wallet.managers.ICoinPriceCoinUidDataSource
 import cash.p.terminal.wallet.models.CoinPrice
@@ -21,6 +22,7 @@ interface ISchedulerProvider {
 class CoinPriceSchedulerProvider(
     private val currencyCode: String,
     private val manager: CoinPriceManager,
+    private val coinManager: CoinManager,
     private val provider: HsProvider
 ) : ISchedulerProvider {
     var dataSource: ICoinPriceCoinUidDataSource? = null
@@ -36,13 +38,14 @@ class CoinPriceSchedulerProvider(
 
     override val syncSingle: Single<Unit>
         get() {
-            val (coinUids, walletUids) = combinedCoinUids
+            val coinUids = dataSource?.allCoinUids(currencyCode) ?: return  Single.just(Unit)
+            val coinGeckoUidMap = coinManager.getCoinGeckoIds(coinUids)
+
             return Single.just(coroutineScope.launch {
                 runCatching {
                     handle(
                         provider.getCoinPrices(
-                            coinUids,
-                            walletUids,
+                            coinGeckoUidMap,
                             currencyCode
                         )
                     )
@@ -52,9 +55,6 @@ class CoinPriceSchedulerProvider(
 
     private val allCoinUids: List<String>
         get() = dataSource?.allCoinUids(currencyCode) ?: listOf()
-
-    private val combinedCoinUids: Pair<List<String>, List<String>>
-        get() = dataSource?.combinedCoinUids(currencyCode) ?: Pair(listOf(), listOf())
 
     override fun notifyExpired() {
         manager.notifyExpired(allCoinUids, currencyCode)

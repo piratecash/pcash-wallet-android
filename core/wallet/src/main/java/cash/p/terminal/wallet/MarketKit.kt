@@ -643,7 +643,7 @@ class MarketKit(
                 CoinHistoricalPriceStorage(marketDatabase),
                 hsProvider,
             )
-            val coinPriceSchedulerFactory = CoinPriceSchedulerFactory(coinPriceManager, hsProvider)
+            val coinPriceSchedulerFactory = CoinPriceSchedulerFactory(coinPriceManager, hsProvider, coinManager)
             val coinPriceSyncManager = CoinPriceSyncManager(coinPriceSchedulerFactory)
             coinPriceManager.listener = coinPriceSyncManager
             val cryptoCompareProvider by inject<CryptoCompareProvider>(CryptoCompareProvider::class.java)
