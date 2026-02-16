@@ -3,7 +3,6 @@ package cash.p.terminal.modules.balance
 import androidx.compose.runtime.Immutable
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.diffPercentage
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.balance.BalanceModule.warningText
@@ -48,7 +47,6 @@ data class BalanceViewItem(
     val errorMessage: String?,
     val isWatchAccount: Boolean,
     val isSendDisabled: Boolean,
-    val isShowShieldFunds: Boolean,
     val warning: WarningText?
 )
 
@@ -366,9 +364,6 @@ class BalanceViewItemFactory {
 
         val sendDisabled =
             (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent
-        val isShowShieldFunds =
-            (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent &&
-                    item.balanceData.total > ZcashAdapter.MINERS_FEE
 
         return BalanceViewItem(
             wallet = item.wallet,
@@ -388,8 +383,7 @@ class BalanceViewItemFactory {
             errorMessage = (state as? AdapterState.NotSynced)?.error?.message,
             isWatchAccount = watchAccount,
             warning = item.warning?.warningText,
-            isSendDisabled = sendDisabled,
-            isShowShieldFunds = isShowShieldFunds
+            isSendDisabled = sendDisabled
         )
     }
 
