@@ -26,7 +26,10 @@ def gitHashProvider = providers.exec {
 def gitBranchProvider = providers.exec {
     commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
     ignoreExitValue = true
-}.standardOutput.asText.map { it.trim() }
+}.standardOutput.asText.map {
+    def branch = (it ?: "").trim()
+    (branch.isEmpty() || branch == "HEAD") ? "unknown" : branch
+}
 
 def gitDirtyProvider = providers.exec {
     commandLine 'git', 'diff-index', '--quiet', 'HEAD', '--'
