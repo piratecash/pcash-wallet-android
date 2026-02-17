@@ -30,8 +30,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
@@ -193,11 +194,13 @@ class SwapQuoteService(
             .map { provider ->
                 async {
                     try {
-                        withTimeout(5000) {
+                        withTimeoutOrNull(5000) {
                             if (provider.supports(tokenIn, tokenOut)) provider else null
                         }
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Throwable) {
-                        Timber.d(e, "supports timeout/error: ${provider.id}")
+                        Timber.d(e, "supports error: ${provider.id}")
                         null
                     }
                 }
@@ -216,7 +219,7 @@ class SwapQuoteService(
             .map { provider ->
                 async {
                     try {
-                        withTimeout(5000) {
+                        withTimeoutOrNull(5000) {
                             val quote = provider.fetchQuote(tokenIn, tokenOut, amountIn, settings)
                             SwapProviderQuote(provider = provider, swapQuote = quote)
                         }
@@ -226,8 +229,10 @@ class SwapQuoteService(
                             error = e
                         }
                         null
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Throwable) {
-                        Log.d("AAA", "fetchQuoteError: ${provider.id}", e)
+                        Timber.d(e, "fetchQuoteError: ${provider.id}")
                         null
                     }
                 }
