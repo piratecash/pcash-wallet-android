@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.multiswap
 
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 import java.math.BigDecimal
 
 class SwapQuoteService(
@@ -46,7 +48,8 @@ class SwapQuoteService(
 
     private var runQuotationJob: Job? = null
 
-    private val allProviders = listOf(
+    @VisibleForTesting
+    internal var allProviders: List<IMultiSwapProvider> = listOf(
         OneInchProvider,
         PancakeSwapProvider,
         PancakeSwapV3Provider,
@@ -84,7 +87,8 @@ class SwapQuoteService(
     )
     val stateFlow = _stateFlow.asStateFlow()
 
-    private var coroutineScope = CoroutineScope(Dispatchers.IO)
+    @VisibleForTesting
+    internal var coroutineScope = CoroutineScope(Dispatchers.IO)
     private var quotingJob: Job? = null
     private var settings: Map<String, Any?> = mapOf()
 
@@ -132,7 +136,7 @@ class SwapQuoteService(
 
         if (tokenIn != null && tokenOut != null) {
             quotingJob = coroutineScope.launch {
-                val supportedProviders = allProviders.filter { it.supports(tokenIn, tokenOut) }
+                val supportedProviders = filterSupportedProviders(allProviders, tokenIn, tokenOut)
 
                 if (supportedProviders.isEmpty()) {
                     error = NoSupportedSwapProvider()
@@ -178,6 +182,28 @@ class SwapQuoteService(
             quote = null
             emitState()
         }
+    }
+
+    private suspend fun filterSupportedProviders(
+        providers: List<IMultiSwapProvider>,
+        tokenIn: Token,
+        tokenOut: Token,
+    ) = coroutineScope {
+        providers
+            .map { provider ->
+                async {
+                    try {
+                        withTimeout(5000) {
+                            if (provider.supports(tokenIn, tokenOut)) provider else null
+                        }
+                    } catch (e: Throwable) {
+                        Timber.d(e, "supports timeout/error: ${provider.id}")
+                        null
+                    }
+                }
+            }
+            .awaitAll()
+            .filterNotNull()
     }
 
     private suspend fun fetchQuotes(
