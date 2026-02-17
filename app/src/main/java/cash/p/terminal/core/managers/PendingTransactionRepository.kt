@@ -49,11 +49,12 @@ class PendingTransactionRepository(
         startCleanupJob()
     }
 
-    suspend fun insert(draft: PendingTransactionDraft) = mutex.withLock {
+    suspend fun insert(draft: PendingTransactionDraft): PendingTransactionEntity = mutex.withLock {
         withContext(dispatcherProvider.io) {
             val entity = draftToEntity(draft)
             storage.insert(entity)
             startCleanupJob()
+            entity
         }
     }
 

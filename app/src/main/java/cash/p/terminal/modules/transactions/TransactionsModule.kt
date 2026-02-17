@@ -19,8 +19,7 @@ object TransactionsModule {
                 transactionSyncStateRepository = TransactionSyncStateRepository(App.transactionAdapterManager),
                 contactsRepository = App.contactsRepository,
                 nftMetadataService = NftMetadataService(App.nftMetadataManager),
-                spamManager = getKoinInstance(),
-                pendingMatcher = getKoinInstance()
+                spamManager = getKoinInstance()
             )
 
             return TransactionsViewModel(

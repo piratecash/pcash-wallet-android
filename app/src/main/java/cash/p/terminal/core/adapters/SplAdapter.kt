@@ -56,7 +56,6 @@ class SplAdapter(
     override val balanceUpdatedFlow: Flow<Unit>
         get() = solanaKit.tokenAccountFlow(mintAddressString).map { }
 
-    // ISendSolanaAdapter
     override val maxSpendableBalance: BigDecimal
         get() = balanceData.available
 

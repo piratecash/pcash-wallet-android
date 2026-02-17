@@ -408,7 +408,7 @@ class ChangeNowProvider(
                         amountIn,
                         io.horizontalsystems.ethereumkit.models.Address(transaction.payinAddress)
                     )
-                SendTransactionData.Evm(transactionData, null)
+                SendTransactionData.Evm(transactionData, null, amount = amountIn)
             }
 
             tokenIn.blockchainType == BlockchainType.Tron -> {

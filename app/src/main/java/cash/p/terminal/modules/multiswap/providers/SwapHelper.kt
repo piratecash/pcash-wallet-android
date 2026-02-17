@@ -6,6 +6,7 @@ import cash.p.terminal.core.adapters.BitcoinCashAdapter
 import cash.p.terminal.core.adapters.LitecoinAdapter
 import cash.p.terminal.core.adapters.Trc20Adapter
 import cash.p.terminal.core.isEvm
+import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.modules.multiswap.action.ActionApprove
@@ -77,7 +78,8 @@ object SwapHelper {
                 }
 
                 BlockchainType.Solana -> {
-                    App.solanaKitManager.getSolanaKitWrapper(account).solanaKit.receiveAddress
+                    val solanaKitManager: SolanaKitManager by inject(SolanaKitManager::class.java)
+                    solanaKitManager.getSolanaKitWrapper(account).solanaKit.receiveAddress
                 }
 
                 else -> throw SwapError.NoDestinationAddress()
