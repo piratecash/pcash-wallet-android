@@ -1,3 +1,18 @@
+## 🚀 Version 0.51.14 Update
+_Release date: February 17, 2026_
+
+### 🐛 Fixes
+
+- **Fixed an issue where the "Quoting" button could get stuck in an infinite loading state on the Swap screen**
+  Resolved a bug that caused exchange quotes to not appear due to the "Quoting" button being stuck in a loading state.
+
+### ✨ Improvements
+
+- **Improved balance updates before transaction confirmation**
+  The balance is now updated correctly while waiting for the transaction to be included in a block, preventing users from attempting to operate with unconfirmed funds.
+
+
+
 ## 🚀 Version 0.51.13 Update
 _Release date: February 15, 2026_
 
