@@ -197,8 +197,6 @@ class SwapQuoteService(
                         withTimeoutOrNull(5000) {
                             if (provider.supports(tokenIn, tokenOut)) provider else null
                         }
-                    } catch (e: CancellationException) {
-                        throw e
                     } catch (e: Throwable) {
                         Timber.d(e, "supports error: ${provider.id}")
                         null
