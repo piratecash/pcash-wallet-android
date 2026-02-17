@@ -1,3 +1,23 @@
+## 🚀 Version 0.51.15 Update
+_Release date: _
+
+## 🚀 Update
+
+### 🐛 Fixes
+
+- **Fixed an issue with price recalculation on the asset page**
+  Resolved a bug where, in rare cases, the asset price conversion into other coins was not displayed.
+
+### ✨ Improvements
+
+- **Improved the wallet re-import mechanism**
+  When re-importing a wallet, unique characters are now appended to its name to prevent duplicate names.
+
+- **Added release branch information to App Status**
+  The App Status section now displays the release branch and build hash. This allows developers and testers to see which branch the current app version was built from.
+
+
+
 ## 🚀 Version 0.51.14 Update
 _Release date: February 17, 2026_
 
