@@ -47,21 +47,29 @@ class AccountFactory(
 
     override fun getNextWatchAccountName(): String {
         val watchAccountsCount = accountManager.accounts.count { it.isWatchAccount }
-
-        return "Watch Wallet ${watchAccountsCount + 1}"
+        return getUniqueName("Watch Wallet ${watchAccountsCount + 1}")
     }
 
     override fun getNextAccountName(): String {
         val nonWatchAccountsCount =
             accountManager.accounts.count { !it.isWatchAccount && it.type !is AccountType.HardwareCard }
-
-        return "Wallet ${nonWatchAccountsCount + 1}"
+        return getUniqueName("Wallet ${nonWatchAccountsCount + 1}")
     }
 
     override fun getNextHardwareAccountName(): String {
         val hardWalletAccountsCount =
             accountManager.accounts.count { it.type is AccountType.HardwareCard }
+        return getUniqueName("Hardware Wallet ${hardWalletAccountsCount + 1}")
+    }
 
-        return "Hardware Wallet ${hardWalletAccountsCount + 1}"
+    override fun getUniqueName(name: String, additionalExistingNames: Set<String>): String {
+        val existingNames = buildSet {
+            accountManager.accounts.mapTo(this) { it.name }
+            addAll(additionalExistingNames)
+        }
+        if (name !in existingNames) return name
+        var counter = 1
+        while ("$name ($counter)" in existingNames) counter++
+        return "$name ($counter)"
     }
 }
