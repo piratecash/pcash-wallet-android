@@ -23,6 +23,14 @@ def gitHashProvider = providers.exec {
     ignoreExitValue = true
 }.standardOutput.asText.map { it.trim() }
 
+def gitBranchProvider = providers.exec {
+    commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+    ignoreExitValue = true
+}.standardOutput.asText.map {
+    def branch = (it ?: "").trim()
+    (branch.isEmpty() || branch == "HEAD") ? "unknown" : branch
+}
+
 def gitDirtyProvider = providers.exec {
     commandLine 'git', 'diff-index', '--quiet', 'HEAD', '--'
     ignoreExitValue = true
@@ -36,7 +44,8 @@ def getGitVersionSuffix = { ->
             return "unknown"
         }
         def dirty = gitDirtyProvider.getOrElse(false) ? "-dirty" : ""
-        def result = "${hash}${dirty}"
+        def fdroid = (gitBranchProvider.getOrElse("") == "f-droid") ? "-fdroid" : ""
+        def result = "${hash}${dirty}${fdroid}"
         println "GIT_HASH: ${result}"
         return result
     } catch (Exception ignored) {
@@ -55,6 +64,7 @@ android {
         versionCode 218
         versionName "0.51.14"
         buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
+        buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {

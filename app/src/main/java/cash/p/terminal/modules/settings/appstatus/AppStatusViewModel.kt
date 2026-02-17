@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.adapters.BitcoinBaseAdapter
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
@@ -410,7 +411,11 @@ class AppStatusViewModel(
     private fun getAppInfo(): Map<String, Any> {
         val appInfo = LinkedHashMap<String, Any>()
         appInfo["Current Time"] = Date()
-        appInfo["App Version"] = systemInfoManager.appVersion
+        appInfo["App Version"] = systemInfoManager.appVersionFull
+        appInfo["Git Branch"] = AppConfigProvider.appGitBranch
+        systemInfoManager.getSigningCertFingerprint()?.let {
+            appInfo["App Signature"] = it
+        }
         appInfo["Device Model"] = systemInfoManager.deviceModel
         appInfo["OS Version"] = systemInfoManager.osVersion
 
@@ -427,7 +432,11 @@ class AppStatusViewModel(
                         DateHelper.formatDate(Date(), "MMM d, yyyy, HH:mm")
                     )
                 )
-                add(BlockContent.TitleValue("App Version", systemInfoManager.appVersion))
+                add(BlockContent.TitleValue("App Version", systemInfoManager.appVersionFull))
+                add(BlockContent.TitleValue("Git Branch", AppConfigProvider.appGitBranch))
+                systemInfoManager.getSigningCertFingerprint()?.let {
+                    add(BlockContent.TitleValue("App Signature", it))
+                }
                 add(BlockContent.TitleValue("Device Model", systemInfoManager.deviceModel))
                 add(BlockContent.TitleValue("OS Version", systemInfoManager.osVersion))
                 addAll(getDeviceClass(context))
