@@ -26,7 +26,6 @@ import cash.p.terminal.core.managers.NftMetadataManager
 import cash.p.terminal.core.managers.NftMetadataSyncer
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
-import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.core.managers.StellarAccountManager
 import cash.p.terminal.core.managers.TokenAutoEnableManager
@@ -149,7 +148,6 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         val connectivityManager: ConnectivityManager by inject(ConnectivityManager::class.java)
         val appDatabase: AppDatabase by inject(AppDatabase::class.java)
         val enabledWalletsStorage: IEnabledWalletStorage by inject(IEnabledWalletStorage::class.java)
-        val solanaKitManager: SolanaKitManager by inject(SolanaKitManager::class.java)
         val tronKitManager: TronKitManager by inject(TronKitManager::class.java)
         val tonKitManager: TonKitManager by inject(TonKitManager::class.java)
         val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
