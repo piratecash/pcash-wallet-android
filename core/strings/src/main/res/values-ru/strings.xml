@@ -868,7 +868,7 @@
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Пользовательские узлы (например, 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">Статус блокчейна</string>
-    <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">После изменения источника восстановления, кошелек должен будет повторно синхронизироваться с блокчейном.</string>
+    <string name="btc_blockchain_settings_restore_source_change_warning">После изменения источника восстановления, кошелек должен будет повторно синхронизироваться с блокчейном.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Выберите источник данных для восстановления кошелька. Восстановление из блокчейна занимает значительно больше времени.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Вводы/Выводы</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Настройки транзакций</string>

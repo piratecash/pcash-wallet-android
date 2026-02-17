@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -32,21 +31,16 @@ object AppLog {
         }
     }
 
-    fun generateId(prefix: String): String {
-        return prefix + ":" + UUID.randomUUID().toString()
-    }
+    fun getLog(): Map<String, Any> = buildLogMap(logsDao.getAll())
 
-    fun getLog(): Map<String, Any> {
+    fun getLog(tag: String): Map<String, Any> = buildLogMap(logsDao.getByTag(tag))
+
+    private fun buildLogMap(entries: List<LogEntry>): Map<String, Any> {
         val res = mutableMapOf<String, MutableMap<String, String>>()
 
-        logsDao.getAll().forEach { logEntry ->
-            if (!res.containsKey(logEntry.actionId)) {
-                res[logEntry.actionId] = mutableMapOf()
-            }
-
-            val logMessage = sdf.format(Date(logEntry.date)) + " " + logEntry.message
-
-            res[logEntry.actionId]?.set(logEntry.id.toString(), logMessage)
+        entries.forEach { logEntry ->
+            res.getOrPut(logEntry.actionId) { mutableMapOf() }[logEntry.id.toString()] =
+                sdf.format(Date(logEntry.date)) + " " + logEntry.message
         }
 
         return res

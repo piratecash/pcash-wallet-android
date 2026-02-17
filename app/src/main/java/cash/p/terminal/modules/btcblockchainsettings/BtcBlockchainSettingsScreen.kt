@@ -29,7 +29,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.BlockchainSettingsIcon
-import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.StatusBlockItem
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -52,12 +51,13 @@ internal fun BtcBlockchainSettingsScreen(
     onSaveClick: () -> Unit,
     onSelectRestoreMode: (BtcBlockchainSettingsModule.ViewItem) -> Unit,
     onCustomPeersChange: (String) -> Unit,
-    navController: NavController,
+    fragmentNavController: NavController,
+    onBlockchainStatusClick: () -> Unit,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
 
     if (uiState.closeScreen) {
-        navController.popBackStack()
+        fragmentNavController.navigateUp()
     }
 
     Surface(color = ComposeAppTheme.colors.tyler) {
@@ -80,9 +80,7 @@ internal fun BtcBlockchainSettingsScreen(
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close,
-                        onClick = {
-                            navController.popBackStack()
-                        }
+                        onClick = fragmentNavController::navigateUp
                     )
                 )
             )
@@ -102,14 +100,13 @@ internal fun BtcBlockchainSettingsScreen(
                         onCustomPeersChange = onCustomPeersChange
                     )
                 }
-                if (uiState.statusItems.isNotEmpty()) {
-                    BlockchainStatusSection(uiState.statusItems)
-                }
-                Spacer(Modifier.height(32.dp))
+                VSpacer(16.dp)
                 TextImportantWarning(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.BtcBlockchainSettings_RestoreSourceChangeWarning)
+                    text = stringResource(R.string.btc_blockchain_settings_restore_source_change_warning)
                 )
+                Spacer(Modifier.height(32.dp))
+                BlockchainStatusButton(onBlockchainStatusClick)
                 Spacer(Modifier.height(32.dp))
             }
 
@@ -153,22 +150,21 @@ private fun RestoreSourceSettings(
 }
 
 @Composable
-private fun BlockchainStatusSection(statusItems: List<StatusBlockItem>) {
-    VSpacer(32.dp)
-    subhead2_grey(
-        modifier = Modifier.padding(horizontal = 32.dp),
-        text = stringResource(R.string.blockchain_status)
-    )
-    VSpacer(12.dp)
-    CellUniversalLawrenceSection(statusItems) { item ->
+private fun BlockchainStatusButton(onClick: () -> Unit) {
+    CellUniversalLawrenceSection(listOf(Unit)) {
         RowUniversal(
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp),
+            onClick = onClick
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                body_leah(text = item.label)
-                Spacer(Modifier.height(1.dp))
-                subhead2_grey(text = item.statusText.trimEnd())
-            }
+            body_leah(
+                modifier = Modifier.weight(1f),
+                text = stringResource(R.string.blockchain_status)
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                tint = ComposeAppTheme.colors.grey,
+                contentDescription = null,
+            )
         }
     }
 }
@@ -278,13 +274,13 @@ private fun BtcBlockchainSettingsScreenPreview() {
                 ),
                 saveButtonEnabled = true,
                 closeScreen = false,
-                customPeers = "",
-                statusItems = emptyList()
+                customPeers = ""
             ),
             onSaveClick = {},
             onSelectRestoreMode = {},
             onCustomPeersChange = {},
-            navController = rememberNavController()
+            fragmentNavController = rememberNavController(),
+            onBlockchainStatusClick = {}
         )
     }
 }
