@@ -70,6 +70,7 @@ private fun BlockchainSettingsScreen(
                 BlockchainSettingsBlock(
                     btcLikeChains = viewModel.btcLikeChains,
                     otherChains = viewModel.otherChains,
+                    statusOnlyChains = viewModel.statusOnlyChains,
                     navController = navController
                 )
                 Spacer(Modifier.height(44.dp))
@@ -83,6 +84,7 @@ private fun BlockchainSettingsScreen(
 fun BlockchainSettingsBlock(
     btcLikeChains: List<BlockchainSettingsModule.BlockchainViewItem>,
     otherChains: List<BlockchainSettingsModule.BlockchainViewItem>,
+    statusOnlyChains: List<BlockchainSettingsModule.BlockchainViewItem> = emptyList(),
     navController: NavController
 ) {
     CellUniversalLawrenceSection(btcLikeChains) { item ->
@@ -94,6 +96,14 @@ fun BlockchainSettingsBlock(
     CellUniversalLawrenceSection(otherChains) { item ->
         BlockchainSettingCell(item) {
             onClick(item, navController)
+        }
+    }
+    if (statusOnlyChains.isNotEmpty()) {
+        Spacer(Modifier.height(32.dp))
+        CellUniversalLawrenceSection(statusOnlyChains) { item ->
+            BlockchainSettingCell(item) {
+                onClick(item, navController)
+            }
         }
     }
 }
@@ -113,6 +123,10 @@ private fun onClick(
 
         is BlockchainSettingsModule.BlockchainItem.Solana -> {
             navController.slideFromBottom(R.id.solanaNetworkFragment)
+        }
+
+        is BlockchainSettingsModule.BlockchainItem.StatusOnly -> {
+            navController.slideFromBottom(R.id.blockchainStatusFragment, item.blockchainItem.blockchain.type)
         }
     }
 }

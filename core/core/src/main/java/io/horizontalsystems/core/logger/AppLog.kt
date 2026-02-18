@@ -35,6 +35,9 @@ object AppLog {
 
     fun getLog(tag: String): Map<String, Any> = buildLogMap(logsDao.getByTag(tag))
 
+    fun getRecentLog(tag: String, limit: Int = 300): Map<String, Any> =
+        buildLogMap(logsDao.getRecentByTag(tag, limit).reversed())
+
     private fun buildLogMap(entries: List<LogEntry>): Map<String, Any> {
         val res = mutableMapOf<String, MutableMap<String, String>>()
 

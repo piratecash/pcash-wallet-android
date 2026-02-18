@@ -14,6 +14,7 @@ import io.horizontalsystems.core.logger.AppLog
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Date
@@ -34,37 +35,29 @@ class BlockchainStatusViewModel(
             sharedSection = null,
             logBlocks = emptyList(),
             statusAsText = null,
-            loading = true
+            statusLoading = true,
+            logsLoading = true
         )
     )
     val uiState: StateFlow<BlockchainStatusUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch(dispatcherProvider.io) {
-            val status = provider.getStatus()
-            val statusSections = status.sections
-            val sharedSection = status.sharedSection
-            val appLogs = AppLog.getLog(provider.logFilterTag)
+            val appLogs = AppLog.getRecentLog(provider.logFilterTag)
             val logBlocks = buildLogBlocks(appLogs)
-            val statusAsText = buildStatusText(statusSections, sharedSection, appLogs)
+            _uiState.update { it.copy(logBlocks = logBlocks, logsLoading = false) }
+        }
 
-            try {
-                val file = File(App.instance.cacheDir, "${provider.logFilterTag.lowercase()}_blockchain_status_report.txt")
-                file.writeText(statusAsText)
-                shareFile = file
-            } catch (_: Exception) {
-                // File write failed, share will be unavailable
+        viewModelScope.launch(dispatcherProvider.io) {
+            val status = provider.getStatus()
+            _uiState.update {
+                it.copy(
+                    statusSections = status.sections,
+                    sharedSection = status.sharedSection,
+                )
             }
-
-            _uiState.value = BlockchainStatusUiState(
-                blockchainName = provider.blockchainName,
-                kitVersion = provider.kitVersion,
-                statusSections = statusSections,
-                sharedSection = sharedSection,
-                logBlocks = logBlocks,
-                statusAsText = statusAsText,
-                loading = false
-            )
+            rebuildShareFile()
+            _uiState.update { it.copy(statusLoading = false) }
         }
     }
 
@@ -77,6 +70,21 @@ class BlockchainStatusViewModel(
         )
     }
 
+    private fun rebuildShareFile() {
+        val state = _uiState.value
+        val allLogBlocks = buildLogBlocks(AppLog.getLog(provider.logFilterTag))
+        val statusAsText = buildStatusText(state.statusSections, state.sharedSection, allLogBlocks)
+        _uiState.update { it.copy(statusAsText = statusAsText) }
+
+        try {
+            val file = File(App.instance.cacheDir, "${provider.logFilterTag.lowercase()}_blockchain_status_report.txt")
+            file.writeText(statusAsText)
+            shareFile = file
+        } catch (_: Exception) {
+            // File write failed, share will be unavailable
+        }
+    }
+
     private fun buildLogBlocks(appLogs: Map<String, Any>): List<LogBlock> {
         return appLogs.map { (key, value) ->
             val content = formatMapValue(value)
@@ -87,7 +95,7 @@ class BlockchainStatusViewModel(
     private fun buildStatusText(
         sections: List<StatusSection>,
         sharedSection: StatusSection?,
-        appLogs: Map<String, Any>
+        logBlocks: List<LogBlock>
     ): String = buildString {
         appendLine("${provider.blockchainName} Status")
         appendLine("Kit Version: ${provider.kitVersion}")
@@ -96,11 +104,11 @@ class BlockchainStatusViewModel(
         sections.forEach { appendSection(it) }
         sharedSection?.let { appendSection(it) }
 
-        if (appLogs.isNotEmpty()) {
+        if (logBlocks.isNotEmpty()) {
             appendLine("App Log")
-            appLogs.forEach { (key, value) ->
-                appendLine(key)
-                appendLine(formatMapValue(value))
+            logBlocks.forEach { block ->
+                appendLine(block.title)
+                appendLine(block.content)
             }
         }
     }
@@ -157,5 +165,8 @@ data class BlockchainStatusUiState(
     val sharedSection: StatusSection?,
     val logBlocks: List<LogBlock>,
     val statusAsText: String?,
-    val loading: Boolean
-)
+    val statusLoading: Boolean,
+    val logsLoading: Boolean
+) {
+    val loading: Boolean get() = statusLoading || logsLoading
+}

@@ -19,11 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import cash.p.terminal.R
+import androidx.compose.material.Icon
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -87,6 +90,7 @@ internal fun BlockchainStatusScreen(
                         ButtonPrimaryYellow(
                             modifier = Modifier.weight(1f),
                             title = stringResource(R.string.Button_Copy),
+                            enabled = !uiState.statusLoading,
                             onClick = {
                                 uiState.statusAsText?.let {
                                     clipboardManager.setText(AnnotatedString(it))
@@ -101,6 +105,7 @@ internal fun BlockchainStatusScreen(
                         ButtonPrimaryDefault(
                             modifier = Modifier.weight(1f),
                             title = stringResource(R.string.Button_Share),
+                            enabled = !uiState.statusLoading,
                             onClick = {
                                 try {
                                     val uri = viewModel.getShareFileUri(context)
@@ -140,19 +145,35 @@ internal fun BlockchainStatusScreen(
                     KitVersionBlock(uiState.kitVersion)
                 }
 
-                // Per-address-type status sections
-                items(uiState.statusSections) { section ->
-                    StatusSectionBlock(section)
-                }
-
-                // Shared peers section
-                uiState.sharedSection?.let { section ->
+                // Status sections (with loading indicator if still loading)
+                if (uiState.statusLoading) {
                     item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = ComposeAppTheme.colors.grey,
+                                strokeWidth = 3.dp
+                            )
+                        }
+                    }
+                } else {
+                    items(uiState.statusSections) { section ->
                         StatusSectionBlock(section)
+                    }
+
+                    uiState.sharedSection?.let { section ->
+                        item {
+                            StatusSectionBlock(section)
+                        }
                     }
                 }
 
-                // Filtered app logs
+                // App logs
                 if (uiState.logBlocks.isNotEmpty()) {
                     item {
                         InfoText(text = "APP LOG")
@@ -202,6 +223,26 @@ private fun KitVersionBlock(kitVersion: String) {
 }
 
 @Composable
+internal fun BlockchainStatusButton(onClick: () -> Unit) {
+    CellUniversalLawrenceSection(listOf(Unit)) {
+        RowUniversal(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            onClick = onClick
+        ) {
+            body_leah(
+                modifier = Modifier.weight(1f),
+                text = stringResource(R.string.blockchain_status)
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_right),
+                tint = ComposeAppTheme.colors.grey,
+                contentDescription = null,
+            )
+        }
+    }
+}
+
+@Composable
 private fun StatusSectionBlock(section: StatusSection) {
     VSpacer(12.dp)
     InfoText(text = section.title.uppercase())
@@ -211,13 +252,11 @@ private fun StatusSectionBlock(section: StatusSection) {
         ) {
             when (item) {
                 is StatusItem.KeyValue -> {
-                    subhead2_grey(
-                        modifier = Modifier.weight(1f),
-                        text = item.key
-                    )
+                    subhead2_grey(text = item.key)
                     subhead1_leah(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = item.value
+                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                        text = item.value,
+                        textAlign = TextAlign.End
                     )
                 }
                 is StatusItem.Nested -> {

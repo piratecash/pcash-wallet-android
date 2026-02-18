@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.BlockchainSettingsIcon
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -149,25 +150,6 @@ private fun RestoreSourceSettings(
     BlockchainSettingSection(restoreSources, onSelectRestoreMode)
 }
 
-@Composable
-private fun BlockchainStatusButton(onClick: () -> Unit) {
-    CellUniversalLawrenceSection(listOf(Unit)) {
-        RowUniversal(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            onClick = onClick
-        ) {
-            body_leah(
-                modifier = Modifier.weight(1f),
-                text = stringResource(R.string.blockchain_status)
-            )
-            Icon(
-                painter = painterResource(R.drawable.ic_arrow_right),
-                tint = ComposeAppTheme.colors.grey,
-                contentDescription = null,
-            )
-        }
-    }
-}
 
 @Composable
 private fun BlockchainSettingSection(

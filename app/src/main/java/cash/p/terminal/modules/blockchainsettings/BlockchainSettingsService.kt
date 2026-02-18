@@ -5,6 +5,7 @@ import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.modules.blockchainsettings.BlockchainSettingsModule.BlockchainItem
+import cash.p.terminal.wallet.MarketKitWrapper
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +19,7 @@ class BlockchainSettingsService(
     private val evmBlockchainManager: EvmBlockchainManager,
     private val evmSyncSourceManager: EvmSyncSourceManager,
     private val solanaRpcSourceManager: SolanaRpcSourceManager,
+    private val marketKit: MarketKitWrapper,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -78,7 +80,11 @@ class BlockchainSettingsService(
             solanaBlockchainItems.add(BlockchainItem.Solana(it, solanaRpcSourceManager.rpcSource))
         }
 
-        blockchainItems = (btcBlockchainItems + evmBlockchainItems + solanaBlockchainItems).sortedBy { it.order }
+        val statusOnlyItems = marketKit
+            .blockchains(BlockchainSettingsModule.statusOnlyBlockchainTypes.map { it.uid })
+            .map { BlockchainItem.StatusOnly(it) }
+
+        blockchainItems = (btcBlockchainItems + evmBlockchainItems + solanaBlockchainItems + statusOnlyItems).sortedBy { it.order }
     }
 
 }
