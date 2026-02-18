@@ -101,8 +101,8 @@ class BlockchainStatusViewModel(
         appendLine("Kit Version: ${provider.kitVersion}")
         appendLine()
 
-        sections.forEach { appendSection(it) }
-        sharedSection?.let { appendSection(it) }
+        sections.forEach { appendStatusSection(it) }
+        sharedSection?.let { appendStatusSection(it) }
 
         if (logBlocks.isNotEmpty()) {
             appendLine("App Log")
@@ -111,22 +111,6 @@ class BlockchainStatusViewModel(
                 appendLine(block.content)
             }
         }
-    }
-
-    private fun StringBuilder.appendSection(section: StatusSection) {
-        appendLine(section.title)
-        section.items.forEach { item ->
-            when (item) {
-                is StatusItem.KeyValue -> appendLine("  ${item.key}: ${item.value}")
-                is StatusItem.Nested -> {
-                    appendLine("  ${item.title}:")
-                    item.items.forEach { kv ->
-                        appendLine("    ${kv.key}: ${kv.value}")
-                    }
-                }
-            }
-        }
-        appendLine()
     }
 
     @Suppress("UNCHECKED_CAST")

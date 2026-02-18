@@ -25,6 +25,22 @@ sealed class StatusItem {
     data class Nested(val title: String, val items: List<KeyValue>) : StatusItem()
 }
 
+fun StringBuilder.appendStatusSection(section: StatusSection) {
+    appendLine(section.title)
+    section.items.forEach { item ->
+        when (item) {
+            is StatusItem.KeyValue -> appendLine("  ${item.key}: ${item.value}")
+            is StatusItem.Nested -> {
+                appendLine("  ${item.title}:")
+                item.items.forEach { kv ->
+                    appendLine("    ${kv.key}: ${kv.value}")
+                }
+            }
+        }
+    }
+    appendLine()
+}
+
 data class BlockchainStatus(
     val sections: List<StatusSection>,
     val sharedSection: StatusSection?

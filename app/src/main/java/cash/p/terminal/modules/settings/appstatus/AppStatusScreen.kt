@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.modules.blockchainstatus.StatusSectionBlock
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockContent
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockData
 import cash.p.terminal.ui_compose.components.AppBar
@@ -142,6 +143,12 @@ fun AppStatusScreen(
                         sectionTitle = blockData.title,
                         contentItems = blockData.content,
                     )
+                }
+                if (uiState.blockchainStatusSections.isNotEmpty()) {
+                    item { InfoText(text = "BLOCKCHAIN STATUS") }
+                    items(uiState.blockchainStatusSections) { section ->
+                        StatusSectionBlock(section)
+                    }
                 }
                 item {
                     VSpacer(32.dp)

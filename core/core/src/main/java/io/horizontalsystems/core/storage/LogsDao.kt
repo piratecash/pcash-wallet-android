@@ -12,7 +12,10 @@ interface LogsDao {
     fun insert(logEntry: LogEntry)
 
     @Query("SELECT * FROM LogEntry ORDER BY id")
-    fun getAll(): List<LogEntry>
+    suspend fun getAll(): List<LogEntry>
+
+    @Query("SELECT * FROM LogEntry ORDER BY id DESC LIMIT :limit")
+    suspend fun getRecent(limit: Int): List<LogEntry>
 
     @Query("SELECT * FROM LogEntry WHERE actionId LIKE '%' || :tag || '%' ORDER BY id")
     fun getByTag(tag: String): List<LogEntry>

@@ -243,7 +243,7 @@ internal fun BlockchainStatusButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun StatusSectionBlock(section: StatusSection) {
+internal fun StatusSectionBlock(section: StatusSection) {
     VSpacer(12.dp)
     InfoText(text = section.title.uppercase())
     CellUniversalLawrenceSection(section.items) { item ->

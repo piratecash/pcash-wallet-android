@@ -3,6 +3,8 @@ package io.horizontalsystems.core.logger
 import android.util.Log
 import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,7 +33,13 @@ object AppLog {
         }
     }
 
-    fun getLog(): Map<String, Any> = buildLogMap(logsDao.getAll())
+    suspend fun getLog(): Map<String, Any> = withContext(Dispatchers.IO) {
+        buildLogMap(logsDao.getRecent(500).reversed())
+    }
+
+    suspend fun getFullLog(): Map<String, Any> = withContext(Dispatchers.IO) {
+        buildLogMap(logsDao.getAll())
+    }
 
     fun getLog(tag: String): Map<String, Any> = buildLogMap(logsDao.getByTag(tag))
 
