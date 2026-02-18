@@ -59,7 +59,9 @@ class DuplicateWalletViewModel(
             passphraseAvailable = accountToCopy.type is Mnemonic,
             passphraseEnabled = passcodeOld.isNotEmpty(),
             passcodeOld = passcodeOld,
-            accountName = accountToCopy.name + " " + Translator.getString(R.string.copy_wallet_suffix),
+            accountName = accountFactory.getUniqueName(
+                accountToCopy.name + " " + Translator.getString(R.string.copy_wallet_suffix)
+            ),
         )
     )
         private set
@@ -196,8 +198,9 @@ class DuplicateWalletViewModel(
                 }
             }
 
+            val finalName = accountFactory.getUniqueName(uiState.accountName)
             val newAccount = accountFactory.account(
-                name = uiState.accountName,
+                name = finalName,
                 type = type,
                 origin = accountToCopy.origin,
                 backedUp = accountToCopy.isBackedUp,

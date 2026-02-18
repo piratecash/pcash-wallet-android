@@ -1,3 +1,38 @@
+## 🚀 Version 0.51.15 Update
+_Release date: _
+
+## 🚀 Update
+
+### 🐛 Fixes
+
+- **Fixed an issue with price recalculation on the asset page**
+  Resolved a bug where, in rare cases, the asset price conversion into other coins was not displayed.
+
+### ✨ Improvements
+
+- **Improved the wallet re-import mechanism**
+  When re-importing a wallet, unique characters are now appended to its name to prevent duplicate names.
+
+- **Added release branch information to App Status**
+  The App Status section now displays the release branch and build hash. This allows developers and testers to see which branch the current app version was built from.
+
+
+
+## 🚀 Version 0.51.14 Update
+_Release date: February 17, 2026_
+
+### 🐛 Fixes
+
+- **Fixed an issue where the "Quoting" button could get stuck in an infinite loading state on the Swap screen**
+  Resolved a bug that caused exchange quotes to not appear due to the "Quoting" button being stuck in a loading state.
+
+### ✨ Improvements
+
+- **Improved balance updates before transaction confirmation**
+  The balance is now updated correctly while waiting for the transaction to be included in a block, preventing users from attempting to operate with unconfirmed funds.
+
+
+
 ## 🚀 Version 0.51.13 Update
 _Release date: February 15, 2026_
 
