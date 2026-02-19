@@ -209,14 +209,10 @@ class SwapViewModel(
         val tokenIn = quoteState.tokenIn ?: return
         val availableBalance = balanceState.balance ?: return
 
-        var amount = availableBalance
+        val amount = availableBalance
             .times(BigDecimal(percentage / 100.0))
             .setScale(tokenIn.decimals, RoundingMode.DOWN)
             .stripTrailingZeros()
-
-        if (percentage == 100) {
-            amount = amount.subtract(balanceService.getFeeToTransferAll())
-        }
 
         quoteService.setAmount(amount)
     }

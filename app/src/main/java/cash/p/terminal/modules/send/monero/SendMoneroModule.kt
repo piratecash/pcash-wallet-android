@@ -11,6 +11,7 @@ import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.getMaxSendableBalance
 import org.koin.java.KoinJavaComponent.inject
 import java.math.RoundingMode
 
@@ -31,8 +32,7 @@ object SendMoneroModule {
                     val amountValidator = AmountValidator()
                     val coinMaxAllowedDecimals = wallet.token.decimals
 
-                    val availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
-                        ?: adapter.balanceData.available
+                    val availableBalance = adapterManager.getMaxSendableBalance(wallet, adapter.maxSpendableBalance)
                     val amountService = SendAmountService(
                         amountValidator,
                         wallet.token.coin.code,
