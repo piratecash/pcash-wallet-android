@@ -27,6 +27,8 @@ import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
 import cash.p.terminal.modules.send.BaseSendViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
@@ -84,6 +86,23 @@ internal class SendEvmViewModel(
         }
 
         sendTransactionService.start(viewModelScope)
+
+        amountService.stateFlow.onEach { newAmountState ->
+            addressState.address?.let { address ->
+                val amount = newAmountState.amount ?: BigDecimal.ZERO
+                sendTransactionService.setSendTransactionData(
+                    SendTransactionData.Evm(
+                        adapter.getTransactionData(
+                            amount,
+                            io.horizontalsystems.ethereumkit.models.Address(address.hex)
+                        ),
+                        null,
+                        amount = amount
+                    )
+                )
+            }
+        }.launchIn(viewModelScope)
+
     }
 
     override fun createState() = SendUiState(

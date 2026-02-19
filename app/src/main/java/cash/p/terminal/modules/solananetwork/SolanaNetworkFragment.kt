@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -22,8 +23,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
-import coil3.compose.rememberAsyncImagePainter
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.core.composablePage
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
+import cash.p.terminal.modules.blockchainstatus.SolanaBlockchainStatusProvider
+import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
@@ -36,6 +45,12 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.imageUrl
+import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+
+private const val SettingsPage = "settings"
+private const val StatusPage = "status"
 
 class SolanaNetworkFragment : BaseComposeFragment() {
 
@@ -45,22 +60,52 @@ class SolanaNetworkFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        SolanaNetworkScreen(
-            viewModel,
-            navController
-        )
+        SolanaNetworkNavHost(navController)
     }
 
 }
 
 @Composable
+private fun SolanaNetworkNavHost(fragmentNavController: NavController) {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = SettingsPage,
+    ) {
+        composable(SettingsPage) {
+            SolanaNetworkScreen(
+                viewModel = koinViewModel(),
+                navController = navController,
+                fragmentNavController = fragmentNavController
+            )
+        }
+        composablePage(StatusPage) {
+            val solanaKitManager = koinInject<SolanaKitManager>()
+            val provider = remember(solanaKitManager) {
+                SolanaBlockchainStatusProvider(
+                    solanaKitManager = solanaKitManager
+                )
+            }
+            val viewModel = koinViewModel<BlockchainStatusViewModel> {
+                parametersOf(provider)
+            }
+            BlockchainStatusScreen(
+                viewModel = viewModel,
+                onBack = navController::navigateUp
+            )
+        }
+    }
+}
+
+@Composable
 private fun SolanaNetworkScreen(
     viewModel: SolanaNetworkViewModel,
-    navController: NavController
+    navController: NavController,
+    fragmentNavController: NavController
 ) {
 
     if (viewModel.closeScreen) {
-        navController.popBackStack()
+        fragmentNavController.popBackStack()
     }
 
     Surface(color = ComposeAppTheme.colors.tyler) {
@@ -84,7 +129,7 @@ private fun SolanaNetworkScreen(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close,
                         onClick = {
-                            navController.popBackStack()
+                            fragmentNavController.popBackStack()
                         }
                     )
                 )
@@ -112,6 +157,12 @@ private fun SolanaNetworkScreen(
                     Spacer(Modifier.height(32.dp))
                 }
 
+                item {
+                    BlockchainStatusButton {
+                        navController.navigate(StatusPage)
+                    }
+                    Spacer(Modifier.height(32.dp))
+                }
             }
         }
 

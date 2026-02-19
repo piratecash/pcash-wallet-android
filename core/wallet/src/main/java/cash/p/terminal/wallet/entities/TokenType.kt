@@ -143,7 +143,7 @@ sealed class TokenType : Parcelable {
             return Unsupported(type, reference)
         }
 
-        fun fromId(id: String): TokenType? {
+        fun fromId(id: String): TokenType {
             val chunks = id.split(":")
             val type = chunks[0]
             val reference = chunks.getOrNull(1) ?: ""

@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.math.BigDecimal
 import java.util.concurrent.ConcurrentHashMap
 
@@ -43,6 +42,13 @@ class PendingBalanceCalculator(
                 }
             }
         }
+    }
+
+    fun onPendingInserted(entity: PendingTransactionEntity) {
+        pendingCache.compute(entity.walletId) { _, current ->
+            current.orEmpty() + entity
+        }
+        _pendingChangedFlow.tryEmit(Unit)
     }
 
     fun stopObserving(accountId: String) {
@@ -125,7 +131,6 @@ class PendingBalanceCalculator(
         if (idsToDelete.isNotEmpty()) {
             scope.launch {
                 runCatching { pendingRepository.deleteByIds(idsToDelete) }
-                    .onFailure { Timber.e(it, "Failed to delete confirmed pending txs: $idsToDelete") }
             }
         }
 

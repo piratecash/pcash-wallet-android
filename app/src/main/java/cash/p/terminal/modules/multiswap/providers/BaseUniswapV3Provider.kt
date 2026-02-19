@@ -105,7 +105,7 @@ abstract class BaseUniswapV3Provider(dexType: DexType) : EvmSwapProvider() {
             amountIn = amountIn,
             amountOut = amountOut,
             amountOutMin = amountOutMin,
-            sendTransactionData = SendTransactionData.Evm(transactionData, null),
+            sendTransactionData = SendTransactionData.Evm(transactionData, null, amount = amountIn),
             priceImpact = bestTrade.tradeDataV3.priceImpact,
             fields = fields
         )

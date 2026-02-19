@@ -20,11 +20,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.modules.blockchainstatus.StatusSectionBlock
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockContent
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockData
 import cash.p.terminal.ui_compose.components.AppBar
@@ -143,6 +145,12 @@ fun AppStatusScreen(
                         contentItems = blockData.content,
                     )
                 }
+                if (uiState.blockchainStatusSections.isNotEmpty()) {
+                    item { InfoText(text = "BLOCKCHAIN STATUS") }
+                    items(uiState.blockchainStatusSections) { section ->
+                        StatusSectionBlock(section)
+                    }
+                }
                 item {
                     VSpacer(32.dp)
                 }
@@ -181,10 +189,14 @@ private fun StatusBlock(
                     subhead2_grey(
                         modifier = Modifier.weight(1f),
                         text = item.title,
+                        maxLines = 1,
                     )
                     subhead1_leah(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp),
                         text = item.value,
+                        textAlign = TextAlign.End,
                     )
                 }
             }

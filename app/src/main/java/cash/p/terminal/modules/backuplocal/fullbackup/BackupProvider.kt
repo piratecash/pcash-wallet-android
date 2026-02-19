@@ -486,6 +486,7 @@ class BackupProvider(
         passphrase: String
     ): DecryptedFullBackup {
         val walletBackupItems = mutableListOf<WalletBackupItem>()
+        val usedNames = mutableSetOf<String>()
 
         fullBackup.wallets?.forEach { walletBackup2 ->
             val backup = walletBackup2.backup
@@ -504,7 +505,8 @@ class BackupProvider(
                 return@forEach
             }
 
-            val name = walletBackup2.name
+            val name = accountFactory.getUniqueName(walletBackup2.name, usedNames)
+            usedNames.add(name)
 
             val account = if (type.isWatchAccountType) {
                 accountFactory.watchAccount(name, type)

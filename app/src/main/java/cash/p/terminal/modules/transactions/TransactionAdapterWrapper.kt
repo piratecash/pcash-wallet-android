@@ -179,20 +179,22 @@ class TransactionAdapterWrapper(
     }
 
     private fun getPending(pendingEntities: List<PendingTransactionEntity>): List<TransactionRecord> {
+        val blockchainUid = transactionWallet.source.blockchain.type.uid
+        val filtered = pendingEntities.filter { it.blockchainTypeUid == blockchainUid }
+
         return if (transactionWallet.token != null) {
-            pendingEntities
-                .filter { it.coinUid == transactionWallet.token.coin.uid }
-                .map { pendingConverter.convert(it, transactionWallet.token) }
+            val token = transactionWallet.token
+            filtered
+                .filter {
+                    it.coinUid == token.coin.uid && it.tokenTypeId == token.type.id
+                }
+                .map { pendingConverter.convert(it, token) }
         } else {
-            pendingEntities
+            filtered
                 .mapNotNull {
+                    val tokenType = TokenType.fromId(it.tokenTypeId)
                     val token = tryOrNull {
-                        coinManager.getToken(
-                            TokenQuery(
-                                BlockchainType.fromUid(it.blockchainTypeUid),
-                                TokenType.fromId(it.tokenTypeId!!)!!
-                            )
-                        )
+                        coinManager.getToken(TokenQuery(BlockchainType.fromUid(it.blockchainTypeUid), tokenType))
                     } ?: return@mapNotNull null
                     pendingConverter.convert(it, token)
                 }
@@ -214,8 +216,14 @@ class TransactionAdapterWrapper(
             val pendingEntities = pendingRepository.getPendingForWallet(walletId)
             val pendingRecords = getPending(pendingEntities)
 
-            // Merge and sort by timestamp descending
-            (realRecords + pendingRecords).sortedByDescending { it.timestamp }
+            val realHashes = realRecords.mapNotNullTo(HashSet()) {
+                it.transactionHash.takeIf { hash -> hash.isNotEmpty() }
+            }
+            val filteredPending = pendingRecords.filter { pending ->
+                pending.transactionHash.isEmpty() || pending.transactionHash !in realHashes
+            }
+
+            (realRecords + filteredPending).sortedByDescending { it.timestamp }
         } catch (e: Exception) {
             // If something fails, return real records only
             realRecords

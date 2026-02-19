@@ -5,8 +5,11 @@ import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
+import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewItemFactory
+import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.balance.TotalBalance
+import cash.p.terminal.modules.balance.TotalService
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
@@ -15,13 +18,17 @@ import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.balance.BalanceItem
+import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import cash.p.terminal.wallet.managers.TransactionHiddenState
 import cash.p.terminal.wallet.tokenQueryId
+import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.clearMocks
@@ -30,6 +37,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
 import io.mockk.verify
+import java.math.BigDecimal
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -110,6 +118,9 @@ class TokenBalanceViewModelTest : KoinTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        CoreApp.instance = mockk(relaxed = true) {
+            every { isSwapEnabled } returns false
+        }
 
         transactionHiddenFlow = MutableStateFlow(createHiddenState(hidden = false))
         transactionItemsFlow = MutableStateFlow(emptyList())
@@ -228,6 +239,42 @@ class TokenBalanceViewModelTest : KoinTest {
 
     // endregion
 
+    // region Secondary Value Tests (MOBILE-517)
+
+    @Test
+    fun secondaryValue_globalBalanceHiddenPerWalletRevealed_showsFiatValue() = runTest(dispatcher) {
+        val expectedFiat = "$142.35"
+
+        // Global balance hidden → TotalService emits State.Hidden
+        val totalStateFlow = MutableStateFlow<TotalService.State>(TotalService.State.Hidden)
+        every { totalBalance.stateFlow } returns totalStateFlow
+
+        // balanceViewItemFactory returns a view item with real fiat value (visible)
+        val balanceViewItem = createBalanceViewItem(
+            secondaryValue = DeemedValue(value = expectedFiat, dimmed = false, visible = true)
+        )
+        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any()) } returns balanceViewItem
+        every { balanceHiddenManager.isWalletBalanceHidden(any()) } returns false
+
+        val testBalanceItem = createBalanceItem()
+        every { balanceService.balanceItem } returns testBalanceItem
+
+        // Create ViewModel, then emit balance data
+        val viewModel = createViewModel()
+        balanceItemFlow.value = testBalanceItem
+        advanceUntilIdle()
+
+        // Simulate per-wallet reveal (tap on token screen)
+        walletBalanceHiddenFlow.value = false
+        advanceUntilIdle()
+
+        // Secondary value must show fiat, not be empty
+        assertEquals(expectedFiat, viewModel.secondaryValue.value)
+        assertEquals(true, viewModel.secondaryValue.visible)
+    }
+
+    // endregion
+
     // region Helper Methods
 
     private fun createViewModel(): TokenBalanceViewModel = TokenBalanceViewModel(
@@ -293,6 +340,38 @@ class TokenBalanceViewModelTest : KoinTest {
         every { this@mockk.uid } returns uid
         every { formattedDate } returns "DATE"
     }
+
+    private fun createBalanceViewItem(
+        secondaryValue: DeemedValue<String> = DeemedValue("", dimmed = false, visible = true)
+    ) = BalanceViewItem(
+        wallet = testWallet,
+        primaryValue = DeemedValue("1.5 TEST", dimmed = false, visible = true),
+        exchangeValue = DeemedValue("", dimmed = false, visible = false),
+        secondaryValue = secondaryValue,
+        lockedValues = emptyList(),
+        sendEnabled = false,
+        syncingProgress = SyncingProgress(null, null),
+        syncingTextValue = null,
+        syncedUntilTextValue = null,
+        failedIconVisible = false,
+        coinIconVisible = true,
+        badge = null,
+        swapVisible = false,
+        swapEnabled = false,
+        errorMessage = null,
+        isWatchAccount = false,
+        isSendDisabled = false,
+        isShowShieldFunds = false,
+        warning = null
+    )
+
+    private fun createBalanceItem() = BalanceItem(
+        wallet = testWallet,
+        balanceData = BalanceData(available = BigDecimal("1.5")),
+        state = AdapterState.Synced,
+        sendAllowed = true,
+        coinPrice = null
+    )
 
     // endregion
 }

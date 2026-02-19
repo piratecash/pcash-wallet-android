@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
-import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
@@ -58,11 +57,8 @@ object SendSolanaModule {
                             TokenType.Native
                         )
                     ) ?: throw IllegalArgumentException()
-                    val balance = App.solanaKitManager.solanaKitWrapper?.solanaKit?.balance ?: 0L
-                    val solBalance = SolanaAdapter.balanceInBigDecimal(
-                        balance,
-                        solToken.decimals
-                    ) - SolanaKit.accountRentAmount
+                    val solBalance = (adapterManager.getAdjustedBalanceDataForToken(solToken)?.available
+                        ?: BigDecimal.ZERO) - SolanaKit.accountRentAmount
                     val addressService = SendSolanaAddressService()
                     val xRateService = XRateService(App.marketKit, App.currencyManager.baseCurrency)
 

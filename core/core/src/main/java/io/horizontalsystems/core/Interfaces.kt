@@ -26,6 +26,7 @@ interface IEncryptionManager {
 interface ISystemInfoManager {
     val appVersion: String
     val appVersionFull: String
+    val appVersionDisplay: String
     val isDeviceSecure: Boolean
     val isSystemLockOff: Boolean
     val biometricAuthSupported: Boolean

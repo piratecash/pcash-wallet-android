@@ -178,12 +178,20 @@ object AllBridgeProvider : IMultiSwapProvider {
             val finalAddress = proxyAddress ?: bridgeAddress
 
             allowance = EvmSwapHelper.getAllowance(tokenIn, finalAddress)
-            actionRequired = actionRequired ?:
-                EvmSwapHelper.actionApprove(allowance, amountIn, finalAddress, tokenIn)
+            actionRequired = actionRequired ?: EvmSwapHelper.actionApprove(
+                allowance,
+                amountIn,
+                finalAddress,
+                tokenIn
+            )
         } else if (tokenIn.blockchainType == BlockchainType.Tron) {
             allowance = SwapHelper.getAllowanceTrc20(tokenIn, bridgeAddress)
-            actionRequired = actionRequired ?:
-                SwapHelper.actionApproveTrc20(allowance, amountIn, bridgeAddress, tokenIn)
+            actionRequired = actionRequired ?: SwapHelper.actionApproveTrc20(
+                allowance,
+                amountIn,
+                bridgeAddress,
+                tokenIn
+            )
         } else {
             allowance = null
         }
@@ -402,7 +410,8 @@ object AllBridgeProvider : IMultiSwapProvider {
                         value = rawTransaction.value?.toBigInteger() ?: BigInteger.ZERO,
                         input = rawTransaction.data.hexStringToByteArray(),
                     ),
-                    gasLimit = null
+                    gasLimit = null,
+                    amount = amountIn
                 )
             }
 
@@ -420,7 +429,11 @@ object AllBridgeProvider : IMultiSwapProvider {
             }
 
             tokenIn.blockchainType == BlockchainType.Solana -> {
-                SendTransactionData.Solana.WithRawTransaction(rawTransactionStr)
+                SendTransactionData.Solana.WithRawTransaction(
+                    rawTransactionStr = rawTransactionStr,
+                    rawTransactionAddress = recipientStr,
+                    rawTransactionAmount = amountIn
+                )
             }
 
             else -> throw kotlin.IllegalArgumentException("Swapping ${tokenIn.blockchainType} not supported")

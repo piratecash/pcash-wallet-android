@@ -72,6 +72,7 @@ interface IAccountFactory {
     fun getNextWatchAccountName(): String
     fun getNextAccountName(): String
     fun getNextHardwareAccountName(): String
+    fun getUniqueName(name: String, additionalExistingNames: Set<String> = emptySet()): String
 }
 
 interface IRandomProvider {

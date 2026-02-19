@@ -33,4 +33,5 @@ internal object BtcBlockchainSettingsModule {
         data class ApiIcon(val resId: Int): BlockchainSettingsIcon()
         data class BlockchainIcon(val url: String): BlockchainSettingsIcon()
     }
+
 }

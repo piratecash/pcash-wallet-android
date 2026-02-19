@@ -13,7 +13,8 @@ sealed class SendTransactionData {
     data class Evm(
         val transactionData: TransactionData,
         val gasLimit: Long?,
-        val feesMap: Map<FeeType, CoinValue> = mapOf()
+        val feesMap: Map<FeeType, CoinValue> = mapOf(),
+        val amount: BigDecimal? = null
     ) : SendTransactionData()
 
     data class Btc(
@@ -43,7 +44,11 @@ sealed class SendTransactionData {
             val amount: BigDecimal
         ) : Solana()
 
-        data class WithRawTransaction(val rawTransactionStr: String) : Solana()
+        data class WithRawTransaction(
+            val rawTransactionStr: String,
+            val rawTransactionAddress: String,
+            val rawTransactionAmount: BigDecimal
+        ) : Solana()
     }
 
     sealed class Stellar : SendTransactionData() {

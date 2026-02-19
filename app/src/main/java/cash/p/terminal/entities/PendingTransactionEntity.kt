@@ -14,7 +14,7 @@ data class PendingTransactionEntity(
     val walletId: String,
     val coinUid: String,
     val blockchainTypeUid: String,
-    val tokenTypeId: String?,
+    val tokenTypeId: String,
     val meta: String?,
 
     // Transaction data for matching

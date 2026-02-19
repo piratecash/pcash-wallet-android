@@ -1,5 +1,6 @@
 package cash.p.terminal.di
 
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
 import cash.p.terminal.modules.addtoken.AddTokenViewModel
 import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
@@ -64,6 +65,7 @@ val viewModelModule = module {
     viewModelOf(::ReleaseNotesViewModel)
     viewModelOf(::RestoreMnemonicViewModel)
     viewModelOf(::AppStatusViewModel)
+    viewModel { params -> BlockchainStatusViewModel(provider = params.get(), dispatcherProvider = get()) }
     viewModelOf(::AppCacheViewModel)
     viewModelOf(::MoneroConfigureViewModel)
     viewModelOf(::AboutPremiumViewModel)
