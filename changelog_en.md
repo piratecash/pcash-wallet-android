@@ -1,20 +1,33 @@
 ## 🚀 Version 0.51.15 Update
-_Release date: _
-
-## 🚀 Update
+_Release Date: February 19, 2026_
 
 ### 🐛 Fixes
 
 - **Fixed an issue with price recalculation on the asset page**
-  Resolved a bug where, in rare cases, the asset price conversion into other coins was not displayed.
+  Resolved a bug where, in rare cases, the asset value was not recalculated into other currencies.
+
+- **Fixed multiple issues with Monero**
+  Addressed errors that caused instability and application crashes when interacting with the Monero network.
+
+- **Fixed a crash when opening the transaction list**
+  The app no longer crashes when attempting to open the transaction list. The issue was related to an incorrect transaction data format.
+
+- **Fixed a crash when opening the Funds Invested screen**
+  Resolved a crash that occurred after Android process restoration when navigating to the coin investment screen.
 
 ### ✨ Improvements
 
-- **Improved the wallet re-import mechanism**
-  When re-importing a wallet, unique characters are now appended to its name to prevent duplicate names.
+- **Added secure Tangem card password input**
+  Screenshot and screen recording are now disabled on the password input screen to enhance user data security.
 
-- **Added release branch information to App Status**
-  The App Status section now displays the release branch and build hash. This allows developers and testers to see which branch the current app version was built from.
+- **Improved wallet re-import mechanism**
+  Unique characters are now appended to the wallet name during re-import to prevent duplicate names.
+
+- **Added release branch information in App Status**
+  The App Status section now displays the release branch and build hash, allowing developers and testers to see which branch the current build was created from.
+
+- **Improved blockchain logging**
+  Refined log structure and optimized logging to allow easier analysis of specific parameters without reviewing the entire log output.
 
 
 
