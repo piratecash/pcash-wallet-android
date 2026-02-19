@@ -302,6 +302,8 @@
     <string name="balance_connecting">جارٍ الاتصال…</string>
     <string name="balance_syncing_blocks_remaining">%s كتلة متبقية</string>
     <string name="balance_processing">جارٍ المعالجة…</string>
+    <string name="balance_waiting_for_peers">في انتظار الأقران: %1$d من %2$d</string>
+    <string name="balance_connecting_to_api">جاري الاتصال بواجهة API…</string>
     <string name="Balance_Sort_Balance">Balance</string>
     <string name="Balance_Sort_PopupTitle">Sort by</string>
     <string name="Balance_Sort_Az">Name</string>

@@ -341,6 +341,12 @@ abstract class BitcoinBaseAdapter(
                 val progress = (kitState.progress * 100).toInt()
                 lastSyncProgress = progress
 
+                val substatus = when (val sub = kitState.substatus) {
+                    is BitcoinCore.SyncSubstatus.WaitingForPeers ->
+                        AdapterState.Substatus.WaitingForPeers(sub.connected, sub.required)
+                    null -> null
+                }
+
                 val lastBlockDate = kit.lastBlockInfo?.timestamp?.let { Date(it * 1000) }
 
                 val currentHeight = kit.lastBlockInfo?.height?.toLong()
@@ -352,9 +358,9 @@ abstract class BitcoinBaseAdapter(
                 }
 
                 if (progress >= 100) {
-                    AdapterState.Syncing(progress = 100, lastBlockDate = lastBlockDate, blocksRemained = null)
+                    AdapterState.Syncing(progress = 100, lastBlockDate = lastBlockDate, blocksRemained = null, substatus = substatus)
                 } else {
-                    AdapterState.Syncing(progress = progress, lastBlockDate = lastBlockDate, blocksRemained = blocksRemained)
+                    AdapterState.Syncing(progress = progress, lastBlockDate = lastBlockDate, blocksRemained = blocksRemained, substatus = substatus)
                 }
             }
         }

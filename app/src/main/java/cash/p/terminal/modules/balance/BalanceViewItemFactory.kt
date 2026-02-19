@@ -101,11 +101,16 @@ class BalanceViewItemFactory {
         return when (state) {
             is AdapterState.Connecting -> SyncingProgress(SyncingProgressType.Spinner, 10)
             is AdapterState.Syncing -> {
-                val progressValue = state.progress ?: getDefaultSyncingProgress(blockchainType)
-                if (state.progress != null && blockchainType.isSyncWithProgress()) {
-                    SyncingProgress(SyncingProgressType.ProgressWithRing, progressValue)
+                if (state.substatus != null) {
+                    SyncingProgress(SyncingProgressType.Spinner, 10)
                 } else {
-                    SyncingProgress(SyncingProgressType.Spinner, progressValue)
+                    val progress = state.progress
+                    val progressValue = progress ?: getDefaultSyncingProgress(blockchainType)
+                    if (progress != null && progress > 0 && blockchainType.isSyncWithProgress()) {
+                        SyncingProgress(SyncingProgressType.ProgressWithRing, progressValue)
+                    } else {
+                        SyncingProgress(SyncingProgressType.Spinner, progressValue)
+                    }
                 }
             }
             is AdapterState.SearchingTxs -> SyncingProgress(SyncingProgressType.Spinner, 10)
@@ -158,42 +163,46 @@ class BalanceViewItemFactory {
     }
 
     private fun getSyncingText(state: AdapterState?): String? {
-        if (state == null) {
-            return null
-        }
-
-        val text = when (state) {
+        return when (state) {
             is AdapterState.Connecting -> Translator.getString(R.string.balance_connecting)
-            is AdapterState.Syncing -> {
-                val blocksRemained = state.blocksRemained
-                val progress = state.progress
-                when {
-                    blocksRemained != null && blocksRemained > 0 -> {
-                        Translator.getString(
-                            R.string.balance_syncing_blocks_remaining,
-                            formatBlocksRemaining(blocksRemained)
-                        )
-                    }
-                    blocksRemained == null && progress != null && progress >= 100 -> {
-                        Translator.getString(R.string.balance_processing)
-                    }
-                    progress != null -> {
-                        Translator.getString(
-                            R.string.Balance_Syncing_WithProgress,
-                            progress.toString()
-                        )
-                    }
-                    else -> {
-                        Translator.getString(R.string.Balance_Syncing)
-                    }
+            is AdapterState.Syncing -> getSyncingProgressText(state)
+            is AdapterState.SearchingTxs -> {
+                if (state.count == 0) {
+                    Translator.getString(R.string.balance_connecting_to_api)
+                } else {
+                    Translator.getString(R.string.Balance_SearchingTransactions)
                 }
             }
-
-            is AdapterState.SearchingTxs -> Translator.getString(R.string.Balance_SearchingTransactions)
             else -> null
         }
+    }
 
-        return text
+    private fun getSyncingProgressText(state: AdapterState.Syncing): String {
+        val sub = state.substatus
+        if (sub is AdapterState.Substatus.WaitingForPeers) {
+            return Translator.getString(R.string.balance_waiting_for_peers, sub.connected, sub.required)
+        }
+
+        val blocksRemained = state.blocksRemained
+        val progress = state.progress
+        return when {
+            blocksRemained != null && blocksRemained > 0 -> {
+                Translator.getString(
+                    R.string.balance_syncing_blocks_remaining,
+                    formatBlocksRemaining(blocksRemained)
+                )
+            }
+            blocksRemained == null && progress != null && progress >= 100 -> {
+                Translator.getString(R.string.balance_processing)
+            }
+            progress != null && progress > 0 -> {
+                Translator.getString(
+                    R.string.Balance_Syncing_WithProgress,
+                    progress.toString()
+                )
+            }
+            else -> Translator.getString(R.string.Balance_Syncing)
+        }
     }
 
     private fun formatBlocksRemaining(blocks: Long): String {
@@ -213,14 +222,16 @@ class BalanceViewItemFactory {
 
         val text = when (state) {
             is AdapterState.Syncing -> {
-                if (state.lastBlockDate != null) {
-                    Translator.getString(
-                        R.string.Balance_SyncedUntil, DateHelper.formatDate(
-                            state.lastBlockDate!!, "MMM d, yyyy"
-                        )
-                    )
-                } else {
+                if (state.substatus != null) {
                     null
+                } else {
+                    state.lastBlockDate?.let { date ->
+                        Translator.getString(
+                            R.string.Balance_SyncedUntil, DateHelper.formatDate(
+                                date, "MMM d, yyyy"
+                            )
+                        )
+                    }
                 }
             }
 

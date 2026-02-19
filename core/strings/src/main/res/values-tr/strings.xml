@@ -302,6 +302,8 @@
     <string name="balance_connecting">Bağlanıyor…</string>
     <string name="balance_syncing_blocks_remaining">%s blok kaldı</string>
     <string name="balance_processing">İşleniyor…</string>
+    <string name="balance_waiting_for_peers">Eşler bekleniyor: %1$d / %2$d</string>
+    <string name="balance_connecting_to_api">API\'ye bağlanılıyor…</string>
     <string name="Balance_Sort_Balance">Bakiye</string>
     <string name="Balance_Sort_PopupTitle">Sıralama şekli</string>
     <string name="Balance_Sort_Az">İsim</string>
