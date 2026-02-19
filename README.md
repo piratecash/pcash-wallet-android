@@ -10,6 +10,16 @@ It is built with care and adheres to best programming practices and implementati
 
 More at [https://p.cash](https://p.cash)
 
+## 🔐 Verify Official Releases
+
+All official Android APK releases are cryptographically signed using the PirateCash GPG release key.
+
+Before installing any APK, please verify its authenticity using the provided signature files.
+
+See the full verification guide:
+
+📄 [RELEASE_SIGNING_AND_VERIFICATION.md](./RELEASE_SIGNING_AND_VERIFICATION.md)
+
 ## Supported Android Versions
 
 Devices with Android versions 8.1 and above
