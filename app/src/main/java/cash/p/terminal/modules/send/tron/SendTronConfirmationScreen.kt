@@ -254,19 +254,27 @@ fun SendTronConfirmationScreen(
                 }
             }
 
-            SendButton(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp)
                     .navigationBarsPadding()
-                    .padding(bottom = 16.dp),
-                sendResult = sendResult,
-                onClickSend = {
-                    sendViewModel.onClickSend()
-                },
-                enabled = sendEnabled
-            )
+                    .padding(bottom = 16.dp)
+            ) {
+                if (!sendViewModel.isSynced) {
+                    TextImportantWarning(
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        text = stringResource(R.string.send_confirmation_syncing_warning)
+                    )
+                }
+                SendButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    sendResult = sendResult,
+                    onClickSend = sendViewModel::onClickSend,
+                    enabled = sendEnabled && sendViewModel.isSynced
+                )
+            }
         }
     }
 }

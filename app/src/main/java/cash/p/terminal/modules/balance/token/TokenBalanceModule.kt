@@ -99,6 +99,7 @@ class TokenBalanceModule {
         val transactions: Map<String, List<TransactionViewItem>>?,
         val hasHiddenTransactions: Boolean,
         val showAmlPromo: Boolean = false,
-        val amlCheckEnabled: Boolean = false
+        val amlCheckEnabled: Boolean = false,
+        val isShowShieldFunds: Boolean = false
     )
 }

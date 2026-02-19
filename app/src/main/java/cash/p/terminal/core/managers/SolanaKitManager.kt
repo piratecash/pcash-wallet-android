@@ -1,7 +1,7 @@
 package cash.p.terminal.core.managers
 
+import android.util.Log
 import cash.p.terminal.core.App
-import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.UnsupportedException
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
@@ -27,7 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import timber.log.Timber
 
 class SolanaKitManager(
     private val rpcSourceManager: SolanaRpcSourceManager,
@@ -44,7 +43,7 @@ class SolanaKitManager(
 
     private val coroutineScope =
         CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
-            Timber.d(throwable, "Coroutine error")
+            Log.d("SolanaKitManager", "Coroutine error", throwable)
         })
     private var backgroundEventListenerJob: Job? = null
     private var rpcUpdatedJob: Job? = null
@@ -120,7 +119,8 @@ class SolanaKitManager(
         }
 
         this.solanaKitWrapper = newWrapper
-        start()
+        startKit()
+        subscribeToEvents()
         useCount = 1
         currentAccount = account
 
@@ -208,26 +208,27 @@ class SolanaKitManager(
         rpcUpdatedJob?.cancel()
     }
 
-    private fun start() {
-        val kit = solanaKitWrapper?.solanaKit ?: return
-        kit.start()
-
-        tokenAccountJob = coroutineScope.launch {
-            kit.fungibleTokenAccountsFlow.collect {
-                walletManager.add(it)
-            }
-        }
-
-        backgroundEventListenerJob = coroutineScope.launch {
-            backgroundManager.stateFlow.collect { state ->
-                if (state == BackgroundManagerState.EnterForeground) {
-                    kit.start()
-                } else if (state == BackgroundManagerState.EnterBackground) {
-                    kit.stop()
+    private fun startKit() {
+        solanaKitWrapper?.solanaKit?.let { kit ->
+            tokenAccountJob = coroutineScope.launch {
+                kit.start()
+                kit.fungibleTokenAccountsFlow.collect {
+                    walletManager.add(it)
                 }
             }
         }
+    }
 
+    private fun subscribeToEvents() {
+        backgroundEventListenerJob = coroutineScope.launch {
+            backgroundManager.stateFlow.collect { state ->
+                if (state == BackgroundManagerState.EnterForeground) {
+                    startKit()
+                } else if (state == BackgroundManagerState.EnterBackground) {
+                    stopKit()
+                }
+            }
+        }
         rpcUpdatedJob = coroutineScope.launch {
             rpcSourceManager.rpcSourceUpdateObservable.asFlow().collect {
                 handleUpdateNetwork()
@@ -237,9 +238,3 @@ class SolanaKitManager(
 }
 
 class SolanaKitWrapper(val solanaKit: SolanaKit, val signer: Signer?)
-
-fun SolanaKit.SyncState.toAdapterState(): AdapterState = when (this) {
-    is SolanaKit.SyncState.Synced -> AdapterState.Synced
-    is SolanaKit.SyncState.NotSynced -> AdapterState.NotSynced(error)
-    is SolanaKit.SyncState.Syncing -> AdapterState.Syncing()
-}

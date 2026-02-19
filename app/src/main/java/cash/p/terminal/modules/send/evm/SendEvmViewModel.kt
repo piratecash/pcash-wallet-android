@@ -20,11 +20,12 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.SendUiState
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -34,7 +35,7 @@ import java.math.BigDecimal
 import java.net.UnknownHostException
 
 internal class SendEvmViewModel(
-    val wallet: Wallet,
+    wallet: Wallet,
     sendToken: Token,
     val adapter: ISendEthereumAdapter,
     private val sendTransactionService: SendTransactionServiceEvm,
@@ -43,8 +44,9 @@ internal class SendEvmViewModel(
     private val addressService: SendEvmAddressService,
     val coinMaxAllowedDecimals: Int,
     private val showAddressInput: Boolean,
-    address: Address?
-) : ViewModelUiState<SendUiState>() {
+    address: Address?,
+    adapterManager: IAdapterManager
+) : BaseSendViewModel<SendUiState>(wallet, adapterManager) {
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val blockchainType = wallet.token.blockchainType
 

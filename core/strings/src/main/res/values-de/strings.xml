@@ -288,7 +288,7 @@
     <!--Balance-->
     <string name="Balance_Title">Guthaben</string>
     <string name="Balance_Send">Senden</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">Guthaben schützen und konsolidieren</string>
     <string name="Balance_Receive">Empfangen</string>
     <string name="Balance_Address">Adresse</string>
     <string name="Balance_RatePerCoin">%1$s pro %2$s</string>
@@ -846,6 +846,7 @@
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">Blockchain-Status</string>
     <string name="btc_blockchain_settings_restore_source_change_warning">Nach dem Ändern der Quelle muss die Brieftasche sich selbst synchronisieren.</string>
+    <string name="send_confirmation_syncing_warning">Wallet synchronisiert sich noch. Bitte warten Sie, bis die Synchronisierung abgeschlossen ist, bevor Sie senden.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Wählen Sie die Datenquelle für die Wiederherstellung des Wallets mit Transaktionen aus.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Ein-/Ausgänge</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Transaktionseinstellungen</string>

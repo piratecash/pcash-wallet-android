@@ -27,7 +27,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.SolanaKit
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +39,7 @@ import java.net.UnknownHostException
 import kotlin.getValue
 
 class SendSolanaViewModel(
-    val wallet: Wallet,
+    wallet: Wallet,
     val sendToken: Token,
     val feeToken: Token,
     val solBalance: BigDecimal,
@@ -52,14 +52,14 @@ class SendSolanaViewModel(
     private val showAddressInput: Boolean,
     private val connectivityManager: ConnectivityManager,
     address: Address?,
-    private val pendingRegistrar: PendingTransactionRegistrar
-) : ViewModelUiState<SendSolanaModule.SendUiState>() {
+    private val pendingRegistrar: PendingTransactionRegistrar,
+    private val adapterManager: IAdapterManager
+) : BaseSendViewModel<SendSolanaModule.SendUiState>(wallet, adapterManager) {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
-    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value

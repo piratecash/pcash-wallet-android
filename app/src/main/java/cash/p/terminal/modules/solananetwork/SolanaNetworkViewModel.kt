@@ -5,15 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.managers.SolanaKitManager
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 
-class SolanaNetworkViewModel(
-    private val service: SolanaNetworkService,
-    private val solanaKitManager: SolanaKitManager
-) : ViewModel() {
+class SolanaNetworkViewModel(private val service: SolanaNetworkService) : ViewModel() {
 
     var closeScreen by mutableStateOf(false)
         private set
@@ -23,8 +19,6 @@ class SolanaNetworkViewModel(
 
     val title: String = "Solana"
     val blockchainType = BlockchainType.Solana
-    val statusInfo: Map<String, Any>?
-        get() = solanaKitManager.statusInfo
 
     init {
         viewModelScope.launch {

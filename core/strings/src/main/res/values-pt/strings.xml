@@ -290,7 +290,7 @@
     <!--Balance-->
     <string name="Balance_Title">Saldo</string>
     <string name="Balance_Send">Enviar</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">Proteger e consolidar fundos</string>
     <string name="Balance_Receive">Receber</string>
     <string name="Balance_Address">Endereço</string>
     <string name="Balance_RatePerCoin">%1$s por %2$s</string>
@@ -854,6 +854,7 @@
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">Estado da Blockchain</string>
     <string name="btc_blockchain_settings_restore_source_change_warning">Após alterar a fonte de restauração, a carteira terá que ressincronizar-se com a blockchain do Bitcoin.</string>
+    <string name="send_confirmation_syncing_warning">A carteira ainda está sincronizando. Aguarde a conclusão da sincronização antes de enviar.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Selecione uma fonte de dados para restauração de carteira. Restaurar da blockchain leva consideravelmente mais tempo.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entrada/Saída</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Configurações de transação</string>

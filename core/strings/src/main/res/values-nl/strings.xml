@@ -290,7 +290,7 @@
     <!--Balance-->
     <string name="Balance_Title">Balance</string>
     <string name="Balance_Send">Send</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">Fondsen afschermen en consolideren</string>
     <string name="Balance_Receive">Receive</string>
     <string name="Balance_Address">Address</string>
     <string name="Balance_RatePerCoin">%1$s per %2$s</string>
@@ -854,6 +854,7 @@
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">Blockchain Status</string>
     <string name="btc_blockchain_settings_restore_source_change_warning">After changing source the wallet will have to resync itself.</string>
+    <string name="send_confirmation_syncing_warning">Portemonnee synchroniseert nog. Wacht tot de synchronisatie voltooid is voordat u verstuurt.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Transaction Settings</string>

@@ -132,13 +132,6 @@ class MainActivity : BaseActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            viewModel.authRequiredEvent.collect {
-                KeyStoreActivity.startForUserAuthentication(this@MainActivity)
-                finish()
-            }
-        }
-
         // Handle deeplink on cold start (only on fresh launch, not on recreation)
         if (savedInstanceState == null && intent.data != null && intent.action == Intent.ACTION_VIEW) {
             viewModel.setIntent(intent)

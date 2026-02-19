@@ -32,7 +32,9 @@ import cash.p.terminal.modules.transactions.TransactionViewItemFactory
 import cash.p.terminal.modules.transactions.withClearedAmlStatus
 import cash.p.terminal.modules.transactions.withUpdatedAmlStatus
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
+import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.Token
@@ -97,6 +99,7 @@ class TokenBalanceViewModel(
         private set
 
     private var showCurrencyAsSecondary = true
+    private var hasReachedSynced = false
 
     init {
         viewModelScope.launch {
@@ -254,8 +257,21 @@ class TokenBalanceViewModel(
         transactions = transactions,
         hasHiddenTransactions = hasHiddenTransactions,
         showAmlPromo = shouldShowAmlPromo(),
-        amlCheckEnabled = amlStatusManager.isEnabled
+        amlCheckEnabled = amlStatusManager.isEnabled,
+        isShowShieldFunds = isShowShieldFunds()
     )
+
+    private fun isShowShieldFunds(): Boolean {
+        val item = balanceService.balanceItem ?: return hasReachedSynced
+        val isTransparent =
+            (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent
+        if (!isTransparent || item.balanceData.total <= ZcashAdapter.MINERS_FEE) return false
+
+        if (item.state is AdapterState.Synced) {
+            hasReachedSynced = true
+        }
+        return hasReachedSynced
+    }
 
     private fun updateTransactions(items: List<TransactionItem>) {
         transactions =

@@ -290,7 +290,7 @@
     <!--Balance-->
     <string name="Balance_Title">余额</string>
     <string name="Balance_Send">发送​​</string>
-    <string name="shield_funds">Shield and consolidate funds</string>
+    <string name="shield_funds">转移到受保护地址</string>
     <string name="Balance_Receive">接收</string>
     <string name="Balance_Address">地址</string>
     <string name="Balance_RatePerCoin">%1$s / %2$s</string>
@@ -850,6 +850,7 @@
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">区块链状态</string>
     <string name="btc_blockchain_settings_restore_source_change_warning">在更改源后，钱包将必须重新同步自己。</string>
+    <string name="send_confirmation_syncing_warning">钱包仍在同步中。请等待同步完成后再发送。</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">通过交易为恢复钱包选择数据源。</string>
     <string name="BtcBlockchainSettings_InputsOutputs">输入/输出</string>
     <string name="BtcBlockchainSettings_TransactionSettings">交易设置</string>

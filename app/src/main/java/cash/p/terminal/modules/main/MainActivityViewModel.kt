@@ -53,7 +53,6 @@ class MainActivityViewModel(
     val tcSendRequest: SharedFlow<SignTransaction?> = _tcSendRequest.asSharedFlow()
 
 
-    val authRequiredEvent = accountManager.authRequiredEvent
     val tcDappRequest = MutableLiveData<DAppRequestEntityWrapper?>()
     val intentLiveData = MutableLiveData<Intent?>()
 
