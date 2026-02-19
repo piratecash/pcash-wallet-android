@@ -16,7 +16,6 @@ data class CoinPriceKey(
 
 interface ICoinPriceCoinUidDataSource {
     fun allCoinUids(currencyCode: String): List<String>
-    fun combinedCoinUids(currencyCode: String): Pair<List<String>, List<String>>
 }
 
 class CoinPriceSyncManager(
@@ -30,14 +29,6 @@ class CoinPriceSyncManager(
     private fun observingCoinUids(currencyCode: String): Set<String> {
         return subjects
             .filter { it.key.currencyCode == currencyCode }
-            .map { it.key.coinUids }
-            .flatten()
-            .toSet()
-    }
-
-    private fun observingCoinUids(tag: String, currencyCode: String): Set<String> {
-        return subjects
-            .filter { it.key.tag == tag && it.key.currencyCode == currencyCode }
             .map { it.key.coinUids }
             .flatten()
             .toSet()
@@ -116,12 +107,6 @@ class CoinPriceSyncManager(
     // ICoinPriceCoinUidDataSource
     override fun allCoinUids(currencyCode: String): List<String> {
         return observingCoinUids(currencyCode).toList()
-    }
-
-    override fun combinedCoinUids(currencyCode: String): Pair<List<String>, List<String>> {
-        val allCoinUids = observingCoinUids(currencyCode).toList()
-        val walletCoinUids = observingCoinUids("wallet", currencyCode).toList()
-        return Pair(allCoinUids, walletCoinUids)
     }
 
     fun coinPriceObservable(tag: String, coinUid: String, currencyCode: String): Observable<CoinPrice> {
