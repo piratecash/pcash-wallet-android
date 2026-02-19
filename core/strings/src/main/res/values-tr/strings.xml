@@ -854,6 +854,7 @@
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">Blok Zinciri Durumu</string>
     <string name="btc_blockchain_settings_restore_source_change_warning">Kaynak değiştirdikten sonra cüzdanın kendini yeniden senkronize etmesi gerekecek.</string>
+    <string name="send_confirmation_syncing_warning">Cüzdan hâlâ senkronize ediliyor. Lütfen göndermeden önce senkronizasyonun tamamlanmasını bekleyin.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">İşlemler yapılmış cüzdanı geri yüklemek için veri kaynağını seçin.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Giriş/Çıkış</string>
     <string name="BtcBlockchainSettings_TransactionSettings">İşlem Ayarları</string>
