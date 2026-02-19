@@ -117,13 +117,13 @@ class MoneroKitManager(
         )
     }
 
-    suspend fun unlinkAll() = mutex.withLock {
+    suspend fun unlinkAll() {
         currentAccount = null
         useCount.set(0)
         stopKit()
     }
 
-    suspend fun unlink(account: Account) = mutex.withLock {
+    suspend fun unlink(account: Account) {
         if (account == currentAccount) {
             if (useCount.decrementAndGet() < 1) {
                 stopKit()
