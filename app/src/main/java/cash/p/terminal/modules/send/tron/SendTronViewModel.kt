@@ -214,11 +214,9 @@ class SendTronViewModel(
 
             val totalFee = fees.sumOf { it.feeInSuns }.toBigInteger()
             val fee = totalFee.toBigDecimal().movePointLeft(feeToken.decimals)
-            val isMaxAmount = amountState.availableBalance == amountState.amount!!
-            val adjustedAmount = if (sendToken == feeToken && isMaxAmount) amount - fee else amount
 
             confirmationData = confirmationData?.copy(
-                amount = adjustedAmount,
+                amount = amount,
                 fee = fee,
                 activationFee = activationFee,
                 resourcesConsumed = resourcesConsumed

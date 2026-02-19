@@ -1,5 +1,7 @@
 package cash.p.terminal.modules.settings.appstatus
 
+import cash.p.terminal.modules.blockchainstatus.StatusSection
+
 object AppStatusModule {
     sealed class BlockContent {
         data class Header(val title: String) : BlockContent()
@@ -12,6 +14,7 @@ object AppStatusModule {
     data class UiState(
         val appStatusAsText: String?,
         val blockViewItems: List<BlockData>,
+        val blockchainStatusSections: List<StatusSection>,
         val loading: Boolean,
     )
 }

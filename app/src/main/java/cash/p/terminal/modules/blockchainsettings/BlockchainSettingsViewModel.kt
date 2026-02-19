@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.strings.R
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.imageUrl
 import kotlinx.coroutines.launch
@@ -18,6 +19,9 @@ class BlockchainSettingsViewModel(
         private set
 
     var otherChains by mutableStateOf<List<BlockchainSettingsModule.BlockchainViewItem>>(listOf())
+        private set
+
+    var statusOnlyChains by mutableStateOf<List<BlockchainSettingsModule.BlockchainViewItem>>(listOf())
         private set
 
     init {
@@ -49,7 +53,6 @@ class BlockchainSettingsViewModel(
                 }
 
             otherChains = blockchainItems
-                .filterNot { it is BlockchainSettingsModule.BlockchainItem.Btc }
                 .mapNotNull { item ->
                     when (item) {
                         is BlockchainSettingsModule.BlockchainItem.Evm -> BlockchainSettingsModule.BlockchainViewItem(
@@ -66,6 +69,17 @@ class BlockchainSettingsViewModel(
                         )
                         else -> null
                     }
+                }
+
+            statusOnlyChains = blockchainItems
+                .filterIsInstance<BlockchainSettingsModule.BlockchainItem.StatusOnly>()
+                .map { item ->
+                    BlockchainSettingsModule.BlockchainViewItem(
+                        title = item.blockchain.name,
+                        subtitle = Translator.getString(R.string.blockchain_status),
+                        imageUrl = item.blockchain.type.imageUrl,
+                        blockchainItem = item
+                    )
                 }
         }
     }

@@ -1,6 +1,5 @@
 package cash.p.terminal.core.managers
 
-import cash.p.terminal.entities.PendingTransactionEntity
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -13,37 +12,7 @@ data class MatchScore(
     val confidence: Double
 )
 
-class PendingTransactionMatcher(
-    private val repository: PendingTransactionRepository
-) {
-
-    suspend fun matchAndResolve(allRealTxs: List<TransactionRecord>) {
-        // Get all pending transactions from all wallets
-        val firstRealTransaction = allRealTxs.firstOrNull { it !is PendingTransactionRecord } ?: return
-        val pending = repository.getPendingForWallet(firstRealTransaction.source.account.id)
-
-        allRealTxs.forEach { real ->
-            if (real is PendingTransactionRecord) {
-                return@forEach
-            }
-
-            val matched = findBestMatch(real, pending)
-            if (matched != null) {
-                repository.deleteById(matched.id)
-            }
-        }
-    }
-
-    private fun findBestMatch(
-        real: TransactionRecord,
-        pending: List<PendingTransactionEntity>
-    ): PendingTransactionEntity? {
-        return pending
-            .map { it to calculateMatchScore(it, real) }
-            .filter { it.second.isMatch }
-            .maxByOrNull { it.second.confidence }
-            ?.first
-    }
+class PendingTransactionMatcher {
 
     private fun calculateMatchScoreInternal(
         txHash: String,
@@ -86,18 +55,6 @@ class PendingTransactionMatcher(
         amountAtomic = pending.amount.movePointRight(pending.token.decimals).toBigInteger()
             .toString(),
         toAddress = pending.to?.firstOrNull() ?: "",
-        real = real
-    )
-
-    private fun calculateMatchScore(
-        pending: PendingTransactionEntity,
-        real: TransactionRecord
-    ): MatchScore = calculateMatchScoreInternal(
-        txHash = pending.txHash ?: "",
-        timestampPending = pending.createdAt/1000,
-        blockchainTypeUid = pending.blockchainTypeUid,
-        amountAtomic = pending.amountAtomic,
-        toAddress = pending.toAddress,
         real = real
     )
 

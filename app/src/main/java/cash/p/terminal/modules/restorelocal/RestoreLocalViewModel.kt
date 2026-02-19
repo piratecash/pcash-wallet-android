@@ -49,13 +49,12 @@ class RestoreLocalViewModel(
     private var showBackupItems = false
 
     val accountName by lazy {
-        fileName?.let { name ->
-            return@lazy name
-                .replace(".json", "")
+        val baseName = fileName?.let { name ->
+            name.replace(".json", "")
                 .replace("UW_Backup_", "")
                 .replace("_", " ")
-        }
-        accountFactory.getNextAccountName()
+        } ?: return@lazy accountFactory.getNextAccountName()
+        accountFactory.getUniqueName(baseName)
     }
 
     init {

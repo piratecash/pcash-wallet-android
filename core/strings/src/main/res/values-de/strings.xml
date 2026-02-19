@@ -844,7 +844,8 @@
     <string name="AddEvmSyncSource_Error_InvalidUrl">Die eingegebene URL ist ungültig. Gültige URL muss eines der folgenden Schemata haben: http, https, ws, wss</string>
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
-    <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">Nach dem Ändern der Quelle muss die Brieftasche sich selbst synchronisieren.</string>
+    <string name="blockchain_status">Blockchain-Status</string>
+    <string name="btc_blockchain_settings_restore_source_change_warning">Nach dem Ändern der Quelle muss die Brieftasche sich selbst synchronisieren.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Wählen Sie die Datenquelle für die Wiederherstellung des Wallets mit Transaktionen aus.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Ein-/Ausgänge</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Transaktionseinstellungen</string>

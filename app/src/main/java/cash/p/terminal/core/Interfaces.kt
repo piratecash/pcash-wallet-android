@@ -72,6 +72,7 @@ interface IAccountFactory {
     fun getNextWatchAccountName(): String
     fun getNextAccountName(): String
     fun getNextHardwareAccountName(): String
+    fun getUniqueName(name: String, additionalExistingNames: Set<String> = emptySet()): String
 }
 
 interface IRandomProvider {
@@ -208,8 +209,7 @@ interface ISendSolanaAdapter: IBalanceAdapter {
     fun estimateFee(rawTransaction: ByteArray): BigDecimal
 }
 
-interface ISendMoneroAdapter {
-    val balanceData: BalanceData
+interface ISendMoneroAdapter : IBalanceAdapter {
     suspend fun send(amount: BigDecimal, address: String, memo: String?): String
     suspend fun estimateFee(amount: BigDecimal, address: String, memo: String?): BigDecimal
 }
@@ -226,8 +226,7 @@ interface ISendStellarAdapter : IBalanceAdapter {
     suspend fun send(amount: BigDecimal, address: String, memo: String?)
 }
 
-interface ISendTronAdapter {
-    val balanceData: BalanceData
+interface ISendTronAdapter : IBalanceAdapter {
     val trxBalanceData: BalanceData
 
     suspend fun estimateFee(amount: BigDecimal, to: TronAddress): List<Fee>

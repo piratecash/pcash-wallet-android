@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.settings.main
 
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.R
 import cash.p.terminal.core.IBackupManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITermsManager
@@ -13,7 +12,6 @@ import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
-import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.supportsTonConnect
 import cash.z.ecc.android.sdk.ext.collectWith
@@ -44,22 +42,7 @@ class MainSettingsViewModel(
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
 ) : ViewModelUiState<MainSettingUiState>() {
 
-    val appVersion: String
-        get() {
-            var appVersion = systemInfoManager.appVersion
-
-            // Add git hash suffix
-            val gitHash = AppConfigProvider.appGitHash
-            if (gitHash.isNotEmpty()) {
-                appVersion += "-$gitHash"
-            }
-
-            if (Translator.getString(R.string.is_release) == "false") {
-                appVersion += " (${AppConfigProvider.appBuild})"
-            }
-
-            return appVersion
-        }
+    val appVersion: String get() = systemInfoManager.appVersionDisplay
 
     val companyWebPage = AppConfigProvider.companyWebPageLink
 

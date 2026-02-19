@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.btcblockchainsettings
 
 import cash.p.terminal.core.managers.BtcBlockchainManager
-
 import cash.p.terminal.entities.BtcRestoreMode
 import io.horizontalsystems.core.entities.Blockchain
 import io.reactivex.Observable

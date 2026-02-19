@@ -21,11 +21,13 @@ interface PendingTransactionRegistrar {
 }
 
 class PendingTransactionRegistrarImpl(
-    private val repository: PendingTransactionRepository
+    private val repository: PendingTransactionRepository,
+    private val pendingBalanceCalculator: PendingBalanceCalculator
 ) : PendingTransactionRegistrar {
 
     override suspend fun register(draft: PendingTransactionDraft): String {
-        repository.insert(draft)
+        val entity = repository.insert(draft)
+        pendingBalanceCalculator.onPendingInserted(entity)
         return draft.id
     }
 

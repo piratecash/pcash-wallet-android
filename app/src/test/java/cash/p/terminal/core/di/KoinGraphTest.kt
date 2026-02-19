@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import cash.p.terminal.feature.miniapp.ui.connect.ConnectMiniAppViewModel
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
@@ -54,6 +56,7 @@ class KoinGraphTest : KoinTest {
                 definition<ConfiguredTokenInfoViewModel>(Token::class),
                 definition<SafetyRulesViewModel>(SafetyRulesModule.SafetyRulesMode::class, List::class),
                 definition<ConnectMiniAppViewModel>(SavedStateHandle::class),
+                definition<BlockchainStatusViewModel>(BlockchainStatusProvider::class),
             )
         )
     }

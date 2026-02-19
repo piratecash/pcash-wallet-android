@@ -42,35 +42,41 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import coil3.compose.rememberAsyncImagePainter
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.core.App
+import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.ui_compose.requireInput
-
 import cash.p.terminal.entities.EvmSyncSource
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
+import cash.p.terminal.modules.blockchainstatus.EvmBlockchainStatusProvider
 import cash.p.terminal.modules.btcblockchainsettings.BlockchainSettingCell
 import cash.p.terminal.modules.evmnetwork.addrpc.AddRpcScreen
 import cash.p.terminal.modules.walletconnect.list.ui.ActionsRow
-import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.modules.walletconnect.list.ui.getShape
 import cash.p.terminal.modules.walletconnect.list.ui.showDivider
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsIconButton
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_jacob
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
-import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.imageUrl
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 class EvmNetworkFragment : BaseComposeFragment() {
 
@@ -86,6 +92,7 @@ class EvmNetworkFragment : BaseComposeFragment() {
 
 private const val EvmNetworkPage = "evm_network"
 private const val AddRpcPage = "add_rpc"
+private const val StatusPage = "status"
 
 @Composable
 private fun EvmNetworkNavHost(
@@ -108,6 +115,21 @@ private fun EvmNetworkNavHost(
             AddRpcScreen(
                 navController = navController,
                 blockchain = blockchain
+            )
+        }
+        composablePage(StatusPage) {
+            val provider = remember {
+                EvmBlockchainStatusProvider(
+                    blockchain = blockchain,
+                    evmBlockchainManager = App.evmBlockchainManager
+                )
+            }
+            val viewModel = koinViewModel<BlockchainStatusViewModel> {
+                parametersOf(provider)
+            }
+            BlockchainStatusScreen(
+                viewModel = viewModel,
+                onBack = navController::navigateUp
             )
         }
     }
@@ -202,6 +224,14 @@ private fun EvmNetworkScreen(
                     AddButton {
                         navController.navigate(AddRpcPage)
                     }
+                }
+
+                item {
+                    Spacer(Modifier.height(32.dp))
+                    BlockchainStatusButton {
+                        navController.navigate(StatusPage)
+                    }
+                    Spacer(Modifier.height(32.dp))
                 }
             }
         }

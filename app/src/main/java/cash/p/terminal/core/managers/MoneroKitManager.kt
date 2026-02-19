@@ -52,6 +52,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.koin.java.KoinJavaComponent.inject
@@ -64,6 +66,7 @@ class MoneroKitManager(
     private val backgroundManager: BackgroundManager,
     private val restoreSettingsManager: RestoreSettingsManager
 ) {
+    private val mutex = Mutex()
     private val connectivityManager = App.connectivityManager
     private val coroutineScope =
         CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
@@ -79,7 +82,7 @@ class MoneroKitManager(
     val kitStoppedObservable: Observable<Unit>
         get() = moneroKitStoppedSubject
 
-    suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper {
+    suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper = mutex.withLock {
         if (this.moneroKitWrapper != null && currentAccount != account) {
             stopKit()
             moneroKitWrapper = null
@@ -101,7 +104,7 @@ class MoneroKitManager(
         }
 
         useCount.incrementAndGet()
-        return this.moneroKitWrapper!!
+        return@withLock requireNotNull(moneroKitWrapper)
     }
 
     private fun createKitInstance(

@@ -847,7 +847,8 @@
     <string name="AddEvmSyncSource_Error_InvalidUrl">La url introducida no es válida. La url válida debe tener uno de los siguientes esquemas: http, https, ws, wss</string>
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
-    <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">Después de cambiar la fuente, el monedero tendrá que resinc sí mismo.</string>
+    <string name="blockchain_status">Estado de Blockchain</string>
+    <string name="btc_blockchain_settings_restore_source_change_warning">Después de cambiar la fuente, el monedero tendrá que resinc sí mismo.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Elige la fuente que la aplicación P.CASH debería usar para sincronizar la(s) cartera(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entradas/Salidas</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Ajustes de la transacción</string>

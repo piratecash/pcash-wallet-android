@@ -848,7 +848,8 @@
     <string name="AddEvmSyncSource_Error_InvalidUrl">L\'url saisie n\'est pas valide. L\'url valide doit avoir un des schémas suivants : http, https, ws, wss</string>
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
-    <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">Après avoir changé de source, le portefeuille devra se resynchroniser lui-même.</string>
+    <string name="blockchain_status">Statut de la Blockchain</string>
+    <string name="btc_blockchain_settings_restore_source_change_warning">Après avoir changé de source, le portefeuille devra se resynchroniser lui-même.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Sélectionnez la source de données pour restaurer le portefeuille avec les transactions.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entrées/Sorties</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Paramètres de transaction</string>

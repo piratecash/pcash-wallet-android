@@ -191,24 +191,23 @@ class TokenBalanceViewModel(
     }
 
     private fun updateSecondaryValue(totalBalanceValue: TotalService.State = totalBalance.stateFlow.value) {
-        if (totalBalanceValue is TotalService.State.Visible) {
-            // Check if the current secondary value is the same as the wallet's coin and switch to next
-            if (!showCurrencyAsSecondary && totalBalanceValue.coinValue?.coin?.uid == wallet.coin.uid) {
-                toggleTotalType()
-                return
+        val oldBalanceViewItem = balanceViewItem ?: return
+        val fallbackValue = oldBalanceViewItem.secondaryValue.value
+
+        val updatedValue = when (totalBalanceValue) {
+            is TotalService.State.Visible -> {
+                if (showCurrencyAsSecondary) {
+                    totalBalanceValue.currencyValue?.getFormattedFull() ?: fallbackValue
+                } else {
+                    totalBalanceValue.coinValue?.getFormattedFull()
+                        ?: secondaryValue.value.ifEmpty { fallbackValue }
+                }
             }
-            balanceViewItem?.let { oldBalanceViewItem ->
-                secondaryValue = DeemedValue(
-                    value = if (showCurrencyAsSecondary) {
-                        totalBalanceValue.currencyValue?.getFormattedFull().orEmpty()
-                    } else {
-                        totalBalanceValue.coinValue?.getFormattedFull().orEmpty()
-                    },
-                    dimmed = oldBalanceViewItem.secondaryValue.dimmed,
-                    visible = oldBalanceViewItem.secondaryValue.visible
-                )
-            }
+
+            TotalService.State.Hidden -> fallbackValue
         }
+
+        secondaryValue = oldBalanceViewItem.secondaryValue.copy(value = updatedValue)
     }
 
     private suspend fun isSwappable(token: Token) =
@@ -308,6 +307,7 @@ class TokenBalanceViewModel(
             )
         )
 
+        updateSecondaryValue()
         emitState()
     }
 
@@ -357,7 +357,11 @@ class TokenBalanceViewModel(
         val currentSecondaryToken = totalBalance.stateFlow.value as? TotalService.State.Visible
         if (showCurrencyAsSecondary) {
             showCurrencyAsSecondary = false
-            updateSecondaryValue()
+            if (currentSecondaryToken?.coinValue?.coin?.uid == wallet.coin.uid) {
+                totalBalance.toggleTotalType()
+            } else {
+                updateSecondaryValue()
+            }
             return
         } else if (currentSecondaryToken?.coinValue?.coin?.uid == BlockchainType.Bitcoin.uid) {
             showCurrencyAsSecondary = true

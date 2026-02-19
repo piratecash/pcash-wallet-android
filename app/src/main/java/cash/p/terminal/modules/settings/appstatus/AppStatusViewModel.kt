@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.adapters.BitcoinBaseAdapter
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
@@ -19,13 +20,24 @@ import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.modules.blockchainstatus.BtcBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.EvmBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.MoneroBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.SolanaBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.StatusItem
+import cash.p.terminal.modules.blockchainstatus.StatusSection
+import cash.p.terminal.modules.blockchainstatus.appendStatusSection
+import cash.p.terminal.modules.blockchainstatus.StellarBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.TonBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.TronBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.ZcashBlockchainStatusProvider
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockContent
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import io.horizontalsystems.core.ISystemInfoManager
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.logger.AppLog
 import kotlinx.coroutines.Dispatchers
@@ -54,12 +66,14 @@ class AppStatusViewModel(
 ) : ViewModel() {
 
     private var appLogs: Map<String, Any> = emptyMap()
+    private var shareAppLogs: Map<String, Any> = emptyMap()
     private var shareFile: File? = null
 
     private val _uiState = MutableStateFlow(
         AppStatusModule.UiState(
             appStatusAsText = null,
             blockViewItems = emptyList(),
+            blockchainStatusSections = emptyList(),
             loading = true,
         )
     )
@@ -68,33 +82,41 @@ class AppStatusViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             appLogs = AppLog.getLog()
+            shareAppLogs = AppLog.getFullLog()
 
             val blockViewItems = listOf<AppStatusModule.BlockData>()
                 .asSequence()
                 .plus(getAppInfoBlock())
                 .plus(getVersionHistoryBlock())
                 .plus(getWalletsStatusBlock())
-                .plus(getBlockchainStatusBlock())
                 .plus(getMarketLastSyncTimestampsBlock())
                 .plus(getAppLogBlocks())
                 .toList()
 
-            val appStatusAsText = formatMapToString(getStatusMap())
+            val blockchainStatusSections = getBlockchainStatusSections()
+
+            val appStatusAsText = buildString {
+                formatMapToString(getStatusMap())?.let { append(it) }
+                if (blockchainStatusSections.isNotEmpty()) {
+                    appendLine()
+                    appendLine("Blockchain Status")
+                    blockchainStatusSections.forEach { appendStatusSection(it) }
+                }
+            }
 
             // Pre-write the share file on IO thread
-            appStatusAsText?.let { text ->
-                try {
-                    val file = File(context.cacheDir, "app_status_report.txt")
-                    file.writeText(text)
-                    shareFile = file
-                } catch (_: Exception) {
-                    // File write failed, share will be unavailable
-                }
+            try {
+                val file = File(context.cacheDir, "app_status_report.txt")
+                file.writeText(appStatusAsText)
+                shareFile = file
+            } catch (_: Exception) {
+                // File write failed, share will be unavailable
             }
 
             _uiState.value = AppStatusModule.UiState(
                 appStatusAsText = appStatusAsText,
                 blockViewItems = blockViewItems,
+                blockchainStatusSections = blockchainStatusSections,
                 loading = false,
             )
         }
@@ -109,31 +131,60 @@ class AppStatusViewModel(
         )
     }
 
-    private companion object {
-        val bitcoinLikeChains =
-            listOf(
-                BlockchainType.Bitcoin,
-                BlockchainType.BitcoinCash,
-                BlockchainType.Dash,
-                BlockchainType.Litecoin,
-                BlockchainType.ECash,
-                BlockchainType.Dogecoin,
-                BlockchainType.Cosanta,
-                BlockchainType.PirateCash,
-            )
-    }
-
     private fun getStatusMap(): LinkedHashMap<String, Any> {
         val status = LinkedHashMap<String, Any>()
 
         status["App Info"] = getAppInfo()
         status["Version History"] = getVersionHistory()
         status["Wallets Status"] = getWalletsStatus()
-        status["Blockchain Status"] = getBlockchainStatus()
-        status["App Log"] = appLogs
+        status["App Log"] = shareAppLogs
         status["Market Last Sync Timestamps"] = getMarketLastSyncTimestamps()
 
         return status
+    }
+
+    private fun getBlockchainStatusSections(): List<StatusSection> {
+        val sections = mutableListOf<StatusSection>()
+
+        // BTC-like chains — grouped by blockchain type
+        btcBlockchainManager.blockchainTypes.forEach { blockchainType ->
+            val hasActiveWallets = walletManager.activeWallets.any { it.token.blockchainType == blockchainType }
+            if (!hasActiveWallets) return@forEach
+
+            val blockchain = btcBlockchainManager.blockchain(blockchainType) ?: return@forEach
+            collectProviderSections(BtcBlockchainStatusProvider(blockchain, btcBlockchainManager, walletManager, adapterManager), sections)
+        }
+
+        // EVM chains
+        evmBlockchainManager.allBlockchains.forEach { blockchain ->
+            collectProviderSections(EvmBlockchainStatusProvider(blockchain, evmBlockchainManager), sections)
+        }
+
+        // Other chains
+        collectProviderSections(TronBlockchainStatusProvider(tronKitManager), sections)
+        collectProviderSections(TonBlockchainStatusProvider(tonKitManager), sections)
+        collectProviderSections(StellarBlockchainStatusProvider(stellarKitManager), sections)
+        collectProviderSections(SolanaBlockchainStatusProvider(solanaKitManager), sections)
+        collectProviderSections(ZcashBlockchainStatusProvider(walletManager, adapterManager), sections)
+        collectProviderSections(MoneroBlockchainStatusProvider(moneroKitManager), sections)
+
+        return sections
+    }
+
+    private fun collectProviderSections(
+        provider: BlockchainStatusProvider,
+        into: MutableList<StatusSection>
+    ) {
+        val status = provider.getStatus()
+        status.sections.forEachIndexed { index, section ->
+            if (section.items.isEmpty()) return@forEachIndexed
+            if (index == 0) {
+                into.add(section.copy(items = listOf(StatusItem.KeyValue("Kit Version", provider.kitVersion)) + section.items))
+            } else {
+                into.add(section)
+            }
+        }
+        status.sharedSection?.let { into.add(it) }
     }
 
     private fun getAppLogBlocks(): List<AppStatusModule.BlockData> {
@@ -213,142 +264,6 @@ class AppStatusViewModel(
         return walletBlocks
     }
 
-    private fun getBlockchainStatus(): Map<String, Any> {
-        val blockchainStatus = LinkedHashMap<String, Any>()
-
-        walletManager.activeWallets
-            .filter { bitcoinLikeChains.contains(it.token.blockchainType) }
-            .sortedBy { it.token.coin.name }
-            .forEach { wallet ->
-                (adapterManager.getAdapterForWalletOld(wallet) as? BitcoinBaseAdapter)?.let { adapter ->
-                    val statusTitle =
-                        "${wallet.token.coin.name}${wallet.badge?.let { "-$it" } ?: ""}"
-                    val restoreMode = btcBlockchainManager.restoreMode(wallet.token.blockchainType)
-                    val statusInfo = mutableMapOf<String, Any>("Sync Mode" to restoreMode.name)
-                    statusInfo.putAll(adapter.statusInfo)
-                    blockchainStatus[statusTitle] = statusInfo
-                }
-            }
-
-        evmBlockchainManager.allBlockchains
-            .forEach { blockchain ->
-                evmBlockchainManager.getEvmKitManager(blockchain.type).statusInfo?.let { statusInfo ->
-                    blockchainStatus[blockchain.name] = statusInfo
-                }
-            }
-
-        tronKitManager.statusInfo?.let { statusInfo ->
-            blockchainStatus["Tron"] = statusInfo
-        }
-
-        tonKitManager.statusInfo?.let { statusInfo ->
-            blockchainStatus["Ton"] = statusInfo
-        }
-
-        stellarKitManager.statusInfo?.let { statusInfo ->
-            blockchainStatus["Stellar"] = statusInfo
-        }
-
-        solanaKitManager.statusInfo?.let { statusInfo ->
-            blockchainStatus["Solana"] = statusInfo
-        }
-
-        walletManager.activeWallets.firstOrNull { it.token.blockchainType == BlockchainType.Zcash }
-            ?.let { wallet ->
-                (adapterManager.getAdapterForWalletOld(wallet) as? ZcashAdapter)?.let { adapter ->
-                    blockchainStatus["Zcash"] = adapter.statusInfo
-                }
-            }
-
-        moneroKitManager.moneroKitWrapper?.statusInfo()?.let { statusInfo ->
-            blockchainStatus["Monero"] = statusInfo
-        }
-
-        return blockchainStatus
-    }
-
-    private fun getBlockchainStatusBlock(): List<AppStatusModule.BlockData> {
-        val blocks = mutableListOf<AppStatusModule.BlockData>()
-
-        walletManager.activeWallets
-            .filter { bitcoinLikeChains.contains(it.token.blockchainType) }
-            .sortedBy { it.token.coin.name }
-            .forEach {
-                val wallet = it
-                val title = if (blocks.isEmpty()) "Blockchain Status" else null
-                val block = when (val adapter = adapterManager.getAdapterForWalletOld(wallet)) {
-                    is BitcoinBaseAdapter -> {
-                        val restoreMode =
-                            btcBlockchainManager.restoreMode(wallet.token.blockchainType)
-                        val statusInfo = mutableMapOf<String, Any>("Sync Mode" to restoreMode.name)
-                        statusInfo.putAll(adapter.statusInfo)
-                        getBlockchainInfoBlock(
-                            title,
-                            "${wallet.token.coin.name}${wallet.badge?.let { "-$it" } ?: ""}",
-                            statusInfo
-                        )
-                    }
-
-                    else -> null
-                }
-                block?.let { blocks.add(it) }
-            }
-
-        evmBlockchainManager.allBlockchains
-            .forEach { blockchain ->
-                evmBlockchainManager.getEvmKitManager(blockchain.type).statusInfo?.let { statusInfo ->
-                    val title = if (blocks.isEmpty()) "Blockchain Status" else null
-                    val block = getBlockchainInfoBlock(title, blockchain.name, statusInfo)
-                    blocks.add(block)
-                }
-            }
-
-        tronKitManager.statusInfo?.let { statusInfo ->
-            val title = if (blocks.isEmpty()) "Blockchain Status" else null
-            val block = getBlockchainInfoBlock(title, "Tron", statusInfo)
-            blocks.add(block)
-        }
-
-        solanaKitManager.statusInfo?.let {
-            val title = if (blocks.isEmpty()) "Blockchain Status" else null
-            val block = getBlockchainInfoBlock(title, "Solana", it)
-            blocks.add(block)
-        }
-
-        walletManager.activeWallets
-            .mapNotNull { wallet ->
-                adapterManager.getAdapterForWalletOld(wallet)?.let { adapter ->
-                    if (adapter.statusInfo.isEmpty()) {
-                        return@mapNotNull null
-                    }
-                    getBlockchainInfoBlock(
-                        title = if (blocks.isEmpty()) "Blockchain Status" else null,
-                        blockchain = "${wallet.token.blockchain.type.stringRepresentation}",
-                        statusInfo = adapter.statusInfo
-                    )
-                }
-            }
-            .forEach {
-                blocks.add(it)
-            }
-
-        return blocks
-    }
-
-    fun getBlockchainInfoBlock(
-        title: String?,
-        blockchain: String,
-        statusInfo: Map<String, Any>
-    ): AppStatusModule.BlockData {
-        return AppStatusModule.BlockData(
-            title,
-            listOf(
-                BlockContent.TitleValue("Blockchain", blockchain),
-                BlockContent.Text(formatMapToString(statusInfo)?.trimEnd() ?: ""),
-            )
-        )
-    }
-
     private fun getMarketLastSyncTimestamps(): Map<String, Any> {
         val syncInfo = marketKit.syncInfo()
         return buildMap {
@@ -410,7 +325,11 @@ class AppStatusViewModel(
     private fun getAppInfo(): Map<String, Any> {
         val appInfo = LinkedHashMap<String, Any>()
         appInfo["Current Time"] = Date()
-        appInfo["App Version"] = systemInfoManager.appVersion
+        appInfo["App Version"] = systemInfoManager.appVersionFull
+        appInfo["Git Branch"] = AppConfigProvider.appGitBranch
+        systemInfoManager.getSigningCertFingerprint()?.let {
+            appInfo["App Signature"] = it
+        }
         appInfo["Device Model"] = systemInfoManager.deviceModel
         appInfo["OS Version"] = systemInfoManager.osVersion
 
@@ -427,7 +346,11 @@ class AppStatusViewModel(
                         DateHelper.formatDate(Date(), "MMM d, yyyy, HH:mm")
                     )
                 )
-                add(BlockContent.TitleValue("App Version", systemInfoManager.appVersion))
+                add(BlockContent.TitleValue("App Version", systemInfoManager.appVersionFull))
+                add(BlockContent.TitleValue("Git Branch", AppConfigProvider.appGitBranch))
+                systemInfoManager.getSigningCertFingerprint()?.let {
+                    add(BlockContent.TitleValue("App Signature", it))
+                }
                 add(BlockContent.TitleValue("Device Model", systemInfoManager.deviceModel))
                 add(BlockContent.TitleValue("OS Version", systemInfoManager.osVersion))
                 addAll(getDeviceClass(context))

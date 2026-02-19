@@ -23,6 +23,14 @@ def gitHashProvider = providers.exec {
     ignoreExitValue = true
 }.standardOutput.asText.map { it.trim() }
 
+def gitBranchProvider = providers.exec {
+    commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
+    ignoreExitValue = true
+}.standardOutput.asText.map {
+    def branch = (it ?: "").trim()
+    (branch.isEmpty() || branch == "HEAD") ? "unknown" : branch
+}
+
 def gitDirtyProvider = providers.exec {
     commandLine 'git', 'diff-index', '--quiet', 'HEAD', '--'
     ignoreExitValue = true
@@ -36,7 +44,8 @@ def getGitVersionSuffix = { ->
             return "unknown"
         }
         def dirty = gitDirtyProvider.getOrElse(false) ? "-dirty" : ""
-        def result = "${hash}${dirty}"
+        def fdroid = (gitBranchProvider.getOrElse("") == "f-droid") ? "-fdroid" : ""
+        def result = "${hash}${dirty}${fdroid}"
         println "GIT_HASH: ${result}"
         return result
     } catch (Exception ignored) {
@@ -52,9 +61,18 @@ android {
         compileSdk compile_sdk_version
         minSdkVersion min_sdk_version
         targetSdkVersion compile_sdk_version
-        versionCode 215
-        versionName "0.51.12"
+        versionCode 219
+        versionName "0.51.15"
         buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
+        buildConfigField "String", "BITCOIN_KIT_VERSION", "\"${libs.versions.piratecash.bitcoin.get()}\""
+        buildConfigField "String", "ETHEREUM_KIT_VERSION", "\"${libs.versions.piratecash.ethereum.get()}\""
+        buildConfigField "String", "SOLANA_KIT_VERSION", "\"${libs.versions.piratecash.solana.get()}\""
+        buildConfigField "String", "TON_KIT_VERSION", "\"${libs.versions.piratecash.ton.get()}\""
+        buildConfigField "String", "TRON_KIT_VERSION", "\"${libs.versions.piratecash.tron.get()}\""
+        buildConfigField "String", "MONERO_KIT_VERSION", "\"${libs.versions.monero.kit.android.get()}\""
+        buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
+        buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
+        buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {

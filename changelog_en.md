@@ -1,7 +1,77 @@
-## 🚀 Version 0.51.12 Update
-_Release date: February 11, 2026_
+## 🚀 Version 0.51.15 Update
+_Release Date: February 19, 2026_
 
 ### 🐛 Fixes
+
+- **Fixed an issue with price recalculation on the asset page**
+  Resolved a bug where, in rare cases, the asset value was not recalculated into other currencies.
+
+- **Fixed multiple issues with Monero**
+  Addressed errors that caused instability and application crashes when interacting with the Monero network.
+
+- **Fixed a crash when opening the transaction list**
+  The app no longer crashes when attempting to open the transaction list. The issue was related to an incorrect transaction data format.
+
+- **Fixed a crash when opening the Funds Invested screen**
+  Resolved a crash that occurred after Android process restoration when navigating to the coin investment screen.
+
+### ✨ Improvements
+
+- **Added secure Tangem card password input**
+  Screenshot and screen recording are now disabled on the password input screen to enhance user data security.
+
+- **Improved wallet re-import mechanism**
+  Unique characters are now appended to the wallet name during re-import to prevent duplicate names.
+
+- **Added release branch information in App Status**
+  The App Status section now displays the release branch and build hash, allowing developers and testers to see which branch the current build was created from.
+
+- **Improved blockchain logging**
+  Refined log structure and optimized logging to allow easier analysis of specific parameters without reviewing the entire log output.
+
+
+
+## 🚀 Version 0.51.14 Update
+_Release date: February 17, 2026_
+
+### 🐛 Fixes
+
+- **Fixed an issue where the "Quoting" button could get stuck in an infinite loading state on the Swap screen**
+  Resolved a bug that caused exchange quotes to not appear due to the "Quoting" button being stuck in a loading state.
+
+### ✨ Improvements
+
+- **Improved balance updates before transaction confirmation**
+  The balance is now updated correctly while waiting for the transaction to be included in a block, preventing users from attempting to operate with unconfirmed funds.
+
+
+
+## 🚀 Version 0.51.13 Update
+_Release date: February 15, 2026_
+
+### ✨ Improvements
+
+- **Display of actual amount for ChangeNow / Quickex exchanges**
+  The transaction history now shows the actual received amount after the exchange is completed instead of the initially quoted one. This ensures accurate accounting in cases where the final amount differs from the expected due to market fluctuations or provider fees.
+
+- **Improved synchronization when switching between wallets**
+  Active network connections are no longer fully reinitialized when switching between wallets.
+  Connections for blockchains present in the target wallet are preserved, while those that are not are properly stopped. This improves stability and speeds up the synchronization process.
+
+### 🐛 Fixes
+
+- **Fixed crash when opening the coin list on some Xiaomi devices (Android 14)**
+  Resolved a rare issue that caused the app to crash when attempting to load the available coins list on certain Xiaomi devices running Android 14.
+
+
+
+## 🚀 Version 0.51.12 Update
+_Release Date: February 15, 2026_
+
+### 🐛 Bug Fixes
+
+- **Removed redundant connections for Bitcoin / Litecoin when using multiple address types**
+    Optimized the number of network connections when working with different BTC and LTC address types, reducing resource usage and network traffic when multiple address types are present.
 
 - **Fixed delayed TRX20 token balance update on the main screen**
   Resolved an issue where the TRX20 token balance was not updated immediately and appeared with a delay on the main screen.
@@ -20,6 +90,24 @@ _Release date: February 11, 2026_
 
 - **Fixed balance validation during swap execution**
   A swap can no longer be initiated when there are insufficient tokens.
+
+- **Fixed crash when saving an account after Keystore authentication expires**
+  The application could crash with a UserNotAuthenticatedException when attempting to save or update an account in the database after Keystore authentication had expired. This issue occurred rarely and only on certain devices.
+
+- **Fixed SQLiteDatabaseCorruptException crash in Zcash SDK**
+  The application could crash due to a SQLiteDatabaseCorruptException while collecting data from the internal Zcash SDK database. The crash occurred in the queryAndMap method during synchronizer operations.
+
+- **Fixed crash when navigating to Hidden Wallet Terms screen after Premium purchase**
+  The application could crash with an IllegalStateException when navigating to the hidden_wallet_terms_page after returning from the Premium purchase screen.
+
+- **Fixed application crash when using Market widgets**
+  The application could crash with an IllegalStateException when using Market widgets on the main screen.
+
+- **Fixed crash when saving wallet balances: FOREIGN KEY constraint failed**
+  The application could crash in a background thread while saving wallet balance data into cache due to a foreign key constraint failure in the database.
+
+- **Fixed SOL synchronization issues**
+  Resolved an issue where Solana appeared correctly on the main screen, but became unavailable (greyed out) when opened, preventing transactions from being processed.
 
 
 

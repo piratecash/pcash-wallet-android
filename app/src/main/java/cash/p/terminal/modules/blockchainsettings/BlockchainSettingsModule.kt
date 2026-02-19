@@ -7,6 +7,7 @@ import cash.p.terminal.core.order
 import cash.p.terminal.entities.BtcRestoreMode
 import cash.p.terminal.entities.EvmSyncSource
 import io.horizontalsystems.core.entities.Blockchain
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.models.RpcSource
 
 object BlockchainSettingsModule {
@@ -19,11 +20,20 @@ object BlockchainSettingsModule {
                     App.btcBlockchainManager,
                     App.evmBlockchainManager,
                     App.evmSyncSourceManager,
-                    App.solanaRpcSourceManager
+                    App.solanaRpcSourceManager,
+                    App.marketKit
                 )
             return BlockchainSettingsViewModel(service) as T
         }
     }
+
+    val statusOnlyBlockchainTypes = listOf(
+        BlockchainType.Zcash,
+        BlockchainType.Tron,
+        BlockchainType.Ton,
+        BlockchainType.Monero,
+        BlockchainType.Stellar,
+    )
 
     data class BlockchainViewItem(
         val title: String,
@@ -48,6 +58,10 @@ object BlockchainSettingsModule {
         class Solana(
             override val blockchain: Blockchain,
             val rpcSource: RpcSource
+        ) : BlockchainItem()
+
+        class StatusOnly(
+            override val blockchain: Blockchain
         ) : BlockchainItem()
 
         val order

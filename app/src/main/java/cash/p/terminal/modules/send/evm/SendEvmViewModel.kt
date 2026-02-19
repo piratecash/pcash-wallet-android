@@ -82,6 +82,23 @@ internal class SendEvmViewModel(
         }
 
         sendTransactionService.start(viewModelScope)
+
+        amountService.stateFlow.onEach { newAmountState ->
+            addressState.address?.let { address ->
+                val amount = newAmountState.amount ?: BigDecimal.ZERO
+                sendTransactionService.setSendTransactionData(
+                    SendTransactionData.Evm(
+                        adapter.getTransactionData(
+                            amount,
+                            io.horizontalsystems.ethereumkit.models.Address(address.hex)
+                        ),
+                        null,
+                        amount = amount
+                    )
+                )
+            }
+        }.launchIn(viewModelScope)
+
     }
 
     override fun createState() = SendUiState(

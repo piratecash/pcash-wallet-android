@@ -5,26 +5,44 @@ import cash.p.terminal.core.App
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.managers.TronKitWrapper
+import cash.p.terminal.core.tryOrNull
 import io.horizontalsystems.tronkit.TronKit
 import io.horizontalsystems.tronkit.models.Address
 import io.horizontalsystems.tronkit.network.Network
 import io.horizontalsystems.tronkit.transaction.Fee
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
 class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, decimal), ISendTronAdapter {
 
+    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val _fee = MutableStateFlow(BigDecimal.ZERO)
+    override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
+
+    override val maxSpendableBalance: BigDecimal
+        get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
+
     // IAdapter
 
     override fun start() {
-        // started via TronKitManager
+        coroutineScope.launch {
+            tronKit.trxBalanceFlow.collect {
+                estimateFeeForMax()
+            }
+        }
     }
 
     override fun stop() {
-        // stopped via TronKitManager
+        coroutineScope.cancel()
     }
 
     override suspend fun refresh() {
@@ -62,6 +80,17 @@ class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, deci
         val contract = tronKit.transferContract(amountBigInt, to)
 
         return tronKit.send(contract, signer, feeLimit)
+    }
+
+    private suspend fun estimateFeeForMax() {
+        if (balanceData.available <= BigDecimal.ZERO) {
+            _fee.value = BigDecimal.ZERO
+            return
+        }
+        tryOrNull {
+            val fees = estimateFee(balanceData.available, tronKit.address)
+            _fee.value = fees.sumOf { it.feeInSuns }.toBigDecimal().movePointLeft(decimal).stripTrailingZeros()
+        }
     }
 
     private fun convertToAdapterState(syncState: TronKit.SyncState): AdapterState =

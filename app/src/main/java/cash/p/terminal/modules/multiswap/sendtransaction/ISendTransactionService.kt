@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ServiceState
 import cash.p.terminal.core.ethereum.CautionViewItem
@@ -11,6 +12,7 @@ import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.send.SendModule
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
@@ -108,6 +110,12 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
 
         is LocalizedException -> CautionViewItem(
             TranslatableString.ResString(error.errorTextRes, *error.formatArgs).toString(),
+            "",
+            CautionViewItem.Type.Error
+        )
+
+        is EvmError.InsufficientBalanceWithFee -> CautionViewItem(
+            Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalanceWithFee, feeToken.coin.code),
             "",
             CautionViewItem.Type.Error
         )

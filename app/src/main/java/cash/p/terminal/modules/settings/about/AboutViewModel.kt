@@ -5,10 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.R
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ISystemInfoManager
 import kotlinx.coroutines.launch
 
@@ -19,15 +17,7 @@ class AboutViewModel(
 
     val githubLink = AppConfigProvider.appGithubLink
     val appWebPageLink = AppConfigProvider.appWebPageLink
-    val appVersion: String
-        get() {
-            var appVersion = systemInfoManager.appVersion
-            if (Translator.getString(R.string.is_release) == "false") {
-                appVersion += " (${AppConfigProvider.appBuild})"
-            }
-
-            return appVersion
-        }
+    val appVersion: String get() = systemInfoManager.appVersionDisplay
 
     var termsShowAlert by mutableStateOf(!termsManager.allTermsAccepted)
         private set

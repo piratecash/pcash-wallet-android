@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.BlockchainSettingsIcon
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -43,7 +44,6 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import coil3.compose.rememberAsyncImagePainter
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 
 @Composable
@@ -52,12 +52,13 @@ internal fun BtcBlockchainSettingsScreen(
     onSaveClick: () -> Unit,
     onSelectRestoreMode: (BtcBlockchainSettingsModule.ViewItem) -> Unit,
     onCustomPeersChange: (String) -> Unit,
-    navController: NavController,
+    fragmentNavController: NavController,
+    onBlockchainStatusClick: () -> Unit,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
 
     if (uiState.closeScreen) {
-        navController.popBackStack()
+        fragmentNavController.navigateUp()
     }
 
     Surface(color = ComposeAppTheme.colors.tyler) {
@@ -80,9 +81,7 @@ internal fun BtcBlockchainSettingsScreen(
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close,
-                        onClick = {
-                            navController.popBackStack()
-                        }
+                        onClick = fragmentNavController::navigateUp
                     )
                 )
             )
@@ -102,11 +101,13 @@ internal fun BtcBlockchainSettingsScreen(
                         onCustomPeersChange = onCustomPeersChange
                     )
                 }
-                Spacer(Modifier.height(32.dp))
+                VSpacer(16.dp)
                 TextImportantWarning(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    text = stringResource(R.string.BtcBlockchainSettings_RestoreSourceChangeWarning)
+                    text = stringResource(R.string.btc_blockchain_settings_restore_source_change_warning)
                 )
+                Spacer(Modifier.height(32.dp))
+                BlockchainStatusButton(onBlockchainStatusClick)
                 Spacer(Modifier.height(32.dp))
             }
 
@@ -148,6 +149,7 @@ private fun RestoreSourceSettings(
 ) {
     BlockchainSettingSection(restoreSources, onSelectRestoreMode)
 }
+
 
 @Composable
 private fun BlockchainSettingSection(
@@ -259,7 +261,8 @@ private fun BtcBlockchainSettingsScreenPreview() {
             onSaveClick = {},
             onSelectRestoreMode = {},
             onCustomPeersChange = {},
-            navController = rememberNavController()
+            fragmentNavController = rememberNavController(),
+            onBlockchainStatusClick = {}
         )
     }
 }

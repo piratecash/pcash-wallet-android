@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.multiswap
 
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,9 +30,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 import java.math.BigDecimal
 
 class SwapQuoteService(
@@ -46,7 +49,8 @@ class SwapQuoteService(
 
     private var runQuotationJob: Job? = null
 
-    private val allProviders = listOf(
+    @VisibleForTesting
+    internal var allProviders: List<IMultiSwapProvider> = listOf(
         OneInchProvider,
         PancakeSwapProvider,
         PancakeSwapV3Provider,
@@ -84,7 +88,8 @@ class SwapQuoteService(
     )
     val stateFlow = _stateFlow.asStateFlow()
 
-    private var coroutineScope = CoroutineScope(Dispatchers.IO)
+    @VisibleForTesting
+    internal var coroutineScope = CoroutineScope(Dispatchers.IO)
     private var quotingJob: Job? = null
     private var settings: Map<String, Any?> = mapOf()
 
@@ -132,7 +137,7 @@ class SwapQuoteService(
 
         if (tokenIn != null && tokenOut != null) {
             quotingJob = coroutineScope.launch {
-                val supportedProviders = allProviders.filter { it.supports(tokenIn, tokenOut) }
+                val supportedProviders = filterSupportedProviders(allProviders, tokenIn, tokenOut)
 
                 if (supportedProviders.isEmpty()) {
                     error = NoSupportedSwapProvider()
@@ -180,6 +185,28 @@ class SwapQuoteService(
         }
     }
 
+    private suspend fun filterSupportedProviders(
+        providers: List<IMultiSwapProvider>,
+        tokenIn: Token,
+        tokenOut: Token,
+    ) = coroutineScope {
+        providers
+            .map { provider ->
+                async {
+                    try {
+                        withTimeoutOrNull(5000) {
+                            if (provider.supports(tokenIn, tokenOut)) provider else null
+                        }
+                    } catch (e: Throwable) {
+                        Timber.d(e, "supports error: ${provider.id}")
+                        null
+                    }
+                }
+            }
+            .awaitAll()
+            .filterNotNull()
+    }
+
     private suspend fun fetchQuotes(
         supportedProviders: List<IMultiSwapProvider>,
         tokenIn: Token,
@@ -190,7 +217,7 @@ class SwapQuoteService(
             .map { provider ->
                 async {
                     try {
-                        withTimeout(5000) {
+                        withTimeoutOrNull(5000) {
                             val quote = provider.fetchQuote(tokenIn, tokenOut, amountIn, settings)
                             SwapProviderQuote(provider = provider, swapQuote = quote)
                         }
@@ -200,8 +227,10 @@ class SwapQuoteService(
                             error = e
                         }
                         null
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Throwable) {
-                        Log.d("AAA", "fetchQuoteError: ${provider.id}", e)
+                        Timber.d(e, "fetchQuoteError: ${provider.id}")
                         null
                     }
                 }
