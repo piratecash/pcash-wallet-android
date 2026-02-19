@@ -368,6 +368,9 @@
         android:id="@+id/btcBlockchainSettingsFragment"
         android:name="cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsFragment"/>
     <fragment
+        android:id="@+id/blockchainStatusFragment"
+        android:name="cash.p.terminal.modules.blockchainstatus.BlockchainStatusFragment"/>
+    <fragment
         android:id="@+id/tvlFragment"
         android:name="cash.p.terminal.modules.market.tvl.TvlFragment" />
     <fragment

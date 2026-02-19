@@ -849,7 +849,7 @@
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Custom peers (e.g., 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">区块链状态</string>
-    <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">在更改源后，钱包将必须重新同步自己。</string>
+    <string name="btc_blockchain_settings_restore_source_change_warning">在更改源后，钱包将必须重新同步自己。</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">通过交易为恢复钱包选择数据源。</string>
     <string name="BtcBlockchainSettings_InputsOutputs">输入/输出</string>
     <string name="BtcBlockchainSettings_TransactionSettings">交易设置</string>

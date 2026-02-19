@@ -867,7 +867,7 @@
     <!--Btc Blockchain Settings -->
     <string name="custom_peers">Користувацькі вузли (наприклад, 188.40.241.115, dnsseed.custom.io)</string>
     <string name="blockchain_status">Статус блокчейну</string>
-    <string name="BtcBlockchainSettings_RestoreSourceChangeWarning">Після зміни джерела відновлення, гаманець повинен буде повторно синхронізуватися з блокчейном.</string>
+    <string name="btc_blockchain_settings_restore_source_change_warning">Після зміни джерела відновлення, гаманець повинен буде повторно синхронізуватися з блокчейном.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Виберіть джерело даних для відновлення гаманця. Відновлення з блокчейну займає значно більше часу.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Входи/Виходи</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Налаштування транзакцій</string>

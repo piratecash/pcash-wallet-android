@@ -1,19 +1,14 @@
 package cash.p.terminal.modules.btcblockchainsettings
 
-import cash.p.terminal.core.adapters.BitcoinBaseAdapter
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.entities.BtcRestoreMode
-import cash.p.terminal.wallet.IAdapterManager
-import cash.p.terminal.wallet.IWalletManager
 import io.horizontalsystems.core.entities.Blockchain
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 
 class BtcBlockchainSettingsService(
     val blockchain: Blockchain,
-    private val btcBlockchainManager: BtcBlockchainManager,
-    private val walletManager: IWalletManager,
-    private val adapterManager: IAdapterManager
+    private val btcBlockchainManager: BtcBlockchainManager
 ) {
 
     private val hasChangesSubject = BehaviorSubject.create<Boolean>()
@@ -35,17 +30,6 @@ class BtcBlockchainSettingsService(
     fun setRestoreMode(id: String) {
         restoreMode = BtcRestoreMode.values().first { it.raw == id }
         syncHasChanges()
-    }
-
-    fun getStatusInfo(): List<Pair<String, Map<String, Any>>> {
-        return walletManager.activeWallets
-            .filter { it.token.blockchainType == blockchain.type }
-            .mapNotNull { wallet ->
-                val adapter = adapterManager.getAdapterForWallet<BitcoinBaseAdapter>(wallet)
-                    ?: return@mapNotNull null
-                val label = wallet.badge ?: wallet.token.coin.name
-                label to adapter.statusInfo
-            }
     }
 
     private fun syncHasChanges() {

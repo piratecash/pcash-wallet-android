@@ -6,7 +6,6 @@ import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.entities.BtcRestoreMode
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.BlockchainSettingsIcon
-import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.StatusBlockItem
 import cash.p.terminal.modules.btcblockchainsettings.BtcBlockchainSettingsModule.ViewItem
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.ViewModelUiState
@@ -28,7 +27,6 @@ internal class BtcBlockchainSettingsViewModel(
     private var restoreSources = emptyList<ViewItem>()
     private var saveButtonEnabled = false
     private var customPeers: String? = null
-    private var statusItems = emptyList<StatusBlockItem>()
 
     override fun createState() = BtcBlockchainSettingsUIState(
         title = service.blockchain.name,
@@ -36,8 +34,7 @@ internal class BtcBlockchainSettingsViewModel(
         restoreSources = restoreSources,
         saveButtonEnabled = saveButtonEnabled || isCustomPeersChanged(),
         closeScreen = closeScreen,
-        customPeers = customPeers,
-        statusItems = statusItems
+        customPeers = customPeers
     )
 
     init {
@@ -51,10 +48,6 @@ internal class BtcBlockchainSettingsViewModel(
 
         if (isCustomPeersEnabled) {
             customPeers = localStorage.customDashPeers
-        }
-
-        statusItems = service.getStatusInfo().map { (label, statusMap) ->
-            StatusBlockItem(label, formatStatusMap(statusMap))
         }
 
         syncRestoreModeState()
@@ -97,22 +90,6 @@ internal class BtcBlockchainSettingsViewModel(
         emitState()
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun formatStatusMap(
-        map: Map<String, Any>,
-        indent: String = ""
-    ): String = buildString {
-        map.forEach { (key, value) ->
-            when (value) {
-                is Map<*, *> -> {
-                    appendLine("$indent$key:")
-                    append(formatStatusMap(value as Map<String, Any>, "$indent  "))
-                }
-                else -> appendLine("$indent$key: $value")
-            }
-        }
-    }
-
     private val BtcRestoreMode.icon: BlockchainSettingsIcon
         get() = when (this) {
             BtcRestoreMode.Blockchair -> {
@@ -142,6 +119,5 @@ internal data class BtcBlockchainSettingsUIState(
     val restoreSources: List<ViewItem>,
     val saveButtonEnabled: Boolean,
     val closeScreen: Boolean,
-    val customPeers: String?,
-    val statusItems: List<StatusBlockItem> = emptyList()
+    val customPeers: String?
 )

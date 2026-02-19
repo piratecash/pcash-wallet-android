@@ -64,6 +64,14 @@ android {
         versionCode 218
         versionName "0.51.14"
         buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
+        buildConfigField "String", "BITCOIN_KIT_VERSION", "\"${libs.versions.piratecash.bitcoin.get()}\""
+        buildConfigField "String", "ETHEREUM_KIT_VERSION", "\"${libs.versions.piratecash.ethereum.get()}\""
+        buildConfigField "String", "SOLANA_KIT_VERSION", "\"${libs.versions.piratecash.solana.get()}\""
+        buildConfigField "String", "TON_KIT_VERSION", "\"${libs.versions.piratecash.ton.get()}\""
+        buildConfigField "String", "TRON_KIT_VERSION", "\"${libs.versions.piratecash.tron.get()}\""
+        buildConfigField "String", "MONERO_KIT_VERSION", "\"${libs.versions.monero.kit.android.get()}\""
+        buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
+        buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
         buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
