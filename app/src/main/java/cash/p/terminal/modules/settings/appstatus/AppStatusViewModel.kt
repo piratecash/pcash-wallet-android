@@ -66,7 +66,6 @@ class AppStatusViewModel(
 ) : ViewModel() {
 
     private var appLogs: Map<String, Any> = emptyMap()
-    private var shareAppLogs: Map<String, Any> = emptyMap()
     private var shareFile: File? = null
 
     private val _uiState = MutableStateFlow(
@@ -82,7 +81,7 @@ class AppStatusViewModel(
     init {
         viewModelScope.launch(Dispatchers.IO) {
             appLogs = AppLog.getLog()
-            shareAppLogs = AppLog.getFullLog()
+            val fullLogs = AppLog.getFullLog()
 
             val blockViewItems = listOf<AppStatusModule.BlockData>()
                 .asSequence()
@@ -95,19 +94,14 @@ class AppStatusViewModel(
 
             val blockchainStatusSections = getBlockchainStatusSections()
 
-            val appStatusAsText = buildString {
-                formatMapToString(getStatusMap())?.let { append(it) }
-                if (blockchainStatusSections.isNotEmpty()) {
-                    appendLine()
-                    appendLine("Blockchain Status")
-                    blockchainStatusSections.forEach { appendStatusSection(it) }
-                }
-            }
+            // Truncated text for clipboard (last 500 log entries) to avoid TransactionTooLargeException
+            val appStatusAsText = buildStatusText(appLogs, blockchainStatusSections)
 
-            // Pre-write the share file on IO thread
+            // Pre-write the share file with full logs on IO thread
             try {
+                val fullStatusText = buildStatusText(fullLogs, blockchainStatusSections)
                 val file = File(context.cacheDir, "app_status_report.txt")
-                file.writeText(appStatusAsText)
+                file.writeText(fullStatusText)
                 shareFile = file
             } catch (_: Exception) {
                 // File write failed, share will be unavailable
@@ -131,13 +125,25 @@ class AppStatusViewModel(
         )
     }
 
-    private fun getStatusMap(): LinkedHashMap<String, Any> {
+    private fun buildStatusText(
+        logs: Map<String, Any>,
+        blockchainStatusSections: List<StatusSection>
+    ): String = buildString {
+        formatMapToString(getStatusMap(logs))?.let { append(it) }
+        if (blockchainStatusSections.isNotEmpty()) {
+            appendLine()
+            appendLine("Blockchain Status")
+            blockchainStatusSections.forEach { appendStatusSection(it) }
+        }
+    }
+
+    private fun getStatusMap(logs: Map<String, Any>): LinkedHashMap<String, Any> {
         val status = LinkedHashMap<String, Any>()
 
         status["App Info"] = getAppInfo()
         status["Version History"] = getVersionHistory()
         status["Wallets Status"] = getWalletsStatus()
-        status["App Log"] = shareAppLogs
+        status["App Log"] = logs
         status["Market Last Sync Timestamps"] = getMarketLastSyncTimestamps()
 
         return status
