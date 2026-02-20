@@ -383,6 +383,7 @@ class TokenBalanceViewModelTest : KoinTest {
         errorMessage = null,
         isWatchAccount = false,
         isSendDisabled = false,
+        isShowShieldFunds = false,
         warning = null
     )
 
