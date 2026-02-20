@@ -124,5 +124,6 @@ class TokenBalanceModule {
         val displayDiffPricePeriod: DisplayPricePeriod = DisplayPricePeriod.ONE_DAY,
         val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
         val isRoundingAmount: Boolean = false,
+        val isShowShieldFunds: Boolean = false
     )
 }

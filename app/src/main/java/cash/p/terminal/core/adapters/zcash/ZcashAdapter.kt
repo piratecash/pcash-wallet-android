@@ -1,8 +1,6 @@
 package cash.p.terminal.core.adapters.zcash
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabaseCorruptException
-import java.util.concurrent.atomic.AtomicBoolean
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
@@ -36,6 +34,7 @@ import cash.z.ecc.android.sdk.WalletInitMode
 import cash.z.ecc.android.sdk.block.processor.CompactBlockProcessor
 import cash.z.ecc.android.sdk.exception.TransactionEncoderException
 import cash.z.ecc.android.sdk.ext.ZcashSdk
+import cash.z.ecc.android.sdk.ext.collectWith
 import cash.z.ecc.android.sdk.ext.convertZatoshiToZec
 import cash.z.ecc.android.sdk.ext.convertZecToZatoshi
 import cash.z.ecc.android.sdk.ext.fromHex
@@ -65,6 +64,7 @@ import io.reactivex.Flowable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -101,7 +101,6 @@ class ZcashAdapter(
     private val lightWalletEndpoint =
         LightWalletEndpoint(host = "zec.rocks", port = 443, isSecure = true)
 
-    @Volatile
     private var synchronizer: CloseableSynchronizer
     private var transactionsProvider: ZcashTransactionsProvider
     private val clearZCashWalletDataUseCase: ClearZCashWalletDataUseCase by inject(
@@ -127,7 +126,6 @@ class ZcashAdapter(
     override val isMainNet: Boolean = true
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val recovering = AtomicBoolean(false)
     private var balanceCheckJob: Job? = null
     private val balanceCheckMutex = kotlinx.coroutines.sync.Mutex()
 
@@ -295,7 +293,7 @@ class ZcashAdapter(
 
     private var lastDownloadProgress: Int = 0
 
-    private suspend fun createNewSynchronizer(retryCount: Int = 0) {
+    private suspend fun createNewSynchronizer() {
         val walletInitMode = if (existingWallet) {
             WalletInitMode.ExistingWallet
         } else when (wallet.account.origin) {
@@ -350,15 +348,12 @@ class ZcashAdapter(
             }
 
         } catch (ex: Exception) {
-            if (retryCount >= 3) {
-                Timber.e(ex, "Synchronizer creation failed after ${retryCount + 1} attempts")
-                syncState = AdapterState.NotSynced(Exception("Synchronizer creation failed", ex))
-                return
-            }
-            Timber.d("Synchronizer creation failed (attempt ${retryCount + 1}): ${ex.message}")
+            // To prevent crash with synchronizer creation in some situations
+            // when java.lang.IllegalStateException: Another synchronizer with SynchronizerKey
+            Timber.d("Synchronizer creation failed: ${ex.message}")
             stop()
             delay(3000)
-            createNewSynchronizer(retryCount + 1)
+            createNewSynchronizer()
             return
         }
 
@@ -384,7 +379,7 @@ class ZcashAdapter(
     }
 
     override fun start() {
-        scope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 startSynchronizer()
             } catch (e: IllegalStateException) {
@@ -399,7 +394,6 @@ class ZcashAdapter(
     private suspend fun startSynchronizer() {
         if ((synchronizer as SdkSynchronizer).status.value == Synchronizer.Status.STOPPED) {
             createNewSynchronizer()
-            subscribeToStatus()
         }
         subscribe(synchronizer as SdkSynchronizer)
         if (!existingWallet) {
@@ -494,9 +488,6 @@ class ZcashAdapter(
     override val lastBlockUpdatedFlowable: Flowable<Unit>
         get() = lastBlockUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER)
 
-    override fun sendAllowed(): Boolean {
-        return balanceState is AdapterState.Synced || balanceState is AdapterState.Syncing
-    }
 
     override suspend fun getTransactions(
         from: TransactionRecord?,
@@ -642,67 +633,25 @@ class ZcashAdapter(
     }
 
     // Subscribe to a synchronizer on its own scope and begin responding to events
+    @OptIn(FlowPreview::class)
     private fun subscribe(synchronizer: SdkSynchronizer) {
-        val syncScope = synchronizer.coroutineScope
-        synchronizer.allTransactions.safeCollectWith(syncScope, transactionsProvider::onTransactions)
-        synchronizer.status.safeCollectWith(syncScope, ::onStatus)
-        synchronizer.progress.safeCollectWith(syncScope, ::onDownloadProgress)
-        synchronizer.walletBalances.safeCollectWith(syncScope, ::onBalance)
-        synchronizer.processorInfo.safeCollectWith(syncScope, ::onProcessorInfo)
-    }
-
-    private fun <T> Flow<T>.safeCollectWith(scope: CoroutineScope, block: (T) -> Unit) {
-        scope.launch {
-            try {
-                collect { block(it) }
-            } catch (e: SQLiteDatabaseCorruptException) {
-                Timber.e(e, "Zcash database corruption detected, recovering")
-                handleDatabaseCorruption(e)
-            }
-        }
-    }
-
-    // Multiple flows may detect corruption simultaneously.
-    // compareAndSet ensures only one recovery runs; synchronizer.close()
-    // cancels the syncScope, stopping remaining collectors.
-    private fun handleDatabaseCorruption(cause: Throwable? = null) {
-        if (!recovering.compareAndSet(false, true)) return
-        scope.launch {
-            try {
-                syncState = AdapterState.NotSynced(Exception("Database corrupted, recovering", cause))
-                try {
-                    synchronizer.close()
-                } catch (e: Exception) {
-                    Timber.w(e, "Error closing corrupted synchronizer")
-                }
-                val alias = clearZCashWalletDataUseCase.getValidAliasFromAccountId(
-                    wallet.account.id, addressSpecTyped
-                )
-                try {
-                    Synchronizer.erase(App.instance, network, alias)
-                } catch (e: Exception) {
-                    Timber.w(e, "Error erasing corrupted wallet data")
-                }
-                try {
-                    createNewSynchronizer()
-                    subscribe(synchronizer as SdkSynchronizer)
-                    subscribeToStatus()
-                } catch (e: Exception) {
-                    Timber.e(e, "Zcash database corruption recovery failed")
-                    syncState = AdapterState.NotSynced(Exception("Recovery failed", e))
-                }
-            } finally {
-                recovering.set(false)
-            }
-        }
+        // Note: If any of these callback functions directly touch the UI, then the scope used here
+        //       should not live longer than that UI or else the context and view tree will be
+        //       invalid and lead to crashes. For now, we use a scope that is cancelled whenever
+        //       synchronizer.stop is called.
+        //       If the scope of the view is required for one of these, then consider using the
+        //       related viewModelScope instead of the synchronizer's scope.
+        //       synchronizer.coroutineScope cannot be accessed until the synchronizer is started
+        val scope = synchronizer.coroutineScope
+        synchronizer.allTransactions.collectWith(scope, transactionsProvider::onTransactions)
+        synchronizer.status.collectWith(scope, ::onStatus)
+        synchronizer.progress.collectWith(scope, ::onDownloadProgress)
+        synchronizer.walletBalances.collectWith(scope, ::onBalance)
+        synchronizer.processorInfo.collectWith(scope, ::onProcessorInfo)
     }
 
     private fun onProcessorError(error: Throwable?): Boolean {
-        Timber.e(error, "Zcash processor error")
-        if (error is SQLiteDatabaseCorruptException) {
-            handleDatabaseCorruption(error)
-            return false
-        }
+        error?.printStackTrace()
         return true
     }
 

@@ -44,7 +44,9 @@ import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
 import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.premium.domain.PremiumSettings
+import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.Token
@@ -132,6 +134,7 @@ class TokenBalanceViewModel(
     private var displayDiffPricePeriod = localStorage.displayDiffPricePeriod
     private var displayDiffOptionType = localStorage.displayDiffOptionType
     private var isRoundingAmount = localStorage.isRoundingAmountMainPage
+    private var hasReachedSynced = false
 
     init {
         viewModelScope.launch {
@@ -387,7 +390,20 @@ class TokenBalanceViewModel(
         displayDiffPricePeriod = displayDiffPricePeriod,
         displayDiffOptionType = displayDiffOptionType,
         isRoundingAmount = isRoundingAmount,
+        isShowShieldFunds = isShowShieldFunds()
     )
+
+    private fun isShowShieldFunds(): Boolean {
+        val item = balanceService.balanceItem ?: return hasReachedSynced
+        val isTransparent =
+            (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent
+        if (!isTransparent || item.balanceData.total <= ZcashAdapter.MINERS_FEE) return false
+
+        if (item.state is AdapterState.Synced) {
+            hasReachedSynced = true
+        }
+        return hasReachedSynced
+    }
 
     private fun updateTransactions(items: List<TransactionItem>) {
         transactions =

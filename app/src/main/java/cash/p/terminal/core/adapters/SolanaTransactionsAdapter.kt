@@ -4,7 +4,6 @@ import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.SolanaKitWrapper
-import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.transactions.FilterTransactionType
@@ -41,7 +40,7 @@ class SolanaTransactionsAdapter(
         get() = kit.lastBlockHeightFlow.map {}.asFlowable()
 
     override val transactionsState: AdapterState
-        get() = kit.transactionsSyncState.toAdapterState()
+        get() = convertToAdapterState(kit.transactionsSyncState)
 
     override val transactionsStateUpdatedFlowable: Flowable<Unit>
         get() = kit.transactionsSyncStateFlow.map {}.asFlowable()
@@ -112,6 +111,13 @@ class SolanaTransactionsAdapter(
             txList.map { solanaTransactionConverter.transactionRecord(it) }
         }.asFlowable()
     }
+
+    private fun convertToAdapterState(syncState: SolanaKit.SyncState): AdapterState =
+            when (syncState) {
+                is SolanaKit.SyncState.Synced -> AdapterState.Synced
+                is SolanaKit.SyncState.NotSynced -> AdapterState.NotSynced(syncState.error)
+                is SolanaKit.SyncState.Syncing -> AdapterState.Syncing()
+            }
 
     companion object {
         const val decimal = 9

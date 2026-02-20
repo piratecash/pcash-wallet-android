@@ -99,6 +99,7 @@ object SendEvmModule {
                         coinMaxAllowedDecimals = coinMaxAllowedDecimals,
                         showAddressInput = !hideAddress,
                         address = address,
+                        adapterManager = adapterManager,
                     ) as T
                 }
                 else -> throw IllegalArgumentException()

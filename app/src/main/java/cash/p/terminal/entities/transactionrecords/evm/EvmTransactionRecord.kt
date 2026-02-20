@@ -89,15 +89,6 @@ class EvmTransactionRecord(
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is TransactionRecord) return false
-        if (uid != other.uid) return false
-        if (other !is EvmTransactionRecord) return true
-        // Detect decoration changes (e.g., Extremum→Exact when events sync)
-        return valueOut?.decimalValue == other.valueOut?.decimalValue
-            && valueIn?.decimalValue == other.valueIn?.decimalValue
-    }
-
     companion object {
         private fun sameType(value: TransactionValue, value2: TransactionValue): Boolean =
             when {

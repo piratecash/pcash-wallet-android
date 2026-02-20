@@ -27,16 +27,15 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
 import cash.z.ecc.android.sdk.ext.collectWith
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
 
 class SendMoneroViewModel(
-    val wallet: Wallet,
+    wallet: Wallet,
     val sendToken: Token,
     val adapter: ISendMoneroAdapter,
     xRateService: XRateService,
@@ -47,12 +46,11 @@ class SendMoneroViewModel(
     private val contactsRepo: ContactsRepository,
     private val connectivityManager: ConnectivityManager,
     private val address: Address?,
-) : ViewModelUiState<SendUiState>() {
+    private val adapterManager: IAdapterManager,
+) : BaseSendViewModel<SendUiState>(wallet, adapterManager) {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = sendToken.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
-
-    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value

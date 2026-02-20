@@ -1,16 +1,12 @@
 package cash.p.terminal.modules.balance
 
 import cash.p.terminal.core.storage.EnabledWalletsCacheDao
-import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.EnabledWalletCache
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.getUniqueKey
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 class BalanceCache(private val dao: EnabledWalletsCacheDao) {
-    private val mutex = Mutex()
     private var cacheMap: Map<String, BalanceData>
 
     init {
@@ -28,7 +24,7 @@ class BalanceCache(private val dao: EnabledWalletsCacheDao) {
         }.toMap()
     }
 
-    suspend fun setCache(wallet: Wallet, balanceData: BalanceData) {
+    fun setCache(wallet: Wallet, balanceData: BalanceData) {
         setCache(mapOf(wallet to balanceData))
     }
 
@@ -37,7 +33,7 @@ class BalanceCache(private val dao: EnabledWalletsCacheDao) {
         return cacheMap[key]
     }
 
-    suspend fun setCache(balancesData: Map<Wallet, BalanceData>) {
+    fun setCache(balancesData: Map<Wallet, BalanceData>) {
         val list = balancesData.map { (wallet, balanceData) ->
             EnabledWalletCache(
                 tokenQueryId = wallet.token.tokenQuery.id,
@@ -47,18 +43,9 @@ class BalanceCache(private val dao: EnabledWalletsCacheDao) {
                 stackingUnpaid = balanceData.stackingUnpaid
             )
         }
+        cacheMap = cacheMap + convertToCacheMap(list)
 
-        if (list.isEmpty()) return
-
-        val successfulInserts = list.mapNotNull { entry ->
-            tryOrNull { dao.insert(entry) }?.let { entry }
-        }
-
-        if (successfulInserts.isNotEmpty()) {
-            mutex.withLock {
-                cacheMap = cacheMap + convertToCacheMap(successfulInserts)
-            }
-        }
+        dao.insertAll(list)
     }
 
 }

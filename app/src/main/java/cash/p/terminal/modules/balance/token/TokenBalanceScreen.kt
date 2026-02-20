@@ -216,7 +216,8 @@ fun TokenBalanceScreen(
                             viewModel = viewModel,
                             uiState = uiState,
                             onStackingClicked = onStackingClicked,
-                            onClickSubtitle = onClickSubtitle
+                            onClickSubtitle = onClickSubtitle,
+                            isShowShieldFunds = uiState.isShowShieldFunds
                         )
                     }
                     if (transactionItems == null) {
@@ -247,7 +248,8 @@ fun TokenBalanceScreen(
                                 viewModel = viewModel,
                                 uiState = uiState,
                                 onStackingClicked = onStackingClicked,
-                                onClickSubtitle = onClickSubtitle
+                                onClickSubtitle = onClickSubtitle,
+                                isShowShieldFunds = uiState.isShowShieldFunds
                             )
                         }
                     }
@@ -342,7 +344,8 @@ private fun TokenBalanceHeader(
     viewModel: TokenBalanceViewModel,
     uiState: TokenBalanceModule.TokenBalanceUiState,
     onStackingClicked: () -> Unit,
-    onClickSubtitle: () -> Unit
+    onClickSubtitle: () -> Unit,
+    isShowShieldFunds: Boolean
 ) {
     val context = LocalContext.current
 
@@ -494,7 +497,8 @@ private fun TokenBalanceHeader(
             viewItem = balanceViewItem,
             navController = navController,
             viewModel = viewModel,
-            onStackingClicked = onStackingClicked
+            onStackingClicked = onStackingClicked,
+            isShowShieldFunds = isShowShieldFunds
         )
         LockedBalanceSection(balanceViewItem, navController)
         balanceViewItem.warning?.let {
@@ -602,7 +606,8 @@ private fun ButtonsRow(
     viewItem: BalanceViewItem,
     navController: NavController,
     viewModel: TokenBalanceViewModel,
-    onStackingClicked: () -> Unit
+    onStackingClicked: () -> Unit,
+    isShowShieldFunds: Boolean
 ) {
     val onClickReceive = {
         try {
@@ -704,7 +709,7 @@ private fun ButtonsRow(
             }
         }
     }
-    if (viewItem.isShowShieldFunds) {
+    if (isShowShieldFunds) {
         Column(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally

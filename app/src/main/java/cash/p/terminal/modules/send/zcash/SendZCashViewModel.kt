@@ -22,19 +22,18 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.grpc.StatusRuntimeException
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.toHexReversed
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
 
 class SendZCashViewModel(
     private val adapter: ISendZcashAdapter,
-    val wallet: Wallet,
+    wallet: Wallet,
     xRateService: XRateService,
     private val amountService: SendAmountService,
     private val addressService: SendZCashAddressService,
@@ -42,14 +41,14 @@ class SendZCashViewModel(
     private val contactsRepo: ContactsRepository,
     private val address: Address?,
     private val showAddressInput: Boolean,
-    private val pendingRegistrar: PendingTransactionRegistrar
-) : ViewModelUiState<SendZCashUiState>() {
+    private val pendingRegistrar: PendingTransactionRegistrar,
+    private val adapterManager: IAdapterManager
+) : BaseSendViewModel<SendZCashUiState>(wallet, adapterManager) {
     val blockchainType = wallet.token.blockchainType
     val coinMaxAllowedDecimals = wallet.token.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val memoMaxLength by memoService::memoMaxLength
 
-    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
     private val fee = adapter.fee
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -75,6 +74,13 @@ class SendZCashViewModel(
         }
         memoService.stateFlow.collectWith(viewModelScope) {
             handleUpdatedMemoState(it)
+        }
+        adapterManager.getBalanceAdapterForWallet(wallet)?.let { balanceAdapter ->
+            balanceAdapter.balanceUpdatedFlow.collectWith(viewModelScope) {
+                val newBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
+                    ?: balanceAdapter.maxSpendableBalance
+                amountService.updateAvailableBalance(newBalance)
+            }
         }
         viewModelScope.launch {
             addressService.setAddress(address)

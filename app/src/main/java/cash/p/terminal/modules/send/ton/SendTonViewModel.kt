@@ -13,7 +13,7 @@ import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import io.horizontalsystems.core.ViewModelUiState
+import cash.p.terminal.modules.send.BaseSendViewModel
 import cash.p.terminal.entities.Address
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -32,7 +32,7 @@ import java.math.BigDecimal
 import java.net.UnknownHostException
 
 class SendTonViewModel(
-    val wallet: Wallet,
+    wallet: Wallet,
     private val sendToken: Token,
     val feeToken: Token,
     val adapter: ISendTonAdapter,
@@ -46,7 +46,7 @@ class SendTonViewModel(
     address: Address?,
     private val pendingRegistrar: PendingTransactionRegistrar,
     private val adapterManager: IAdapterManager,
-): ViewModelUiState<SendTonUiState>() {
+): BaseSendViewModel<SendTonUiState>(wallet, adapterManager) {
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
