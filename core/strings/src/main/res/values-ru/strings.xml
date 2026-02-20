@@ -1562,6 +1562,8 @@
     <string name="total_income">Общий доход</string>
     <string name="unpaid">Невыплачено</string>
     <string name="staking_unpaid">Ожидающие выплаты за стэкинг:</string>
+    <string name="staking_active">Стекинг активен</string>
+    <string name="staking_inactive">Стекинг неактивен</string>
     <string name="estimated_annual_interest">Предполагаемый годовой процент</string>
     <string name="accruals">Начисления</string>
     <string name="payouts">Выплаты</string>

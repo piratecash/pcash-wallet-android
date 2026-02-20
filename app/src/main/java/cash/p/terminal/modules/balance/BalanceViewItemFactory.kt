@@ -49,7 +49,10 @@ data class BalanceViewItem(
     val isWatchAccount: Boolean,
     val isSendDisabled: Boolean,
     val isShowShieldFunds: Boolean,
-    val warning: WarningText?
+    val warning: WarningText?,
+    val diff: BigDecimal? = null,
+    val fullDiff: String = "",
+    val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
 )
 
 data class WarningText(
@@ -263,7 +266,8 @@ class BalanceViewItemFactory {
         hideBalance: Boolean,
         watchAccount: Boolean,
         balanceViewType: BalanceViewType,
-        isSwappable: Boolean
+        isSwappable: Boolean,
+        displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
     ): BalanceViewItem {
         val wallet = item.wallet
         val state = item.state
@@ -389,7 +393,10 @@ class BalanceViewItemFactory {
             isWatchAccount = watchAccount,
             warning = item.warning?.warningText,
             isSendDisabled = sendDisabled,
-            isShowShieldFunds = isShowShieldFunds
+            isShowShieldFunds = isShowShieldFunds,
+            diff = item.coinPrice?.diffPercentage,
+            fullDiff = getFullDiff(item, displayDiffOptionType, currency),
+            displayDiffOptionType = displayDiffOptionType,
         )
     }
 

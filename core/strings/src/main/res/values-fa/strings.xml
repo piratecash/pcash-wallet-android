@@ -1605,9 +1605,11 @@
     <string name="stacking_calculator">stacking calculator</string>
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
-    <string name="unpaid">Unpaid</string>
-    <string name="staking_unpaid">Staking unpaid:</string>
-    <string name="estimated_annual_interest">Estimated Annual Interest</string>
+    <string name="unpaid">پرداخت نشده</string>
+    <string name="staking_unpaid">پرداخت‌های معلق استیکینگ:</string>
+    <string name="staking_active">استیکینگ فعال</string>
+    <string name="staking_inactive">استیکینگ غیرفعال</string>
+    <string name="estimated_annual_interest">سود سالانه تخمینی</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
     <string name="investment_chart">Investment chart</string>

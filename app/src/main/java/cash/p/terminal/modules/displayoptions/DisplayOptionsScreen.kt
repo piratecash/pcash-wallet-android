@@ -68,52 +68,17 @@ internal fun DisplayOptionsScreen(
                             )
                         }
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                InfoText(
-                    text = stringResource(R.string.Market_FilterSection_PriceParameters).uppercase(),
-                    paddingBottom = 8.dp,
-                    paddingTop = 16.dp
-                )
-
-                CellUniversalLawrenceSection(
-                    listOf(
-                        {
-                            HsSettingCell(
-                                title = R.string.display_options_price_period,
-                                value = uiState.pricePeriod.shortForm.getString(),
-                                onClick = { showPeriodSelector = true }
-                            )
-                        },
-                        {
-                            // % Change
-                            SwitchWithText(
-                                text = stringResource(R.string.display_options_percent_change),
-                                checked = uiState.displayDiffOptionType.hasPercentChange,
-                                onCheckedChange = { onPercentChangeToggled(it) }
-                            )
-                        },
-                        {
-                            // Price Change
-                            SwitchWithText(
-                                text = stringResource(R.string.display_options_price_change),
-                                checked = uiState.displayDiffOptionType.hasPriceChange,
-                                onCheckedChange = { onPriceChangeToggled(it) }
-                            )
-                        }
-                    )
-                )
-                CellUniversalLawrenceSection(
-                    listOf(
-                        {
-                            SwitchWithText(
-                                text = stringResource(R.string.sum_rounding),
-                                checked = uiState.isRoundingAmountMainPage,
-                                onCheckedChange = onRoundingAmountMainPageToggled
-                            )
-                        }
-                    ),
-                    Modifier.padding(top = 32.dp)
+                PriceParametersSection(
+                    pricePeriod = uiState.pricePeriod,
+                    displayDiffOptionType = uiState.displayDiffOptionType,
+                    isRoundingAmount = uiState.isRoundingAmountMainPage,
+                    onPricePeriodClick = { showPeriodSelector = true },
+                    onPercentChangeToggled = onPercentChangeToggled,
+                    onPriceChangeToggled = onPriceChangeToggled,
+                    onRoundingAmountToggled = onRoundingAmountMainPageToggled,
                 )
             }
         }
@@ -131,6 +96,59 @@ internal fun DisplayOptionsScreen(
             onDismiss = { showPeriodSelector = false }
         )
     }
+}
+
+@Composable
+fun PriceParametersSection(
+    pricePeriod: DisplayPricePeriod,
+    displayDiffOptionType: DisplayDiffOptionType,
+    isRoundingAmount: Boolean,
+    onPricePeriodClick: () -> Unit,
+    onPercentChangeToggled: (Boolean) -> Unit,
+    onPriceChangeToggled: (Boolean) -> Unit,
+    onRoundingAmountToggled: (Boolean) -> Unit,
+) {
+    InfoText(
+        text = stringResource(R.string.Market_FilterSection_PriceParameters).uppercase(),
+        paddingBottom = 8.dp
+    )
+
+    CellUniversalLawrenceSection(
+        listOf(
+            {
+                HsSettingCell(
+                    title = R.string.display_options_price_period,
+                    value = pricePeriod.shortForm.getString(),
+                    onClick = onPricePeriodClick
+                )
+            },
+            {
+                SwitchWithText(
+                    text = stringResource(R.string.display_options_percent_change),
+                    checked = displayDiffOptionType.hasPercentChange,
+                    onCheckedChange = onPercentChangeToggled
+                )
+            },
+            {
+                SwitchWithText(
+                    text = stringResource(R.string.display_options_price_change),
+                    checked = displayDiffOptionType.hasPriceChange,
+                    onCheckedChange = onPriceChangeToggled
+                )
+            }
+        )
+    )
+
+    CellUniversalLawrenceSection(
+        listOf {
+            SwitchWithText(
+                text = stringResource(R.string.sum_rounding),
+                checked = isRoundingAmount,
+                onCheckedChange = onRoundingAmountToggled
+            )
+        },
+        Modifier.padding(top = 32.dp)
+    )
 }
 
 @Preview(showBackground = true)

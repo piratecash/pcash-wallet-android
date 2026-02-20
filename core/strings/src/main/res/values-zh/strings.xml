@@ -1592,9 +1592,11 @@
     <string name="stacking_calculator">stacking calculator</string>
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
-    <string name="unpaid">Unpaid</string>
-    <string name="staking_unpaid">Staking unpaid:</string>
-    <string name="estimated_annual_interest">Estimated Annual Interest</string>
+    <string name="unpaid">未支付</string>
+    <string name="staking_unpaid">待支付的质押收益：</string>
+    <string name="staking_active">质押已激活</string>
+    <string name="staking_inactive">质押未激活</string>
+    <string name="estimated_annual_interest">预估年化利率</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
     <string name="investment_chart">Investment chart</string>

@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.balance.token
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -8,12 +9,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,10 +38,10 @@ import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.isCustom
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.receive.ReceiveFragment
@@ -60,6 +61,7 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
+import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
@@ -121,6 +123,29 @@ fun TokenBalanceScreen(
                 menuItems = buildList {
                     add(
                         MenuItem(
+                            title = TranslatableString.ResString(
+                                if (uiState.isFavorite) R.string.CoinPage_Unfavorite else R.string.CoinPage_Favorite
+                            ),
+                            icon = if (uiState.isFavorite) R.drawable.ic_star_filled_20 else R.drawable.ic_star_20,
+                            tint = if (uiState.isFavorite) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.grey,
+                            onClick = { viewModel.toggleFavorite() }
+                        )
+                    )
+                    if (!uiState.isCustomToken) {
+                        add(
+                            MenuItem(
+                                title = TranslatableString.ResString(R.string.Coin_Info),
+                                icon = R.drawable.ic_chart_24,
+                                onClick = {
+                                    val coinUid = uiState.balanceViewItem?.wallet?.coin?.uid ?: return@MenuItem
+                                    val arguments = CoinFragmentInput(coinUid)
+                                    navController.slideFromRight(R.id.coinFragment, arguments)
+                                }
+                            )
+                        )
+                    }
+                    add(
+                        MenuItem(
                             title = TranslatableString.ResString(R.string.Settings_Title),
                             icon = R.drawable.ic_manage_2_24,
                             onClick = onSettingsClick
@@ -133,11 +158,7 @@ fun TokenBalanceScreen(
                                 icon = R.drawable.ic_attention_red_24,
                                 tint = ComposeAppTheme.colors.lucian,
                                 onClick = {
-                                    onSyncErrorClicked(
-                                        uiState.balanceViewItem,
-                                        viewModel,
-                                        navController
-                                    )
+                                    onSyncErrorClicked(uiState.balanceViewItem, viewModel, navController)
                                 }
                             )
                         )
@@ -193,6 +214,7 @@ fun TokenBalanceScreen(
                             balanceViewItem = it,
                             navController = navController,
                             viewModel = viewModel,
+                            uiState = uiState,
                             onStackingClicked = onStackingClicked,
                             onClickSubtitle = onClickSubtitle
                         )
@@ -223,6 +245,7 @@ fun TokenBalanceScreen(
                                 balanceViewItem = it,
                                 navController = navController,
                                 viewModel = viewModel,
+                                uiState = uiState,
                                 onStackingClicked = onStackingClicked,
                                 onClickSubtitle = onClickSubtitle
                             )
@@ -317,6 +340,7 @@ private fun TokenBalanceHeader(
     balanceViewItem: BalanceViewItem,
     navController: NavController,
     viewModel: TokenBalanceViewModel,
+    uiState: TokenBalanceModule.TokenBalanceUiState,
     onStackingClicked: () -> Unit,
     onClickSubtitle: () -> Unit
 ) {
@@ -326,17 +350,64 @@ private fun TokenBalanceHeader(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        VSpacer(height = (24.dp))
-        WalletIcon(
-            viewItem = balanceViewItem,
-            viewModel = viewModel,
-            navController = navController,
-        )
+        // Sub-header row: coin icon + ticker + badge + staking status
         VSpacer(height = 12.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.size(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CoinIconWithSyncProgress(
+                    token = balanceViewItem.wallet.token,
+                    syncingProgress = balanceViewItem.syncingProgress,
+                    failedIconVisible = balanceViewItem.failedIconVisible,
+                    onClickSyncError = {
+                        onSyncErrorClicked(balanceViewItem, viewModel, navController)
+                    }
+                )
+            }
+            HSpacer(16.dp)
+            Text(
+                text = uiState.coinCode + (uiState.badge?.let { " ($it)" } ?: ""),
+                color = ComposeAppTheme.colors.grey,
+                style = ComposeAppTheme.typography.subhead1,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            uiState.stakingStatus?.let { status ->
+                HSpacer(8.dp)
+                val (text, color) = when (status) {
+                    TokenBalanceModule.StakingStatus.ACTIVE -> Pair(
+                        stringResource(R.string.staking_active),
+                        ComposeAppTheme.colors.remus
+                    )
+                    TokenBalanceModule.StakingStatus.INACTIVE -> Pair(
+                        stringResource(R.string.staking_inactive),
+                        ComposeAppTheme.colors.lucian
+                    )
+                }
+                Text(
+                    text = text,
+                    color = color,
+                    style = ComposeAppTheme.typography.microSB,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(color.copy(alpha = 0.1f))
+                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                )
+            }
+        }
+
+        // Balance
+        VSpacer(height = 22.dp)
         Text(
             modifier = Modifier
+                .fillMaxWidth()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -348,13 +419,14 @@ private fun TokenBalanceHeader(
             text = if (balanceViewItem.primaryValue.visible) balanceViewItem.primaryValue.value else "*****",
             color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey else ComposeAppTheme.colors.leah,
             style = ComposeAppTheme.typography.title2R,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.Start,
         )
+
+        // Price line
         VSpacer(height = 6.dp)
         if (balanceViewItem.syncingTextValue != null) {
             body_grey(
-                text = balanceViewItem.syncingTextValue + (balanceViewItem.syncedUntilTextValue?.let { " - $it" }
-                    ?: ""),
+                text = balanceViewItem.syncingTextValue + (balanceViewItem.syncedUntilTextValue?.let { " - $it" } ?: ""),
                 maxLines = 1,
             )
         } else {
@@ -363,19 +435,61 @@ private fun TokenBalanceHeader(
                 color = if (balanceViewItem.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
                 style = ComposeAppTheme.typography.body,
                 maxLines = 1,
-                modifier = Modifier
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = {
-                            if (balanceViewItem.secondaryValue.visible) {
-                                onClickSubtitle()
-                            }
+                modifier = Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {
+                        if (balanceViewItem.secondaryValue.visible) {
+                            onClickSubtitle()
                         }
-                    )
+                    }
+                )
             )
         }
-        VSpacer(height = 24.dp)
+
+        // Exchange rate + diff
+        if (balanceViewItem.exchangeValue.visible) {
+            VSpacer(height = 4.dp)
+            Row {
+                Text(
+                    text = "1${uiState.coinCode} = ${balanceViewItem.exchangeValue.value}",
+                    color = ComposeAppTheme.colors.grey,
+                    style = ComposeAppTheme.typography.subhead2,
+                )
+                if (balanceViewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
+                    balanceViewItem.diff?.let { diff ->
+                        HSpacer(width = 8.dp)
+                        Text(
+                            text = balanceViewItem.fullDiff,
+                            color = diffColor(diff),
+                            style = ComposeAppTheme.typography.subhead2,
+                        )
+                    }
+                }
+            }
+        }
+
+        // Staking unpaid row
+        uiState.stakingUnpaid?.let { unpaid ->
+            VSpacer(height = 21.dp)
+            HorizontalDivider(color = ComposeAppTheme.colors.steel20, thickness = 1.dp)
+            RowUniversal {
+                subhead2_grey(
+                    text = stringResource(R.string.staking_unpaid),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = unpaid,
+                    color = ComposeAppTheme.colors.leah,
+                    style = ComposeAppTheme.typography.subhead2,
+                    maxLines = 1,
+                )
+            }
+        }
+
+        VSpacer(height = 12.dp)
         ButtonsRow(
             viewItem = balanceViewItem,
             navController = navController,
@@ -463,31 +577,6 @@ private fun LockedBalanceCell(
     }
 }
 
-@Composable
-private fun WalletIcon(
-    viewItem: BalanceViewItem,
-    viewModel: TokenBalanceViewModel,
-    navController: NavController
-) {
-    val view = LocalView.current
-
-    Box(
-        modifier = Modifier
-            .height(52.dp)
-            .fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        CoinIconWithSyncProgress(
-            token = viewItem.wallet.token,
-            syncingProgress = viewItem.syncingProgress,
-            failedIconVisible = viewItem.failedIconVisible,
-            onClickSyncError = {
-                onSyncErrorClicked(viewItem, viewModel, navController)
-            }
-        )
-    }
-}
-
 private fun onSyncErrorClicked(
     viewItem: BalanceViewItem,
     viewModel: TokenBalanceViewModel,
@@ -533,7 +622,7 @@ private fun ButtonsRow(
     }
 
     Row(
-        modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 16.dp)
+        modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
     ) {
         if (viewItem.isWatchAccount) {
             ButtonPrimaryDefault(
@@ -614,18 +703,6 @@ private fun ButtonsRow(
                 )
             }
         }
-        HSpacer(8.dp)
-        ButtonPrimaryCircle(
-            icon = R.drawable.ic_chart_24,
-            contentDescription = stringResource(R.string.Coin_Info),
-            enabled = !viewItem.wallet.token.isCustom,
-            onClick = {
-                val coinUid = viewItem.wallet.coin.uid
-                val arguments = CoinFragmentInput(coinUid)
-
-                navController.slideFromRight(R.id.coinFragment, arguments)
-            },
-        )
     }
     if (viewItem.isShowShieldFunds) {
         Column(
