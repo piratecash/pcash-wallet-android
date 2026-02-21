@@ -38,7 +38,7 @@ interface ISystemInfoManager {
 interface IPinComponent {
     var isBiometricAuthEnabled: Boolean
     val isPinSet: Boolean
-    val isLocked: StateFlow<Boolean>
+    val isLockedFlow: StateFlow<Boolean>
     val pinSetFlowable: Flowable<Unit>
 
     fun willEnterForeground()

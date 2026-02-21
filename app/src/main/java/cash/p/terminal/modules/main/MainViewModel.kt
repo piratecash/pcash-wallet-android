@@ -118,7 +118,7 @@ class MainViewModel(
         get() = accountManager.accounts.filter { it.isWatchAccount }
 
     init {
-        pinComponent.isLocked.collectWith(viewModelScope) {
+        pinComponent.isLockedFlow.collectWith(viewModelScope) {
             contentHidden = it
             emitState()
         }
@@ -226,7 +226,7 @@ class MainViewModel(
 
         emitState()
         viewModelScope.launch {
-            if (!pinComponent.isLocked.value && releaseNotesManager.shouldShowChangeLog()) {
+            if (!pinComponent.isLockedFlow.value && releaseNotesManager.shouldShowChangeLog()) {
                 showWhatsNew()
             }
         }

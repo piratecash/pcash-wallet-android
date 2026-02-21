@@ -8,6 +8,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import cash.p.terminal.R
+import cash.p.terminal.ui_compose.ScreenSecurityState
 
 abstract class BaseFragment(
     @LayoutRes layoutResId: Int = 0,
@@ -43,6 +44,7 @@ abstract class BaseFragment(
     }
 
     private fun allowScreenshot() {
+        if (ScreenSecurityState.isAppLocked) return
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 

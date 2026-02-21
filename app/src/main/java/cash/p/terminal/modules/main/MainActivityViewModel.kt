@@ -10,26 +10,21 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import io.horizontalsystems.core.ILoginRecordRepository
 import cash.p.terminal.core.managers.TonConnectManager
 import io.horizontalsystems.core.entities.AutoDeletePeriod
-import cash.p.terminal.modules.lockscreen.LockScreenActivity
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.managers.UserManager
 import com.reown.walletkit.client.Wallet
-import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IKeyStoreManager
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.security.KeyStoreValidationError
 import io.horizontalsystems.tonkit.models.SignTransaction
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.inject
 
 class MainActivityViewModel(
     private val userManager: DefaultUserManager,
@@ -37,11 +32,13 @@ class MainActivityViewModel(
     private val systemInfoManager: ISystemInfoManager,
     private val localStorage: ILocalStorage,
     private val checkPremiumUseCase: CheckPremiumUseCase,
-    private val pinComponent: IPinComponent,
+    pinComponent: IPinComponent,
     private val keyStoreManager: IKeyStoreManager,
     private val tonConnectManager: TonConnectManager,
     private val loginRecordRepository: ILoginRecordRepository
 ) : ViewModel() {
+
+    val isLockedFlow = pinComponent.isLockedFlow
 
     val navigateToMainLiveData = MutableLiveData(false)
     val wcEvent = MutableLiveData<Wallet.Model?>()
@@ -55,9 +52,6 @@ class MainActivityViewModel(
 
     val tcDappRequest = MutableLiveData<DAppRequestEntityWrapper?>()
     val intentLiveData = MutableLiveData<Intent?>()
-
-    private val backgroundManager: BackgroundManager by inject(BackgroundManager::class.java)
-    private var lockScreenJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -100,23 +94,6 @@ class MainActivityViewModel(
                 loginRecordRepository.deleteExpired(level, period)
             }
         }
-    }
-
-    fun startLockScreenMonitoring() {
-        lockScreenJob?.cancel()
-        lockScreenJob = viewModelScope.launch {
-            pinComponent.isLocked.collectLatest { isLocked ->
-                if (isLocked) {
-                    backgroundManager.currentActivity?.let {
-                        LockScreenActivity.start(it)
-                    }
-                }
-            }
-        }
-    }
-
-    fun stopLockScreenMonitoring() {
-        lockScreenJob?.cancel()
     }
 
     fun setIntent(intent: Intent) {
@@ -170,7 +147,6 @@ class MainActivityViewModel(
 
 sealed class MainScreenValidationError : Exception() {
     class Welcome : MainScreenValidationError()
-    class Unlock : MainScreenValidationError()
     class NoSystemLock : MainScreenValidationError()
     class KeyInvalidated : MainScreenValidationError()
     class UserAuthentication : MainScreenValidationError()
