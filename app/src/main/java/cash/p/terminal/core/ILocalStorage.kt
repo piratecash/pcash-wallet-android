@@ -107,7 +107,9 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
 
     // Display Options
     var displayDiffPricePeriod: DisplayPricePeriod
+    val displayDiffPricePeriodFlow: StateFlow<DisplayPricePeriod>
     var displayDiffOptionType: DisplayDiffOptionType
+    val displayDiffOptionTypeFlow: StateFlow<DisplayDiffOptionType>
 
     var passphraseTermsAgreed: Boolean
     var safetyRulesAgreed: Boolean

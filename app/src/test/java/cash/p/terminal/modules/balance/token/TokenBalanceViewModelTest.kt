@@ -1,8 +1,15 @@
 package cash.p.terminal.modules.balance.token
 
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.managers.MarketFavoritesManager
+import cash.p.terminal.core.managers.PriceManager
+import cash.p.terminal.core.managers.StackingManager
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
+import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.core.managers.TransactionHiddenManager
+import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.balance.BalanceViewItem
@@ -84,6 +91,11 @@ class TokenBalanceViewModelTest : KoinTest {
     private val getChangeNowAssociatedCoinTickerUseCase = mockk<GetChangeNowAssociatedCoinTickerUseCase>()
     private val premiumSettings = mockk<PremiumSettings>()
     private val amlStatusManager = mockk<AmlStatusManager>()
+    private val marketFavoritesManager = mockk<MarketFavoritesManager>(relaxed = true)
+    private val piratePlaceRepository = mockk<PiratePlaceRepository>(relaxed = true)
+    private val stackingManager = mockk<StackingManager>(relaxed = true)
+    private val priceManager = mockk<PriceManager>(relaxed = true)
+    private val localStorage = mockk<ILocalStorage>(relaxed = true)
 
     // Controllable flows
     private lateinit var transactionHiddenFlow: MutableStateFlow<TransactionHiddenState>
@@ -145,6 +157,11 @@ class TokenBalanceViewModelTest : KoinTest {
         every { amlStatusManager.isEnabled } returns false
         every { amlStatusManager.applyStatus(any()) } answers { firstArg() }
         every { premiumSettings.getAmlCheckShowAlert() } returns false
+        every { priceManager.displayPricePeriodFlow } returns MutableStateFlow(DisplayPricePeriod.ONE_DAY)
+        every { priceManager.displayDiffOptionTypeFlow } returns MutableStateFlow(DisplayDiffOptionType.BOTH)
+        every { localStorage.displayDiffPricePeriod } returns DisplayPricePeriod.ONE_DAY
+        every { localStorage.displayDiffOptionType } returns DisplayDiffOptionType.BOTH
+        every { localStorage.isRoundingAmountMainPage } returns false
         coEvery { getChangeNowAssociatedCoinTickerUseCase(any(), any()) } returns null
         every { transactionViewItemFactory.convertToViewItemCached(any(), any(), any()) } answers {
             createMockTransactionViewItem(firstArg<TransactionItem>().record.uid)
@@ -253,7 +270,7 @@ class TokenBalanceViewModelTest : KoinTest {
         val balanceViewItem = createBalanceViewItem(
             secondaryValue = DeemedValue(value = expectedFiat, dimmed = false, visible = true)
         )
-        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any()) } returns balanceViewItem
+        every { balanceViewItemFactory.viewItem(any(), any(), any(), any(), any(), any(), any()) } returns balanceViewItem
         every { balanceHiddenManager.isWalletBalanceHidden(any()) } returns false
 
         val testBalanceItem = createBalanceItem()
@@ -290,7 +307,12 @@ class TokenBalanceViewModelTest : KoinTest {
         transactionHiddenManager = transactionHiddenManager,
         getChangeNowAssociatedCoinTickerUseCase = getChangeNowAssociatedCoinTickerUseCase,
         premiumSettings = premiumSettings,
-        amlStatusManager = amlStatusManager
+        amlStatusManager = amlStatusManager,
+        marketFavoritesManager = marketFavoritesManager,
+        piratePlaceRepository = piratePlaceRepository,
+        stackingManager = stackingManager,
+        priceManager = priceManager,
+        localStorage = localStorage,
     )
 
     private fun createHiddenState(
@@ -361,6 +383,7 @@ class TokenBalanceViewModelTest : KoinTest {
         errorMessage = null,
         isWatchAccount = false,
         isSendDisabled = false,
+        isShowShieldFunds = false,
         warning = null
     )
 

@@ -148,8 +148,14 @@ private fun TokenBalanceNavHost(
                         viewModel.setAmlCheckEnabled(false)
                     }
                 },
+                pricePeriod = viewModel.uiState.displayDiffPricePeriod,
+                displayDiffOptionType = viewModel.uiState.displayDiffOptionType,
+                isRoundingAmount = viewModel.uiState.isRoundingAmount,
+                onPricePeriodChange = viewModel::setDisplayPricePeriod,
+                onDisplayDiffOptionTypeChange = viewModel::setDisplayDiffOptionType,
+                onRoundingAmountChange = viewModel::setRoundingAmount,
                 navController = fragmentNavController,
-                onBack = navController::popBackStack
+                onBack = navController::popBackStack,
             )
         }
     }
