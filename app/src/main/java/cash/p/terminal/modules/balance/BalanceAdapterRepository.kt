@@ -76,7 +76,11 @@ class BalanceAdapterRepository(
 
     fun state(wallet: Wallet): AdapterState {
         return adapterManager.getBalanceAdapterForWallet(wallet)?.balanceState
-            ?: AdapterState.Syncing()
+            ?: if (adapterManager.initializationInProgressFlow.value) {
+                AdapterState.Syncing()
+            } else {
+                AdapterState.NotSynced(Exception("Adapter unavailable"))
+            }
     }
 
     fun balanceData(wallet: Wallet): BalanceData {

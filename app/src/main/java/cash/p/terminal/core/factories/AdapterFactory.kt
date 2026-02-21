@@ -1,7 +1,8 @@
 package cash.p.terminal.core.factories
 
 import android.content.Context
-import android.util.Log
+import io.horizontalsystems.core.logger.AppLogger
+import timber.log.Timber
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
@@ -93,6 +94,8 @@ class AdapterFactory(
     private val getBnbAddressUseCase: GetBnbAddressUseCase,
     private val feeRateProvider: FeeRateProvider
 ) {
+    private val logger = AppLogger("adapter-factory")
+
     private fun getEvmAdapter(wallet: Wallet): IAdapter? {
         val blockchainType = evmBlockchainManager.getBlockchain(wallet.token)?.type ?: return null
 
@@ -178,7 +181,8 @@ class AdapterFactory(
             storeBnbAddresses(it, wallet)
         }
     } catch (e: Throwable) {
-        Log.e("AAA", "get adapter error", e)
+        logger.warning("Failed to create adapter for ${wallet.coin.code} (${wallet.token.type})", e)
+        Timber.e(e, "Failed to create adapter for %s (%s)", wallet.coin.code, wallet.token.type)
         null
     }
 
