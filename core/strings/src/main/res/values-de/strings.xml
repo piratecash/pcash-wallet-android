@@ -300,6 +300,8 @@
     <string name="Balance_Syncing_WithProgress">Synchronisiere... %s%%</string>
     <string name="balance_syncing_blocks_remaining">%s Blöcke verbleibend</string>
     <string name="balance_processing">Verarbeitung…</string>
+    <string name="balance_waiting_for_peers">Warten auf Peers: %1$d von %2$d</string>
+    <string name="balance_connecting_to_api">Verbindung zur API…</string>
     <string name="Balance_Sort_Balance">Guthaben</string>
     <string name="Balance_Sort_PopupTitle">Sortieren nach</string>
     <string name="Balance_Sort_Az">Name</string>

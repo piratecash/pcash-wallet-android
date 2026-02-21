@@ -307,6 +307,8 @@
     <string name="Balance_Syncing_WithProgress">Синхронізація… %s%%</string>
     <string name="balance_syncing_blocks_remaining">Залишилось %s блоків</string>
     <string name="balance_processing">Обробка…</string>
+    <string name="balance_waiting_for_peers">Очікування пірів: %1$d з %2$d</string>
+    <string name="balance_connecting_to_api">Підключення до API…</string>
     <string name="Balance_Sort_Balance">За балансом</string>
     <string name="Balance_Sort_PopupTitle">Сортувати</string>
     <string name="Balance_Sort_Az">За назвою</string>
