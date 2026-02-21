@@ -179,13 +179,13 @@ class AdapterManager(
             adapter?.let { adaptersMap[wallet] = it }
         }
 
-        adaptersReadySubject.onNext(adaptersMap)
-
         adaptersMap.forEach { (wallet, adapter) ->
             (adapter as? IBalanceAdapter)?.let { balanceAdapter ->
                 subscribeToBalanceUpdates(wallet, balanceAdapter)
             }
         }
+
+        adaptersReadySubject.onNext(adaptersMap)
 
         currentAdapters.forEach { (wallet, adapter) ->
             balanceSubscriptionJobs.remove(wallet)?.cancel()

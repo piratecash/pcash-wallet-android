@@ -15,6 +15,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import kotlinx.coroutines.withContext
@@ -30,14 +31,14 @@ class StellarAssetAdapter(
     private var assetBalance: BigDecimal? = null
 
     private val balanceUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
-    private val balanceStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
 
     private val balance: BigDecimal
         get() = assetBalance ?: BigDecimal.ZERO
 
-    override var balanceState: AdapterState = AdapterState.Syncing()
+    private val _balanceState = MutableStateFlow(stellarKit.syncStateFlow.value.toAdapterState())
+    override val balanceState: AdapterState get() = _balanceState.value
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = balanceStateUpdatedSubject.asFlow()
+        get() = _balanceState.map { }
     override val balanceData: BalanceData
         get() = BalanceData(balance)
     override val balanceUpdatedFlow: Flow<Unit>
@@ -56,8 +57,7 @@ class StellarAssetAdapter(
         }
         coroutineScope.launch {
             stellarKit.syncStateFlow.collect {
-                balanceState = it.toAdapterState()
-                balanceStateUpdatedSubject.onNext(Unit)
+                _balanceState.value = it.toAdapterState()
             }
         }
     }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -36,15 +37,15 @@ class JettonAdapter(
     private var jettonBalance = tonKit.jettonBalanceMap[address]
 
     private val balanceUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
-    private val balanceStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
 
     private val balance: BigDecimal
         get() = jettonBalance?.balance?.toBigDecimal()?.movePointLeft(decimals)
             ?: BigDecimal.ZERO
 
-    override var balanceState: AdapterState = AdapterState.Syncing()
+    private val _balanceState = MutableStateFlow(tonKit.jettonSyncStateFlow.value.toAdapterState())
+    override val balanceState: AdapterState get() = _balanceState.value
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = balanceStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
+        get() = _balanceState.map { }
     override val balanceData: BalanceData
         get() = BalanceData(balance)
     override val balanceUpdatedFlow: Flow<Unit>
@@ -64,8 +65,7 @@ class JettonAdapter(
         }
         coroutineScope.launch {
             tonKit.jettonSyncStateFlow.collect {
-                balanceState = it.toAdapterState()
-                balanceStateUpdatedSubject.onNext(Unit)
+                _balanceState.value = it.toAdapterState()
             }
         }
     }

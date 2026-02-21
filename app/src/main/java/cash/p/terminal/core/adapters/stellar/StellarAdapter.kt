@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
 import java.math.BigDecimal
@@ -32,7 +33,10 @@ class StellarAdapter(
     private var minimumBalance: BigDecimal = BigDecimal.ZERO
     private var assets = listOf<StellarAsset.Asset>()
 
-    override var balanceState: AdapterState = AdapterState.Connecting
+    private val _balanceState = MutableStateFlow(
+        getCombinedSyncState(stellarKit.syncStateFlow.value, stellarKit.operationsSyncStateFlow.value)
+    )
+    override val balanceState: AdapterState get() = _balanceState.value
     override val balanceData: BalanceData
         get() = BalanceData(
             availableBalance,
@@ -41,12 +45,11 @@ class StellarAdapter(
         )
 
     private val balanceUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
-    private val balanceStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
 
     override val balanceUpdatedFlow: Flow<Unit>
         get() = balanceUpdatedSubject.asFlow()
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = balanceStateUpdatedSubject.asFlow()
+        get() = _balanceState.map { }
 
     override fun start() {
         coroutineScope.launch {
@@ -63,8 +66,7 @@ class StellarAdapter(
             ) { balanceSync, operationsSync ->
                 getCombinedSyncState(balanceSync, operationsSync)
             }.collect { combinedState ->
-                balanceState = combinedState
-                balanceStateUpdatedSubject.onNext(Unit)
+                _balanceState.value = combinedState
             }
         }
         coroutineScope.launch {

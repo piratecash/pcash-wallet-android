@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -27,7 +28,6 @@ import java.math.BigInteger
 class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9), ISendTonAdapter {
 
     private val balanceUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
-    private val balanceStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
@@ -51,8 +51,7 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
             ) { accountSync, eventSync, jettonSync ->
                 getCombinedSyncState(accountSync, eventSync, jettonSync)
             }.collect { combinedState ->
-                balanceState = combinedState
-                balanceStateUpdatedSubject.onNext(Unit)
+                _balanceState.value = combinedState
             }
         }
     }
@@ -122,9 +121,16 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     override val debugInfo: String
         get() = ""
 
-    override var balanceState: AdapterState = AdapterState.Connecting
+    private val _balanceState = MutableStateFlow(
+        getCombinedSyncState(
+            tonKit.syncStateFlow.value,
+            tonKit.eventSyncStateFlow.value,
+            tonKit.jettonSyncStateFlow.value
+        )
+    )
+    override val balanceState: AdapterState get() = _balanceState.value
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = balanceStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
+        get() = _balanceState.map { }
     override val balanceData: BalanceData
         get() = BalanceData(balance)
     override val balanceUpdatedFlow: Flow<Unit>
