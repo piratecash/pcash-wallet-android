@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -45,17 +46,33 @@ abstract class BaseComposeFragment(
 
             setContent {
                 ComposeAppTheme {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        GetContent(findNavController())
-                        if (showConnectionPanel && LocalConnectionPanelState.current.value) {
-                            ConnectionStatusView(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .navigationBarsPadding()
-                            )
+                    val navController = findNavController()
+
+                    // Capture this fragment's destination ID on first composition,
+                    // then use it to skip rendering if the destination has been
+                    // popped — prevents navGraphViewModels crashes during
+                    // destruction recomposition.
+                    val destId = remember { navController.currentDestination?.id }
+                    val isOnBackStack = destId == null || try {
+                        navController.getBackStackEntry(destId)
+                        true
+                    } catch (_: IllegalArgumentException) {
+                        false
+                    }
+
+                    if (isOnBackStack) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                        ) {
+                            GetContent(navController)
+                            if (showConnectionPanel && LocalConnectionPanelState.current.value) {
+                                ConnectionStatusView(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .navigationBarsPadding()
+                                )
+                            }
                         }
                     }
                 }
