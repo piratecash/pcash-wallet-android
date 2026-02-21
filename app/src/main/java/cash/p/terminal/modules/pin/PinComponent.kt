@@ -17,10 +17,7 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
@@ -45,9 +42,7 @@ class PinComponent(
                     BackgroundManagerState.EnterBackground -> {
                         didEnterBackground()
                     }
-                    BackgroundManagerState.AllActivitiesDestroyed -> {
-                       lock()
-                    }
+                    BackgroundManagerState.AllActivitiesDestroyed,
                     BackgroundManagerState.Unknown -> {
                         //do nothing
                     }
@@ -61,19 +56,14 @@ class PinComponent(
     }
 
     private val appLockManager: LockManager by lazy {
-        LockManager(pinManager, App.localStorage)
+        LockManager(pinManager, App.localStorage, App.instance)
     }
 
     override val pinSetFlowable: Flowable<Unit>
         get() = pinManager.pinSetSubject.toFlowable(BackpressureStrategy.BUFFER)
 
-    override val isLocked: StateFlow<Boolean> = appLockManager.isLocked
-        .map { isLocked -> isLocked && isPinSet }
-        .stateIn(
-            scope = scope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
+    override val isLockedFlow: StateFlow<Boolean>
+        get() = appLockManager.isLocked
 
     override var isBiometricAuthEnabled: Boolean
         get() = pinSettingsStorage.biometricAuthEnabled

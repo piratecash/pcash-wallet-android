@@ -12,6 +12,7 @@ import cash.p.terminal.modules.pin.core.PinLevels
 import cash.p.terminal.modules.pin.core.PinManager
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IPinSettingsStorage
+import io.horizontalsystems.core.CoreApp
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -45,6 +46,7 @@ class PinComponentLogLoggingTest {
 
         mockkObject(App)
         every { App.localStorage } returns mockk<ILocalStorage>(relaxed = true)
+        every { App.instance } returns mockk<CoreApp>(relaxed = true)
 
         every { userManager.getUserLevel() } answers { currentUserLevel }
         every { userManager.setUserLevel(any()) } answers {

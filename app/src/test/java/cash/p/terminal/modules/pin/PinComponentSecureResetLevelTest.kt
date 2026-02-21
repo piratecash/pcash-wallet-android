@@ -12,6 +12,7 @@ import cash.p.terminal.modules.pin.core.PinManager
 import cash.p.terminal.domain.usecase.ResetUseCase
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.IPinSettingsStorage
+import io.horizontalsystems.core.CoreApp
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -23,7 +24,6 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -48,9 +48,10 @@ class PinComponentSecureResetLevelTest {
         pinDao.reset()
         currentUserLevel = 0
 
-        // Mock App.localStorage
+        // Mock App singleton
         mockkObject(App)
         every { App.localStorage } returns mockk<ILocalStorage>(relaxed = true)
+        every { App.instance } returns mockk<CoreApp>(relaxed = true)
 
         every { userManager.getUserLevel() } answers { currentUserLevel }
         every { userManager.setUserLevel(any()) } answers {

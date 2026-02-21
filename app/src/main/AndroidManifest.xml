@@ -104,9 +104,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".modules.lockscreen.LockScreenActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".modules.intro.IntroActivity"
             android:screenOrientation="portrait" />
         <activity

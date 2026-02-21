@@ -114,6 +114,7 @@ abstract class BaseComposeFragment(
     }
 
     private fun allowScreenshot() {
+        if (ScreenSecurityState.isAppLocked) return
         requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
     }
 

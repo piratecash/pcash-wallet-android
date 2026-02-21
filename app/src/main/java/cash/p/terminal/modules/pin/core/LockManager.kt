@@ -1,64 +1,84 @@
 package cash.p.terminal.modules.pin.core
 
+import android.content.Context
+import androidx.core.content.edit
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.modules.settings.security.autolock.AutoLockInterval
-import io.horizontalsystems.core.helpers.DateHelper
+import cash.p.terminal.ui_compose.ScreenSecurityState
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import java.util.Date
+import kotlinx.coroutines.flow.StateFlow
 
 class LockManager(
     private val pinManager: PinManager,
-    private val localStorage: ILocalStorage
+    private val localStorage: ILocalStorage,
+    context: Context
 ) {
 
-    private val _isLocked = MutableStateFlow(true)
-    val isLocked = _isLocked.asStateFlow()
-    private var appLastVisitTime: Long = 0
-    private var keepUnlocked = false
+    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private val _isLocked = MutableStateFlow(pinManager.isPinSet)
+    val isLocked: StateFlow<Boolean> = _isLocked
+
+    init {
+        ScreenSecurityState.isAppLocked = _isLocked.value
+    }
+
+    private fun setLocked(locked: Boolean) {
+        _isLocked.value = locked
+        ScreenSecurityState.isAppLocked = locked
+    }
+
+    private var appLastVisitTime: Long
+        get() = prefs.getLong(KEY_LAST_BACKGROUND_TIME, 0L)
+        set(value) = prefs.edit { putLong(KEY_LAST_BACKGROUND_TIME, value) }
+
+    private var keepUnlocked: Boolean
+        get() = prefs.getBoolean(KEY_KEEP_UNLOCKED, false)
+        set(value) = prefs.edit { putBoolean(KEY_KEEP_UNLOCKED, value) }
 
     fun didEnterBackground() {
-        if (isLocked.value) {
-            return
-        }
-
-        appLastVisitTime = Date().time
+        if (isLocked.value) return
+        appLastVisitTime = System.currentTimeMillis()
     }
 
     fun willEnterForeground() {
-        if (isLocked.value || !pinManager.isPinSet) {
-            return
-        }
+        if (isLocked.value || !pinManager.isPinSet) return
 
         val autoLockInterval = localStorage.autoLockInterval
-        val secondsAgo = DateHelper.getSecondsAgo(appLastVisitTime)
+        val elapsedMillis = System.currentTimeMillis() - appLastVisitTime
 
         if (keepUnlocked) {
             keepUnlocked = false
-            if (autoLockInterval == AutoLockInterval.IMMEDIATE && secondsAgo < 60) {
+            if (autoLockInterval == AutoLockInterval.IMMEDIATE && elapsedMillis < GRACE_PERIOD_MS) {
                 return
             }
         }
-        if (secondsAgo >= autoLockInterval.intervalInSeconds) {
-            _isLocked.value = true
+        if (elapsedMillis >= autoLockInterval.intervalInSeconds * 1000L) {
+            setLocked(true)
         }
     }
 
     fun onUnlock() {
-        _isLocked.value = false
+        setLocked(false)
     }
 
     fun updateLastExitDate() {
-        appLastVisitTime = Date().time
+        appLastVisitTime = System.currentTimeMillis()
     }
 
     fun lock() {
-        _isLocked.value = true
-        appLastVisitTime = 0
+        setLocked(true)
+        prefs.edit { remove(KEY_LAST_BACKGROUND_TIME) }
     }
 
     fun keepUnlocked() {
         keepUnlocked = true
     }
 
+    companion object {
+        private const val PREFS_NAME = "lock_manager_prefs"
+        private const val KEY_LAST_BACKGROUND_TIME = "last_background_time"
+        private const val KEY_KEEP_UNLOCKED = "keep_unlocked"
+        private const val GRACE_PERIOD_MS = 60_000L
+    }
 }
