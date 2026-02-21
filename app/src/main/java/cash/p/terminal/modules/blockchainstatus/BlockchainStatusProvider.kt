@@ -50,6 +50,7 @@ interface BlockchainStatusProvider {
     val blockchainName: String
     val kitVersion: String
     val logFilterTag: String
+    val kitStarted: Boolean
 
     fun getStatus(): BlockchainStatus
 }
@@ -66,6 +67,10 @@ class BtcBlockchainStatusProvider(
     override val kitVersion: String = BuildConfig.BITCOIN_KIT_VERSION
 
     override val logFilterTag: String = blockchain.type.logTag
+
+    override val kitStarted: Boolean
+        get() = walletManager.activeWallets
+            .any { it.token.blockchainType == blockchain.type && adapterManager.getAdapterForWallet<BitcoinBaseAdapter>(it) != null }
 
     override fun getStatus(): BlockchainStatus {
         val pairs = getWalletStatusPairs()
@@ -141,6 +146,9 @@ class EvmBlockchainStatusProvider(
     override val kitVersion: String = BuildConfig.ETHEREUM_KIT_VERSION
     override val logFilterTag: String = blockchain.type.uid
 
+    override val kitStarted: Boolean
+        get() = evmBlockchainManager.getEvmKitManager(blockchain.type).evmKitWrapper != null
+
     override fun getStatus(): BlockchainStatus {
         val statusInfo = evmBlockchainManager.getEvmKitManager(blockchain.type).statusInfo
         return statusFromMap(blockchain.name, statusInfo)
@@ -155,6 +163,9 @@ class SolanaBlockchainStatusProvider(
     override val kitVersion: String = BuildConfig.SOLANA_KIT_VERSION
     override val logFilterTag: String = BlockchainType.Solana.uid
 
+    override val kitStarted: Boolean
+        get() = solanaKitManager.solanaKitWrapper != null
+
     override fun getStatus() = statusFromMap(blockchainName, solanaKitManager.statusInfo)
 }
 
@@ -165,6 +176,9 @@ class TronBlockchainStatusProvider(
     override val blockchainName: String = "Tron"
     override val kitVersion: String = BuildConfig.TRON_KIT_VERSION
     override val logFilterTag: String = BlockchainType.Tron.uid
+
+    override val kitStarted: Boolean
+        get() = tronKitManager.kitStartedFlow.value
 
     override fun getStatus() = statusFromMap(blockchainName, tronKitManager.statusInfo)
 }
@@ -177,6 +191,9 @@ class TonBlockchainStatusProvider(
     override val kitVersion: String = BuildConfig.TON_KIT_VERSION
     override val logFilterTag: String = BlockchainType.Ton.uid
 
+    override val kitStarted: Boolean
+        get() = tonKitManager.kitStartedFlow.value
+
     override fun getStatus() = statusFromMap(blockchainName, tonKitManager.statusInfo)
 }
 
@@ -187,6 +204,9 @@ class MoneroBlockchainStatusProvider(
     override val blockchainName: String = "Monero"
     override val kitVersion: String = BuildConfig.MONERO_KIT_VERSION
     override val logFilterTag: String = BlockchainType.Monero.uid
+
+    override val kitStarted: Boolean
+        get() = moneroKitManager.moneroKitWrapper != null
 
     override fun getStatus() = statusFromMap(blockchainName, moneroKitManager.moneroKitWrapper?.statusInfo())
 }
@@ -199,6 +219,9 @@ class StellarBlockchainStatusProvider(
     override val kitVersion: String = BuildConfig.STELLAR_KIT_VERSION
     override val logFilterTag: String = BlockchainType.Stellar.uid
 
+    override val kitStarted: Boolean
+        get() = stellarKitManager.kitStartedFlow.value
+
     override fun getStatus() = statusFromMap(blockchainName, stellarKitManager.statusInfo)
 }
 
@@ -210,6 +233,10 @@ class ZcashBlockchainStatusProvider(
     override val blockchainName: String = "Zcash"
     override val kitVersion: String = BuildConfig.ZCASH_SDK_VERSION
     override val logFilterTag: String = BlockchainType.Zcash.uid
+
+    override val kitStarted: Boolean
+        get() = walletManager.activeWallets
+            .any { it.token.blockchainType == BlockchainType.Zcash && adapterManager.getAdapterForWallet<ZcashAdapter>(it) != null }
 
     override fun getStatus(): BlockchainStatus {
         val adapter = walletManager.activeWallets

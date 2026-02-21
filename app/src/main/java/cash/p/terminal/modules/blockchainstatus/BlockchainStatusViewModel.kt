@@ -31,6 +31,7 @@ class BlockchainStatusViewModel(
         BlockchainStatusUiState(
             blockchainName = provider.blockchainName,
             kitVersion = provider.kitVersion,
+            kitStarted = provider.kitStarted,
             statusSections = emptyList(),
             sharedSection = null,
             logBlocks = emptyList(),
@@ -99,6 +100,7 @@ class BlockchainStatusViewModel(
     ): String = buildString {
         appendLine("${provider.blockchainName} Status")
         appendLine("Kit Version: ${provider.kitVersion}")
+        appendLine("Kit Started: ${if (provider.kitStarted) "Yes" else "No"}")
         appendLine()
 
         sections.forEach { appendStatusSection(it) }
@@ -145,6 +147,7 @@ data class LogBlock(
 data class BlockchainStatusUiState(
     val blockchainName: String,
     val kitVersion: String,
+    val kitStarted: Boolean,
     val statusSections: List<StatusSection>,
     val sharedSection: StatusSection?,
     val logBlocks: List<LogBlock>,

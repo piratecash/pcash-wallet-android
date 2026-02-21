@@ -9,9 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.adapters.BitcoinBaseAdapter
-import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.MoneroKitManager
@@ -19,20 +16,22 @@ import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TronKitManager
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.BtcBlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.EvmBlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.MoneroBlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.SolanaBlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.StatusItem
 import cash.p.terminal.modules.blockchainstatus.StatusSection
-import cash.p.terminal.modules.blockchainstatus.appendStatusSection
 import cash.p.terminal.modules.blockchainstatus.StellarBlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.TonBlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.TronBlockchainStatusProvider
-import cash.p.terminal.modules.blockchainstatus.BlockchainStatusProvider
 import cash.p.terminal.modules.blockchainstatus.ZcashBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.appendStatusSection
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockContent
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
@@ -62,7 +61,8 @@ class AppStatusViewModel(
     private val tronKitManager: TronKitManager,
     private val tonKitManager: TonKitManager,
     private val solanaKitManager: SolanaKitManager,
-    private val btcBlockchainManager: BtcBlockchainManager
+    private val btcBlockchainManager: BtcBlockchainManager,
+    private val checkPremiumUseCase: CheckPremiumUseCase
 ) : ViewModel() {
 
     private var appLogs: Map<String, Any> = emptyMap()
@@ -87,6 +87,7 @@ class AppStatusViewModel(
             val blockViewItems = listOf<AppStatusModule.BlockData>()
                 .asSequence()
                 .plus(getAppInfoBlock())
+                .plus(getEnabledBlockchainsBlock())
                 .plus(getVersionHistoryBlock())
                 .plus(getWalletsStatusBlock())
                 .plus(getMarketLastSyncTimestampsBlock())
@@ -135,6 +136,7 @@ class AppStatusViewModel(
         val status = LinkedHashMap<String, Any>()
 
         status["App Info"] = getAppInfo()
+        status["Enabled Blockchains"] = getEnabledBlockchains()
         status["Version History"] = getVersionHistory()
         status["Wallets Status"] = getWalletsStatus()
         status["App Log"] = shareAppLogs
@@ -148,16 +150,27 @@ class AppStatusViewModel(
 
         // BTC-like chains — grouped by blockchain type
         btcBlockchainManager.blockchainTypes.forEach { blockchainType ->
-            val hasActiveWallets = walletManager.activeWallets.any { it.token.blockchainType == blockchainType }
+            val hasActiveWallets =
+                walletManager.activeWallets.any { it.token.blockchainType == blockchainType }
             if (!hasActiveWallets) return@forEach
 
             val blockchain = btcBlockchainManager.blockchain(blockchainType) ?: return@forEach
-            collectProviderSections(BtcBlockchainStatusProvider(blockchain, btcBlockchainManager, walletManager, adapterManager), sections)
+            collectProviderSections(
+                BtcBlockchainStatusProvider(
+                    blockchain,
+                    btcBlockchainManager,
+                    walletManager,
+                    adapterManager
+                ), sections
+            )
         }
 
         // EVM chains
         evmBlockchainManager.allBlockchains.forEach { blockchain ->
-            collectProviderSections(EvmBlockchainStatusProvider(blockchain, evmBlockchainManager), sections)
+            collectProviderSections(
+                EvmBlockchainStatusProvider(blockchain, evmBlockchainManager),
+                sections
+            )
         }
 
         // Other chains
@@ -165,7 +178,10 @@ class AppStatusViewModel(
         collectProviderSections(TonBlockchainStatusProvider(tonKitManager), sections)
         collectProviderSections(StellarBlockchainStatusProvider(stellarKitManager), sections)
         collectProviderSections(SolanaBlockchainStatusProvider(solanaKitManager), sections)
-        collectProviderSections(ZcashBlockchainStatusProvider(walletManager, adapterManager), sections)
+        collectProviderSections(
+            ZcashBlockchainStatusProvider(walletManager, adapterManager),
+            sections
+        )
         collectProviderSections(MoneroBlockchainStatusProvider(moneroKitManager), sections)
 
         return sections
@@ -179,7 +195,16 @@ class AppStatusViewModel(
         status.sections.forEachIndexed { index, section ->
             if (section.items.isEmpty()) return@forEachIndexed
             if (index == 0) {
-                into.add(section.copy(items = listOf(StatusItem.KeyValue("Kit Version", provider.kitVersion)) + section.items))
+                into.add(
+                    section.copy(
+                        items = listOf(
+                            StatusItem.KeyValue(
+                                "Kit Version",
+                                provider.kitVersion
+                            )
+                        ) + section.items
+                    )
+                )
             } else {
                 into.add(section)
             }
@@ -332,6 +357,8 @@ class AppStatusViewModel(
         }
         appInfo["Device Model"] = systemInfoManager.deviceModel
         appInfo["OS Version"] = systemInfoManager.osVersion
+        getDeviceClass(context).forEach { appInfo[it.title] = it.value }
+        appInfo["System pin required"] = if (localStorage.isSystemPinRequired) "Yes" else "No"
 
         return appInfo
     }
@@ -364,6 +391,36 @@ class AppStatusViewModel(
         )
     }
 
+    private fun getEnabledBlockchainsString(): String {
+        val names = walletManager.activeWallets
+            .map { it.token.blockchainType }
+            .distinct()
+            .mapNotNull { marketKit.blockchain(it.uid)?.name }
+            .sorted()
+
+        return if (names.isEmpty()) "None" else names.joinToString(", ")
+    }
+
+    private fun getEnabledBlockchainsBlock(): AppStatusModule.BlockData {
+        return AppStatusModule.BlockData(
+            title = "Enabled Blockchains",
+            content = listOf(
+                BlockContent.TitleValue("Blockchains", getEnabledBlockchainsString()),
+                BlockContent.TitleValue(
+                    "Premium Status",
+                    checkPremiumUseCase.getPremiumType().name
+                ),
+            )
+        )
+    }
+
+    private fun getEnabledBlockchains(): Map<String, Any> {
+        return linkedMapOf(
+            "Blockchains" to getEnabledBlockchainsString(),
+            "Premium Status" to checkPremiumUseCase.getPremiumType().name
+        )
+    }
+
     private fun getDeviceClass(context: Context): List<BlockContent.TitleValue> {
         val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val memory = am.memoryClass
@@ -378,7 +435,7 @@ class AppStatusViewModel(
             else -> "Medium"
         }
         return buildList {
-            add(BlockContent.TitleValue("Memory", "${memory}MB (${largeMemory}MB)"))
+            add(BlockContent.TitleValue("App Heap Limit", "${memory}MB (${largeMemory}MB)"))
             add(BlockContent.TitleValue("Performance Class", "$classLevel ($perf)"))
         }
     }

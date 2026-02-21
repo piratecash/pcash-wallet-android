@@ -39,6 +39,8 @@ import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_leah
+import cash.p.terminal.ui_compose.components.subhead1_lucian
+import cash.p.terminal.ui_compose.components.subhead1_remus
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -140,9 +142,9 @@ internal fun BlockchainStatusScreen(
                     }
                 }
 
-                // Kit Version
+                // Kit Info
                 item {
-                    KitVersionBlock(uiState.kitVersion)
+                    KitInfoBlock(uiState.kitVersion, uiState.kitStarted)
                 }
 
                 // Status sections (with loading indicator if still loading)
@@ -204,20 +206,32 @@ internal fun BlockchainStatusScreen(
 }
 
 @Composable
-private fun KitVersionBlock(kitVersion: String) {
+private fun KitInfoBlock(kitVersion: String, kitStarted: Boolean) {
     VSpacer(12.dp)
-    InfoText(text = "KIT VERSION")
+    InfoText(text = "KIT INFO")
     CellUniversalLawrenceSection(
-        listOf(kitVersion)
-    ) { version ->
+        listOf("version" to kitVersion, "started" to kitStarted)
+    ) { (key, _) ->
         RowUniversal(
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            subhead2_grey(
-                modifier = Modifier.weight(1f),
-                text = "Version"
-            )
-            subhead1_leah(text = version)
+            if (key == "version") {
+                subhead2_grey(
+                    modifier = Modifier.weight(1f),
+                    text = "Version"
+                )
+                subhead1_leah(text = kitVersion)
+            } else {
+                subhead2_grey(
+                    modifier = Modifier.weight(1f),
+                    text = "Kit Started"
+                )
+                if (kitStarted) {
+                    subhead1_remus(text = "Yes")
+                } else {
+                    subhead1_lucian(text = "No")
+                }
+            }
         }
     }
 }
