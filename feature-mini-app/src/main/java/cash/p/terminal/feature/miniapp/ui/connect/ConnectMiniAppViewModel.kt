@@ -39,6 +39,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.horizontalsystems.core.logger.AppLogger
 import timber.log.Timber
 
 class ConnectMiniAppViewModel(
@@ -57,6 +58,8 @@ class ConnectMiniAppViewModel(
     private val getTonAddressUseCase: GetTonAddressUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private val logger = AppLogger("ConnectMiniApp")
 
     companion object {
         const val STEP_WALLET = 1
@@ -449,14 +452,17 @@ class ConnectMiniAppViewModel(
         uiState = uiState.copy(currentStep = STEP_FINISH, finishState = FinishState.Loading)
 
         viewModelScope.launch {
+            val log = logger.getScopedUnique()
             var evmAddress: String? = null
             runCatching {
                 val account = accountManager.account(accountId)
                     ?: throw IllegalStateException("Account not found")
+                log.info("accountType: ${account.type::class.simpleName}")
                 val deviceEnv = collectDeviceEnvironmentUseCase.stopCollection()
 
                 // Get Pirate JETTON wallet address(the same like TON) (this is the wallet address to send to API)
                 val pirateJettonAddress = getTonAddressUseCase.getAddress(account)
+                log.info("pirateJettonAddress received successfully")
 
                 // Get EVM address
                 evmAddress = getBnbAddressUseCase.getAddress(account)
@@ -500,6 +506,7 @@ class ConnectMiniAppViewModel(
 
                 captchaUseCase.submitPCashWallet(currentJwt, endpoint, request).getOrThrow()
             }.onSuccess { response ->
+                log.info("success")
                 with(uniqueCodeStorage) {
                     connectedAccountId = accountId
                     uniqueCode = response.uniqueCode.orEmpty()
@@ -508,6 +515,7 @@ class ConnectMiniAppViewModel(
                 }
                 uiState = uiState.copy(finishState = FinishState.Success)
             }.onFailure { error ->
+                log.warning("failed", error)
                 Timber.e(error, "Failed to submit pcash wallet")
                 if (error is MiniAppApiException && error.isJwtExpired) {
                     uiState = uiState.copy(finishState = FinishState.JwtExpired)

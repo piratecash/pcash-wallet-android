@@ -6,12 +6,15 @@ import cash.p.terminal.wallet.BuildConfig.PIRATE_JETTON_ADDRESS
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.withContext
 
 class GetTonAddressUseCaseImpl(
     private val tonKitManager: TonKitManager,
     private val dispatcherProvider: DispatcherProvider
 ) : GetTonAddressUseCase {
+
+    private val logger = AppLogger("GetTonAddress")
 
     override suspend fun getAddress(account: Account): String =
         withContext(dispatcherProvider.io) {
@@ -29,6 +32,7 @@ class GetTonAddressUseCaseImpl(
                         tokenType
                     ).address.toUserFriendly(false)
                 } catch (e: Throwable) {
+                    logger.warning("tokenType=$tokenType", e)
                     lastException = e
                 }
             }
