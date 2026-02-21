@@ -2,7 +2,14 @@ package cash.p.terminal.modules.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View.GONE
+import android.view.View.VISIBLE
+import android.view.WindowManager
 import android.widget.Toast
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
@@ -15,11 +22,12 @@ import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
-import cash.p.terminal.modules.lockscreen.LockScreenActivity
+import cash.p.terminal.modules.pin.ui.PinUnlock
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRightClearingBackStack
+import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
 import kotlinx.coroutines.launch
@@ -28,16 +36,12 @@ import org.koin.android.ext.android.inject
 class MainActivity : BaseActivity() {
 
     val viewModel: MainActivityViewModel by inject()
+    private lateinit var pinLockComposeView: ComposeView
+    private var showPinLockScreen by mutableStateOf(false)
 
     override fun onResume() {
         super.onResume()
-        viewModel.startLockScreenMonitoring()
         validate()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        viewModel.stopLockScreenMonitoring()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -67,12 +71,6 @@ class MainActivity : BaseActivity() {
         val navController = navHost.navController
 
         navController.setGraph(R.navigation.main_graph, intent.extras)
-
-        // Clear navigation state on process death when PIN is set.
-        // This prevents crashes from ViewModels accessing authenticated state
-        if (savedInstanceState != null && App.pinComponent.isPinSet) {
-            navController.popBackStack(navController.graph.startDestinationId, false)
-        }
 
         navController.addOnDestinationChangedListener { _, _, _ ->
             currentFocus?.hideKeyboard(this)
@@ -136,6 +134,19 @@ class MainActivity : BaseActivity() {
         if (savedInstanceState == null && intent.data != null && intent.action == Intent.ACTION_VIEW) {
             viewModel.setIntent(intent)
         }
+
+        pinLockComposeView = findViewById(R.id.pinLockComposeView)
+        pinLockComposeView.setContent {
+            ComposeAppTheme {
+                PinUnlock(
+                    showPinLockScreen = showPinLockScreen,
+                    onSuccess = {
+                        showPinLockScreen = false
+                    }
+                )
+            }
+        }
+        observeLockState()
     }
 
     private fun closeAfterDelay() {
@@ -156,11 +167,23 @@ class MainActivity : BaseActivity() {
     } catch (e: MainScreenValidationError.Welcome) {
         IntroActivity.start(this)
         finish()
-    } catch (e: MainScreenValidationError.Unlock) {
-        LockScreenActivity.start(this)
     } catch (e: MainScreenValidationError.KeystoreRuntimeException) {
         Toast.makeText(App.instance, "Issue with Keystore", Toast.LENGTH_SHORT).show()
         finish()
+    }
+
+    private fun observeLockState() {
+        lifecycleScope.launch {
+            viewModel.isLockedFlow.collect { isLocked ->
+                showPinLockScreen = isLocked
+                pinLockComposeView.visibility = if (isLocked) VISIBLE else GONE
+                if (isLocked) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                }
+            }
+        }
     }
 
     private fun findNavController(): NavController {
