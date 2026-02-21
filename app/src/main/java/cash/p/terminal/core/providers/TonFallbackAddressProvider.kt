@@ -1,5 +1,6 @@
 package cash.p.terminal.core.providers
 
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.feature.miniapp.domain.usecase.GetTonAddressUseCase
 import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.wallet.Wallet
@@ -11,6 +12,6 @@ class TonFallbackAddressProvider(
 
     override suspend fun getAddress(wallet: Wallet): String? {
         if (wallet.token.blockchainType != BlockchainType.Ton) return null
-        return getTonAddressUseCase.getAddress(wallet.account)
+        return tryOrNull { getTonAddressUseCase.getAddress(wallet.account) }
     }
 }

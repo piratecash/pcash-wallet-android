@@ -457,7 +457,6 @@ class ConnectMiniAppViewModel(
 
                 // Get Pirate JETTON wallet address(the same like TON) (this is the wallet address to send to API)
                 val pirateJettonAddress = getTonAddressUseCase.getAddress(account)
-                    ?: throw IllegalStateException("Pirate JETTON wallet address not found")
 
                 // Get EVM address
                 evmAddress = getBnbAddressUseCase.getAddress(account)
