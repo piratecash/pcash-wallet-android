@@ -1,3 +1,36 @@
+## 🚀 Version 0.51.16 Update
+_Release date: February 21, 2026_
+
+### ✨ Improvements
+
+- **Expanded information in App Status**
+  Additional parameters have been added for more accurate diagnostics when users contact support.
+
+- **Improved BitcoinKit synchronization mode logging**
+  App Status now displays extended synchronization statuses:
+    - waiting for the required number of peers (e.g., 1 out of 10)
+    - connection to network sources and APIs
+    - synchronization progress without duplicate 0% values
+
+- **Improved synchronization state reporting**
+  Additional diagnostic information has been added to help identify reasons why the wallet may remain in synchronization mode for an extended period.
+
+### 🐛 Fixes
+
+- **Fixed crash when sending coins (SendFragment)**
+  Resolved an issue when sending Monero and other assets caused by a missing sendXFragment destination in the NavController back stack, which resulted in an IllegalArgumentException.
+
+- **Fixed native crash during Monero wallet synchronization**
+  The application no longer crashes during block refresh while synchronizing the Monero wallet.
+
+- **Fixed crash when opening the Funds Invested screen**
+  Resolved a crash that occurred after Android process restoration when opening the coin investment screen.
+
+- **Fixed crash when pressing the "Copy" button on the App Status screen**
+  The application no longer crashes when copying logs in Settings > App Status even when the log size is large.
+
+
+
 ## 🚀 Version 0.51.15 Update
 _Release Date: February 19, 2026_
 
