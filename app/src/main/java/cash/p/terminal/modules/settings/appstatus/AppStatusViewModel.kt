@@ -365,6 +365,7 @@ class AppStatusViewModel(
         appInfo["OS Version"] = systemInfoManager.osVersion
         getDeviceClass(context).forEach { appInfo[it.title] = it.value }
         appInfo["System pin required"] = if (localStorage.isSystemPinRequired) "Yes" else "No"
+        appInfo["Premium Status"] = checkPremiumUseCase.getPremiumType().name
 
         return appInfo
     }
@@ -393,6 +394,12 @@ class AppStatusViewModel(
                         if (localStorage.isSystemPinRequired) "Yes" else "No"
                     )
                 )
+                add(
+                    BlockContent.TitleValue(
+                        "Premium Status",
+                        checkPremiumUseCase.getPremiumType().name
+                    )
+                )
             }
         )
     }
@@ -412,10 +419,6 @@ class AppStatusViewModel(
             title = "Enabled Blockchains",
             content = listOf(
                 BlockContent.TitleValue("Blockchains", getEnabledBlockchainsString()),
-                BlockContent.TitleValue(
-                    "Premium Status",
-                    checkPremiumUseCase.getPremiumType().name
-                ),
             )
         )
     }
@@ -423,7 +426,6 @@ class AppStatusViewModel(
     private fun getEnabledBlockchains(): Map<String, Any> {
         return linkedMapOf(
             "Blockchains" to getEnabledBlockchainsString(),
-            "Premium Status" to checkPremiumUseCase.getPremiumType().name
         )
     }
 
