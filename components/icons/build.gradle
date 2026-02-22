@@ -6,7 +6,6 @@ android {
 
     defaultConfig {
         minSdkVersion min_sdk_version
-        targetSdkVersion compile_sdk_version
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -32,6 +31,12 @@ android {
         jvmTarget = "17"
     }
     namespace 'io.horizontalsystems.icons'
+    lint {
+        targetSdk 35
+    }
+    testOptions {
+        targetSdk 35
+    }
 }
 
 dependencies {
