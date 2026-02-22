@@ -2005,6 +2005,8 @@ Proceed only if you\'re sure.</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">Unpaid</string>
     <string name="staking_unpaid">Staking unpaid:</string>
+    <string name="staking_active">Staking active</string>
+    <string name="staking_inactive">Staking inactive</string>
     <string name="estimated_annual_interest">Estimated Annual Interest</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

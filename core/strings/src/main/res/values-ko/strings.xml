@@ -1604,9 +1604,11 @@
     <string name="stacking_calculator">stacking calculator</string>
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
-    <string name="unpaid">Unpaid</string>
-    <string name="staking_unpaid">Staking unpaid:</string>
-    <string name="estimated_annual_interest">Estimated Annual Interest</string>
+    <string name="unpaid">미지급</string>
+    <string name="staking_unpaid">스테이킹 미지급금:</string>
+    <string name="staking_active">스테이킹 활성</string>
+    <string name="staking_inactive">스테이킹 비활성</string>
+    <string name="estimated_annual_interest">예상 연간 이자율</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
     <string name="investment_chart">Investment chart</string>

@@ -1604,9 +1604,11 @@
     <string name="stacking_calculator">stacking calculator</string>
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
-    <string name="unpaid">Unpaid</string>
-    <string name="staking_unpaid">Staking unpaid:</string>
-    <string name="estimated_annual_interest">Estimated Annual Interest</string>
+    <string name="unpaid">Não pago</string>
+    <string name="staking_unpaid">Pagamentos pendentes de staking:</string>
+    <string name="staking_active">Staking ativo</string>
+    <string name="staking_inactive">Staking inativo</string>
+    <string name="estimated_annual_interest">Juro anual estimado</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
     <string name="investment_chart">Investment chart</string>

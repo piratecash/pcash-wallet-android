@@ -3,6 +3,7 @@ package cash.p.terminal.modules.balance
 import androidx.compose.runtime.Immutable
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.diffPercentage
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.balance.BalanceModule.warningText
@@ -47,7 +48,11 @@ data class BalanceViewItem(
     val errorMessage: String?,
     val isWatchAccount: Boolean,
     val isSendDisabled: Boolean,
-    val warning: WarningText?
+    val isShowShieldFunds: Boolean,
+    val warning: WarningText?,
+    val diff: BigDecimal? = null,
+    val fullDiff: String = "",
+    val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
 )
 
 data class WarningText(
@@ -272,7 +277,8 @@ class BalanceViewItemFactory {
         hideBalance: Boolean,
         watchAccount: Boolean,
         balanceViewType: BalanceViewType,
-        isSwappable: Boolean
+        isSwappable: Boolean,
+        displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
     ): BalanceViewItem {
         val wallet = item.wallet
         val state = item.state
@@ -375,6 +381,9 @@ class BalanceViewItemFactory {
 
         val sendDisabled =
             (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent
+        val isShowShieldFunds =
+            (item.wallet.token.type as? TokenType.AddressSpecTyped)?.type == TokenType.AddressSpecType.Transparent &&
+                    item.balanceData.total > ZcashAdapter.MINERS_FEE
 
         return BalanceViewItem(
             wallet = item.wallet,
@@ -394,7 +403,11 @@ class BalanceViewItemFactory {
             errorMessage = (state as? AdapterState.NotSynced)?.error?.message,
             isWatchAccount = watchAccount,
             warning = item.warning?.warningText,
-            isSendDisabled = sendDisabled
+            isSendDisabled = sendDisabled,
+            isShowShieldFunds = isShowShieldFunds,
+            diff = item.coinPrice?.diffPercentage,
+            fullDiff = getFullDiff(item, displayDiffOptionType, currency),
+            displayDiffOptionType = displayDiffOptionType,
         )
     }
 

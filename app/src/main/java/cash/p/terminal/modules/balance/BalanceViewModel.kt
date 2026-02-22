@@ -56,6 +56,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
@@ -156,7 +158,13 @@ class BalanceViewModel(
         }
 
         viewModelScope.launch(Dispatchers.Default) {
-            priceManager.priceChangeIntervalFlow.collect {
+            merge(
+                priceManager.priceChangeIntervalFlow.map {},
+                priceManager.displayPricePeriodFlow.map {},
+                priceManager.displayDiffOptionTypeFlow.map {},
+            ).collect {
+                displayDiffPricePeriod = priceManager.displayPricePeriodFlow.value
+                displayDiffOptionType = priceManager.displayDiffOptionTypeFlow.value
                 refreshViewItems(service.balanceItemsFlow.value)
             }
         }
@@ -321,11 +329,7 @@ class BalanceViewModel(
     }
 
     fun setDisplayPricePeriod(displayPricePeriod: DisplayPricePeriod) {
-        this.displayDiffPricePeriod = displayPricePeriod
         localStorage.displayDiffPricePeriod = displayPricePeriod
-        emitState()
-
-        refreshViewItems(service.balanceItemsFlow.value)
     }
 
     fun onCloseHeaderNote(headerNote: HeaderNote) {
@@ -533,14 +537,6 @@ class BalanceViewModel(
     sealed class SyncError {
         class NetworkNotAvailable : SyncError()
         class Dialog(val wallet: Wallet, val errorMessage: String?) : SyncError()
-    }
-
-    fun updatePriceChangeUI() {
-        displayDiffPricePeriod = localStorage.displayDiffPricePeriod
-        displayDiffOptionType = localStorage.displayDiffOptionType
-
-        emitState()
-        refreshViewItems(service.balanceItemsFlow.value)
     }
 
     fun onResume() {

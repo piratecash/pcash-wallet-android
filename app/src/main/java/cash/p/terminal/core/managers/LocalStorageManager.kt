@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IMarketStorage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.utils.delegate
 import cash.p.terminal.core.valueOrDefault
 import cash.p.terminal.entities.AppVersion
@@ -757,15 +758,27 @@ class LocalStorageManager(
     )
 
     // Display Options
-    override var displayDiffPricePeriod by preferences.delegate(
-        key = "display_options_price_period",
-        default = DisplayPricePeriod.ONE_DAY
-    )
+    override var displayDiffPricePeriod: DisplayPricePeriod
+        get() = preferences.getString("display_options_price_period", null)
+            ?.let { tryOrNull { DisplayPricePeriod.valueOf(it) } }
+            ?: DisplayPricePeriod.ONE_DAY
+        set(value) {
+            preferences.edit().putString("display_options_price_period", value.name).apply()
+            displayDiffPricePeriodFlow.update { value }
+        }
 
-    override var displayDiffOptionType by preferences.delegate(
-        key = "display_diff_options_type",
-        default = DisplayDiffOptionType.BOTH
-    )
+    override val displayDiffPricePeriodFlow = MutableStateFlow(displayDiffPricePeriod)
+
+    override var displayDiffOptionType: DisplayDiffOptionType
+        get() = preferences.getString("display_diff_options_type", null)
+            ?.let { tryOrNull { DisplayDiffOptionType.valueOf(it) } }
+            ?: DisplayDiffOptionType.BOTH
+        set(value) {
+            preferences.edit().putString("display_diff_options_type", value.name).apply()
+            displayDiffOptionTypeFlow.update { value }
+        }
+
+    override val displayDiffOptionTypeFlow = MutableStateFlow(displayDiffOptionType)
 
     override var passphraseTermsAgreed by preferences.delegate(
         key = "passphrase_terms_agreed",

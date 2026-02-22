@@ -1610,9 +1610,11 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="stacking_calculator">stacking calculator</string>
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
-    <string name="unpaid">Unpaid</string>
-    <string name="staking_unpaid">Staking unpaid:</string>
-    <string name="estimated_annual_interest">Estimated Annual Interest</string>
+    <string name="unpaid">Onbetaald</string>
+    <string name="staking_unpaid">Openstaande staking-uitbetalingen:</string>
+    <string name="staking_active">Staking actief</string>
+    <string name="staking_inactive">Staking inactief</string>
+    <string name="estimated_annual_interest">Geschatte jaarlijkse rente</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
     <string name="investment_chart">Investment chart</string>

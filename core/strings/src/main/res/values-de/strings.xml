@@ -1597,9 +1597,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="stacking_calculator">stacking calculator</string>
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
-    <string name="unpaid">Unpaid</string>
-    <string name="staking_unpaid">Staking unpaid:</string>
-    <string name="estimated_annual_interest">Estimated Annual Interest</string>
+    <string name="unpaid">Unbezahlt</string>
+    <string name="staking_unpaid">Ausstehende Staking-Auszahlungen:</string>
+    <string name="staking_active">Staking aktiv</string>
+    <string name="staking_inactive">Staking inaktiv</string>
+    <string name="estimated_annual_interest">Geschätzter Jahreszins</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
     <string name="investment_chart">Investment chart</string>
