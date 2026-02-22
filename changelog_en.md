@@ -1,3 +1,19 @@
+## 🚀 Version 0.51.18 Update
+_Release date: February 22, 2026_
+
+### 🐛 Fixes
+
+- **Fixed a crash when retrieving a BNB address on devices running modified Android 14**
+  The app could crash with an AbstractMethodError when attempting to derive a BNB address from a mnemonic on devices with modified Android 14 firmware.
+
+- **Fixed a crash when opening Solana network settings**
+  The app no longer crashes when accessing Solana network settings.
+
+- **Fixed a crash when returning to the app after process death on the Send Confirmation screen**
+  The app could crash when returning from the background if the Send Confirmation screen had been opened before the process was killed.
+
+
+
 ## 🚀 Version 0.51.17 Update
 _Release date: February 22, 2026_
 
