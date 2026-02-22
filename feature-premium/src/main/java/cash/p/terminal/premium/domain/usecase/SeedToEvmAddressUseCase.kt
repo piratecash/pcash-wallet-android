@@ -1,7 +1,7 @@
 package cash.p.terminal.premium.domain.usecase
 
 import io.horizontalsystems.hdwalletkit.Mnemonic
-import org.bitcoinj.core.ECKey
+import org.bitcoinj.crypto.ECKey
 import org.bitcoinj.crypto.DeterministicKey
 import org.bitcoinj.crypto.HDKeyDerivation
 import org.bitcoinj.crypto.HDPath.parsePath
@@ -51,7 +51,7 @@ class SeedToEvmAddressUseCase {
         val pathParts = parsePath(path.replace("'", "H"))
 
         var currentKey = masterKey
-        for (childNumber in pathParts) {
+        for (childNumber in pathParts.list()) {
             currentKey = HDKeyDerivation.deriveChildKey(currentKey, childNumber)
         }
 

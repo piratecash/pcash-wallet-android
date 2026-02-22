@@ -29,7 +29,7 @@ object MoneroWalletSeedConverter {
         val pathParts = parsePath(path.replace("'", "H"))
 
         var currentKey = masterKey
-        for (childNumber in pathParts) {
+        for (childNumber in pathParts.list()) {
             currentKey = HDKeyDerivation.deriveChildKey(currentKey, childNumber)
         }
 

@@ -168,7 +168,8 @@ class SendSolanaViewModel(
             pendingTxId = pendingRegistrar.register(draft)
 
             // 3. Broadcast transaction
-            adapter.send(decimalAmount, addressState.solanaAddress!!)
+            val transaction = adapter.send(decimalAmount, addressState.solanaAddress!!)
+            pendingTxId?.let { pendingRegistrar.updateTxId(it, transaction.transaction.hash) }
 
             sendResult = SendResult.Sent()
 
