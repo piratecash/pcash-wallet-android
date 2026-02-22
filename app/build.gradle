@@ -41,9 +41,7 @@ def getGitVersionSuffix = { ->
             println "GIT_HASH: unknown (empty or failed)"
             return "unknown"
         }
-        def dirty = gitDirtyProvider.getOrElse(false) ? "-dirty" : ""
-        def fdroid = (gitBranchProvider.getOrElse("") == "f-droid") ? "-fdroid" : ""
-        def result = "${hash}${dirty}${fdroid}"
+        def result = "${hash}-fdroid"
         println "GIT_HASH: ${result}"
         return result
     } catch (Exception ignored) {
