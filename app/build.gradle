@@ -10,7 +10,7 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-parcelize'
     id 'com.google.devtools.ksp'
-    id 'org.jetbrains.kotlin.plugin.compose' version('2.2.0')
+    id 'org.jetbrains.kotlin.plugin.compose' version('2.2.10')
     id 'com.google.firebase.crashlytics'
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
@@ -108,9 +108,6 @@ android {
         buildConfig true
     }
 
-    aaptOptions {
-        cruncherEnabled = false
-    }
 
     bundle {
         language {
@@ -165,7 +162,7 @@ android {
         release {
             debuggable false
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
             resValue "string", "is_release", "true"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
