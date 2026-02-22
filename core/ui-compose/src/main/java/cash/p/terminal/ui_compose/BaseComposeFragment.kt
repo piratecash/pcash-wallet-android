@@ -52,8 +52,8 @@ abstract class BaseComposeFragment(
                     // then use it to skip rendering if the destination has been
                     // popped — prevents navGraphViewModels crashes during
                     // destruction recomposition.
+                    val destId = remember { navController.currentDestination?.id }
                     val isOnBackStack = remember(navController.currentBackStackEntry) {
-                        val destId = navController.currentDestination?.id
                         destId == null || try {
                             navController.getBackStackEntry(destId)
                             true
