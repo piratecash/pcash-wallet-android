@@ -206,8 +206,8 @@ class ManageWalletsViewModel(
         }
     }
 
-    override fun updateFilter(filter: String) {
-        service.setFilter(filter)
+    override fun updateFilter(text: String) {
+        service.setFilter(text)
     }
 
     override fun toggleGroupExpansion(coinCode: String) {

@@ -50,6 +50,7 @@ fun NftAssetPreview(
                 .background(ComposeAppTheme.colors.steel20)
         ) {
             val painter = rememberAsyncImagePainter(imageUrl)
+            @Suppress("USELESS_IS_CHECK")
             if (painter.state !is AsyncImagePainter.State.Success) {
                 Text(
                     modifier = Modifier

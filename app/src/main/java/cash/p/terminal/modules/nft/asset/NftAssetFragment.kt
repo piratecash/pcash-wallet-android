@@ -206,6 +206,7 @@ private fun NftAssetInfo(
         .build()
     val painter = rememberAsyncImagePainter(model)
 
+    @Suppress("USELESS_IS_CHECK")
     if (combinedState !is ViewState.Error) {
         if (painter.state is AsyncImagePainter.State.Loading) {
             combinedState = ViewState.Loading
@@ -260,6 +261,7 @@ private fun AssetContent(
         item {
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                 Spacer(modifier = Modifier.height(12.dp))
+                @Suppress("USELESS_IS_CHECK")
                 if (painter.state is AsyncImagePainter.State.Success) {
                     Image(
                         modifier = Modifier
