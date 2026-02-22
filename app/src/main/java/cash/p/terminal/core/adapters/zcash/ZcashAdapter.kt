@@ -65,7 +65,11 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -123,6 +127,7 @@ class ZcashAdapter(
     override var receiveAddress: String
 
     private var statusJob: Job? = null
+    private var subscriberScope: CoroutineScope? = null
     override val isMainNet: Boolean = true
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -392,10 +397,12 @@ class ZcashAdapter(
     }
 
     private suspend fun startSynchronizer() {
-        if ((synchronizer as SdkSynchronizer).status.value == Synchronizer.Status.STOPPED) {
+        val sdk = synchronizer as SdkSynchronizer
+        if (sdk.status.value == Synchronizer.Status.STOPPED || !sdk.coroutineScope.isActive) {
             createNewSynchronizer()
         }
         subscribe(synchronizer as SdkSynchronizer)
+        subscribeToStatus()
         if (!existingWallet) {
             localStorage.zcashAccountIds += wallet.account.id
         }
@@ -403,7 +410,10 @@ class ZcashAdapter(
 
     override fun stop() {
         balanceCheckJob?.cancel()
-        synchronizer.close()
+        statusJob?.cancel()
+        subscriberScope?.cancel()
+        subscriberScope = null
+        tryOrNull { synchronizer.close() }
     }
 
     override suspend fun refresh() = withContext(Dispatchers.IO) {
@@ -632,17 +642,15 @@ class ZcashAdapter(
         ).first().txId
     }
 
-    // Subscribe to a synchronizer on its own scope and begin responding to events
     @OptIn(FlowPreview::class)
     private fun subscribe(synchronizer: SdkSynchronizer) {
-        // Note: If any of these callback functions directly touch the UI, then the scope used here
-        //       should not live longer than that UI or else the context and view tree will be
-        //       invalid and lead to crashes. For now, we use a scope that is cancelled whenever
-        //       synchronizer.stop is called.
-        //       If the scope of the view is required for one of these, then consider using the
-        //       related viewModelScope instead of the synchronizer's scope.
-        //       synchronizer.coroutineScope cannot be accessed until the synchronizer is started
-        val scope = synchronizer.coroutineScope
+        subscriberScope?.cancel()
+        val handler = CoroutineExceptionHandler { _, exception ->
+            Timber.w(exception, "Zcash synchronizer flow error")
+        }
+        val parentJob = synchronizer.coroutineScope.coroutineContext[Job]
+        val scope = CoroutineScope(Dispatchers.Main + SupervisorJob(parentJob) + handler)
+        subscriberScope = scope
         synchronizer.allTransactions.collectWith(scope, transactionsProvider::onTransactions)
         synchronizer.status.collectWith(scope, ::onStatus)
         synchronizer.progress.collectWith(scope, ::onDownloadProgress)
