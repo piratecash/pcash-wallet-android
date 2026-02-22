@@ -52,7 +52,7 @@ fun CellBuilder.storeAddress(address: AddrStd?): CellBuilder = apply {
             storeUInt(0, 1)
             // workchain: int8
             storeInt(address.workchainId, 8)
-            storeBits(address.address)
+            storeBitString(address.address)
         }
     }
 }
@@ -75,7 +75,7 @@ internal fun buildStonfiSwapTonToJettonPayloadV2(
         storeUInt(queryId, 64)
         storeCoins(tonAmount.toTonBigInt())
         storeAddress(refundAddress)
-        storeBit(true)
+        storeBoolean(true)
         storeRef(buildCell {
             // op
             storeUInt(0x6664de2a, 32)
@@ -98,9 +98,9 @@ internal fun buildStonfiSwapTonToJettonPayloadV2(
                     storeCoins(minOut.toTonBigInt())
                     storeAddress(receiver)
                     storeCoins(fwdGas.toTonBigInt())
-                    storeBit(false) // dexCustomPayload
+                    storeBoolean(false) // dexCustomPayload
                     storeCoins(0)   // refund_fwd_gas
-                    storeBit(false) // refund_payload
+                    storeBoolean(false) // refund_payload
                     storeUInt(refFee ?: 0, 16)
                     storeAddress(referralAddress)
                 }
@@ -126,18 +126,18 @@ internal fun buildStonfiSwapTonToJettonTransferV1(
         storeCoins(amount.toTonBigInt())                         // amount
         storeAddress(routerAddress)                // destination = router
         storeAddress(null)                         // response_destination (absent)
-        storeBit(false)                            // custom_payload (absent)
+        storeBoolean(false)                            // custom_payload (absent)
         storeCoins(forwardTonAmount.toTonBigInt())               // forward_ton_amount
-        storeBit(true)                             // forward_payload present
+        storeBoolean(true)                             // forward_payload present
         storeRef(buildCell {
             storeUInt(0x25938561, 32)   // swap opcode v1
             storeAddress(routerJettonWallet)  // token_wallet1
             storeCoins(minOut.toTonBigInt())          // min_out
             storeAddress(receiver)      // to_address
             referralAddress?.let {
-                storeBit(true)          // has_ref = 1
+                storeBoolean(true)          // has_ref = 1
                 storeAddress(it)
-            } ?: storeBit(false)        // has_ref = 0
+            } ?: storeBoolean(false)        // has_ref = 0
         })                         // forward_payload
     }
 }
@@ -163,9 +163,9 @@ internal fun buildJettonToTonPayloadV2(
         storeCoins(amount.toTonBigInt())
         storeAddress(router)              // destination = router v2
         storeAddress(refundAddress)              // response_destination
-        storeBit(false)
+        storeBoolean(false)
         storeCoins(forwardGas.toTonBigInt())            // forward_ton_amount
-        storeBit(true)
+        storeBoolean(true)
         storeRef(
             buildCell {
                 // STON.fi SwapV2
@@ -181,9 +181,9 @@ internal fun buildJettonToTonPayloadV2(
                         storeCoins(minOut.toTonBigInt())
                         storeAddress(refundAddress)
                         storeCoins(0)        // fwd_gas
-                        storeBit(false)               // dexCustomPayload
+                        storeBoolean(false)               // dexCustomPayload
                         storeCoins(0)                 // refund_fwd_gas
-                        storeBit(false)               // refund_payload
+                        storeBoolean(false)               // refund_payload
                         storeUInt(refFee, 16)         // referral_fee
                         storeAddress(referralAddress)
                     }
@@ -209,9 +209,9 @@ internal fun buildJettonToTonPayloadV1(
         storeCoins(amount.toTonBigInt())            // amount jetton_in
         storeAddress(router)          // dest = router v1
         storeAddress(refundAddress)   // response_destination
-        storeBit(false)               // no custom_payload
+        storeBoolean(false)               // no custom_payload
         storeCoins(forwardTonAmount.toTonBigInt())  // forward_ton_amount
-        storeBit(true)                // forward_payload present
+        storeBoolean(true)                // forward_payload present
         storeRef(
             buildCell {
                 storeUInt(0x25938561, 32)     // swap opcode
@@ -219,9 +219,9 @@ internal fun buildJettonToTonPayloadV1(
                 storeCoins(minOut.toTonBigInt())            // min_out
                 storeAddress(refundAddress)   // to_address
                 referralAddress?.let {
-                    storeBit(true)            // has_ref
+                    storeBoolean(true)            // has_ref
                     storeAddress(it)
-                } ?: storeBit(false)
+                } ?: storeBoolean(false)
             }
         )
     }

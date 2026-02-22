@@ -50,6 +50,16 @@ allprojects {
     }
 }
 
+gradle.projectsEvaluated {
+    subprojects.each { project ->
+        project.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            compilerOptions {
+                freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

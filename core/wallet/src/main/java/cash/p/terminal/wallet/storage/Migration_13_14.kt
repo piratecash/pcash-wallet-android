@@ -4,11 +4,11 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 internal object Migration_13_14 : Migration(13, 14) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        addColumnIfNotExists(database, "Coin", "image", "TEXT")
-        addColumnIfNotExists(database, "Coin", "priority", "INTEGER")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        addColumnIfNotExists(db, "Coin", "image", "TEXT")
+        addColumnIfNotExists(db, "Coin", "priority", "INTEGER")
 
-        migrateCoinPriceTable(database)
+        migrateCoinPriceTable(db)
     }
 
     private fun migrateCoinPriceTable(database: SupportSQLiteDatabase) {

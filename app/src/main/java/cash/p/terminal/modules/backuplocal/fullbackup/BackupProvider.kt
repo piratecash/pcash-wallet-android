@@ -47,7 +47,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.toHexString
+import io.horizontalsystems.core.toRawHexString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.security.MessageDigest
@@ -1075,7 +1075,7 @@ class BackupProvider(
     private fun getId(value: ByteArray): String {
         val md = MessageDigest.getInstance("SHA-512")
         val digest = md.digest(value)
-        return digest.toHexString()
+        return digest.toRawHexString()
     }
 
     /**
@@ -1093,7 +1093,7 @@ class BackupProvider(
             ?: (EncryptDecryptManager.getKey(passphrase, kdfParams)
                 ?: throw Exception("Couldn't get encryption key"))
 
-        val iv = EncryptDecryptManager.generateRandomBytes(16).toHexString()
+        val iv = EncryptDecryptManager.generateRandomBytes(16).toRawHexString()
         val encrypted = encryptDecryptManager.encrypt(secretText, key, iv)
         val mac = EncryptDecryptManager.generateMac(key, encrypted.toByteArray())
 
@@ -1103,7 +1103,7 @@ class BackupProvider(
             ciphertext = encrypted,
             kdf = "scrypt",
             kdfparams = kdfParams,
-            mac = mac.toHexString()
+            mac = mac.toRawHexString()
         )
     }
 
@@ -1135,7 +1135,7 @@ class BackupProvider(
         val key = cachedKey ?: (EncryptDecryptManager.getKey(passphrase, kdfParams)
             ?: throw Exception("Couldn't get encryption key"))
 
-        val iv = EncryptDecryptManager.generateRandomBytes(16).toHexString()
+        val iv = EncryptDecryptManager.generateRandomBytes(16).toRawHexString()
         val encrypted = encryptDecryptManager.encrypt(secretText, key, iv)
         val mac = EncryptDecryptManager.generateMac(key, encrypted.toByteArray())
 
@@ -1159,7 +1159,7 @@ class BackupProvider(
             ciphertext = encrypted,
             kdf = "scrypt",
             kdfparams = kdfParams,
-            mac = mac.toHexString()
+            mac = mac.toRawHexString()
         )
 
         return BackupLocalModule.WalletBackup(
