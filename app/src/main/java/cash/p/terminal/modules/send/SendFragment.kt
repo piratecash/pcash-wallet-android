@@ -1,12 +1,12 @@
 package cash.p.terminal.modules.send
 
-import android.os.Bundle
 import android.os.Parcelable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -72,21 +72,18 @@ class SendFragment : BaseComposeFragment() {
 
     private val addressCheckerControl: AddressCheckerControl by inject(AddressCheckerControl::class.java)
     private val args: SendFragmentArgs by navArgs()
-    private var navGraphAvailable = true
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        navGraphAvailable = try {
-            findNavController().getBackStackEntry(R.id.sendXFragment)
-            true
-        } catch (_: IllegalArgumentException) {
-            false
-        }
-    }
 
     @Composable
     override fun GetContent(navController: NavController) {
-        if (!navGraphAvailable) {
+        val navGraphOnBackStack = remember(navController.currentBackStackEntry) {
+            try {
+                navController.getBackStackEntry(R.id.sendXFragment)
+                true
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+        }
+        if (!navGraphOnBackStack) {
             navController.navigateUp()
             return
         }

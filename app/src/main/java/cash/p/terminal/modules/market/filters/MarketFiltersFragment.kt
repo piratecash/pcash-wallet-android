@@ -71,6 +71,19 @@ class MarketFiltersFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
+        val navGraphOnBackStack = remember(navController.currentBackStackEntry) {
+            try {
+                navController.getBackStackEntry(R.id.marketAdvancedSearchFragment)
+                true
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+        }
+        if (!navGraphOnBackStack) {
+            navController.navigateUp()
+            return
+        }
+
         AdvancedSearchScreen(
             viewModel,
             navController,

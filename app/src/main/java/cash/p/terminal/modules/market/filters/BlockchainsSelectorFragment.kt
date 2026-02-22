@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
@@ -37,6 +38,19 @@ class BlockchainsSelectorFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
+        val navGraphOnBackStack = remember(navController.currentBackStackEntry) {
+            try {
+                navController.getBackStackEntry(R.id.marketAdvancedSearchFragment)
+                true
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+        }
+        if (!navGraphOnBackStack) {
+            navController.navigateUp()
+            return
+        }
+
         FilterByBlockchainsScreen(
             viewModel,
             navController,

@@ -12,6 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -72,6 +73,19 @@ class ResendBitcoinFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
+        val navGraphOnBackStack = remember(navController.currentBackStackEntry) {
+            try {
+                navController.getBackStackEntry(R.id.transactionInfoFragment)
+                true
+            } catch (_: IllegalArgumentException) {
+                false
+            }
+        }
+        if (!navGraphOnBackStack) {
+            navController.navigateUp()
+            return
+        }
+
         val resendViewModel by viewModels<ResendBitcoinViewModel> { vmFactory }
 
         ResendBitcoinScreen(
