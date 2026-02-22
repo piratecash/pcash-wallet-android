@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.send
 
+import android.os.Bundle
 import android.os.Parcelable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,9 +72,25 @@ class SendFragment : BaseComposeFragment() {
 
     private val addressCheckerControl: AddressCheckerControl by inject(AddressCheckerControl::class.java)
     private val args: SendFragmentArgs by navArgs()
+    private var navGraphAvailable = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        navGraphAvailable = try {
+            findNavController().getBackStackEntry(R.id.sendXFragment)
+            true
+        } catch (_: IllegalArgumentException) {
+            false
+        }
+    }
 
     @Composable
     override fun GetContent(navController: NavController) {
+        if (!navGraphAvailable) {
+            navController.navigateUp()
+            return
+        }
+
         val keyboardController = LocalSoftwareKeyboardController.current
         val wallet = args.input.wallet
         val title = args.input.title

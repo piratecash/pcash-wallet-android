@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.send
 
+import android.os.Bundle
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
@@ -24,15 +25,35 @@ import cash.p.terminal.modules.send.tron.SendTronViewModel
 import cash.p.terminal.modules.send.zcash.SendZCashConfirmationScreen
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.findNavController
 import kotlinx.parcelize.Parcelize
 
 class SendConfirmationFragment : BaseComposeFragment() {
     private val args: SendConfirmationFragmentArgs by navArgs()
+    private var navGraphAvailable = true
 
     val amountInputModeViewModel by navGraphViewModels<AmountInputModeViewModel>(R.id.sendXFragment)
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // After process death the sendXFragment nav graph may no longer be on the
+        // back stack, making navGraphViewModels unresolvable. The send state is
+        // unrecoverable, so navigate back.
+        navGraphAvailable = try {
+            findNavController().getBackStackEntry(R.id.sendXFragment)
+            true
+        } catch (_: IllegalArgumentException) {
+            false
+        }
+    }
+
     @Composable
     override fun GetContent(navController: NavController) {
+        if (!navGraphAvailable) {
+            navController.navigateUp()
+            return
+        }
+
         val sendEntryPointDestId = args.sendEntryPointDestId
 
         when (args.type) {
