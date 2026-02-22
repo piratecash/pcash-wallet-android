@@ -1,3 +1,20 @@
+## 🚀 Version 0.51.17 Update
+_Release date: February 22, 2026_
+
+### 🐛 Fixes
+
+- **Fixed an issue when creating the TON adapter**
+  For some users, the private key was generated with a length of 31 bytes instead of the required 32 bytes.
+
+  This was caused by the behavior of the BigInteger.toByteArray() method in Java, which may strip leading zero bytes.
+
+  As a result, the following error occurred:
+  Invalid private key size, expected: 32, actual: 31
+
+  Private keys are now correctly normalized to 32 bytes during TON adapter creation, preventing wallet initialization errors and ensuring stable TON account operation.
+
+
+
 ## 🚀 Version 0.51.16 Update
 _Release date: February 21, 2026_
 
