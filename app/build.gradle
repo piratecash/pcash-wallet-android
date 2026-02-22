@@ -512,3 +512,9 @@ task copyChangelogs(type: Copy) {
 }
 
 preBuild.dependsOn copyChangelogs
+
+tasks.whenTaskAdded {
+    if (name.contains("ArtProfile")) {
+        enabled = false
+    }
+}
