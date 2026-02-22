@@ -108,6 +108,9 @@ android {
         buildConfig true
     }
 
+    aaptOptions {
+        cruncherEnabled = false
+    }
 
     bundle {
         language {

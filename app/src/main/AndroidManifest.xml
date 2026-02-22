@@ -24,6 +24,7 @@
     <application
         android:name=".core.App"
         android:allowBackup="false"
+        android:extractNativeLibs="true"
         android:largeHeap="true"
         android:icon="@mipmap/launcher_pcash"
         android:label="@string/App_Name"
