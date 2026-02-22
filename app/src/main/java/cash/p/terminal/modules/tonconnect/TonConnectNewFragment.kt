@@ -6,7 +6,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 class TonConnectNewFragment : BaseComposeFragment() {
     @Composable

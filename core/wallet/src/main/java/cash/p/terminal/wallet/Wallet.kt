@@ -14,6 +14,7 @@ import kotlinx.parcelize.Parcelize
 import timber.log.Timber
 import java.util.Objects
 
+@ConsistentCopyVisibility
 @Parcelize
 data class Wallet internal constructor(
     val token: Token,
