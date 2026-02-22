@@ -37,11 +37,14 @@ import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewMo
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
+import cash.p.terminal.modules.solananetwork.SolanaNetworkService
+import cash.p.terminal.modules.solananetwork.SolanaNetworkViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.DefaultDispatcherProvider
 import io.horizontalsystems.core.DispatcherProvider
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -74,6 +77,8 @@ val viewModelModule = module {
     viewModelOf(::DisplayOptionsViewModel)
     viewModelOf(::TonConnectListViewModel)
     viewModelOf(::ZcashConfigureViewModel)
+    factoryOf(::SolanaNetworkService)
+    viewModelOf(::SolanaNetworkViewModel)
     viewModelOf(::QRScannerViewModel)
     viewModelOf(::AddTokenViewModel)
     viewModelOf(::PinUnlockViewModel)

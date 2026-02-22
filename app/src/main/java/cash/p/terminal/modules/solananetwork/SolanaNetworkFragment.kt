@@ -21,7 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -53,10 +52,6 @@ private const val SettingsPage = "settings"
 private const val StatusPage = "status"
 
 class SolanaNetworkFragment : BaseComposeFragment() {
-
-    private val viewModel by viewModels<SolanaNetworkViewModel> {
-        SolanaNetworkModule.Factory()
-    }
 
     @Composable
     override fun GetContent(navController: NavController) {
