@@ -55,7 +55,7 @@ android {
         buildConfigField "String", "MONERO_KIT_VERSION", "\"${libs.versions.monero.kit.android.get()}\""
         buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
         buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
-        buildConfigField "String", "GIT_BRANCH", "f-droid"
+        buildConfigField "String", "GIT_BRANCH", "\"f-droid\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {
