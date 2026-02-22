@@ -253,6 +253,7 @@ class AdapterManager(
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override suspend fun <T> awaitAdapterForWallet(wallet: Wallet, timeoutMs: Long): T? {
         (adaptersMap[wallet] as? T)?.let { return it }
 

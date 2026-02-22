@@ -81,8 +81,10 @@ class BackupFileValidator {
         val fullBackup = gson.fromJson(json, FullBackup::class.java)
         val walletBackup = gson.fromJson(json, BackupLocalModule.WalletBackup::class.java)
 
+        @Suppress("SENSELESS_COMPARISON")
         val isSingleWalletBackup =
             fullBackup.settings == null && walletBackup.crypto != null && walletBackup.type != null && walletBackup.version in 1..2
+        @Suppress("SENSELESS_COMPARISON")
         val isFullBackup =
             fullBackup.settings != null && fullBackup.version == 2 && walletBackup.crypto == null && walletBackup.type == null
 

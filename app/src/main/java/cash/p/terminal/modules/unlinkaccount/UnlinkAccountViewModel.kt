@@ -8,6 +8,7 @@ import cash.p.terminal.R
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
@@ -60,6 +61,7 @@ class UnlinkAccountViewModel(
     /***
      * We use GlobalScope to finish the process even after dialog was closed
      */
+    @OptIn(DelicateCoroutinesApi::class)
     fun onUnlink() = GlobalScope.launch {
         accountManager.delete(account.id)
         closeScreen = true
