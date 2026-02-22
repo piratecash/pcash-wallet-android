@@ -26,12 +26,15 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 fun DataFieldFee(
     primary: String,
     secondary: String,
+    borderTop: Boolean = false,
+    balanceHidden: Boolean = false,
 ) {
     val title = stringResource(id = R.string.FeeSettings_NetworkFee)
     val infoText = stringResource(id = R.string.FeeSettings_NetworkFee_Info)
     var showInfoDialog by remember { mutableStateOf(false) }
 
     QuoteInfoRow(
+        borderTop = borderTop,
         title = {
             subhead2_grey(text = title)
 
@@ -49,10 +52,14 @@ fun DataFieldFee(
 
         },
         value = {
-            Column(horizontalAlignment = Alignment.End) {
-                subhead2_leah(text = primary)
-                VSpacer(height = 1.dp)
-                subhead2_grey(text = secondary)
+            if (balanceHidden) {
+                subhead2_leah(text = "*****")
+            } else {
+                Column(horizontalAlignment = Alignment.End) {
+                    subhead2_leah(text = primary)
+                    VSpacer(height = 1.dp)
+                    subhead2_grey(text = secondary)
+                }
             }
         }
     )

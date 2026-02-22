@@ -510,6 +510,7 @@
     <string name="Swap_Allowance">Preço</string>
     <string name="Swap_Price">Preço</string>
     <string name="Swap_AvailableBalance">Available Balance</string>
+    <string name="swap_insufficient_fee_balance">Fundos insuficientes no saldo</string>
     <string name="Swap_PriceImpact">Impacto de preço</string>
     <string name="Swap_PriceImpactTooHigh">P.CASH has disabled swap action for this trade because you\'re getting an extremely unfavorable price. This is due to extremely low liquidity.\nIf you still want to swap please use %s website instead.</string>
     <string name="Swap_PriceImpactWarning">Important! You\'re getting an extremely unfavorable price. This is due to extremely low liquidity.</string>

@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.action.ActionCreate
+import cash.p.terminal.modules.multiswap.ui.DataFieldFee
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
@@ -79,6 +80,7 @@ import cash.p.terminal.ui_compose.components.headline1_leah
 import cash.p.terminal.ui_compose.components.micro_grey
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.components.subhead1_leah
+import cash.p.terminal.ui_compose.components.caption_lucian
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.parcelable
@@ -106,6 +108,7 @@ import cash.p.terminal.core.composablePopup
 import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
 import android.os.Parcelable
+import cash.p.terminal.ui_compose.components.subhead2_lucian
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -249,6 +252,7 @@ private fun SwapMainScreen(
 
     SwapScreenInner(
         uiState = uiState,
+        timeRemainingProgress = { viewModel.timeRemainingProgress },
         onClickClose = fragmentNavController::navigateUp,
         onClickCoinFrom = {
             swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From))
@@ -293,6 +297,7 @@ private fun SwapMainScreen(
 @Composable
 private fun SwapScreenInner(
     uiState: SwapUiState,
+    timeRemainingProgress: () -> Float?,
     onClickClose: () -> Unit,
     onClickCoinFrom: () -> Unit,
     onClickCoinTo: () -> Unit,
@@ -328,10 +333,8 @@ private fun SwapScreenInner(
                     HsBackButton(onClick = onClickClose)
                 },
                 menuItems = buildList {
-                    uiState.timeRemainingProgress?.let { timeRemainingProgress ->
-                        add(
-                            MenuItemTimeoutIndicator(timeRemainingProgress)
-                        )
+                    timeRemainingProgress()?.let { progress ->
+                        add(MenuItemTimeoutIndicator(progress))
                     }
                 }
             )
@@ -463,18 +466,54 @@ private fun SwapScreenInner(
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth(),
                             title = stringResource(R.string.Swap_Proceed),
+                            enabled = !uiState.insufficientFeeBalance,
                             onClick = onClickNext
                         )
                     }
                 }
 
                 VSpacer(height = 12.dp)
-                CardsSwapInfo {
+
+                subhead2_grey(
+                    text = stringResource(R.string.FeeSettings_NetworkFee),
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp)
+                )
+
+                CardsSwapInfo(isError = uiState.insufficientFeeBalance) {
+                    val isNativeCoinSwap = uiState.feeCoinBalance == null
                     AvailableBalanceField(
                         tokenIn = uiState.tokenIn,
                         availableBalance = uiState.availableBalance,
                         balanceHidden = uiState.balanceHidden,
+                        isError = uiState.insufficientFeeBalance && isNativeCoinSwap,
                         toggleHideBalance = onBalanceClicked
+                    )
+                    FeeCoinBalanceField(
+                        feeToken = uiState.feeToken,
+                        feeCoinBalance = uiState.feeCoinBalance,
+                        balanceHidden = uiState.balanceHidden,
+                        isError = uiState.insufficientFeeBalance,
+                        toggleHideBalance = onBalanceClicked,
+                    )
+                    val feeToken = uiState.feeToken
+                    val networkFee = uiState.networkFee
+                    if (feeToken != null && networkFee != null) {
+                        DataFieldFee(
+                            primary = CoinValue(feeToken, networkFee).getFormattedFull(),
+                            secondary = uiState.networkFeeFiatAmount?.let {
+                                App.numberFormatter.formatFiatFull(it, uiState.currency.symbol)
+                            } ?: "",
+                            borderTop = true,
+                            balanceHidden = uiState.balanceHidden,
+                        )
+                    }
+                }
+
+                if (uiState.insufficientFeeBalance) {
+                    VSpacer(height = 8.dp)
+                    caption_lucian(
+                        text = stringResource(R.string.swap_insufficient_fee_balance),
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     )
                 }
 
@@ -551,10 +590,31 @@ private fun SwapScreenInner(
 }
 
 @Composable
+private fun BalanceText(
+    text: String,
+    balanceHidden: Boolean,
+    isError: Boolean,
+    onClick: () -> Unit,
+) {
+    val displayText = if (!balanceHidden) text else "*****"
+    val clickModifier = Modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
+    if (isError) {
+        subhead2_lucian(text = displayText, modifier = clickModifier)
+    } else {
+        subhead2_leah(text = displayText, modifier = clickModifier)
+    }
+}
+
+@Composable
 private fun AvailableBalanceField(
     tokenIn: Token?,
     availableBalance: BigDecimal?,
     balanceHidden: Boolean,
+    isError: Boolean,
     toggleHideBalance: () -> Unit
 ) {
     QuoteInfoRow(
@@ -567,16 +627,31 @@ private fun AvailableBalanceField(
             } else {
                 "-"
             }
+            BalanceText(text, balanceHidden, isError, toggleHideBalance)
+        }
+    )
+}
 
-            subhead2_leah(
-                text = if (!balanceHidden) text else "*****",
-                modifier = Modifier
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = toggleHideBalance
-                    )
+@Composable
+private fun FeeCoinBalanceField(
+    feeToken: Token?,
+    feeCoinBalance: BigDecimal?,
+    balanceHidden: Boolean,
+    isError: Boolean,
+    toggleHideBalance: () -> Unit,
+) {
+    if (feeToken == null || feeCoinBalance == null) return
+
+    QuoteInfoRow(
+        borderTop = true,
+        title = {
+            subhead2_grey(
+                text = stringResource(R.string.Swap_AvailableBalance) + " " + feeToken.coin.code
             )
+        },
+        value = {
+            val text = CoinValue(feeToken, feeCoinBalance).getFormattedFull()
+            BalanceText(text, balanceHidden, isError, toggleHideBalance)
         }
     )
 }

@@ -1,5 +1,8 @@
 package cash.p.terminal.modules.multiswap
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,6 +13,7 @@ import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.useCases.WalletUseCase
@@ -30,6 +34,7 @@ class SwapViewModel(
     private val fiatServiceOut: FiatService,
     private val timerService: TimerService,
     private val networkAvailabilityService: NetworkAvailabilityService,
+    private val marketKit: MarketKitWrapper,
     tokenIn: Token?,
     tokenOut: Token?
 ) : ViewModelUiState<SwapUiState>() {
@@ -41,6 +46,10 @@ class SwapViewModel(
     private var balanceState = balanceService.stateFlow.value
     private var priceImpactState = priceImpactService.stateFlow.value
     private var timerState = timerService.stateFlow.value
+
+    var timeRemainingProgress by mutableStateOf<Float?>(null)
+        private set
+
     private var fiatAmountIn: BigDecimal? = null
     private var fiatAmountOut: BigDecimal? = null
     private var fiatAmountInputEnabled = false
@@ -95,9 +104,16 @@ class SwapViewModel(
         }
         viewModelScope.launch {
             timerService.stateFlow.collect {
+                val prevTimeout = timerState.timeout
                 timerState = it
 
-                emitState()
+                timeRemainingProgress = it.remaining?.let { remaining ->
+                    remaining / quoteLifetime.toFloat()
+                }
+
+                if (it.timeout != prevTimeout) {
+                    emitState()
+                }
             }
         }
 
@@ -114,34 +130,45 @@ class SwapViewModel(
         }
     }
 
-    override fun createState() = SwapUiState(
-        amountIn = quoteState.amountIn,
-        tokenIn = quoteState.tokenIn,
-        tokenOut = quoteState.tokenOut,
-        quoting = quoteState.quoting,
-        quotes = quoteState.quotes,
-        preferredProvider = quoteState.preferredProvider,
-        quote = quoteState.quote,
-        error = networkState.error ?: quoteState.error ?: balanceState.error
-        ?: priceImpactState.error,
-        availableBalance = balanceState.balance,
-        priceImpact = priceImpactState.priceImpact,
-        priceImpactLevel = priceImpactState.priceImpactLevel,
-        priceImpactCaution = priceImpactState.priceImpactCaution,
-        fiatPriceImpact = priceImpactState.fiatPriceImpact,
-        fiatPriceImpactLevel = priceImpactState.fiatPriceImpactLevel,
-        balanceHidden = balanceHiddenManager.balanceHiddenFlow.value,
-        warningMessage = warningMessage,
-        fiatAmountIn = fiatAmountIn,
-        fiatAmountOut = fiatAmountOut,
-        currency = currency,
-        fiatAmountInputEnabled = fiatAmountInputEnabled,
-        timeRemaining = timerState.remaining,
-        timeout = timerState.timeout,
-        timeRemainingProgress = timerState.remaining?.let { remaining ->
-            remaining / quoteLifetime.toFloat()
-        }
-    )
+    override fun createState(): SwapUiState {
+        val feeToken = balanceState.feeToken
+        val fee = balanceState.fee
+        val networkFeeFiatAmount = if (feeToken != null && fee != null) {
+            marketKit.coinPrice(feeToken.coin.uid, currency.code)?.let { coinPrice ->
+                fee * coinPrice.value
+            }
+        } else null
+
+        return SwapUiState(
+            amountIn = quoteState.amountIn,
+            tokenIn = quoteState.tokenIn,
+            tokenOut = quoteState.tokenOut,
+            quoting = quoteState.quoting,
+            quotes = quoteState.quotes,
+            preferredProvider = quoteState.preferredProvider,
+            quote = quoteState.quote,
+            error = networkState.error ?: quoteState.error ?: balanceState.error
+                ?: priceImpactState.error,
+            availableBalance = balanceState.balance,
+            networkFee = fee,
+            networkFeeFiatAmount = networkFeeFiatAmount,
+            feeToken = feeToken,
+            feeCoinBalance = balanceState.feeCoinBalance,
+            insufficientFeeBalance = balanceState.insufficientFeeBalance,
+            balanceHidden = balanceHiddenManager.balanceHiddenFlow.value,
+            warningMessage = warningMessage,
+            priceImpact = priceImpactState.priceImpact,
+            priceImpactLevel = priceImpactState.priceImpactLevel,
+            priceImpactCaution = priceImpactState.priceImpactCaution,
+            fiatAmountIn = fiatAmountIn,
+            fiatAmountOut = fiatAmountOut,
+            fiatPriceImpact = priceImpactState.fiatPriceImpact,
+            currency = currency,
+            fiatAmountInputEnabled = fiatAmountInputEnabled,
+            fiatPriceImpactLevel = priceImpactState.fiatPriceImpactLevel,
+            timeout = timerState.timeout,
+        )
+    }
 
     private fun fetchWarningMessageAsync() {
         viewModelScope.launch {
@@ -262,7 +289,7 @@ class SwapViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val swapQuoteService: SwapQuoteService by inject(SwapQuoteService::class.java)
-            val tokenBalanceService = TokenBalanceService(App.adapterManager)
+            val tokenBalanceService = TokenBalanceService(App.adapterManager, App.marketKit)
             val priceImpactService = PriceImpactService()
 
             return SwapViewModel(
@@ -274,6 +301,7 @@ class SwapViewModel(
                 fiatServiceOut = FiatService(App.marketKit),
                 timerService = TimerService(),
                 networkAvailabilityService = NetworkAvailabilityService(App.connectivityManager),
+                marketKit = App.marketKit,
                 tokenIn = tokenIn,
                 tokenOut = tokenOut
             ) as T
@@ -291,6 +319,11 @@ data class SwapUiState(
     val quote: SwapProviderQuote?,
     val error: Throwable?,
     val availableBalance: BigDecimal?,
+    val networkFee: BigDecimal?,
+    val networkFeeFiatAmount: BigDecimal?,
+    val feeToken: Token?,
+    val feeCoinBalance: BigDecimal?,
+    val insufficientFeeBalance: Boolean,
     val balanceHidden: Boolean,
     val warningMessage: TranslatableString?,
     val priceImpact: BigDecimal?,
@@ -302,9 +335,7 @@ data class SwapUiState(
     val currency: Currency,
     val fiatAmountInputEnabled: Boolean,
     val fiatPriceImpactLevel: PriceImpactLevel?,
-    val timeRemaining: Long?,
     val timeout: Boolean,
-    val timeRemainingProgress: Float?
 ) {
     val currentStep: SwapStep = when {
         error != null -> SwapStep.Error(error)
@@ -315,7 +346,7 @@ data class SwapUiState(
             InputType.Amount
         )
 
-        quote?.actionRequired != null -> SwapStep.ActionRequired(quote.actionRequired!!)
+        quote?.actionRequired != null -> SwapStep.ActionRequired(requireNotNull(quote.actionRequired))
         else -> SwapStep.Proceed
     }
 

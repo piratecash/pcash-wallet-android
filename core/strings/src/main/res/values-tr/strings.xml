@@ -510,6 +510,7 @@
     <string name="Swap_Allowance">Ödenek</string>
     <string name="Swap_Price">Fiyat</string>
     <string name="Swap_AvailableBalance">Mevcut Bakiye</string>
+    <string name="swap_insufficient_fee_balance">Bakiyede yetersiz fon</string>
     <string name="Swap_PriceImpact">Fiyat Etkisi</string>
     <string name="Swap_PriceImpactTooHigh">Rayiç fiyat ile beklenen uzlaşma fiyatı arasındaki fark çok yüksek.</string>
     <string name="Swap_PriceImpactWarning">Önemli! Son derece olumsuz bir fiyat alıyorsunuz. Bunun nedeni son derece düşük likiditedir.</string>
