@@ -1,5 +1,6 @@
 package cash.p.terminal.core.utils
 
+import cash.p.terminal.core.toFixedSize
 import com.m2049r.xmrwallet.util.ledger.Monero
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import org.bitcoinj.crypto.DeterministicKey
@@ -18,7 +19,7 @@ object MoneroWalletSeedConverter {
     ): List<String> {
         val seed = Mnemonic().toSeed(words, passphrase)
         val bip32Seed = derivePath(seed, "m/44'/128'/$accountIndex'/0/0")
-        val spendKey = reduceECKey(bip32Seed.privKeyBytes)
+        val spendKey = reduceECKey(bip32Seed.privKeyBytes.toFixedSize(32))
         return encodePhrase(spendKey)
     }
 

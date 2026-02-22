@@ -357,6 +357,17 @@ fun String.splitToAddresses(): List<String> {
         .filter { it.isNotEmpty() }
 }
 
+/**
+ * Normalizes a private key byte array to exactly [size] bytes.
+ * BigInteger.toByteArray() may return fewer bytes (leading zeros stripped)
+ * or more bytes (sign byte prepended). This ensures a fixed-size output.
+ */
+fun ByteArray.toFixedSize(size: Int): ByteArray = when {
+    this.size > size -> copyOfRange(this.size - size, this.size)
+    this.size < size -> ByteArray(size - this.size) + this
+    else -> this
+}
+
 inline fun <T> tryOrNull(block: () -> T): T? {
     return try {
         block()

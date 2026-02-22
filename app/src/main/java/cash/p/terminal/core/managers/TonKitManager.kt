@@ -4,6 +4,7 @@ import android.util.Log
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedException
+import cash.p.terminal.core.toFixedSize
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem
@@ -333,11 +334,7 @@ fun Account.toTonWallet(
             Curve.Ed25519
         )
         val privateKey = hdWallet.privateKey(0)
-        var privateKeyBytes = privateKey.privKeyBytes
-        if (privateKeyBytes.size > 32) {
-            privateKeyBytes = privateKeyBytes.copyOfRange(1, privateKeyBytes.size)
-        }
-        TonWallet.Seed(privateKeyBytes)
+        TonWallet.Seed(privateKey.privKeyBytes.toFixedSize(32))
     }
 
     is AccountType.TonAddress -> {
