@@ -344,23 +344,34 @@ abstract class BitcoinBaseAdapter(
                 val substatus = when (val sub = kitState.substatus) {
                     is BitcoinCore.SyncSubstatus.WaitingForPeers ->
                         AdapterState.Substatus.WaitingForPeers(sub.connected, sub.required)
+
                     null -> null
                 }
 
                 val lastBlockDate = kit.lastBlockInfo?.timestamp?.let { Date(it * 1000) }
 
-                val currentHeight = kit.lastBlockInfo?.height?.toLong()
-                val blocksRemained = if (currentHeight != null && progress > 0 && progress < 100) {
-                    val estimatedTotal = (currentHeight * 100L) / progress
-                    (estimatedTotal - currentHeight).coerceAtLeast(0)
+                val currentHeight = kit.lastBlockInfo?.height
+                val maxBlockHeight = kitState.maxBlockHeight
+                val blocksRemained = if (currentHeight != null && maxBlockHeight != null) {
+                    (maxBlockHeight.toLong() - currentHeight.toLong()).coerceAtLeast(0)
                 } else {
                     null
                 }
 
                 if (progress >= 100) {
-                    AdapterState.Syncing(progress = 100, lastBlockDate = lastBlockDate, blocksRemained = null, substatus = substatus)
+                    AdapterState.Syncing(
+                        progress = 100,
+                        lastBlockDate = lastBlockDate,
+                        blocksRemained = null,
+                        substatus = substatus
+                    )
                 } else {
-                    AdapterState.Syncing(progress = progress, lastBlockDate = lastBlockDate, blocksRemained = blocksRemained, substatus = substatus)
+                    AdapterState.Syncing(
+                        progress = progress,
+                        lastBlockDate = lastBlockDate,
+                        blocksRemained = blocksRemained,
+                        substatus = substatus
+                    )
                 }
             }
         }
