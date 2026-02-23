@@ -30,6 +30,6 @@ internal class PirateCoinViewModel(
     balanceHiddenManager = balanceHiddenManager,
     checkPremiumUseCase = checkPremiumUseCase
 ) {
-    override val minStackingAmount = 100
+    override val minStackingAmount = StackingType.PCASH.minStackingAmount
     override val stackingType: StackingType = StackingType.PCASH
 }

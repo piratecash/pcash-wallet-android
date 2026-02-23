@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import io.horizontalsystems.core.IAppNumberFormatter
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.isCustom
@@ -42,7 +43,6 @@ import cash.p.terminal.modules.transactions.withClearedAmlStatus
 import cash.p.terminal.modules.transactions.withUpdatedAmlStatus
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
-import cash.p.terminal.premium.data.config.PremiumConfig
 import cash.p.terminal.premium.domain.PremiumSettings
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAccountManager
@@ -94,6 +94,7 @@ class TokenBalanceViewModel(
     private val stackingManager: StackingManager,
     private val priceManager: PriceManager,
     private val localStorage: ILocalStorage,
+    private val numberFormatter: IAppNumberFormatter,
 ) : ViewModelUiState<TokenBalanceUiState>() {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
@@ -261,7 +262,7 @@ class TokenBalanceViewModel(
                 stackingManager.unpaidFlow.collect { unpaid ->
                     stakingUnpaid = unpaid?.let { value ->
                         if (value > BigDecimal.ZERO) {
-                            "${value.stripTrailingZeros().toPlainString()} ${wallet.coin.code}"
+                            numberFormatter.formatCoinShort(value, wallet.coin.code, wallet.decimal)
                         } else null
                     }
                     emitState()
@@ -332,11 +333,8 @@ class TokenBalanceViewModel(
     }
 
     private fun checkStakingStatus(balanceItem: BalanceItem) {
-        val threshold = if (wallet.isPirateCash()) {
-            BigDecimal(PremiumConfig.MIN_PREMIUM_AMOUNT_PIRATE)
-        } else {
-            BigDecimal(PremiumConfig.MIN_PREMIUM_AMOUNT_COSANTA)
-        }
+        val stackingType = if (wallet.isPirateCash()) StackingType.PCASH else StackingType.COSANTA
+        val threshold = BigDecimal(stackingType.minStackingAmount)
         val balance = balanceItem.balanceData.total
 
         if (balance < threshold) {

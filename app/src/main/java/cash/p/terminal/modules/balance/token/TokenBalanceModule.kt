@@ -27,6 +27,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
+import io.horizontalsystems.core.IAppNumberFormatter
 import org.koin.java.KoinJavaComponent.inject
 
 class TokenBalanceModule {
@@ -80,6 +81,8 @@ class TokenBalanceModule {
                 balanceHiddenManager = App.balanceHiddenManager
             )
 
+            val numberFormatter: IAppNumberFormatter by inject(IAppNumberFormatter::class.java)
+
             return TokenBalanceViewModel(
                 totalBalance = TotalBalance(
                     totalService = totalService,
@@ -102,6 +105,7 @@ class TokenBalanceModule {
                 stackingManager = stackingManager,
                 priceManager = App.priceManager,
                 localStorage = App.localStorage,
+                numberFormatter = numberFormatter,
             ) as T
         }
     }

@@ -484,8 +484,8 @@ private fun TokenBalanceHeader(
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = unpaid,
-                    color = ComposeAppTheme.colors.leah,
+                    text = if (balanceViewItem.primaryValue.visible) unpaid else "*****",
+                    color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.leah,
                     style = ComposeAppTheme.typography.subhead2,
                     maxLines = 1,
                 )
@@ -500,7 +500,7 @@ private fun TokenBalanceHeader(
             onStackingClicked = onStackingClicked,
             isShowShieldFunds = isShowShieldFunds
         )
-        LockedBalanceSection(balanceViewItem, navController)
+        LockedBalanceSection(balanceViewItem)
         balanceViewItem.warning?.let {
             VSpacer(height = 8.dp)
             TextImportantWarning(
@@ -514,7 +514,7 @@ private fun TokenBalanceHeader(
 }
 
 @Composable
-private fun LockedBalanceSection(balanceViewItem: BalanceViewItem, navController: NavController) {
+private fun LockedBalanceSection(balanceViewItem: BalanceViewItem) {
     if (balanceViewItem.lockedValues.isNotEmpty()) {
         Column(
             modifier = Modifier
