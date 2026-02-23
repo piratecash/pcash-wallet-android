@@ -32,6 +32,7 @@ import cash.p.terminal.modules.send.ton.SendTonAmountService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.getMaxSendableBalance
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
@@ -50,7 +51,7 @@ class SendTransactionServiceTonSwap(
 ) : ISendTransactionService<ISendTonAdapter>(token) {
     private val amountValidator = AmountValidator()
 
-    private var feeWallet: cash.p.terminal.wallet.Wallet? = null
+    private var feeWallet: Wallet? = null
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
 
     private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
@@ -241,7 +242,8 @@ class SendTransactionServiceTonSwap(
                 data.forwardGas.toBigDecimal().movePointLeft(feeToken.decimals).stripTrailingZeros()
                     .toPlainString() + " " + feeToken.coin.code
             feeCaution = createCaution(
-                LocalizedException(R.string.check_fee_warning, neededFee)
+                LocalizedException(R.string.check_fee_warning, neededFee),
+                CautionViewItem.Type.Warning
             )
         }
     }

@@ -101,29 +101,32 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
         }
     }
 
-    protected fun createCaution(error: Throwable) = when (error) {
+    protected fun createCaution(
+        error: Throwable,
+        type: CautionViewItem.Type = CautionViewItem.Type.Error
+    ) = when (error) {
         is UnknownHostException -> CautionViewItem(
             TranslatableString.ResString(R.string.Hud_Text_NoInternet).toString(),
             "",
-            CautionViewItem.Type.Error
+            type
         )
 
         is LocalizedException -> CautionViewItem(
             TranslatableString.ResString(error.errorTextRes, *error.formatArgs).toString(),
             "",
-            CautionViewItem.Type.Error
+            type
         )
 
         is EvmError.InsufficientBalanceWithFee -> CautionViewItem(
             Translator.getString(R.string.EthereumTransaction_Error_InsufficientBalanceWithFee, feeToken.coin.code),
             "",
-            CautionViewItem.Type.Error
+            type
         )
 
         else -> CautionViewItem(
             TranslatableString.PlainString(error.message ?: "").toString(),
             "",
-            CautionViewItem.Type.Error
+            type
         )
     }
 }

@@ -32,6 +32,7 @@ import cash.p.terminal.modules.send.ton.SendTonFeeService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.getMaxSendableBalance
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
@@ -79,7 +80,7 @@ class SendTransactionServiceTon(
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
 
-    private var feeWallet: cash.p.terminal.wallet.Wallet? = null
+    private var feeWallet: Wallet? = null
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private var feeCaution: CautionViewItem? = null
     private var hasEnoughFeeAmount: Boolean = true
@@ -250,7 +251,8 @@ class SendTransactionServiceTon(
             val neededFee = fee.stripTrailingZeros()
                 .toPlainString() + " " + feeToken.coin.code
             feeCaution = createCaution(
-                LocalizedException(R.string.check_fee_warning, neededFee)
+                LocalizedException(R.string.check_fee_warning, neededFee),
+                type = CautionViewItem.Type.Warning
             )
         }
     }
