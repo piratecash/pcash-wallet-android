@@ -20,7 +20,6 @@ import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
-import cash.p.terminal.core.managers.NetworkManager
 import cash.p.terminal.core.managers.NftAdapterManager
 import cash.p.terminal.core.managers.NftMetadataManager
 import cash.p.terminal.core.managers.NftMetadataSyncer
@@ -122,7 +121,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
     companion object : ICoreApp by CoreApp {
         var sqlCipherLoadFailed = false
 
-        lateinit var feeRateProvider: FeeRateProvider
+        val feeRateProvider: FeeRateProvider by inject(FeeRateProvider::class.java)
         val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
         val marketStorage: IMarketStorage by inject(IMarketStorage::class.java)
         val torKitManager: ITorManager by inject(ITorManager::class.java)
@@ -133,7 +132,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         val evmSyncSourceStorage: EvmSyncSourceStorage by inject(EvmSyncSourceStorage::class.java)
         val btcBlockchainManager: BtcBlockchainManager by inject(BtcBlockchainManager::class.java)
         val wordsManager: WordsManager by inject(WordsManager::class.java)
-        lateinit var networkManager: INetworkManager
+        val networkManager: INetworkManager by inject(INetworkManager::class.java)
         val adapterManager: IAdapterManager by inject(AdapterManager::class.java)
 
         val transactionAdapterManager: TransactionAdapterManager by inject(TransactionAdapterManager::class.java)
@@ -164,19 +163,68 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         val evmSyncSourceManager: EvmSyncSourceManager by inject(EvmSyncSourceManager::class.java)
         val evmBlockchainManager: EvmBlockchainManager by inject(EvmBlockchainManager::class.java)
         val solanaRpcSourceManager: SolanaRpcSourceManager by inject(SolanaRpcSourceManager::class.java)
-        lateinit var nftMetadataManager: NftMetadataManager
-        lateinit var nftAdapterManager: NftAdapterManager
-        lateinit var nftMetadataSyncer: NftMetadataSyncer
+        private val nftStorage: NftStorage by lazy {
+            NftStorage(appDatabase.nftDao(), marketKit)
+        }
+        val nftMetadataManager: NftMetadataManager by lazy {
+            NftMetadataManager(marketKit, nftStorage)
+        }
+        val nftAdapterManager: NftAdapterManager by lazy {
+            NftAdapterManager(walletManager, evmBlockchainManager)
+        }
+        val nftMetadataSyncer: NftMetadataSyncer by lazy {
+            NftMetadataSyncer(nftAdapterManager, nftMetadataManager, nftStorage)
+        }
         val evmLabelManager: EvmLabelManager by inject(EvmLabelManager::class.java)
         lateinit var baseTokenManager: BaseTokenManager
         lateinit var balanceViewTypeManager: BalanceViewTypeManager
         val balanceHiddenManager: BalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
         val marketWidgetManager: MarketWidgetManager by inject(MarketWidgetManager::class.java)
-        lateinit var marketWidgetRepository: MarketWidgetRepository
+        val marketWidgetRepository: MarketWidgetRepository by lazy {
+            MarketWidgetRepository(
+                marketKit = marketKit,
+                favoritesManager = marketFavoritesManager,
+                favoritesMenuService = MarketFavoritesMenuService(localStorage, marketWidgetManager),
+                topNftCollectionsRepository = TopNftCollectionsRepository(marketKit),
+                topNftCollectionsViewItemFactory = TopNftCollectionsViewItemFactory(numberFormatter),
+                topPlatformsRepository = TopPlatformsRepository(marketKit),
+                currencyManager = currencyManager
+            )
+        }
         val contactsRepository: ContactsRepository by inject(ContactsRepository::class.java)
         val subscriptionManager: SubscriptionManager by inject(SubscriptionManager::class.java)
-        lateinit var chartIndicatorManager: ChartIndicatorManager
-        lateinit var backupProvider: BackupProvider
+        val chartIndicatorManager: ChartIndicatorManager by lazy {
+            ChartIndicatorManager(appDatabase.chartIndicatorSettingsDao(), localStorage)
+        }
+        val backupProvider: BackupProvider by lazy {
+            BackupProvider(
+                localStorage = localStorage,
+                languageManager = languageManager,
+                walletStorage = enabledWalletsStorage,
+                settingsManager = instance.get(),
+                accountManager = accountManager,
+                accountFactory = accountFactory,
+                walletManager = walletManager,
+                restoreSettingsManager = instance.get(),
+                blockchainSettingsStorage = blockchainSettingsStorage,
+                evmBlockchainManager = evmBlockchainManager,
+                marketFavoritesManager = marketFavoritesManager,
+                balanceViewTypeManager = balanceViewTypeManager,
+                appIconService = AppIconService(localStorage),
+                themeService = ThemeService(localStorage),
+                chartIndicatorManager = chartIndicatorManager,
+                chartIndicatorSettingsDao = appDatabase.chartIndicatorSettingsDao(),
+                balanceHiddenManager = balanceHiddenManager,
+                baseTokenManager = baseTokenManager,
+                launchScreenService = LaunchScreenService(localStorage),
+                currencyManager = currencyManager,
+                btcBlockchainManager = btcBlockchainManager,
+                evmSyncSourceManager = evmSyncSourceManager,
+                evmSyncSourceStorage = evmSyncSourceStorage,
+                solanaRpcSourceManager = solanaRpcSourceManager,
+                contactsRepository = contactsRepository
+            )
+        }
         val tonConnectManager: TonConnectManager by inject(TonConnectManager::class.java)
     }
 
@@ -203,13 +251,9 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             modules(appModule)
         }
 
-        // For Monero
-        initCipherForMonero()
-
         if (!BuildConfig.DEBUG) {
             //Disable logging for lower levels in Release build
             Logger.getLogger("").level = Level.SEVERE
-            // Enable Crashlytics in release builds
         }
 
         RxJavaPlugins.setErrorHandler { e: Throwable? ->
@@ -229,13 +273,9 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
         lockoutStorage = get()
         thirdKeyboardStorage = get()
 
-        feeRateProvider = FeeRateProvider()
-
         backgroundManager = get()
 
         AppLog.logsDao = appDatabase.logsDao()
-
-        networkManager = NetworkManager()
 
         get<KeyStoreManager>().apply {
             keyStoreManager = this
@@ -244,94 +284,14 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
 
         encryptionManager = EncryptionManager(keyProvider)
 
-        val tronAccountManager = TronAccountManager(
-            accountManager,
-            walletManager,
-            marketKit,
-            tronKitManager,
-            tokenAutoEnableManager,
-            get()
-        )
-        tronAccountManager.start()
-
-        val tonAccountManager = TonAccountManager(
-            accountManager,
-            walletManager,
-            tonKitManager,
-            tokenAutoEnableManager,
-            get()
-        )
-        tonAccountManager.start()
-
-        val stellarAccountManager = StellarAccountManager(
-            accountManager = accountManager,
-            walletManager = walletManager,
-            stellarKitManager = get(),
-            tokenAutoEnableManager = tokenAutoEnableManager,
-            userDeletedWalletManager = get()
-        )
-        stellarAccountManager.start()
-
         systemInfoManager = get()
 
         pinComponent = get()
 
-        wcWalletRequestHandler = WCWalletRequestHandler(evmBlockchainManager)
-
-        marketWidgetRepository = MarketWidgetRepository(
-            marketKit = marketKit,
-            favoritesManager = marketFavoritesManager,
-            favoritesMenuService = MarketFavoritesMenuService(localStorage, marketWidgetManager),
-            topNftCollectionsRepository = TopNftCollectionsRepository(marketKit),
-            topNftCollectionsViewItemFactory = TopNftCollectionsViewItemFactory(numberFormatter),
-            topPlatformsRepository = TopPlatformsRepository(marketKit),
-            currencyManager = currencyManager
-        )
-
         setAppTheme()
-
-        val nftStorage = NftStorage(appDatabase.nftDao(), marketKit)
-        nftMetadataManager = NftMetadataManager(marketKit, nftStorage)
-        nftAdapterManager = NftAdapterManager(walletManager, evmBlockchainManager)
-        nftMetadataSyncer = NftMetadataSyncer(nftAdapterManager, nftMetadataManager, nftStorage)
-
-        initializeWalletConnectV2()
-
-        WCDelegate.initialize()
 
         baseTokenManager = BaseTokenManager(coinManager, localStorage)
         balanceViewTypeManager = BalanceViewTypeManager(localStorage)
-
-        chartIndicatorManager =
-            ChartIndicatorManager(appDatabase.chartIndicatorSettingsDao(), localStorage)
-
-        backupProvider = BackupProvider(
-            localStorage = localStorage,
-            languageManager = languageManager,
-            walletStorage = enabledWalletsStorage,
-            settingsManager = get(),
-            accountManager = accountManager,
-            accountFactory = accountFactory,
-            walletManager = walletManager,
-            restoreSettingsManager = get(),
-            blockchainSettingsStorage = blockchainSettingsStorage,
-            evmBlockchainManager = evmBlockchainManager,
-            marketFavoritesManager = marketFavoritesManager,
-            balanceViewTypeManager = balanceViewTypeManager,
-            appIconService = AppIconService(localStorage),
-            themeService = ThemeService(localStorage),
-            chartIndicatorManager = chartIndicatorManager,
-            chartIndicatorSettingsDao = appDatabase.chartIndicatorSettingsDao(),
-            balanceHiddenManager = balanceHiddenManager,
-            baseTokenManager = baseTokenManager,
-            launchScreenService = LaunchScreenService(localStorage),
-            currencyManager = currencyManager,
-            btcBlockchainManager = btcBlockchainManager,
-            evmSyncSourceManager = evmSyncSourceManager,
-            evmSyncSourceStorage = evmSyncSourceStorage,
-            solanaRpcSourceManager = solanaRpcSourceManager,
-            contactsRepository = contactsRepository
-        )
 
         startTasks()
 
@@ -498,6 +458,30 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
 
     private fun startTasks() {
         coroutineScope.launch {
+            initCipherForMonero()
+
+            TronAccountManager(
+                accountManager, walletManager, marketKit, tronKitManager,
+                tokenAutoEnableManager, get()
+            ).start()
+
+            TonAccountManager(
+                accountManager, walletManager, tonKitManager,
+                tokenAutoEnableManager, get()
+            ).start()
+
+            StellarAccountManager(
+                accountManager = accountManager,
+                walletManager = walletManager,
+                stellarKitManager = get(),
+                tokenAutoEnableManager = tokenAutoEnableManager,
+                userDeletedWalletManager = get()
+            ).start()
+
+            wcWalletRequestHandler = WCWalletRequestHandler(evmBlockchainManager)
+            initializeWalletConnectV2()
+            WCDelegate.initialize()
+
             EthereumKit.init()
             adapterManager.startAdapterManager()
             marketKit.sync(needForceUpdateCoins())

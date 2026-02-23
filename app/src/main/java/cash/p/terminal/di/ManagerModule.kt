@@ -62,6 +62,8 @@ import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
+import cash.p.terminal.core.INetworkManager
+import cash.p.terminal.core.managers.NetworkManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.providers.CompositeFallbackAddressProvider
 import cash.p.terminal.core.providers.PendingAccountProvider
@@ -126,6 +128,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val managerModule = module {
+    singleOf(::NetworkManager) bind INetworkManager::class
     singleOf(::SystemInfoManager) bind ISystemInfoManager::class
     singleOf(::BackupManager) bind IBackupManager::class
     singleOf(::LanguageManager) bind ILanguageManager::class
