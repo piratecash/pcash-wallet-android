@@ -1,7 +1,6 @@
 package cash.p.terminal.core.managers
 
 import android.util.Log
-import androidx.room.concurrent.AtomicBoolean
 import androidx.room.concurrent.AtomicInt
 import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
@@ -34,7 +33,8 @@ import com.m2049r.xmrwallet.service.WalletCorruptedException
 import com.m2049r.xmrwallet.util.Helper
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
-import io.horizontalsystems.core.SafeSuspendedCall
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.sizeInMb
@@ -179,7 +179,7 @@ class MoneroKitWrapper(
     private var lastLoggedSyncProgress: Int = -1
 
     private var isStarted = false
-    private val initializing = AtomicBoolean(false)
+    private val lifecycleMutex = Mutex()
 
     private val _syncState = MutableStateFlow<AdapterState>(AdapterState.Syncing())
     val syncState = _syncState.asStateFlow()
@@ -220,9 +220,13 @@ class MoneroKitWrapper(
         )
     }
 
-    suspend fun start(fixIfCorruptedFile: Boolean = true) = withContext(Dispatchers.IO) {
-        if (!isStarted && initializing.compareAndSet(false, true)) {
-            logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, currentState=isStarted=$isStarted initializing=${initializing.get()}")
+    suspend fun start(fixIfCorruptedFile: Boolean = true) = lifecycleMutex.withLock {
+        startInternal(fixIfCorruptedFile)
+    }
+
+    private suspend fun startInternal(fixIfCorruptedFile: Boolean = true) = withContext(Dispatchers.IO) {
+        if (!isStarted) {
+            logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, isStarted=$isStarted")
             lastLoggedSyncProgress = -1
             lastLoggedConnectionStatus = null
             _syncState.value = AdapterState.Connecting
@@ -307,8 +311,6 @@ class MoneroKitWrapper(
                 _syncState.value = AdapterState.NotSynced(e)
                 logger.warning("start: failed with exception", e)
                 Timber.e(e, "Failed to start Monero wallet")
-            } finally {
-                initializing.set(false)
             }
         }
     }
@@ -423,7 +425,7 @@ class MoneroKitWrapper(
 
     private suspend fun resetWalletAndRestart(birthdayHeight: Long) {
         logger.info("resetWalletAndRestart: requested with birthdayHeight=$birthdayHeight")
-        stop(false)
+        stopInternal(false)
         getMoneroWalletFilesNameUseCase(account)?.also {
             val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
             val heightNeedToUpdate = restoreSettings.birthdayHeight != birthdayHeight
@@ -439,35 +441,37 @@ class MoneroKitWrapper(
                 restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
             }
         }
-        start(fixIfCorruptedFile = false)
+        startInternal(fixIfCorruptedFile = false)
         logger.info("resetWalletAndRestart: restart complete")
     }
 
-    suspend fun stop(saveWallet: Boolean = true) = SafeSuspendedCall.executeSuspendable {
-        withContext(Dispatchers.IO) {
-            if (isStarted) {
-                logger.info("stop: stopping service saveWallet=$saveWallet")
-                isStarted = false
-                moneroWalletService.stop(saveWallet)
-                lastLoggedSyncProgress = -1
-                lastLoggedConnectionStatus = null
-                logger.info("stop: service stopped")
-            } else {
-                logger.info("stop: skip, service already stopped")
-            }
+    suspend fun stop(saveWallet: Boolean = true) = lifecycleMutex.withLock {
+        stopInternal(saveWallet)
+    }
+
+    private suspend fun stopInternal(saveWallet: Boolean = true) = withContext(Dispatchers.IO) {
+        if (isStarted) {
+            logger.info("stop: stopping service saveWallet=$saveWallet")
+            isStarted = false
+            moneroWalletService.stop(saveWallet)
+            lastLoggedSyncProgress = -1
+            lastLoggedConnectionStatus = null
+            logger.info("stop: service stopped")
+        } else {
+            logger.info("stop: skip, service already stopped")
         }
     }
 
-    suspend fun refresh() {
-        if (_syncState.value is AdapterState.Syncing || initializing.get()) {
-            logger.info("refresh: skip, already syncing or initializing")
+    suspend fun refresh() = lifecycleMutex.withLock {
+        if (_syncState.value is AdapterState.Syncing) {
+            logger.info("refresh: skip, already syncing")
             Timber.d("MoneroKitWrapper: Already syncing, skipping refresh")
-            return
+            return@withLock
         }
         try {
             logger.info("refresh: restarting wallet")
-            stop()
-            start()
+            stopInternal()
+            startInternal()
         } catch (e: Exception) {
             logger.warning("refresh: failed to restart wallet", e)
             Log.e("MoneroKitWrapper", "Failed to refresh Monero wallet", e)
@@ -680,11 +684,6 @@ class MoneroKitWrapper(
             logger.info("onProgress(value): $n")
         }
         Timber.d("onProgress: $n")
-    }
-
-    override fun onWalletStored(success: Boolean) {
-        logger.info("onWalletStored: success=$success")
-        Timber.d("onWalletStored: $success")
     }
 
     override fun onTransactionCreated(
