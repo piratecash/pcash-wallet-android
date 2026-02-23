@@ -20,6 +20,8 @@ jobs:
         run: ./gradlew :app:testDebugUnitTest :core:wallet:testDebugUnitTest :feature-premium:testDebugUnitTest :feature-logging:testDebugUnitTest
       - name: Build with Gradle
         run: ./gradlew assembleDebug
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
       - name: Upload to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:

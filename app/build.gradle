@@ -134,6 +134,7 @@ android {
     
     buildTypes {
         debug {
+            defaultConfig.versionCode System.getenv("BUILD_NUMBER")?.toInteger() ?: defaultConfig.versionCode
             debuggable true
             minifyEnabled false
             applicationIdSuffix ".dev"
