@@ -96,6 +96,7 @@ class TokenBalanceViewModelTest : KoinTest {
     private val stackingManager = mockk<StackingManager>(relaxed = true)
     private val priceManager = mockk<PriceManager>(relaxed = true)
     private val localStorage = mockk<ILocalStorage>(relaxed = true)
+    private val numberFormatter = mockk<io.horizontalsystems.core.IAppNumberFormatter>(relaxed = true)
 
     // Controllable flows
     private lateinit var transactionHiddenFlow: MutableStateFlow<TransactionHiddenState>
@@ -313,6 +314,7 @@ class TokenBalanceViewModelTest : KoinTest {
         stackingManager = stackingManager,
         priceManager = priceManager,
         localStorage = localStorage,
+        numberFormatter = numberFormatter,
     )
 
     private fun createHiddenState(

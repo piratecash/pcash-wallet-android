@@ -47,7 +47,7 @@ class StackingFragment : BaseComposeFragment() {
     }
 
     private fun setCalculatorData(stackingType: StackingType, balance: BigDecimal) {
-        val minBalance = if (stackingType == StackingType.PCASH) BigDecimal(100) else BigDecimal(1)
+        val minBalance = BigDecimal(stackingType.minStackingAmount)
         val defaultValue = if (stackingType == StackingType.PCASH) "10000" else "1000"
 
         val value = if (balance < minBalance) {

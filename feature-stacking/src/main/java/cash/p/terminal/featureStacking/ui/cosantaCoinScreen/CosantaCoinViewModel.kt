@@ -30,6 +30,6 @@ internal class CosantaCoinViewModel(
     balanceHiddenManager = balanceHiddenManager,
     checkPremiumUseCase = checkPremiumUseCase
 ) {
-    override val minStackingAmount = 1
+    override val minStackingAmount = StackingType.COSANTA.minStackingAmount
     override val stackingType: StackingType = StackingType.COSANTA
 }
