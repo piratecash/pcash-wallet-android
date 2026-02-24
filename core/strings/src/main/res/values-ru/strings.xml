@@ -517,6 +517,7 @@
     <string name="Swap_Price">Цена</string>
     <string name="Swap_AvailableBalance">Доступный баланс</string>
     <string name="swap_insufficient_fee_balance">Недостаточно средств на балансе</string>
+    <string name="swap_balance_for_fees">Баланс для комиссий</string>
     <string name="Swap_PriceImpact">Отклонение от рын. цены</string>
     <string name="Swap_PriceImpactTooHigh">Разница между рыночной ценой и ожидаемой расчетной ценой слишком высока.</string>
     <string name="Swap_PriceImpactWarning">Важно! Вы получаете чрезвычайно неблагоприятную цену. Это связано с крайне низкой ликвидностью.</string>

@@ -474,12 +474,7 @@ private fun SwapScreenInner(
 
                 VSpacer(height = 12.dp)
 
-                subhead2_grey(
-                    text = stringResource(R.string.FeeSettings_NetworkFee),
-                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp)
-                )
-
-                CardsSwapInfo(isError = uiState.insufficientFeeBalance) {
+                CardsSwapInfo {
                     val isNativeCoinSwap = uiState.feeCoinBalance == null
                     AvailableBalanceField(
                         tokenIn = uiState.tokenIn,
@@ -488,6 +483,16 @@ private fun SwapScreenInner(
                         isError = uiState.insufficientFeeBalance && isNativeCoinSwap,
                         toggleHideBalance = onBalanceClicked
                     )
+                }
+
+                VSpacer(height = 12.dp)
+
+                subhead2_grey(
+                    text = stringResource(R.string.FeeSettings_NetworkFee),
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 4.dp)
+                )
+
+                CardsSwapInfo(isError = uiState.insufficientFeeBalance) {
                     FeeCoinBalanceField(
                         feeToken = uiState.feeToken,
                         feeCoinBalance = uiState.feeCoinBalance,
@@ -503,8 +508,7 @@ private fun SwapScreenInner(
                             secondary = uiState.networkFeeFiatAmount?.let {
                                 App.numberFormatter.formatFiatFull(it, uiState.currency.symbol)
                             } ?: "",
-                            borderTop = true,
-                            balanceHidden = uiState.balanceHidden,
+                            borderTop = uiState.feeCoinBalance != null,
                         )
                     }
                 }
@@ -643,10 +647,9 @@ private fun FeeCoinBalanceField(
     if (feeToken == null || feeCoinBalance == null) return
 
     QuoteInfoRow(
-        borderTop = true,
         title = {
             subhead2_grey(
-                text = stringResource(R.string.Swap_AvailableBalance) + " " + feeToken.coin.code
+                text = stringResource(R.string.swap_balance_for_fees)
             )
         },
         value = {

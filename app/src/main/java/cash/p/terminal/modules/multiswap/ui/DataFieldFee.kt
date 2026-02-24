@@ -27,7 +27,6 @@ fun DataFieldFee(
     primary: String,
     secondary: String,
     borderTop: Boolean = false,
-    balanceHidden: Boolean = false,
 ) {
     val title = stringResource(id = R.string.FeeSettings_NetworkFee)
     val infoText = stringResource(id = R.string.FeeSettings_NetworkFee_Info)
@@ -52,14 +51,10 @@ fun DataFieldFee(
 
         },
         value = {
-            if (balanceHidden) {
-                subhead2_leah(text = "*****")
-            } else {
-                Column(horizontalAlignment = Alignment.End) {
-                    subhead2_leah(text = primary)
-                    VSpacer(height = 1.dp)
-                    subhead2_grey(text = secondary)
-                }
+            Column(horizontalAlignment = Alignment.End) {
+                subhead2_leah(text = primary)
+                VSpacer(height = 1.dp)
+                subhead2_grey(text = secondary)
             }
         }
     )
