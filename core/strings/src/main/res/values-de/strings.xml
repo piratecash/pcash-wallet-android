@@ -84,6 +84,7 @@
     <string name="CreateWallet_Error_EmptyPassphrase">Passphrase darf nicht leer sein</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Bitte verwende nur unterstützte Symbole: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">Passphrase-Bestätigung stimmt nicht überein</string>
+    <string name="create_wallet_error_failed">Wallet konnte nicht erstellt werden. Bitte versuchen Sie es erneut oder starten Sie die App neu.</string>
     <string name="CreateWallet_PassphraseDescription">Passphrases fügen eine zusätzliche Sicherheitsschicht für Brieftaschen hinzu. Um eine solche Brieftasche wiederherzustellen, benötigt ein Benutzer sowohl mnemonische als auch eine Passphrase.\n\nPassphrasen erleichtern es Benutzern auch, mehrere Multicoin-Wallets mit einem einzigen mnemonischen, aber anderen Passwort zu haben.</string>
     <!--Languages-->
     <string name="Language_English">Englisch</string>

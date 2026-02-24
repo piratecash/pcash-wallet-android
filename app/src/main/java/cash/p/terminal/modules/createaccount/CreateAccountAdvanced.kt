@@ -83,6 +83,13 @@ fun CreateAccountAdvancedScreen(
         }
     }
 
+    LaunchedEffect(viewModel.error) {
+        viewModel.error?.let { message ->
+            HudHelper.showErrorMessage(contentView = view, text = message)
+            viewModel.onErrorShown()
+        }
+    }
+
     var showMnemonicSizeSelectorDialog by remember { mutableStateOf(false) }
     var hidePassphrase by remember { mutableStateOf(true) }
 

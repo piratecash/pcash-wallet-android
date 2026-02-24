@@ -92,6 +92,7 @@
     <string name="CreateWallet_Error_EmptyPassphrase">Поле для кодової фрази не може бути порожнім</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Будь ласка, використовуйте лише підтримувані символи: A-Z a-z 0-9 \' " ` &amp; / ? ! : ; . , ~ * $ = + - [ ](){} &lt;&gt; \ _ # @ | % </string>
     <string name="CreateWallet_Error_InvalidConfirmation">Підтверджена кодова фраза не збігається</string>
+    <string name="create_wallet_error_failed">Не вдалося створити гаманець. Спробуйте ще раз або перезапустіть додаток.</string>
     <string name="CreateWallet_PassphraseDescription">Кодова фраза додає додатковий шар безпеки для гаманців. Щоб відновити такий гаманець, потрібні як мнемонік, так і кодова фраза.\n\nКодова фраза також полегшує користувачам можливість мати безліч мульти-монетних гаманців, використовуючи одну фразу відновлення, але інший пароль.</string>
     <!--Languages-->
     <string name="Language_English">Англійська</string>

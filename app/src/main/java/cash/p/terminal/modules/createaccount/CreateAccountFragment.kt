@@ -162,6 +162,13 @@ private fun CreateAccountIntroScreen(
         }
     }
 
+    LaunchedEffect(viewModel.error) {
+        viewModel.error?.let { message ->
+            HudHelper.showErrorMessage(contentView = view, text = message)
+            viewModel.onErrorShown()
+        }
+    }
+
     Surface(color = ComposeAppTheme.colors.tyler) {
         Column(Modifier.fillMaxSize()) {
             AppBar(

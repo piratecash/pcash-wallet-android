@@ -85,6 +85,7 @@
     <string name="CreateWallet_Error_EmptyPassphrase">助记词不能为空</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">请只使用支持的符号： <![CDATA[A-Z a-z 0-9 \' " & / ? ！: ; 。 ，~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">确认密码不匹配</string>
+    <string name="create_wallet_error_failed">创建钱包失败。请重试或重启应用。</string>
     <string name="CreateWallet_PassphraseDescription">密码为钱包添加一个额外的安全层。要恢复这个钱包，用户既需要密码，也需要密码。\n\n密码也使得用户可以轻松地使用单一的密钥但不同的密码来拥有许多多币钱包。</string>
     <!--Languages-->
     <string name="Language_English">汉语</string>
