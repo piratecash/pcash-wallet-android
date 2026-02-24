@@ -53,11 +53,13 @@ abstract class BaseComposeFragment(
                     // popped — prevents navGraphViewModels crashes during
                     // destruction recomposition.
                     val destId = remember { navController.currentDestination?.id }
-                    val isOnBackStack = destId == null || try {
-                        navController.getBackStackEntry(destId)
-                        true
-                    } catch (_: IllegalArgumentException) {
-                        false
+                    val isOnBackStack = remember(navController.currentBackStackEntry) {
+                        destId == null || try {
+                            navController.getBackStackEntry(destId)
+                            true
+                        } catch (_: IllegalArgumentException) {
+                            false
+                        }
                     }
 
                     if (isOnBackStack) {
