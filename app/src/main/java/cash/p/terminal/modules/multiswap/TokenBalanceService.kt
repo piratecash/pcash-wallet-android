@@ -19,6 +19,7 @@ class TokenBalanceService(
     private var amount: BigDecimal? = null
     private var adapter: IBalanceAdapter? = null
     private var balance: BigDecimal? = null
+    private var displayBalance: BigDecimal? = null
     private var error: Throwable? = null
 
     private var fee: BigDecimal? = null
@@ -28,6 +29,7 @@ class TokenBalanceService(
 
     override fun createState() = State(
         balance = balance,
+        displayBalance = displayBalance,
         error = error,
         fee = fee,
         feeToken = feeToken,
@@ -98,6 +100,8 @@ class TokenBalanceService(
             adjusted ?: adapterAvailableBalance
         }
 
+        displayBalance = adjusted
+
         val currentToken = token
         if (currentToken != null) {
             feeToken = marketKit.token(TokenQuery(currentToken.blockchainType, TokenType.Native))
@@ -122,6 +126,7 @@ class TokenBalanceService(
 
     data class State(
         val balance: BigDecimal?,
+        val displayBalance: BigDecimal?,
         val error: Throwable?,
         val fee: BigDecimal?,
         val feeToken: Token?,

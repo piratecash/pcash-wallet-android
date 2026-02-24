@@ -150,6 +150,7 @@ class SwapViewModel(
             error = networkState.error ?: quoteState.error ?: balanceState.error
                 ?: priceImpactState.error,
             availableBalance = balanceState.balance,
+            displayBalance = balanceState.displayBalance,
             networkFee = fee,
             networkFeeFiatAmount = networkFeeFiatAmount,
             feeToken = feeToken,
@@ -319,6 +320,7 @@ data class SwapUiState(
     val quote: SwapProviderQuote?,
     val error: Throwable?,
     val availableBalance: BigDecimal?,
+    val displayBalance: BigDecimal?,
     val networkFee: BigDecimal?,
     val networkFeeFiatAmount: BigDecimal?,
     val feeToken: Token?,

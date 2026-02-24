@@ -478,7 +478,7 @@ private fun SwapScreenInner(
                     val isNativeCoinSwap = uiState.feeCoinBalance == null
                     AvailableBalanceField(
                         tokenIn = uiState.tokenIn,
-                        availableBalance = uiState.availableBalance,
+                        availableBalance = uiState.displayBalance,
                         balanceHidden = uiState.balanceHidden,
                         isError = uiState.insufficientFeeBalance && isNativeCoinSwap,
                         toggleHideBalance = onBalanceClicked
