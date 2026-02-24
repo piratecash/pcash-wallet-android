@@ -143,14 +143,35 @@ class AccountManager(
 
     override fun update(account: Account) {
         storage.update(account)
+        modifyCachedAccount(account.id) { account }
+    }
 
-        updateCache(account)
-        _accountsSharedFlow.tryEmit(accounts)
+    override fun updateName(id: String, name: String) {
+        storage.updateName(id, name)
+        modifyCachedAccount(id) { it.copy(name = name) }
+    }
 
-        activeAccount?.id?.let {
-            if (account.id == it) {
-                activeAccount = account
-                _activeAccountStateFlow.update { ActiveAccountState.ActiveAccount(activeAccount) }
+    override fun markAsBackedUp(id: String) {
+        val current = accountsCache[id] ?: storage.loadAccount(id) ?: return
+        storage.updateBackupFlags(id, isBackedUp = true, isFileBackedUp = current.isFileBackedUp)
+        modifyCachedAccount(id) { it.copy(isBackedUp = true) }
+    }
+
+    override fun markAsFileBackedUp(id: String) {
+        val current = accountsCache[id] ?: storage.loadAccount(id) ?: return
+        storage.updateBackupFlags(id, isBackedUp = current.isBackedUp, isFileBackedUp = true)
+        modifyCachedAccount(id) { it.copy(isFileBackedUp = true) }
+    }
+
+    private inline fun modifyCachedAccount(id: String, transform: (Account) -> Account) {
+        accountsCache[id]?.let { cached ->
+            val updated = transform(cached)
+            updateCache(updated)
+            _accountsSharedFlow.tryEmit(accounts)
+
+            if (activeAccount?.id == id) {
+                activeAccount = updated
+                _activeAccountStateFlow.update { ActiveAccountState.ActiveAccount(updated) }
             }
         }
     }

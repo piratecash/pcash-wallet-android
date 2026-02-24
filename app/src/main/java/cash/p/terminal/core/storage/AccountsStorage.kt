@@ -134,6 +134,14 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
         dao.update(getAccountRecord(account))
     }
 
+    override fun updateName(id: String, name: String) {
+        dao.updateName(id, name)
+    }
+
+    override fun updateBackupFlags(id: String, isBackedUp: Boolean, isFileBackedUp: Boolean) {
+        dao.updateBackupFlags(id, isBackedUp, isFileBackedUp)
+    }
+
     override fun updateLevels(accountIds: List<String>, level: Int) {
         dao.updateLevels(accountIds, level)
     }

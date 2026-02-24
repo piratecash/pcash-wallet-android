@@ -97,7 +97,7 @@ class BackupConfirmKeyViewModel(
             if (currentHiddenWordItemIndex != hiddenWordItems.lastIndex) {
                 currentHiddenWordItemIndex++
             } else {
-                accountManager.update(account.copy(isBackedUp = true))
+                accountManager.markAsBackedUp(account.id)
                 accountManager.onHandledBackupRequiredNewAccount()
                 confirmed = true
             }

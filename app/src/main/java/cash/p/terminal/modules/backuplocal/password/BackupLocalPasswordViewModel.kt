@@ -167,7 +167,7 @@ class BackupLocalPasswordViewModel(
                 is BackupType.SingleWalletBackup -> {
                     accountManager.account(type.accountId)?.let { account ->
                         if (!account.isFileBackedUp) {
-                            accountManager.update(account.copy(isFileBackedUp = true))
+                            accountManager.markAsFileBackedUp(account.id)
                         }
                     }
                 }
@@ -177,7 +177,7 @@ class BackupLocalPasswordViewModel(
                     type.accountIds.forEach { accountId ->
                         accountManager.account(accountId)?.let { account ->
                             if (!account.isFileBackedUp) {
-                                accountManager.update(account.copy(isFileBackedUp = true))
+                                accountManager.markAsFileBackedUp(account.id)
                             }
                         }
                     }
@@ -187,7 +187,7 @@ class BackupLocalPasswordViewModel(
                             val duressLevel = pinComponent.getDuressLevel()
                             accountManager.accountsAtLevel(duressLevel).forEach { account ->
                                 if (!account.isFileBackedUp) {
-                                    accountManager.update(account.copy(isFileBackedUp = true))
+                                    accountManager.markAsFileBackedUp(account.id)
                                 }
                             }
                         } catch (_: Exception) {
