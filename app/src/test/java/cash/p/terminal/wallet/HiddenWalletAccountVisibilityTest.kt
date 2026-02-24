@@ -157,6 +157,14 @@ private class InMemoryAccountsDao : AccountsDao {
         accounts[id]?.let { accounts[id] = it.apply { deleted = true } }
     }
 
+    override fun updateName(id: String, name: String) {
+        accounts[id]?.let { accounts[id] = it.copy(name = name) }
+    }
+
+    override fun updateBackupFlags(id: String, isBackedUp: Boolean, isFileBackedUp: Boolean) {
+        accounts[id]?.let { accounts[id] = it.copy(isBackedUp = isBackedUp, isFileBackedUp = isFileBackedUp) }
+    }
+
     override fun updateLevels(accountIds: List<String>, level: Int) {
         accountIds.forEach { id ->
             accounts[id]?.let { record ->
