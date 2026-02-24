@@ -352,6 +352,7 @@ private fun SwapScreenInner(
             Column(
                 modifier = Modifier
                     .padding(it)
+                    .imePadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 VSpacer(height = 12.dp)
