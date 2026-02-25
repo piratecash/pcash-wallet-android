@@ -85,6 +85,7 @@
     <string name="CreateWallet_Error_EmptyPassphrase">A senha não pode estar vazia</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Por favor, use apenas símbolos suportados: <![CDATA[A-Z a-z 0-9 \' " ` & / ? : ; . , ~ * $ = + - [ ](){} <> \ _ # @ £% ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">Confirmação da senha não coincide</string>
+    <string name="create_wallet_error_failed">Falha ao criar a carteira. Tente novamente ou reinicie o aplicativo.</string>
     <string name="CreateWallet_PassphraseDescription">Frases secretas adicionam camada de segurança adicional para carteiras. Para restaurar essa carteira, o usuário exigia uma frase de recuperação e uma frase secreta.\n\nAs frases secretas também facilitam para os usuários ter muitas carteiras com várias moedas usando um único mnemônico, mas com senhas diferentes.</string>
     <!--Languages-->
     <string name="Language_English">Inglês</string>

@@ -71,12 +71,12 @@ object HudHelper {
     }
 
     fun showErrorMessage(
-        contenView: View,
+        contentView: View,
         text: String,
         gravity: SnackbarGravity = SnackbarGravity.BOTTOM
     ): CustomSnackbar? {
         return showHudNotification(
-            contentView = contenView,
+            contentView = contentView,
             text = text,
             backgroundColor = R.color.red_d,
             duration = SnackbarDuration.LONG,

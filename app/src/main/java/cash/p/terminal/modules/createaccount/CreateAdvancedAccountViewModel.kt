@@ -29,6 +29,7 @@ import cash.p.terminal.wallet.normalizeNFKD
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 
 class CreateAdvancedAccountViewModel(
     private val accountFactory: IAccountFactory,
@@ -77,6 +78,9 @@ class CreateAdvancedAccountViewModel(
         private set
 
     var success by mutableStateOf<AccountType?>(null)
+        private set
+
+    var error by mutableStateOf<String?>(null)
         private set
 
     fun createMnemonicAccount() = viewModelScope.launch {
@@ -173,6 +177,10 @@ class CreateAdvancedAccountViewModel(
         success = null
     }
 
+    fun onErrorShown() {
+        error = null
+    }
+
     private fun passphraseIsInvalid(): Boolean {
         if (passphraseState is DataState.Error) {
             return true
@@ -218,11 +226,17 @@ class CreateAdvancedAccountViewModel(
         //TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20("0xe9e7cea3dedca5984780bafc599bd69add087d56")),
     )
 
-    private fun mnemonicAccountType(wordCount: Int): AccountType {
+    private fun mnemonicAccountType(wordCount: Int): AccountType? {
         // A new account can be created only using an English wordlist and limited chars in the passphrase.
         // Despite it, we add text normalizing.
         // It is to avoid potential issues if we allow non-English wordlists on account creation.
-        val words = wordsManager.generateWords(wordCount).map { it.normalizeNFKD() }
-        return AccountType.Mnemonic(words, passphrase.normalizeNFKD())
+        return try {
+            val words = wordsManager.generateWords(wordCount).map { it.normalizeNFKD() }
+            AccountType.Mnemonic(words, passphrase.normalizeNFKD())
+        } catch (e: Throwable) {
+            Timber.e(e, "Failed to generate mnemonic words")
+            error = Translator.getString(R.string.create_wallet_error_failed)
+            null
+        }
     }
 }

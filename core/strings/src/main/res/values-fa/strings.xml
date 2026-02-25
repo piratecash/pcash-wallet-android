@@ -85,6 +85,7 @@
     <string name="CreateWallet_Error_EmptyPassphrase">رمز عبور نمی تواند خالی باشد</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Please use only supported symbols: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">تأیید عبارت عبور مطابقت ندارد</string>
+    <string name="create_wallet_error_failed">ایجاد کیف پول ناموفق بود. لطفاً دوباره تلاش کنید یا برنامه را مجدداً راه‌اندازی کنید.</string>
     <string name="CreateWallet_PassphraseDescription">Passphrases add additional security layer for wallets. To restore such wallet a user required both a recovery phrase as well as a passphrase.\n\nPassphrases also make it easy for users to have many multi-coin wallets using a single mnemonic but different passwords.</string>
     <!--Languages-->
     <string name="Language_English">انگلیسی</string>
