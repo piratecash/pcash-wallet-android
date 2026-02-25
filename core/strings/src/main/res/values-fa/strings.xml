@@ -513,6 +513,7 @@
     <string name="swap_insufficient_fee_balance">موجودی ناکافی در حساب</string>
     <string name="swap_balance_for_fees">موجودی برای کارمزدها</string>
     <string name="fee">کارمزد</string>
+    <string name="estimated_fee">کارمزد تخمینی</string>
     <string name="Swap_PriceImpact">تأثیر قیمت</string>
     <string name="Swap_PriceImpactTooHigh">تفاوت بین قیمت بازار و قیمت مانده حساب مورد انتظار بسیار زیاد است.</string>
     <string name="Swap_PriceImpactWarning">Important! You\'re getting an extremely unfavorable price. This is due to extremely low liquidity.</string>

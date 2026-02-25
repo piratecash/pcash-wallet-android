@@ -507,6 +507,7 @@
     <string name="swap_insufficient_fee_balance">Unzureichendes Guthaben</string>
     <string name="swap_balance_for_fees">Guthaben für Gebühren</string>
     <string name="fee">Gebühr</string>
+    <string name="estimated_fee">Geschätzte Gebühr</string>
     <string name="Swap_PriceImpact">Preisauswirkungen</string>
     <string name="Swap_PriceImpactTooHigh">Die Differenz zwischen dem Marktpreis und dem erwarteten Abrechnungspreis ist zu hoch.</string>
     <string name="Swap_PriceImpactWarning">Wichtig! Du bekommst einen extrem ungünstigen Preis. Dies ist auf die extrem niedrige Liquidität zurückzuführen.</string>

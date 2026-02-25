@@ -23,8 +23,7 @@ import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
-import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
-import cash.p.terminal.modules.multiswap.ui.DataFieldFee
+import cash.p.terminal.modules.multiswap.ui.FeeInfoSection
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -175,6 +174,7 @@ fun SwapConfirmScreen(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap),
                     enabled = viewModel.isSynced && !swapInProgress && uiState.amountOut != null &&
+                            uiState.networkFee != null && uiState.feeCaution == null &&
                             uiState.cautions.none { it.type == CautionViewItem.Type.Error },
                     onClick = viewModel::executeSwap,
                 )
@@ -252,12 +252,19 @@ fun SwapConfirmScreen(
         }
 
         VSpacer(height = 16.dp)
-        SectionUniversalLawrence {
-            DataFieldFee(
-                uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
-                uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
-            )
-        }
+        val swapUiState = swapViewModel.uiState
+        val hasFeeError = uiState.feeCaution != null
+        FeeInfoSection(
+            tokenIn = uiState.tokenIn,
+            displayBalance = swapUiState.displayBalance,
+            balanceHidden = swapUiState.balanceHidden,
+            feeToken = swapUiState.feeToken,
+            feeCoinBalance = swapUiState.feeCoinBalance,
+            feePrimary = uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
+            feeSecondary = uiState.networkFee?.secondary?.getFormattedPlain() ?: "---",
+            insufficientFeeBalance = hasFeeError,
+            onBalanceClicked = swapViewModel::toggleHideBalance,
+        )
 
         if (uiState.mevProtectionAvailable) {
             VSpacer(16.dp)

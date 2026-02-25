@@ -509,6 +509,7 @@
     <string name="swap_insufficient_fee_balance">余额不足</string>
     <string name="swap_balance_for_fees">手续费余额</string>
     <string name="fee">手续费</string>
+    <string name="estimated_fee">预估费用</string>
     <string name="Swap_PriceImpact">价格影响</string>
     <string name="Swap_PriceImpactTooHigh">市场价格与预期结算价格之间的差额太高。</string>
     <string name="Swap_PriceImpactWarning">重要提示！您正在以极其不利的价格进行交易。这是因为流动性非常低。</string>

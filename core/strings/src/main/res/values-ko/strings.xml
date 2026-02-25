@@ -513,6 +513,7 @@
     <string name="swap_insufficient_fee_balance">잔액이 부족합니다</string>
     <string name="swap_balance_for_fees">수수료용 잔액</string>
     <string name="fee">수수료</string>
+    <string name="estimated_fee">예상 수수료</string>
     <string name="Swap_PriceImpact">가격 영향</string>
     <string name="Swap_PriceImpactTooHigh">시장 가격과 예상 결제 가격의 차이가 너무 큽니다.</string>
     <string name="Swap_PriceImpactWarning">중요한 사항입니다! 매우 불리한 가격을 받고 있습니다. 이는 유동성이 극도로 낮기 때문입니다.</string>

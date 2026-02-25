@@ -519,6 +519,7 @@
     <string name="swap_insufficient_fee_balance">Недостаточно средств на балансе</string>
     <string name="swap_balance_for_fees">Баланс для комиссий</string>
     <string name="fee">Комиссия</string>
+    <string name="estimated_fee">Примерная комиссия</string>
     <string name="Swap_PriceImpact">Отклонение от рын. цены</string>
     <string name="Swap_PriceImpactTooHigh">Разница между рыночной ценой и ожидаемой расчетной ценой слишком высока.</string>
     <string name="Swap_PriceImpactWarning">Важно! Вы получаете чрезвычайно неблагоприятную цену. Это связано с крайне низкой ликвидностью.</string>

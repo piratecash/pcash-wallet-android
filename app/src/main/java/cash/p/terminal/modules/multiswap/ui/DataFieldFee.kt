@@ -27,8 +27,8 @@ fun DataFieldFee(
     primary: String,
     secondary: String,
     borderTop: Boolean = false,
+    title: String = stringResource(id = R.string.fee),
 ) {
-    val title = stringResource(id = R.string.fee)
     val infoText = stringResource(id = R.string.FeeSettings_NetworkFee_Info)
     var showInfoDialog by remember { mutableStateOf(false) }
 
