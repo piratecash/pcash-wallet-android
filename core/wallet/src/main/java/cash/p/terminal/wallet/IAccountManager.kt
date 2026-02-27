@@ -20,6 +20,9 @@ interface IAccountManager {
     fun save(account: Account, updateActive: Boolean = true)
     fun import(accounts: List<Account>)
     fun update(account: Account)
+    fun updateName(id: String, name: String)
+    fun markAsBackedUp(id: String)
+    fun markAsFileBackedUp(id: String)
     suspend fun delete(id: String)
     fun clear()
     fun getDeletedAccountIds(): List<String>

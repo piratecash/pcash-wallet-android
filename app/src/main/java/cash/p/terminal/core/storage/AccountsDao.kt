@@ -14,6 +14,12 @@ interface AccountsDao {
     @Update
     fun update(accountRow: AccountRecord)
 
+    @Query("UPDATE AccountRecord SET name = :name WHERE id = :id")
+    fun updateName(id: String, name: String)
+
+    @Query("UPDATE AccountRecord SET isBackedUp = :isBackedUp, isFileBackedUp = :isFileBackedUp WHERE id = :id")
+    fun updateBackupFlags(id: String, isBackedUp: Boolean, isFileBackedUp: Boolean)
+
     @Query("SELECT * FROM AccountRecord WHERE id = :id")
     fun loadAccount(id: String): AccountRecord?
 

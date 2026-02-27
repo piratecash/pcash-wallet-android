@@ -103,8 +103,7 @@ class ManageAccountViewModel(
     }
 
     fun onSave() {
-        val account = account.copy(name = newName)
-        accountManager.update(account)
+        accountManager.updateName(account.id, newName)
         viewState = viewState.copy(closeScreen = true)
     }
 

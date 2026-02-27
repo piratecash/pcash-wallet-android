@@ -11,6 +11,8 @@ interface IAccountsStorage {
     fun loadAccount(id: String): Account?
     fun save(account: Account)
     fun update(account: Account)
+    fun updateName(id: String, name: String)
+    fun updateBackupFlags(id: String, isBackedUp: Boolean, isFileBackedUp: Boolean)
     fun delete(id: String)
     fun getNonBackedUpCount(): Flowable<Int>
     fun clear()
