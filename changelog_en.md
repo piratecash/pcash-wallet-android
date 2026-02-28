@@ -1,3 +1,44 @@
+## 🚀 Version 0.51.19 Update
+_Release date: February 28, 2026_
+
+### ✨ Improvements
+
+- **Updated asset screen UI**
+  Improved asset screen appearance for all assets.
+  Cosanta and PirateCash now additionally display staking status and unpaid balance.
+
+- **Lock screen refactoring**
+  The lock screen (PIN code input) has been moved from a separate LockScreenActivity into an overlay inside MainActivity.
+  This allows preserving navigation state when the application process is recreated.
+
+### 🐛 Fixes
+
+- **Fixed DASH remaining sync blocks display**
+  Previously, the number of network transactions was shown instead of the actual remaining number of blocks required to complete synchronization.
+
+- **Fixed rare crash when sending TRC20 tokens**
+  The application could crash on the send confirmation screen.
+
+- **Fixed crash when closing ZEC wallet — SQLiteDatabase race condition**
+  The application could crash with IllegalStateException: attempt to re-open an already-closed object: SQLiteDatabase when working with the ZEC wallet.
+  This occurred when the synchronizer was closed before active database queries were completed.
+
+- **Fixed crash after wallet deletion when switching to another wallet**
+
+- **Fixed application crashes when working with Monero wallet (libmonerujo.so)**
+
+- **Fixed crash when creating a wallet on low-resource devices**
+  The application could crash with ExceptionInInitializerError during wallet creation.
+  The issue occurred during WordList initialization in the hd-wallet-kit-android library when all language word lists were loaded simultaneously, although only English was required.
+
+- **Fixed UserNotAuthenticatedException crash when updating wallet name or backup flags**
+  The application could crash if the device had not been unlocked for an extended period of time (7+ days).
+
+- **Fixed ANR and crash during ECASH synchronization caused by MerkleBlock serialization issue**
+  During ECASH wallet synchronization, the application could freeze (ANR) and stop responding due to excessive CPU usage.
+
+
+
 ## 🚀 Version 0.51.18 Update
 _Release date: February 22, 2026_
 
