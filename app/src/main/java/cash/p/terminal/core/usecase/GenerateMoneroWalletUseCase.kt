@@ -11,7 +11,7 @@ class GenerateMoneroWalletUseCase(
         val walletFile = Helper.getWalletFile(appContext, walletName)
 
         return if (!walletFile.exists()) {
-            return walletName
+            walletName
         } else {
             null
         }

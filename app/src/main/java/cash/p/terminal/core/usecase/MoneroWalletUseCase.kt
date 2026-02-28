@@ -1,12 +1,13 @@
 package cash.p.terminal.core.usecase
 
 import android.content.Context
-import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.utils.MoneroConfig
 import cash.p.terminal.core.utils.MoneroWalletSeedConverter
 import cash.p.terminal.wallet.AccountType
 import com.m2049r.xmrwallet.model.Wallet
 import com.m2049r.xmrwallet.model.WalletManager
+import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.m2049r.xmrwallet.util.Helper
 import com.m2049r.xmrwallet.util.KeyStoreHelper
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,7 @@ import java.nio.file.StandardCopyOption
 
 class MoneroWalletUseCase(
     private val appContext: Context,
-    private val moneroKitWrapper: MoneroKitManager,
+    private val moneroWalletService: MoneroWalletService,
     private val generateMoneroWalletUseCase: GenerateMoneroWalletUseCase
 ) {
     suspend fun createNew(): AccountType? = withContext(Dispatchers.IO) {
@@ -150,7 +151,8 @@ class MoneroWalletUseCase(
                 Timber.d("Wrong words count")
             }
 
-            val walletInnerName = walletInnerNameExisting ?: generateMoneroWalletUseCase() ?: return@withContext null
+            val walletInnerName =
+                walletInnerNameExisting ?: generateMoneroWalletUseCase() ?: return@withContext null
 
             val crazyPass = crazyPassExisting ?: KeyStoreHelper.getCrazyPass(appContext, "")
             val walletFolder: File = Helper.getWalletRoot(appContext)
@@ -180,7 +182,7 @@ class MoneroWalletUseCase(
             }
         }
 
-    private suspend fun closeOpenedWallet() {
-        moneroKitWrapper.unlinkAll()
+    private fun closeOpenedWallet() {
+        tryOrNull { moneroWalletService.stop(false) }
     }
 }
