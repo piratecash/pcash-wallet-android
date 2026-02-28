@@ -295,6 +295,9 @@ dependencies {
     //Splash screen
     implementation "androidx.core:core-splashscreen:1.0.1"
 
+    //Baseline Profiles
+    implementation libs.profileinstaller
+
     //AppWidgets
     implementation 'androidx.glance:glance-appwidget:1.1.1'
 
