@@ -109,7 +109,12 @@ class PinUnlockViewModel(
     }
 
     fun unlocked() {
-        uiState = uiState.copy(unlocked = false)
+        enteredPin = ""
+        uiState = uiState.copy(
+            unlocked = false,
+            enteredCount = 0,
+            showShakeAnimation = false
+        )
     }
 
     fun onShakeAnimationFinish() {
