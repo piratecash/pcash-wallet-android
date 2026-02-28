@@ -11,6 +11,9 @@ _Release date: February 28, 2026_
   The lock screen (PIN code input) has been moved from a separate LockScreenActivity into an overlay inside MainActivity.
   This allows preserving navigation state when the application process is recreated.
 
+- **Improved application startup performance**
+  Fixed an issue where the application started loading significantly slower and experienced UI lag starting from version 0.51.18-C6C92C8E7 (222).
+
 ### 🐛 Fixes
 
 - **Fixed DASH remaining sync blocks display**
@@ -18,6 +21,8 @@ _Release date: February 28, 2026_
 
 - **Fixed rare crash when sending TRC20 tokens**
   The application could crash on the send confirmation screen.
+
+- **Fixed crash when opening the MiniApp connection screen on some Huawei devices**
 
 - **Fixed crash when closing ZEC wallet — SQLiteDatabase race condition**
   The application could crash with IllegalStateException: attempt to re-open an already-closed object: SQLiteDatabase when working with the ZEC wallet.
