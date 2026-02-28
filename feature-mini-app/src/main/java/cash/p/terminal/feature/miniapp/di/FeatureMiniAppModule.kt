@@ -37,7 +37,7 @@ val featureMiniAppModule = module {
 
     // ViewModels
     viewModelOf(::MiniAppViewModel)
-    viewModel {
+    viewModel { params ->
         ConnectMiniAppViewModel(
             checkIfEmulatorUseCase = get(),
             collectDeviceEnvironmentUseCase = get(),
@@ -51,7 +51,7 @@ val featureMiniAppModule = module {
             balanceService = get(named("wallet")),
             getBnbAddressUseCase = get(),
             uniqueCodeStorage = get(),
-            savedStateHandle = get(),
+            savedStateHandle = params.get(),
             getTonAddressUseCase = get()
         )
     }
