@@ -135,6 +135,7 @@ data class SendTransactionServiceState(
     val availableBalance: BigDecimal?,
     val networkFee: SendModule.AmountData?,
     val cautions: List<CautionViewItem>,
+    val feeCaution: CautionViewItem? = null,
     val sendable: Boolean,
     val loading: Boolean,
     val fields: List<DataField>,

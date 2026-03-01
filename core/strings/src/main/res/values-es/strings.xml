@@ -506,6 +506,10 @@
     <string name="Swap_Allowance">Permiso de acceso</string>
     <string name="Swap_Price">Precio</string>
     <string name="Swap_AvailableBalance">Saldo disponible</string>
+    <string name="swap_insufficient_fee_balance">Fondos insuficientes en el saldo</string>
+    <string name="swap_balance_for_fees">Saldo para comisiones</string>
+    <string name="fee">Comisión</string>
+    <string name="estimated_fee">Tarifa estimada</string>
     <string name="Swap_PriceImpact">Impacto en el precio</string>
     <string name="Swap_PriceImpactTooHigh">La diferencia entre el precio de mercado y el precio esperado de liquidación es demasiado alta.</string>
     <string name="Swap_PriceImpactWarning">¡Importante! Has obtenido un precio extremadamente desfavorable debido a la baja liquidez del mercado.</string>

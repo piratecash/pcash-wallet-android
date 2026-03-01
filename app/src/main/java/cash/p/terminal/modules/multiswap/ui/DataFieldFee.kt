@@ -26,12 +26,14 @@ import cash.p.terminal.ui_compose.components.subhead2_leah
 fun DataFieldFee(
     primary: String,
     secondary: String,
+    borderTop: Boolean = false,
+    title: String = stringResource(id = R.string.fee),
 ) {
-    val title = stringResource(id = R.string.FeeSettings_NetworkFee)
     val infoText = stringResource(id = R.string.FeeSettings_NetworkFee_Info)
     var showInfoDialog by remember { mutableStateOf(false) }
 
     QuoteInfoRow(
+        borderTop = borderTop,
         title = {
             subhead2_grey(text = title)
 

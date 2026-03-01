@@ -83,12 +83,9 @@ class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, deci
     }
 
     private suspend fun estimateFeeForMax() {
-        if (balanceData.available <= BigDecimal.ZERO) {
-            _fee.value = BigDecimal.ZERO
-            return
-        }
         tryOrNull {
-            val fees = estimateFee(balanceData.available, tronKit.address)
+            val amount = maxOf(balanceData.available, BigDecimal.ONE.movePointLeft(decimal))
+            val fees = estimateFee(amount, tronKit.address)
             _fee.value = fees.sumOf { it.feeInSuns }.toBigDecimal().movePointLeft(decimal).stripTrailingZeros()
         }
     }

@@ -54,10 +54,6 @@ internal class EvmAdapter(evmTransactionRepository: EvmTransactionRepository, co
     }
 
     private suspend fun estimateFeeForMax() {
-        if (balanceData.available <= BigDecimal.ZERO) {
-            _fee.value = BigDecimal.ZERO
-            return
-        }
         tryOrNull {
             val feeInWei = evmTransactionRepository.estimateNativeTransferFee()
             _fee.value = feeInWei.toBigDecimal().movePointLeft(decimal).stripTrailingZeros()

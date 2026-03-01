@@ -94,7 +94,8 @@ class SendTransactionServiceTonSwap(
     override fun createState() = SendTransactionServiceState(
         availableBalance = adjustedAvailableBalance,
         networkFee = feeAmountData,
-        cautions = cautions + listOfNotNull(feeCaution),
+        cautions = cautions,
+        feeCaution = feeCaution,
         sendable = sendable,
         loading = loading,
         fields = fields

@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.action.ActionCreate
+import cash.p.terminal.modules.multiswap.ui.FeeInfoSection
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
@@ -249,6 +250,7 @@ private fun SwapMainScreen(
 
     SwapScreenInner(
         uiState = uiState,
+        timeRemainingProgress = { viewModel.timeRemainingProgress },
         onClickClose = fragmentNavController::navigateUp,
         onClickCoinFrom = {
             swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From))
@@ -293,6 +295,7 @@ private fun SwapMainScreen(
 @Composable
 private fun SwapScreenInner(
     uiState: SwapUiState,
+    timeRemainingProgress: () -> Float?,
     onClickClose: () -> Unit,
     onClickCoinFrom: () -> Unit,
     onClickCoinTo: () -> Unit,
@@ -328,10 +331,8 @@ private fun SwapScreenInner(
                     HsBackButton(onClick = onClickClose)
                 },
                 menuItems = buildList {
-                    uiState.timeRemainingProgress?.let { timeRemainingProgress ->
-                        add(
-                            MenuItemTimeoutIndicator(timeRemainingProgress)
-                        )
+                    timeRemainingProgress()?.let { progress ->
+                        add(MenuItemTimeoutIndicator(progress))
                     }
                 }
             )
@@ -349,6 +350,7 @@ private fun SwapScreenInner(
             Column(
                 modifier = Modifier
                     .padding(it)
+                    .imePadding()
                     .verticalScroll(rememberScrollState())
             ) {
                 VSpacer(height = 12.dp)
@@ -463,20 +465,34 @@ private fun SwapScreenInner(
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth(),
                             title = stringResource(R.string.Swap_Proceed),
+                            enabled = !uiState.insufficientFeeBalance,
                             onClick = onClickNext
                         )
                     }
                 }
 
                 VSpacer(height = 12.dp)
-                CardsSwapInfo {
-                    AvailableBalanceField(
-                        tokenIn = uiState.tokenIn,
-                        availableBalance = uiState.availableBalance,
-                        balanceHidden = uiState.balanceHidden,
-                        toggleHideBalance = onBalanceClicked
-                    )
-                }
+
+                val feeToken = uiState.feeToken
+                val networkFee = uiState.networkFee
+                FeeInfoSection(
+                    tokenIn = uiState.tokenIn,
+                    displayBalance = uiState.displayBalance,
+                    balanceHidden = uiState.balanceHidden,
+                    feeToken = feeToken,
+                    feeCoinBalance = uiState.feeCoinBalance,
+                    feePrimary = if (feeToken != null && networkFee != null) {
+                        CoinValue(feeToken, networkFee).getFormattedFull()
+                    } else {
+                        "---"
+                    },
+                    feeSecondary = uiState.networkFeeFiatAmount?.let {
+                        App.numberFormatter.formatFiatFull(it, uiState.currency.symbol)
+                    } ?: "",
+                    insufficientFeeBalance = uiState.insufficientFeeBalance,
+                    onBalanceClicked = onBalanceClicked,
+                    feeTitle = stringResource(R.string.estimated_fee),
+                )
 
                 VSpacer(height = 12.dp)
                 if (quote != null) {
@@ -548,37 +564,6 @@ private fun SwapScreenInner(
             }
         }
     }
-}
-
-@Composable
-private fun AvailableBalanceField(
-    tokenIn: Token?,
-    availableBalance: BigDecimal?,
-    balanceHidden: Boolean,
-    toggleHideBalance: () -> Unit
-) {
-    QuoteInfoRow(
-        title = {
-            subhead2_grey(text = stringResource(R.string.Swap_AvailableBalance))
-        },
-        value = {
-            val text = if (tokenIn != null && availableBalance != null) {
-                CoinValue(tokenIn, availableBalance).getFormattedFull()
-            } else {
-                "-"
-            }
-
-            subhead2_leah(
-                text = if (!balanceHidden) text else "*****",
-                modifier = Modifier
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = toggleHideBalance
-                    )
-            )
-        }
-    )
 }
 
 @Composable

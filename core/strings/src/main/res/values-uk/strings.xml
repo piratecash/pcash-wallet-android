@@ -515,6 +515,10 @@
     <string name="Swap_Allowance">Дозвіл</string>
     <string name="Swap_Price">Ціна</string>
     <string name="Swap_AvailableBalance">Доступний баланс</string>
+    <string name="swap_insufficient_fee_balance">Недостатньо коштів на балансі</string>
+    <string name="swap_balance_for_fees">Баланс для комісій</string>
+    <string name="fee">Комісія</string>
+    <string name="estimated_fee">Орієнтовна комісія</string>
     <string name="Swap_PriceImpact">Відхилення від рин. ціни</string>
     <string name="Swap_PriceImpactTooHigh">Різниця між ринковою ціною та очікуваною розрахунковою ціною занадто висока.</string>
     <string name="Swap_PriceImpactWarning">Важливо! Ви отримуєте надзвичайно несприятливу ціну. Це пов\'язано з вкрай низькою ліквідністю.</string>

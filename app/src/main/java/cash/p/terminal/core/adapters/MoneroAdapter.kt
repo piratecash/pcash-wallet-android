@@ -63,13 +63,10 @@ class MoneroAdapter(
     }
 
     private suspend fun estimateFeeForMax() {
-        if (balanceData.available <= BigDecimal.ZERO) {
-            _fee.value = BigDecimal.ZERO
-            return
-        }
         tryOrNull {
             val address = AppConfigProvider.donateAddresses[BlockchainType.Monero] ?: return@tryOrNull
-            _fee.value = estimateFee(balanceData.available, address, null)
+            val amount = maxOf(balanceData.available, BigDecimal.ONE.movePointLeft(12))
+            _fee.value = estimateFee(amount, address, null)
         }
     }
 

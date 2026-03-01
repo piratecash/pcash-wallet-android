@@ -95,7 +95,8 @@ class SendTransactionServiceTron(
         availableBalance = adapterManager.getAdjustedBalanceData(wallet)?.available
             ?: adapter.balanceData.available,
         networkFee = networkFee,
-        cautions = cautions + listOfNotNull(feeCaution),
+        cautions = cautions,
+        feeCaution = feeCaution,
         sendable = hasEnoughFeeBalance && (sendTransactionData != null || (amountState.canBeSend && feeState.canBeSend && addressState.canBeSend)),
         loading = false,
         fields = fields

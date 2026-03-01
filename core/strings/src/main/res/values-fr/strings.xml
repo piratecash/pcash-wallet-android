@@ -507,6 +507,10 @@
     <string name="Swap_Allowance">Allocation</string>
     <string name="Swap_Price">Prix</string>
     <string name="Swap_AvailableBalance">Solde disponible</string>
+    <string name="swap_insufficient_fee_balance">Fonds insuffisants dans le solde</string>
+    <string name="swap_balance_for_fees">Solde pour les frais</string>
+    <string name="fee">Frais</string>
+    <string name="estimated_fee">Frais estimés</string>
     <string name="Swap_PriceImpact">Impact prix</string>
     <string name="Swap_PriceImpactTooHigh">La différence entre le prix du marché et le prix de règlement prévu est trop élevée.</string>
     <string name="Swap_PriceImpactWarning">Important ! Vous avez reçu un prix extrêmement défavorable en raison d\'une liquidité extrêmement faible.</string>
