@@ -40,8 +40,7 @@ import java.util.Calendar
 @Composable
 fun PrivacyScreen(
     navController: NavController,
-    uiState: PrivacyUiState,
-    toggleCrashData: (Boolean) -> Unit
+    uiState: PrivacyUiState
 ) {
 
     Column(
@@ -68,23 +67,6 @@ fun PrivacyScreen(
             BulletedText(R.string.Privacy_BulletedText2)
             BulletedText(R.string.Privacy_BulletedText3)
             VSpacer(height = 16.dp)
-
-            SectionUniversalLawrence {
-                CellUniversal {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_share_24px),
-                        contentDescription = "Share",
-                        tint = ComposeAppTheme.colors.grey
-                    )
-                    HSpacer(width = 16.dp)
-                    body_leah(text = stringResource(R.string.ShareCrashData))
-                    HFillSpacer(minWidth = 8.dp)
-                    HsSwitch(
-                        checked = uiState.uiStatsEnabled,
-                        onCheckedChange = toggleCrashData
-                    )
-                }
-            }
         }
 
         Divider(
