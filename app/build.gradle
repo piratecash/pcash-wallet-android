@@ -4,7 +4,6 @@
 import com.android.tools.profgen.ArtProfileKt
 import com.android.tools.profgen.ArtProfileSerializer
 import com.android.tools.profgen.DexFile
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id 'com.android.application'
@@ -12,8 +11,6 @@ plugins {
     id 'kotlin-parcelize'
     id 'com.google.devtools.ksp'
     id 'org.jetbrains.kotlin.plugin.compose' version('2.3.20')
-    id 'com.google.firebase.crashlytics'
-    id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'androidx.navigation.safeargs.kotlin'
 }
@@ -287,8 +284,6 @@ dependencies {
     implementation libs.androidx.constraintlayout
     implementation libs.androidx.lifecycle.extensions1
     implementation(platform(libs.compose.bom))
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics)
     implementation(libs.kotlinx.serialization.json)
 
     implementation libs.lifecycle.viewmodel.ktx
@@ -489,9 +484,6 @@ dependencies {
 
     api libs.android.shell
     api libs.portmapper
-
-    implementation libs.google.play.app.update
-    implementation libs.google.play.app.update.ktx
 
     implementation libs.tangem.sdk
 }
