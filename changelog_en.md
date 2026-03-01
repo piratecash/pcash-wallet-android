@@ -1,11 +1,13 @@
-## 🚀 Version 0.51.19 Update
-_Release date: February 28, 2026_
+## 🚀 Version 0.52.0 Update
+_Release date: March 1, 2026_
 
 ### ✨ Improvements
 
 - **Updated asset screen UI**
   Improved asset screen appearance for all assets.
   Cosanta and PirateCash now additionally display staking status and unpaid balance.
+
+- **Added information about the exchange fee and the required amount of coins for the swap**
 
 - **Lock screen refactoring**
   The lock screen (PIN code input) has been moved from a separate LockScreenActivity into an overlay inside MainActivity.
