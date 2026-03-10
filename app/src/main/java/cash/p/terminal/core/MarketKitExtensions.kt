@@ -309,6 +309,7 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
             this == BlockchainType.Zcash
 
         is AccountType.HardwareCard,
+        is AccountType.TrezorDevice,
         is AccountType.MnemonicMonero,
         is AccountType.Mnemonic -> true
 
@@ -317,8 +318,11 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
             when (this) {
                 BlockchainType.Bitcoin -> coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
                 BlockchainType.Litecoin -> coinTypes.contains(ExtendedKeyCoinType.Litecoin)
+                BlockchainType.Dogecoin -> coinTypes.contains(ExtendedKeyCoinType.Dogecoin) || coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
+                BlockchainType.Dash -> (coinTypes.contains(ExtendedKeyCoinType.Dash) || coinTypes.contains(ExtendedKeyCoinType.Bitcoin)) && accountType.hdExtendedKey.purposes.contains(
+                    HDWallet.Purpose.BIP44
+                )
                 BlockchainType.BitcoinCash,
-                BlockchainType.Dash,
                 BlockchainType.ECash -> coinTypes.contains(ExtendedKeyCoinType.Bitcoin) && accountType.hdExtendedKey.purposes.contains(
                     HDWallet.Purpose.BIP44
                 )
@@ -444,10 +448,11 @@ fun Token.supports(accountType: AccountType): Boolean {
                     if (type is TokenType.Derived) {
                         if (!accountType.hdExtendedKey.purposes.contains(type.derivation.purpose)) {
                             false
-                        } else if (blockchainType == BlockchainType.Bitcoin) {
-                            accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
-                        } else {
-                            accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Litecoin)
+                        } else when (blockchainType) {
+                            BlockchainType.Bitcoin -> accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
+                            BlockchainType.Litecoin -> accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Litecoin)
+                            BlockchainType.Dogecoin -> accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Dogecoin) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)
+                            else -> false
                         }
                     } else {
                         false
@@ -457,7 +462,8 @@ fun Token.supports(accountType: AccountType): Boolean {
                 BlockchainType.BitcoinCash,
                 BlockchainType.ECash,
                 BlockchainType.Dash -> {
-                    accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
+                    (accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Dash) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)) &&
+                        accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
                 }
 
                 else -> false

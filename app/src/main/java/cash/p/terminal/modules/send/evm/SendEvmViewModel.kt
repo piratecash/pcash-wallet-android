@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendEthereumAdapter
@@ -26,6 +27,7 @@ import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
 import cash.p.terminal.modules.send.BaseSendViewModel
+import io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -138,6 +140,8 @@ internal class SendEvmViewModel(
         sendResult = try {
             val sendResult = sendTransactionService.sendTransaction()
             SendResult.Sent(sendResult.getRecordUid())
+        } catch (e: TrezorCancelledException) {
+            null
         } catch (e: Throwable) {
             SendResult.Failed(createCaution(e))
         }
@@ -193,6 +197,7 @@ internal class SendEvmViewModel(
     private fun createCaution(error: Throwable) = when (error) {
         is UnknownHostException -> HSCaution(TranslatableString.ResString(R.string.Hud_Text_NoInternet))
         is LocalizedException -> HSCaution(TranslatableString.ResString(error.errorTextRes))
+        is JsonRpc.ResponseError.RpcError -> HSCaution(TranslatableString.PlainString(error.error.message))
         else -> HSCaution(TranslatableString.PlainString(error.message ?: ""))
     }
 }

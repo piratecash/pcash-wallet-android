@@ -26,9 +26,17 @@
     <string name="Button_Disconnect">Déconnecter</string>
     <string name="Button_Create">Créer</string>
     <string name="Button_Advanced">Avancé</string>
+    <string name="hardware_wallet">Portefeuille matériel</string>
+    <string name="hardware_wallet_not_detected_error">Aucun lecteur NFC détecté, activez-le pour utiliser les cartes matérielles</string>
     <string name="hardware_wallet_offline_confirmation_title">Activation hors ligne</string>
     <string name="hardware_wallet_offline_confirmation_message">La vérification de l’authenticité de la carte ne peut pas accéder au serveur. Vérifiez votre connexion Internet ou autorisez l’activation hors ligne. L’activation hors ligne contourne les vérifications serveur et réduit le niveau de sécurité. Poursuivre l’activation hors ligne ?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Continuer hors ligne</string>
+    <string name="trezor_wallet">Portefeuille Trezor</string>
+    <string name="connect_trezor">Connecter Trezor</string>
+    <string name="trezor_setup_description">Assurez-vous que Trezor Suite est installé et que votre appareil Trezor est connecté.</string>
+    <string name="trezor_suite_required_title">Trezor Suite requis</string>
+    <string name="trezor_suite_required_description">Pour connecter votre appareil Trezor, l\'application Trezor Suite doit être installée sur votre téléphone.</string>
+    <string name="install_from_play_store">Installer depuis le Play Store</string>
     <string name="Button_Restore">Restaurer</string>
     <string name="Button_Reset">Réinitialiser</string>
     <string name="Button_Understand">J’ai Compris</string>
@@ -507,6 +515,12 @@
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Voulez-vous supprimer tous les dApss appariés ?</string>
     <string name="WalletConnect_Pairings_Delete">Supprimer</string>
     <string name="WalletConnect_DeleteAllPairs">Supprimer toutes les paires</string>
+
+    <string name="scan">Scanner</string>
+    <string name="connect">Connecter</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">Vous devez scanner la carte pour ajouter des jetons</string>
+    <string name="connect_trezor_to_add_message">Vous devez connecter Trezor pour ajouter des jetons</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">Attention</string>
     <string name="EthereumTransaction_Error_Title">Erreur</string>
@@ -560,7 +574,7 @@
     <string name="swap_create_wallet_description_with_zcash">You don\'t have all chosen wallets, need to create first,\nto exchange ZEC you need to create transparent address first</string>
     <string name="Swap_Approve">Approuver</string>
     <string name="Swap_Approving">Approbation</string>
-    <string name="Swap_Swapping">Swapping de Crypto</string>
+    <string name="Swap_Swapping">Échange en cours</string>
     <string name="Swap_Quoting">Quotation</string>
     <string name="Swap_Providers">Service</string>
     <string name="Swap_SwapProvider_Title">Fournisseur de swap</string>
@@ -993,6 +1007,8 @@
     <string name="ManageAccounts_CreateNewWallet">Créer</string>
     <string name="ManageAccounts_ImportWallet">Restaurer</string>
     <string name="ManageAccounts_WatchAddress">Adresse à suivre</string>
+    <string name="scan_card_to_add">Scanner la carte pour ajouter un jeton</string>
+    <string name="add_via_trezor">Ajouter via Trezor</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">À partir du fichier</string>
     <string name="ImportWallet_BackupFile_Description">Importer depuis un fichier de sauvegarde.</string>
@@ -1793,4 +1809,5 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="native_library_error_title">Impossible de démarrer</string>
     <string name="native_library_error_message">Un composant requis n\'a pas pu être chargé. Veuillez réinstaller l\'application depuis le Play Store.</string>
     <string name="native_library_error_close">Fermer</string>
+    <string name="scan_tangem_card">Scanner la carte Tangem</string>
 </resources>

@@ -26,6 +26,8 @@
     <string name="Button_Disconnect">Desconectar</string>
     <string name="Button_Create">Criar</string>
     <string name="Button_Advanced">Avançado</string>
+    <string name="hardware_wallet">Carteira de hardware</string>
+    <string name="hardware_wallet_not_detected_error">Leitor NFC não detectado, ative-o para usar cartões de hardware</string>
     <string name="Button_Restore">Restaurar</string>
     <string name="Button_Reset">Redefinir</string>
     <string name="Button_Understand">Estou ciente</string>
@@ -44,6 +46,12 @@
     <string name="hardware_wallet_offline_confirmation_title">Ativação offline</string>
     <string name="hardware_wallet_offline_confirmation_message">Não foi possível verificar a autenticidade do cartão no servidor. Verifique a conexão com a Internet ou permita a ativação offline. A ativação offline ignora as verificações no servidor e reduz a segurança. Deseja continuar a ativação offline?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Continuar offline</string>
+    <string name="trezor_wallet">Carteira Trezor</string>
+    <string name="connect_trezor">Conectar Trezor</string>
+    <string name="trezor_setup_description">Certifique-se de que o Trezor Suite está instalado e seu dispositivo Trezor está conectado.</string>
+    <string name="trezor_suite_required_title">Trezor Suite necessário</string>
+    <string name="trezor_suite_required_description">Para conectar seu dispositivo Trezor, é necessário ter o aplicativo Trezor Suite instalado no celular.</string>
+    <string name="install_from_play_store">Instalar pela Play Store</string>
     <string name="Button_Activate">Ativar</string>
     <string name="Button_Sign">Assinar</string>
     <string name="Button_TryAgain">Tentar novamente</string>
@@ -511,6 +519,12 @@
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Você deseja excluir todos os dApps pareados?</string>
     <string name="WalletConnect_Pairings_Delete">Deletar</string>
     <string name="WalletConnect_DeleteAllPairs">Deletar todos pareados</string>
+
+    <string name="scan">Escanear</string>
+    <string name="connect">Conectar</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">Você precisa escanear o cartão para adicionar tokens</string>
+    <string name="connect_trezor_to_add_message">Você precisa conectar o Trezor para adicionar tokens</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">Aviso</string>
     <string name="EthereumTransaction_Error_Title">Erro</string>
@@ -995,6 +1009,8 @@
     <string name="ManageAccounts_CreateNewWallet">Criar</string>
     <string name="ManageAccounts_ImportWallet">Restaurar</string>
     <string name="ManageAccounts_WatchAddress">Ver Endereço</string>
+    <string name="scan_card_to_add">Escaneie o cartão para adicionar token</string>
+    <string name="add_via_trezor">Adicionar via Trezor</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">do Arquivo</string>
     <string name="ImportWallet_BackupFile_Description">Importar um arquivo de backup da sua pasta local.</string>
@@ -1795,4 +1811,5 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="native_library_error_title">Não foi possível iniciar</string>
     <string name="native_library_error_message">Não foi possível carregar um componente necessário. Por favor, reinstale o aplicativo pela Play Store.</string>
     <string name="native_library_error_close">Fechar</string>
+    <string name="scan_tangem_card">Escanear cartão Tangem</string>
 </resources>

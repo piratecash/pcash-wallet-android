@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
@@ -96,6 +97,9 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
                             HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
                             delay(1200)
                             Eip20RevokeConfirmFragment.Result(true)
+                        } catch (e: TrezorCancelledException) {
+                            buttonEnabled = true
+                            return@launch
                         } catch (t: Throwable) {
                             val msg =
                                 (t as? IllegalStateException)?.message ?: t.javaClass.simpleName

@@ -26,6 +26,8 @@
     <string name="Button_Disconnect">قطع ارتباط</string>
     <string name="Button_Create">به وجود آوردن</string>
     <string name="Button_Advanced">Advanced</string>
+    <string name="hardware_wallet">کیف پول سخت‌افزاری</string>
+    <string name="hardware_wallet_not_detected_error">خواننده NFC شناسایی نشد، برای استفاده از کارت‌های سخت‌افزاری آن را فعال کنید</string>
     <string name="Button_Restore">بازگرداني</string>
     <string name="Button_Reset">تنظیم مجدد</string>
     <string name="Button_Understand">می فهمم</string>
@@ -44,6 +46,12 @@
     <string name="hardware_wallet_offline_confirmation_title">فعال‌سازی آفلاین</string>
     <string name="hardware_wallet_offline_confirmation_message">امکان بررسی اصالت کارت روی سرور وجود ندارد. اتصال اینترنت خود را بررسی کنید یا فعال‌سازی آفلاین را مجاز کنید. هنگام فعال‌سازی آفلاین، بررسی‌های سرور انجام نمی‌شود و سطح اطمینان امنیتی کاهش می‌یابد. آیا می‌خواهید فعال‌سازی آفلاین را ادامه دهید؟</string>
     <string name="hardware_wallet_offline_confirmation_positive">ادامه به‌صورت آفلاین</string>
+    <string name="trezor_wallet">کیف پول Trezor</string>
+    <string name="connect_trezor">اتصال Trezor</string>
+    <string name="trezor_setup_description">مطمئن شوید که Trezor Suite نصب شده و دستگاه Trezor شما متصل است.</string>
+    <string name="trezor_suite_required_title">Trezor Suite لازم است</string>
+    <string name="trezor_suite_required_description">برای اتصال دستگاه Trezor، باید برنامه Trezor Suite روی گوشی شما نصب شود.</string>
+    <string name="install_from_play_store">نصب از Play Store</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">نشانه</string>
     <string name="Button_TryAgain">Try Again</string>
@@ -511,6 +519,12 @@
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Do you want to delete all paired dApss?</string>
     <string name="WalletConnect_Pairings_Delete">Delete</string>
     <string name="WalletConnect_DeleteAllPairs">Delete All Pairs</string>
+
+    <string name="scan">اسکن</string>
+    <string name="connect">اتصال</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">برای افزودن توکن‌ها باید کارت را اسکن کنید</string>
+    <string name="connect_trezor_to_add_message">برای افزودن توکن‌ها باید Trezor را متصل کنید</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">هشدار</string>
     <string name="EthereumTransaction_Error_Title">خطا</string>
@@ -999,6 +1013,8 @@
     <string name="ManageAccounts_CreateNewWallet">به وجود آوردن</string>
     <string name="ManageAccounts_ImportWallet">بازگرداني</string>
     <string name="ManageAccounts_WatchAddress">مشاهده آدرس</string>
+    <string name="scan_card_to_add">اسکن کارت برای افزودن توکن</string>
+    <string name="add_via_trezor">اضافه کردن از طریق Trezor</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">from File</string>
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
@@ -1800,4 +1816,5 @@
     <string name="native_library_error_title">راه‌اندازی ناموفق</string>
     <string name="native_library_error_message">بارگذاری یک جزء ضروری ناموفق بود. لطفاً برنامه را از Play Store دوباره نصب کنید.</string>
     <string name="native_library_error_close">بستن</string>
+    <string name="scan_tangem_card">اسکن کارت Tangem</string>
 </resources>

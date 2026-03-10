@@ -8,12 +8,15 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
+import cash.p.terminal.tangem.domain.model.AddressBytesWithPublicKey
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
+import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezor.signer.TrezorEvmSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
-import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.entities.HardwarePublicKey
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -52,6 +55,8 @@ class EvmKitManager(
 ) {
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
             by inject(IHardwarePublicKeyStorage::class.java)
+    private val trezorDeepLinkManager: TrezorDeepLinkManager
+            by inject(TrezorDeepLinkManager::class.java)
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private var job: Job? = null
@@ -140,16 +145,7 @@ class EvmKitManager(
             }
 
             is AccountType.HardwareCard -> {
-                val publicKey = runBlocking {
-                    requireNotNull(
-                        hardwarePublicKeyStorage.getKey(
-                            account.id,
-                            blockchainType,
-                            tokenType = TokenType.Native
-                        )
-                    )
-                }
-                val addressWithPublicKey = CustomXPubKeyAddressParser.parse(publicKey.key.value)
+                val (publicKey, addressWithPublicKey) = resolveHardwareAddress(account.id, blockchainType)
                 address = Address(addressWithPublicKey.addressBytes)
                 signer = HardwareWalletEvmSigner(
                     address = address,
@@ -157,6 +153,17 @@ class EvmKitManager(
                     cardId = accountType.cardId,
                     chain = chain,
                     expectedPublicKeyBytes = addressWithPublicKey.publicKey
+                )
+            }
+
+            is AccountType.TrezorDevice -> {
+                val (publicKey, addressWithPublicKey) = resolveHardwareAddress(account.id, blockchainType)
+                address = Address(addressWithPublicKey.addressBytes)
+                signer = TrezorEvmSigner(
+                    address = address,
+                    chain = chain,
+                    derivationPath = publicKey.derivationPath,
+                    deepLinkManager = trezorDeepLinkManager
                 )
             }
 
@@ -229,6 +236,19 @@ class EvmKitManager(
             signer = signer,
             merkleTransactionAdapter = merkleTransactionAdapter
         )
+    }
+
+    private fun resolveHardwareAddress(
+        accountId: String,
+        blockchainType: BlockchainType
+    ): Pair<HardwarePublicKey, AddressBytesWithPublicKey> {
+        val publicKey = runBlocking {
+            requireNotNull(
+                hardwarePublicKeyStorage.getKeyByBlockchain(accountId, blockchainType)
+            )
+        }
+        val addressWithPublicKey = CustomXPubKeyAddressParser.parse(publicKey.key.value)
+        return Pair(publicKey, addressWithPublicKey)
     }
 
     @Synchronized

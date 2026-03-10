@@ -91,6 +91,7 @@ object BackupLocalModule {
     private const val HD_EXTENDED_KEY = "hd_extended_key"
     private const val UFVK = "ufvk"
     private const val HARDWARE_CARD = "hardware_card"
+    private const val TREZOR_DEVICE = "trezor_device"
 
     //Backup Json file data structure
 
@@ -154,6 +155,7 @@ object BackupLocalModule {
         is AccountType.HdExtendedKey -> HD_EXTENDED_KEY
         is AccountType.ZCashUfvKey -> UFVK
         is AccountType.HardwareCard -> HARDWARE_CARD
+        is AccountType.TrezorDevice -> TREZOR_DEVICE
     }
 
     @Throws(IllegalStateException::class)
@@ -234,7 +236,8 @@ object BackupLocalModule {
         is AccountType.BitcoinAddress -> accountType.serialized.toByteArray(Charsets.UTF_8)
         is AccountType.HdExtendedKey -> Base58.decode(accountType.keySerialized)
         is AccountType.ZCashUfvKey -> accountType.key.toByteArray(Charsets.UTF_8)
-        is AccountType.HardwareCard -> null
+        is AccountType.HardwareCard,
+        is AccountType.TrezorDevice -> null
     }
 
     val kdfDefault = KdfParams(

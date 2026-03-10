@@ -107,6 +107,8 @@ class BuildHardwarePublicKeyUseCase {
                 }
                 val coinType = when (blockchainType) {
                     BlockchainType.Litecoin -> ExtendedKeyCoinType.Litecoin
+                    BlockchainType.Dogecoin -> ExtendedKeyCoinType.Dogecoin
+                    BlockchainType.Dash -> ExtendedKeyCoinType.Dash
                     else -> ExtendedKeyCoinType.Bitcoin
                 }
 

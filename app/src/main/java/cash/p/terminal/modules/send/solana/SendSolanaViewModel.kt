@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.z.ecc.android.sdk.ext.collectWith
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
@@ -174,6 +175,9 @@ class SendSolanaViewModel(
             sendResult = SendResult.Sent()
 
             recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Solana)
+        } catch (e: TrezorCancelledException) {
+            pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
+            sendResult = null
         } catch (e: Throwable) {
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             sendResult = SendResult.Failed(createCaution(e))

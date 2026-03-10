@@ -52,13 +52,13 @@ class AccountFactory(
 
     override fun getNextAccountName(): String {
         val nonWatchAccountsCount =
-            accountManager.accounts.count { !it.isWatchAccount && it.type !is AccountType.HardwareCard }
+            accountManager.accounts.count { !it.isWatchAccount && !it.isHardwareWalletAccount }
         return getUniqueName("Wallet ${nonWatchAccountsCount + 1}")
     }
 
     override fun getNextHardwareAccountName(): String {
         val hardWalletAccountsCount =
-            accountManager.accounts.count { it.type is AccountType.HardwareCard }
+            accountManager.accounts.count { it.isHardwareWalletAccount }
         return getUniqueName("Hardware Wallet ${hardWalletAccountsCount + 1}")
     }
 

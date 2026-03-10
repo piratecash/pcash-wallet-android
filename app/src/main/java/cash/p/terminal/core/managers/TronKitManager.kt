@@ -11,7 +11,6 @@ import cash.p.terminal.core.utils.TronAddressParser
 import cash.p.terminal.tangem.signer.HardwareWalletTronSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -66,11 +65,18 @@ class TronKitManager(
                 }
 
                 is AccountType.TronAddress -> {
-                    createKitInstance(accountType, account)
+                    createWatchOnlyKitInstance(accountType.address, account)
                 }
 
                 is AccountType.HardwareCard ->
                     createKitInstance(account)
+
+                is AccountType.TrezorDevice -> {
+                    val key = runBlocking {
+                        hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Tron)
+                    } ?: throw UnsupportedException("Trezor does not have a key for Tron")
+                    createWatchOnlyKitInstance(key.key.value, account)
+                }
 
                 else -> throw UnsupportedAccountException()
             }
@@ -101,12 +107,10 @@ class TronKitManager(
         return TronKitWrapper(kit, signer)
     }
 
-    private fun createKitInstance(
-        accountType: AccountType.TronAddress,
+    private fun createWatchOnlyKitInstance(
+        address: String,
         account: Account
     ): TronKitWrapper {
-        val address = accountType.address
-
         val kit = TronKit.getInstance(
             application = App.instance,
             address = Address.fromBase58(address),
@@ -122,7 +126,7 @@ class TronKitManager(
         account: Account
     ): TronKitWrapper {
         val hardwarePublicKey = runBlocking {
-            hardwarePublicKeyStorage.getKey(account.id, BlockchainType.Tron, TokenType.Native)
+            hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Tron)
         } ?: throw UnsupportedException("Hardware card does not have a public key for Tron")
 
         val addressAndPublicKey = TronAddressParser.parseXpubToTronAddress(hardwarePublicKey.key.value)

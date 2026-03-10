@@ -191,6 +191,26 @@ class DashAdapter(
                     )
                 }
 
+                is AccountType.TrezorDevice -> {
+                    val trezorSigner = buildTrezorBtcSigner(
+                        accountId = account.id,
+                        blockchainType = wallet.token.blockchainType,
+                        coin = "Dash"
+                    )
+                    DashKit(
+                        context = App.instance,
+                        extendedKey = requireNotNull(wallet.getHDExtendedKey()),
+                        walletId = account.id,
+                        syncMode = syncMode,
+                        networkType = NetworkType.MainNet,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
+                        initWithEmptySeeds = true,
+                        iInputSigner = trezorSigner,
+                        iSchnorrInputSigner = trezorSigner,
+                        minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
+                    )
+                }
+
                 else -> throw UnsupportedAccountException()
             }.apply {
                 setupPeers(masterNodesRepository, userPeers)

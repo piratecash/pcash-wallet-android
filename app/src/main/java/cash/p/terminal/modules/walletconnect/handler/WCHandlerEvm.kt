@@ -92,6 +92,7 @@ class WCHandlerEvm(
                 Address(accountType.address)
             }
 
+            is AccountType.TrezorDevice,
             is AccountType.HardwareCard -> {
                 val publicKey = runBlocking {
                     hardwarePublicKeyStorage.getKey(
@@ -104,7 +105,15 @@ class WCHandlerEvm(
                 Address(addressWithPublicKey.addressBytes)
             }
 
-            else -> throw UnsupportedAccountException()
+            is AccountType.BitcoinAddress,
+            is AccountType.HdExtendedKey,
+            is AccountType.MnemonicMonero,
+            is AccountType.SolanaAddress,
+            is AccountType.StellarAddress,
+            is AccountType.StellarSecretKey,
+            is AccountType.TonAddress,
+            is AccountType.TronAddress,
+            is AccountType.ZCashUfvKey -> throw UnsupportedAccountException()
         }
 
     override fun getChainName(chainInternalId: String): String? {
