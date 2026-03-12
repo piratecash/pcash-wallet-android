@@ -459,10 +459,14 @@ fun Token.supports(accountType: AccountType): Boolean {
                     }
                 }
 
-                BlockchainType.BitcoinCash,
-                BlockchainType.ECash,
                 BlockchainType.Dash -> {
                     (accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Dash) || accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin)) &&
+                        accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
+                }
+
+                BlockchainType.BitcoinCash,
+                BlockchainType.ECash -> {
+                    accountType.hdExtendedKey.coinTypes.contains(ExtendedKeyCoinType.Bitcoin) &&
                         accountType.hdExtendedKey.purposes.contains(HDWallet.Purpose.BIP44)
                 }
 

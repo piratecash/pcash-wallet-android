@@ -58,6 +58,7 @@ fun SendTonConfirmationScreen(
         insufficientFeeBalance = sendViewModel.isInsufficientFeeBalance(confirmationData.fee),
         balanceHidden = sendViewModel.balanceHidden,
         onBalanceClicked = sendViewModel::toggleHideBalance,
+        feeWarningData = sendViewModel.inlineFeeWarningData,
     )
 
     NetworkFeeWarningOverlay(
