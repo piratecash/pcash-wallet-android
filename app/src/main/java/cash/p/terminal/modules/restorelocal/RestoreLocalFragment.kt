@@ -4,6 +4,7 @@ import android.os.Parcelable
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -69,7 +70,6 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_lucian
-import cash.p.terminal.ui_compose.requireInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.delay
@@ -81,14 +81,15 @@ class RestoreLocalFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val input = navController.requireInput<Input>()
-        RestoreLocalNavHost(
-            input.backupFilePath,
-            input.fileName,
-            navController,
-            input.popOffOnSuccess,
-            input.popOffInclusive
-        ) { activity?.let { MainModule.startAsNewTask(it) } }
+        withInput<Input>(navController) { input ->
+            RestoreLocalNavHost(
+                input.backupFilePath,
+                input.fileName,
+                navController,
+                input.popOffOnSuccess,
+                input.popOffInclusive
+            ) { activity?.let { MainModule.startAsNewTask(it) } }
+        }
     }
 
     @Parcelize
@@ -396,7 +397,7 @@ private fun BackupFileItems(
                 )
             },
             bottomBar = {
-                ButtonsGroupWithShade {
+                ButtonsGroupWithShade(modifier = Modifier.navigationBarsPadding()) {
                     ButtonPrimaryYellow(
                         modifier = Modifier
                             .fillMaxWidth()

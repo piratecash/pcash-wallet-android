@@ -27,7 +27,6 @@ import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SnackbarDuration
-import cash.p.terminal.ui_compose.requireInput
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc
@@ -41,13 +40,9 @@ class SendEvmConfirmationFragment : BaseComposeFragment() {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val input = try {
-            navController.requireInput<Input>()
-        } catch (e: Exception) {
-            navController.navigateUp()
-            return
+        withInput<Input>(navController) { input ->
+            SendEvmConfirmationScreen(navController, input)
         }
-        SendEvmConfirmationScreen(navController, input)
     }
 
     @Parcelize
