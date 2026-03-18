@@ -66,6 +66,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -110,6 +111,8 @@ class TokenBalanceViewModel(
 
     private var balanceViewItem: BalanceViewItem? = null
     private var transactions: Map<String, List<TransactionViewItem>>? = null
+    private var syncing: Boolean =
+        transactionsService.syncingFlow.value || !transactionsService.recordsLoadedFlow.value
     private var hasHiddenTransactions: Boolean = false
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
 
@@ -202,6 +205,22 @@ class TokenBalanceViewModel(
         viewModelScope.launch {
             transactionsService.transactionItemsFlow.collect {
                 updateTransactions(it)
+            }
+        }
+
+        viewModelScope.launch {
+            combine(
+                transactionsService.syncingFlow,
+                transactionsService.recordsLoadedFlow
+            ) { syncing, recordsLoaded ->
+                syncing || !recordsLoaded
+            }.collect { newSyncing ->
+                val wasSyncing = syncing
+                syncing = newSyncing
+                if (wasSyncing && !newSyncing && transactions == null) {
+                    updateTransactions(transactionsService.transactionItemsFlow.value)
+                }
+                emitState()
             }
         }
 
@@ -397,7 +416,8 @@ class TokenBalanceViewModel(
         displayDiffPricePeriod = displayDiffPricePeriod,
         displayDiffOptionType = displayDiffOptionType,
         isRoundingAmount = isRoundingAmount,
-        isShowShieldFunds = isShowShieldFunds()
+        isShowShieldFunds = isShowShieldFunds(),
+        syncing = syncing
     )
 
     private fun isShowShieldFunds(): Boolean {
@@ -413,6 +433,10 @@ class TokenBalanceViewModel(
     }
 
     private fun updateTransactions(items: List<TransactionItem>) {
+        // Skip the initial empty emission from transactionRecordRepository.set() while
+        // still syncing. Once syncing finishes, allow empty items through so coins with
+        // zero transactions show "no transactions" instead of "wait for sync" forever.
+        if (items.isEmpty() && transactions == null && syncing) return
         transactions =
             if (transactionHiddenManager.transactionHiddenFlow.value.transactionHidden) {
                 when (transactionHiddenManager.transactionHiddenFlow.value.transactionDisplayLevel) {
@@ -576,6 +600,7 @@ class TokenBalanceViewModel(
     override fun onCleared() {
         super.onCleared()
         balanceService.clear()
+        transactionsService.clear()
         totalBalance.stop()
     }
 
