@@ -1,7 +1,10 @@
 package cash.p.terminal.core.di
 
+import cash.p.terminal.core.policy.CompositeHardwareWalletTokenPolicy
+import cash.p.terminal.core.policy.CompositeScanToAddUseCase
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
+import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
 import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
 import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
@@ -15,9 +18,13 @@ import cash.p.terminal.manager.ITorConnectionStatusUseCase
 import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.tor.TorConnectionStatusUseCase
 import cash.p.terminal.tangem.domain.usecase.ICreateHardwareWalletUseCase
+import cash.p.terminal.trezor.domain.usecase.ICreateTrezorWalletUseCase
+import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
+import cash.p.terminal.wallet.useCases.ScanToAddUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -30,9 +37,14 @@ val useCaseModule = module {
     factoryOf(::MoneroWalletUseCase)
     factoryOf(::GenerateMoneroWalletUseCase)
     factoryOf(::CreateHardwareWalletUseCase) bind ICreateHardwareWalletUseCase::class
+    factory { CreateTrezorWalletUseCase(get(), get(), get(), get(), get(), get(), get()) } bind ICreateTrezorWalletUseCase::class
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
     singleOf(::ClearZCashWalletDataUseCase)
     singleOf(::ResetUseCase)
     singleOf(::SendZecOnDuressUseCase)
+    singleOf(::CompositeHardwareWalletTokenPolicy) bind HardwareWalletTokenPolicy::class
+    single<ScanToAddUseCase> {
+        CompositeScanToAddUseCase(get(), get(named("tangem")), get(named("trezor")))
+    }
 }

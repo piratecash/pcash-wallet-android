@@ -65,11 +65,18 @@ class TronKitManager(
                 }
 
                 is AccountType.TronAddress -> {
-                    createKitInstance(accountType, account)
+                    createWatchOnlyKitInstance(accountType.address, account)
                 }
 
                 is AccountType.HardwareCard ->
                     createKitInstance(account)
+
+                is AccountType.TrezorDevice -> {
+                    val key = runBlocking {
+                        hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Tron)
+                    } ?: throw UnsupportedException("Trezor does not have a key for Tron")
+                    createWatchOnlyKitInstance(key.key.value, account)
+                }
 
                 else -> throw UnsupportedAccountException()
             }
@@ -100,12 +107,10 @@ class TronKitManager(
         return TronKitWrapper(kit, signer)
     }
 
-    private fun createKitInstance(
-        accountType: AccountType.TronAddress,
+    private fun createWatchOnlyKitInstance(
+        address: String,
         account: Account
     ): TronKitWrapper {
-        val address = accountType.address
-
         val kit = TronKit.getInstance(
             application = App.instance,
             address = Address.fromBase58(address),

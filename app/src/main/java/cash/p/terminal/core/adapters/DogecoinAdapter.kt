@@ -146,6 +146,24 @@ class DogecoinAdapter(
                     )
                 }
 
+                is AccountType.TrezorDevice -> {
+                    val trezorSigner = buildTrezorBtcSigner(
+                        accountId = account.id,
+                        blockchainType = wallet.token.blockchainType,
+                        coin = "Dogecoin"
+                    )
+                    return DogecoinKit(
+                        context = App.instance,
+                        extendedKey = requireNotNull(wallet.getHDExtendedKey()),
+                        walletId = account.id,
+                        syncMode = syncMode,
+                        networkType = DogecoinKit.NetworkType.MainNet,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
+                        iInputSigner = trezorSigner,
+                        iSchnorrInputSigner = trezorSigner,
+                    )
+                }
+
                 else -> throw UnsupportedAccountException()
             }
         }

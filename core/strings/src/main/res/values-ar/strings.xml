@@ -26,6 +26,8 @@
     <string name="Button_Disconnect">قطع الاتصال</string>
     <string name="Button_Create">إنشاء</string>
     <string name="Button_Advanced">إعدادات متقدمة</string>
+    <string name="hardware_wallet">محفظة أجهزة</string>
+    <string name="hardware_wallet_not_detected_error">لم يتم اكتشاف قارئ NFC، قم بتفعيله لاستخدام بطاقات الأجهزة</string>
     <string name="Button_Restore">استيراد</string>
     <string name="Button_Reset">إعادة تعيين</string>
     <string name="Button_Understand">فهمت</string>
@@ -44,6 +46,12 @@
     <string name="hardware_wallet_offline_confirmation_title">التفعيل بدون إنترنت</string>
     <string name="hardware_wallet_offline_confirmation_message">تعذر التحقق من أصالة البطاقة عبر الخادم. تحقق من اتصالك بالإنترنت أو اسمح بالتفعيل بدون إنترنت. في وضع عدم الاتصال لا يتم تنفيذ فحوصات الخادم، مما يقلل مستوى الأمان. هل ترغب في المتابعة بالتفعيل بدون إنترنت؟</string>
     <string name="hardware_wallet_offline_confirmation_positive">متابعة بدون إنترنت</string>
+    <string name="trezor_wallet">محفظة Trezor</string>
+    <string name="connect_trezor">توصيل Trezor</string>
+    <string name="trezor_setup_description">تأكد من تثبيت Trezor Suite وأن جهاز Trezor متصل.</string>
+    <string name="trezor_suite_required_title">مطلوب Trezor Suite</string>
+    <string name="trezor_suite_required_description">لتوصيل جهاز Trezor، يجب تثبيت تطبيق Trezor Suite على هاتفك.</string>
+    <string name="install_from_play_store">التثبيت من Play Store</string>
     <string name="Button_Activate">تفعيل</string>
     <string name="Button_Sign">توقيع</string>
     <string name="Button_TryAgain">حاول مرة أخرى</string>
@@ -511,6 +519,12 @@
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Do you want to delete all paired dApss?</string>
     <string name="WalletConnect_Pairings_Delete">حذف</string>
     <string name="WalletConnect_DeleteAllPairs">Delete All Pairs</string>
+
+    <string name="scan">مسح</string>
+    <string name="connect">اتصال</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">تحتاج إلى مسح البطاقة لإضافة الرموز المميزة</string>
+    <string name="connect_trezor_to_add_message">تحتاج إلى توصيل Trezor لإضافة الرموز المميزة</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">Warning</string>
     <string name="EthereumTransaction_Error_Title">خطأ</string>
@@ -565,7 +579,7 @@
     <string name="swap_create_wallet_description_with_zcash">You don\'t have all chosen wallets, need to create first,\nto exchange ZEC you need to create transparent address first</string>
     <string name="Swap_Approve">قبول</string>
     <string name="Swap_Approving">Approving</string>
-    <string name="Swap_Swapping">Swapping</string>
+    <string name="Swap_Swapping">جارٍ التبادل</string>
     <string name="Swap_Quoting">Quoting</string>
     <string name="Swap_Providers">Providers</string>
     <string name="Swap_SwapProvider_Title">Swap Provider</string>
@@ -1001,6 +1015,8 @@
     <string name="ManageAccounts_CreateNewWallet">New Wallet</string>
     <string name="ManageAccounts_ImportWallet">Import Wallet</string>
     <string name="ManageAccounts_WatchAddress">Watch Wallet</string>
+    <string name="scan_card_to_add">امسح البطاقة لإضافة الرمز المميز</string>
+    <string name="add_via_trezor">إضافة عبر Trezor</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">from File</string>
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
@@ -1809,4 +1825,5 @@
     <string name="native_library_error_title">تعذر البدء</string>
     <string name="native_library_error_message">تعذر تحميل مكون مطلوب. يرجى محاولة إعادة تثبيت التطبيق من متجر Play.</string>
     <string name="native_library_error_close">إغلاق</string>
+    <string name="scan_tangem_card">مسح بطاقة Tangem</string>
 </resources>

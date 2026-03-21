@@ -25,6 +25,7 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import com.tangem.common.core.TangemSdkError
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
@@ -344,6 +345,10 @@ class SendBitcoinViewModel(
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             sendResult = null
             logger.info("user cancelled")
+        } catch (e: TrezorCancelledException) {
+            pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
+            sendResult = null
+            logger.info("trezor user cancelled")
         } catch (e: Throwable) {
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             if (e is TangemSdkError) {

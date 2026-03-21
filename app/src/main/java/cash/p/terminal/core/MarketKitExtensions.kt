@@ -309,6 +309,7 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
             this == BlockchainType.Zcash
 
         is AccountType.HardwareCard,
+        is AccountType.TrezorDevice,
         is AccountType.MnemonicMonero,
         is AccountType.Mnemonic -> true
 

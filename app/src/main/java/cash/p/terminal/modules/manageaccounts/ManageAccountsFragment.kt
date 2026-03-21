@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.hasNFC
 import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.modules.backupalert.BackupAlert
 import cash.p.terminal.modules.createaccount.CreateAccountFragment
@@ -139,16 +138,9 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
                     add(
                         ActionViewItem(
                             icon = R.drawable.ic_card,
-                            title = if (context.hasNFC()) {
-                                R.string.hardware_wallet
-                            } else {
-                                R.string.hardware_wallet_not_detected
-                            },
-                            enabled = context.hasNFC(),
+                            title = R.string.hardware_wallet,
                         ) {
-                            if (context.hasNFC()) {
-                                navController.slideFromRight(R.id.hardwareWalletFragment, args)
-                            }
+                            navController.slideFromRight(R.id.hardwareWalletFragment, args)
                         }
                     )
                 }
@@ -234,7 +226,7 @@ private fun AccountsSection(
                     contentDescription = null,
                     tint = ComposeAppTheme.colors.grey
                 )
-            } else if (accountViewItem.isHardwareWallet) {
+            } else if (accountViewItem.showNfcIcon) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_card),
                     contentDescription = null,

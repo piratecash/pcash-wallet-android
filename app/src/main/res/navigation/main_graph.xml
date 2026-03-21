@@ -450,6 +450,9 @@
         android:id="@+id/hardwareWalletOnboardingFragment"
         android:name="cash.p.terminal.tangem.ui.HardwareWalletOnboardingFragment" />
     <fragment
+        android:id="@+id/trezorSetupFragment"
+        android:name="cash.p.terminal.trezor.ui.onboarding.TrezorSetupFragment" />
+    <fragment
         android:id="@+id/resetToFactorySettingsFragment"
         android:name="cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment" />
     <dialog

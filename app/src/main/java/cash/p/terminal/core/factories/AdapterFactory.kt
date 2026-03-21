@@ -190,7 +190,7 @@ class AdapterFactory(
      * to detect premium by addresses
      */
     private suspend fun storeBnbAddresses(adapter: IAdapter, wallet: Wallet) {
-        if (wallet.account.type !is AccountType.HardwareCard ||
+        if (!wallet.account.isHardwareWalletAccount ||
             (!wallet.isPirateCash() && !wallet.isCosanta())
         ) return
 

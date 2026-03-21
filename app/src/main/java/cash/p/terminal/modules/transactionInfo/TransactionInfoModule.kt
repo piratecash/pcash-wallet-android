@@ -48,7 +48,9 @@ object TransactionInfoModule {
             return TransactionInfoViewModel(
                 service = service,
                 factory = factory,
-                contactsRepository = App.contactsRepository
+                contactsRepository = App.contactsRepository,
+                balanceHiddenManager = getKoinInstance(),
+                pendingTransactionRepository = getKoinInstance()
             ) as T
         }
 

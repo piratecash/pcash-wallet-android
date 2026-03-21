@@ -30,6 +30,7 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
         private const val HD_EXTENDED_KEY = "hd_extended_key"
         private const val UFVK = "ufvk"
         private const val HARDWARE_CARD = "hardware_card"
+        private const val TREZOR_DEVICE = "trezor_device"
         private const val STELLAR_ADDRESS = "stellar_address"
     }
 
@@ -99,6 +100,16 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
                         backupCardsCount = parts.getOrNull(1)?.toIntOrNull() ?: 0,
                         walletPublicKey = record.passphrase!!.value,
                         signedHashes = parts.getOrNull(2)?.toIntOrNull() ?: 0
+                    )
+                }
+
+                TREZOR_DEVICE -> {
+                    val parts = requireNotNull(record.key).value.split("@")
+                    AccountType.TrezorDevice(
+                        deviceId = parts.getOrElse(0) { "" },
+                        model = parts.getOrElse(1) { "" },
+                        firmwareVersion = parts.getOrElse(2) { "" },
+                        walletPublicKey = requireNotNull(record.passphrase).value
                     )
                 }
 
@@ -250,6 +261,19 @@ class AccountsStorage(appDatabase: AppDatabase) : IAccountsStorage {
                 )
                 passphrase = SecretString(accountTypeCard.walletPublicKey)
                 accountType = HARDWARE_CARD
+            }
+
+            is AccountType.TrezorDevice -> {
+                val trezorDevice = account.type as AccountType.TrezorDevice
+                key = SecretString(
+                    listOf(
+                        trezorDevice.deviceId,
+                        trezorDevice.model,
+                        trezorDevice.firmwareVersion
+                    ).joinToString("@")
+                )
+                passphrase = SecretString(trezorDevice.walletPublicKey)
+                accountType = TREZOR_DEVICE
             }
         }
 

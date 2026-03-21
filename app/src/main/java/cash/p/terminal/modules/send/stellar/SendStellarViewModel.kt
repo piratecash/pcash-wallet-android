@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.providers.AppConfigProvider
 import org.koin.java.KoinJavaComponent.inject
 import java.net.UnknownHostException
@@ -181,6 +182,8 @@ class SendStellarViewModel(
             logger.info("success")
 
             recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Ton)
+        } catch (e: TrezorCancelledException) {
+            sendResult = null
         } catch (e: Throwable) {
             sendResult = SendResult.Failed(createCaution(e))
             logger.warning("failed", e)

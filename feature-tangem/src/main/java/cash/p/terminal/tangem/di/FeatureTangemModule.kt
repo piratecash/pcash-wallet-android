@@ -10,7 +10,6 @@ import cash.p.terminal.tangem.domain.usecase.ResetToFactorySettingsUseCase
 import cash.p.terminal.tangem.domain.usecase.SignHashesTransactionUseCase
 import cash.p.terminal.tangem.domain.usecase.SignMultipleHashesUseCase
 import cash.p.terminal.tangem.domain.usecase.SignOneHashTransactionUseCase
-import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemCreatePublicKeyUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemCreateWalletsUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemScanUseCase
@@ -18,18 +17,17 @@ import cash.p.terminal.tangem.domain.usecase.ValidateBackUseCase
 import cash.p.terminal.tangem.ui.HardwareWalletOnboardingViewModel
 import cash.p.terminal.tangem.ui.accesscode.AddAccessCodeViewModel
 import cash.p.terminal.tangem.ui.accesscoderecovery.AccessCodeRecoveryViewModel
-import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.wallet.useCases.ScanToAddUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val featureTangemModule = module {
     factoryOf(::TangemScanUseCase)
-    factoryOf(::TangemScanUseCase) bind ScanToAddUseCase::class
-    factoryOf(::TangemBlockchainTypeExistUseCase)
+    factory<ScanToAddUseCase>(named("tangem")) { get<TangemScanUseCase>() }
     factoryOf(::TangemCreatePublicKeyUseCase)
     factoryOf(::CollectDerivationsUseCase)
     factoryOf(::SignOneHashTransactionUseCase)
@@ -44,7 +42,7 @@ val featureTangemModule = module {
     singleOf(::TangemSdkManager)
     singleOf(::CardSdkConfigRepository)
 
-    singleOf(::TangemHardwareWalletTokenPolicy) bind HardwareWalletTokenPolicy::class
+    singleOf(::TangemHardwareWalletTokenPolicy)
 
     viewModelOf(::HardwareWalletOnboardingViewModel)
     viewModelOf(::AddAccessCodeViewModel)

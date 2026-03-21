@@ -34,7 +34,6 @@ fun SendMoneroConfirmationScreen(
         navController = navController,
         coinMaxAllowedDecimals = sendViewModel.coinMaxAllowedDecimals,
         feeCoinMaxAllowedDecimals = sendViewModel.feeTokenMaxAllowedDecimals,
-        amountInputType = amountInputModeViewModel.inputType,
         rate = sendViewModel.coinRate,
         feeCoinRate = sendViewModel.feeCoinRate,
         sendResult = sendViewModel.sendResult,

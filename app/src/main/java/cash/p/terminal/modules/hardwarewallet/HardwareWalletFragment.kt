@@ -19,15 +19,19 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.tangem.ui.HardwareWalletError
 import cash.p.terminal.tangem.ui.HardwareWalletOnboardingFragment.*
+import cash.p.terminal.trezor.ui.onboarding.TrezorSetupFragment
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.core.hasNFC
 import cash.p.terminal.navigation.slideFromRightForResult
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
@@ -79,6 +83,14 @@ class HardwareWalletFragment : BaseComposeFragment() {
         HardwareWalletScreen(
             navController = navController,
             onScanCard = viewModel::scanCard,
+            onConnectTrezor = {
+                navController.slideFromRightForResult<TrezorSetupFragment.Result>(
+                    resId = R.id.trezorSetupFragment,
+                    input = TrezorSetupFragment.Input(viewModel.accountName)
+                ) {
+                    viewModel.success = it.success
+                }
+            },
             onFinish = { navController.popBackStack(popUpToInclusiveId, inclusive) },
             viewModel = viewModel,
         )
@@ -89,6 +101,7 @@ class HardwareWalletFragment : BaseComposeFragment() {
 internal fun HardwareWalletScreen(
     navController: NavController,
     onScanCard: () -> Unit,
+    onConnectTrezor: () -> Unit,
     onFinish: () -> Unit,
     viewModel: HardwareWalletViewModel
 ) {
@@ -133,12 +146,29 @@ internal fun HardwareWalletScreen(
                 onValueChange = viewModel::onChangeAccountName
             )
             Spacer(Modifier.height(32.dp))
+            val context = view.context
+            val hasNfc = context.hasNFC()
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                title = stringResource(R.string.scan_card),
+                title = stringResource(R.string.scan_tangem_card),
+                enabled = hasNfc,
                 onClick = onScanCard
+            )
+            if (!hasNfc) {
+                InfoText(
+                    text = stringResource(R.string.hardware_wallet_not_detected_error),
+                    paddingBottom = 0.dp
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+            ButtonPrimaryDefault(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                title = stringResource(R.string.connect_trezor),
+                onClick = onConnectTrezor
             )
         }
     }

@@ -80,6 +80,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
@@ -123,6 +124,7 @@ class ZcashAdapter(
     private val accountType =
         (wallet.account.type as? AccountType.Mnemonic)
             ?: (wallet.account.type as? AccountType.ZCashUfvKey)
+            ?: (wallet.account.type as? AccountType.TrezorDevice)
             ?: throw UnsupportedAccountException()
 
     private val seed = (accountType as? AccountType.Mnemonic)?.seed ?: ByteArray(0)
@@ -137,7 +139,8 @@ class ZcashAdapter(
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private var balanceCheckJob: Job? = null
-    private val balanceCheckMutex = kotlinx.coroutines.sync.Mutex()
+    private val balanceCheckMutex = Mutex()
+    private var importUfvkError : Throwable? = null
 
     init {
         Timber.i("ZcashAdapter type $addressSpecTyped")
@@ -150,7 +153,7 @@ class ZcashAdapter(
     }
 
     init {
-        val walletInitMode = if (existingWallet || isWatchOnlyAccount()) {
+        val walletInitMode = if (existingWallet || requiresUfvkImport()) {
             WalletInitMode.ExistingWallet
         } else when (wallet.account.origin) {
             AccountOrigin.Created -> WalletInitMode.NewWallet
@@ -175,7 +178,7 @@ class ZcashAdapter(
             accountBirthday = it
         }
 
-        val setup = if (!isWatchOnlyAccount()) {
+        val setup = if (!requiresUfvkImport()) {
             AccountCreateSetup(
                 seed = FirstClassByteArray(seed),
                 accountName = wallet.account.name,
@@ -200,11 +203,7 @@ class ZcashAdapter(
             isExchangeRateEnabled = false
         )
 
-        if (isWatchOnlyAccount()) {
-            runBlocking {
-                importWatchAccount()
-            }
-        }
+        runBlocking { importWatchAccountIfNeeded() }
 
         zcashAccount = runBlocking { tryOrNull { getFirstAccount() } }
         receiveAddress = runBlocking { getReceiveAddressOrEmpty() }
@@ -232,14 +231,23 @@ class ZcashAdapter(
         }
     }
 
-    private fun isWatchOnlyAccount(): Boolean {
+    private fun requiresUfvkImport(): Boolean {
         return wallet.account.type is AccountType.ZCashUfvKey
+            || wallet.account.type is AccountType.TrezorDevice
     }
 
-    private suspend fun importWatchAccount() {
+    private fun getWatchOnlyUfvk(): String? {
+        return when (wallet.account.type) {
+            is AccountType.ZCashUfvKey -> (wallet.account.type as AccountType.ZCashUfvKey).key
+            is AccountType.TrezorDevice -> wallet.hardwarePublicKey?.key?.value
+            else -> null
+        }
+    }
+
+    private suspend fun importWatchAccountIfNeeded() {
+        if (!requiresUfvkImport()) return
+        val key = getWatchOnlyUfvk() ?: return
         try {
-            val key = (wallet.account.type as? AccountType.ZCashUfvKey)?.key
-                ?: return
             (synchronizer as Synchronizer).importAccountByUfvk(
                 AccountImportSetup(
                     accountName = wallet.account.name,
@@ -248,8 +256,9 @@ class ZcashAdapter(
                     ufvk = UnifiedFullViewingKey(key)
                 )
             )
-        } catch (ex: Exception) {
-            Timber.e(ex, "Failed to import watch-only ZCash account")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to import watch-only ZCash account")
+            importUfvkError = e
         }
     }
 
@@ -337,7 +346,7 @@ class ZcashAdapter(
             accountBirthday = it
         }
         try {
-            val setup = if (!isWatchOnlyAccount()) {
+            val setup = if (!requiresUfvkImport()) {
                 AccountCreateSetup(
                     seed = FirstClassByteArray(seed),
                     accountName = wallet.account.name,
@@ -361,9 +370,7 @@ class ZcashAdapter(
                 isExchangeRateEnabled = false
             )
 
-            if (isWatchOnlyAccount()) {
-                importWatchAccount()
-            }
+            importWatchAccountIfNeeded()
 
         } catch (ex: Exception) {
             // To prevent crash with synchronizer creation in some situations
@@ -399,6 +406,10 @@ class ZcashAdapter(
     }
 
     override fun start() {
+        importUfvkError?.let {
+            syncState = AdapterState.NotSynced(it)
+            return
+        }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 startSynchronizer()

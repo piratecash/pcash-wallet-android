@@ -159,6 +159,24 @@ class LitecoinAdapter(
                         iSchnorrInputSigner = hardwareWalletSchnorrSigner
                     )
                 }
+                is AccountType.TrezorDevice -> {
+                    val trezorSigner = buildTrezorBtcSigner(
+                        accountId = account.id,
+                        blockchainType = wallet.token.blockchainType,
+                        coin = "Litecoin"
+                    )
+                    return LitecoinKit(
+                        context = App.instance,
+                        extendedKey = requireNotNull(wallet.getHDExtendedKey()),
+                        purpose = derivation.purpose,
+                        walletId = account.id,
+                        syncMode = syncMode,
+                        networkType = NetworkType.MainNet,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
+                        iInputSigner = trezorSigner,
+                        iSchnorrInputSigner = trezorSigner,
+                    )
+                }
                 else -> throw UnsupportedAccountException()
             }
         }
@@ -198,6 +216,7 @@ class LitecoinAdapter(
                 is AccountType.EvmAddress,
                 is AccountType.EvmPrivateKey,
                 is AccountType.HardwareCard,
+                is AccountType.TrezorDevice,
                 is AccountType.MnemonicMonero,
                 is AccountType.SolanaAddress,
                 is AccountType.TonAddress,

@@ -503,7 +503,7 @@ class BackupProvider(
 
             // Skip hardware wallets - they cannot be restored from backup
             // (private keys are stored on hardware device, not in backup)
-            if (type is AccountType.HardwareCard) {
+            if (type is AccountType.HardwareCard || type is AccountType.TrezorDevice) {
                 return@forEach
             }
 

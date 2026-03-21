@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.modules.send.BaseSendViewModel
@@ -337,6 +338,8 @@ class SwapConfirmViewModel(
                 }
             } catch (e: TangemSdkError.UserCancelled) {
                 // User cancelled - just reset state, no error message
+                sendResult = null
+            } catch (e: TrezorCancelledException) {
                 sendResult = null
             } catch (e: TangemSdkError) {
                 // Other Tangem errors - reset state

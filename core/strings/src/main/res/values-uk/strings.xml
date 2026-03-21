@@ -27,11 +27,16 @@
     <string name="Button_Create">Створити</string>
     <string name="Button_Advanced">Дод. налаштування</string>
     <string name="hardware_wallet">Апаратний гаманець</string>
-    <string name="hardware_wallet_not_detected">Апаратний гаманець (NFC не виявлено)</string>
     <string name="hardware_wallet_not_detected_error">NFC-зчитувач не виявлено, увімкніть для використання апаратного гаманця</string>
     <string name="hardware_wallet_offline_confirmation_title">Офлайн-активація</string>
     <string name="hardware_wallet_offline_confirmation_message">Перевірити автентичність карти на сервері неможливо. Перевірте підключення до інтернету або дозволите офлайн-активацію. Під час офлайн-активації серверні перевірки не виконуються, тому рівень безпеки знижується. Продовжити офлайн-активацію?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Продовжити офлайн</string>
+    <string name="trezor_wallet">Гаманець Trezor</string>
+    <string name="connect_trezor">Підключити Trezor</string>
+    <string name="trezor_setup_description">Переконайтеся, що Trezor Suite встановлено та ваш пристрій Trezor підключено.</string>
+    <string name="trezor_suite_required_title">Потрібен Trezor Suite</string>
+    <string name="trezor_suite_required_description">Для підключення пристрою Trezor потрібно встановити застосунок Trezor Suite на ваш телефон.</string>
+    <string name="install_from_play_store">Встановити з Play Store</string>
     <string name="Button_Restore">Імпорт</string>
     <string name="Button_Reset">Скинути</string>
     <string name="Button_Understand">Я розумію</string>
@@ -1020,6 +1025,7 @@
     <string name="ManageAccounts_WatchAddress">Перегляд гаманця</string>
     <!-- Import Wallet -->
     <string name="scan_card_to_add">Скануйте картку, щоб додати токен</string>
+    <string name="add_via_trezor">Додати через Trezor</string>
     <string name="ImportWallet_BackupFile">Резервний файл</string>
     <string name="ImportWallet_BackupFile_Description">Імпорт з файлу резервної копії.</string>
     <string name="ImportWallet_RecoveryPhrase">Фраза відновлення</string>
@@ -1612,8 +1618,10 @@
     <string name="unknown_send_error">Невідома помилка надсилання</string>
     <string name="WalletConnect_info"># Які ризики при використанні WalletConnect?\n\nСлід зазначити, що WalletConnect лише виступає в ролі моста між сайтом DeFi-сервісу та гаманцем користувача (наприклад, P.CASH).\n\nКоли користувач ініціює будь-яку дію на сайті DeFi-сервісу, що вимагає переказу коштів, гаманець P.CASH відображає вікно підтвердження для схвалення/відхилення відповідної транзакції. Гаманець P.CASH майже не має можливості зрозуміти контекст транзакції і просто надає інструмент для її схвалення або відхилення.\n\nВажливо використовувати сайти DeFi-сервісів від надійних організацій. Якщо зловмисник захопить сайт сервісу, можливо, що користувачеві буде показано вікно підтвердження, що виходить за рамки його намірів — і він може цього не помітити. Тому використовуйте лише перевірені та широко відомі DeFi-сервіси.</string>
     <string name="scan">Сканувати</string>
+    <string name="connect">Підключити</string>
     <string name="adding_tokens">Додавання токенів</string>
     <string name="scan_to_add_mesage">Щоб додати токени, необхідно відсканувати карту.</string>
+    <string name="connect_trezor_to_add_message">Щоб додати токени, необхідно підключити Trezor.</string>
     <string name="create_wallet">Створити гаманець</string>
     <string name="create">Створити</string>
     <string name="error_wallets_creating">Помилка при створенні гаманців</string>
@@ -1664,7 +1672,8 @@
     <string name="signed">Підписано</string>
     <string name="error_no_active_account">Активний обліковий запис не знайдено</string>
     <string name="error_hardware_wallet_not_supported">Поки не підтримується апаратною картою</string>
-    <string name="scan_card">Скануйте карту</string>
+    <string name="error_hardware_wallet_some_tokens_not_found">Деякі токени не вдалося додати</string>
+    <string name="scan_tangem_card">Сканувати Tangem картку</string>
     <string name="restoreheight_title">Початковий блок для відновлення</string>
     <string name="restoreheight_hint">Вкажіть блок або дату (РРРР-ММ-ДД)</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Невірна кількість слів. Має бути 25. Ви ввели: %d</string>

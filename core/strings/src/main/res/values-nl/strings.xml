@@ -26,6 +26,8 @@
     <string name="Button_Disconnect">Disconnect</string>
     <string name="Button_Create">Create</string>
     <string name="Button_Advanced">Advanced</string>
+    <string name="hardware_wallet">Hardware-portemonnee</string>
+    <string name="hardware_wallet_not_detected_error">Geen NFC-lezer gedetecteerd, schakel in om hardwarekaarten te gebruiken</string>
     <string name="Button_Restore">Import</string>
     <string name="Button_Reset">Reset</string>
     <string name="Button_Understand">I Understand</string>
@@ -44,6 +46,12 @@
     <string name="hardware_wallet_offline_confirmation_title">Offline activeren</string>
     <string name="hardware_wallet_offline_confirmation_message">De kaartverificatie kan de server niet bereiken. Controleer je internetverbinding of sta offline activeren toe. Bij offline activeren worden servercontroles overgeslagen, waardoor de veiligheid afneemt. Offline activering voortzetten?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Offline doorgaan</string>
+    <string name="trezor_wallet">Trezor Wallet</string>
+    <string name="connect_trezor">Trezor verbinden</string>
+    <string name="trezor_setup_description">Zorg ervoor dat Trezor Suite is geïnstalleerd en je Trezor-apparaat is verbonden.</string>
+    <string name="trezor_suite_required_title">Trezor Suite vereist</string>
+    <string name="trezor_suite_required_description">Om je Trezor-apparaat te verbinden, moet de Trezor Suite-app op je telefoon zijn geïnstalleerd.</string>
+    <string name="install_from_play_store">Installeren vanuit Play Store</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">Sign</string>
     <string name="Button_TryAgain">Try Again</string>
@@ -511,6 +519,12 @@
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Do you want to delete all paired dApss?</string>
     <string name="WalletConnect_Pairings_Delete">Delete</string>
     <string name="WalletConnect_DeleteAllPairs">Delete All Pairs</string>
+
+    <string name="scan">Scannen</string>
+    <string name="connect">Verbinden</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">U moet de kaart scannen om tokens toe te voegen</string>
+    <string name="connect_trezor_to_add_message">U moet Trezor verbinden om tokens toe te voegen</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">Warning</string>
     <string name="EthereumTransaction_Error_Title">Error</string>
@@ -565,7 +579,7 @@
     <string name="swap_create_wallet_description_with_zcash">You don\'t have all chosen wallets, need to create first,\nto exchange ZEC you need to create transparent address first</string>
     <string name="Swap_Approve">Approve</string>
     <string name="Swap_Approving">Approving</string>
-    <string name="Swap_Swapping">Swapping</string>
+    <string name="Swap_Swapping">Wisselen</string>
     <string name="Swap_Quoting">Quoting</string>
     <string name="Swap_Providers">Providers</string>
     <string name="Swap_SwapProvider_Title">Swap Provider</string>
@@ -1002,6 +1016,8 @@
     <string name="ManageAccounts_CreateNewWallet">New Wallet</string>
     <string name="ManageAccounts_ImportWallet">Import Wallet</string>
     <string name="ManageAccounts_WatchAddress">Watch Wallet</string>
+    <string name="scan_card_to_add">Scan kaart om token toe te voegen</string>
+    <string name="add_via_trezor">Toevoegen via Trezor</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">from File</string>
     <string name="ImportWallet_BackupFile_Description">Import a backup file from your local folder.</string>
@@ -1803,4 +1819,5 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="native_library_error_title">Kan niet starten</string>
     <string name="native_library_error_message">Een vereist onderdeel kon niet worden geladen. Probeer de app opnieuw te installeren vanuit de Play Store.</string>
     <string name="native_library_error_close">Sluiten</string>
+    <string name="scan_tangem_card">Tangem-kaart scannen</string>
 </resources>
