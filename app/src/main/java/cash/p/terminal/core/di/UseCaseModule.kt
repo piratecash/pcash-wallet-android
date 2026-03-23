@@ -8,6 +8,8 @@ import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
 import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
 import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
+import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
+import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
@@ -30,6 +32,8 @@ import org.koin.dsl.module
 
 val useCaseModule = module {
     singleOf(::UpdateSwapProviderTransactionsStatusUseCase)
+    singleOf(::SyncPendingMultiSwapUseCase)
+    factoryOf(::FetchSwapQuotesUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
     factoryOf(::ValidateMoneroHeightUseCase)
     factoryOf(::GetLocalizedAssetUseCase)

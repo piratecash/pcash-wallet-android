@@ -7,6 +7,9 @@ import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
+import cash.p.terminal.modules.multiswap.TimerService
+import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel
+import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.importwallet.ImportWalletViewModel
@@ -40,6 +43,7 @@ import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
 import cash.p.terminal.modules.solananetwork.SolanaNetworkService
 import cash.p.terminal.modules.solananetwork.SolanaNetworkViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
+import cash.p.terminal.modules.multiswap.SwapSelectCoinViewModel
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.DefaultDispatcherProvider
@@ -116,5 +120,30 @@ val viewModelModule = module {
     }
     viewModel { (mode: SafetyRulesModule.SafetyRulesMode, termTitles: List<String>) ->
         SafetyRulesViewModel(mode = mode, termTitles = termTitles, localStorage = get())
+    }
+    viewModelOf(::MultiSwapExchangesViewModel)
+    viewModel { params ->
+        MultiSwapExchangeViewModel(
+            pendingMultiSwapId = params.get(),
+            pendingMultiSwapStorage = get(),
+            marketKit = get(),
+            numberFormatter = get(),
+            onChainMonitor = get(),
+            swapQuoteService = get(),
+            fetchSwapQuotesUseCase = get(),
+            timerService = TimerService(),
+            syncPendingMultiSwapUseCase = get(),
+            currencyManager = get(),
+            adapterManager = get(),
+            balanceHiddenManager = get(),
+            walletManager = get(),
+            walletUseCase = get(),
+        )
+    }
+    viewModel { (otherSelectedToken: Token?, activeAccount: Account) ->
+        SwapSelectCoinViewModel(
+            otherSelectedToken = otherSelectedToken,
+            activeAccount = activeAccount
+        )
     }
 }

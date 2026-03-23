@@ -39,6 +39,22 @@ buildscript {
 plugins {
     id 'com.google.devtools.ksp' version '2.3.2' apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    id 'io.gitlab.arturbosch.detekt' version '1.23.8'
+}
+
+subprojects {
+    apply plugin: 'io.gitlab.arturbosch.detekt'
+
+    detekt {
+        buildUponDefaultConfig = true
+        config.setFrom("$rootDir/config/detekt/detekt.yml")
+        baseline = file("detekt-baseline.xml")
+        parallel = true
+    }
+
+    dependencies {
+        detektPlugins "io.nlopez.compose.rules:detekt:0.4.22"
+    }
 }
 
 allprojects {

@@ -102,9 +102,10 @@ fun ButtonPrimaryDefault(
 
 @Composable
 fun ButtonPrimaryTransparent(
-    modifier: Modifier = Modifier,
     title: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    textColor: Color= Color.Unspecified,
     enabled: Boolean = true
 ) {
 
@@ -118,8 +119,10 @@ fun ButtonPrimaryTransparent(
 
     Surface(
         modifier = modifier,
+        shape = RoundedCornerShape(25.dp),
         color = ComposeAppTheme.colors.transparent,
         contentColor = contentColor,
+        border = BorderStroke(1.dp, ComposeAppTheme.colors.steel20),
     ) {
         ProvideTextStyle(
             value = ComposeAppTheme.typography.headline2
@@ -142,6 +145,7 @@ fun ButtonPrimaryTransparent(
                 content = {
                     Text(
                         text = title,
+                        color = textColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
