@@ -7,14 +7,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
-import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.send.SendConfirmationScreen
 
 @Composable
 fun SendMoneroConfirmationScreen(
     navController: NavController,
     sendViewModel: SendMoneroViewModel,
-    amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int
 ) {
     var confirmationData by remember { mutableStateOf(sendViewModel.getConfirmationData()) }

@@ -106,7 +106,6 @@ internal fun HardwareWalletScreen(
     viewModel: HardwareWalletViewModel
 ) {
     val view = LocalView.current
-
     LaunchedEffect(viewModel.success) {
         if (viewModel.success) {
             HudHelper.showSuccessMessage(
@@ -116,7 +115,6 @@ internal fun HardwareWalletScreen(
                 iconTint = R.color.white
             )
             delay(300)
-
             onFinish()
         }
     }
@@ -136,7 +134,6 @@ internal fun HardwareWalletScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-
             HeaderText(stringResource(id = R.string.ManageAccount_Name))
             FormsInput(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -146,8 +143,7 @@ internal fun HardwareWalletScreen(
                 onValueChange = viewModel::onChangeAccountName
             )
             Spacer(Modifier.height(32.dp))
-            val context = view.context
-            val hasNfc = context.hasNFC()
+            val hasNfc = view.context.hasNFC()
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()

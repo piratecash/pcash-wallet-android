@@ -286,30 +286,10 @@ class SendBitcoinViewModel(
     private suspend fun send() = withContext(Dispatchers.IO) {
         val logger = logger.getScopedUnique()
         logger.info("click")
-
         try {
             sendResult = SendResult.Sending
             logger.info("sending tx")
-
-            // 1. Create pending transaction draft BEFORE sending
-            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
-                ?.balanceData?.available ?: amountState.availableBalance
-                ?: throw IllegalStateException("Balance unavailable")
-            val draft = PendingTransactionDraft(
-                wallet = wallet,
-                token = wallet.token,
-                amount = amountState.amount!!,
-                fee = fee,
-                sdkBalanceAtCreation = sdkBalance,
-                fromAddress = "",
-                toAddress = addressState.validAddress!!.hex,
-                memo = memo
-            )
-
-            // 2. Register pending transaction
-            pendingTxId = pendingRegistrar.register(draft)
-
-            // 3. Broadcast transaction
+            pendingTxId = registerPendingTransaction()
             val transactionRecord = adapter.send(
                 amount = amountState.amount!!,
                 address = addressState.validAddress!!.hex,
@@ -322,25 +302,15 @@ class SendBitcoinViewModel(
                 changeToFirstInput = false,
                 utxoFilters = UtxoFilters()
             )
-
-            // 4. Update pending with txHash
-            pendingTxId?.let {
-                pendingRegistrar.updateTxId(it, transactionRecord)
-            }
-
-            // 5. Check if transaction is still in queue
+            pendingTxId?.let { pendingRegistrar.updateTxId(it, transactionRecord) }
             val isQueued = adapter.isTransactionInSendQueue(transactionRecord)
-
             logger.info("success, queued=$isQueued")
             sendResult = if (isQueued) {
                 SendResult.SentButQueued(transactionRecord)
             } else {
                 SendResult.Sent(transactionRecord)
             }
-
-            address?.let {
-                recentAddressManager.setRecentAddress(address, blockchainType)
-            }
+            address?.let { recentAddressManager.setRecentAddress(address, blockchainType) }
         } catch (e: TangemSdkError.UserCancelled) {
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             sendResult = null
@@ -358,6 +328,23 @@ class SendBitcoinViewModel(
             logger.warning("failed", e)
             sendResult = SendResult.Failed(createCaution(e))
         }
+    }
+
+    private suspend fun registerPendingTransaction(): String {
+        val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+            ?.balanceData?.available ?: amountState.availableBalance
+            ?: throw IllegalStateException("Balance unavailable")
+        val draft = PendingTransactionDraft(
+            wallet = wallet,
+            token = wallet.token,
+            amount = amountState.amount!!,
+            fee = fee,
+            sdkBalanceAtCreation = sdkBalance,
+            fromAddress = "",
+            toAddress = addressState.validAddress!!.hex,
+            memo = memo
+        )
+        return pendingRegistrar.register(draft)
     }
 
     private fun createCaution(error: Throwable) = when (error) {

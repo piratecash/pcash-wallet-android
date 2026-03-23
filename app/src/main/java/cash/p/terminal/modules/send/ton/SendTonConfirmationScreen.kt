@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
-import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.send.SendConfirmationScreen
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
 
@@ -15,7 +14,6 @@ import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
 fun SendTonConfirmationScreen(
     navController: NavController,
     sendViewModel: SendTonViewModel,
-    amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int
 ) {
     var confirmationData by remember { mutableStateOf(sendViewModel.getConfirmationData()) }
