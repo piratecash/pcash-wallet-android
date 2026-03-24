@@ -133,6 +133,7 @@ class ZcashAdapter(
 
     override var receiveAddress: String
 
+    private var startJob: Job? = null
     private var statusJob: Job? = null
     private var subscriberScope: CoroutineScope? = null
     override val isMainNet: Boolean = true
@@ -281,18 +282,10 @@ class ZcashAdapter(
         scope.launch {
             backgroundManager.stateFlow.collect { state ->
                 when (state) {
-                    BackgroundManagerState.EnterForeground -> {
-                        start()
-                    }
-
-                    BackgroundManagerState.EnterBackground -> {
-                        stop()
-                    }
-
+                    BackgroundManagerState.EnterForeground -> start()
+                    BackgroundManagerState.EnterBackground -> pauseSynchronizer()
                     BackgroundManagerState.Unknown,
-                    BackgroundManagerState.AllActivitiesDestroyed -> {
-
-                    }
+                    BackgroundManagerState.AllActivitiesDestroyed -> {}
                 }
             }
         }
@@ -376,7 +369,7 @@ class ZcashAdapter(
             // To prevent crash with synchronizer creation in some situations
             // when java.lang.IllegalStateException: Another synchronizer with SynchronizerKey
             Timber.d("Synchronizer creation failed: ${ex.message}")
-            stop()
+            closeSynchronizer()
             delay(3000)
             createNewSynchronizer()
             return
@@ -410,7 +403,8 @@ class ZcashAdapter(
             syncState = AdapterState.NotSynced(it)
             return
         }
-        CoroutineScope(Dispatchers.IO).launch {
+        startJob?.cancel()
+        startJob = scope.launch {
             try {
                 startSynchronizer()
             } catch (e: IllegalStateException) {
@@ -434,12 +428,22 @@ class ZcashAdapter(
         }
     }
 
-    override fun stop() {
+    private fun closeSynchronizer() {
         balanceCheckJob?.cancel()
         statusJob?.cancel()
         subscriberScope?.cancel()
         subscriberScope = null
         tryOrNull { synchronizer.close() }
+    }
+
+    private fun pauseSynchronizer() {
+        startJob?.cancel()
+        closeSynchronizer()
+    }
+
+    override fun stop() {
+        scope.cancel()
+        closeSynchronizer()
     }
 
     override suspend fun refresh() = withContext(Dispatchers.IO) {
@@ -775,7 +779,7 @@ class ZcashAdapter(
         syncState = when (status) {
             Synchronizer.Status.STOPPED -> AdapterState.NotSynced(Exception("stopped"))
             Synchronizer.Status.DISCONNECTED -> AdapterState.NotSynced(Exception("disconnected"))
-            Synchronizer.Status.SYNCING -> AdapterState.Syncing()
+            Synchronizer.Status.SYNCING -> if (syncState is AdapterState.Syncing) syncState else AdapterState.Syncing()
             Synchronizer.Status.SYNCED -> AdapterState.Synced
             else -> syncState
         }
