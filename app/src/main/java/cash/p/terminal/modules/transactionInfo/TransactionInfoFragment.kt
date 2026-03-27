@@ -42,7 +42,6 @@ import cash.p.terminal.ui.compose.components.SectionTitleCell
 import cash.p.terminal.ui.compose.components.TransactionAmountCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoBtcLockCell
-import cash.p.terminal.ui.compose.components.TransactionInfoCancelCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui.compose.components.TransactionInfoDoubleSpendCell
 import cash.p.terminal.ui.compose.components.TransactionInfoExplorerCell
@@ -380,13 +379,14 @@ fun TransactionInfoSection(
                                 navController = navController
                             )
                         }
-                        add {
+                        // MOBILE-593
+                        /*add {
                             TransactionInfoCancelCell(
                                 transactionHash = viewItem.transactionHash,
                                 blockchainType = viewItem.blockchainType,
                                 navController = navController
                             )
-                        }
+                        }*/
                     }
 
                     is TransactionInfoViewItem.TransactionHash -> {
