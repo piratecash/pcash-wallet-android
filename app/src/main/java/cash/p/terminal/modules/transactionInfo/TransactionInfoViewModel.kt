@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.core.managers.PendingTransactionRepository
 import cash.p.terminal.core.managers.PoisonAddressManager
+import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.transaction.TransactionSource
@@ -18,11 +20,10 @@ class TransactionInfoViewModel(
     private val factory: TransactionInfoViewItemFactory,
     private val contactsRepository: ContactsRepository,
     private val balanceHiddenManager: IBalanceHiddenManager,
-    private val pendingTransactionRepository: PendingTransactionRepository
+    private val pendingTransactionRepository: PendingTransactionRepository,
+    private val poisonAddressManager: PoisonAddressManager,
 ) : ViewModel() {
 
-    private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
-    private val poisonAddressManager: PoisonAddressManager by inject(PoisonAddressManager::class.java)
     val balanceHidden: Boolean
         get() = balanceHiddenManager.isTransactionInfoHidden(service.transactionRecord.uid, service.walletUid)
 

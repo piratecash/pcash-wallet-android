@@ -51,7 +51,8 @@ object TransactionInfoModule {
                 factory = factory,
                 contactsRepository = App.contactsRepository,
                 balanceHiddenManager = getKoinInstance(),
-                pendingTransactionRepository = getKoinInstance()
+                pendingTransactionRepository = getKoinInstance(),
+                poisonAddressManager = getKoinInstance(),
             ) as T
         }
 
