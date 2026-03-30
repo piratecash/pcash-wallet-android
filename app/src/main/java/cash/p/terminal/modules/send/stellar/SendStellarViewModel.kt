@@ -109,22 +109,28 @@ class SendStellarViewModel(
         emitState()
     }
 
-    override fun createState() = SendStellarUiState(
-        availableBalance = amountState.availableBalance,
-        amountCaution = amountState.amountCaution,
-        addressError = addressState.addressError,
-        minimumAmountError = minimumAmountState.error,
-        canBeSend = amountState.canBeSend && addressState.canBeSend && minimumAmountState.canBeSend,
-        showAddressInput = showAddressInput,
-        fee = fee.value,
-        address = addressState.address
-    )
+    override fun createState(): SendStellarUiState {
+        val poison = isAddressSuspicious(addressState.address?.hex)
+        return SendStellarUiState(
+            availableBalance = amountState.availableBalance,
+            amountCaution = amountState.amountCaution,
+            addressError = addressState.addressError,
+            minimumAmountError = minimumAmountState.error,
+            canBeSend = amountState.canBeSend && addressState.canBeSend && minimumAmountState.canBeSend && (!poison || riskAccepted),
+            showAddressInput = showAddressInput,
+            fee = fee.value,
+            address = addressState.address,
+            isPoisonAddress = poison,
+            riskAccepted = riskAccepted,
+        )
+    }
 
     fun onEnterAmount(amount: BigDecimal?) {
         amountService.setAmount(amount)
     }
 
     fun onEnterAddress(address: Address?) {
+        resetRiskAccepted()
         addressService.setAddress(address)
     }
 
@@ -178,12 +184,11 @@ class SendStellarViewModel(
 
             adapter.send(amountState.amount!!, addressState.address?.hex!!, memo)
 
+            onSendSuccess(addressState.address?.hex)
             sendResult = SendResult.Sent()
             logger.info("success")
 
-            recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Ton)
-        } catch (e: TrezorCancelledException) {
-            sendResult = null
+            recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Stellar)
         } catch (e: Throwable) {
             sendResult = SendResult.Failed(createCaution(e))
             logger.warning("failed", e)
@@ -206,5 +211,7 @@ data class SendStellarUiState(
     val showAddressInput: Boolean,
     val fee: BigDecimal?,
     val address: Address?,
+    val isPoisonAddress: Boolean = false,
+    val riskAccepted: Boolean = false,
 )
 

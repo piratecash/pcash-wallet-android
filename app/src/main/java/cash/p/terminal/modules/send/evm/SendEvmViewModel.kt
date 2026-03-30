@@ -110,16 +110,21 @@ internal class SendEvmViewModel(
     override fun createState(): SendUiState {
         val txState = sendTransactionService.stateFlow.value
         val hasSendData = amountMoreThanZero() && addressState.address != null
+        val poison = isAddressSuspicious(addressState.address?.hex)
+        val canSend = amountState.canBeSend && addressState.canBeSend && txState.sendable &&
+            (!poison || riskAccepted)
         return SendUiState(
             availableBalance = amountState.availableBalance,
             amountCaution = amountState.amountCaution,
             addressError = addressState.addressError,
-            canBeSend = amountState.canBeSend && addressState.canBeSend && txState.sendable,
+            canBeSend = canSend,
             showAddressInput = showAddressInput,
             address = addressState.address,
             cautions = if (hasSendData) txState.cautions else emptyList(),
             fee = txState.networkFee?.primary?.value,
             feeLoading = hasSendData && txState.loading,
+            isPoisonAddress = poison,
+            riskAccepted = riskAccepted,
         )
     }
 
@@ -133,12 +138,14 @@ internal class SendEvmViewModel(
     }
 
     fun onEnterAddress(address: Address?) {
+        resetRiskAccepted()
         addressService.setAddress(address)
     }
 
     fun onClickSend() = viewModelScope.launch(Dispatchers.Default) {
         sendResult = try {
             val sendResult = sendTransactionService.sendTransaction()
+            onSendSuccess(addressState.address?.hex)
             SendResult.Sent(sendResult.getRecordUid())
         } catch (e: TrezorCancelledException) {
             null
