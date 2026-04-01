@@ -462,6 +462,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">رسوم شبكة %s</string>
+    <string name="token_balance_need_native_coin_title">تحتاج %1$s لاستخدام %2$s</string>
+    <string name="token_balance_need_native_coin_body">%2$s يعمل على %3$s.\nيتم دفع رسوم الشبكة بـ %1$s.\nرصيد %1$s الخاص بك: %4$s</string>
     <string name="network_fee_warning_body_protocol">ينص بروتوكول شبكة %1$s على أنه يلزم %2$s على الأقل لدفع رسوم الشبكة لهذه المعاملة.</string>
     <string name="network_fee_warning_body_balance">رصيدك أقل من %s.</string>
     <string name="network_fee_warning_body_protocol_bold">%s على الأقل</string>
@@ -495,6 +497,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">جارٍ تحميل البيان…</string>
     <string name="account_not_supported_by">نوع المحفظة الحالي %1$s لا يدعم %2$s</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Status</string>
@@ -893,6 +896,7 @@
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>
     <string name="show_all_transactions">عرض جميع المعاملات</string>
+    <string name="hide_balance">إخفاء الرصيد</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>

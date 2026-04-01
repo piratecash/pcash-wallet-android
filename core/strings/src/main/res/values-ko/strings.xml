@@ -462,6 +462,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">%s 네트워크 수수료</string>
+    <string name="token_balance_need_native_coin_title">%2$s을(를) 사용하려면 %1$s이(가) 필요합니다</string>
+    <string name="token_balance_need_native_coin_body">%2$s은(는) %3$s에서 작동합니다.\n네트워크 수수료는 %1$s로 지불됩니다.\n귀하의 %1$s 잔액: %4$s</string>
     <string name="network_fee_warning_body_protocol">%1$s 네트워크 프로토콜에 따르면 이 거래의 네트워크 수수료를 지불하려면 최소 %2$s이(가) 필요합니다.</string>
     <string name="network_fee_warning_body_balance">잔액이 %s 미만입니다.</string>
     <string name="network_fee_warning_body_protocol_bold">최소 %s</string>
@@ -495,6 +497,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">매니페스트 로딩 중…</string>
     <string name="account_not_supported_by">현재 지갑 유형 %1$s에서는 %2$s을(를) 지원하지 않습니다</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">상태</string>
@@ -893,6 +896,7 @@
     <string name="Appearance_HideBalanceTabButtons">숨김 버튼</string>
     <string name="Appearance_BalanceAutoHide">밸런스 자동 숨기기</string>
     <string name="show_all_transactions">모든 거래 보기</string>
+    <string name="hide_balance">잔액 숨기기</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>

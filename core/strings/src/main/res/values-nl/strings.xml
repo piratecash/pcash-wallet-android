@@ -462,6 +462,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">%s Netwerkkosten</string>
+    <string name="token_balance_need_native_coin_title">Je hebt %1$s nodig om %2$s te gebruiken</string>
+    <string name="token_balance_need_native_coin_body">%2$s draait op %3$s.\nNetwerkkosten worden betaald in %1$s.\nJe %1$s saldo: %4$s</string>
     <string name="network_fee_warning_body_protocol">Het %1$s-netwerkprotocol vereist dat minimaal %2$s nodig is om de netwerkkosten voor deze transactie te betalen.</string>
     <string name="network_fee_warning_body_balance">U heeft minder dan %s op uw saldo.</string>
     <string name="network_fee_warning_body_protocol_bold">minimaal %s</string>
@@ -495,6 +497,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">Manifest laden…</string>
     <string name="account_not_supported_by">Je huidige wallettype %1$s ondersteunt %2$s niet</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Status</string>
@@ -893,6 +896,7 @@
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>
     <string name="show_all_transactions">Toon alle transacties</string>
+    <string name="hide_balance">Saldo verbergen</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>

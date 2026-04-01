@@ -458,6 +458,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">Frais de réseau %s</string>
+    <string name="token_balance_need_native_coin_title">Vous avez besoin de %1$s pour utiliser %2$s</string>
+    <string name="token_balance_need_native_coin_body">%2$s fonctionne sur %3$s.\nLes frais de réseau sont payés en %1$s.\nVotre solde %1$s : %4$s</string>
     <string name="network_fee_warning_body_protocol">Le protocole du réseau %1$s stipule qu\'au moins %2$s est nécessaire pour payer les frais de réseau de cette transaction.</string>
     <string name="network_fee_warning_body_balance">Vous avez moins de %s dans votre solde.</string>
     <string name="network_fee_warning_body_protocol_bold">au moins %s</string>
@@ -491,6 +493,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">Chargement du manifeste…</string>
     <string name="account_not_supported_by">Votre type de portefeuille actuel %1$s ne prend pas en charge %2$s</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Statut</string>
@@ -889,6 +892,7 @@
     <string name="Appearance_HideBalanceTabButtons">Masquer les boutons</string>
     <string name="Appearance_BalanceAutoHide">Masquer le Solde Automatiquement</string>
     <string name="show_all_transactions">Afficher toutes les transactions</string>
+    <string name="hide_balance">Masquer le solde</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>

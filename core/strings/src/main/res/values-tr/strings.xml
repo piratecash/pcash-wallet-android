@@ -462,6 +462,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">%s Ağ Komisyonu</string>
+    <string name="token_balance_need_native_coin_title">%2$s kullanmak için %1$s gereklidir</string>
+    <string name="token_balance_need_native_coin_body">%2$s, %3$s üzerinde çalışır.\nAğ ücreti %1$s ile ödenir.\n%1$s bakiyeniz: %4$s</string>
     <string name="network_fee_warning_body_protocol">%1$s ağ protokolü, bu işlemin ağ komisyonunu ödemek için en az %2$s gerektiğini belirtmektedir.</string>
     <string name="network_fee_warning_body_balance">Bakiyenizde %s tutarından az bulunmaktadır.</string>
     <string name="network_fee_warning_body_protocol_bold">en az %s</string>
@@ -495,6 +497,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">Manifest yükleniyor…</string>
     <string name="account_not_supported_by">Mevcut cüzdan türünüz %1$s, %2$s\'i desteklemiyor</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Durum</string>
@@ -893,6 +896,7 @@
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Denge Otomatik Gizleme</string>
     <string name="show_all_transactions">Tüm İşlemleri Göster</string>
+    <string name="hide_balance">Bakiyeyi gizle</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>

@@ -21,6 +21,7 @@
     <string name="Button_Add">Добавить</string>
     <string name="Button_Confirm">Подтвердить</string>
     <string name="Button_Refresh">Обновить</string>
+    <string name="manifest_loading">Загрузка манифеста...</string>
     <string name="Button_Connect">Подключиться</string>
     <string name="Button_Reject">Отклонить</string>
     <string name="Button_Disconnect">Отсоединить</string>
@@ -464,6 +465,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">Комиссия сети %s</string>
+    <string name="token_balance_need_native_coin_title">Вам нужен %1$s для использования %2$s</string>
+    <string name="token_balance_need_native_coin_body">%2$s работает на %3$s.\nКомиссия сети оплачивается в %1$s.\nВаш баланс %1$s: %4$s</string>
     <string name="network_fee_warning_body_protocol">Протокол сети %1$s сообщает, что для выполнения данной транзакции требуется не менее %2$s для оплаты сетевой комиссии.</string>
     <string name="network_fee_warning_body_balance">На вашем балансе менее %s.</string>
     <string name="network_fee_warning_body_protocol_bold">не менее %s</string>
@@ -905,6 +908,7 @@
     <string name="Appearance_HideBalanceTabButtons">Скрыть кнопки</string>
     <string name="Appearance_BalanceAutoHide">Автоскрытие баланса</string>
     <string name="show_all_transactions">Показать все транзакции</string>
+    <string name="hide_balance">Скрыть баланс</string>
     <string name="Appearance_TransactionAutoHide">Автоскрытие транзакций</string>
     <string name="appearance_transfer_passcode">Код подтверждения перевода</string>
     <string name="display">Показать</string>

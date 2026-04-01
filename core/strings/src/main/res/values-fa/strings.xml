@@ -462,6 +462,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">کارمزد شبکه %s</string>
+    <string name="token_balance_need_native_coin_title">برای استفاده از %2$s به %1$s نیاز دارید</string>
+    <string name="token_balance_need_native_coin_body">%2$s روی %3$s اجرا می‌شود.\nکارمزد شبکه با %1$s پرداخت می‌شود.\nموجودی %1$s شما: %4$s</string>
     <string name="network_fee_warning_body_protocol">پروتکل شبکه %1$s مقرر می‌کند که حداقل %2$s برای پرداخت کارمزد شبکه این تراکنش لازم است.</string>
     <string name="network_fee_warning_body_balance">موجودی شما کمتر از %s است.</string>
     <string name="network_fee_warning_body_protocol_bold">حداقل %s</string>
@@ -495,6 +497,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">در حال بارگذاری مانیفست…</string>
     <string name="account_not_supported_by">نوع کیف پول فعلی شما %1$s از %2$s پشتیبانی نمی‌کند</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">وضعیت</string>
@@ -893,6 +896,7 @@
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>
     <string name="show_all_transactions">نمایش همه تراکنش‌ها</string>
+    <string name="hide_balance">مخفی کردن موجودی</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>

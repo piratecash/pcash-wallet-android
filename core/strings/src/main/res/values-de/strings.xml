@@ -456,6 +456,8 @@
 
     <!--Network Fee Warning-->
     <string name="network_fee_warning_title">%s Netzwerkgebühr</string>
+    <string name="token_balance_need_native_coin_title">Sie benötigen %1$s um %2$s zu verwenden</string>
+    <string name="token_balance_need_native_coin_body">%2$s läuft auf %3$s.\nNetzwerkgebühren werden in %1$s bezahlt.\nIhr %1$s Guthaben: %4$s</string>
     <string name="network_fee_warning_body_protocol">Das %1$s-Netzwerkprotokoll sieht vor, dass mindestens %2$s zur Zahlung der Netzwerkgebühr für diese Transaktion erforderlich ist.</string>
     <string name="network_fee_warning_body_balance">Sie haben weniger als %s in Ihrem Guthaben.</string>
     <string name="network_fee_warning_body_protocol_bold">mindestens %s</string>
@@ -489,6 +491,7 @@
     <string name="TonConnect_Unnamed">Unnamed</string>
     <string name="TonConnect_Wallet">Wallet</string>
     <string name="TonConnect_ChooseWallet">Choose a Wallet</string>
+    <string name="manifest_loading">Manifest wird geladen…</string>
     <string name="account_not_supported_by">Ihr aktueller Wallet-Typ %1$s unterstützt %2$s nicht</string>
     <!--WalletConnect-->
     <string name="WalletConnect_Status">Status</string>
@@ -886,6 +889,7 @@
     <string name="Appearance_HideBalanceTabButtons">Schaltflächen ausblenden</string>
     <string name="Appearance_BalanceAutoHide">Auto-Ausblenden ausgleichen</string>
     <string name="show_all_transactions">Alle Transaktionen anzeigen</string>
+    <string name="hide_balance">Saldo ausblenden</string>
     <string name="Appearance_TransactionAutoHide">Transaction Auto Hide</string>
     <string name="appearance_transfer_passcode">Passcode for transfer</string>
     <string name="display">Display</string>
