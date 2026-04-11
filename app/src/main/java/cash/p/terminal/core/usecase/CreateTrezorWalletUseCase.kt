@@ -48,6 +48,9 @@ internal class CreateTrezorWalletUseCase(
         )
 
         val publicKeys = fetchPublicKeys(defaultTokens, account.id)
+        check(publicKeys.size == defaultTokens.size) {
+            "Failed to fetch Trezor public keys for all default wallets"
+        }
 
         accountManager.save(account = account, updateActive = false)
 

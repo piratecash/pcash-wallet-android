@@ -112,7 +112,7 @@ private fun SendEvmConfirmationScreen(
 
                     coroutineScope.launch {
                         buttonEnabled = false
-                        HudHelper.showInProcessMessage(
+                        val currentSnackbar = HudHelper.showInProcessMessage(
                             view,
                             R.string.Send_Sending,
                             SnackbarDuration.INDEFINITE
@@ -129,6 +129,7 @@ private fun SendEvmConfirmationScreen(
                             navController.popBackStack(input.sendEntryPointDestId, true)
                         } catch (e: TrezorCancelledException) {
                             logger.info("trezor user cancelled")
+                            currentSnackbar?.dismiss()
                         } catch (t: Throwable) {
                             logger.warning("failed", t)
                             val errorMsg = if (t is JsonRpc.ResponseError.RpcError) {

@@ -43,7 +43,7 @@ class SolanaKitManager(
     private val walletManager: SolanaWalletManager,
     private val backgroundManager: BackgroundManager,
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
-    private val trezorDeepLinkManager: TrezorDeepLinkManager
+    private val trezorDeepLinkManager: TrezorDeepLinkManager,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
 ) {
 

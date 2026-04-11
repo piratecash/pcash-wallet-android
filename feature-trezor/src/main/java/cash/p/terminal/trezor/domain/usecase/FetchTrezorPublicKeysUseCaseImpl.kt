@@ -36,17 +36,12 @@ internal class FetchTrezorPublicKeysUseCaseImpl(
             Timber.d("Trezor: calling ${method.value} with ${specs.size} spec(s)")
             val clearSession = isFirstCall
             isFirstCall = false
-            try {
-                if (specs.size == 1) {
-                    val spec = specs.single()
-                    keyCache[spec] = fetchSingle(spec, clearSession)
-                } else {
-                    val results = fetchBundle(method, specs, clearSession)
-                    specs.forEachIndexed { i, spec -> keyCache[spec] = results.getOrNull(i) }
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Trezor: ${method.value} failed, skipping")
-                specs.forEach { keyCache[it] = null }
+            if (specs.size == 1) {
+                val spec = specs.single()
+                keyCache[spec] = fetchSingle(spec, clearSession)
+            } else {
+                val results = fetchBundle(method, specs, clearSession)
+                specs.forEachIndexed { i, spec -> keyCache[spec] = results.getOrNull(i) }
             }
         }
 
