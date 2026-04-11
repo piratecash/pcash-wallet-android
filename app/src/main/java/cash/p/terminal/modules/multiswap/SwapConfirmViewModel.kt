@@ -72,6 +72,7 @@ class SwapConfirmViewModel(
     adapterManager: IAdapterManager,
     private val multiSwapLegInfo: MultiSwapLegInfo? = null,
 ) : BaseSendViewModel<SwapConfirmUiState>(wallet, adapterManager) {
+    private val accountId: String = wallet.account.id
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
 
@@ -80,8 +81,6 @@ class SwapConfirmViewModel(
 
     var completedMultiSwapId by mutableStateOf<String?>(null)
         private set
-
-    val isMultiSwap: Boolean get() = multiSwapLegInfo != null
 
     override fun getEstimatedFee(): BigDecimal? = sendTransactionState.networkFee?.primary?.value
     override fun onSendRequested() = executeSwap()
@@ -383,6 +382,7 @@ class SwapConfirmViewModel(
         val id = UUID.randomUUID().toString()
         val record = PendingMultiSwap(
             id = id,
+            accountId = accountId,
             createdAt = System.currentTimeMillis(),
             coinUidIn = legInfo.coinUidIn,
             blockchainTypeIn = legInfo.blockchainTypeIn,

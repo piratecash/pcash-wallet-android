@@ -8,6 +8,9 @@ import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.core.onPollingStarted
+import cash.p.terminal.core.onPollingStopped
+import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
@@ -87,6 +90,7 @@ import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 import kotlin.math.max
 
@@ -109,12 +113,16 @@ class ZcashAdapter(
 
     private val recovering = AtomicBoolean(false)
     private val corruptionRecovery = AtomicBoolean(false)
+    private val pollingSessionCount = AtomicInteger(0)
 
     @Volatile
     private var synchronizer: CloseableSynchronizer
     private var transactionsProvider: ZcashTransactionsProvider
     private val clearZCashWalletDataUseCase: ClearZCashWalletDataUseCase by inject(
         ClearZCashWalletDataUseCase::class.java
+    )
+    private val backgroundKeepAliveManager: BackgroundKeepAliveManager by inject(
+        BackgroundKeepAliveManager::class.java
     )
 
     private val adapterStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
@@ -283,7 +291,13 @@ class ZcashAdapter(
             backgroundManager.stateFlow.collect { state ->
                 when (state) {
                     BackgroundManagerState.EnterForeground -> start()
-                    BackgroundManagerState.EnterBackground -> pauseSynchronizer()
+                    BackgroundManagerState.EnterBackground -> {
+                        if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash)) {
+                            pauseSynchronizer()
+                        } else {
+                            Timber.tag("TxPoller").d("ZcashAdapter staying alive")
+                        }
+                    }
                     BackgroundManagerState.Unknown,
                     BackgroundManagerState.AllActivitiesDestroyed -> {}
                 }
@@ -450,6 +464,18 @@ class ZcashAdapter(
         with(synchronizer as SdkSynchronizer) {
             refreshAllBalances()
             refreshTransactions()
+        }
+    }
+
+    fun startForPolling() {
+        pollingSessionCount.onPollingStarted {
+            start()
+        }
+    }
+
+    fun stopForPolling() {
+        pollingSessionCount.onPollingStopped(backgroundManager) {
+            pauseSynchronizer()
         }
     }
 
