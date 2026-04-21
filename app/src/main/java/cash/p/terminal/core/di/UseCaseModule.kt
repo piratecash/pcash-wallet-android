@@ -15,6 +15,7 @@ import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.domain.usecase.GetLocalizedAssetUseCase
+import cash.p.terminal.domain.usecase.DeleteAllContactsUseCase
 import cash.p.terminal.domain.usecase.ResetUseCase
 import cash.p.terminal.manager.ITorConnectionStatusUseCase
 import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
@@ -45,6 +46,7 @@ val useCaseModule = module {
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
     singleOf(::ClearZCashWalletDataUseCase)
+    singleOf(::DeleteAllContactsUseCase)
     singleOf(::ResetUseCase)
     singleOf(::SendZecOnDuressUseCase)
     singleOf(::CompositeHardwareWalletTokenPolicy) bind HardwareWalletTokenPolicy::class
