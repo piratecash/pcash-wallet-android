@@ -1,73 +1,95 @@
 package cash.p.terminal.core.managers
 
-import timber.log.Timber
+import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.isCosanta
 import cash.p.terminal.wallet.isPirateCash
+import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.math.BigDecimal
+import java.time.Instant
 
 class StackingManager(
     private val piratePlaceRepository: PiratePlaceRepository,
-    private val localStorageManager: LocalStorageManager
+    private val localStorage: ILocalStorage,
+    dispatcherProvider: DispatcherProvider,
 ) {
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
 
     private val _unpaidFlow = MutableStateFlow<BigDecimal?>(null)
     val unpaidFlow = _unpaidFlow.asStateFlow()
 
-    private companion object {
-        const val CACHE_DURATION = 60 * 60 * 1000L
-    }
+    private val _nextAccrualAtFlow = MutableStateFlow<Instant?>(null)
+    val nextAccrualAtFlow = _nextAccrualAtFlow.asStateFlow()
 
-    fun loadInvestmentData(wallet: Wallet, address: String, forceUpdate: Boolean = false) {
+    fun loadInvestmentData(wallet: Wallet, address: String, currentBalance: BigDecimal? = null) {
         if (wallet.isPirateCash()) {
-            loadInvestmentData(wallet, address, StackingType.PCASH.value.lowercase(), forceUpdate)
+            loadInvestmentData(address, StackingType.PCASH.value.lowercase(), currentBalance)
         } else if (wallet.isCosanta()) {
-            loadInvestmentData(wallet, address, StackingType.COSANTA.value.lowercase(), forceUpdate)
+            loadInvestmentData(address, StackingType.COSANTA.value.lowercase(), currentBalance)
         } else {
             _unpaidFlow.value = BigDecimal.ZERO
         }
     }
 
-    private fun loadInvestmentData(
-        wallet: Wallet,
-        address: String,
-        coin: String,
-        forceUpdate: Boolean
-    ) {
-        _unpaidFlow.value = null
-        val cachedValue = localStorageManager.getStackingUnpaid(wallet)
-        if (cachedValue != null) {
-            _unpaidFlow.value = cachedValue
-            if (!forceUpdate && System.currentTimeMillis() - localStorageManager.getStackingUpdateTimestamp(
-                    wallet
-                ) < CACHE_DURATION
-            ) {
-                return
-            }
-        }
+    private fun loadInvestmentData(address: String, coin: String, currentBalance: BigDecimal?) {
         scope.launch(
             CoroutineExceptionHandler { _, throwable ->
                 Timber.e(throwable, "Error loading investment data")
                 if (_unpaidFlow.value == null) {
                     _unpaidFlow.value = BigDecimal.ZERO
                 }
-            }) {
-            piratePlaceRepository.getInvestmentData(
-                coinGeckoUid = coin.lowercase(),
-                address = address
-            ).unrealizedValue.toBigDecimal().also {
-                localStorageManager.setStackingUnpaid(wallet, it)
-                _unpaidFlow.value = it
             }
+        ) {
+            if (_unpaidFlow.value == null) {
+                _unpaidFlow.value = tryOrNull { localStorage.getStackingUnpaid(coin, address) }
+                _nextAccrualAtFlow.value = localStorage.getStackingNextAccrualAt(coin, address)
+                    ?.let { tryOrNull { Instant.parse(it) } }
+            }
+
+            if (currentBalance != null && isCacheValid(coin, address, currentBalance)) return@launch
+
+            val data = piratePlaceRepository.getInvestmentData(
+                coinGeckoUid = coin,
+                address = address,
+            )
+            val unpaid = tryOrNull { data.unrealizedValue.toBigDecimal() } ?: run {
+                Timber.e("Malformed unrealizedValue: ${data.unrealizedValue}")
+                if (_unpaidFlow.value == null) _unpaidFlow.value = BigDecimal.ZERO
+                return@launch
+            }
+            _unpaidFlow.value = unpaid
+            _nextAccrualAtFlow.value = data.nextAccrualAt
+
+            localStorage.saveStackingData(
+                coin = coin,
+                address = address,
+                unpaid = unpaid,
+                nextAccrualAt = data.nextAccrualAt?.toString(),
+                balance = currentBalance ?: unpaid,
+            )
         }
+    }
+
+    private fun isCacheValid(coin: String, address: String, currentBalance: BigDecimal): Boolean {
+        if (_unpaidFlow.value == null) return false
+        val cachedBalance = tryOrNull { localStorage.getStackingCachedBalance(coin, address) }
+            ?: return false
+        if (cachedBalance.compareTo(currentBalance) != 0) return false
+        val elapsed = System.currentTimeMillis() - localStorage.getStackingTimestamp(coin, address)
+        return elapsed < CACHE_DURATION
+    }
+
+    companion object {
+        private const val CACHE_DURATION = 5 * 60 * 1000L
     }
 }

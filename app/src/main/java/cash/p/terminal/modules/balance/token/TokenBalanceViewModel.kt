@@ -66,6 +66,7 @@ import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import cash.p.terminal.wallet.tokenQueryId
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.ViewModelUiState
+import io.horizontalsystems.core.hoursUntil
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.Job
@@ -77,6 +78,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.time.Instant
 
 private const val ADAPTER_AWAIT_TIMEOUT_MS = 5000L
 
@@ -103,7 +105,12 @@ class TokenBalanceViewModel(
 ) : ViewModelUiState<TokenBalanceUiState>() {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
-    private val isStakingCoin = wallet.isPirateCash() || wallet.isCosanta()
+    private val stackingType: StackingType? = when {
+        wallet.isPirateCash() -> StackingType.PCASH
+        wallet.isCosanta() -> StackingType.COSANTA
+        else -> null
+    }
+    private val isStakingCoin = stackingType != null
     private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase =
         getKoinInstance()
     private val adapterManager: IAdapterManager = getKoinInstance()
@@ -138,6 +145,7 @@ class TokenBalanceViewModel(
     private var isFavorite = marketFavoritesManager.isCoinInFavorites(wallet.coin.uid)
     private var stakingStatus: StakingStatus? = null
     private var stakingUnpaid: String? = null
+    private var nextAccrualAt: Instant? = null
     private var stakingAddress: String? = null
 
     private var displayDiffPricePeriod = localStorage.displayDiffPricePeriod
@@ -155,11 +163,9 @@ class TokenBalanceViewModel(
             if (isStakingCoin) {
                 stakingAddress = adapterManager.getReceiveAdapterForWallet(wallet)?.receiveAddress
                 stakingAddress?.let { address ->
-                    stackingManager.loadInvestmentData(
-                        wallet = wallet,
-                        address = address,
-                        forceUpdate = true
-                    )
+                    val balance = adapterManager.getBalanceAdapterForWallet(wallet)
+                        ?.balanceData?.available
+                    stackingManager.loadInvestmentData(wallet, address, balance)
                 }
             }
 
@@ -322,6 +328,12 @@ class TokenBalanceViewModel(
                     emitState()
                 }
             }
+            viewModelScope.launch {
+                stackingManager.nextAccrualAtFlow.collect { accrualAt ->
+                    nextAccrualAt = accrualAt
+                    emitState()
+                }
+            }
         }
     }
 
@@ -391,8 +403,8 @@ class TokenBalanceViewModel(
     }
 
     private fun checkStakingStatus(balanceItem: BalanceItem) {
-        val stackingType = if (wallet.isPirateCash()) StackingType.PCASH else StackingType.COSANTA
-        val threshold = BigDecimal(stackingType.minStackingAmount)
+        val type = stackingType ?: return
+        val threshold = BigDecimal(type.minStackingAmount)
         val balance = balanceItem.balanceData.total
 
         stakingStatus = if (balance >= threshold) StakingStatus.ACTIVE else StakingStatus.INACTIVE
@@ -410,7 +422,9 @@ class TokenBalanceViewModel(
         amlCheckEnabled = amlStatusManager.isEnabled,
         isFavorite = isFavorite,
         stakingStatus = stakingStatus,
+        stackingType = stackingType,
         stakingUnpaid = stakingUnpaid,
+        hoursUntilNextAccrual = calculateHoursUntilNextAccrual(),
         isCustomToken = wallet.token.isCustom,
         displayDiffPricePeriod = displayDiffPricePeriod,
         displayDiffOptionType = displayDiffOptionType,
@@ -419,6 +433,11 @@ class TokenBalanceViewModel(
         networkFeeWarning = networkFeeWarning,
         syncing = syncing
     )
+
+    private fun calculateHoursUntilNextAccrual(): Int? {
+        if (stackingType == null || stakingStatus != StakingStatus.ACTIVE) return null
+        return nextAccrualAt?.hoursUntil()
+    }
 
     private val nativeBalanceProvider: INativeBalanceProvider?
         get() = adapterManager.getBalanceAdapterForWallet(wallet) as? INativeBalanceProvider

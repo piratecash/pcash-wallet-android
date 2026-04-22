@@ -1,6 +1,7 @@
 package cash.p.terminal.featureStacking.ui.stackingCoinScreen
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,14 +19,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -44,8 +51,10 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellowWithIcon
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
+import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.TitleAndTwoValuesCell
 import cash.p.terminal.ui_compose.components.TitleAndValueCell
@@ -293,6 +302,10 @@ private fun PirateCoinScreenWithGraph(
                 )
             }
             TotalSection(uiState, premiumType, daysPremiumLeft, Modifier.padding(vertical = 24.dp))
+            StackingScheduleSection(
+                uiState = uiState,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -352,14 +365,17 @@ private fun TotalSection(
             add {
                 val unpaid =
                     if (uiState.balanceHidden) "*****" else "${uiState.unpaidStr} ${uiState.token?.coin?.code}"
-                TitleAndTwoValuesCell(
+                StackingInfoCell(
                     title = stringResource(R.string.unpaid),
                     value = waitingForStackingPlaceholder ?: unpaid,
                     value2 = if (uiState.isWaitingForStacking()) {
                         null
                     } else {
                         if (uiState.balanceHidden) "*****" else uiState.unpaidSecondary.orEmpty()
-                    }
+                    },
+                    infoTitle = stringResource(R.string.staking_unpaid_info_title),
+                    infoText = stringResource(unpaidInfoBodyRes(uiState.stackingType)),
+                    infoContentDescription = stringResource(R.string.staking_unpaid_info_title),
                 )
             }
             add {
@@ -411,6 +427,117 @@ private fun premiumText(
     minAmount: Int
 ) = "$prefix (${stringResource(R.string.Balance_Title)} ${stacking.value} ${minAmount}+)"
 
+@Composable
+private fun StackingScheduleSection(
+    uiState: StackingCoinUIState,
+    modifier: Modifier = Modifier,
+) {
+    if (uiState.hoursUntilNextAccrual == null && uiState.nextPayoutText == null) return
+
+    CellUniversalLawrenceSection(
+        composableItems = buildList {
+            uiState.hoursUntilNextAccrual?.let { hours ->
+                add {
+                    StackingInfoCell(
+                        title = stringResource(R.string.staking_next_accrual),
+                        value = pluralStringResource(R.plurals.staking_in_hours, hours, hours),
+                        infoTitle = stringResource(R.string.staking_next_accrual_info_title),
+                        infoText = stringResource(nextAccrualInfoBodyRes(uiState.stackingType)),
+                        infoContentDescription = stringResource(R.string.staking_next_accrual_info_title),
+                    )
+                }
+            }
+            uiState.nextPayoutText?.let { nextPayoutText ->
+                add {
+                    StackingInfoCell(
+                        title = stringResource(R.string.staking_next_payout),
+                        value = nextPayoutText,
+                        infoTitle = stringResource(R.string.staking_unpaid_info_title),
+                        infoText = stringResource(R.string.staking_next_payout_info_body),
+                        infoContentDescription = stringResource(R.string.staking_unpaid_info_title),
+                    )
+                }
+            }
+        },
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun StackingInfoCell(
+    title: String,
+    value: String,
+    infoTitle: String,
+    infoText: String,
+    infoContentDescription: String,
+    value2: String? = null,
+) {
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
+
+    if (value2 == null) {
+        TitleAndValueCell(
+            title = title,
+            value = value,
+            minHeight = 48.dp,
+            titleAction = {
+                StackingInfoActionButton(
+                    contentDescription = infoContentDescription,
+                    onClick = { showInfoSheet = true }
+                )
+            }
+        )
+    } else {
+        TitleAndTwoValuesCell(
+            title = title,
+            value = value,
+            value2 = value2,
+            titleAction = {
+                StackingInfoActionButton(
+                    contentDescription = infoContentDescription,
+                    onClick = { showInfoSheet = true }
+                )
+            },
+        )
+    }
+
+    if (showInfoSheet) {
+        InfoBottomSheet(
+            title = infoTitle,
+            text = infoText,
+            onDismiss = { showInfoSheet = false },
+        )
+    }
+}
+
+@Composable
+private fun StackingInfoActionButton(
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    HsIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(20.dp),
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.ic_info_20),
+            contentDescription = contentDescription,
+            tint = ComposeAppTheme.colors.grey,
+        )
+    }
+}
+
+@StringRes
+private fun unpaidInfoBodyRes(stackingType: StackingType): Int = when (stackingType) {
+    StackingType.PCASH -> R.string.staking_unpaid_info_body_pirate
+    StackingType.COSANTA -> R.string.staking_unpaid_info_body_cosanta
+}
+
+@StringRes
+private fun nextAccrualInfoBodyRes(stackingType: StackingType): Int = when (stackingType) {
+    StackingType.PCASH -> R.string.staking_next_accrual_info_body_pirate
+    StackingType.COSANTA -> R.string.staking_next_accrual_info_body_cosanta
+}
+
 private fun LazyListScope.warningCard(uiState: StackingCoinUIState) {
     if (!uiState.isWaitingForStacking()) return
     val notEnoughCoins = uiState.balance < uiState.minStackingAmount
@@ -425,7 +552,7 @@ private fun LazyListScope.warningCard(uiState: StackingCoinUIState) {
                 }, (uiState.minStackingAmount - uiState.balance).toPlainString()
             ).replace("_annual_interest_", uiState.annualInterest)
         } else {
-            val hours = if (uiState.stackingType == StackingType.PCASH) 8 else 24
+            val hours = uiState.stackingType.maxHoursUntilFirstAccrual
             stringResource(R.string.waiting_for_stacking, hours)
         }
         TextImportantWarning(

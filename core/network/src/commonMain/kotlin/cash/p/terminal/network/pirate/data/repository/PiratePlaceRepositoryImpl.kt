@@ -48,9 +48,9 @@ internal class PiratePlaceRepositoryImpl(
         }
     }
 
-    override suspend fun getInvestmentData(coinGeckoUid: String, address: String) =
+    override suspend fun getInvestmentData(coinGeckoUid: String, address: String, fiat: String) =
         withContext(Dispatchers.IO) {
-            placeApi.getInvestmentData(coinGeckoUid = coinGeckoUid, address = address)
+            placeApi.getInvestmentData(coinGeckoUid = coinGeckoUid, address = address, fiat = fiat)
                 .let(piratePlaceMapper::mapInvestmentData)
         }
 

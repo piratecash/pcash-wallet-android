@@ -1484,7 +1484,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="premium_demo_activation_error_wrong_type">Usa tipo de billetera mnemónica o de hardware para activar Premium</string>
     <string name="premium_try_for_free">Probar GRATIS</string>
     <string name="premium_upgrade_text">¡Mejora tu experiencia con las funciones Premium!</string>
-    <string name="premium_available">⭐️ Premium está disponible</string>
+    <string name="premium_available">⭐️ Premium</string>
     <plurals name="premium_demo_days_left">
         <item quantity="one">Demo Premium: %d día restante</item>
         <item quantity="many">Demo Premium: %d días restantes</item>
@@ -1715,7 +1715,8 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="buy_to_activate_premium">⭐ ¡Compre %s tokens para activar funciones adicionales!</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Buy PirateCash</string>
     <string name="staking_details">Staking Details</string>
@@ -1725,9 +1726,29 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">Sin pagar</string>
-    <string name="staking_unpaid">Pagos pendientes de staking:</string>
+    <string name="staking_unpaid">Pagos pendientes de staking</string>
     <string name="staking_active">Staking activo</string>
     <string name="staking_inactive">Staking inactivo</string>
+    <string name="staking_unpaid_info_title">Información de pagos</string>
+    <string name="staking_unpaid_info_body_pirate">La cantidad ganada por el staking de tokens que aún no ha sido pagada.\nLos pagos se realizan una vez al día, siempre que haya al menos 100 tokens en el saldo no pagado y hayan pasado al menos 9 horas desde que fueron recibidos.</string>
+    <string name="staking_unpaid_info_body_cosanta">La cantidad ganada por el staking de tokens que aún no ha sido pagada.\nLos pagos se realizan cada 12 horas, siempre que haya al menos 10 tokens en el saldo no pagado y hayan pasado al menos 36 horas desde que fueron recibidos.</string>
+    <string name="staking_status_cd">Estado del staking: %1$s</string>
+    <string name="staking_next_accrual">Próxima acumulación</string>
+    <string name="staking_next_payout">Próximo pago</string>
+    <string name="staking_next_accrual_info_title">Información sobre la acumulación</string>
+    <string name="staking_next_accrual_info_body_pirate">La acumulación se realiza una vez por hora si hay 100 tokens.</string>
+    <string name="staking_next_accrual_info_body_cosanta">La acumulación se realiza cada 12 horas si hay 1 token.</string>
+    <string name="staking_next_payout_info_body">Fecha estimada del próximo pago.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">en %d hora</item>
+        <item quantity="other">en %d horas</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">La próxima acumulación será en %d hora</item>
+        <item quantity="other">La próxima acumulación será en %d horas</item>
+    </plurals>
     <string name="estimated_annual_interest">Interés anual estimado</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

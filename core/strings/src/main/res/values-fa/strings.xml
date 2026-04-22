@@ -1496,7 +1496,7 @@
     <string name="premium_demo_activation_error_wrong_type">برای فعال‌سازی پریمیوم از نوع کیف پول حافظه‌ای یا سخت‌افزاری استفاده کنید</string>
     <string name="premium_try_for_free">رایگان امتحان کنید</string>
     <string name="premium_upgrade_text">تجربه خود را با ویژگی‌های پریمیوم ارتقا دهید!</string>
-    <string name="premium_available">⭐️ پریمیوم در دسترس است</string>
+    <string name="premium_available">⭐️ پریمیوم</string>
     <plurals name="premium_demo_days_left">
         <item quantity="one">پریمیوم آزمایشی: %d روز باقی‌مانده</item>
         <item quantity="other">پریمیوم آزمایشی: %d روز باقی‌مانده</item>
@@ -1726,7 +1726,8 @@
     <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="buy_to_activate_premium">⭐ %s توکن بخرید تا قابلیت‌های اضافی فعال شوند!</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Buy PirateCash</string>
     <string name="staking_details">Staking Details</string>
@@ -1736,9 +1737,29 @@
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">پرداخت نشده</string>
-    <string name="staking_unpaid">پرداخت‌های معلق استیکینگ:</string>
+    <string name="staking_unpaid">پرداخت‌های معلق استیکینگ</string>
     <string name="staking_active">استیکینگ فعال</string>
     <string name="staking_inactive">استیکینگ غیرفعال</string>
+    <string name="staking_unpaid_info_title">اطلاعات پرداخت</string>
+    <string name="staking_unpaid_info_body_pirate">مقداری که از طریق استیکینگ توکن‌ها به دست آمده و هنوز پرداخت نشده است.\nپرداخت‌ها روزانه یک بار انجام می‌شوند، مشروط بر اینکه حداقل ۱۰۰ توکن در موجودی پرداخت‌نشده وجود داشته باشد و از زمان دریافت آن‌ها حداقل ۹ ساعت گذشته باشد.</string>
+    <string name="staking_unpaid_info_body_cosanta">مقداری که از طریق استیکینگ توکن‌ها به دست آمده و هنوز پرداخت نشده است.\nپرداخت‌ها هر ۱۲ ساعت یک بار انجام می‌شوند، مشروط بر اینکه حداقل ۱۰ توکن در موجودی پرداخت‌نشده وجود داشته باشد و از زمان دریافت آن‌ها حداقل ۳۶ ساعت گذشته باشد.</string>
+    <string name="staking_status_cd">وضعیت استیکینگ: %1$s</string>
+    <string name="staking_next_accrual">تجمیع بعدی</string>
+    <string name="staking_next_payout">پرداخت بعدی</string>
+    <string name="staking_next_accrual_info_title">اطلاعات تجمیع</string>
+    <string name="staking_next_accrual_info_body_pirate">تجمیع در صورت وجود ۱۰۰ توکن هر یک ساعت یک‌بار انجام می‌شود.</string>
+    <string name="staking_next_accrual_info_body_cosanta">تجمیع در صورت وجود ۱ توکن هر ۱۲ ساعت یک‌بار انجام می‌شود.</string>
+    <string name="staking_next_payout_info_body">تاریخ تقریبی پرداخت بعدی.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">تا %d ساعت دیگر</item>
+        <item quantity="other">تا %d ساعت دیگر</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">تجمیع بعدی %d ساعت دیگر انجام خواهد شد</item>
+        <item quantity="other">تجمیع بعدی %d ساعت دیگر انجام خواهد شد</item>
+    </plurals>
     <string name="estimated_annual_interest">سود سالانه تخمینی</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
