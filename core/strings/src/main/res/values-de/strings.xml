@@ -1474,7 +1474,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="premium_demo_activation_error_wrong_type">Verwenden Sie den Mnemonik- oder Hardware-Wallet-Typ, um Premium zu aktivieren</string>
     <string name="premium_try_for_free">KOSTENLOS testen</string>
     <string name="premium_upgrade_text">Verbessern Sie Ihr Erlebnis mit Premium-Funktionen!</string>
-    <string name="premium_available">⭐️ Premium ist verfügbar</string>
+    <string name="premium_available">⭐️ Premium</string>
     <string name="premium_demo_days_left">Demo Premium: %d Tage übrig</string>
     <string name="premium_select_wallet_title">Wallet für Demo auswählen</string>
     <string name="premium_select_wallet_description">Wählen Sie ein Wallet, um die Demo-Premium-Funktionen zu aktivieren. Nur ein Wallet kann gleichzeitig Demo-Premium haben.</string>
@@ -1699,7 +1699,8 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="buy_to_activate_premium">⭐ Kaufen Sie %s Token, um zusätzliche Funktionen zu aktivieren!</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Buy PirateCash</string>
     <string name="staking_details">Staking Details</string>
@@ -1709,9 +1710,29 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">Unbezahlt</string>
-    <string name="staking_unpaid">Ausstehende Staking-Auszahlungen:</string>
+    <string name="staking_unpaid">Ausstehende Staking-Auszahlungen</string>
     <string name="staking_active">Staking aktiv</string>
     <string name="staking_inactive">Staking inaktiv</string>
+    <string name="staking_unpaid_info_title">Auszahlungsinformationen</string>
+    <string name="staking_unpaid_info_body_pirate">Der durch das Staking von Token verdiente Betrag, der noch nicht ausgezahlt wurde.\nAuszahlungen erfolgen einmal täglich, sofern sich mindestens 100 Token auf dem nicht ausgezahlten Guthaben befinden und seit deren Eingang mindestens 9 Stunden vergangen sind.</string>
+    <string name="staking_unpaid_info_body_cosanta">Der durch das Staking von Token verdiente Betrag, der noch nicht ausgezahlt wurde.\nAuszahlungen erfolgen alle 12 Stunden, sofern sich mindestens 10 Token auf dem nicht ausgezahlten Guthaben befinden und seit deren Eingang mindestens 36 Stunden vergangen sind.</string>
+    <string name="staking_status_cd">Staking-Status: %1$s</string>
+    <string name="staking_next_accrual">Nächste Gutschrift</string>
+    <string name="staking_next_payout">Nächste Auszahlung</string>
+    <string name="staking_next_accrual_info_title">Informationen zur Gutschrift</string>
+    <string name="staking_next_accrual_info_body_pirate">Gutschriften erfolgen stündlich, sofern 100 Token vorhanden sind.</string>
+    <string name="staking_next_accrual_info_body_cosanta">Gutschriften erfolgen alle 12 Stunden, sofern 1 Token vorhanden ist.</string>
+    <string name="staking_next_payout_info_body">Voraussichtliches Datum der nächsten Auszahlung.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">in %d Stunde</item>
+        <item quantity="other">in %d Stunden</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">Nächste Gutschrift erfolgt in %d Stunde</item>
+        <item quantity="other">Nächste Gutschrift erfolgt in %d Stunden</item>
+    </plurals>
     <string name="estimated_annual_interest">Geschätzter Jahreszins</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

@@ -1474,7 +1474,7 @@
     <string name="premium_demo_activation_error_wrong_type">使用助记词或硬件钱包类型来激活高级版</string>
     <string name="premium_try_for_free">免费试用</string>
     <string name="premium_upgrade_text">使用高级功能提升您的体验！</string>
-    <string name="premium_available">⭐️ 高级版可用</string>
+    <string name="premium_available">⭐️ 高级版</string>
     <string name="premium_demo_days_left">演示高级版：剩余 %d 天</string>
     <string name="premium_select_wallet_title">选择演示钱包</string>
     <string name="premium_select_wallet_description">选择一个钱包来激活演示高级功能。一次只能有一个钱包拥有演示高级版。</string>
@@ -1697,7 +1697,8 @@
     <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
     <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="buy_to_activate_premium">⭐ 购买 %s 个代币以激活额外功能！</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Buy PirateCash</string>
     <string name="staking_details">Staking Details</string>
@@ -1707,9 +1708,27 @@
     <string name="total_balance">Total balance</string>
     <string name="total_income">Total income</string>
     <string name="unpaid">未支付</string>
-    <string name="staking_unpaid">待支付的质押收益：</string>
+    <string name="staking_unpaid">待支付的质押收益</string>
     <string name="staking_active">质押已激活</string>
     <string name="staking_inactive">质押未激活</string>
+    <string name="staking_unpaid_info_title">支付信息</string>
+    <string name="staking_unpaid_info_body_pirate">通过质押代币所获得的尚未支付的金额。\n每天支付一次，前提是未支付余额中至少有 100 个代币，且自收到代币起已过去至少 9 小时。</string>
+    <string name="staking_unpaid_info_body_cosanta">通过质押代币所获得的尚未支付的金额。\n每 12 小时支付一次，前提是未支付余额中至少有 10 个代币，且自收到代币起已过去至少 36 小时。</string>
+    <string name="staking_status_cd">质押状态：%1$s</string>
+    <string name="staking_next_accrual">下次计提</string>
+    <string name="staking_next_payout">下次支付</string>
+    <string name="staking_next_accrual_info_title">计提信息</string>
+    <string name="staking_next_accrual_info_body_pirate">在持有 100 个代币的情况下，每小时计提一次。</string>
+    <string name="staking_next_accrual_info_body_cosanta">在持有 1 个代币的情况下，每 12 小时计提一次。</string>
+    <string name="staking_next_payout_info_body">下次支付的预计日期。</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="other">%d 小时后</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="other">下次计提将在 %d 小时后进行</item>
+    </plurals>
     <string name="estimated_annual_interest">预估年化利率</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

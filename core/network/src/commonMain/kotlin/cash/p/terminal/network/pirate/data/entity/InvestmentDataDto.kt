@@ -5,18 +5,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class InvestmentDataDto(
-    val id: Int,
-    val chain: String,
-    val source: String,
-    val address: String,
     val balance: String,
     @SerialName("unrealized_value")
     val unrealizedValue: String,
     val mint: String,
-    @SerialName("balance_price")
-    val balancePrice: Map<String, String>,
-    @SerialName("unrealized_value_price")
-    val unrealizedValuePrice: Map<String, String>,
-    @SerialName("mint_price")
-    val mintPrice: Map<String, String>
+    @SerialName("staking_active")
+    val stakingActive: Boolean,
+    @SerialName("staking_inactive_reason")
+    val stakingInactiveReason: String? = null,
+    @SerialName("next_accrual_at")
+    val nextAccrualAt: String? = null,
+    @SerialName("next_payout_at")
+    val nextPayoutAt: String? = null,
 )

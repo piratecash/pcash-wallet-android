@@ -78,9 +78,9 @@ internal class PlaceApi(
         }.parseResponse()
     }
 
-    suspend fun getInvestmentData(coinGeckoUid: String, address: String): InvestmentDataDto {
+    suspend fun getInvestmentData(coinGeckoUid: String, address: String, fiat: String): InvestmentDataDto {
         return httpClient.get {
-            url(PIRATE_BASE_PLACE_URL + "invest/$coinGeckoUid/$address")
+            url(PIRATE_BASE_PLACE_URL + "invest/$coinGeckoUid/$address/compact/$fiat")
             appHeaders()
         }.parseResponse()
     }

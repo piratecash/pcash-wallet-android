@@ -189,6 +189,7 @@ class TokenBalanceViewModelTest : KoinTest {
         every { premiumSettings.getAmlCheckShowAlert() } returns false
         every { totalBalance.stateFlow } returns MutableStateFlow(TotalService.State.Hidden)
         every { stackingManager.unpaidFlow } returns MutableStateFlow<BigDecimal?>(BigDecimal.ZERO)
+        every { stackingManager.nextAccrualAtFlow } returns MutableStateFlow(null)
         every { priceManager.displayPricePeriodFlow } returns MutableStateFlow(DisplayPricePeriod.ONE_DAY)
         every { priceManager.displayDiffOptionTypeFlow } returns MutableStateFlow(DisplayDiffOptionType.BOTH)
         every { localStorage.displayDiffPricePeriod } returns DisplayPricePeriod.ONE_DAY

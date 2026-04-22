@@ -1644,7 +1644,7 @@
     <string name="no_active_stacking_pirate_description">Стейкинг PIRATE: Для активации стейкинга необходимо еще 100 токенов и будете получать _annual_interest_ годовых!</string>
     <string name="no_active_stacking_cosanta_description">COSANTA Стейкинг: Внесите 1 токен и будете получать _annual_interest_ годовых!</string>
     <string name="no_active_stacking_pirate_buy_more_description">Для активации стейкинга вам нужно ещё %1$s токен(ов) и вы будете получать _annual_interest_ годовых!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Внесите %1$s токен(ов) и начните зарабатывать через 24 часа.</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Внесите %1$s токен(ов) и начните зарабатывать через 36 часов.</string>
     <string name="buy_to_activate_premium">⭐ Купите %s токенов, чтобы активировать дополнительные функции!</string>
     <string name="tokens">токены</string>
     <string name="buy_pirate">Купить PirateCash</string>
@@ -1655,9 +1655,33 @@
     <string name="total_balance">Общий баланс</string>
     <string name="total_income">Общий доход</string>
     <string name="unpaid">Невыплачено</string>
-    <string name="staking_unpaid">Ожидающие выплаты за стэкинг:</string>
+    <string name="staking_unpaid">Ожидающие выплаты за стэкинг</string>
     <string name="staking_active">Стекинг активен</string>
     <string name="staking_inactive">Стекинг неактивен</string>
+    <string name="staking_unpaid_info_title">Информация о выплатах</string>
+    <string name="staking_unpaid_info_body_pirate">Количество средств, полученное путем стейкинга токенов, которое еще не было выплачено.\nВыплата производится раз в день при условии наличия 100 токенов на невыплаченном остатке и по истечении 9 часов с момента их поступления.</string>
+    <string name="staking_unpaid_info_body_cosanta">Количество средств, полученное путем стейкинга токенов, которое еще не было выплачено.\nВыплата производится раз в 12 часов при условии наличия 10 токенов на невыплаченном остатке и по истечении 36 часов с момента их поступления.</string>
+    <string name="staking_status_cd">Статус стейкинга: %1$s</string>
+    <string name="staking_next_accrual">Следующее начисление</string>
+    <string name="staking_next_payout">Следующая выплата</string>
+    <string name="staking_next_accrual_info_title">Информация о начислении</string>
+    <string name="staking_next_accrual_info_body_pirate">Начисления производится раз в час при условии наличия 100 токенов.</string>
+    <string name="staking_next_accrual_info_body_cosanta">Начисления производится раз в 12 часов при условии наличия 1 токена.</string>
+    <string name="staking_next_payout_info_body">Предварительная расчетная дата следующей выплаты.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">через %d час</item>
+        <item quantity="few">через %d часа</item>
+        <item quantity="many">через %d часов</item>
+        <item quantity="other">через %d часа</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">Следующее начисление будет через %d час</item>
+        <item quantity="few">Следующее начисление будет через %d часа</item>
+        <item quantity="many">Следующее начисление будет через %d часов</item>
+        <item quantity="other">Следующее начисление будет через %d часа</item>
+    </plurals>
     <string name="estimated_annual_interest">Предполагаемый годовой процент</string>
     <string name="accruals">Начисления</string>
     <string name="payouts">Выплаты</string>
@@ -1863,7 +1887,7 @@
     <string name="premium_settings">Настройки Премиум</string>
     <string name="premium_try_for_free">Попробовать БЕСПЛАТНО</string>
     <string name="premium_upgrade_text">Улучшите свой опыт с функциями Премиум!</string>
-    <string name="premium_available">⭐️ Доступен Премиум</string>
+    <string name="premium_available">⭐️ Премиум</string>
     <string name="premium_demo_days_left">Демо Премиум: осталось %d дней</string>
     <string name="premium_select_wallet_title">Выберите кошелёк для демо</string>
     <string name="premium_select_wallet_description">Выберите кошелёк для активации функций демо Премиум. Одновременно демо Премиум может быть только у одного кошелька.</string>

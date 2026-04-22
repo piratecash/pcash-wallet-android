@@ -34,6 +34,7 @@ import cash.p.terminal.wallet.models.CoinPrice
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.hoursUntil
 import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.smartFormat
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -45,8 +46,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
+import java.time.Instant
 
 internal abstract class StackingCoinViewModel(
     private val walletManager: IWalletManager,
@@ -62,6 +66,7 @@ internal abstract class StackingCoinViewModel(
     private companion object {
         const val COSANTA_DEFAULT_ANNUAL_INTEREST = "25%"
         const val PIRATE_DEFAULT_ANNUAL_INTEREST = "8%"
+        const val NEXT_PAYOUT_PATTERN = "yyyy-MM-dd HH:mm"
     }
 
     abstract val minStackingAmount: Int
@@ -277,6 +282,10 @@ internal abstract class StackingCoinViewModel(
                     )
                     unpaid = investmentData.unrealizedValue.toBigDecimal()
                     totalIncome = investmentData.mint.toBigDecimal()
+                    _uiState.value = uiState.value.copy(
+                        hoursUntilNextAccrual = investmentData.nextAccrualAt?.hoursUntil(),
+                        nextPayoutText = investmentData.nextPayoutAt?.let(::formatNextPayout)
+                    )
                 }
                 secondaryAmount = BalanceViewHelper.currencyValue(
                     balance = balance,
@@ -324,6 +333,10 @@ internal abstract class StackingCoinViewModel(
                 loading = false
             )
         }
+
+    private fun formatNextPayout(nextPayoutAt: Instant): String {
+        return SimpleDateFormat(NEXT_PAYOUT_PATTERN, Locale.US).format(Date.from(nextPayoutAt))
+    }
 
     private suspend fun loadPayouts(address: String, coinPrice: CoinPrice?) {
         val payouts = piratePlaceRepository.getStakeData(

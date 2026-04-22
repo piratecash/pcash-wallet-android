@@ -8,6 +8,7 @@ import cash.p.terminal.core.managers.AdapterManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.StackingManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
+import cash.p.terminal.featureStacking.ui.staking.StackingType
 import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.modules.balance.BalanceAdapterRepository
@@ -126,7 +127,9 @@ class TokenBalanceModule {
         val amlCheckEnabled: Boolean = false,
         val isFavorite: Boolean = false,
         val stakingStatus: StakingStatus? = null,
+        val stackingType: StackingType? = null,
         val stakingUnpaid: String? = null,
+        val hoursUntilNextAccrual: Int? = null,
         val isCustomToken: Boolean = false,
         val displayDiffPricePeriod: DisplayPricePeriod = DisplayPricePeriod.ONE_DAY,
         val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
