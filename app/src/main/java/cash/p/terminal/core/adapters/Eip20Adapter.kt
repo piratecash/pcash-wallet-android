@@ -67,8 +67,13 @@ internal class Eip20Adapter(
     }
 
     override suspend fun refresh() {
-        stackingManager.loadInvestmentData(wallet, receiveAddress, balanceData.available)
         eip20Kit.refresh()
+        stackingManager.loadInvestmentData(
+            wallet = wallet,
+            address = receiveAddress,
+            currentBalance = balanceData.available,
+            forceRefresh = true,
+        )
     }
 
     // IBalanceAdapter

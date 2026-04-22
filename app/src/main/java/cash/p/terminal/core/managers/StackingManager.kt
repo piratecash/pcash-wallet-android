@@ -31,17 +31,27 @@ class StackingManager(
     private val _nextAccrualAtFlow = MutableStateFlow<Instant?>(null)
     val nextAccrualAtFlow = _nextAccrualAtFlow.asStateFlow()
 
-    fun loadInvestmentData(wallet: Wallet, address: String, currentBalance: BigDecimal? = null) {
+    fun loadInvestmentData(
+        wallet: Wallet,
+        address: String,
+        currentBalance: BigDecimal? = null,
+        forceRefresh: Boolean = false,
+    ) {
         if (wallet.isPirateCash()) {
-            loadInvestmentData(address, StackingType.PCASH.value.lowercase(), currentBalance)
+            loadInvestmentData(address, StackingType.PCASH.value.lowercase(), currentBalance, forceRefresh)
         } else if (wallet.isCosanta()) {
-            loadInvestmentData(address, StackingType.COSANTA.value.lowercase(), currentBalance)
+            loadInvestmentData(address, StackingType.COSANTA.value.lowercase(), currentBalance, forceRefresh)
         } else {
             _unpaidFlow.value = BigDecimal.ZERO
         }
     }
 
-    private fun loadInvestmentData(address: String, coin: String, currentBalance: BigDecimal?) {
+    private fun loadInvestmentData(
+        address: String,
+        coin: String,
+        currentBalance: BigDecimal?,
+        forceRefresh: Boolean,
+    ) {
         scope.launch(
             CoroutineExceptionHandler { _, throwable ->
                 Timber.e(throwable, "Error loading investment data")
@@ -56,7 +66,9 @@ class StackingManager(
                     ?.let { tryOrNull { Instant.parse(it) } }
             }
 
-            if (currentBalance != null && isCacheValid(coin, address, currentBalance)) return@launch
+            if (!forceRefresh && currentBalance != null && isCacheValid(coin, address, currentBalance)) {
+                return@launch
+            }
 
             val data = piratePlaceRepository.getInvestmentData(
                 coinGeckoUid = coin,

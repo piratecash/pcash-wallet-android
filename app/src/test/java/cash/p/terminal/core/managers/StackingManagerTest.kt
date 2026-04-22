@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -24,6 +25,7 @@ import org.junit.Test
 import java.math.BigDecimal
 import java.time.Instant
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class StackingManagerTest {
 
     private val repository = mockk<PiratePlaceRepository>()
@@ -160,6 +162,22 @@ class StackingManagerTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { repository.getInvestmentData(COIN, ADDRESS, any()) }
+    }
+
+    @Test
+    fun forceRefresh_sameBalanceWithinTtl_callsApi() = testScope.runTest {
+        every { localStorage.getStackingUnpaid(COIN, ADDRESS) } returns UNPAID
+        every { localStorage.getStackingNextAccrualAt(COIN, ADDRESS) } returns NEXT_ACCRUAL.toString()
+        every { localStorage.getStackingCachedBalance(COIN, ADDRESS) } returns BALANCE
+        every { localStorage.getStackingTimestamp(COIN, ADDRESS) } returns System.currentTimeMillis()
+        val data = investmentData(unrealizedValue = "50", nextAccrualAt = NEXT_ACCRUAL)
+        coEvery { repository.getInvestmentData(COIN, ADDRESS, any()) } returns data
+
+        manager.loadInvestmentData(wallet, ADDRESS, BALANCE, forceRefresh = true)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { repository.getInvestmentData(COIN, ADDRESS, any()) }
+        assertEquals(BigDecimal("50"), manager.unpaidFlow.value)
     }
 
     @Test
