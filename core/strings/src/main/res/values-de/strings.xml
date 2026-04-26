@@ -610,6 +610,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Ungültige Adresse</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Ungültige %s Adresse</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Ihre Transaktion kann vorzeitig ausgeführt werden</string>
+    <string name="swap_providers_title">Tausch-Anbieter</string>
+    <string name="swap_providers_mandatory_toast">Dieser Anbieter kann nicht deaktiviert werden</string>
+    <string name="swap_no_enabled_providers">Keine aktiven Anbieter</string>
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Sie können %s tauschen, oder Sie müssen den neuen Betrag widerrufen und genehmigen</string>
     <string name="Approve_Spender">Spender</string>

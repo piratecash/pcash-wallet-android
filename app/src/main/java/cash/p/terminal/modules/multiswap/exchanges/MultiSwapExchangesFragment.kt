@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -19,12 +20,16 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.modules.multiswap.MultiSwapLegInfo
 import cash.p.terminal.modules.multiswap.SwapConfirmScreen
 import cash.p.terminal.modules.multiswap.SwapSelectProviderScreen
 import cash.p.terminal.modules.multiswap.SwapSelectProviderViewModel
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeScreen
 import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel
+import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsScreen
+import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsViewModel
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
@@ -188,10 +193,18 @@ private fun ExchangeDetailContent(
                 viewModelStoreOwner = backStackEntry,
                 factory = SwapSelectProviderViewModel.Factory(quotes)
             )
+            val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
+            val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
                 onClickClose = detailNavController::navigateUp,
+                onClickSettings = {
+                    detailNavController.navigate(SwapProvidersSettingsRoute)
+                },
                 quotes = selectProviderViewModel.uiState.quoteViewItems,
                 currentQuote = viewModel.selectedLeg2Quote,
+                mandatoryProviderIds = SwapProvidersRepository.MANDATORY_IDS,
+                disabledProviderIds = disabledIds,
+                onToggleProvider = swapProvidersRepository::setDisabled,
                 swapRates = {
                     HudHelper.vibrate(App.instance)
                     selectProviderViewModel.swapRates()
@@ -226,6 +239,14 @@ private fun ExchangeDetailContent(
         composablePage<Leg2TransactionSettingsRoute> {
             SwapTransactionSettingsScreen(navController = detailNavController)
         }
+        composablePage<SwapProvidersSettingsRoute> {
+            val providersSettingsViewModel = koinViewModel<SwapProvidersSettingsViewModel>()
+            SwapProvidersSettingsScreen(
+                uiState = providersSettingsViewModel.uiState,
+                onToggle = providersSettingsViewModel::setProviderEnabled,
+                onClose = detailNavController::navigateUp,
+            )
+        }
     }
 }
 
@@ -246,3 +267,6 @@ private object ConfirmSwapRoute
 
 @Serializable
 private object Leg2TransactionSettingsRoute
+
+@Serializable
+private object SwapProvidersSettingsRoute

@@ -622,6 +622,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Невірна адреса</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Невірна %s адреса</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Ваша транзакція може бути авансованою</string>
+    <string name="swap_providers_title">Провайдери обміну</string>
+    <string name="swap_providers_mandatory_toast">Цього провайдера не можна вимкнути</string>
+    <string name="swap_no_enabled_providers">Немає увімкнених провайдерів</string>
     <!-- Swap Confirmation -->
     <string name="Activate_InsufficientBalance_Description">У вас недостатньо балансу XLM для активації цього токена.</string>
     <!--Approve-->

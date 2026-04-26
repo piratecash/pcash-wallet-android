@@ -571,6 +571,9 @@
         android:id="@+id/addressCheckerFragment"
         android:name="cash.p.terminal.modules.settings.addresschecker.AddressCheckerFragment"/>
     <fragment
+        android:id="@+id/swapProvidersSettingsFragment"
+        android:name="cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsFragment"/>
+    <fragment
         android:id="@+id/advancedSecurityFragment"
         android:name="cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityFragment"/>
     <fragment

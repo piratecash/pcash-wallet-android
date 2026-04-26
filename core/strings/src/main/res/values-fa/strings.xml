@@ -581,7 +581,7 @@
     <string name="Swap_Approving">Approving</string>
     <string name="Swap_Swapping">در حال جابجایی</string>
     <string name="Swap_Quoting">دریافت قیمت</string>
-    <string name="Swap_Providers">Providers</string>
+    <string name="Swap_Providers">ارائه‌دهندگان</string>
     <string name="Swap_SwapProvider_Title">ارائه‌دهنده مبادله</string>
     <string name="Swap_AmountMin">(دقیقه)</string>
     <string name="Swap_AmountMax">(حداکثر)</string>
@@ -616,6 +616,9 @@
     <string name="SwapSettings_Error_InvalidAddress">آدرس نامعتبر</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Invalid %s address</string>
     <string name="SwapSettings_Warning_UnusualSlippage">معامله شما می تواند پیشرو باشد</string>
+    <string name="swap_providers_title">ارائه‌دهندگان سواپ</string>
+    <string name="swap_providers_mandatory_toast">این ارائه‌دهنده را نمی‌توان غیرفعال کرد</string>
+    <string name="swap_no_enabled_providers">هیچ ارائه‌دهنده فعالی وجود ندارد</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>

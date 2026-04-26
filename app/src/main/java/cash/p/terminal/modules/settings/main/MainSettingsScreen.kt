@@ -299,6 +299,14 @@ private fun SettingSections(
                     navController.slideFromRight(R.id.addressCheckerFragment)
                 }
             )
+        }, {
+            HsSettingCell(
+                title = R.string.swap_providers_title,
+                icon = R.drawable.ic_swap_24,
+                onClick = {
+                    navController.slideFromRight(R.id.swapProvidersSettingsFragment)
+                }
+            )
         })
     )
     VSpacer(24.dp)

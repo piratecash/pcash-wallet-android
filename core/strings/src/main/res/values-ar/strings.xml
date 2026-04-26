@@ -581,7 +581,7 @@
     <string name="Swap_Approving">Approving</string>
     <string name="Swap_Swapping">Swapping</string>
     <string name="Swap_Quoting">تسعير</string>
-    <string name="Swap_Providers">Providers</string>
+    <string name="Swap_Providers">المزودون</string>
     <string name="Swap_SwapProvider_Title">Swap Provider</string>
     <string name="Swap_AmountMin">(min)</string>
     <string name="Swap_AmountMax">(max)</string>
@@ -616,6 +616,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Invalid address</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Invalid %s address</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Your transaction may be frontrun</string>
+    <string name="swap_providers_title">موفرو التبادل</string>
+    <string name="swap_providers_mandatory_toast">لا يمكن تعطيل هذا الموفر</string>
+    <string name="swap_no_enabled_providers">لا يوجد موفرون مفعَّلون</string>
     <!-- Swap Confirmation -->
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>

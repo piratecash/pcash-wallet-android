@@ -828,6 +828,11 @@ Proceed only if you\'re sure.</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Invalid %s address</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Your transaction may be frontrun</string>
 
+    <!-- Swap Providers Settings -->
+    <string name="swap_providers_title">Swap Providers</string>
+    <string name="swap_providers_mandatory_toast">This provider cannot be disabled</string>
+    <string name="swap_no_enabled_providers">No enabled providers</string>
+
     <!-- Swap Confirmation -->
     <string name="ActivationRequired_DialogTitle">Activate Token</string>
     <string name="ActivationRequired_DialogDescription">To receive %s, you need to activate the token. The Stellar network requires a trustline to be established for each token. Without it, your wallet cannot receive %s — the transaction will be rejected and the funds will not be delivered.</string>

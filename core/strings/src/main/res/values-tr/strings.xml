@@ -616,6 +616,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Geçersiz adres</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Geçersiz %s adres</string>
     <string name="SwapSettings_Warning_UnusualSlippage">İşleminiz varlık fiyatını etkileyebilir</string>
+    <string name="swap_providers_title">Takas sağlayıcıları</string>
+    <string name="swap_providers_mandatory_toast">Bu sağlayıcı devre dışı bırakılamaz</string>
+    <string name="swap_no_enabled_providers">Etkin sağlayıcı yok</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">%s alışverişi yapabilir veya yeni tutarı iptal edip onaylamanız gerekir</string>

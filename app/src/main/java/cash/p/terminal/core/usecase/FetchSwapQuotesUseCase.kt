@@ -22,18 +22,18 @@ class FetchSwapQuotesUseCase {
         settings: Map<String, Any?> = emptyMap(),
         onProviderError: ((IMultiSwapProvider, Throwable) -> Unit)? = null,
     ): List<SwapProviderQuote> = coroutineScope {
-        val supported = filterSupported(providers, tokenIn, tokenOut)
+        val supported = findSupportedProviders(providers, tokenIn, tokenOut)
         if (supported.isEmpty()) return@coroutineScope emptyList()
 
         fetchQuotes(supported, tokenIn, tokenOut, amountIn, settings, onProviderError)
             .sortedByBestAmountOut()
     }
 
-    private suspend fun filterSupported(
+    suspend fun findSupportedProviders(
         providers: List<IMultiSwapProvider>,
         tokenIn: Token,
         tokenOut: Token,
-    ) = coroutineScope {
+    ): List<IMultiSwapProvider> = coroutineScope {
         providers.map { provider ->
             async {
                 try {

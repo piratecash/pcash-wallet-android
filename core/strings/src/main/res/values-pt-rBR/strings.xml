@@ -616,6 +616,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Endereço inválido</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Endereço %s inválido</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Sua operação pode ser de front-running</string>
+    <string name="swap_providers_title">Provedores de swap</string>
+    <string name="swap_providers_mandatory_toast">Este provedor não pode ser desativado</string>
+    <string name="swap_no_enabled_providers">Nenhum provedor ativo</string>
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Você pode trocar %s, ou você precisa revogar e aprovar o novo valor</string>
     <string name="Approve_Spender">Gastador</string>

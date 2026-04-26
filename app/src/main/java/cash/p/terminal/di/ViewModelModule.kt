@@ -11,6 +11,7 @@ import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesViewModel
+import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsViewModel
 import cash.p.terminal.modules.displayoptions.DisplayOptionsViewModel
 import cash.p.terminal.modules.hardwarewallet.HardwareWalletViewModel
 import cash.p.terminal.modules.importwallet.ImportWalletViewModel
@@ -130,6 +131,7 @@ val viewModelModule = module {
         SafetyRulesViewModel(mode = mode, termTitles = termTitles, localStorage = get())
     }
     viewModelOf(::MultiSwapExchangesViewModel)
+    viewModelOf(::SwapProvidersSettingsViewModel)
     viewModel { params ->
         MultiSwapExchangeViewModel(
             pendingMultiSwapId = params.get(),
@@ -138,6 +140,7 @@ val viewModelModule = module {
             numberFormatter = get(),
             onChainMonitor = get(),
             swapQuoteService = get(),
+            swapProvidersRepository = get(),
             fetchSwapQuotesUseCase = get(),
             timerService = TimerService(),
             syncPendingMultiSwapUseCase = get(),
