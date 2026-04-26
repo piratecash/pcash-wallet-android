@@ -78,10 +78,10 @@ fun TransparentModalBottomSheet(
 
 @Composable
 fun BottomSheetHeader(
-    iconPainter: Painter,
     title: String,
     onCloseClick: () -> Unit,
     modifier: Modifier = Modifier,
+    iconPainter: Painter? = null,
     titleColor: Color = ComposeAppTheme.colors.leah,
     iconTint: ColorFilter? = null,
     content: @Composable() (ColumnScope.() -> Unit),
@@ -92,7 +92,10 @@ fun BottomSheetHeader(
             Text(
                 text = title,
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
+                    .padding(
+                        start = if (iconPainter != null) 16.dp else 0.dp,
+                        end = 16.dp
+                    )
                     .weight(1f)
                     .align(Alignment.CenterVertically),
                 maxLines = 1,
@@ -144,7 +147,7 @@ fun BottomSheetHeaderMultiline(
 
 @Composable
 private fun BottomSheetHeader(
-    iconPainter: Painter,
+    iconPainter: Painter? ,
     titleContent: @Composable() (RowScope.() -> Unit),
     onCloseClick: () -> Unit,
     iconTint: ColorFilter?,
@@ -163,12 +166,14 @@ private fun BottomSheetHeader(
                 .padding(start = 32.dp, top = 24.dp, end = 32.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                modifier = Modifier.size(24.dp),
-                painter = iconPainter,
-                colorFilter = iconTint,
-                contentDescription = null
-            )
+            iconPainter?.let {
+                Image(
+                    modifier = Modifier.size(24.dp),
+                    painter = iconPainter,
+                    colorFilter = iconTint,
+                    contentDescription = null
+                )
+            }
             titleContent.invoke(this)
             HsIconButton(
                 modifier = Modifier.size(24.dp),

@@ -10,20 +10,22 @@ import cash.p.terminal.core.R
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
-import cash.p.terminal.tangem.domain.TangemConfig
 import cash.p.terminal.tangem.domain.usecase.BuildHardwarePublicKeyUseCase
-import cash.p.terminal.tangem.domain.usecase.TangemBlockchainTypeExistUseCase
 import cash.p.terminal.tangem.domain.usecase.TangemScanUseCase
+import cash.p.terminal.trezor.domain.usecase.FetchTrezorPublicKeysUseCase
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.wallet.badge
+import cash.p.terminal.wallet.entities.HardwarePublicKey
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.imageUrl
+import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import com.tangem.common.core.TangemSdkError.UserCancelled
 import com.tangem.common.doOnFailure
 import com.tangem.common.doOnSuccess
@@ -33,6 +35,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
+import timber.log.Timber
 
 class ManageWalletsViewModel(
     private val service: ManageWalletsService,
@@ -40,12 +43,15 @@ class ManageWalletsViewModel(
 ) : ViewModel(), ManageWalletsCallback {
 
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
-    private val tangemBlockchainTypeExistUseCase: TangemBlockchainTypeExistUseCase by inject<TangemBlockchainTypeExistUseCase>(
-        TangemBlockchainTypeExistUseCase::class.java
-    )
     private val tangemScanUseCase: TangemScanUseCase by inject(TangemScanUseCase::class.java)
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage by inject(
         HardwarePublicKeyStorage::class.java
+    )
+    private val hardwareWalletTokenPolicy: HardwareWalletTokenPolicy by inject(
+        HardwareWalletTokenPolicy::class.java
+    )
+    private val fetchTrezorPublicKeys: FetchTrezorPublicKeysUseCase by inject(
+        FetchTrezorPublicKeysUseCase::class.java
     )
 
     private val _groupsList = MutableStateFlow<List<CoinGroup>>(emptyList())
@@ -53,8 +59,17 @@ class ManageWalletsViewModel(
 
     private val awaitingEnabledTokens = mutableSetOf<Token>()
     private val expandedGroups = mutableSetOf<String>()
+    private var existingPublicKeys: List<HardwarePublicKey>? = null
 
     override var showScanToAddButton by mutableStateOf(false)
+        private set
+
+    override var hardwareActionButtonText by mutableStateOf(
+        when (accountManager.activeAccount?.type) {
+            is AccountType.TrezorDevice -> App.instance.getString(R.string.add_via_trezor)
+            else -> App.instance.getString(R.string.scan_card_to_add)
+        }
+    )
         private set
 
     override var errorMsg by mutableStateOf<String?>(null)
@@ -68,10 +83,10 @@ class ManageWalletsViewModel(
     }
 
     private fun loadData() {
-        if (isHardwareCard()) {
+        if (isHardwareWallet()) {
             viewModelScope.launch {
                 accountManager.activeAccount?.let { account ->
-                    tangemBlockchainTypeExistUseCase.loadKeys(account.id)
+                    existingPublicKeys = hardwarePublicKeyStorage.getAllPublicKeys(account.id)
                 }
             }
         }
@@ -83,57 +98,73 @@ class ManageWalletsViewModel(
     }
 
     fun requestScanToAddTokens(closeAfterSuccess: Boolean) = viewModelScope.launch {
-        val account = accountManager.activeAccount
-        val cardId = (account?.type as? AccountType.HardwareCard?)?.cardId
-        if (account == null || cardId == null) {
+        val account = accountManager.activeAccount ?: run {
             showError(App.instance.getString(R.string.error_no_active_account))
             return@launch
         }
-        val blockchainTypesToDerive = awaitingEnabledTokens.map {
-            TokenQuery(
-                blockchainType = it.blockchainType,
-                tokenType = it.type
-            )
-        }.distinct()
+        when (account.type) {
+            is AccountType.HardwareCard -> requestTangemScan(account, closeAfterSuccess)
+            is AccountType.TrezorDevice -> requestTrezorKeys(account, closeAfterSuccess)
+            else -> showError(App.instance.getString(R.string.error_no_active_account))
+        }
+    }
+
+    private suspend fun requestTangemScan(account: Account, closeAfterSuccess: Boolean) {
+        val blockchainTypesToDerive = awaitingTokenQueries()
         tangemScanUseCase.scanProduct(
             blockchainsToDerive = blockchainTypesToDerive,
         ).doOnSuccess { scanResponse ->
-            val publicKeys =
-                BuildHardwarePublicKeyUseCase().invoke(
-                    scanResponse = scanResponse,
-                    accountId = account.id,
-                    blockchainTypeList = blockchainTypesToDerive
-                )
-            val (addedTokens, notFoundedTokens) = awaitingEnabledTokens.partition { token ->
-                publicKeys.find { it.blockchainType == token.blockchainType.uid } != null
-            }
-
-            val newAwaited = awaitingEnabledTokens - addedTokens
-
-            with(awaitingEnabledTokens) {
-                clear()
-                addAll(newAwaited)
-            }
-            updateNeedToShowScanToAddButton()
-
-            errorMsg = if (notFoundedTokens.isNotEmpty()) {
-                "Some tokens were not found"
-            } else {
-                null
-            }
-
-            hardwarePublicKeyStorage.save(publicKeys)
-
-            addedTokens.forEach {
-                service.enable(it)
-            }
-
-            if (errorMsg == null && closeAfterSuccess) {
-                closeScreen = true
-            }
+            val publicKeys = BuildHardwarePublicKeyUseCase().invoke(
+                scanResponse = scanResponse,
+                accountId = account.id,
+                blockchainTypeList = blockchainTypesToDerive
+            )
+            applyFetchedKeys(publicKeys, account, closeAfterSuccess)
         }.doOnFailure {
-            if (it is UserCancelled) return@launch
+            if (it is UserCancelled) return@doOnFailure
             showError(it.customMessage)
+        }
+    }
+
+    private suspend fun requestTrezorKeys(account: Account, closeAfterSuccess: Boolean) {
+        val blockchainTypesToDerive = awaitingTokenQueries()
+        try {
+            val publicKeys = fetchTrezorPublicKeys(blockchainTypesToDerive, account.id)
+            applyFetchedKeys(publicKeys, account, closeAfterSuccess)
+        } catch (e: Exception) {
+            Timber.e(e, "Trezor: failed to fetch public keys")
+            showError(e.message)
+        }
+    }
+
+    private fun awaitingTokenQueries(): List<TokenQuery> =
+        awaitingEnabledTokens.map {
+            TokenQuery(blockchainType = it.blockchainType, tokenType = it.type)
+        }.distinct()
+
+    private suspend fun applyFetchedKeys(
+        publicKeys: List<HardwarePublicKey>,
+        account: Account,
+        closeAfterSuccess: Boolean
+    ) {
+        val (addedTokens, notFoundTokens) = awaitingEnabledTokens.partition { token ->
+            publicKeys.any { it.blockchainType == token.blockchainType.uid }
+        }
+        with(awaitingEnabledTokens) {
+            clear()
+            addAll(notFoundTokens)
+        }
+        updateNeedToShowScanToAddButton()
+
+        errorMsg = if (notFoundTokens.isNotEmpty()) App.instance.getString(R.string.error_hardware_wallet_some_tokens_not_found) else null
+
+        hardwarePublicKeyStorage.save(publicKeys)
+        existingPublicKeys = hardwarePublicKeyStorage.getAllPublicKeys(account.id)
+
+        addedTokens.forEach { service.enable(it) }
+
+        if (errorMsg == null && closeAfterSuccess) {
+            closeScreen = true
         }
     }
 
@@ -180,26 +211,24 @@ class ManageWalletsViewModel(
     )
 
     override fun enable(token: Token) {
-        if (isHardwareCard() && TangemConfig.isExcludedForHardwareCard(token)) {
-            showError(App.instance.getString(R.string.error_hardware_wallet_not_supported))
-            return
-        }
-        if (!isHardwareCard() || tangemBlockchainTypeExistUseCase(token)) {
+        val account = accountManager.activeAccount
+        if (!isHardwareWallet() || hasPublicKey(token)) {
             service.enable(token)
         } else {
+            if (account != null && !hardwareWalletTokenPolicy.isSupported(account, token)) {
+                showError(App.instance.getString(R.string.error_hardware_wallet_not_supported))
+                return
+            }
             awaitingEnabledTokens.add(token)
             updateNeedToShowScanToAddButton()
-
-            // Update switch indicator based on `awaitingEnabledTokens` values
             sync(service.itemsFlow.value)
         }
     }
 
     override fun disable(token: Token) {
         service.disable(token)
-        if (isHardwareCard()) {
+        if (isHardwareWallet()) {
             if (awaitingEnabledTokens.remove(token)) {
-                // Update switch indicator based on `awaitingEnabledTokens` values
                 sync(service.itemsFlow.value)
             }
             updateNeedToShowScanToAddButton()
@@ -220,8 +249,13 @@ class ManageWalletsViewModel(
     }
 
     private fun updateNeedToShowScanToAddButton() {
-        showScanToAddButton = isHardwareCard() && awaitingEnabledTokens.isNotEmpty()
+        showScanToAddButton = isHardwareWallet() && awaitingEnabledTokens.isNotEmpty()
     }
+
+    private fun hasPublicKey(token: Token): Boolean =
+        existingPublicKeys?.any {
+            it.blockchainType == token.blockchainType.uid
+        } == true
 
     override val addTokenEnabled: Boolean
         get() = service.accountType?.canAddTokens == true
@@ -230,7 +264,7 @@ class ManageWalletsViewModel(
         clearables.forEach(Clearable::clear)
     }
 
-    private fun isHardwareCard() = accountManager.activeAccount?.type is AccountType.HardwareCard
+    private fun isHardwareWallet() = accountManager.activeAccount?.isHardwareWalletAccount == true
 }
 
 data class CoinGroup(
@@ -247,6 +281,7 @@ interface ManageWalletsCallback {
     val groupsList: StateFlow<List<CoinGroup>>
     val addTokenEnabled: Boolean
     val showScanToAddButton: Boolean
+    val hardwareActionButtonText: String
     val errorMsg: String?
     val closeScreen: Boolean
 

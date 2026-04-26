@@ -33,7 +33,7 @@ class WalletUseCase(
 
     suspend fun createWallets(tokensToAdd: Set<Token>): Boolean {
         val account = accountManager.activeAccount ?: return false
-        return if (account.type is AccountType.HardwareCard) {
+        return if (account.isHardwareWalletAccount) {
             createWalletsForHardwareWallet(
                 account = account,
                 tokensToAdd = tokensToAdd
@@ -77,10 +77,14 @@ class WalletUseCase(
                 tokenType = it.type
             )
         }
-        val cardId = (account.type as AccountType.HardwareCard).cardId
+        val hardwareId = when (val type = account.type) {
+            is AccountType.HardwareCard -> type.cardId
+            is AccountType.TrezorDevice -> type.deviceId
+            else -> error("Not a hardware wallet account")
+        }
         val allKeysCreated = scanToAddUseCase.addTokensByScan(
             blockchainsToDerive = queryList,
-            cardId = cardId,
+            cardId = hardwareId,
             accountId = account.id
         )
         hardwarePublicKeys =

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.App
 import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
@@ -111,7 +112,7 @@ private fun SendEvmConfirmationScreen(
 
                     coroutineScope.launch {
                         buttonEnabled = false
-                        HudHelper.showInProcessMessage(
+                        val currentSnackbar = HudHelper.showInProcessMessage(
                             view,
                             R.string.Send_Sending,
                             SnackbarDuration.INDEFINITE
@@ -126,6 +127,9 @@ private fun SendEvmConfirmationScreen(
                             delay(1200)
 
                             navController.popBackStack(input.sendEntryPointDestId, true)
+                        } catch (e: TrezorCancelledException) {
+                            logger.info("trezor user cancelled")
+                            currentSnackbar?.dismiss()
                         } catch (t: Throwable) {
                             logger.warning("failed", t)
                             val errorMsg = if (t is JsonRpc.ResponseError.RpcError) {

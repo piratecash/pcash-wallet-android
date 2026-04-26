@@ -191,6 +191,8 @@ class ManageAccountViewModel(
                 KeyAction.ResetToFactorySettings
             )
 
+            is AccountType.TrezorDevice -> listOf()
+
             is AccountType.ZCashUfvKey,
             is AccountType.EvmAddress,
             is AccountType.SolanaAddress,

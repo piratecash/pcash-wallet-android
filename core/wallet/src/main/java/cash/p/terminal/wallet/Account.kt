@@ -37,7 +37,7 @@ data class Account(
 
     @IgnoredOnParcel
     val isHardwareWalletAccount: Boolean
-        get() = type is AccountType.HardwareCard
+        get() = type is AccountType.HardwareCard || type is AccountType.TrezorDevice
 
     @IgnoredOnParcel
     val hasAnyBackup = isBackedUp || isFileBackedUp
@@ -114,6 +114,7 @@ fun Account.premiumEligibility(): PremiumAccountEligibility {
         type is AccountType.Mnemonic && !hasAnyBackup -> PremiumAccountEligibility.NO_BACKUP
         type is AccountType.Mnemonic && hasAnyBackup -> PremiumAccountEligibility.ELIGIBLE
         type is AccountType.HardwareCard -> PremiumAccountEligibility.ELIGIBLE
+        type is AccountType.TrezorDevice -> PremiumAccountEligibility.ELIGIBLE
         else -> PremiumAccountEligibility.WRONG_TYPE
     }
 }
@@ -284,6 +285,23 @@ sealed class AccountType : Parcelable {
         }
     }
 
+    @Parcelize
+    data class TrezorDevice(
+        val deviceId: String,
+        val model: String,
+        val firmwareVersion: String,
+        val walletPublicKey: String
+    ) : AccountType() {
+        override fun equals(other: Any?): Boolean {
+            return other is TrezorDevice &&
+                    deviceId == other.deviceId &&
+                    walletPublicKey == other.walletPublicKey
+        }
+
+        override fun hashCode(): Int {
+            return deviceId.hashCode()
+        }
+    }
 
     val description: String
         get() = when (this) {
@@ -313,6 +331,7 @@ sealed class AccountType : Parcelable {
             is EvmPrivateKey -> "EVM Private Key"
             is ZCashUfvKey -> "ZCash UFV Key"
             is HardwareCard -> "Hardware card"
+            is TrezorDevice -> "Trezor Device"
             is MnemonicMonero -> "Monero Wallet"
             is HdExtendedKey -> {
                 when (this.hdExtendedKey.derivedType) {
@@ -359,13 +378,14 @@ sealed class AccountType : Parcelable {
 
     val canAddTokens: Boolean
         get() = when (this) {
-            is Mnemonic, is EvmPrivateKey -> true
+            is Mnemonic, is EvmPrivateKey, is TrezorDevice -> true
             else -> false
         }
 
     val supportsWalletConnect: Boolean
         get() = when (this) {
             is HardwareCard,
+            is TrezorDevice,
             is Mnemonic,
             is EvmPrivateKey -> true
             else -> false

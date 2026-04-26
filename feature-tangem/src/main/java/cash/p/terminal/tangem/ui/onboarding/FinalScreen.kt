@@ -62,7 +62,7 @@ internal fun FinalScreen(
         Spacer(Modifier.weight(1f))
         ButtonPrimaryYellow(
             modifier = Modifier.fillMaxWidth(),
-            title = stringResource(R.string.scan_card),
+            title = stringResource(R.string.scan_tangem_card),
             onClick = onWriteDataClicked
         )
     }

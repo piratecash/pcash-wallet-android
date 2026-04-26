@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -98,6 +100,8 @@ fun TransactionInfoScreen(
 ) {
     var showAmlInfoSheet by remember { mutableStateOf(false) }
     var amlAddressSelectionData by remember { mutableStateOf<AmlAddressSelectionData?>(null) }
+    var tapCount by remember { mutableIntStateOf(0) }
+    var lastTapTime by remember { mutableLongStateOf(0L) }
 
     Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
         AppBar(
@@ -117,6 +121,19 @@ fun TransactionInfoScreen(
                 viewModel = viewModel,
                 navController = navController,
                 onAmlInfoClick = { showAmlInfoSheet = true },
+                onPendingStatusTap = if (viewModel.isPending) {
+                    {
+                        val now = System.currentTimeMillis()
+                        if (now - lastTapTime > 2000) tapCount = 0
+                        lastTapTime = now
+                        tapCount++
+                        if (tapCount >= 5) {
+                            tapCount = 0
+                            viewModel.deletePendingTransaction()
+                            navController.navigateUp()
+                        }
+                    }
+                } else null,
                 onAmlRiskClick = { addresses, status ->
                     if (addresses.size == 1) {
                         navController.slideFromRight(
@@ -176,6 +193,7 @@ fun TransactionInfo(
     viewModel: TransactionInfoViewModel,
     navController: NavController,
     onAmlInfoClick: () -> Unit = {},
+    onPendingStatusTap: (() -> Unit)? = null,
     onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
 ) {
     LazyColumn(
@@ -193,6 +211,7 @@ fun TransactionInfo(
                 getRawTransaction = viewModel::getRawTransaction,
                 hideSensitiveInfo = viewModel.balanceHidden,
                 onAmlInfoClick = onAmlInfoClick,
+                onPendingStatusTap = onPendingStatusTap,
                 onAmlRiskClick = onAmlRiskClick
             )
         }
@@ -207,6 +226,7 @@ fun TransactionInfoSection(
     getRawTransaction: () -> String?,
     hideSensitiveInfo: Boolean,
     onAmlInfoClick: () -> Unit = {},
+    onPendingStatusTap: (() -> Unit)? = null,
     onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
 ) {
     //items without background
@@ -357,7 +377,8 @@ fun TransactionInfoSection(
                         add {
                             TransactionInfoStatusCell(
                                 status = viewItem.status,
-                                navController = navController
+                                navController = navController,
+                                onPendingTap = onPendingStatusTap
                             )
                         }
                     }

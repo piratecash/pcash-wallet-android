@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import cash.p.terminal.R
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.providers.AppConfigProvider
 import org.koin.java.KoinJavaComponent.inject
 import java.net.UnknownHostException

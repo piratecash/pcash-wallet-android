@@ -213,7 +213,7 @@ internal fun ManageWalletsScreen(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
-            ScanToAddBlock(requestScan)
+            ScanToAddBlock(manageWalletsCallback.hardwareActionButtonText, requestScan)
         }
         LaunchedEffect(manageWalletsCallback.errorMsg) {
             if (manageWalletsCallback.errorMsg != null) {
@@ -382,7 +382,7 @@ private fun GroupHeader(
 }
 
 @Composable
-private fun ScanToAddBlock(requestScan: () -> Unit) {
+private fun ScanToAddBlock(buttonText: String, requestScan: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth(),
@@ -401,7 +401,7 @@ private fun ScanToAddBlock(requestScan: () -> Unit) {
                     },
                     top = 16.dp
                 ),
-            title = stringResource(R.string.scan_card_to_add),
+            title = buttonText,
             onClick = requestScan
         )
     }
@@ -551,6 +551,7 @@ private fun ManageWalletsScreenPreview() {
                 override val groupsList = MutableStateFlow(groups)
                 override val addTokenEnabled = true
                 override val showScanToAddButton = false
+                override val hardwareActionButtonText = ""
                 override val errorMsg: String? = null
                 override val closeScreen: Boolean = false
                 override fun updateFilter(text: String) = Unit

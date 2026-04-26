@@ -33,10 +33,11 @@ internal class GetBnbAddressUseCaseImpl(
                 seedToEvmAddressUseCase(mnemonicType.words, mnemonicType.passphrase)
             }
 
+            is AccountType.TrezorDevice,
             is AccountType.HardwareCard -> {
                 val address =
                     withContext(Dispatchers.IO) { bnbPremiumAddressDao.getByAccount(account.id)?.address }
-                if (address == null && requestScanTangemIfNotFound) {
+                if (address == null && requestScanTangemIfNotFound && account.type is AccountType.HardwareCard) {
                     scanCardToFindPirateAddress(account)?.also {
                         bnbPremiumAddressDao.insert(BnbPremiumAddress(accountId = account.id, address = it))
                     }

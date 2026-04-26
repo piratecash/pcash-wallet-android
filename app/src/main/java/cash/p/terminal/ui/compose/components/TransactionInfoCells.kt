@@ -487,7 +487,8 @@ fun TransactionInfoContactCell(name: String) {
 @Composable
 fun TransactionInfoStatusCell(
     status: TransactionStatus,
-    navController: NavController
+    navController: NavController,
+    onPendingTap: (() -> Unit)? = null
 ) {
     RowUniversal(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -517,6 +518,12 @@ fun TransactionInfoStatusCell(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(end = 8.dp)
+                .clickable(
+                    enabled = status == TransactionStatus.Pending,
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onPendingTap ?: { }
+                )
         )
 
         when (status) {

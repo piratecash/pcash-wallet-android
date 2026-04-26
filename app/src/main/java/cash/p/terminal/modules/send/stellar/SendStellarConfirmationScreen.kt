@@ -7,14 +7,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
-import cash.p.terminal.modules.amount.AmountInputModeViewModel
 import cash.p.terminal.modules.send.SendConfirmationScreen
 
 @Composable
 fun SendStellarConfirmationScreen(
     navController: NavController,
     sendViewModel: SendStellarViewModel,
-    amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int
 ) {
     var confirmationData by remember { mutableStateOf(sendViewModel.getConfirmationData()) }
@@ -34,7 +32,6 @@ fun SendStellarConfirmationScreen(
         navController = navController,
         coinMaxAllowedDecimals = sendViewModel.coinMaxAllowedDecimals,
         feeCoinMaxAllowedDecimals = sendViewModel.feeTokenMaxAllowedDecimals,
-        amountInputType = amountInputModeViewModel.inputType,
         rate = sendViewModel.coinRate,
         feeCoinRate = sendViewModel.feeCoinRate,
         sendResult = sendViewModel.sendResult,

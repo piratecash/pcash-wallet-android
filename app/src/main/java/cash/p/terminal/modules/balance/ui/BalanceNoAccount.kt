@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,30 +18,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
-import cash.p.terminal.core.hasNFC
 import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
-import cash.p.terminal.ui_compose.components.ButtonPrimaryDefaults
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.HudHelper
 
 @Composable
 fun BalanceNoAccount(
     navController: NavController,
     paddingValuesParent: PaddingValues
 ) {
-    val context = LocalContext.current
-    val view = LocalView.current
     Column(
         modifier = Modifier
             .padding(bottom = paddingValuesParent.calculateBottomPadding())
@@ -92,30 +84,17 @@ fun BalanceNoAccount(
             }
         )
         Spacer(modifier = Modifier.height(16.dp))
-        if (context.hasNFC()) {
-            ButtonPrimaryDefault(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 48.dp),
-                title = stringResource(R.string.hardware_wallet),
-                onClick = {
-                    navController.navigateWithTermsAccepted {
-                        navController.slideFromRight(R.id.hardwareWalletFragment)
-                    }
+        ButtonPrimaryDefault(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp),
+            title = stringResource(R.string.hardware_wallet),
+            onClick = {
+                navController.navigateWithTermsAccepted {
+                    navController.slideFromRight(R.id.hardwareWalletFragment)
                 }
-            )
-        } else {
-            ButtonPrimaryTransparent(
-                modifier = Modifier
-                    .defaultMinSize(minHeight = ButtonPrimaryDefaults.MinHeight)
-                    .fillMaxWidth()
-                    .padding(horizontal = 48.dp),
-                title = stringResource(R.string.hardware_wallet),
-                onClick = {
-                    HudHelper.showErrorMessage(view, context.getString(R.string.hardware_wallet_not_detected_error))
-                }
-            )
-        }
+            }
+        )
         Spacer(modifier = Modifier.height(16.dp))
         ButtonPrimaryTransparent(
             modifier = Modifier

@@ -7,7 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +42,7 @@ import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsImageCircle
 import cash.p.terminal.ui_compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.CustomSnackbar
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SnackbarDuration
@@ -85,9 +89,10 @@ fun SwapConfirmScreen(
 
     val uiState = viewModel.uiState
     val sendResult = viewModel.sendResult
+    var currentSnackbar by remember { mutableStateOf<CustomSnackbar?>(null) }
 
     // Handle send result UI - must be in Composable context for getString()
-    when (sendResult) {
+    currentSnackbar = when (sendResult) {
         SendResult.Sending -> {
             HudHelper.showInProcessMessage(
                 view,
@@ -108,7 +113,10 @@ fun SwapConfirmScreen(
             HudHelper.showErrorMessage(view, sendResult.caution.getString())
         }
 
-        null -> Unit
+        null -> {
+            currentSnackbar?.dismiss()
+            null
+        }
     }
 
     // Handle navigation after success
