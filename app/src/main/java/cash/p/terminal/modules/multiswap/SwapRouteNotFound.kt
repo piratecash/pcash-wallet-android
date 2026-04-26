@@ -4,4 +4,5 @@ import java.math.BigDecimal
 
 class SwapRouteNotFound : Throwable()
 class NoSupportedSwapProvider : Throwable()
+class NoEnabledSwapProvider : Throwable()
 class SwapDepositTooSmall(val minValue: BigDecimal) : Throwable()

@@ -611,6 +611,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Adresse invalide</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">%s Adresse non valide</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Votre transaction peut être frontrun</string>
+    <string name="swap_providers_title">Fournisseurs de swap</string>
+    <string name="swap_providers_mandatory_toast">Ce fournisseur ne peut pas être désactivé</string>
+    <string name="swap_no_enabled_providers">Aucun fournisseur actif</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Vous pouvez échanger %s, ou vous devez révoquer et approuver le nouveau montant</string>

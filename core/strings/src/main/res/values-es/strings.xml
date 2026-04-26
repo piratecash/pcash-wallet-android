@@ -610,6 +610,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Dirección invalida</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Dirección %s no válida</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Su transacción puede ser anticipada</string>
+    <string name="swap_providers_title">Proveedores de intercambio</string>
+    <string name="swap_providers_mandatory_toast">Este proveedor no puede desactivarse</string>
+    <string name="swap_no_enabled_providers">Sin proveedores activos</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Puedes cambiar %so necesitas revocar y aprobar la nueva cantidad</string>

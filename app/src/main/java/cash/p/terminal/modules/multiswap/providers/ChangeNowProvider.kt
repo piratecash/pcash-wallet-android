@@ -3,6 +3,7 @@ package cash.p.terminal.modules.multiswap.providers
 import androidx.collection.LruCache
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendEthereumAdapter
+import cash.p.terminal.core.cache.accountScoped
 import cash.p.terminal.core.extractBigDecimal
 import cash.p.terminal.core.isEvm
 import cash.p.terminal.core.isUtxoBased
@@ -29,6 +30,7 @@ import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.repository.ChangeNowRepository
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
@@ -53,7 +55,8 @@ class ChangeNowProvider(
     override val walletUseCase: WalletUseCase,
     private val changeNowRepository: ChangeNowRepository,
     private val getChangeNowAssociatedCoinTickerUseCase: GetChangeNowAssociatedCoinTickerUseCase,
-    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
+    accountManager: IAccountManager,
 ) : IMultiSwapProvider {
     override val id = "changenow"
     override val title = "ChangeNow"
@@ -71,18 +74,21 @@ class ChangeNowProvider(
     private var minAmountTimestamp = LruCache<String, Long>(10)
 
     // SwapConfirmViewModel calls final quote too many times, so cache results
-    private var cachedFinalQuote: Pair<NewTransactionRequest, NewTransactionResponse>? = null
-    private var cacheUpdateTimestamp = 0L
+    private var finalQuote: CachedFinalQuote? by accountManager.accountScoped()
+    private var zcashTransparentAddress: String? by accountManager.accountScoped()
     private val mutex = Mutex()
     private val zcashAddressMutex = Mutex()
-    private var cachedZcashTransparentAddress: String? = null
+
+    private data class CachedFinalQuote(
+        val request: NewTransactionRequest,
+        val response: NewTransactionResponse,
+        val timestamp: Long,
+    )
 
     private companion object {
         const val CACHE_MIN_AMOUNT_DURATION = 1000L * 60
         const val CACHE_FINAL_QUOTE_DURATION = 1000L * 60 * 5
     }
-
-    private var swapProviderTransaction: SwapProviderTransaction? = null
 
     override suspend fun start() {
         currencies.clear()
@@ -241,7 +247,7 @@ class ChangeNowProvider(
 
     private suspend fun getCachedZcashTransparentAddress(): String? =
         zcashAddressMutex.withLock {
-            cachedZcashTransparentAddress ?: initializeZcashAddress()
+            zcashTransparentAddress ?: initializeZcashAddress()
         }
 
     private suspend fun initializeZcashAddress(): String? {
@@ -250,7 +256,7 @@ class ChangeNowProvider(
             walletUseCase.getOneTimeReceiveAddress(transparentToken)
         } ?: return null
 
-        cachedZcashTransparentAddress = address
+        zcashTransparentAddress = address
         return address
     }
 
@@ -299,16 +305,17 @@ class ChangeNowProvider(
                     address = walletUseCase.getReceiveAddress(tokenOut),
                     refundAddress = refundAddress
                 )
-                if (System.currentTimeMillis() - cacheUpdateTimestamp < CACHE_FINAL_QUOTE_DURATION &&
-                    cachedFinalQuote?.first == request
+                val cached = finalQuote
+                if (cached != null &&
+                    cached.request == request &&
+                    System.currentTimeMillis() - cached.timestamp < CACHE_FINAL_QUOTE_DURATION
                 ) {
-                    cachedFinalQuote?.second!!
+                    cached.response
                 } else {
                     changeNowRepository.createTransaction(
                         newTransactionRequest = request
                     ).also {
-                        cachedFinalQuote = request to it
-                        cacheUpdateTimestamp = System.currentTimeMillis()
+                        finalQuote = CachedFinalQuote(request, it, System.currentTimeMillis())
                     }
                 }
             } catch (e: BackendChangeNowResponseError) {
@@ -351,7 +358,7 @@ class ChangeNowProvider(
                 )
             }
 
-            swapProviderTransaction = SwapProviderTransaction(
+            val swapProviderTransaction = SwapProviderTransaction(
                 date = System.currentTimeMillis(),
                 outgoingRecordUid = null, //set later
                 transactionId = transaction.id,
@@ -379,7 +386,8 @@ class ChangeNowProvider(
                     transaction = transaction
                 ),
                 priceImpact = null,
-                fields = fields
+                fields = fields,
+                swapProviderTransaction = swapProviderTransaction,
             )
         }
     }
@@ -455,16 +463,15 @@ class ChangeNowProvider(
         }
     }
 
-    fun onTransactionCompleted(result: SendTransactionResult) {
-        swapProviderTransaction?.let {
-            swapProviderTransaction = it.copy(
+    fun onTransactionCompleted(
+        transaction: SwapProviderTransaction,
+        result: SendTransactionResult,
+    ) {
+        swapProviderTransactionsStorage.save(
+            transaction.copy(
                 outgoingRecordUid = result.getRecordUid(),
-                date = System.currentTimeMillis()
-            ).also { transactionWithRecordUid ->
-                swapProviderTransactionsStorage.save(transactionWithRecordUid)
-            }
-        }
+                date = System.currentTimeMillis(),
+            )
+        )
     }
-
-    override fun getProviderTransactionId(): String? = swapProviderTransaction?.transactionId
 }

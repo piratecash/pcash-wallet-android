@@ -611,6 +611,9 @@
     <string name="SwapSettings_Error_InvalidAddress">地址无效</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">无效的 %s 地址</string>
     <string name="SwapSettings_Warning_UnusualSlippage">您的交易可能提前完成</string>
+    <string name="swap_providers_title">兑换服务商</string>
+    <string name="swap_providers_mandatory_toast">此服务商无法禁用</string>
+    <string name="swap_no_enabled_providers">没有已启用的服务商</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">您可以交换 %s，或者您需要撤销并批准新的金额</string>
