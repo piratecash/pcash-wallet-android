@@ -51,7 +51,6 @@ class AddAccessCodeDialog : BaseComposableBottomSheetFragment() {
                     val uiState = viewModel.uiState.value
                     AddAccessCodeScreen(
                         uiState = uiState,
-                        onToggleHide = viewModel::onToggleHide,
                         onChangeCode = viewModel::onChangeCode,
                         onChangeCodeConfirmation = viewModel::onChangeCodeConfirmation,
                         onConfirmClick = {
@@ -74,7 +73,6 @@ class AddAccessCodeDialog : BaseComposableBottomSheetFragment() {
 @Composable
 private fun AddAccessCodeScreen(
     uiState: AddAccessCodeUIState,
-    onToggleHide: () -> Unit,
     onChangeCode: (String) -> Unit,
     onChangeCodeConfirmation: (String) -> Unit,
     onConfirmClick: () -> Unit,
@@ -98,8 +96,6 @@ private fun AddAccessCodeScreen(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
             ),
-            hide = uiState.hideCode,
-            onToggleHide = onToggleHide
         )
         VSpacer(16.dp)
         FormsInputPassword(
@@ -108,8 +104,6 @@ private fun AddAccessCodeScreen(
             state = uiState.dataStateConfirmation,
             onValueChange = onChangeCodeConfirmation,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            hide = uiState.hideCode,
-            onToggleHide = onToggleHide
         )
         VSpacer(32.dp)
         TextImportantWarning(
@@ -136,7 +130,6 @@ private fun AddAccessCodeScreenPreview() {
     ComposeAppTheme {
         AddAccessCodeScreen(
             uiState = AddAccessCodeUIState(),
-            onToggleHide = {},
             onChangeCode = {},
             onChangeCodeConfirmation = {},
             onConfirmClick = {},

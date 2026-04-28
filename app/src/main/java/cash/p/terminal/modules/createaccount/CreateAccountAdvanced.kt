@@ -91,7 +91,6 @@ fun CreateAccountAdvancedScreen(
     }
 
     var showMnemonicSizeSelectorDialog by remember { mutableStateOf(false) }
-    var hidePassphrase by remember { mutableStateOf(true) }
 
     Surface(color = ComposeAppTheme.colors.tyler) {
         if (showMnemonicSizeSelectorDialog) {
@@ -198,10 +197,6 @@ fun CreateAccountAdvancedScreen(
                                 state = viewModel.passphraseState,
                                 onValueChange = viewModel::onChangePassphrase,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                                hide = hidePassphrase,
-                                onToggleHide = {
-                                    hidePassphrase = !hidePassphrase
-                                }
                             )
                             Spacer(Modifier.height(16.dp))
                             FormsInputPassword(
@@ -210,10 +205,6 @@ fun CreateAccountAdvancedScreen(
                                 state = viewModel.passphraseConfirmState,
                                 onValueChange = viewModel::onChangePassphraseConfirmation,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                                hide = hidePassphrase,
-                                onToggleHide = {
-                                    hidePassphrase = !hidePassphrase
-                                }
                             )
                             Spacer(Modifier.height(12.dp))
                             D1(
