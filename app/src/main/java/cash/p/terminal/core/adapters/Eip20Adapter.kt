@@ -58,7 +58,7 @@ internal class Eip20Adapter(
     // IAdapter
 
     override fun start() {
-        stackingManager.loadInvestmentData(wallet, receiveAddress)
+        stackingManager.loadInvestmentData(wallet, receiveAddress, balanceData.available)
         // started via EthereumKitManager
     }
 
@@ -67,8 +67,13 @@ internal class Eip20Adapter(
     }
 
     override suspend fun refresh() {
-        stackingManager.loadInvestmentData(wallet, receiveAddress, true)
         eip20Kit.refresh()
+        stackingManager.loadInvestmentData(
+            wallet = wallet,
+            address = receiveAddress,
+            currentBalance = balanceData.available,
+            forceRefresh = true,
+        )
     }
 
     // IBalanceAdapter

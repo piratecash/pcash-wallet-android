@@ -1,5 +1,10 @@
 package cash.p.terminal.modules.balance.token
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,14 +31,19 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -41,6 +51,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
@@ -62,9 +73,10 @@ import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui.compose.components.Badge
+import cash.p.terminal.ui.compose.components.BadgeText
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
-import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.CoinFragmentInput
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
@@ -82,7 +94,9 @@ import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_grey
+import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isCosanta
@@ -377,35 +391,25 @@ private fun TokenBalanceHeader(
                 )
             }
             HSpacer(16.dp)
-            Text(
-                text = uiState.coinCode + (uiState.badge?.let { " ($it)" } ?: ""),
-                color = ComposeAppTheme.colors.grey,
-                style = ComposeAppTheme.typography.subhead1,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = uiState.coinCode,
+                    color = ComposeAppTheme.colors.grey,
+                    style = ComposeAppTheme.typography.subhead1,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                uiState.badge?.let { badgeText ->
+                    HSpacer(6.dp)
+                    Badge(text = badgeText)
+                }
+            }
             uiState.stakingStatus?.let { status ->
                 HSpacer(8.dp)
-                val (text, color) = when (status) {
-                    TokenBalanceModule.StakingStatus.ACTIVE -> Pair(
-                        stringResource(R.string.staking_active),
-                        ComposeAppTheme.colors.remus
-                    )
-                    TokenBalanceModule.StakingStatus.INACTIVE -> Pair(
-                        stringResource(R.string.staking_inactive),
-                        ComposeAppTheme.colors.lucian
-                    )
-                }
-                Text(
-                    text = text,
-                    color = color,
-                    style = ComposeAppTheme.typography.microSB,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(color.copy(alpha = 0.1f))
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                )
+                StakingStatusBadge(status = status)
             }
         }
 
@@ -463,34 +467,79 @@ private fun TokenBalanceHeader(
                     style = ComposeAppTheme.typography.subhead2,
                 )
                 if (balanceViewItem.displayDiffOptionType != DisplayDiffOptionType.NONE) {
-                    balanceViewItem.diff?.let { diff ->
-                        HSpacer(width = 8.dp)
-                        Text(
-                            text = balanceViewItem.fullDiff,
-                            color = diffColor(diff),
-                            style = ComposeAppTheme.typography.subhead2,
+                    balanceViewItem.fullDiff.takeIf { it.isNotBlank() }?.let { fullDiff ->
+                        val color = diffColor(balanceViewItem.diff)
+                        HSpacer(width = 6.dp)
+                        BadgeText(
+                            text = fullDiff,
+                            background = color.copy(alpha = 0.1f),
+                            textColor = color
                         )
                     }
                 }
             }
         }
 
-        // Staking unpaid row
-        uiState.stakingUnpaid?.let { unpaid ->
+        // Staking unpaid row (with info tooltip) + optional "next accrual" subtitle
+        var showInfoSheet by rememberSaveable { mutableStateOf(false) }
+        uiState.stackingType?.let { stackingType ->
             VSpacer(height = 21.dp)
             HorizontalDivider(color = ComposeAppTheme.colors.steel20, thickness = 1.dp)
-            RowUniversal {
+
+            VSpacer(height = 12.dp)
+            RowUniversal(verticalPadding = 0.dp) {
                 subhead2_grey(
                     text = stringResource(R.string.staking_unpaid),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = if (balanceViewItem.primaryValue.visible) unpaid else "*****",
-                    color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.leah,
+                HSpacer(4.dp)
+                HsIconButton(
+                    onClick = { showInfoSheet = true },
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_info_20),
+                        contentDescription = stringResource(R.string.staking_unpaid_info_title),
+                        tint = ComposeAppTheme.colors.grey
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                uiState.stakingUnpaid?.let { unpaid ->
+                    Text(
+                        text = if (balanceViewItem.primaryValue.visible) unpaid else "*****",
+                        color = if (balanceViewItem.primaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.leah,
+                        style = ComposeAppTheme.typography.subhead2,
+                        maxLines = 1,
+                    )
+                } ?: Text(
+                    text = "—",
+                    color = ComposeAppTheme.colors.grey50,
                     style = ComposeAppTheme.typography.subhead2,
-                    maxLines = 1,
+                )
+            }
+
+            val nextAccrualHours = uiState.hoursUntilNextAccrual
+            AnimatedVisibility(
+                visible = nextAccrualHours != null,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                val hours = nextAccrualHours ?: return@AnimatedVisibility
+                subhead2_jacob(
+                    text = pluralStringResource(R.plurals.staking_next_accrual_in_hours, hours, hours)
+                )
+            }
+
+            if (showInfoSheet) {
+                val bodyRes = when (stackingType) {
+                    StackingType.PCASH -> R.string.staking_unpaid_info_body_pirate
+                    StackingType.COSANTA -> R.string.staking_unpaid_info_body_cosanta
+                }
+                InfoBottomSheet(
+                    title = stringResource(R.string.staking_unpaid_info_title),
+                    text = stringResource(bodyRes),
+                    onDismiss = { showInfoSheet = false }
                 )
             }
         }
@@ -666,7 +715,9 @@ private fun ButtonsRow(
                     contentDescription = stringResource(R.string.stacking),
                     onClick = {
                         onStackingClicked()
-                    }
+                    },
+                    iconTint = Color.Black,
+                    background = Color.White,
                 )
             }
         } else {
@@ -705,6 +756,8 @@ private fun ButtonsRow(
                     icon = R.drawable.ic_arrow_down_left_24,
                     contentDescription = stringResource(R.string.Balance_Receive),
                     onClick = onClickReceive,
+                    iconTint = Color.Black,
+                    background = Color.White,
                 )
             }
             if (viewItem.swapVisible) {
@@ -718,7 +771,9 @@ private fun ButtonsRow(
                             SwapParams.TOKEN_IN to viewItem.wallet.token
                         )
                     },
-                    enabled = viewItem.swapEnabled
+                    enabled = viewItem.swapEnabled,
+                    iconTint = Color.Black,
+                    background = Color.White,
                 )
             }
             if (viewItem.wallet.isCosanta() || viewItem.wallet.isPirateCash()) {
@@ -728,7 +783,9 @@ private fun ButtonsRow(
                     contentDescription = stringResource(R.string.stacking),
                     onClick = {
                         onStackingClicked()
-                    }
+                    },
+                    iconTint = Color.Black,
+                    background = Color.White,
                 )
             }
         }
@@ -749,4 +806,22 @@ private fun ButtonsRow(
             )
         }
     }
+}
+
+@Composable
+private fun StakingStatusBadge(status: TokenBalanceModule.StakingStatus) {
+    val (textRes, color) = when (status) {
+        TokenBalanceModule.StakingStatus.ACTIVE ->
+            R.string.staking_active to ComposeAppTheme.colors.remus
+        TokenBalanceModule.StakingStatus.INACTIVE ->
+            R.string.staking_inactive to ComposeAppTheme.colors.lucian
+    }
+    val text = stringResource(textRes)
+    val statusCd = stringResource(R.string.staking_status_cd, text)
+    BadgeText(
+        modifier = Modifier.semantics { contentDescription = statusCd },
+        text = text,
+        background = color.copy(alpha = 0.1f),
+        textColor = color
+    )
 }

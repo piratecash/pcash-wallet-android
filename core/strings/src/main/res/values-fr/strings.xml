@@ -1485,7 +1485,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="premium_demo_activation_error_wrong_type">Utilisez le type de portefeuille mnémonique ou matériel pour activer Premium</string>
     <string name="premium_try_for_free">Essayer GRATUITEMENT</string>
     <string name="premium_upgrade_text">Améliorez votre expérience avec les fonctionnalités Premium !</string>
-    <string name="premium_available">⭐️ Premium est disponible</string>
+    <string name="premium_available">⭐️ Premium</string>
     <string name="premium_demo_days_left">Demo Premium : %d jours restants</string>
     <string name="premium_select_wallet_title">Sélectionner un portefeuille pour la démo</string>
     <string name="premium_select_wallet_description">Choisissez un portefeuille pour activer les fonctionnalités de démo premium. Un seul portefeuille peut avoir la démo premium à la fois.</string>
@@ -1708,23 +1708,44 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking">Il n\'y a aucune transaction de staking active.</string>
+    <string name="no_active_stacking_pirate_description">Staking PIRATE : Démarrez avec 100 jetons et gagnez _annual_interest_ de rendement annuel !</string>
+    <string name="no_active_stacking_cosanta_description">Staking COSANTA : Démarrez avec 1 jeton et gagnez _annual_interest_ de rendement annuel !</string>
+    <string name="no_active_stacking_pirate_buy_more_description">Pour activer le staking, il vous faut %1$s jeton(s) de plus et vous recevrez _annual_interest_ par an !</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Déposez %1$s jeton(s) et commencez à gagner sous 36 heures.</string>
+    <string name="buy_to_activate_premium">⭐ Achetez %s jetons pour activer des fonctionnalités supplémentaires !</string>
     <string name="tokens">tokens</string>
-    <string name="buy_pirate">Buy PirateCash</string>
-    <string name="staking_details">Staking Details</string>
-    <string name="buy_cosanta">Buy Cosanta</string>
-    <string name="waiting_for_stacking">Staking of coins will begin no later than in %1$d hours</string>
-    <string name="stacking_calculator">stacking calculator</string>
-    <string name="total_balance">Total balance</string>
-    <string name="total_income">Total income</string>
+    <string name="buy_pirate">Acheter PirateCash</string>
+    <string name="staking_details">Détails du staking</string>
+    <string name="buy_cosanta">Acheter Cosanta</string>
+    <string name="waiting_for_stacking">Le staking des pièces commencera au plus tard dans %1$d heures</string>
+    <string name="stacking_calculator">calculateur de staking</string>
+    <string name="total_balance">Solde total</string>
+    <string name="total_income">Revenu total</string>
     <string name="unpaid">Non payé</string>
-    <string name="staking_unpaid">Paiements de staking en attente :</string>
+    <string name="staking_unpaid">Paiements de staking en attente</string>
     <string name="staking_active">Staking actif</string>
     <string name="staking_inactive">Staking inactif</string>
+    <string name="staking_unpaid_info_title">Informations sur les paiements</string>
+    <string name="staking_unpaid_info_body_pirate">Le montant gagné par le staking de tokens qui n\'a pas encore été versé.\nLes paiements sont effectués une fois par jour, à condition qu\'il y ait au moins 100 tokens sur le solde non payé et que 9 heures se soient écoulées depuis leur réception.</string>
+    <string name="staking_unpaid_info_body_cosanta">Le montant gagné par le staking de tokens qui n\'a pas encore été versé.\nLes paiements sont effectués toutes les 12 heures, à condition qu\'il y ait au moins 10 tokens sur le solde non payé et que 36 heures se soient écoulées depuis leur réception.</string>
+    <string name="staking_status_cd">Statut du staking : %1$s</string>
+    <string name="staking_next_accrual">Prochaine accumulation</string>
+    <string name="staking_next_payout">Prochain paiement</string>
+    <string name="staking_next_accrual_info_title">Informations sur l\'accumulation</string>
+    <string name="staking_next_accrual_info_body_pirate">L\'accumulation est effectuée une fois par heure à condition de disposer de 100 jetons.</string>
+    <string name="staking_next_accrual_info_body_cosanta">L\'accumulation est effectuée toutes les 12 heures à condition de disposer de 1 jeton.</string>
+    <string name="staking_next_payout_info_body">Date estimée du prochain paiement.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">dans %d heure</item>
+        <item quantity="other">dans %d heures</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">La prochaine accumulation aura lieu dans %d heure</item>
+        <item quantity="other">La prochaine accumulation aura lieu dans %d heures</item>
+    </plurals>
     <string name="estimated_annual_interest">Intérêt annuel estimé</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

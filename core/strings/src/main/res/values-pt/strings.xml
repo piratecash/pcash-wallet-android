@@ -1487,7 +1487,7 @@
     <string name="premium_demo_activation_error_wrong_type">Use tipo de carteira mnemônica ou hardware para ativar Premium</string>
     <string name="premium_try_for_free">Experimente GRÁTIS</string>
     <string name="premium_upgrade_text">Melhore a sua experiência com funcionalidades Premium!</string>
-    <string name="premium_available">⭐️ Premium está disponível</string>
+    <string name="premium_available">⭐️ Premium</string>
     <string name="premium_demo_days_left">Demo Premium: %d dias restantes</string>
     <string name="premium_select_wallet_title">Selecionar carteira para Demo</string>
     <string name="premium_select_wallet_description">Escolha uma carteira para ativar as funcionalidades demo premium. Apenas uma carteira pode ter demo premium de cada vez.</string>
@@ -1710,23 +1710,44 @@
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking">Não há transações de staking ativas.</string>
+    <string name="no_active_stacking_pirate_description">Staking PIRATE: Comece com 100 tokens e ganhe _annual_interest_ de retorno anual!</string>
+    <string name="no_active_stacking_cosanta_description">Staking COSANTA: Comece com 1 token e ganhe _annual_interest_ de retorno anual!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">Para ativar o staking precisas de mais %1$s token(s) e receberás _annual_interest_ por ano!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Deposita %1$s token(s) e começa a ganhar em 36 horas.</string>
+    <string name="buy_to_activate_premium">⭐ Compre %s tokens para ativar funcionalidades adicionais!</string>
     <string name="tokens">tokens</string>
-    <string name="buy_pirate">Buy PirateCash</string>
-    <string name="staking_details">Staking Details</string>
-    <string name="buy_cosanta">Buy Cosanta</string>
-    <string name="waiting_for_stacking">Staking of coins will begin no later than in %1$d hours</string>
-    <string name="stacking_calculator">stacking calculator</string>
-    <string name="total_balance">Total balance</string>
-    <string name="total_income">Total income</string>
+    <string name="buy_pirate">Comprar PirateCash</string>
+    <string name="staking_details">Detalhes de staking</string>
+    <string name="buy_cosanta">Comprar Cosanta</string>
+    <string name="waiting_for_stacking">O staking de moedas começará no máximo em %1$d horas</string>
+    <string name="stacking_calculator">calculadora de staking</string>
+    <string name="total_balance">Saldo total</string>
+    <string name="total_income">Rendimento total</string>
     <string name="unpaid">Não pago</string>
-    <string name="staking_unpaid">Pagamentos pendentes de staking:</string>
+    <string name="staking_unpaid">Pagamentos pendentes de staking</string>
     <string name="staking_active">Staking ativo</string>
     <string name="staking_inactive">Staking inativo</string>
+    <string name="staking_unpaid_info_title">Informações de pagamento</string>
+    <string name="staking_unpaid_info_body_pirate">O valor ganho pelo staking de tokens que ainda não foi pago.\nOs pagamentos são feitos uma vez por dia, desde que haja pelo menos 100 tokens no saldo não pago e tenham passado pelo menos 9 horas desde que foram recebidos.</string>
+    <string name="staking_unpaid_info_body_cosanta">O valor ganho pelo staking de tokens que ainda não foi pago.\nOs pagamentos são feitos a cada 12 horas, desde que haja pelo menos 10 tokens no saldo não pago e tenham passado pelo menos 36 horas desde que foram recebidos.</string>
+    <string name="staking_status_cd">Estado do staking: %1$s</string>
+    <string name="staking_next_accrual">Próximo acúmulo</string>
+    <string name="staking_next_payout">Próximo pagamento</string>
+    <string name="staking_next_accrual_info_title">Informações sobre o acúmulo</string>
+    <string name="staking_next_accrual_info_body_pirate">O acúmulo é feito uma vez por hora, desde que haja 100 tokens.</string>
+    <string name="staking_next_accrual_info_body_cosanta">O acúmulo é feito a cada 12 horas, desde que haja 1 token.</string>
+    <string name="staking_next_payout_info_body">Data estimada do próximo pagamento.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">em %d hora</item>
+        <item quantity="other">em %d horas</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">O próximo acúmulo será em %d hora</item>
+        <item quantity="other">O próximo acúmulo será em %d horas</item>
+    </plurals>
     <string name="estimated_annual_interest">Juro anual estimado</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>
