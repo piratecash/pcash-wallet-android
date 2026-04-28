@@ -818,17 +818,19 @@ class ZcashAdapter(
         val progressPercent = progress.toPercentage()
         lastDownloadProgress = progressPercent
 
-        syncState = AdapterState.Syncing(progress = progressPercent)
+        val blocksRemained = (syncState as? AdapterState.Syncing)
+            ?.blocksRemained
+            ?.takeIf { progressPercent < 100 }
+        syncState = AdapterState.Syncing(progress = progressPercent, blocksRemained = blocksRemained)
     }
 
     private fun onProcessorInfo(processorInfo: CompactBlockProcessor.ProcessorInfo) {
         val networkHeight = processorInfo.networkBlockHeight?.value
-        val syncRange = processorInfo.overallSyncRange
-        val currentSyncedHeight = syncRange?.endInclusive?.value
+        val nextSyncHeight = processorInfo.overallSyncRange?.start?.value
 
-        if (networkHeight != null && currentSyncedHeight != null && networkHeight > currentSyncedHeight) {
-            val blocksRemained = networkHeight - currentSyncedHeight
-            val progress = ((currentSyncedHeight.toDouble() / networkHeight) * 100).toInt().coerceIn(0, 99)
+        if (networkHeight != null && nextSyncHeight != null && networkHeight >= nextSyncHeight) {
+            val blocksRemained = networkHeight - nextSyncHeight + 1
+            val progress = (syncState as? AdapterState.Syncing)?.progress ?: lastDownloadProgress
             syncState = AdapterState.Syncing(progress = progress, blocksRemained = blocksRemained)
         } else if (lastDownloadProgress >= 100 && syncState !is AdapterState.Synced) {
             syncState = AdapterState.Syncing(progress = 100, blocksRemained = null)

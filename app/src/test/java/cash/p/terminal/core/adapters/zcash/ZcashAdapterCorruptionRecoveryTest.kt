@@ -81,7 +81,7 @@ class ZcashAdapterCorruptionRecoveryTest {
     private val progressFlow = MutableStateFlow(PercentDecimal.ZERO_PERCENT)
     private val walletBalancesFlow = MutableStateFlow<Map<AccountUuid, AccountBalance>?>(null)
     private val processorInfoFlow = MutableStateFlow(
-        mockk<CompactBlockProcessor.ProcessorInfo>(relaxed = true)
+        CompactBlockProcessor.ProcessorInfo(null, null, null)
     )
     private val allTransactionsFlow = MutableStateFlow<List<TransactionOverview>>(emptyList())
 
@@ -612,6 +612,56 @@ class ZcashAdapterCorruptionRecoveryTest {
             "Progress must be preserved when SDK re-emits SYNCING",
             99,
             (state as AdapterState.Syncing).progress
+        )
+    }
+
+    @Test
+    fun onProcessorInfo_syncRangeNearOrchard_preservesSdkProgress() = runTest(dispatcher) {
+        adapter = createAdapter()
+        adapter.start()
+
+        awaitState { it is AdapterState.Syncing }
+
+        progressFlow.value = PercentDecimal(0.01f)
+        awaitState { it is AdapterState.Syncing && it.progress == 1 }
+
+        processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
+            networkBlockHeight = BlockHeight.new(2_881_516L),
+            overallSyncRange = BlockHeight.new(1_687_104L)..BlockHeight.new(1_687_104L),
+            firstUnenhancedHeight = null
+        )
+
+        awaitState { it is AdapterState.Syncing && it.blocksRemained != null }
+        val state = adapter.balanceState as AdapterState.Syncing
+        assertEquals(
+            "ProcessorInfo range must not be treated as sync progress",
+            1,
+            state.progress
+        )
+    }
+
+    @Test
+    fun onDownloadProgress_afterProcessorInfo_preservesBlocksRemaining() = runTest(dispatcher) {
+        adapter = createAdapter()
+        adapter.start()
+
+        awaitState { it is AdapterState.Syncing }
+
+        processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
+            networkBlockHeight = BlockHeight.new(100L),
+            overallSyncRange = BlockHeight.new(91L)..BlockHeight.new(100L),
+            firstUnenhancedHeight = null
+        )
+        awaitState { it is AdapterState.Syncing && it.blocksRemained == 10L }
+
+        progressFlow.value = PercentDecimal(0.01f)
+
+        awaitState { it is AdapterState.Syncing && it.progress == 1 }
+        val state = adapter.balanceState as AdapterState.Syncing
+        assertEquals(
+            "Progress updates must not clear remaining block count",
+            10L,
+            state.blocksRemained
         )
     }
 
