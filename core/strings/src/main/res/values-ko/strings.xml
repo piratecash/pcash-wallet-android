@@ -1702,11 +1702,11 @@
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="no_active_stacking">활성화된 스테이킹 트랜잭션이 없습니다.</string>
+    <string name="no_active_stacking_pirate_description">PIRATE 스테이킹: 100 토큰으로 시작하고 연 _annual_interest_의 수익을 얻으세요!</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA 스테이킹: 1 토큰으로 시작하고 연 _annual_interest_의 수익을 얻으세요!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">스테이킹을 활성화하려면 %1$s개의 토큰이 더 필요하며, 연 _annual_interest_을 받게 됩니다!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">%1$s 토큰을 예치하고 36시간 안에 수익 창출을 시작하세요.</string>
     <string name="buy_to_activate_premium">⭐ %s 토큰을 구매하여 추가 기능을 활성화하세요!</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">PirateCash 구매</string>

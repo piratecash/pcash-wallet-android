@@ -301,10 +301,6 @@ private fun PirateCoinScreenWithGraph(
                 )
             }
             TotalSection(uiState, premiumType, daysPremiumLeft, Modifier.padding(vertical = 24.dp))
-            StackingScheduleSection(
-                uiState = uiState,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -384,6 +380,28 @@ private fun TotalSection(
                     modifier = Modifier.height(48.dp)
                 )
             }
+            uiState.hoursUntilNextAccrual?.let { hours ->
+                add {
+                    StackingInfoCell(
+                        title = stringResource(R.string.staking_next_accrual),
+                        value = pluralStringResource(R.plurals.staking_in_hours, hours, hours),
+                        infoTitle = stringResource(R.string.staking_next_accrual_info_title),
+                        infoText = stringResource(nextAccrualInfoBodyRes(uiState.stackingType)),
+                        infoContentDescription = stringResource(R.string.staking_next_accrual_info_title),
+                    )
+                }
+            }
+            uiState.nextPayoutText?.let { nextPayoutText ->
+                add {
+                    StackingInfoCell(
+                        title = stringResource(R.string.staking_next_payout),
+                        value = nextPayoutText,
+                        infoTitle = stringResource(R.string.staking_unpaid_info_title),
+                        infoText = stringResource(R.string.staking_next_payout_info_body),
+                        infoContentDescription = stringResource(R.string.staking_unpaid_info_title),
+                    )
+                }
+            }
             if (!uiState.balanceHidden && premiumType.isPremium()) {
                 val text = when (premiumType) {
                     PremiumType.PIRATE -> premiumText(
@@ -421,42 +439,6 @@ private fun premiumText(
     stacking: StackingType,
     minAmount: Int
 ) = "$prefix (${stringResource(R.string.Balance_Title)} ${stacking.value} ${minAmount}+)"
-
-@Composable
-private fun StackingScheduleSection(
-    uiState: StackingCoinUIState,
-    modifier: Modifier = Modifier,
-) {
-    if (uiState.hoursUntilNextAccrual == null && uiState.nextPayoutText == null) return
-
-    CellUniversalLawrenceSection(
-        composableItems = buildList {
-            uiState.hoursUntilNextAccrual?.let { hours ->
-                add {
-                    StackingInfoCell(
-                        title = stringResource(R.string.staking_next_accrual),
-                        value = pluralStringResource(R.plurals.staking_in_hours, hours, hours),
-                        infoTitle = stringResource(R.string.staking_next_accrual_info_title),
-                        infoText = stringResource(nextAccrualInfoBodyRes(uiState.stackingType)),
-                        infoContentDescription = stringResource(R.string.staking_next_accrual_info_title),
-                    )
-                }
-            }
-            uiState.nextPayoutText?.let { nextPayoutText ->
-                add {
-                    StackingInfoCell(
-                        title = stringResource(R.string.staking_next_payout),
-                        value = nextPayoutText,
-                        infoTitle = stringResource(R.string.staking_unpaid_info_title),
-                        infoText = stringResource(R.string.staking_next_payout_info_body),
-                        infoContentDescription = stringResource(R.string.staking_unpaid_info_title),
-                    )
-                }
-            }
-        },
-        modifier = modifier
-    )
-}
 
 @Composable
 private fun StackingInfoCell(

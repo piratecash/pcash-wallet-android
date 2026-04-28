@@ -1707,11 +1707,11 @@
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="no_active_stacking">لا توجد معاملات ستاكينج نشطة.</string>
+    <string name="no_active_stacking_pirate_description">ستاكينج PIRATE: ابدأ بـ 100 توكن واكسب عائداً سنوياً قدره _annual_interest_!</string>
+    <string name="no_active_stacking_cosanta_description">ستاكينج COSANTA: ابدأ بتوكن واحد واكسب عائداً سنوياً قدره _annual_interest_!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">لتفعيل الستاكينج تحتاج إلى %1$s توكن إضافي وسوف تتلقى _annual_interest_ سنوياً!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">أودع %1$s توكن وابدأ الكسب خلال 36 ساعة.</string>
     <string name="buy_to_activate_premium">⭐ اشترِ %s رموز لتفعيل ميزات إضافية!</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">شراء PirateCash</string>

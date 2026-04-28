@@ -96,6 +96,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isCosanta
@@ -525,7 +526,7 @@ private fun TokenBalanceHeader(
                 exit = shrinkVertically() + fadeOut(),
             ) {
                 val hours = nextAccrualHours ?: return@AnimatedVisibility
-                subhead2_grey(
+                subhead2_jacob(
                     text = pluralStringResource(R.plurals.staking_next_accrual_in_hours, hours, hours)
                 )
             }
