@@ -16,12 +16,6 @@ internal class AddAccessCodeViewModel : ViewModel() {
         private set
     private var codeConfirmation: String = ""
 
-    fun onToggleHide() {
-        _uiState.value = _uiState.value.copy(
-            hideCode = !_uiState.value.hideCode
-        )
-    }
-
     fun onChangeCode(code: String) {
         this.code = code
         updateState()
@@ -56,7 +50,6 @@ internal class AddAccessCodeViewModel : ViewModel() {
 internal data class AddAccessCodeUIState(
     val dataState: DataState.Error? = null,
     val dataStateConfirmation: DataState.Error? = null,
-    val hideCode: Boolean = true,
     val confirmEnabled: Boolean = false,
     val code: String = ""
 )

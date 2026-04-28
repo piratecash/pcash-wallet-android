@@ -62,8 +62,6 @@ fun LocalBackupPasswordScreen(
 
     val view = LocalView.current
     val context = LocalContext.current
-    var hidePassphrase by remember { mutableStateOf(true) }
-    var hideDuressPassphrase by remember { mutableStateOf(true) }
     var showDuressInfoSheet by remember { mutableStateOf(false) }
     val uiState = viewModel.uiState
 
@@ -147,10 +145,6 @@ fun LocalBackupPasswordScreen(
                     state = uiState.passphraseState,
                     onValueChange = viewModel::onChangePassphrase,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    hide = hidePassphrase,
-                    onToggleHide = {
-                        hidePassphrase = !hidePassphrase
-                    }
                 )
                 VSpacer(16.dp)
                 FormsInputPassword(
@@ -159,10 +153,6 @@ fun LocalBackupPasswordScreen(
                     state = uiState.passphraseConfirmState,
                     onValueChange = viewModel::onChangePassphraseConfirmation,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    hide = hidePassphrase,
-                    onToggleHide = {
-                        hidePassphrase = !hidePassphrase
-                    }
                 )
                 // Duress backup toggle (only for full backup)
                 if (showDuressToggle) {
@@ -198,10 +188,6 @@ fun LocalBackupPasswordScreen(
                             state = uiState.duressPassphraseState,
                             onValueChange = viewModel::onChangeDuressPassphrase,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            hide = hideDuressPassphrase,
-                            onToggleHide = {
-                                hideDuressPassphrase = !hideDuressPassphrase
-                            }
                         )
                         VSpacer(16.dp)
                         FormsInputPassword(
@@ -210,10 +196,6 @@ fun LocalBackupPasswordScreen(
                             state = uiState.duressPassphraseConfirmState,
                             onValueChange = viewModel::onChangeDuressPassphraseConfirmation,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            hide = hideDuressPassphrase,
-                            onToggleHide = {
-                                hideDuressPassphrase = !hideDuressPassphrase
-                            }
                         )
                     }
                 }
