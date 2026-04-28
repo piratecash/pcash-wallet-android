@@ -1717,11 +1717,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="no_active_stacking">Il n\'y a aucune transaction de staking active.</string>
+    <string name="no_active_stacking_pirate_description">Staking PIRATE : Démarrez avec 100 jetons et gagnez _annual_interest_ de rendement annuel !</string>
+    <string name="no_active_stacking_cosanta_description">Staking COSANTA : Démarrez avec 1 jeton et gagnez _annual_interest_ de rendement annuel !</string>
+    <string name="no_active_stacking_pirate_buy_more_description">Pour activer le staking, il vous faut %1$s jeton(s) de plus et vous recevrez _annual_interest_ par an !</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">Déposez %1$s jeton(s) et commencez à gagner sous 36 heures.</string>
     <string name="buy_to_activate_premium">⭐ Achetez %s jetons pour activer des fonctionnalités supplémentaires !</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">Acheter PirateCash</string>

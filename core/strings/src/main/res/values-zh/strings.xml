@@ -1708,11 +1708,11 @@
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 36 hours.</string>
+    <string name="no_active_stacking">没有活跃的质押交易。</string>
+    <string name="no_active_stacking_pirate_description">PIRATE 质押：投入 100 个代币，获得 _annual_interest_ 年化收益！</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA 质押：投入 1 个代币，获得 _annual_interest_ 年化收益！</string>
+    <string name="no_active_stacking_pirate_buy_more_description">激活质押还需 %1$s 个代币，您将获得每年 _annual_interest_ 的收益！</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">存入 %1$s 个代币，36 小时后开始赚取收益。</string>
     <string name="buy_to_activate_premium">⭐ 购买 %s 个代币以激活额外功能！</string>
     <string name="tokens">tokens</string>
     <string name="buy_pirate">购买 PirateCash</string>
