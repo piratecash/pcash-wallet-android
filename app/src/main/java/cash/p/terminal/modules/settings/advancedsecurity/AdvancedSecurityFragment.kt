@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.settings.advancedsecurity
 
+import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
@@ -7,19 +8,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.authorizedDeleteContactsPasscodeAction
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.ensurePinSet
+import cash.p.terminal.core.fullRestart
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.core.slideToDeleteContactsTerms
+import cash.p.terminal.modules.calculator.autolock.CalculatorAutoLockScreen
+import cash.p.terminal.modules.calculator.autolock.CalculatorAutoLockViewModel
+import cash.p.terminal.modules.calculator.domain.CalculatorModeService
+import cash.p.terminal.modules.calculator.pinsettings.CalculatorPinSettingsScreen
+import cash.p.terminal.modules.calculator.pinsettings.CalculatorPinSettingsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsScreen
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsScreen
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import io.horizontalsystems.core.IPinComponent
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -34,7 +42,7 @@ class AdvancedSecurityFragment : BaseComposeFragment() {
 @Composable
 private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
     val navController = rememberNavController()
-    val viewModel: AdvancedSecurityViewModel = koinViewModel { parametersOf(App.pinComponent) }
+    val viewModel: AdvancedSecurityViewModel = koinViewModel()
 
     NavHost(
         navController = navController,
@@ -69,6 +77,9 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                             viewModel.onDeleteContactsDisabled()
                         }
                     }
+                },
+                onCalculatorPinClick = {
+                    navController.navigate(AdvancedSecurityRoutes.CALCULATOR_PIN_PAGE)
                 },
                 onClose = fragmentNavController::navigateUp
             )
@@ -113,6 +124,45 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                     }
                 },
                 onNavigateBack = navController::navigateUp
+            )
+        }
+        composablePage(AdvancedSecurityRoutes.CALCULATOR_PIN_PAGE) {
+            val pinViewModel: CalculatorPinSettingsViewModel = koinViewModel()
+            val activity = LocalContext.current as? Activity
+            CalculatorPinSettingsScreen(
+                uiState = pinViewModel.uiState,
+                onToggleCalculator = { enabled ->
+                    val calculatorModeService = getKoinInstance<CalculatorModeService>()
+                    if (enabled) {
+                        val pinExistedBefore = getKoinInstance<IPinComponent>().isPinSet
+                        fragmentNavController.premiumAction {
+                            fragmentNavController.ensurePinSet(R.string.PinSet_Title) {
+                                calculatorModeService.enable(pinExistedBefore = pinExistedBefore)
+                                activity?.fullRestart()
+                            }
+                        }
+                    } else {
+                        fragmentNavController.authorizedAction {
+                            calculatorModeService.disable()
+                            activity?.fullRestart()
+                        }
+                    }
+                },
+                onAutoLockClick = {
+                    navController.navigate(AdvancedSecurityRoutes.CALCULATOR_AUTO_LOCK_PAGE)
+                },
+                onClose = navController::navigateUp,
+            )
+        }
+        composablePage(AdvancedSecurityRoutes.CALCULATOR_AUTO_LOCK_PAGE) {
+            val autoLockViewModel: CalculatorAutoLockViewModel = koinViewModel()
+            CalculatorAutoLockScreen(
+                uiState = autoLockViewModel.uiState,
+                onSelect = { option ->
+                    autoLockViewModel.onSelect(option)
+                    navController.navigateUp()
+                },
+                onClose = navController::navigateUp,
             )
         }
     }

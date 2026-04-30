@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.gson.annotations.SerializedName
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.modules.theme.ThemeService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.WithTranslatableTitle
@@ -15,7 +16,7 @@ object AppearanceModule {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val launchScreenService = LaunchScreenService(App.localStorage)
-            val appIconService = AppIconService(App.localStorage)
+            val appIconService = getKoinInstance<AppIconService>()
             val themeService = ThemeService(App.localStorage)
             return AppearanceViewModel(
                 launchScreenService,
@@ -30,7 +31,7 @@ object AppearanceModule {
 }
 
 enum class AppIconCategory {
-    OUR, OTHER
+    OUR, OUR_PREMIUM, OTHER
 }
 
 enum class AppIcon(
@@ -43,6 +44,8 @@ enum class AppIcon(
     Main(R.drawable.launcher_pcash_foreground, R.drawable.launcher_pcash_background, "P.CASH", AppIconCategory.OUR),
     Pirate(R.drawable.launcher_pirate_foreground, R.drawable.launcher_pirate_background, "PIRATE", AppIconCategory.OUR),
     Cosa(R.drawable.launcher_cosa_foreground, R.drawable.launcher_cosa_background, "COSA", AppIconCategory.OUR),
+    // OUR PREMIUM (calculator stealth)
+    Calculator(R.drawable.launcher_calculator_foreground, R.drawable.launcher_calculator_background, "Calculator", AppIconCategory.OUR_PREMIUM),
     // OTHER (crypto icons)
     Btc(R.drawable.launcher_btc_foreground, R.drawable.launcher_btc_background, "BTC", AppIconCategory.OTHER),
     Eth(R.drawable.launcher_eth_foreground, R.drawable.launcher_eth_background, "ETH", AppIconCategory.OTHER),

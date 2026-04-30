@@ -6,15 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.feature.logging.domain.usecase.DeleteLoggingOnDuressUseCase
-import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.pin.PinModule
-import cash.p.terminal.modules.pin.SendZecOnDuressUseCase
 import cash.p.terminal.modules.pin.core.ILockoutManager
 import cash.p.terminal.modules.pin.core.LockoutState
 import cash.p.terminal.modules.pin.core.OneTimeTimer
 import cash.p.terminal.modules.pin.core.OneTimerDelegate
-import cash.p.terminal.modules.pin.core.PinLevels
 import cash.p.terminal.modules.pin.unlock.PinUnlockModule.PinUnlockViewState
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ISystemInfoManager
@@ -28,9 +24,7 @@ class PinUnlockViewModel(
     systemInfoManager: ISystemInfoManager,
     private val timer: OneTimeTimer,
     private val localStorage: ILocalStorage,
-    private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
-    private val deleteLoggingOnDuressUseCase: DeleteLoggingOnDuressUseCase,
-    private val sendZecOnDuressUseCase: SendZecOnDuressUseCase
+    private val attemptPinUnlock: AttemptPinUnlockUseCase,
 ) : ViewModel(), OneTimerDelegate {
 
     private var attemptsLeft: Int? = null
@@ -81,9 +75,10 @@ class PinUnlockViewModel(
 
             if (enteredPin.length == PinModule.PIN_COUNT) {
                 viewModelScope.launch {
-                    if (unlock(enteredPin)) {
+                    if (attemptPinUnlock(enteredPin)) {
                         uiState = uiState.copy(unlocked = true)
                     } else {
+                        updateLockoutState()
                         uiState = uiState.copy(
                             showShakeAnimation = true
                         )
@@ -138,36 +133,6 @@ class PinUnlockViewModel(
                     )
                 )
             }
-        }
-    }
-
-    private suspend fun unlock(pin: String): Boolean {
-        val detectedPinLevel = pinComponent.getPinLevel(pin)
-        val userLevel = PinLevels.resolvedUserLevelAfterUnlock(detectedPinLevel)
-
-        // 1. Capture selfie BEFORE validation (to capture whoever is trying)
-        val photoPath = logLoginAttemptUseCase.captureLoginPhoto(userLevel)
-
-        // 2. Validate
-        val unlocked = pinComponent.unlock(pin, detectedPinLevel)
-
-        // 3. Log the attempt with photo
-        logLoginAttemptUseCase.logLoginAttempt(
-            userLevel = userLevel.takeIf { unlocked },
-            photoPath = photoPath
-        )
-
-        if (unlocked && userLevel != null) {
-            lockoutManager.dropFailedAttempts()
-            // Delete logging data for lower levels if duress mode with deletion enabled
-            deleteLoggingOnDuressUseCase.deleteLoggingForLowerLevelsIfEnabled(userLevel)
-            // Send ZEC SMS notification if enabled for duress mode
-            sendZecOnDuressUseCase.sendIfEnabled(userLevel)
-            return true
-        } else {
-            lockoutManager.didFailUnlock()
-            updateLockoutState()
-            return false
         }
     }
 }

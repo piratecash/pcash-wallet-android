@@ -31,7 +31,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.ensurePinSet
-import cash.p.terminal.modules.main.MainModule
+import cash.p.terminal.core.fullRestart
 import cash.p.terminal.modules.pin.ConfirmPinFragment
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.pin.SetPinFragment
@@ -62,7 +62,6 @@ import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.navigation.slideFromBottomForResult
 import io.horizontalsystems.core.ui.dialogs.ChecklistConfirmationDialog
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import kotlin.system.exitProcess
 
 class SecuritySettingsFragment : BaseComposeFragment() {
 
@@ -217,10 +216,7 @@ class SecuritySettingsFragment : BaseComposeFragment() {
     }
 
     private fun restartApp() {
-        activity?.let {
-            MainModule.startAsNewTask(it)
-            exitProcess(0)
-        }
+        activity?.fullRestart()
     }
 }
 

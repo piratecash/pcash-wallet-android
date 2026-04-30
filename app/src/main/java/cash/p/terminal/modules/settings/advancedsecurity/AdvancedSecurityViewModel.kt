@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 
 class AdvancedSecurityViewModel(
-    private val pinComponent: IPinComponent
+    private val pinComponent: IPinComponent,
 ) : ViewModelUiState<AdvancedSecurityUiState>() {
 
     init {
@@ -20,7 +20,7 @@ class AdvancedSecurityViewModel(
 
     override fun createState() = AdvancedSecurityUiState(
         isSecureResetPinSet = pinComponent.isSecureResetPinSet(),
-        isDeleteContactsPinSet = pinComponent.isDeleteContactsPinSet()
+        isDeleteContactsPinSet = pinComponent.isDeleteContactsPinSet(),
     )
 
     fun onSecureResetEnabled() {
@@ -40,5 +40,5 @@ class AdvancedSecurityViewModel(
 
 data class AdvancedSecurityUiState(
     val isSecureResetPinSet: Boolean,
-    val isDeleteContactsPinSet: Boolean
+    val isDeleteContactsPinSet: Boolean,
 )
