@@ -15,16 +15,25 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BaseActivity
+import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.notifications.TransactionNotificationManager
 import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreen
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreenActions
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreenViewModel
 import cash.p.terminal.modules.pin.ui.PinUnlock
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
@@ -149,12 +158,41 @@ class MainActivity : BaseActivity() {
         pinLockComposeView = findViewById(R.id.pinLockComposeView)
         pinLockComposeView.setContent {
             ComposeAppTheme {
-                PinUnlock(
-                    showPinLockScreen = showPinLockScreen,
-                    onSuccess = {
-                        showPinLockScreen = false
+                val localStorage = remember { getKoinInstance<ILocalStorage>() }
+                val calculatorMode by localStorage.isCalculatorModeEnabledFlow
+                    .collectAsStateWithLifecycle()
+                if (calculatorMode) {
+                    val viewModel: CalculatorLockScreenViewModel = koinViewModel()
+                    val state = viewModel.uiState
+                    LaunchedEffect(state.unlocked) {
+                        if (state.unlocked) {
+                            showPinLockScreen = false
+                            viewModel.onUnlockedConsumed()
+                        }
                     }
-                )
+                    if (showPinLockScreen) {
+                        CalculatorLockScreen(
+                            uiState = state,
+                            actions = CalculatorLockScreenActions(
+                                onDigit = viewModel::onDigitClick,
+                                onOperator = viewModel::onOperatorClick,
+                                onDecimal = viewModel::onDecimalClick,
+                                onParen = viewModel::onParenClick,
+                                onToggleSign = viewModel::onToggleSignClick,
+                                onDelete = viewModel::onDeleteClick,
+                                onClear = viewModel::onClearClick,
+                                onEquals = viewModel::onEqualsClick,
+                            ),
+                        )
+                    }
+                } else {
+                    PinUnlock(
+                        showPinLockScreen = showPinLockScreen,
+                        onSuccess = {
+                            showPinLockScreen = false
+                        }
+                    )
+                }
             }
         }
         observeLockState()

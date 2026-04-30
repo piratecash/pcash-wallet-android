@@ -1474,6 +1474,19 @@
         <item>사용자는 PIN을 잊어버린 경우 시드 구문을 알고 있으면 지갑을 복구할 수 있음을 이해합니다.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">보안 초기화</string>
+    <string name="calculator_app_name">계산기</string>
+    <string name="calculator_mode">계산기</string>
+    <string name="calculator_pin_settings_title">계산기 PIN</string>
+    <string name="calculator_pin_settings_intro">앱은 일반 계산기처럼 보이고 동작합니다.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">지갑에 들어가는 방법은 두 가지입니다:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">PIN을 직접 입력하고 «=»를 누르세요 — 예: 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">결과가 PIN과 같은 식을 입력하고 «=»를 누르세요 — 예: 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">PIN이 0으로 시작하는 경우 — 의미 있는 숫자만 입력하세요. 예를 들어 PIN 000010의 경우 10 =만 입력하면 됩니다</string>
+    <string name="calculator_pin_settings_throttle_invisible">시간 기반 잠금은 계산기에 표시되지 않습니다. 계산기는 평소처럼 계속 작동하며 — 오류 메시지가 표시되지 않습니다.</string>
+    <string name="calculator_pin_settings_outro">다른 사람에게는 그저 계산기일 뿐입니다.</string>
+    <string name="calculator_auto_lock_title">자동 잠금</string>
+    <string name="calculator_error_divide_by_zero">0으로 나눌 수 없습니다</string>
+    <string name="appearance_app_icon_premium">프리미엄</string>
     <string name="SecureReset_Pin_Title">보안 초기화 PIN</string>
     <string name="SecureReset_Pin_Description">보안 초기화용 PIN 생성</string>
     <string name="SecureReset_Terms_Title">약관</string>

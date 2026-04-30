@@ -102,6 +102,11 @@ import cash.p.terminal.modules.pin.core.LockoutManager
 import cash.p.terminal.modules.pin.core.LockoutUntilDateFactory
 import cash.p.terminal.modules.pin.core.OneTimeTimer
 import cash.p.terminal.modules.pin.core.UptimeProvider
+import cash.p.terminal.modules.calculator.domain.CalculatorExpressionEvaluator
+import cash.p.terminal.modules.calculator.domain.CalculatorModeService
+import cash.p.terminal.modules.calculator.domain.CalculatorPinAttemptThrottle
+import cash.p.terminal.modules.pin.unlock.AttemptPinUnlockUseCase
+import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.transactions.CheckAmlIncomingTransactionUseCase
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
@@ -260,6 +265,11 @@ val managerModule = module {
     singleOf(::LockoutManager) bind ILockoutManager::class
     factoryOf(::OneTimeTimer)
     singleOf(::GlanceAppWidgetManager)
+    singleOf(::AppIconService)
+    singleOf(::CalculatorModeService)
+    single { CalculatorPinAttemptThrottle(get(), get()) }
+    single { CalculatorExpressionEvaluator() }
+    singleOf(::AttemptPinUnlockUseCase)
 
     singleOf(::SpamManager)
     singleOf(::PoisonAddressManager)

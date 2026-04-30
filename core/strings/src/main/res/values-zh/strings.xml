@@ -1465,6 +1465,19 @@
         <item>用户理解如果忘记PIN码，可以通过知道其助记词来恢复钱包。</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">安全重置</string>
+    <string name="calculator_app_name">计算器</string>
+    <string name="calculator_mode">计算器</string>
+    <string name="calculator_pin_settings_title">计算器 PIN</string>
+    <string name="calculator_pin_settings_intro">应用看起来和使用都像一个普通的计算器。</string>
+    <string name="calculator_pin_settings_unlock_methods_title">有两种方式可以进入钱包：</string>
+    <string name="calculator_pin_settings_unlock_method_pin">直接输入您的 PIN 并按「=」——例如，1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">输入任何结果等于 PIN 的表达式并按「=」——例如，1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">如果您的 PIN 以 0 开头——只需输入有效数字。例如，对于 PIN 000010，只需输入 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">基于时间的锁定不会在计算器中显示。计算器继续正常工作——不会出现错误消息。</string>
+    <string name="calculator_pin_settings_outro">对其他人来说，它只是一个计算器。</string>
+    <string name="calculator_auto_lock_title">自动锁定</string>
+    <string name="calculator_error_divide_by_zero">不能除以 0</string>
+    <string name="appearance_app_icon_premium">高级</string>
     <string name="SecureReset_Pin_Title">安全重置PIN</string>
     <string name="SecureReset_Pin_Description">创建安全重置PIN</string>
     <string name="SecureReset_Terms_Title">条款</string>

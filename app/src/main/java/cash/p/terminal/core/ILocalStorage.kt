@@ -11,6 +11,7 @@ import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.market.favorites.WatchlistSorting
+import cash.p.terminal.modules.calculator.domain.CalculatorAutoLockOption
 import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
 import cash.p.terminal.modules.settings.security.autolock.AutoLockInterval
@@ -78,6 +79,15 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var launchPage: LaunchPage?
     var appIcon: AppIcon?
     val appIconRaw: String?
+    var isCalculatorModeEnabled: Boolean
+    val isCalculatorModeEnabledFlow: StateFlow<Boolean>
+    var calculatorModeCreatedPin: Boolean
+    var previousAppIconName: String?
+    var calculatorThrottleTokens: Int
+    var calculatorThrottleLastUptime: Long
+    var calculatorThrottleLastWallClock: Long
+    var calculatorAutoLockOption: CalculatorAutoLockOption
+    val calculatorAutoLockOptionFlow: StateFlow<CalculatorAutoLockOption>
     var mainTab: MainModule.MainNavigation?
     var marketFavoritesSorting: WatchlistSorting?
     var marketFavoritesShowSignals: Boolean

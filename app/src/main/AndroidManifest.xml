@@ -229,6 +229,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+        <!-- OUR PREMIUM (calculator stealth) -->
+        <activity-alias
+            android:name=".CalculatorLauncherAlias"
+            android:enabled="false"
+            android:icon="@mipmap/launcher_calculator"
+            android:label="@string/calculator_app_name"
+            android:exported="true"
+            android:targetActivity=".modules.main.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
         <!-- OTHER (crypto) aliases -->
         <activity-alias
             android:name=".BtcLauncherAlias"

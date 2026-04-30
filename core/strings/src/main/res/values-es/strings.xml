@@ -1466,6 +1466,19 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
         <item>El usuario entiende que si olvida su PIN, la billetera puede ser restaurada conociendo su frase semilla.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Restablecimiento Seguro</string>
+    <string name="calculator_app_name">Calculadora</string>
+    <string name="calculator_mode">Calculadora</string>
+    <string name="calculator_pin_settings_title">PIN de la calculadora</string>
+    <string name="calculator_pin_settings_intro">La aplicación se ve y funciona como una calculadora normal.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Hay dos formas de entrar en la cartera:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">introduce tu PIN directamente y pulsa «=» — por ejemplo, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">introduce cualquier expresión cuyo resultado sea igual al PIN y pulsa «=» — por ejemplo, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">si tu PIN empieza por cero, introduce solo los dígitos significativos. Por ejemplo, para el PIN 000010 basta con escribir 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">El bloqueo por tiempo no se muestra en la calculadora. La calculadora sigue funcionando con normalidad — no aparece ningún mensaje de error.</string>
+    <string name="calculator_pin_settings_outro">Para los demás solo es una calculadora.</string>
+    <string name="calculator_auto_lock_title">Bloqueo automático</string>
+    <string name="calculator_error_divide_by_zero">No se puede dividir entre 0</string>
+    <string name="appearance_app_icon_premium">PREMIUM</string>
     <string name="SecureReset_Pin_Title">PIN de Restablecimiento Seguro</string>
     <string name="SecureReset_Pin_Description">Crear PIN para Restablecimiento Seguro</string>
     <string name="SecureReset_Terms_Title">Términos</string>

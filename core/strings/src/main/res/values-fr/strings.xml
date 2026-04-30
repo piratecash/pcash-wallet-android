@@ -1472,6 +1472,19 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
         <item>L\'utilisateur comprend que s\'il oublie son code PIN, le portefeuille peut être restauré en connaissant sa phrase de récupération.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Réinitialisation Sécurisée</string>
+    <string name="calculator_app_name">Calculatrice</string>
+    <string name="calculator_mode">Calculatrice</string>
+    <string name="calculator_pin_settings_title">PIN de la calculatrice</string>
+    <string name="calculator_pin_settings_intro">L\'application a l\'apparence et le fonctionnement d\'une calculatrice ordinaire.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Il y a deux façons d\'accéder au portefeuille :</string>
+    <string name="calculator_pin_settings_unlock_method_pin">saisissez votre PIN directement et appuyez sur « = » — par exemple, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">saisissez n\'importe quelle expression dont le résultat est égal au PIN et appuyez sur « = » — par exemple, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">si votre PIN commence par zéro — saisissez uniquement les chiffres significatifs. Par exemple, pour le PIN 000010, il suffit de saisir 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">Le verrouillage temporel n\'est pas affiché dans la calculatrice. La calculatrice continue de fonctionner normalement — aucun message d\'erreur n\'apparaît.</string>
+    <string name="calculator_pin_settings_outro">Pour tous les autres, ce n\'est qu\'une calculatrice.</string>
+    <string name="calculator_auto_lock_title">Verrouillage auto.</string>
+    <string name="calculator_error_divide_by_zero">Impossible de diviser par 0</string>
+    <string name="appearance_app_icon_premium">PREMIUM</string>
     <string name="SecureReset_Pin_Title">PIN de Réinitialisation Sécurisée</string>
     <string name="SecureReset_Pin_Description">Créer un code PIN pour la réinitialisation sécurisée</string>
     <string name="SecureReset_Terms_Title">Conditions</string>

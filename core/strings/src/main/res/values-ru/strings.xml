@@ -1858,6 +1858,19 @@
         <item>Пользователь понимает, что если забудет PIN-код, кошелёк можно восстановить, зная его seed-фразу.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Безопасный сброс</string>
+    <string name="calculator_app_name">Калькулятор</string>
+    <string name="calculator_mode">Калькулятор</string>
+    <string name="calculator_pin_settings_title">Пин код калькулятор</string>
+    <string name="calculator_pin_settings_intro">Приложение выглядит и работает как обычный калькулятор.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Войти в кошелёк можно двумя способами:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">ввести свой PIN напрямую и нажать «=» — например, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">ввести любое выражение, результат которого равен PIN, и нажать «=» — например, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">если ваш PIN начинается с нуля — вводите только значащие цифры. Например, для PIN 000010 достаточно ввести 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">Блокировка по времени никак не отображается в калькуляторе. Калькулятор при этом продолжает работать в обычном режиме — никаких сообщений об ошибке не появляется.</string>
+    <string name="calculator_pin_settings_outro">Для всех это просто калькулятор.</string>
+    <string name="calculator_auto_lock_title">Блокировка</string>
+    <string name="calculator_error_divide_by_zero">Нельзя делить на 0</string>
+    <string name="appearance_app_icon_premium">ПРЕМИУМ</string>
     <string name="SecureReset_Pin_Title">PIN-код безопасного сброса</string>
     <string name="SecureReset_Pin_Description">Создайте PIN-код для безопасного сброса</string>
     <string name="SecureReset_Terms_Title">Условия</string>

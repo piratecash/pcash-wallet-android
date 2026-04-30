@@ -4,4 +4,6 @@ internal object AdvancedSecurityRoutes {
     const val ADVANCED_SECURITY_PAGE = "advanced_security_page"
     const val HIDDEN_WALLET_TERM_SPAGE = "hidden_wallet_terms_page"
     const val SECURE_RESET_TERMS_PAGE = "secure_reset_terms_page"
+    const val CALCULATOR_PIN_PAGE = "calculator_pin_page"
+    const val CALCULATOR_AUTO_LOCK_PAGE = "calculator_auto_lock_page"
 }

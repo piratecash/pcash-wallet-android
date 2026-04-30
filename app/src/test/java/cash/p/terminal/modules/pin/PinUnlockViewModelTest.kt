@@ -1,12 +1,10 @@
 package cash.p.terminal.modules.pin
 
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.feature.logging.domain.usecase.DeleteLoggingOnDuressUseCase
-import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.pin.core.ILockoutManager
 import cash.p.terminal.modules.pin.core.LockoutState
 import cash.p.terminal.modules.pin.core.OneTimeTimer
-import cash.p.terminal.modules.pin.core.PinLevels
+import cash.p.terminal.modules.pin.unlock.AttemptPinUnlockUseCase
 import cash.p.terminal.modules.pin.unlock.PinUnlockModule
 import cash.p.terminal.modules.pin.unlock.PinUnlockViewModel
 import io.horizontalsystems.core.IPinComponent
@@ -15,7 +13,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -36,9 +33,7 @@ class PinUnlockViewModelTest {
     private val systemInfoManager: ISystemInfoManager = mockk(relaxed = true)
     private val timer: OneTimeTimer = mockk(relaxed = true)
     private val localStorage: ILocalStorage = mockk(relaxed = true)
-    private val logLoginAttemptUseCase: LogLoginAttemptUseCase = mockk(relaxed = true)
-    private val deleteLoggingOnDuressUseCase: DeleteLoggingOnDuressUseCase = mockk(relaxed = true)
-    private val sendZecOnDuressUseCase: SendZecOnDuressUseCase = mockk(relaxed = true)
+    private val attemptPinUnlock: AttemptPinUnlockUseCase = mockk(relaxed = true)
 
     private val dispatcher = UnconfinedTestDispatcher()
 
@@ -63,35 +58,23 @@ class PinUnlockViewModelTest {
             systemInfoManager,
             timer,
             localStorage,
-            logLoginAttemptUseCase,
-            deleteLoggingOnDuressUseCase,
-            sendZecOnDuressUseCase
+            attemptPinUnlock,
         )
     }
 
     @Test
     fun unlocked_afterFailedThenSuccessfulPin_resetsAttemptsLeft() = runTest(dispatcher) {
-        // Start with 4 attempts left (1 failed attempt out of 5)
         val viewModel = createViewModel(LockoutState.Unlocked(attemptsLeft = 4))
 
-        // Simulate successful PIN entry
-        every { pinComponent.getPinLevel("123456") } returns 0
-        coEvery { pinComponent.unlock("123456", 0) } returns true
-        coEvery { logLoginAttemptUseCase.captureLoginPhoto(0) } returns null
-        coEvery { logLoginAttemptUseCase.logLoginAttempt(0, null) } returns Unit
-
-        // After dropFailedAttempts, lockoutManager should report clean state
+        coEvery { attemptPinUnlock("123456") } returns true
         every { lockoutManager.currentState } returns LockoutState.Unlocked(null)
 
-        // Enter correct PIN (6 digits)
         for (digit in "123456".map { it.digitToInt() }) {
             viewModel.onKeyClick(digit)
         }
 
-        // App unlocks, then re-locks — unlocked() is called to reset the screen
         viewModel.unlocked()
 
-        // The warning should be gone — attemptsLeft must be null
         val inputState = viewModel.uiState.inputState
         assert(inputState is PinUnlockModule.InputState.Enabled) {
             "Expected Enabled state, got $inputState"
@@ -103,25 +86,17 @@ class PinUnlockViewModelTest {
     }
 
     @Test
-    fun deleteContactsPin_logsAsUnsuccessfulAttempt() = runTest(dispatcher) {
+    fun onKeyClick_failedPin_reflectsRemainingAttemptsFromLockoutManager() = runTest(dispatcher) {
         val viewModel = createViewModel(LockoutState.Unlocked(attemptsLeft = 4))
 
-        every { pinComponent.getPinLevel("654321") } returns PinLevels.DELETE_CONTACTS
-        coEvery { pinComponent.unlock("654321", PinLevels.DELETE_CONTACTS) } returns false
-        coEvery { logLoginAttemptUseCase.captureLoginPhoto(null) } returns null
-        coEvery { logLoginAttemptUseCase.logLoginAttempt(null, null) } returns Unit
+        coEvery { attemptPinUnlock("654321") } returns false
         every { lockoutManager.currentState } returns LockoutState.Unlocked(attemptsLeft = 3)
 
         for (digit in "654321".map { it.digitToInt() }) {
             viewModel.onKeyClick(digit)
         }
 
-        coVerify(exactly = 1) { logLoginAttemptUseCase.captureLoginPhoto(null) }
-        coVerify(exactly = 1) { pinComponent.unlock("654321", PinLevels.DELETE_CONTACTS) }
-        coVerify(exactly = 1) { logLoginAttemptUseCase.logLoginAttempt(null, null) }
-        verify(exactly = 1) { lockoutManager.didFailUnlock() }
-        verify(exactly = 0) { lockoutManager.dropFailedAttempts() }
-
+        coVerify(exactly = 1) { attemptPinUnlock("654321") }
         val inputState = viewModel.uiState.inputState as PinUnlockModule.InputState.Enabled
         assertEquals(3, inputState.attemptsLeft)
     }
