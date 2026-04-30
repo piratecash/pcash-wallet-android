@@ -53,7 +53,6 @@ import cash.p.terminal.modules.market.favorites.MarketFavoritesMenuService
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsRepository
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsViewItemFactory
 import cash.p.terminal.modules.market.topplatforms.TopPlatformsRepository
-import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.settings.appearance.LaunchScreenService
 import cash.p.terminal.modules.theme.ThemeService
 import cash.p.terminal.modules.theme.ThemeType
@@ -212,7 +211,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
                 evmBlockchainManager = evmBlockchainManager,
                 marketFavoritesManager = marketFavoritesManager,
                 balanceViewTypeManager = balanceViewTypeManager,
-                appIconService = AppIconService(localStorage),
+                appIconService = getKoinInstance(),
                 themeService = ThemeService(localStorage),
                 chartIndicatorManager = chartIndicatorManager,
                 chartIndicatorSettingsDao = appDatabase.chartIndicatorSettingsDao(),

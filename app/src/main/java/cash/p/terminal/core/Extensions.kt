@@ -34,6 +34,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupFileValidator
 import cash.p.terminal.modules.main.MainActivity
+import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.premium.about.AboutPremiumFragment
 import cash.p.terminal.navigation.slideFromBottomForResult
@@ -47,6 +48,7 @@ import coil3.load
 import io.horizontalsystems.ethereumkit.core.toRawHexString
 import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.hodler.LockTimeInterval
+import kotlin.system.exitProcess
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -500,4 +502,9 @@ fun Activity.restartMain() {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
     startActivity(intent)
+}
+
+fun Activity.fullRestart() {
+    MainModule.startAsNewTask(this)
+    exitProcess(0)
 }

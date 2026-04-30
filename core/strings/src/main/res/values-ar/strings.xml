@@ -1474,6 +1474,19 @@
         <item>يفهم المستخدم أنه إذا نسي رمز PIN الخاص به، يمكن استعادة المحفظة بمعرفة عبارة الاسترداد الخاصة به.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">إعادة تعيين آمنة</string>
+    <string name="calculator_app_name">الآلة الحاسبة</string>
+    <string name="calculator_mode">الآلة الحاسبة</string>
+    <string name="calculator_pin_settings_title">رمز PIN للآلة الحاسبة</string>
+    <string name="calculator_pin_settings_intro">يبدو التطبيق ويعمل مثل آلة حاسبة عادية.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">هناك طريقتان للدخول إلى المحفظة:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">أدخل رمز PIN مباشرة واضغط على «=» — على سبيل المثال، 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">أدخل أي تعبير تساوي نتيجته رمز PIN واضغط على «=» — على سبيل المثال، 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">إذا كان رمز PIN يبدأ بصفر — أدخل الأرقام المعنوية فقط. على سبيل المثال، لرمز PIN 000010 يكفي إدخال 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">لا يتم عرض القفل الزمني في الآلة الحاسبة. تواصل الآلة الحاسبة العمل بشكل طبيعي — لا تظهر أي رسائل خطأ.</string>
+    <string name="calculator_pin_settings_outro">للجميع الآخرين، إنها مجرد آلة حاسبة.</string>
+    <string name="calculator_auto_lock_title">القفل التلقائي</string>
+    <string name="calculator_error_divide_by_zero">لا يمكن القسمة على 0</string>
+    <string name="appearance_app_icon_premium">بريميوم</string>
     <string name="SecureReset_Pin_Title">رمز PIN لإعادة التعيين الآمن</string>
     <string name="SecureReset_Pin_Description">إنشاء رمز PIN لإعادة التعيين الآمن</string>
     <string name="SecureReset_Terms_Title">الشروط</string>

@@ -1469,6 +1469,19 @@
         <item>O utilizador compreende que, se esquecer o seu PIN, a carteira pode ser restaurada conhecendo a sua frase semente.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Redefinição Segura</string>
+    <string name="calculator_app_name">Calculadora</string>
+    <string name="calculator_mode">Calculadora</string>
+    <string name="calculator_pin_settings_title">PIN da calculadora</string>
+    <string name="calculator_pin_settings_intro">A aplicação tem o aspeto e o funcionamento de uma calculadora normal.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Há duas formas de entrar na carteira:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">introduza o seu PIN diretamente e prima «=» — por exemplo, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">introduza qualquer expressão cujo resultado seja igual ao PIN e prima «=» — por exemplo, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">se o seu PIN começar por zero — introduza apenas os dígitos significativos. Por exemplo, para o PIN 000010 basta introduzir 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">O bloqueio temporal não é apresentado na calculadora. A calculadora continua a funcionar normalmente — não aparecem mensagens de erro.</string>
+    <string name="calculator_pin_settings_outro">Para os outros é apenas uma calculadora.</string>
+    <string name="calculator_auto_lock_title">Bloqueio automático</string>
+    <string name="calculator_error_divide_by_zero">Não é possível dividir por 0</string>
+    <string name="appearance_app_icon_premium">PREMIUM</string>
     <string name="SecureReset_Pin_Title">PIN de Redefinição Segura</string>
     <string name="SecureReset_Pin_Description">Criar PIN para Redefinição Segura</string>
     <string name="SecureReset_Terms_Title">Termos</string>
