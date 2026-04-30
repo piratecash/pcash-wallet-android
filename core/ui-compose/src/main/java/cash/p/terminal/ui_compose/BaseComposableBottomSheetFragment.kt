@@ -72,6 +72,7 @@ fun TransparentModalBottomSheet(
         dragHandle = null,
         sheetState = sheetState,
         containerColor = ComposeAppTheme.colors.transparent,
+        contentWindowInsets = { WindowInsets(0) },
         content = content,
     )
 }
@@ -155,8 +156,9 @@ private fun BottomSheetHeader(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp, 24.dp, 0.dp, 0.dp))
-            .verticalScroll(rememberScrollState())
             .background(color = ComposeAppTheme.colors.lawrence)
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .verticalScroll(rememberScrollState())
     ) {
         Row(
             modifier = Modifier
