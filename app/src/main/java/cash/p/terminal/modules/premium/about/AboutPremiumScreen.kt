@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -185,7 +186,7 @@ fun AboutPremiumScreen(
 @Composable
 private fun DemoDaysDisplay(daysLeft: Int) {
     Text(
-        text = stringResource(R.string.premium_demo_days_left, daysLeft),
+        text = pluralStringResource(R.plurals.premium_demo_days_left, daysLeft, daysLeft),
         style = ComposeAppTheme.typography.subhead1,
         color = ComposeAppTheme.colors.jacob,
         textAlign = TextAlign.Center,

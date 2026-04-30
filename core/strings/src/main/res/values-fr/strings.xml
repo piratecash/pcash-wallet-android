@@ -1486,7 +1486,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="premium_try_for_free">Essayer GRATUITEMENT</string>
     <string name="premium_upgrade_text">Améliorez votre expérience avec les fonctionnalités Premium !</string>
     <string name="premium_available">⭐️ Premium est disponible</string>
-    <string name="premium_demo_days_left">Demo Premium : %d jours restants</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium : %d jour restant</item>
+        <item quantity="many">Demo Premium : %d jours restants</item>
+        <item quantity="other">Demo Premium : %d jours restants</item>
+    </plurals>
     <string name="premium_select_wallet_title">Sélectionner un portefeuille pour la démo</string>
     <string name="premium_select_wallet_description">Choisissez un portefeuille pour activer les fonctionnalités de démo premium. Un seul portefeuille peut avoir la démo premium à la fois.</string>
     <string name="premium_demo_activated">Demo Premium activé avec succès !</string>

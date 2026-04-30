@@ -1493,7 +1493,14 @@
     <string name="premium_try_for_free">جرب مجاناً</string>
     <string name="premium_upgrade_text">حسّن تجربتك مع الميزات المميزة!</string>
     <string name="premium_available">⭐️ المميزات المدفوعة متاحة</string>
-    <string name="premium_demo_days_left">النسخة التجريبية المميزة: %d يوم متبقي</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="zero">النسخة التجريبية المميزة: لا أيام متبقية</item>
+        <item quantity="one">النسخة التجريبية المميزة: يوم واحد متبقي</item>
+        <item quantity="two">النسخة التجريبية المميزة: يومان متبقيان</item>
+        <item quantity="few">النسخة التجريبية المميزة: %d أيام متبقية</item>
+        <item quantity="many">النسخة التجريبية المميزة: %d يومًا متبقيًا</item>
+        <item quantity="other">النسخة التجريبية المميزة: %d يوم متبقي</item>
+    </plurals>
     <string name="premium_select_wallet_title">اختر محفظة للتجربة</string>
     <string name="premium_select_wallet_description">اختر محفظة لتفعيل الميزات التجريبية المميزة. يمكن لمحفظة واحدة فقط الحصول على النسخة التجريبية المميزة في كل مرة.</string>
     <string name="premium_demo_activated">تم تفعيل النسخة التجريبية المميزة بنجاح!</string>
