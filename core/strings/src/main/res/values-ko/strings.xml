@@ -1488,7 +1488,9 @@
     <string name="premium_try_for_free">무료로 체험</string>
     <string name="premium_upgrade_text">프리미엄 기능으로 경험을 업그레이드하세요!</string>
     <string name="premium_available">⭐️ 프리미엄 이용 가능</string>
-    <string name="premium_demo_days_left">데모 프리미엄: %d일 남음</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="other">데모 프리미엄: %d일 남음</item>
+    </plurals>
     <string name="premium_select_wallet_title">데모용 지갑 선택</string>
     <string name="premium_select_wallet_description">데모 프리미엄 기능을 활성화할 지갑을 선택하세요. 한 번에 하나의 지갑만 데모 프리미엄을 사용할 수 있습니다.</string>
     <string name="premium_demo_activated">데모 프리미엄이 성공적으로 활성화되었습니다!</string>
