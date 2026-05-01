@@ -53,7 +53,7 @@ internal abstract class BaseEvmAdapter(
         if (histState is EthereumKit.HistoricalSyncState.Syncing) {
             Timber.d("BaseEvmAdapter progress: ${histState.progress}, blocks remaining: ${histState.blocksRemaining}")
             return AdapterState.Syncing(
-                progress = (histState.progress * 100).toInt(),
+                progress = histState.progress * 100.0,
                 blocksRemained = histState.blocksRemaining
             )
         }
@@ -64,7 +64,7 @@ internal abstract class BaseEvmAdapter(
         val fwdState = evmTransactionRepository.forwardSyncState.value
         if (fwdState is EthereumKit.ForwardSyncState.Syncing) {
             return AdapterState.Syncing(
-                progress = 0,
+                progress = 0.0,
                 blocksRemained = fwdState.blocksRemaining
             )
         }

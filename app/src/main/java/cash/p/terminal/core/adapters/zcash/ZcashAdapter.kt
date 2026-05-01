@@ -309,7 +309,8 @@ class ZcashAdapter(
             }
         }
 
-    private var lastDownloadProgress: Int = 0
+    private var lastDownloadProgressDecimal: Float = 0f
+    private var lastNetworkHeight: Long? = null
 
     private suspend fun createNewSynchronizer() {
         val isRecovery = corruptionRecovery.get()
@@ -815,28 +816,36 @@ class ZcashAdapter(
     }
 
     private fun onDownloadProgress(progress: PercentDecimal) {
-        val progressPercent = progress.toPercentage()
-        lastDownloadProgress = progressPercent
-
-        val blocksRemained = (syncState as? AdapterState.Syncing)
-            ?.blocksRemained
-            ?.takeIf { progressPercent < 100 }
-        syncState = AdapterState.Syncing(progress = progressPercent, blocksRemained = blocksRemained)
+        lastDownloadProgressDecimal = progress.decimal
+        updateSyncingState()
     }
 
     private fun onProcessorInfo(processorInfo: CompactBlockProcessor.ProcessorInfo) {
-        val networkHeight = processorInfo.networkBlockHeight?.value
-        val nextSyncHeight = processorInfo.overallSyncRange?.start?.value
+        processorInfo.networkBlockHeight?.value?.let { lastNetworkHeight = it }
+        updateSyncingState()
+        lastBlockUpdatedSubject.onNext(Unit)
+    }
 
-        if (networkHeight != null && nextSyncHeight != null && networkHeight >= nextSyncHeight) {
-            val blocksRemained = networkHeight - nextSyncHeight + 1
-            val progress = (syncState as? AdapterState.Syncing)?.progress ?: lastDownloadProgress
-            syncState = AdapterState.Syncing(progress = progress, blocksRemained = blocksRemained)
-        } else if (lastDownloadProgress >= 100 && syncState !is AdapterState.Synced) {
-            syncState = AdapterState.Syncing(progress = 100, blocksRemained = null)
+    // ZCash SDK 2.4 reports `synchronizer.progress` as a fraction over commitment-tree leaves
+    // (Sapling+Orchard notes), not blocks. Recovery weight skews heavily to recent history,
+    // so the raw decimal stays near 0 for a long time. We expose blocksRemained as the
+    // block-equivalent of the SDK's decimal so the UI reads consistently.
+    private fun updateSyncingState() {
+        if (lastDownloadProgressDecimal >= 1f) {
+            if (syncState !is AdapterState.Synced) {
+                syncState = AdapterState.Syncing(progress = 100.0, blocksRemained = null)
+            }
+            return
         }
 
-        lastBlockUpdatedSubject.onNext(Unit)
+        val effectiveBirthday = max(accountBirthday, network.saplingActivationHeight.value)
+        val totalBlocks = lastNetworkHeight?.let { it - effectiveBirthday }?.takeIf { it > 0 }
+        val blocksRemained = totalBlocks?.let {
+            ((1f - lastDownloadProgressDecimal) * it).toLong().coerceAtLeast(0L)
+        }
+        val rawPercent = lastDownloadProgressDecimal.toDouble() * 100.0
+        val progressPercent = (Math.round(rawPercent * 10000.0) / 10000.0).coerceIn(0.0, 100.0)
+        syncState = AdapterState.Syncing(progress = progressPercent, blocksRemained = blocksRemained)
     }
 
     private fun onBalance(balance: Map<AccountUuid, AccountBalance>?) {
