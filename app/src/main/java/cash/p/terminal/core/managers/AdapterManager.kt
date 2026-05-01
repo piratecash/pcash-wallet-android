@@ -357,7 +357,8 @@ class AdapterManager(
         balanceSubscriptionJobs[wallet] = coroutineScope.launch {
             merge(
                 adapter.balanceUpdatedFlow,
-                adapter.balanceStateUpdatedFlow
+                adapter.balanceStateUpdatedFlow,
+                adapter.transactionsSyncStateUpdatedFlow,
             ).collectLatest {
                 _walletBalanceUpdatedFlow.emit(wallet)
             }

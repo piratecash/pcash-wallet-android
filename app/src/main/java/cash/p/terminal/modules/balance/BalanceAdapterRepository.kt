@@ -83,6 +83,9 @@ class BalanceAdapterRepository(
             }
     }
 
+    fun transactionsSyncState(wallet: Wallet): AdapterState =
+        adapterManager.getBalanceAdapterForWallet(wallet)?.transactionsSyncState ?: state(wallet)
+
     fun balanceData(wallet: Wallet): BalanceData {
         return adapterManager.getAdjustedBalanceData(wallet)
             ?: balanceCache.getCache(wallet)
