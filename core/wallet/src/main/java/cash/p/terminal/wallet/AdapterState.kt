@@ -6,7 +6,7 @@ sealed class AdapterState {
     object Synced : AdapterState()
     object Connecting : AdapterState()
     data class Syncing(
-        val progress: Int? = null,
+        val progress: Double? = null,
         val lastBlockDate: Date? = null,
         val blocksRemained: Long? = null,
         val substatus: Substatus? = null
@@ -24,7 +24,7 @@ sealed class AdapterState {
             is Connecting -> "Connecting"
             is Syncing -> {
                 val sub = substatus?.let { " substatus: $it" }.orEmpty()
-                "Syncing ${progress?.let { "$it%" }.orEmpty()} blocksRemained: $blocksRemained lastBlockDate: $lastBlockDate$sub"
+                "Syncing ${progress?.let { "${"%.2f".format(it)}%" }.orEmpty()} blocksRemained: $blocksRemained lastBlockDate: $lastBlockDate$sub"
             }
             is SearchingTxs -> "SearchingTxs count: $count"
             is NotSynced -> "NotSynced ${error.javaClass.simpleName} - message: ${error.message}"

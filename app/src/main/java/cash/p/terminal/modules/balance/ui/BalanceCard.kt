@@ -373,7 +373,7 @@ private fun BalanceCardSwipablePreview() {
                 displayDiffOptionType = DisplayDiffOptionType.BOTH,
                 syncingProgress = SyncingProgress(
                     type = SyncingProgressType.ProgressWithRing,
-                    progress = 10
+                    progress = 10.0
                 ),
                 syncingTextValue = null,
                 syncedUntilTextValue = null,

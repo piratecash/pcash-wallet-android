@@ -731,7 +731,7 @@ class MoneroKitWrapper(
                 lastLoggedSyncProgress = progressPercent
 
                 AdapterState.Syncing(
-                    progress = progressPercent,
+                    progress = progressPercent.toDouble(),
                     blocksRemained = blocksRemained
                 )
             }

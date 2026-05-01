@@ -38,6 +38,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.balance.SyncingProgressType
+import cash.p.terminal.modules.balance.formatProgressPercent
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui_compose.components.HsImageCircle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -106,7 +107,7 @@ fun CoinIconWithSyncProgress(
             .drawBehind {
                 when (syncingProgress.type) {
                     SyncingProgressType.ProgressWithRing -> {
-                        val progressF = (progress ?: 0).coerceAtLeast(10) / 100f
+                        val progressF = ((progress ?: 0.0).coerceAtLeast(10.0) / 100.0).toFloat()
                         val angle = 360f * progressF
 
                         inset(-1.dp.toPx()) {
@@ -190,7 +191,7 @@ fun CoinIconWithSyncProgress(
 
         if (syncingProgress.type == SyncingProgressType.ProgressWithRing) {
             syncingProgress.progress?.let {
-                SyncProgressText("${it}%")
+                SyncProgressText("${formatProgressPercent(it)}%")
             }
         }
     }
@@ -217,9 +218,9 @@ private fun SyncProgressText(text: String) {
 private fun SyncProgressTextPreview() {
     ComposeAppTheme {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(1, 10, 50, 99, 100, 100000).forEach { progress ->
+            listOf(0.05, 1.0, 10.0, 50.0, 99.0, 100.0, 100000.0).forEach { progress ->
                 val syncingProgress = SyncingProgress(SyncingProgressType.ProgressWithRing, progress)
-                val progressF = progress.coerceAtLeast(10) / 100f
+                val progressF = (progress.coerceAtLeast(10.0) / 100.0).toFloat()
                 val angle = 360f * progressF
                 val leah = ComposeAppTheme.colors.leah
                 val circleColor = ComposeAppTheme.colors.steel10
@@ -249,7 +250,7 @@ private fun SyncProgressTextPreview() {
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    SyncProgressText("${progress}%")
+                    SyncProgressText("${formatProgressPercent(progress)}%")
                 }
             }
         }
