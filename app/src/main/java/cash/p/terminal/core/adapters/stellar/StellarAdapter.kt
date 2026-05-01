@@ -3,6 +3,7 @@ package cash.p.terminal.core.adapters.stellar
 import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.managers.StellarKitWrapper
 import cash.p.terminal.core.managers.statusInfo
+import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.stellarkit.StellarKit
@@ -15,7 +16,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.asFlow
@@ -33,10 +33,23 @@ class StellarAdapter(
     private var minimumBalance: BigDecimal = BigDecimal.ZERO
     private var assets = listOf<StellarAsset.Asset>()
 
-    private val _balanceState = MutableStateFlow(
-        getCombinedSyncState(stellarKit.syncStateFlow.value, stellarKit.operationsSyncStateFlow.value)
-    )
-    override val balanceState: AdapterState get() = _balanceState.value
+    // Balance: only the balance-sync stream — operations history must not block send.
+    override val balanceState: AdapterState
+        get() = stellarKit.syncStateFlow.value.toAdapterState()
+
+    override val balanceStateUpdatedFlow: Flow<Unit>
+        get() = stellarKit.syncStateFlow.map { }
+
+    override val transactionsSyncState: AdapterState
+        get() = when (val state = stellarKit.operationsSyncStateFlow.value) {
+            is SyncState.Syncing -> AdapterState.SearchingTxs(0)
+            is SyncState.NotSynced -> AdapterState.NotSynced(state.error)
+            is SyncState.Synced -> AdapterState.Synced
+        }
+
+    override val transactionsSyncStateUpdatedFlow: Flow<Unit>
+        get() = stellarKit.operationsSyncStateFlow.map { }
+
     override val balanceData: BalanceData
         get() = BalanceData(
             availableBalance,
@@ -48,8 +61,6 @@ class StellarAdapter(
 
     override val balanceUpdatedFlow: Flow<Unit>
         get() = balanceUpdatedSubject.asFlow()
-    override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = _balanceState.map { }
 
     override fun start() {
         coroutineScope.launch {
@@ -60,46 +71,10 @@ class StellarAdapter(
             }
         }
         coroutineScope.launch {
-            combine(
-                stellarKit.syncStateFlow,
-                stellarKit.operationsSyncStateFlow
-            ) { balanceSync, operationsSync ->
-                getCombinedSyncState(balanceSync, operationsSync)
-            }.collect { combinedState ->
-                _balanceState.value = combinedState
-            }
-        }
-        coroutineScope.launch {
             stellarKit.assetBalanceMapFlow.collect {
                 assets = it.keys.filterIsInstance<StellarAsset.Asset>()
                 balanceUpdatedSubject.onNext(Unit)
             }
-        }
-    }
-
-    private fun getCombinedSyncState(
-        balanceSync: SyncState,
-        operationsSync: SyncState
-    ): AdapterState {
-        return when {
-            // Error state (balance)
-            balanceSync is SyncState.NotSynced ->
-                AdapterState.NotSynced(balanceSync.error)
-
-            // Syncing balance
-            balanceSync is SyncState.Syncing -> AdapterState.Syncing()
-
-            // Balance synced, but operations still syncing
-            balanceSync is SyncState.Synced &&
-                operationsSync is SyncState.Syncing -> AdapterState.SearchingTxs(0)
-
-            // Operations sync error (balance is synced)
-            balanceSync is SyncState.Synced &&
-                operationsSync is SyncState.NotSynced ->
-                    AdapterState.NotSynced(operationsSync.error)
-
-            // Fully synced
-            else -> AdapterState.Synced
         }
     }
 
