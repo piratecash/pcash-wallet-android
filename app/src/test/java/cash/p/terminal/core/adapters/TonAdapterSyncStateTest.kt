@@ -31,6 +31,12 @@ class TonAdapterSyncStateTest {
         return TonAdapter(wrapper)
     }
 
+    private fun assertTransactionsNotSynced(adapter: TonAdapter, error: Throwable) {
+        val state = adapter.transactionsSyncState
+        assertTrue(state is AdapterState.NotSynced)
+        assertEquals(error, (state as AdapterState.NotSynced).error)
+    }
+
     // --- balanceState: account sync only ---
 
     @Test
@@ -92,9 +98,7 @@ class TonAdapterSyncStateTest {
         val err = Exception("event source down")
         val adapter = createAdapter(eventSync = SyncState.NotSynced(err))
 
-        val state = adapter.transactionsSyncState
-        assertTrue(state is AdapterState.NotSynced)
-        assertEquals(err, (state as AdapterState.NotSynced).error)
+        assertTransactionsNotSynced(adapter, err)
     }
 
     @Test
@@ -102,8 +106,28 @@ class TonAdapterSyncStateTest {
         val err = Exception("jetton source down")
         val adapter = createAdapter(jettonSync = SyncState.NotSynced(err))
 
-        val state = adapter.transactionsSyncState
-        assertTrue(state is AdapterState.NotSynced)
-        assertEquals(err, (state as AdapterState.NotSynced).error)
+        assertTransactionsNotSynced(adapter, err)
+    }
+
+    @Test
+    fun transactionsSyncState_eventNotSyncedWhileJettonSyncing_returnsNotSynced() {
+        val err = Exception("event source down")
+        val adapter = createAdapter(
+            eventSync = SyncState.NotSynced(err),
+            jettonSync = SyncState.Syncing,
+        )
+
+        assertTransactionsNotSynced(adapter, err)
+    }
+
+    @Test
+    fun transactionsSyncState_jettonNotSyncedWhileEventSyncing_returnsNotSynced() {
+        val err = Exception("jetton source down")
+        val adapter = createAdapter(
+            eventSync = SyncState.Syncing,
+            jettonSync = SyncState.NotSynced(err),
+        )
+
+        assertTransactionsNotSynced(adapter, err)
     }
 }

@@ -93,9 +93,9 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
             val event = tonKit.eventSyncStateFlow.value
             val jetton = tonKit.jettonSyncStateFlow.value
             return when {
-                event is SyncState.Syncing || jetton is SyncState.Syncing -> AdapterState.SearchingTxs(0)
                 event is SyncState.NotSynced -> AdapterState.NotSynced(event.error)
                 jetton is SyncState.NotSynced -> AdapterState.NotSynced(jetton.error)
+                event is SyncState.Syncing || jetton is SyncState.Syncing -> AdapterState.SearchingTxs(0)
                 else -> AdapterState.Synced
             }
         }
@@ -139,4 +139,3 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
         }
     }
 }
-
