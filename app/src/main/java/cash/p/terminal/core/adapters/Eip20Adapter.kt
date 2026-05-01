@@ -74,23 +74,21 @@ internal class Eip20Adapter(
     // IBalanceAdapter
 
     override val balanceState: AdapterState
-        get() = convertToAdapterState(eip20Kit.syncState)
+        get() = convertSyncStateToAdapterState(eip20Kit.syncState)
 
     override val balanceStateUpdatedFlow: Flow<Unit>
         get() = merge(
             eip20Kit.syncStateFlowable.asFlow().map { },
-            stackingManager.unpaidFlow.filterNotNull().map { },
-            evmTransactionRepository.historicalSyncState.map { },
-            evmTransactionRepository.forwardSyncState.map { }
+            stackingManager.unpaidFlow.filterNotNull().map { }
         )
 
     override val balanceData: BalanceData
         get() = BalanceData(
-                available = balanceInBigDecimal(eip20Kit.balance, decimal),
-                stackingUnpaid = stackingManager.unpaidFlow.value ?: BigDecimal.ZERO
-            )
+            available = balanceInBigDecimal(eip20Kit.balance, decimal),
+            stackingUnpaid = stackingManager.unpaidFlow.value ?: BigDecimal.ZERO
+        )
 
-   override val balanceUpdatedFlow: Flow<Unit>
+    override val balanceUpdatedFlow: Flow<Unit>
         get() = merge(eip20Kit.balanceFlowable.asFlow(), stackingManager.unpaidFlow.filterNotNull())
             .map { }
 
@@ -112,14 +110,10 @@ internal class Eip20Adapter(
         return eip20Kit.buildTransferTransactionData(address, amountBigInt)
     }
 
-    private fun convertToAdapterState(syncState: SyncState): AdapterState = when (syncState) {
-        is SyncState.Synced -> historicalSyncAdapterState()
-            ?: forwardSyncAdapterState()
-            ?: AdapterState.Synced
+    private fun convertSyncStateToAdapterState(syncState: SyncState): AdapterState = when (syncState) {
+        is SyncState.Synced -> AdapterState.Synced
         is SyncState.NotSynced -> AdapterState.NotSynced(syncState.error)
-        is SyncState.Syncing -> historicalSyncAdapterState()
-            ?: forwardSyncAdapterState()
-            ?: AdapterState.Syncing()
+        is SyncState.Syncing -> AdapterState.Syncing()
     }
 
     fun allowance(

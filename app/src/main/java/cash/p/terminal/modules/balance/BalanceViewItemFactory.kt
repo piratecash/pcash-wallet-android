@@ -95,6 +95,13 @@ enum class SyncingProgressType {
 
 data class SyncingProgress(val type: SyncingProgressType?, val progress: Int?)
 
+private val BalanceItem.displaySyncState: AdapterState
+    get() {
+        val txInProgress = transactionsSyncState is AdapterState.Syncing ||
+                transactionsSyncState is AdapterState.SearchingTxs
+        return if (state is AdapterState.Synced && txInProgress) transactionsSyncState else state
+    }
+
 class BalanceViewItemFactory {
 
     private fun getSyncingProgress(
@@ -393,9 +400,9 @@ class BalanceViewItemFactory {
             lockedValues = lockedValues,
             exchangeValue = BalanceViewHelper.rateValue(latestRate, currency, true),
             sendEnabled = item.sendAllowed,
-            syncingProgress = getSyncingProgress(state, wallet.token.blockchainType),
-            syncingTextValue = getSyncingText(state),
-            syncedUntilTextValue = getSyncedUntilText(state),
+            syncingProgress = getSyncingProgress(item.displaySyncState, wallet.token.blockchainType),
+            syncingTextValue = getSyncingText(item.displaySyncState),
+            syncedUntilTextValue = getSyncedUntilText(item.displaySyncState),
             failedIconVisible = state is AdapterState.NotSynced,
             coinIconVisible = state !is AdapterState.NotSynced,
             badge = wallet.badge,
@@ -472,9 +479,9 @@ class BalanceViewItemFactory {
             diff = item.coinPrice?.diffPercentage,
             fullDiff = getFullDiff(item, displayDiffOptionType, currency),
             sendEnabled = item.sendAllowed,
-            syncingProgress = getSyncingProgress(state, wallet.token.blockchainType),
-            syncingTextValue = getSyncingText(state),
-            syncedUntilTextValue = getSyncedUntilText(state),
+            syncingProgress = getSyncingProgress(item.displaySyncState, wallet.token.blockchainType),
+            syncingTextValue = getSyncingText(item.displaySyncState),
+            syncedUntilTextValue = getSyncedUntilText(item.displaySyncState),
             failedIconVisible = state is AdapterState.NotSynced,
             badge = wallet.badge,
             swapEnabled = state !is AdapterState.NotSynced,

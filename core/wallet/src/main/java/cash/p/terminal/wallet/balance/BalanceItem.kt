@@ -11,7 +11,8 @@ data class BalanceItem(
     val state: AdapterState,
     val sendAllowed: Boolean,
     val coinPrice: CoinPrice?,
-    val warning: BalanceWarning? = null
+    val warning: BalanceWarning? = null,
+    val transactionsSyncState: AdapterState = state,
 ) {
     val fiatValue get() = coinPrice?.value?.let { balanceData.available.times(it) }
     val balanceFiatTotal get() = coinPrice?.value?.let { balanceData.total.times(it) }
