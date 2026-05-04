@@ -1,6 +1,9 @@
 package cash.p.terminal.core.notifications
 
 import android.app.Application
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.modules.premium.settings.PollingInterval
@@ -13,6 +16,8 @@ import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +42,9 @@ class TransactionNotificationCoordinatorTest {
     private val checkPremiumUseCase = mockk<CheckPremiumUseCase>(relaxed = true)
     private val keepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
     private val walletManager = mockk<IWalletManager>(relaxed = true)
+    private val transactionMonitor = mockk<TransactionMonitor>(relaxed = true)
     private val backgroundStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
+    private val workManager = mockk<WorkManager>(relaxed = true)
 
     private var capturedCallback: (() -> Unit)? = null
 
@@ -48,12 +55,15 @@ class TransactionNotificationCoordinatorTest {
         every { backgroundManager.onBeforeEnterBackground = any() } answers {
             capturedCallback = firstArg()
         }
+        mockkObject(WorkManager.Companion)
+        every { WorkManager.getInstance(any()) } returns workManager
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
         capturedCallback = null
+        unmockkObject(WorkManager.Companion)
     }
 
     private fun createCoordinator(): TransactionNotificationCoordinator {
@@ -65,6 +75,7 @@ class TransactionNotificationCoordinatorTest {
             checkPremiumUseCase = checkPremiumUseCase,
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
+            transactionMonitor = transactionMonitor,
         )
         coordinator.start()
         return coordinator
@@ -79,6 +90,7 @@ class TransactionNotificationCoordinatorTest {
         every { checkPremiumUseCase.getPremiumType() } returns PremiumType.PIRATE
         every { localStorage.pushNotificationsEnabled } returns true
         every { localStorage.pushEnabledBlockchainUids } returns setOf("bitcoin")
+        every { localStorage.pushPollingInterval } returns PollingInterval.REALTIME
         every { notificationManager.hasNotificationPermission() } returns true
         every { notificationManager.isTransactionChannelEnabled() } returns true
         every { notificationManager.isServiceChannelEnabled() } returns true
@@ -176,7 +188,8 @@ class TransactionNotificationCoordinatorTest {
         simulateEnterBackground()
 
         verify { keepAliveManager.setKeepAlive(emptySet()) }
-        verify { application.startForegroundService(any()) }
+        verify { transactionMonitor.resetPollingBaseline() }
+        verify(exactly = 0) { application.startForegroundService(any()) }
     }
 
     @Test
@@ -193,7 +206,8 @@ class TransactionNotificationCoordinatorTest {
         simulateEnterBackground()
 
         verify { keepAliveManager.setKeepAlive(emptySet()) }
-        verify { application.startForegroundService(any()) }
+        verify { transactionMonitor.resetPollingBaseline() }
+        verify(exactly = 0) { application.startForegroundService(any()) }
     }
 
     @Test
@@ -226,5 +240,71 @@ class TransactionNotificationCoordinatorTest {
         dispatcher.scheduler.advanceUntilIdle()
 
         verify(exactly = 0) { application.startService(any()) }
+    }
+
+    @Test
+    fun start_doesNotCancelOnInit() {
+        // Critical: WorkManager wakes the process for the polling worker, which
+        // triggers Application.onCreate → coordinator.start(). A cancel here
+        // would kill the very worker that just woke us up.
+        createCoordinator()
+
+        verify(exactly = 0) { workManager.cancelUniqueWork(any()) }
+    }
+
+    @Test
+    fun pollingMode_schedulesUniqueWorkWithReplacePolicy() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        val btcWallet = mockk<Wallet>(relaxed = true)
+        every { btcWallet.token.blockchainType } returns BlockchainType.Bitcoin
+        every { walletManager.activeWallets } returns listOf(btcWallet)
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        // External start uses REPLACE — atomically swaps any prior chain.
+        verify {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                ExistingWorkPolicy.REPLACE,
+                any<OneTimeWorkRequest>(),
+            )
+        }
+    }
+
+    @Test
+    fun enterForeground_pollingMode_cancelsWorkerChain() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        val btcWallet = mockk<Wallet>(relaxed = true)
+        every { btcWallet.token.blockchainType } returns BlockchainType.Bitcoin
+        every { walletManager.activeWallets } returns listOf(btcWallet)
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        dispatcher.scheduler.advanceUntilIdle()
+
+        verify(exactly = 1) { workManager.cancelUniqueWork(any()) }
+    }
+
+    @Test
+    fun enterForeground_orphanChainAfterColdStart_isCancelled() {
+        // Simulates: previous process scheduled polling, died. User opens app
+        // (foreground) without backgrounding first. Orphan chain must die
+        // even though activeTransport == None at this point.
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        createCoordinator()
+
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        dispatcher.scheduler.advanceUntilIdle()
+
+        verify(exactly = 1) { workManager.cancelUniqueWork(any()) }
     }
 }
