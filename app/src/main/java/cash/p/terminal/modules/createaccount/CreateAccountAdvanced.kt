@@ -28,8 +28,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
-import cash.p.terminal.core.displayNameStringRes
 import cash.p.terminal.modules.coin.overview.ui.Loading
+import cash.p.terminal.modules.mnemonic.MnemonicLanguageCell
+import cash.p.terminal.modules.mnemonic.MnemonicLanguageSelectorDialog
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui.compose.components.SelectorDialogCompose
@@ -60,7 +61,8 @@ fun CreateAccountAdvancedScreen(
     passphraseTermsAccepted: Boolean,
     onBackClick: () -> Unit,
     onFinish: () -> Unit,
-    onOpenTerms: () -> Unit
+    onOpenTerms: () -> Unit,
+    onOpenNonEnglishMnemonicTerms: (Language) -> Unit
 ) {
     LaunchedEffect(Unit) {
         if (preselectMonero) {
@@ -91,6 +93,8 @@ fun CreateAccountAdvancedScreen(
     }
 
     var showMnemonicSizeSelectorDialog by remember { mutableStateOf(false) }
+    var showLanguageSelectorDialog by remember { mutableStateOf(false) }
+    var hidePassphrase by remember { mutableStateOf(true) }
 
     Surface(color = ComposeAppTheme.colors.tyler) {
         if (showMnemonicSizeSelectorDialog) {
@@ -107,6 +111,16 @@ fun CreateAccountAdvancedScreen(
                 }
             )
         }
+        if (showLanguageSelectorDialog) {
+            MnemonicLanguageSelectorDialog(
+                languages = viewModel.mnemonicLanguages,
+                selectedLanguage = viewModel.selectedLanguage,
+                onDismissRequest = {
+                    showLanguageSelectorDialog = false
+                },
+                onSelectLanguage = viewModel::setMnemonicLanguage
+            )
+        }
         Column {
             AppBar(
                 title = stringResource(R.string.CreateWallet_Advanced_Title),
@@ -116,7 +130,13 @@ fun CreateAccountAdvancedScreen(
                 menuItems = listOf(
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Create),
-                        onClick = { viewModel.createMnemonicAccount() },
+                        onClick = {
+                            if (viewModel.shouldConfirmNonEnglishMnemonic()) {
+                                onOpenNonEnglishMnemonicTerms(viewModel.selectedLanguage)
+                            } else {
+                                viewModel.createMnemonicAccount()
+                            }
+                        },
                     )
                 )
             )
@@ -142,14 +162,25 @@ fun CreateAccountAdvancedScreen(
                     )
                     Spacer(Modifier.height(32.dp))
                     CellUniversalLawrenceSection(
-                        listOf {
-                            MnemonicNumberCell(
-                                kind = viewModel.selectedKind,
-                                showMnemonicSizeSelectorDialog = {
-                                    showMnemonicSizeSelectorDialog = true
-                                }
-                            )
-                        }
+                        listOf(
+                            {
+                                MnemonicNumberCell(
+                                    kind = viewModel.selectedKind,
+                                    showMnemonicSizeSelectorDialog = {
+                                        showMnemonicSizeSelectorDialog = true
+                                    }
+                                )
+                            },
+                            {
+                                MnemonicLanguageCell(
+                                    language = viewModel.displayedLanguage,
+                                    showLanguageSelectorDialog = {
+                                        showLanguageSelectorDialog = true
+                                    },
+                                    enabled = viewModel.languageSelectionEnabled
+                                )
+                            }
+                        )
                     )
 
                     if (viewModel.showPassphraseBlock) {
@@ -250,37 +281,6 @@ private fun MnemonicNumberCell(
         Spacer(Modifier.weight(1f))
         subhead1_grey(
             text = kind.title,
-        )
-        Icon(
-            modifier = Modifier.padding(start = 4.dp),
-            painter = painterResource(id = R.drawable.ic_down_arrow_20),
-            contentDescription = null,
-            tint = ComposeAppTheme.colors.grey
-        )
-    }
-}
-
-@Composable
-fun MnemonicLanguageCell(
-    language: Language,
-    showLanguageSelectorDialog: () -> Unit
-) {
-    RowUniversal(
-        modifier = Modifier.padding(horizontal = 16.dp),
-        onClick = showLanguageSelectorDialog
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_globe_20),
-            contentDescription = null,
-            tint = ComposeAppTheme.colors.grey
-        )
-        B2(
-            text = stringResource(R.string.CreateWallet_Wordlist),
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Spacer(Modifier.weight(1f))
-        subhead1_grey(
-            text = stringResource(language.displayNameStringRes),
         )
         Icon(
             modifier = Modifier.padding(start = 4.dp),

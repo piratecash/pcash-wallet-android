@@ -13,6 +13,7 @@ import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.core.factories.uriScheme
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.managers.toSeedQrErrorStringRes
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.utils.AddressUriParser
@@ -432,10 +433,8 @@ class BalanceViewModel(
                 )
                 emitState()
             }
-            .onFailure {
-                errorMessage = Translator.getString(
-                    R.string.seed_qr_decryption_failed
-                )
+            .onFailure { error ->
+                errorMessage = Translator.getString(error.toSeedQrErrorStringRes())
                 emitState()
             }
     }

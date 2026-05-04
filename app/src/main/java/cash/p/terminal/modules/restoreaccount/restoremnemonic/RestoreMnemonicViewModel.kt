@@ -2,14 +2,16 @@ package cash.p.terminal.modules.restoreaccount.restoremnemonic
 
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.WalletActivator
+import cash.p.terminal.core.managers.toSeedQrErrorStringRes
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
+import cash.p.terminal.core.utils.Bip39LanguageDetector
 import cash.p.terminal.core.utils.MoneroConfig
+import cash.p.terminal.modules.mnemonic.mnemonicLanguagesOrdered
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicModule.UiState
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicModule.WordItem
 import cash.p.terminal.strings.helpers.Translator
@@ -20,7 +22,6 @@ import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.normalizeNFKD
 import com.m2049r.xmrwallet.util.ledger.Monero
-import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.IThirdKeyboard
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
@@ -36,13 +37,12 @@ class RestoreMnemonicViewModel(
     private val moneroWalletUseCase: MoneroWalletUseCase,
     private val accountManager: IAccountManager,
     private val walletActivator: WalletActivator,
-    private val seedPhraseQrCrypto: SeedPhraseQrCrypto
+    private val seedPhraseQrCrypto: SeedPhraseQrCrypto,
+    private val accountFactory: IAccountFactory,
+    private val thirdKeyboardStorage: IThirdKeyboard
 ) : ViewModelUiState<UiState>() {
 
-    private val accountFactory: IAccountFactory = App.accountFactory
-    private val thirdKeyboardStorage: IThirdKeyboard = App.thirdKeyboardStorage
-
-    val mnemonicLanguages = Language.values().toList()
+    val mnemonicLanguages = mnemonicLanguagesOrdered
 
     private var passphraseEnabled: Boolean = false
     private var passphrase: String = ""
@@ -73,9 +73,8 @@ class RestoreMnemonicViewModel(
         get() = field.ifBlank { defaultName }
         private set
 
-
     val isThirdPartyKeyboardAllowed: Boolean
-        get() = CoreApp.thirdKeyboardStorage.isThirdPartyKeyboardAllowed
+        get() = thirdKeyboardStorage.isThirdPartyKeyboardAllowed
 
     override fun createState() = UiState(
         passphraseEnabled = passphraseEnabled,
@@ -87,7 +86,7 @@ class RestoreMnemonicViewModel(
         isMoneroMnemonic = isMoneroMnemonic,
         accountType = accountType,
         wordSuggestions = wordSuggestions,
-        language = language,
+        language = displayedLanguage,
     )
 
     fun onToggleMoneroMnemonic(enabled: Boolean) {
@@ -98,6 +97,11 @@ class RestoreMnemonicViewModel(
 
     private fun processText() {
         wordItems = wordItems(text)
+
+        if (!isMoneroMnemonic && wordItems.size >= MIN_WORDS_FOR_AUTODETECT) {
+            autodetectLanguage(wordItems.map { it.word })
+        }
+
         invalidWordItems =
             wordItems.filter { !mnemonicWordList.validWord(it.word.normalizeNFKD(), false) }
 
@@ -162,8 +166,10 @@ class RestoreMnemonicViewModel(
     }
 
     fun setMnemonicLanguage(language: Language) {
-        this.language = language
-        normalMnemonicWordList = WordList.wordListStrict(language)
+        if (isMoneroMnemonic) {
+            return
+        }
+        setNormalMnemonicLanguage(language)
         processText()
 
         emitState()
@@ -265,12 +271,13 @@ class RestoreMnemonicViewModel(
                 RestoreMnemonicModule.QrScanResult.Success(
                     words = decrypted.words,
                     passphrase = decrypted.passphrase,
-                    moneroHeight = decrypted.height
+                    moneroHeight = decrypted.height,
+                    language = decrypted.language
                 )
             },
-            onFailure = {
+            onFailure = { error ->
                 RestoreMnemonicModule.QrScanResult.Error(
-                    Translator.getString(R.string.seed_qr_decryption_failed)
+                    Translator.getString(error.toSeedQrErrorStringRes())
                 )
             }
         )
@@ -284,6 +291,8 @@ class RestoreMnemonicViewModel(
         if (isMonero) {
             isMoneroMnemonic = true
             height = result.moneroHeight.toString()
+        } else {
+            applyBip39LanguageHint(result)
         }
 
         // Enable passphrase if present
@@ -300,9 +309,39 @@ class RestoreMnemonicViewModel(
         emitState()
     }
 
+    private fun applyBip39LanguageHint(result: RestoreMnemonicModule.QrScanResult.Success) {
+        val hinted = result.language
+        if (hinted != null) {
+            setNormalMnemonicLanguage(hinted)
+            return
+        }
+        Bip39LanguageDetector.detectExact(result.words).firstOrNull()
+            ?.let(::setNormalMnemonicLanguage)
+    }
+
     private fun wordItems(text: String): List<WordItem> {
         return regex.findAll(text.lowercase())
             .map { WordItem(it.value, it.range) }
             .toList()
+    }
+
+    private fun setNormalMnemonicLanguage(language: Language) {
+        this.language = language
+        normalMnemonicWordList = WordList.wordListStrict(language)
+    }
+
+    private fun autodetectLanguage(words: List<String>) {
+        val detected = Bip39LanguageDetector.detectExact(words)
+        if (detected.isEmpty() || language in detected) return
+        setNormalMnemonicLanguage(detected.first())
+    }
+
+    private val displayedLanguage: Language
+        get() = if (isMoneroMnemonic) Language.English else language
+
+    companion object {
+        // Single-word input is too ambiguous (e.g. "ábaco" exists in Spanish only, but
+        // "abandon" prefixes match many wordlists) — only autodetect on multi-word input.
+        private const val MIN_WORDS_FOR_AUTODETECT = 2
     }
 }

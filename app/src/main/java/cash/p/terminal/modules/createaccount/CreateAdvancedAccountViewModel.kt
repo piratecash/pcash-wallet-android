@@ -14,6 +14,7 @@ import cash.p.terminal.core.managers.WalletActivator
 import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.providers.PredefinedBlockchainSettingsProvider
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
+import cash.p.terminal.modules.mnemonic.mnemonicLanguagesOrdered
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.Account
@@ -27,6 +28,7 @@ import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.normalizeNFKD
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
@@ -52,6 +54,7 @@ class CreateAdvancedAccountViewModel(
         private set
 
     val mnemonicKinds = MnemonicKind.entries.filter { it != MnemonicKind.Unknown }
+    val mnemonicLanguages = mnemonicLanguagesOrdered
 
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(
         MoneroWalletUseCase::class.java
@@ -62,8 +65,17 @@ class CreateAdvancedAccountViewModel(
         get() = field.ifBlank { defaultAccountName }
         private set
 
-    var selectedKind: MnemonicKind = MnemonicKind.Mnemonic12
+    var selectedKind by mutableStateOf(MnemonicKind.Mnemonic12)
         private set
+
+    var selectedLanguage by mutableStateOf(Language.English)
+        private set
+
+    val languageSelectionEnabled: Boolean
+        get() = selectedKind != MnemonicKind.Mnemonic25
+
+    val displayedLanguage: Language
+        get() = if (languageSelectionEnabled) selectedLanguage else Language.English
 
     var showPassphraseBlock by mutableStateOf(true)
         private set
@@ -165,6 +177,16 @@ class CreateAdvancedAccountViewModel(
         showPassphraseBlock = kind != MnemonicKind.Mnemonic25
     }
 
+    fun setMnemonicLanguage(language: Language) {
+        if (languageSelectionEnabled) {
+            selectedLanguage = language
+        }
+    }
+
+    fun shouldConfirmNonEnglishMnemonic(): Boolean {
+        return languageSelectionEnabled && selectedLanguage != Language.English
+    }
+
     fun setPassphraseEnabledState(enabled: Boolean) {
         passphraseEnabled = enabled
         if (!enabled) {
@@ -227,11 +249,9 @@ class CreateAdvancedAccountViewModel(
     )
 
     private fun mnemonicAccountType(wordCount: Int): AccountType? {
-        // A new account can be created only using an English wordlist and limited chars in the passphrase.
-        // Despite it, we add text normalizing.
-        // It is to avoid potential issues if we allow non-English wordlists on account creation.
         return try {
-            val words = wordsManager.generateWords(wordCount).map { it.normalizeNFKD() }
+            val words = wordsManager.generateWords(wordCount, selectedLanguage)
+                .map { it.normalizeNFKD() }
             AccountType.Mnemonic(words, passphrase.normalizeNFKD())
         } catch (e: Throwable) {
             Timber.e(e, "Failed to generate mnemonic words")

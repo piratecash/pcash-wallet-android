@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -66,9 +67,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.findNavController
 import cash.p.terminal.R
-import cash.p.terminal.core.displayNameStringRes
+import cash.p.terminal.core.launchAfterClearingFocus
 import cash.p.terminal.core.utils.Utils
-import cash.p.terminal.modules.createaccount.MnemonicLanguageCell
+import cash.p.terminal.modules.mnemonic.MnemonicLanguageCell
+import cash.p.terminal.modules.mnemonic.MnemonicLanguageSelectorDialog
 import cash.p.terminal.modules.createaccount.PassphraseCell
 import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
@@ -77,21 +79,20 @@ import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.BoxTyler44
-import cash.p.terminal.ui_compose.components.ButtonSecondary
-import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui.compose.components.CustomKeyboardWarningDialog
 import cash.p.terminal.ui.compose.components.FormsInput
-import cash.p.terminal.ui_compose.components.HsSwitch
-import cash.p.terminal.ui.compose.components.SelectorDialogCompose
-import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui.compose.observeKeyboardState
 import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.ButtonSecondary
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
+import cash.p.terminal.ui_compose.components.ButtonSecondaryDefault
 import cash.p.terminal.ui_compose.components.CellSingleLineLawrenceSection
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.FormsInputPassword
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.HsSwitch
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -103,9 +104,6 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.ui_compose.components.HudHelper
-import cash.p.terminal.core.launchAfterClearingFocus
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -176,6 +174,25 @@ fun RestorePhrase(
     }
 
     val coroutineScope = rememberCoroutineScope()
+    @OptIn(ExperimentalComposeUiApi::class)
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var showLanguageSelectorDialog by remember { mutableStateOf(false) }
+
+    if (showLanguageSelectorDialog) {
+        MnemonicLanguageSelectorDialog(
+            languages = viewModel.mnemonicLanguages,
+            selectedLanguage = uiState.language,
+            onDismissRequest = {
+                coroutineScope.launch {
+                    showLanguageSelectorDialog = false
+                    delay(300)
+                    keyboardController?.show()
+                }
+            },
+            onSelectLanguage = viewModel::setMnemonicLanguage
+        )
+    }
+
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = {
@@ -233,6 +250,18 @@ fun RestorePhrase(
                         .border(1.dp, borderColor, RoundedCornerShape(12.dp))
                         .background(ComposeAppTheme.colors.lawrence),
                 ) {
+                    MnemonicLanguageCell(
+                        language = uiState.language,
+                        showLanguageSelectorDialog = {
+                            showLanguageSelectorDialog = true
+                        },
+                        enabled = !uiState.isMoneroMnemonic
+                    )
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = ComposeAppTheme.colors.steel10
+                    )
+
                     val style = SpanStyle(
                         color = ComposeAppTheme.colors.lucian,
                         fontWeight = FontWeight.Normal,
@@ -421,7 +450,6 @@ fun RestorePhrase(
                         viewModel = viewModel,
                         uiState = uiState,
                         openNonStandardRestore = openNonStandardRestore,
-                        coroutineScope = coroutineScope,
                         passphraseTextState = passphraseTextState
                     )
                 } else {
@@ -514,59 +542,22 @@ fun RestorePhrase(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun BottomSection(
     viewModel: RestoreMnemonicViewModel,
     uiState: RestoreMnemonicModule.UiState,
     openNonStandardRestore: () -> Unit,
-    coroutineScope: CoroutineScope,
     passphraseTextState: MutableState<TextFieldValue>
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    var showLanguageSelectorDialog by remember { mutableStateOf(false) }
-
-    if (showLanguageSelectorDialog) {
-        SelectorDialogCompose(
-            title = stringResource(R.string.CreateWallet_Wordlist),
-            items = viewModel.mnemonicLanguages.map {
-                SelectorItem(
-                    stringResource(it.displayNameStringRes),
-                    it == uiState.language,
-                    it
-                )
-            },
-            onDismissRequest = {
-                coroutineScope.launch {
-                    showLanguageSelectorDialog = false
-                    delay(300)
-                    keyboardController?.show()
-                }
-            },
-            onSelectItem = {
-                viewModel.setMnemonicLanguage(it)
-            }
-        )
-    }
+    var hidePassphrase by remember { mutableStateOf(true) }
 
     CellUniversalLawrenceSection(
-        listOf(
-            {
-                MnemonicLanguageCell(
-                    language = uiState.language,
-                    showLanguageSelectorDialog = {
-                        showLanguageSelectorDialog = true
-                    }
-                )
-            },
-            {
-                PassphraseCell(
-                    enabled = uiState.passphraseEnabled,
-                    onCheckedChange = viewModel::onTogglePassphrase
-                )
-            }
-
-        )
+        listOf {
+            PassphraseCell(
+                enabled = uiState.passphraseEnabled,
+                onCheckedChange = viewModel::onTogglePassphrase
+            )
+        }
     )
 
     if (uiState.passphraseEnabled) {

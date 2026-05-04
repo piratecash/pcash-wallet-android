@@ -25,7 +25,8 @@ object RestoreMnemonicModule {
         data class Success(
             val words: List<String>,
             val passphrase: String,
-            val moneroHeight: Long?
+            val moneroHeight: Long?,
+            val language: Language?
         ) : QrScanResult()
 
         data class PlainText(val text: String) : QrScanResult()

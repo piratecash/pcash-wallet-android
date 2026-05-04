@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.managers.toSeedQrErrorStringRes
 import cash.p.terminal.core.openInputStreamSafe
 import cash.p.terminal.core.validateAndSaveBackup
 import cash.p.terminal.strings.helpers.Translator
@@ -65,11 +66,11 @@ class ImportWalletViewModel(
                         )
                     }
                 }
-                .onFailure {
-                    errorMessage = Translator.getString(R.string.seed_qr_decryption_failed)
+                .onFailure { error ->
+                    errorMessage = Translator.getString(error.toSeedQrErrorStringRes())
                 }
         } else {
-            errorMessage = Translator.getString(R.string.seed_qr_decryption_failed)
+            errorMessage = Translator.getString(R.string.seed_qr_invalid_format)
         }
     }
 

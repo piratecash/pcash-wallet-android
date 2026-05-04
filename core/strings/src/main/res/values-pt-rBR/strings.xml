@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">Confirmar</string>
     <string name="CreateWallet_N_WordsRecommended">%s palavras (recomendado)</string>
     <string name="CreateWallet_N_Words">%s palavras</string>
+    <string name="create_wallet_n_words_monero">%s palavras (somente Monero)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">A senha não pode estar vazia</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Por favor, use apenas símbolos suportados: <![CDATA[A-Z a-z 0-9 \' " ` & / ? : ; . , ~ * $ = + - [ ](){} <> \ _ # @ £% ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">Confirmação da senha não coincide</string>
     <string name="create_wallet_error_failed">Falha ao criar a carteira. Tente novamente ou reinicie o aplicativo.</string>
     <string name="CreateWallet_PassphraseDescription">Frases secretas adicionam camada de segurança adicional para carteiras. Para restaurar essa carteira, o usuário exigia uma frase de recuperação e uma frase secreta.\n\nAs frases secretas também facilitam para os usuários ter muitas carteiras com várias moedas usando um único mnemônico, mas com senhas diferentes.</string>
-    <!--Languages-->
-    <string name="Language_English">Inglês</string>
-    <string name="Language_Japanese">Japonês</string>
-    <string name="Language_Korean">Coreano</string>
-    <string name="Language_Spanish">Espanhol</string>
-    <string name="Language_SimplifiedChinese">Chinês (Simplificado)</string>
-    <string name="Language_TraditionalChinese">Chinês (Tradicional)</string>
-    <string name="Language_French">Francês</string>
-    <string name="Language_Italian">Italiano</string>
-    <string name="Language_Czech">Tcheco</string>
-    <string name="Language_Portuguese">Português</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">GM!</string>
     <string name="RateApp_Description_Rate_This_App">Gostou da P.CASH? Compartilhe seus comentários e ideias para que ela possa ir mais longe.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Avançado</string>
     <string name="Restore_Error_MnemonicWordCount">Número incorreto de palavras. Deve ter entre 12 ou 24 palavras. Você inseriu: %d</string>
+    <string name="restoreheight_title">Bloco inicial de recuperação</string>
+    <string name="restoreheight_hint">Informe o bloco ou a data (AAAA-MM-DD)</string>
     <string name="invalid_height">Altura inválida</string>
     <string name="invalid_height_format">Altura inválida, certifique-se de que inseriu AAAA-MM-DD ou altura de nascimento</string>
     <string name="invalid_qr_code">Código QR inválido</string>
@@ -1138,6 +1130,15 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="local_backup_error_empty_password">A senha não pode estar vazia.</string>
     <string name="error_no_file_manager">Gerenciador de arquivos não disponível. Por favor, instale um aplicativo gerenciador de arquivos para salvar backups.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Termos</string>
+    <string name="non_english_mnemonic_terms_warning_title">Compatibilidade da frase de recuperação</string>
+    <string name="non_english_mnemonic_terms_warning">Você selecionou o idioma da frase de recuperação: %1$s.\n\nFrases de recuperação em diferentes idiomas podem não ser suportadas por outras carteiras ou serviços.\n\nPara evitar perder o acesso, certifique-se de que a carteira para a qual pretende importar suporte BIP39 %2$s.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">não ser suportadas</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>Entendo que a importação para outras carteiras pode ser impossível.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Termos da Frase-Senha</string>
     <string name="passphrase_terms_warning">Antes de ativar a frase-senha (BIP-39 Passphrase), confirme que você entende:</string>
@@ -1162,6 +1163,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="RecoveryPhrase_ShowPhrase">Toque para mostrar a frase de recuperação</string>
     <string name="tap_to_show_qr_code">Toque para mostrar o código QR</string>
     <string name="seed_qr_decryption_failed">Falha ao descriptografar. O código QR pode ter expirado ou é inválido.</string>
+    <string name="seed_qr_invalid_format">Este não é um código QR de semente válido.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">Não salve este código QR — ele é válido por apenas 1 hora.</string>
     <string name="RecoveryPhrase_QrGenerationError">Não foi possível gerar o código QR da frase semente</string>

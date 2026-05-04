@@ -84,22 +84,12 @@
     <string name="ConfirmPassphrase">Confirmar</string>
     <string name="CreateWallet_N_WordsRecommended">%s palabras (recomendado)</string>
     <string name="CreateWallet_N_Words">%s palabras</string>
+    <string name="create_wallet_n_words_monero">%s palabras (solo Monero)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">La frase de contraseña no puede estar vacío</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Por favor usa solo símbolos compatibles: <![CDATA[A-Z a-z 0-9 \' " ` & / ? : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">La confirmación de la frase de contraseña no coincide</string>
     <string name="create_wallet_error_failed">No se pudo crear la billetera. Inténtelo de nuevo o reinicie la aplicación.</string>
     <string name="CreateWallet_PassphraseDescription">Las contraseñas añaden una capa de seguridad adicional para las carteras. Para restaurar dicha cartera, un usuario requiere tanto mnemonic como una contraseña.\n\nPassphrases también facilita a los usuarios tener muchos monederos multi-moneda usando un solo mnemónico pero diferente contraseña.</string>
-    <!--Languages-->
-    <string name="Language_English">Inglés</string>
-    <string name="Language_Japanese">Japonés</string>
-    <string name="Language_Korean">Coreano</string>
-    <string name="Language_Spanish">Español</string>
-    <string name="Language_SimplifiedChinese">Chino (simplificado)</string>
-    <string name="Language_TraditionalChinese">Chino (tradicional)</string>
-    <string name="Language_French">Francés</string>
-    <string name="Language_Italian">Italiano</string>
-    <string name="Language_Czech">Checo</string>
-    <string name="Language_Portuguese">Portugués</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐</string>
     <string name="RateApp_Description_Rate_This_App">¿Disfrutas de P.CASH? Comparte comentarios e ideas para mejorarlo.</string>
@@ -108,6 +98,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Avanzado</string>
     <string name="Restore_Error_MnemonicWordCount">Número de palabras erróneas. Debe tener entre 12 y 24 palabras. Has ingresado: %d</string>
+    <string name="restoreheight_title">Bloque inicial para restauración</string>
+    <string name="restoreheight_hint">Indique el bloque o la fecha (AAAA-MM-DD)</string>
     <string name="invalid_height">Altura no válida</string>
     <string name="invalid_height_format">Altura no válida, asegúrese de haber ingresado AAAA-MM-DD o altura de nacimiento</string>
     <string name="invalid_qr_code">Código QR no válido</string>
@@ -1130,6 +1122,15 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="local_backup_error_empty_password">La contraseña no puede estar vacía.</string>
     <string name="error_no_file_manager">No hay gestor de archivos disponible. Por favor, instale una aplicación de gestor de archivos para guardar las copias de seguridad.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Términos</string>
+    <string name="non_english_mnemonic_terms_warning_title">Compatibilidad de la frase semilla</string>
+    <string name="non_english_mnemonic_terms_warning">Has seleccionado el idioma de la frase semilla: %1$s.\n\nLas frases semilla en distintos idiomas pueden no ser compatibles con otras billeteras o servicios.\n\nPara evitar perder el acceso, asegúrate de que la billetera en la que planeas importar admita BIP39 %2$s.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">no ser compatibles</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>Entiendo que la importación a otras billeteras puede no ser posible.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Términos de la Frase de Contraseña</string>
     <string name="passphrase_terms_warning">Antes de activar la frase de contraseña (BIP-39 Passphrase), confirme que entiende:</string>
@@ -1154,6 +1155,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="RecoveryPhrase_ShowPhrase">Toca para mostrar la frase de recuperación</string>
     <string name="tap_to_show_qr_code">Toca para mostrar el código QR</string>
     <string name="seed_qr_decryption_failed">Error al descifrar. El código QR puede haber caducado o no es válido.</string>
+    <string name="seed_qr_invalid_format">Este no es un código QR de semilla válido.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">No guardes este código QR — solo es válido durante 1 hora.</string>
     <string name="RecoveryPhrase_QrGenerationError">No se puede generar el código QR de la frase semilla</string>

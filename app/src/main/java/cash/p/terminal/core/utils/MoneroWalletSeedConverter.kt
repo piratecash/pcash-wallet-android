@@ -12,6 +12,15 @@ object MoneroWalletSeedConverter {
     private val ed25519CurveOrder =
         BigInteger("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED", 16)
 
+    /**
+     * Convert a BIP39 mnemonic to a Monero 25-word legacy seed.
+     *
+     * The caller MUST pass NFKD-normalized [words] and [passphrase]. BIP39 PBKDF2 derives
+     * the seed from the UTF-8 bytes of the mnemonic, so two visually identical strings
+     * with different Unicode normalization forms (e.g. precomposed "á" vs "a"+combining
+     * acute) produce different seeds and therefore different Monero accounts. Skipping
+     * normalization on non-English wordlists silently routes users to the wrong wallet.
+     */
     fun getLegacySeedFromBip39(
         words: List<String>,
         passphrase: String = "",

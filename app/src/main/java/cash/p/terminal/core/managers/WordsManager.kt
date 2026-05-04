@@ -26,8 +26,8 @@ class WordsManager(
         return mnemonic.isWordValid(word, true)
     }
 
-    override fun generateWords(count: Int): List<String> {
+    override fun generateWords(count: Int, language: Language): List<String> {
         val strength = Mnemonic.EntropyStrength.fromWordCount(count)
-        return mnemonic.generate(strength, Language.English)
+        return mnemonic.generate(strength, language)
     }
 }

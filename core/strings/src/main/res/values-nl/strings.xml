@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">Confirm</string>
     <string name="CreateWallet_N_WordsRecommended">%s words (recommended)</string>
     <string name="CreateWallet_N_Words">%s words</string>
+    <string name="create_wallet_n_words_monero">%s woorden (alleen Monero)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Please use only supported symbols: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">Passphrase confirmation does not match</string>
     <string name="create_wallet_error_failed">Portemonnee aanmaken mislukt. Probeer het opnieuw of herstart de app.</string>
     <string name="CreateWallet_PassphraseDescription">Passphrases add additional security layer for wallets. To restore such wallet a user required both a recovery phrase as well as a passphrase.\n\nPassphrases also make it easy for users to have many multi-coin wallets using a single mnemonic but different passwords.</string>
-    <!--Languages-->
-    <string name="Language_English">English</string>
-    <string name="Language_Japanese">Japanese</string>
-    <string name="Language_Korean">Korean</string>
-    <string name="Language_Spanish">Spanish</string>
-    <string name="Language_SimplifiedChinese">Chinese (Simplified)</string>
-    <string name="Language_TraditionalChinese">Chinese (Traditional)</string>
-    <string name="Language_French">French</string>
-    <string name="Language_Italian">Italian</string>
-    <string name="Language_Czech">Czech</string>
-    <string name="Language_Portuguese">Portuguese</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐️</string>
     <string name="RateApp_Description_Rate_This_App">Enjoying P.CASH? Share feedback and ideas to take it further.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Advanced</string>
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
+    <string name="restoreheight_title">Startblok voor herstel</string>
+    <string name="restoreheight_hint">Voer blok of datum in (JJJJ-MM-DD)</string>
     <string name="invalid_height">Ongeldige hoogte</string>
     <string name="invalid_height_format">Ongeldige hoogte, zorg ervoor dat u JJJJ-MM-DD of geboortehoogte hebt ingevoerd</string>
     <string name="invalid_qr_code">Ongeldige QR-code</string>
@@ -1144,6 +1136,15 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="local_backup_error_empty_password">Wachtwoord mag niet leeg zijn.</string>
     <string name="error_no_file_manager">Geen bestandsbeheerder beschikbaar. Installeer een bestandsbeheerder-app om back-ups op te slaan.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Voorwaarden</string>
+    <string name="non_english_mnemonic_terms_warning_title">Compatibiliteit van de herstelzin</string>
+    <string name="non_english_mnemonic_terms_warning">Je hebt de taal van de herstelzin geselecteerd: %1$s.\n\nHerstelzinnen in verschillende talen worden mogelijk niet ondersteund door andere wallets of diensten.\n\nControleer om verlies van toegang te voorkomen of de wallet waarnaar je wilt importeren BIP39 %2$s ondersteunt.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">niet ondersteund</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>Ik begrijp dat importeren in andere wallets mogelijk onmogelijk is.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase Voorwaarden</string>
     <string name="passphrase_terms_warning">Bevestig voordat u de passphrase (BIP-39 Passphrase) activeert dat u het volgende begrijpt:</string>
@@ -1168,6 +1169,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
     <string name="tap_to_show_qr_code">Tik om QR-code te tonen</string>
     <string name="seed_qr_decryption_failed">Ontsleuteling mislukt. De QR-code is mogelijk verlopen of ongeldig.</string>
+    <string name="seed_qr_invalid_format">Dit is geen geldige seed-QR-code.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">Sla deze QR-code niet op — deze is slechts 1 uur geldig.</string>
     <string name="RecoveryPhrase_QrGenerationError">Kan seed QR-code niet genereren</string>

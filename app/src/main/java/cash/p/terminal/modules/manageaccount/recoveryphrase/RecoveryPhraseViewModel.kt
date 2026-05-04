@@ -8,10 +8,12 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.utils.Bip39LanguageDetector
 import cash.p.terminal.core.utils.MoneroWalletSeedConverter
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -30,6 +32,11 @@ class RecoveryPhraseViewModel(
     private val moneroHeight: Long?  // Restore height for Monero accounts
     val passphrase: String?
     val wordsNumbered: List<RecoveryPhraseModule.WordNumbered>
+
+    // BIP39 wordlist language hint embedded in the QR. Null for Monero (separate wordlist)
+    // or when detection is ambiguous (multiple wordlists match) — autodetect on the
+    // restoring side handles the unhinted case.
+    private val languageHint: Language?
 
     // Cached encrypted QR content - regenerated on demand
     var encryptedSeedQrContent by mutableStateOf("")
@@ -52,11 +59,13 @@ class RecoveryPhraseViewModel(
                     // Get Monero height from restore settings
                     val settings = restoreSettingsManager.settings(account, BlockchainType.Monero)
                     moneroHeight = settings.birthdayHeight
+                    languageHint = null
                 } else {
                     words = (account.type as AccountType.Mnemonic).words
                     seed = (account.type as AccountType.Mnemonic).seed
                     passphrase = (account.type as AccountType.Mnemonic).passphrase
                     moneroHeight = null
+                    languageHint = Bip39LanguageDetector.detectSingle(words)
                 }
                 wordsNumbered = words.mapIndexed { index, word ->
                     RecoveryPhraseModule.WordNumbered(word, index + 1)
@@ -72,6 +81,7 @@ class RecoveryPhraseViewModel(
                 }
                 seed = null
                 passphrase = null
+                languageHint = null
             }
 
             else -> {
@@ -80,6 +90,7 @@ class RecoveryPhraseViewModel(
                 moneroHeight = null
                 passphrase = null
                 wordsNumbered = listOf()
+                languageHint = null
             }
         }
         // Generate initial encrypted QR content
@@ -93,7 +104,12 @@ class RecoveryPhraseViewModel(
     fun regenerateEncryptedQrContent() {
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                val encrypted = seedPhraseQrCrypto.encrypt(words, passphrase ?: "", moneroHeight)
+                val encrypted = seedPhraseQrCrypto.encrypt(
+                    words = words,
+                    passphrase = passphrase ?: "",
+                    height = moneroHeight,
+                    language = languageHint
+                )
                 encryptedSeedQrContent = encrypted
                 qrGenerationError = false
             } catch (e: Exception) {

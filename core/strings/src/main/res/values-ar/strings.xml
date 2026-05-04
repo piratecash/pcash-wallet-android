@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">تأكيد</string>
     <string name="CreateWallet_N_WordsRecommended">%s الكلمات (موصى بها)</string>
     <string name="CreateWallet_N_Words">%s الكلمات</string>
+    <string name="create_wallet_n_words_monero">%s كلمة (Monero فقط)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">لا يمكن أن تكون كلمة المرور فارغة</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">الرجاء استخدام الرموز المدعومة فقط: <![CDATA[A-Z a-z 0-9 \' ` & ? :; . , ~ * $ = + - [ ](){} <> \ # @ <unk> % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">تأكيد عبارة المرور غير مطابق</string>
     <string name="create_wallet_error_failed">فشل في إنشاء المحفظة. يرجى المحاولة مرة أخرى أو إعادة تشغيل التطبيق.</string>
     <string name="CreateWallet_PassphraseDescription">Passphrases add additional security layer for wallets. To restore such wallet a user required both a recovery phrase as well as a passphrase.\n\nPassphrases also make it easy for users to have many multi-coin wallets using a single mnemonic but different passwords.</string>
-    <!--Languages-->
-    <string name="Language_English">English</string>
-    <string name="Language_Japanese">Japanese</string>
-    <string name="Language_Korean">Korean</string>
-    <string name="Language_Spanish">Spanish</string>
-    <string name="Language_SimplifiedChinese">Chinese (Simplified)</string>
-    <string name="Language_TraditionalChinese">Chinese (Traditional)</string>
-    <string name="Language_French">French</string>
-    <string name="Language_Italian">Italian</string>
-    <string name="Language_Czech">Czech</string>
-    <string name="Language_Portuguese">Portuguese</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐️</string>
     <string name="RateApp_Description_Rate_This_App">Enjoying P.CASH? Share feedback and ideas to take it further.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">إعدادات متقدمة</string>
     <string name="Restore_Error_MnemonicWordCount">Wrong words count. It must be between 12 or 24 words. You entered: %d</string>
+    <string name="restoreheight_title">كتلة البدء للاستعادة</string>
+    <string name="restoreheight_hint">أدخل الكتلة أو التاريخ (YYYY-MM-DD)</string>
     <string name="invalid_height">ارتفاع غير صالح</string>
     <string name="invalid_height_format">ارتفاع غير صالح، تأكد من إدخال YYYY-MM-DD أو ارتفاع الولادة</string>
     <string name="invalid_qr_code">رمز QR غير صالح</string>
@@ -1143,6 +1135,15 @@
     <string name="local_backup_error_empty_password">لا يمكن أن تكون كلمة المرور فارغة.</string>
     <string name="error_no_file_manager">لا يوجد مدير ملفات متاح. يرجى تثبيت تطبيق مدير ملفات لحفظ النسخ الاحتياطية.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">الشروط</string>
+    <string name="non_english_mnemonic_terms_warning_title">توافق عبارة الاسترداد</string>
+    <string name="non_english_mnemonic_terms_warning">لقد اخترت لغة عبارة الاسترداد: %1$s.\n\nقد لا تدعم بعض المحافظ أو الخدمات عبارات الاسترداد بلغات مختلفة.\n\nلتجنب فقدان الوصول، تأكد من أن المحفظة التي تخطط للاستيراد إليها تدعم BIP39 %2$s.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">لا تدعم</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>أفهم أن الاستيراد إلى محافظ أخرى قد يكون غير ممكن.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">شروط عبارة المرور</string>
     <string name="passphrase_terms_warning">قبل تفعيل عبارة المرور (BIP-39 Passphrase)، يرجى التأكيد على أنك تفهم:</string>
@@ -1167,6 +1168,7 @@
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
     <string name="tap_to_show_qr_code">انقر لإظهار رمز QR</string>
     <string name="seed_qr_decryption_failed">فشل فك التشفير. قد يكون رمز QR منتهي الصلاحية أو غير صالح.</string>
+    <string name="seed_qr_invalid_format">هذا ليس رمز QR صالحًا للبذرة.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">لا تحفظ رمز QR هذا — فهو صالح لمدة ساعة واحدة فقط.</string>
     <string name="RecoveryPhrase_QrGenerationError">لا يمكن إنشاء رمز QR لعبارة الاسترداد</string>
