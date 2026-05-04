@@ -89,8 +89,10 @@ class TransactionNotificationCoordinator(
         } else {
             Timber.w("Realtime transaction notification service did not start, switching to polling fallback")
             keepAliveManager.setKeepAlive(emptySet())
-            transactionMonitor.resetPollingBaseline()
-            activeTransport = if (TransactionPollingWorker.startFallback(application, localStorage)) {
+            val fallbackStarted = startWorkerWithBaseline {
+                TransactionPollingWorker.startFallback(application, localStorage)
+            }
+            activeTransport = if (fallbackStarted) {
                 Transport.Worker
             } else {
                 Transport.None
@@ -101,14 +103,24 @@ class TransactionNotificationCoordinator(
     private fun startPolling(interval: PollingInterval) {
         // Each poll cycle brings up adapters via startForPolling/stopForPolling.
         keepAliveManager.setKeepAlive(emptySet())
-        transactionMonitor.resetPollingBaseline()
 
         Timber.d("Scheduling polling worker, interval=%dm", interval.minutes)
-        activeTransport = if (TransactionPollingWorker.start(application, interval.minutes)) {
+        val workerStarted = startWorkerWithBaseline {
+            TransactionPollingWorker.start(application, interval.minutes)
+        }
+        activeTransport = if (workerStarted) {
             Transport.Worker
         } else {
             Transport.None
         }
+    }
+
+    private fun startWorkerWithBaseline(startWorker: () -> Boolean): Boolean {
+        val started = startWorker()
+        if (started) {
+            transactionMonitor.resetPollingBaseline()
+        }
+        return started
     }
 
     private fun stopMonitoring() {

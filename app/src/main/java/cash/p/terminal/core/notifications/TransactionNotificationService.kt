@@ -60,7 +60,9 @@ class TransactionNotificationService : Service() {
     override fun onTimeout(startId: Int, fgsType: Int) {
         if (stopped) return
         Timber.w("Foreground service timeout (type=%d), switching to polling fallback", fgsType)
-        activateFallback(resetBaseline = false)
+        if (!activateFallback(resetBaseline = false)) {
+            Timber.e("Polling fallback did not start after foreground service timeout")
+        }
         stopMonitoring()
     }
 
@@ -84,11 +86,12 @@ class TransactionNotificationService : Service() {
         stopSelf()
     }
 
-    private fun activateFallback(resetBaseline: Boolean) {
-        if (resetBaseline) {
+    private fun activateFallback(resetBaseline: Boolean): Boolean {
+        val started = TransactionPollingWorker.startFallback(applicationContext, localStorage)
+        if (started && resetBaseline) {
             transactionMonitor.resetPollingBaseline()
         }
-        TransactionPollingWorker.startFallback(applicationContext, localStorage)
+        return started
     }
 
     companion object {

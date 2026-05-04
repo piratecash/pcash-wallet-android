@@ -268,6 +268,26 @@ class TransactionNotificationCoordinatorTest {
     }
 
     @Test
+    fun startService_failedOnEnterBackground_fallbackStartFails_doesNotResetBaseline() {
+        setupAllConditionsMet()
+        every { application.startForegroundService(any()) } throws RuntimeException("start failed")
+        every {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                any<ExistingWorkPolicy>(),
+                any<OneTimeWorkRequest>(),
+            )
+        } throws IllegalStateException("WorkManager unavailable")
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        verify(exactly = 0) { transactionMonitor.resetPollingBaseline() }
+        verify { localStorage.pushRealtimeFallbackPollingActive = true }
+        verify { localStorage.pushRealtimeFallbackPollingActive = false }
+    }
+
+    @Test
     fun enterForeground_afterRealtimeFallback_doesNotStopDeadService() {
         setupAllConditionsMet()
 
@@ -317,6 +337,24 @@ class TransactionNotificationCoordinatorTest {
                 any<OneTimeWorkRequest>(),
             )
         }
+    }
+
+    @Test
+    fun pollingMode_workerStartFails_doesNotResetBaseline() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+        every {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                any<ExistingWorkPolicy>(),
+                any<OneTimeWorkRequest>(),
+            )
+        } throws IllegalStateException("WorkManager unavailable")
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        verify(exactly = 0) { transactionMonitor.resetPollingBaseline() }
     }
 
     @Test
