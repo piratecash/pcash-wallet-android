@@ -1,5 +1,6 @@
 package cash.p.terminal.core.notifications
 
+import android.app.Application
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingWorker
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class TransactionNotificationCoordinator(
-    private val application: android.app.Application,
+    private val application: Application,
     private val localStorage: ILocalStorage,
     private val notificationManager: TransactionNotificationManager,
     private val backgroundManager: BackgroundManager,
@@ -25,6 +26,7 @@ class TransactionNotificationCoordinator(
     private val transactionMonitor: TransactionMonitor,
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    @Volatile
     private var activeTransport: Transport = Transport.None
 
     fun start() {
@@ -84,6 +86,15 @@ class TransactionNotificationCoordinator(
         Timber.d("Starting realtime transaction notification service")
         if (TransactionNotificationService.start(application)) {
             activeTransport = Transport.Service
+        } else {
+            Timber.w("Realtime transaction notification service did not start, switching to polling fallback")
+            keepAliveManager.setKeepAlive(emptySet())
+            transactionMonitor.resetPollingBaseline()
+            activeTransport = if (TransactionPollingWorker.startFallback(application, localStorage)) {
+                Transport.Worker
+            } else {
+                Transport.None
+            }
         }
     }
 
@@ -93,12 +104,21 @@ class TransactionNotificationCoordinator(
         transactionMonitor.resetPollingBaseline()
 
         Timber.d("Scheduling polling worker, interval=%dm", interval.minutes)
-        TransactionPollingWorker.start(application, interval.minutes)
-        activeTransport = Transport.Worker
+        activeTransport = if (TransactionPollingWorker.start(application, interval.minutes)) {
+            Transport.Worker
+        } else {
+            Transport.None
+        }
     }
 
     private fun stopMonitoring() {
-        if (activeTransport == Transport.Service) {
+        // If the realtime FGS timed out and handed off to the worker, the
+        // service is dead; sending ACTION_STOP would just spawn a fresh
+        // throwaway Service instance. The flag is the source of truth here
+        // because activeTransport is not updated when the timeout happens
+        // out-of-band inside the service process.
+        val fallbackActive = localStorage.pushRealtimeFallbackPollingActive
+        if (activeTransport == Transport.Service && !fallbackActive) {
             Timber.d("Stopping realtime transaction notification service")
             TransactionNotificationService.stop(application)
         }
@@ -106,6 +126,7 @@ class TransactionNotificationCoordinator(
         // process where activeTransport was lost on cold start.
         Timber.d("Cancelling polling worker chain")
         TransactionPollingWorker.cancel(application)
+        localStorage.pushRealtimeFallbackPollingActive = false
         keepAliveManager.clear()
         activeTransport = Transport.None
     }

@@ -22,8 +22,8 @@ import java.util.concurrent.TimeUnit
 /**
  * Drives interval-based push notifications via WorkManager. One worker invocation
  * runs a single poll cycle and chains the next [OneTimeWorkRequest] with the
- * user-selected interval as initial delay. Avoids the Android 14+ 6h cap that
- * applies to dataSync foreground services.
+ * user-selected interval as initial delay. The same worker is also the fallback
+ * transport when Android 15 exhausts the dataSync foreground-service budget.
  */
 class TransactionPollingWorker(
     appContext: Context,
@@ -63,29 +63,85 @@ class TransactionPollingWorker(
         // Foreground means the coordinator owns lifecycle; orphan chain must die.
         if (backgroundManager.inForeground) return false
         val interval = localStorage.pushPollingInterval
-        if (interval == PollingInterval.REALTIME) return false
-        if (!checkPremiumUseCase.getPremiumType().isPremium()) return false
-        if (!localStorage.pushNotificationsEnabled) return false
-        if (localStorage.pushEnabledBlockchainUids.isEmpty()) return false
-        if (!notificationManager.hasNotificationPermission()) return false
-        if (!notificationManager.isTransactionChannelEnabled()) return false
-        return true
+        return shouldRunForInterval(interval) &&
+            checkPremiumUseCase.getPremiumType().isPremium() &&
+            localStorage.pushNotificationsEnabled &&
+            localStorage.pushEnabledBlockchainUids.isNotEmpty() &&
+            notificationManager.hasNotificationPermission() &&
+            notificationManager.isTransactionChannelEnabled()
     }
 
-    private fun currentIntervalMinutes(): Long = localStorage.pushPollingInterval.minutes
+    private fun shouldRunForInterval(interval: PollingInterval): Boolean {
+        return interval != PollingInterval.REALTIME ||
+            localStorage.pushRealtimeFallbackPollingActive
+    }
+
+    private fun currentIntervalMinutes(): Long {
+        val interval = localStorage.pushPollingInterval
+        return if (interval == PollingInterval.REALTIME) {
+            FALLBACK_INTERVAL_MINUTES
+        } else {
+            interval.minutes
+        }
+    }
 
     companion object {
         const val TAG = "TxPollingWorker"
+
+        // Sole place that defines the FGS-timeout fallback cadence.
+        val FALLBACK_INTERVAL_MINUTES: Long = PollingInterval.MIN_5.minutes
+
         private const val UNIQUE_WORK_NAME = "transaction_polling_worker"
 
-        // External entry point: fresh chain or restart with new interval.
-        // REPLACE atomically cancels any prior chain so we own the lifecycle.
-        fun start(context: Context, intervalMinutes: Long) {
-            enqueueChain(context, intervalMinutes, ExistingWorkPolicy.REPLACE)
+        /**
+         * External entry point: fresh chain or restart with new interval.
+         * REPLACE atomically cancels any prior chain so we own the lifecycle.
+         * Catches WorkManager initialization/IPC errors so callers running on
+         * background threads (BackgroundManager pool) cannot crash the process.
+         * Returns true if the worker was actually enqueued.
+         */
+        fun start(context: Context, intervalMinutes: Long): Boolean {
+            return try {
+                enqueueChain(context, intervalMinutes, ExistingWorkPolicy.REPLACE)
+                true
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Failed to start polling worker")
+                false
+            }
         }
 
-        fun cancel(context: Context) {
-            WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+        /**
+         * Activates the FGS-timeout fallback: flips the persistence flag, then
+         * enqueues the chain at the fallback interval. The flag MUST flip before
+         * enqueue — the worker reads it in shouldRunForInterval and would
+         * self-cancel on the first cycle when interval == REALTIME otherwise.
+         * On enqueue failure the flag is rolled back so the next background
+         * transition can retry from a clean state.
+         */
+        fun startFallback(context: Context, localStorage: ILocalStorage): Boolean {
+            localStorage.pushRealtimeFallbackPollingActive = true
+            return if (start(context, FALLBACK_INTERVAL_MINUTES)) {
+                true
+            } else {
+                localStorage.pushRealtimeFallbackPollingActive = false
+                false
+            }
+        }
+
+        /**
+         * Cancels the unique polling chain. Catches WorkManager errors so callers
+         * (notably stopMonitoring on the foreground transition) can finish their
+         * cleanup — flag clear, keep-alive clear, transport reset — even if
+         * WorkManager itself is unhappy. Returns true on success.
+         */
+        fun cancel(context: Context): Boolean {
+            return try {
+                WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+                true
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Failed to cancel polling worker chain")
+                false
+            }
         }
 
         private fun enqueueChain(
