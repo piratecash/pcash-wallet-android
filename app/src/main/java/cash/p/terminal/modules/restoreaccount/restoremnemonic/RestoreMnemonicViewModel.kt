@@ -283,25 +283,27 @@ class RestoreMnemonicViewModel(
         )
     }
 
-    fun applyQrScanResult(result: RestoreMnemonicModule.QrScanResult.Success) {
-        val wordsText = result.words.joinToString(" ")
+    fun applyMnemonicPhrase(
+        words: List<String>,
+        passphrase: String,
+        moneroHeight: Long?,
+        language: Language?
+    ) {
+        val wordsText = words.joinToString(" ")
 
-        // Enable Monero mode if 25-word seed with height
-        val isMonero = result.words.size == 25 && result.moneroHeight != null
+        val isMonero = words.size == 25 && moneroHeight != null
         if (isMonero) {
             isMoneroMnemonic = true
-            height = result.moneroHeight.toString()
+            height = moneroHeight.toString()
         } else {
-            applyBip39LanguageHint(result)
+            applyBip39LanguageHint(words, language)
         }
 
-        // Enable passphrase if present
-        if (result.passphrase.isNotEmpty()) {
+        if (passphrase.isNotEmpty()) {
             passphraseEnabled = true
-            passphrase = result.passphrase
+            this.passphrase = passphrase
         }
 
-        // Update mnemonic text
         text = wordsText
         cursorPosition = wordsText.length
         processText()
@@ -309,13 +311,12 @@ class RestoreMnemonicViewModel(
         emitState()
     }
 
-    private fun applyBip39LanguageHint(result: RestoreMnemonicModule.QrScanResult.Success) {
-        val hinted = result.language
-        if (hinted != null) {
-            setNormalMnemonicLanguage(hinted)
+    private fun applyBip39LanguageHint(words: List<String>, language: Language?) {
+        if (language != null) {
+            setNormalMnemonicLanguage(language)
             return
         }
-        Bip39LanguageDetector.detectExact(result.words).firstOrNull()
+        Bip39LanguageDetector.detectExact(words).firstOrNull()
             ?.let(::setNormalMnemonicLanguage)
     }
 

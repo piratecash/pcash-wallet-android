@@ -4,6 +4,7 @@ import android.util.Base64
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.TimePasswordProvider
+import io.horizontalsystems.hdwalletkit.Language
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
@@ -58,6 +59,7 @@ class ImportWalletViewModelTest {
 
     private val words12 = ("abandon abandon abandon abandon abandon abandon " +
             "abandon abandon abandon abandon abandon about").split(" ")
+    private val spanishWords12 = List(11) { "ábaco" } + "abierto"
     private val words25Monero = ("tavern total bail plutonium faked faster beneath reinvest " +
             "syndrome dagger razor nobody acoustic tubes people germs myriad next victim sipped " +
             "oasis dagger razor acoustic acoustic").split(" ")
@@ -77,6 +79,20 @@ class ImportWalletViewModelTest {
         assertEquals("myPass", openEvent.passphrase)
         assertNull(openEvent.moneroHeight)
         assertNull(viewModel.errorMessage)
+    }
+
+    @Test
+    fun handleScannedData_validBip39QrWithLanguage_emitsLanguageHint() = runTest(dispatcher) {
+        val viewModel = ImportWalletViewModel(crypto, dispatcherProvider)
+        val encrypted = crypto.encrypt(spanishWords12, "", language = Language.Spanish)
+
+        viewModel.handleScannedData(encrypted)
+        advanceUntilIdle()
+
+        val openEvent = withTimeout(1_000) {
+            viewModel.navigationEvents.first()
+        } as ImportWalletViewModel.NavigationEvent.OpenRestoreFromQr
+        assertEquals(Language.Spanish, openEvent.language)
     }
 
     @Test

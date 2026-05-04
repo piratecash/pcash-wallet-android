@@ -55,6 +55,7 @@ import com.reown.walletkit.client.Wallet.Params.Pair
 import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -429,7 +430,8 @@ class BalanceViewModel(
                 openRestoreFromQr = OpenRestoreFromQr(
                     words = decrypted.words,
                     passphrase = decrypted.passphrase,
-                    moneroHeight = decrypted.height
+                    moneroHeight = decrypted.height,
+                    language = decrypted.language
                 )
                 emitState()
             }
@@ -598,7 +600,8 @@ data class OpenSendTokenSelect(
 data class OpenRestoreFromQr(
     val words: List<String>,
     val passphrase: String,
-    val moneroHeight: Long?  // Non-null for 25-word Monero seeds
+    val moneroHeight: Long?, // Non-null for 25-word Monero seeds
+    val language: Language?
 )
 
 sealed class TotalUIState {

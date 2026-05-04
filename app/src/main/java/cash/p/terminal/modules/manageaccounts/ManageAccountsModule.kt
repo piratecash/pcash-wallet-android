@@ -6,6 +6,9 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
+import cash.p.terminal.core.tryOrNull
+import io.horizontalsystems.hdwalletkit.Language
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 
 object ManageAccountsModule {
@@ -18,8 +21,13 @@ object ManageAccountsModule {
         // Pre-filled seed phrase data from QR scan
         val prefillWords: List<String>? = null,
         val prefillPassphrase: String? = null,
-        val prefillMoneroHeight: Long? = null
-    ) : Parcelable
+        val prefillMoneroHeight: Long? = null,
+        val prefillMnemonicLanguageName: String? = null
+    ) : Parcelable {
+        @IgnoredOnParcel
+        val prefillMnemonicLanguage: Language?
+            get() = prefillMnemonicLanguageName?.let { tryOrNull { Language.valueOf(it) } }
+    }
 
     class Factory(private val mode: Mode) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

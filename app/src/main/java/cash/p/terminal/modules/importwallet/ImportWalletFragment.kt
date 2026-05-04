@@ -91,7 +91,8 @@ private fun ImportWalletScreen(
                                 popOffInclusive = inclusive,
                                 prefillWords = event.words,
                                 prefillPassphrase = event.passphrase,
-                                prefillMoneroHeight = event.moneroHeight
+                                prefillMoneroHeight = event.moneroHeight,
+                                prefillMnemonicLanguageName = event.language?.name
                             )
                         )
                     }

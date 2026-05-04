@@ -14,6 +14,7 @@ import cash.p.terminal.core.openInputStreamSafe
 import cash.p.terminal.core.validateAndSaveBackup
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.DispatcherProvider
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -61,7 +62,8 @@ class ImportWalletViewModel(
                             NavigationEvent.OpenRestoreFromQr(
                                 words = decrypted.words,
                                 passphrase = decrypted.passphrase,
-                                moneroHeight = decrypted.height
+                                moneroHeight = decrypted.height,
+                                language = decrypted.language
                             )
                         )
                     }
@@ -82,7 +84,8 @@ class ImportWalletViewModel(
         data class OpenRestoreFromQr(
             val words: List<String>,
             val passphrase: String,
-            val moneroHeight: Long?
+            val moneroHeight: Long?,
+            val language: Language?
         ) : NavigationEvent()
 
         data class OpenRestoreLocal(

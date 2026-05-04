@@ -69,13 +69,13 @@ import androidx.navigation.findNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.launchAfterClearingFocus
 import cash.p.terminal.core.utils.Utils
+import cash.p.terminal.modules.createaccount.PassphraseCell
 import cash.p.terminal.modules.mnemonic.MnemonicLanguageCell
 import cash.p.terminal.modules.mnemonic.MnemonicLanguageSelectorDialog
-import cash.p.terminal.modules.createaccount.PassphraseCell
-import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreByMenu
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
+import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.BoxTyler44
@@ -104,6 +104,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.AccountType
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -113,14 +114,15 @@ fun RestorePhrase(
     advanced: Boolean,
     restoreMenuViewModel: RestoreMenuViewModel,
     mainViewModel: RestoreViewModel,
-    openRestoreAdvanced: (() -> Unit)? = null,
     openSelectCoins: () -> Unit,
     openNonStandardRestore: () -> Unit,
     onBackClick: () -> Unit,
     onFinish: () -> Unit,
+    openRestoreAdvanced: (() -> Unit)? = null,
     prefillWords: List<String>? = null,
     prefillPassphrase: String? = null,
-    prefillMoneroHeight: Long? = null
+    prefillMoneroHeight: Long? = null,
+    prefillMnemonicLanguage: Language? = null
 ) {
     val viewModel = koinViewModel<RestoreMnemonicViewModel>()
     val uiState = viewModel.uiState
@@ -143,24 +145,15 @@ fun RestorePhrase(
         mutableStateOf(TextFieldValue(prefillPassphrase ?: ""))
     }
 
-    // Initialize viewModel with prefill data
-    LaunchedEffect(prefillWords, prefillMoneroHeight, prefillPassphrase) {
+    // Prefill can arrive after navigation while this ViewModel owns the unsaved input state.
+    LaunchedEffect(prefillWords, prefillMoneroHeight, prefillPassphrase, prefillMnemonicLanguage) {
         if (prefillWords != null) {
-            // Enable Monero mode if this is a 25-word seed with height
-            val isMonero = prefillWords.size == 25 && prefillMoneroHeight != null
-            if (isMonero) {
-                viewModel.onToggleMoneroMnemonic(true)
-                prefillMoneroHeight.let { height ->
-                    viewModel.onChangeHeightText(height.toString())
-                }
-            }
-            // Enable passphrase if present in QR data
-            if (!prefillPassphrase.isNullOrEmpty()) {
-                viewModel.onTogglePassphrase(true)
-                viewModel.onEnterPassphrase(prefillPassphrase)
-            }
-            // Trigger validation of the prefilled mnemonic
-            viewModel.onEnterMnemonicPhrase(initialText, initialText.length)
+            viewModel.applyMnemonicPhrase(
+                words = prefillWords,
+                passphrase = prefillPassphrase.orEmpty(),
+                moneroHeight = prefillMoneroHeight,
+                language = prefillMnemonicLanguage
+            )
         }
     }
     var showCustomKeyboardDialog by remember { mutableStateOf(false) }
@@ -358,14 +351,20 @@ fun RestorePhrase(
                                                             selection = TextRange(result.passphrase.length)
                                                         )
                                                     }
-                                                    viewModel.applyQrScanResult(result)
+                                                    viewModel.applyMnemonicPhrase(
+                                                        words = result.words,
+                                                        passphrase = result.passphrase,
+                                                        moneroHeight = result.moneroHeight,
+                                                        language = result.language
+                                                    )
 
                                                     // Update shared state and navigate to advanced if passphrase present
                                                     if (result.passphrase.isNotEmpty() && !advanced) {
                                                         mainViewModel.setPrefillData(
                                                             result.words,
                                                             result.passphrase,
-                                                            result.moneroHeight
+                                                            result.moneroHeight,
+                                                            result.language
                                                         )
                                                         openRestoreAdvanced?.invoke()
                                                     }
@@ -549,8 +548,6 @@ private fun BottomSection(
     openNonStandardRestore: () -> Unit,
     passphraseTextState: MutableState<TextFieldValue>
 ) {
-    var hidePassphrase by remember { mutableStateOf(true) }
-
     CellUniversalLawrenceSection(
         listOf {
             PassphraseCell(

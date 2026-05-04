@@ -495,7 +495,8 @@ fun BalanceItems(
                 popOffInclusive = false,
                 prefillWords = restore.words,
                 prefillPassphrase = restore.passphrase,
-                prefillMoneroHeight = restore.moneroHeight
+                prefillMoneroHeight = restore.moneroHeight,
+                prefillMnemonicLanguageName = restore.language?.name
             )
         )
         viewModel.onRestoreFromQrOpened()
@@ -661,5 +662,3 @@ fun <T> LazyListScope.wallets(
         VSpacer(height = 10.dp)
     }
 }
-
-

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.restoreaccount.restoremnemonic
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.WalletActivator
+import cash.p.terminal.core.utils.Bip39LanguageDetector
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
@@ -87,18 +88,16 @@ class RestoreMnemonicViewModelTest {
         }
 
     @Test
-    fun applyQrScanResult_moneroWords_preservesBip39Language() =
+    fun applyMnemonicPhrase_moneroWords_preservesBip39Language() =
         runTest(dispatcher) {
             val viewModel = createViewModel()
 
             viewModel.setMnemonicLanguage(Language.French)
-            viewModel.applyQrScanResult(
-                RestoreMnemonicModule.QrScanResult.Success(
-                    words = List(25) { "word$it" },
-                    passphrase = "",
-                    moneroHeight = 123L,
-                    language = null
-                )
+            viewModel.applyMnemonicPhrase(
+                words = List(25) { "word$it" },
+                passphrase = "",
+                moneroHeight = 123L,
+                language = null
             )
             advanceUntilIdle()
 
@@ -197,21 +196,41 @@ class RestoreMnemonicViewModelTest {
     // ==================== Language hint from QR scan (#3) ====================
 
     @Test
-    fun applyQrScanResult_v2WithLanguage_setsBip39Language() =
+    fun applyMnemonicPhrase_v2WithLanguage_setsBip39Language() =
         runTest(dispatcher) {
             val viewModel = createViewModel()
 
-            viewModel.applyQrScanResult(
-                RestoreMnemonicModule.QrScanResult.Success(
-                    words = spanishSeed12,
-                    passphrase = "",
-                    moneroHeight = null,
-                    language = Language.Spanish
-                )
+            viewModel.applyMnemonicPhrase(
+                words = spanishSeed12,
+                passphrase = "",
+                moneroHeight = null,
+                language = Language.Spanish
             )
             advanceUntilIdle()
 
             assertEquals(Language.Spanish, viewModel.uiState.language)
+            assertTrue(viewModel.uiState.invalidWordRanges.isEmpty())
+        }
+
+    @Test
+    fun applyMnemonicPhrase_languageHintOverridesAutodetect_setsHintLanguage() =
+        runTest(dispatcher) {
+            val viewModel = createViewModel()
+
+            assertEquals(
+                Language.SimplifiedChinese,
+                Bip39LanguageDetector.detectExact(simplifiedChineseSeed12).firstOrNull()
+            )
+
+            viewModel.applyMnemonicPhrase(
+                words = simplifiedChineseSeed12,
+                passphrase = "",
+                moneroHeight = null,
+                language = Language.TraditionalChinese
+            )
+            advanceUntilIdle()
+
+            assertEquals(Language.TraditionalChinese, viewModel.uiState.language)
             assertTrue(viewModel.uiState.invalidWordRanges.isEmpty())
         }
 
@@ -258,19 +277,17 @@ class RestoreMnemonicViewModelTest {
     }
 
     @Test
-    fun applyQrScanResult_legacyWithoutLanguage_fallsBackToAutodetect() =
+    fun applyMnemonicPhrase_legacyWithoutLanguage_fallsBackToAutodetect() =
         runTest(dispatcher) {
             // Legacy QR (no language field) must still produce correct UI by autodetecting
             // from the words themselves.
             val viewModel = createViewModel()
 
-            viewModel.applyQrScanResult(
-                RestoreMnemonicModule.QrScanResult.Success(
-                    words = japaneseSeed12,
-                    passphrase = "",
-                    moneroHeight = null,
-                    language = null
-                )
+            viewModel.applyMnemonicPhrase(
+                words = japaneseSeed12,
+                passphrase = "",
+                moneroHeight = null,
+                language = null
             )
             advanceUntilIdle()
 

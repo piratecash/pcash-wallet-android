@@ -94,7 +94,6 @@ fun CreateAccountAdvancedScreen(
 
     var showMnemonicSizeSelectorDialog by remember { mutableStateOf(false) }
     var showLanguageSelectorDialog by remember { mutableStateOf(false) }
-    var hidePassphrase by remember { mutableStateOf(true) }
 
     Surface(color = ComposeAppTheme.colors.tyler) {
         if (showMnemonicSizeSelectorDialog) {
