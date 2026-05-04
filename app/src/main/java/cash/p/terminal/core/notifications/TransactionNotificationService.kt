@@ -3,7 +3,9 @@ package cash.p.terminal.core.notifications
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +44,14 @@ class TransactionNotificationService : Service() {
         }
 
         return START_STICKY
+    }
+
+    // Android 15+ enforces a 6h/24h cumulative cap on dataSync foreground services
+    // and invokes onTimeout shortly before throwing ForegroundServiceDidNotStopInTimeException.
+    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        Timber.w("Foreground service timeout (type=%d), stopping", fgsType)
+        stopMonitoring()
     }
 
     override fun onDestroy() {
