@@ -179,6 +179,7 @@ fun TransactionInfo(
     onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
 ) {
     LazyColumn(
+        modifier = Modifier.navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp)
     ) {

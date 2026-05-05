@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -94,6 +95,7 @@ fun GuidesScreen(navController: NavController) {
                                 LazyListState()
                             }
                             LazyColumn(
+                                modifier = Modifier.navigationBarsPadding(),
                                 state = listState,
                                 contentPadding = PaddingValues(bottom = 32.dp)
                             ) {
