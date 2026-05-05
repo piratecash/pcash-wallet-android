@@ -14,7 +14,7 @@ class Eip20AdapterSyncStateTest {
     private fun mapForwardSyncState(state: ForwardSyncState): AdapterState? {
         if (state is ForwardSyncState.Syncing) {
             return AdapterState.Syncing(
-                progress = 0,
+                progress = 0.0,
                 blocksRemained = state.blocksRemaining
             )
         }
@@ -25,7 +25,7 @@ class Eip20AdapterSyncStateTest {
     private fun mapHistoricalSyncState(state: HistoricalSyncState): AdapterState? {
         if (state is HistoricalSyncState.Syncing) {
             return AdapterState.Syncing(
-                progress = (state.progress * 100).toInt(),
+                progress = state.progress * 100.0,
                 blocksRemained = state.blocksRemaining
             )
         }
@@ -65,7 +65,7 @@ class Eip20AdapterSyncStateTest {
 
         assertTrue(result is AdapterState.Syncing)
         val syncing = result as AdapterState.Syncing
-        assertEquals(0, syncing.progress)
+        assertEquals(0.0, syncing.progress)
         assertEquals(500L, syncing.blocksRemained)
     }
 
