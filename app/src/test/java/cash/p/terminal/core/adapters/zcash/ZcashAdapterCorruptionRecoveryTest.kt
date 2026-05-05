@@ -81,7 +81,7 @@ class ZcashAdapterCorruptionRecoveryTest {
     private val progressFlow = MutableStateFlow(PercentDecimal.ZERO_PERCENT)
     private val walletBalancesFlow = MutableStateFlow<Map<AccountUuid, AccountBalance>?>(null)
     private val processorInfoFlow = MutableStateFlow(
-        mockk<CompactBlockProcessor.ProcessorInfo>(relaxed = true)
+        CompactBlockProcessor.ProcessorInfo(null, null, null)
     )
     private val allTransactionsFlow = MutableStateFlow<List<TransactionOverview>>(emptyList())
 
@@ -597,7 +597,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         progressFlow.value = PercentDecimal(0.99f)
 
         // subscriberScope uses Dispatchers.Main (UnconfinedTestDispatcher) — immediate
-        awaitState { it is AdapterState.Syncing && it.progress == 99 }
+        awaitState { it is AdapterState.Syncing && it.progress == 99.0 }
 
         // SDK re-emits SYNCING status (e.g. entering new scan phase)
         statusFlow.value = Synchronizer.Status.SYNCING
@@ -610,9 +610,55 @@ class ZcashAdapterCorruptionRecoveryTest {
         )
         assertEquals(
             "Progress must be preserved when SDK re-emits SYNCING",
-            99,
+            99.0,
             (state as AdapterState.Syncing).progress
         )
+    }
+
+    @Test
+    fun onProcessorInfo_syncRangeNearOrchard_preservesSdkProgress() = runTest(dispatcher) {
+        adapter = createAdapter()
+        adapter.start()
+
+        awaitState { it is AdapterState.Syncing }
+
+        progressFlow.value = PercentDecimal(0.01f)
+        awaitState { it is AdapterState.Syncing && it.progress == 1.0 }
+
+        processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
+            networkBlockHeight = BlockHeight.new(2_881_516L),
+            overallSyncRange = BlockHeight.new(1_687_104L)..BlockHeight.new(1_687_104L),
+            firstUnenhancedHeight = null
+        )
+
+        awaitState { it is AdapterState.Syncing && it.blocksRemained != null }
+        val state = adapter.balanceState as AdapterState.Syncing
+        assertEquals(
+            "ProcessorInfo range must not be treated as sync progress",
+            1.0,
+            state.progress
+        )
+    }
+
+    @Test
+    fun blocksRemained_scalesInverselyWithSdkProgress() = runTest(dispatcher) {
+        adapter = createAdapter()
+        adapter.start()
+
+        awaitState { it is AdapterState.Syncing }
+
+        // accountBirthday from mock checkpoint = 2_500_000; networkHeight 3_500_000 → totalBlocks = 1_000_000
+        processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
+            networkBlockHeight = BlockHeight.new(3_500_000L),
+            overallSyncRange = null,
+            firstUnenhancedHeight = null
+        )
+        awaitState { it is AdapterState.Syncing && it.blocksRemained == 1_000_000L }
+
+        progressFlow.value = PercentDecimal(0.5f)
+        awaitState {
+            it is AdapterState.Syncing && it.progress == 50.0 && it.blocksRemained == 500_000L
+        }
     }
 
     @Test

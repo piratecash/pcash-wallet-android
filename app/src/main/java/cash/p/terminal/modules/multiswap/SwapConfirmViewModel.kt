@@ -17,6 +17,7 @@ import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.entities.PendingMultiSwap
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.send.BaseSendViewModel
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -104,6 +105,7 @@ class SwapConfirmViewModel(
     private var amountOutMin: BigDecimal? = null
     private var quoteFields: List<DataField> = listOf()
     private var criticalError: String? = null
+    private var swapProviderTransaction: SwapProviderTransaction? = null
     private var isAdvancedSettingsAvailable: Boolean = sendTransactionService.hasSettings()
     private var fetchJob: Job? = null
     private val mevProtectionAvailable =
@@ -287,6 +289,7 @@ class SwapConfirmViewModel(
                 amountOutMin = finalQuote.amountOutMin
                 quoteFields = finalQuote.fields
                 criticalError = null
+                swapProviderTransaction = finalQuote.swapProviderTransaction
 
                 fiatServiceOut.setAmount(amountOut)
                 fiatServiceOutMin.setAmount(amountOutMin)
@@ -404,7 +407,7 @@ class SwapConfirmViewModel(
             expectedAmountOut = legInfo.expectedAmountOut,
         )
         pendingMultiSwapStorage.insert(record)
-        swapProvider.getProviderTransactionId()?.let { providerTxId ->
+        swapProviderTransaction?.transactionId?.let { providerTxId ->
             pendingMultiSwapStorage.setLeg1ProviderTransactionId(id, providerTxId)
         }
         completedMultiSwapId = id
@@ -418,10 +421,10 @@ class SwapConfirmViewModel(
     }
 
     fun onTransactionCompleted(result: SendTransactionResult) {
-        if (swapProvider is ChangeNowProvider) {
-            swapProvider.onTransactionCompleted(result)
-        } else if (swapProvider is QuickexProvider) {
-            swapProvider.onTransactionCompleted(result)
+        val transaction = swapProviderTransaction ?: return
+        when (swapProvider) {
+            is ChangeNowProvider -> swapProvider.onTransactionCompleted(transaction, result)
+            is QuickexProvider -> swapProvider.onTransactionCompleted(transaction, result)
         }
     }
 

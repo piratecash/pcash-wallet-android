@@ -6,6 +6,8 @@ import cash.p.terminal.modules.multiswap.SwapQuoteService
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.modules.multiswap.providers.StonFiProvider
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRegistry
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
@@ -13,10 +15,12 @@ import org.koin.dsl.module
 val swapProvidersModule = module {
     factoryOf(::SwapQuoteService)
 
-    factoryOf(::ChangeNowProvider)
-    factoryOf(::QuickexProvider)
-    factoryOf(::StonFiProvider)
+    singleOf(::ChangeNowProvider)
+    singleOf(::QuickexProvider)
+    singleOf(::StonFiProvider)
 
+    singleOf(::SwapProvidersRegistry)
     singleOf(::MultiSwapOnChainMonitor)
     singleOf(::MultiSwapRouteResolver)
+    singleOf(::SwapProvidersRepository)
 }

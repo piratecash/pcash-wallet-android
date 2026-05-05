@@ -13,11 +13,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -152,7 +150,6 @@ fun DuplicateWalletScreen(
                     })
 
                     if (uiState.passphraseEnabled) {
-                        var hidePassphrase by remember { mutableStateOf(true) }
                         val textStatePassword =
                             rememberSaveable(stateSaver = TextFieldValue.Saver) {
                                 mutableStateOf(TextFieldValue(uiState.passcodeOld))
@@ -164,11 +161,7 @@ fun DuplicateWalletScreen(
                             state = uiState.passphraseState,
                             onValueChange = onChangePassphrase,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            hide = hidePassphrase,
                             textState = textStatePassword,
-                            onToggleHide = {
-                                hidePassphrase = !hidePassphrase
-                            }
                         )
                         Spacer(Modifier.height(16.dp))
                         val textStatePasswordConfirm =
@@ -181,11 +174,7 @@ fun DuplicateWalletScreen(
                             state = uiState.passphraseConfirmState,
                             onValueChange = onChangePassphraseConfirmation,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            hide = hidePassphrase,
                             textState = textStatePasswordConfirm,
-                            onToggleHide = {
-                                hidePassphrase = !hidePassphrase
-                            }
                         )
                         Spacer(Modifier.height(12.dp))
                         D1(

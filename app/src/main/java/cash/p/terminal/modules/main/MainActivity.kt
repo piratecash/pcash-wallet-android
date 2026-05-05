@@ -29,6 +29,7 @@ import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRightClearingBackStack
+import cash.p.terminal.tangem.domain.sdk.CardSdkProvider
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import com.reown.walletkit.client.Wallet
 import io.horizontalsystems.core.hideKeyboard
@@ -38,6 +39,7 @@ import org.koin.android.ext.android.inject
 class MainActivity : BaseActivity() {
 
     val viewModel: MainActivityViewModel by inject()
+    private val cardSdkProvider: CardSdkProvider by inject()
     private lateinit var pinLockComposeView: ComposeView
     private var showPinLockScreen by mutableStateOf(false)
 
@@ -66,6 +68,8 @@ class MainActivity : BaseActivity() {
 
         // If SQLCipher failed, BaseActivity redirected to error screen - don't continue
         if (App.sqlCipherLoadFailed) return
+
+        cardSdkProvider.register(this)
 
         setContentView(R.layout.activity_main)
 

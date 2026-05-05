@@ -16,6 +16,7 @@ import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel.Com
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.QuickexProvider
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -69,6 +70,11 @@ class MultiSwapExchangeViewModelTest {
         every { observeForActiveAccount(any()) } returns swapsFlow
     }
     private val swapQuoteService = mockk<SwapQuoteService>(relaxed = true)
+    private val disabledIdsFlow = MutableStateFlow<Set<String>>(emptySet())
+    private val swapProvidersRepository = mockk<SwapProvidersRepository>(relaxed = true) {
+        every { disabledIds } returns disabledIdsFlow
+        every { isDisabled(any()) } answers { firstArg<String>() in disabledIdsFlow.value }
+    }
     private val fetchSwapQuotesUseCase = mockk<FetchSwapQuotesUseCase>(relaxed = true)
     private val onChainMonitor = mockk<MultiSwapOnChainMonitor>(relaxed = true)
     private val marketKit = mockk<MarketKitWrapper>(relaxed = true)
@@ -859,6 +865,7 @@ class MultiSwapExchangeViewModelTest {
         numberFormatter = numberFormatter,
         onChainMonitor = onChainMonitor,
         swapQuoteService = swapQuoteService,
+        swapProvidersRepository = swapProvidersRepository,
         fetchSwapQuotesUseCase = fetchSwapQuotesUseCase,
         timerService = timerService,
         syncPendingMultiSwapUseCase = syncPendingMultiSwapUseCase,

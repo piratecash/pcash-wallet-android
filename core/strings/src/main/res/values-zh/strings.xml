@@ -44,6 +44,8 @@
     <string name="Button_Browser">浏览器</string>
     <string name="Button_Delete">删除</string>
     <string name="Button_LearnMore">了解更多</string>
+    <string name="hardware_wallet">硬件钱包</string>
+    <string name="hardware_wallet_not_detected">硬件钱包（未检测到 NFC）</string>
     <string name="hardware_wallet_offline_confirmation_title">离线激活</string>
     <string name="hardware_wallet_offline_confirmation_message">无法在服务器上验证卡片真实性。请检查网络连接或允许离线激活。离线激活会跳过服务器验证，从而降低安全性保障。是否继续离线激活？</string>
     <string name="hardware_wallet_offline_confirmation_positive">继续离线</string>
@@ -625,6 +627,9 @@
     <string name="SwapSettings_Error_InvalidAddress">地址无效</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">无效的 %s 地址</string>
     <string name="SwapSettings_Warning_UnusualSlippage">您的交易可能提前完成</string>
+    <string name="swap_providers_title">兑换服务商</string>
+    <string name="swap_providers_mandatory_toast">此服务商无法禁用</string>
+    <string name="swap_no_enabled_providers">没有已启用的服务商</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">您可以交换 %s，或者您需要撤销并批准新的金额</string>
@@ -1495,7 +1500,9 @@
     <string name="premium_try_for_free">免费试用</string>
     <string name="premium_upgrade_text">使用高级功能提升您的体验！</string>
     <string name="premium_available">⭐️ 高级版可用</string>
-    <string name="premium_demo_days_left">演示高级版：剩余 %d 天</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="other">演示高级版：剩余 %d 天</item>
+    </plurals>
     <string name="premium_select_wallet_title">选择演示钱包</string>
     <string name="premium_select_wallet_description">选择一个钱包来激活演示高级功能。一次只能有一个钱包拥有演示高级版。</string>
     <string name="premium_demo_activated">演示高级版激活成功！</string>

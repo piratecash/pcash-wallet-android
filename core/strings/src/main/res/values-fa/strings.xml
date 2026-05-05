@@ -44,6 +44,8 @@
     <string name="Button_Browser">Browser</string>
     <string name="Button_Delete">Delete</string>
     <string name="Button_LearnMore">Learn More</string>
+    <string name="hardware_wallet">کیف پول سخت‌افزاری</string>
+    <string name="hardware_wallet_not_detected">کیف پول سخت‌افزاری (NFC شناسایی نشد)</string>
     <string name="hardware_wallet_offline_confirmation_title">فعال‌سازی آفلاین</string>
     <string name="hardware_wallet_offline_confirmation_message">امکان بررسی اصالت کارت روی سرور وجود ندارد. اتصال اینترنت خود را بررسی کنید یا فعال‌سازی آفلاین را مجاز کنید. هنگام فعال‌سازی آفلاین، بررسی‌های سرور انجام نمی‌شود و سطح اطمینان امنیتی کاهش می‌یابد. آیا می‌خواهید فعال‌سازی آفلاین را ادامه دهید؟</string>
     <string name="hardware_wallet_offline_confirmation_positive">ادامه به‌صورت آفلاین</string>
@@ -594,7 +596,7 @@
     <string name="Swap_Approving">Approving</string>
     <string name="Swap_Swapping">در حال جابجایی</string>
     <string name="Swap_Quoting">دریافت قیمت</string>
-    <string name="Swap_Providers">Providers</string>
+    <string name="Swap_Providers">ارائه‌دهندگان</string>
     <string name="Swap_SwapProvider_Title">ارائه‌دهنده مبادله</string>
     <string name="Swap_AmountMin">(دقیقه)</string>
     <string name="Swap_AmountMax">(حداکثر)</string>
@@ -629,6 +631,9 @@
     <string name="SwapSettings_Error_InvalidAddress">آدرس نامعتبر</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Invalid %s address</string>
     <string name="SwapSettings_Warning_UnusualSlippage">معامله شما می تواند پیشرو باشد</string>
+    <string name="swap_providers_title">ارائه‌دهندگان سواپ</string>
+    <string name="swap_providers_mandatory_toast">این ارائه‌دهنده را نمی‌توان غیرفعال کرد</string>
+    <string name="swap_no_enabled_providers">هیچ ارائه‌دهنده فعالی وجود ندارد</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>
@@ -1508,7 +1513,10 @@
     <string name="premium_try_for_free">رایگان امتحان کنید</string>
     <string name="premium_upgrade_text">تجربه خود را با ویژگی‌های پریمیوم ارتقا دهید!</string>
     <string name="premium_available">⭐️ پریمیوم در دسترس است</string>
-    <string name="premium_demo_days_left">پریمیوم آزمایشی: %d روز باقی‌مانده</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">پریمیوم آزمایشی: %d روز باقی‌مانده</item>
+        <item quantity="other">پریمیوم آزمایشی: %d روز باقی‌مانده</item>
+    </plurals>
     <string name="premium_select_wallet_title">انتخاب کیف پول برای دمو</string>
     <string name="premium_select_wallet_description">یک کیف پول برای فعال‌سازی ویژگی‌های پریمیوم آزمایشی انتخاب کنید. فقط یک کیف پول می‌تواند همزمان پریمیوم آزمایشی داشته باشد.</string>
     <string name="premium_demo_activated">پریمیوم آزمایشی با موفقیت فعال شد!</string>

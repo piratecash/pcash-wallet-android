@@ -1,9 +1,12 @@
 package cash.p.terminal.modules.multiswap
 
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import java.math.BigDecimal
 import cash.p.terminal.modules.multiswap.providers.StonFiProvider
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRegistry
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.wallet.Token
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -14,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -220,22 +224,131 @@ class SwapQuoteServiceTest {
         assertEquals("higher", state.quote?.provider?.id)
     }
 
+    @Test
+    fun setAmount_disabledProviderHasQuote_visibleInQuotesButNotAutoSelected() = runTest {
+        val enabledProvider = mockProvider(providerId = "enabled", quoteAmountOut = BigDecimal("5"))
+        val disabledProvider = mockProvider(providerId = "disabled", quoteAmountOut = BigDecimal("10"))
+
+        val service = createService(
+            providers = listOf(enabledProvider, disabledProvider),
+            scheduler = testScheduler,
+            disabledIds = setOf("disabled"),
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val state = service.stateFlow.value
+        val quoteIds = state.quotes.map { it.provider.id }
+        assertTrue(
+            "Disabled provider must remain visible in quotes when it has swap data",
+            "disabled" in quoteIds,
+        )
+        assertTrue("Enabled provider must be in quotes", "enabled" in quoteIds)
+        assertEquals(
+            "Auto-selected quote must be from an enabled provider",
+            "enabled",
+            state.quote?.provider?.id,
+        )
+    }
+
+    @Test
+    fun disabledIdsChange_currentlySelectedDisabled_immediatelySwitchesToBestEnabled() = runTest {
+        val higher = mockProvider(providerId = "higher", quoteAmountOut = BigDecimal("10"))
+        val lower = mockProvider(providerId = "lower", quoteAmountOut = BigDecimal("5"))
+
+        val disabledIdsFlow = MutableStateFlow(emptySet<String>())
+        val service = createService(
+            providers = listOf(higher, lower),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        assertEquals("higher", service.stateFlow.value.quote?.provider?.id)
+
+        disabledIdsFlow.value = setOf("higher")
+        advanceUntilIdle()
+
+        assertEquals(
+            "Selecting must immediately move to next-best enabled provider",
+            "lower",
+            service.stateFlow.value.quote?.provider?.id,
+        )
+    }
+
+    @Test
+    fun disabledIdsChange_reEnablePreviouslyDisabled_currentSelectionStays() = runTest {
+        val higher = mockProvider(providerId = "higher", quoteAmountOut = BigDecimal("10"))
+        val lower = mockProvider(providerId = "lower", quoteAmountOut = BigDecimal("5"))
+
+        val disabledIdsFlow = MutableStateFlow(emptySet<String>())
+        val service = createService(
+            providers = listOf(higher, lower),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        disabledIdsFlow.value = setOf("higher")
+        advanceUntilIdle()
+        assertEquals("lower", service.stateFlow.value.quote?.provider?.id)
+
+        disabledIdsFlow.value = emptySet()
+        advanceUntilIdle()
+
+        assertEquals(
+            "Re-enabling a provider must NOT change the current selection",
+            "lower",
+            service.stateFlow.value.quote?.provider?.id,
+        )
+    }
+
     private fun createService(
         providers: List<IMultiSwapProvider>,
         scheduler: TestCoroutineScheduler,
+        disabledIds: Set<String> = emptySet(),
+    ): SwapQuoteService = createService(
+        providers = providers,
+        scheduler = scheduler,
+        disabledIdsFlow = MutableStateFlow(disabledIds),
+    )
+
+    private fun createService(
+        providers: List<IMultiSwapProvider>,
+        scheduler: TestCoroutineScheduler,
+        disabledIdsFlow: MutableStateFlow<Set<String>>,
     ): SwapQuoteService {
         val dispatcher = StandardTestDispatcher(scheduler)
         val routeResolver = mockk<MultiSwapRouteResolver>(relaxed = true) {
             coEvery { findRoute(any(), any(), any(), any(), any()) } returns null
         }
+        val repository = mockk<SwapProvidersRepository>(relaxed = true) {
+            every { this@mockk.disabledIds } returns disabledIdsFlow
+            every { isDisabled(any()) } answers {
+                firstArg<String>() in disabledIdsFlow.value
+            }
+        }
+        val registry = mockk<SwapProvidersRegistry>(relaxed = true) {
+            every { this@mockk.providers } returns providers
+            every { findById(any()) } answers {
+                val id = firstArg<String>()
+                providers.firstOrNull { it.id == id }
+            }
+        }
         return SwapQuoteService(
-            mockk(relaxed = true),
-            mockk(relaxed = true),
             routeResolver,
             FetchSwapQuotesUseCase(),
-        ).apply {
-            allProviders = providers
-            coroutineScope = CoroutineScope(dispatcher)
-        }
+            repository,
+            registry,
+            TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
+        )
     }
 }

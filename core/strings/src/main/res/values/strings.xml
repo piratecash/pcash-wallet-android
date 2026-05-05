@@ -33,7 +33,8 @@
     <string name="Button_Disconnect">Disconnect</string>
     <string name="Button_Create">Create</string>
     <string name="Button_Advanced">Advanced</string>
-    <string name="hardware_wallet">Hardware wallet</string>
+    <string name="hardware_wallet">Hardware Wallet</string>
+    <string name="hardware_wallet_not_detected">Hardware Wallet (no NFC detected)</string>
     <string name="hardware_wallet_not_detected_error">No NFC reader detected, enable to use hardware cards</string>
     <string name="hardware_wallet_offline_confirmation_title">Offline activation</string>
     <string name="hardware_wallet_offline_confirmation_message">Card authenticity check cannot reach the server. Check your internet connection or allow offline activation. Offline activation skips server verification and reduces security assurance. Continue with offline activation?</string>
@@ -833,6 +834,11 @@ Proceed only if you\'re sure.</string>
     <string name="SwapSettings_Error_InvalidAddress">Invalid address</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Invalid %s address</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Your transaction may be frontrun</string>
+
+    <!-- Swap Providers Settings -->
+    <string name="swap_providers_title">Swap Providers</string>
+    <string name="swap_providers_mandatory_toast">This provider cannot be disabled</string>
+    <string name="swap_no_enabled_providers">No enabled providers</string>
 
     <!-- Swap Confirmation -->
     <string name="ActivationRequired_DialogTitle">Activate Token</string>
@@ -2163,7 +2169,10 @@ Proceed only if you\'re sure.</string>
     <string name="premium_try_for_free">Try for FREE</string>
     <string name="premium_upgrade_text">Upgrade your experience with Premium features!</string>
     <string name="premium_available">⭐️ Premium is available</string>
-    <string name="premium_demo_days_left">Demo Premium: %d days left</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium: %d day left</item>
+        <item quantity="other">Demo Premium: %d days left</item>
+    </plurals>
     <string name="premium_select_wallet_title">Select Wallet for Demo</string>
     <string name="premium_select_wallet_description">Choose a wallet to activate demo premium features. Only one wallet can have demo premium at a time.</string>
     <string name="premium_demo_activated">Demo Premium activated successfully!</string>

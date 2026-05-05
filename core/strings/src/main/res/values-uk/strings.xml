@@ -626,6 +626,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Невірна адреса</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Невірна %s адреса</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Ваша транзакція може бути авансованою</string>
+    <string name="swap_providers_title">Провайдери обміну</string>
+    <string name="swap_providers_mandatory_toast">Цього провайдера не можна вимкнути</string>
+    <string name="swap_no_enabled_providers">Немає увімкнених провайдерів</string>
     <!-- Swap Confirmation -->
     <string name="Activate_InsufficientBalance_Description">У вас недостатньо балансу XLM для активації цього токена.</string>
     <!--Approve-->
@@ -1869,7 +1872,12 @@
     <string name="premium_try_for_free">Спробувати БЕЗКОШТОВНО</string>
     <string name="premium_upgrade_text">Покращіть свій досвід з функціями Преміум!</string>
     <string name="premium_available">⭐️ Доступний Преміум</string>
-    <string name="premium_demo_days_left">Демо Преміум: залишилося %d днів</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Демо Преміум: залишився %d день</item>
+        <item quantity="few">Демо Преміум: залишилося %d дні</item>
+        <item quantity="many">Демо Преміум: залишилося %d днів</item>
+        <item quantity="other">Демо Преміум: залишилося %d днів</item>
+    </plurals>
     <string name="premium_select_wallet_title">Виберіть гаманець для демо</string>
     <string name="premium_select_wallet_description">Виберіть гаманець для активації функцій демо Преміум. Одночасно демо Преміум може бути лише в одного гаманця.</string>
     <string name="premium_demo_activated">Демо Преміум успішно активовано!</string>

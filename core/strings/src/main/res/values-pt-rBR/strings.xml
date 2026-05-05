@@ -44,6 +44,8 @@
     <string name="Button_Browser">Navegador</string>
     <string name="Button_Delete">Deletar</string>
     <string name="Button_LearnMore">Saiba Mais</string>
+    <string name="hardware_wallet">Carteira Hardware</string>
+    <string name="hardware_wallet_not_detected">Carteira Hardware (NFC não detectado)</string>
     <string name="hardware_wallet_offline_confirmation_title">Ativação offline</string>
     <string name="hardware_wallet_offline_confirmation_message">Não foi possível verificar a autenticidade do cartão no servidor. Verifique a conexão com a Internet ou permita a ativação offline. A ativação offline ignora as verificações no servidor e reduz a segurança. Deseja continuar a ativação offline?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Continuar offline</string>
@@ -629,6 +631,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Endereço inválido</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Endereço %s inválido</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Sua operação pode ser de front-running</string>
+    <string name="swap_providers_title">Provedores de swap</string>
+    <string name="swap_providers_mandatory_toast">Este provedor não pode ser desativado</string>
+    <string name="swap_no_enabled_providers">Nenhum provedor ativo</string>
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Você pode trocar %s, ou você precisa revogar e aprovar o novo valor</string>
     <string name="Approve_Spender">Gastador</string>
@@ -1504,7 +1509,11 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="premium_try_for_free">Experimente GRÁTIS</string>
     <string name="premium_upgrade_text">Melhore sua experiência com recursos Premium!</string>
     <string name="premium_available">⭐️ Premium está disponível</string>
-    <string name="premium_demo_days_left">Demo Premium: %d dias restantes</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium: %d dia restante</item>
+        <item quantity="many">Demo Premium: %d dias restantes</item>
+        <item quantity="other">Demo Premium: %d dias restantes</item>
+    </plurals>
     <string name="premium_select_wallet_title">Selecionar carteira para Demo</string>
     <string name="premium_select_wallet_description">Escolha uma carteira para ativar os recursos de demo premium. Apenas uma carteira pode ter demo premium por vez.</string>
     <string name="premium_demo_activated">Demo Premium ativado com sucesso!</string>

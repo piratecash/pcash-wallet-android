@@ -44,6 +44,8 @@
     <string name="Button_Browser">المتصفح</string>
     <string name="Button_Delete">حذف</string>
     <string name="Button_LearnMore">اعرف المزيد</string>
+    <string name="hardware_wallet">محفظة الأجهزة</string>
+    <string name="hardware_wallet_not_detected">محفظة الأجهزة (لم يتم اكتشاف NFC)</string>
     <string name="hardware_wallet_offline_confirmation_title">التفعيل بدون إنترنت</string>
     <string name="hardware_wallet_offline_confirmation_message">تعذر التحقق من أصالة البطاقة عبر الخادم. تحقق من اتصالك بالإنترنت أو اسمح بالتفعيل بدون إنترنت. في وضع عدم الاتصال لا يتم تنفيذ فحوصات الخادم، مما يقلل مستوى الأمان. هل ترغب في المتابعة بالتفعيل بدون إنترنت؟</string>
     <string name="hardware_wallet_offline_confirmation_positive">متابعة بدون إنترنت</string>
@@ -593,7 +595,7 @@
     <string name="Swap_Approving">Approving</string>
     <string name="Swap_Swapping">جارٍ التبادل</string>
     <string name="Swap_Quoting">تسعير</string>
-    <string name="Swap_Providers">Providers</string>
+    <string name="Swap_Providers">المزودون</string>
     <string name="Swap_SwapProvider_Title">Swap Provider</string>
     <string name="Swap_AmountMin">(min)</string>
     <string name="Swap_AmountMax">(max)</string>
@@ -628,6 +630,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Invalid address</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Invalid %s address</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Your transaction may be frontrun</string>
+    <string name="swap_providers_title">موفرو التبادل</string>
+    <string name="swap_providers_mandatory_toast">لا يمكن تعطيل هذا الموفر</string>
+    <string name="swap_no_enabled_providers">لا يوجد موفرون مفعَّلون</string>
     <!-- Swap Confirmation -->
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>
@@ -1508,7 +1513,14 @@
     <string name="premium_try_for_free">جرب مجاناً</string>
     <string name="premium_upgrade_text">حسّن تجربتك مع الميزات المميزة!</string>
     <string name="premium_available">⭐️ المميزات المدفوعة متاحة</string>
-    <string name="premium_demo_days_left">النسخة التجريبية المميزة: %d يوم متبقي</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="zero">النسخة التجريبية المميزة: لا أيام متبقية</item>
+        <item quantity="one">النسخة التجريبية المميزة: يوم واحد متبقي</item>
+        <item quantity="two">النسخة التجريبية المميزة: يومان متبقيان</item>
+        <item quantity="few">النسخة التجريبية المميزة: %d أيام متبقية</item>
+        <item quantity="many">النسخة التجريبية المميزة: %d يومًا متبقيًا</item>
+        <item quantity="other">النسخة التجريبية المميزة: %d يوم متبقي</item>
+    </plurals>
     <string name="premium_select_wallet_title">اختر محفظة للتجربة</string>
     <string name="premium_select_wallet_description">اختر محفظة لتفعيل الميزات التجريبية المميزة. يمكن لمحفظة واحدة فقط الحصول على النسخة التجريبية المميزة في كل مرة.</string>
     <string name="premium_demo_activated">تم تفعيل النسخة التجريبية المميزة بنجاح!</string>

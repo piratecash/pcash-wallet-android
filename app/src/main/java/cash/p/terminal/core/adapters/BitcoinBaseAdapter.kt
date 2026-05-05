@@ -391,14 +391,14 @@ abstract class BitcoinBaseAdapter(
 
                 if (progress >= 100) {
                     AdapterState.Syncing(
-                        progress = 100,
+                        progress = 100.0,
                         lastBlockDate = lastBlockDate,
                         blocksRemained = null,
                         substatus = substatus
                     )
                 } else {
                     AdapterState.Syncing(
-                        progress = progress,
+                        progress = progress.toDouble(),
                         lastBlockDate = lastBlockDate,
                         blocksRemained = blocksRemained,
                         substatus = substatus

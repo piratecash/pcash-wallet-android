@@ -21,8 +21,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,14 +56,13 @@ fun FormsInputPassword(
     singleLine: Boolean = true,
     state: DataState<Any>? = null,
     maxLength: Int? = null,
-    hide: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     enabled: Boolean = true,
     textState: MutableState<TextFieldValue> = rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) },
     onValueChange: (String) -> Unit,
-    onToggleHide: () -> Unit
 ) {
+    var hide by remember { mutableStateOf(true) }
     val borderColor = when (state) {
         is DataState.Error -> {
             if (state.error is FormsInputStateWarning) {
@@ -146,7 +148,7 @@ fun FormsInputPassword(
             Icon(
                 modifier = Modifier
                     .size(20.dp)
-                    .clickable(onClick = onToggleHide, interactionSource = MutableInteractionSource(), indication = null),
+                    .clickable(onClick = { hide = !hide }, interactionSource = MutableInteractionSource(), indication = null),
                 painter = painterResource(id = if (hide) R.drawable.ic_eye_off_20 else R.drawable.ic_eye_20),
                 contentDescription = null,
                 tint = ComposeAppTheme.colors.grey

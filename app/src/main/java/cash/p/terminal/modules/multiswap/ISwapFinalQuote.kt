@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.HSCaution
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.wallet.Token
@@ -16,6 +17,7 @@ interface ISwapFinalQuote {
     val priceImpact: BigDecimal?
     val fields: List<DataField>
     val cautions: List<HSCaution>
+    val swapProviderTransaction: SwapProviderTransaction? get() = null
 }
 
 data class SwapFinalQuoteEvm(
@@ -27,7 +29,8 @@ data class SwapFinalQuoteEvm(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    override val cautions: List<HSCaution> = listOf()
+    override val cautions: List<HSCaution> = listOf(),
+    override val swapProviderTransaction: SwapProviderTransaction? = null,
 ) : ISwapFinalQuote
 
 data class SwapFinalQuoteThorChain(

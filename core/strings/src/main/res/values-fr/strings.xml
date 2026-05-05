@@ -29,6 +29,7 @@
     <string name="Button_Advanced">Avancé</string>
     <string name="hardware_wallet">Portefeuille matériel</string>
     <string name="hardware_wallet_not_detected_error">Aucun lecteur NFC détecté, activez-le pour utiliser les cartes matérielles</string>
+    <string name="hardware_wallet_not_detected">Portefeuille matériel (NFC non détecté)</string>
     <string name="hardware_wallet_offline_confirmation_title">Activation hors ligne</string>
     <string name="hardware_wallet_offline_confirmation_message">La vérification de l’authenticité de la carte ne peut pas accéder au serveur. Vérifiez votre connexion Internet ou autorisez l’activation hors ligne. L’activation hors ligne contourne les vérifications serveur et réduit le niveau de sécurité. Poursuivre l’activation hors ligne ?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Continuer hors ligne</string>
@@ -625,6 +626,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Adresse invalide</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">%s Adresse non valide</string>
     <string name="SwapSettings_Warning_UnusualSlippage">Votre transaction peut être frontrun</string>
+    <string name="swap_providers_title">Fournisseurs de swap</string>
+    <string name="swap_providers_mandatory_toast">Ce fournisseur ne peut pas être désactivé</string>
+    <string name="swap_no_enabled_providers">Aucun fournisseur actif</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Vous pouvez échanger %s, ou vous devez révoquer et approuver le nouveau montant</string>
@@ -1502,7 +1506,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="premium_try_for_free">Essayer GRATUITEMENT</string>
     <string name="premium_upgrade_text">Améliorez votre expérience avec les fonctionnalités Premium !</string>
     <string name="premium_available">⭐️ Premium est disponible</string>
-    <string name="premium_demo_days_left">Demo Premium : %d jours restants</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium : %d jour restant</item>
+        <item quantity="many">Demo Premium : %d jours restants</item>
+        <item quantity="other">Demo Premium : %d jours restants</item>
+    </plurals>
     <string name="premium_select_wallet_title">Sélectionner un portefeuille pour la démo</string>
     <string name="premium_select_wallet_description">Choisissez un portefeuille pour activer les fonctionnalités de démo premium. Un seul portefeuille peut avoir la démo premium à la fois.</string>
     <string name="premium_demo_activated">Demo Premium activé avec succès !</string>

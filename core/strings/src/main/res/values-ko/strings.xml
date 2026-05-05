@@ -44,6 +44,8 @@
     <string name="Button_Browser">자동</string>
     <string name="Button_Delete">삭제</string>
     <string name="Button_LearnMore">자세히 보기</string>
+    <string name="hardware_wallet">하드웨어 지갑</string>
+    <string name="hardware_wallet_not_detected">하드웨어 지갑 (NFC 감지되지 않음)</string>
     <string name="hardware_wallet_offline_confirmation_title">오프라인 활성화</string>
     <string name="hardware_wallet_offline_confirmation_message">서버에서 카드의 진위를 확인할 수 없습니다. 인터넷 연결을 확인하거나 오프라인 활성화를 허용해 주세요. 오프라인 활성화 시 서버 검증이 생략되어 보안 보장이 낮아집니다. 오프라인으로 계속 진행하시겠습니까?</string>
     <string name="hardware_wallet_offline_confirmation_positive">오프라인으로 계속</string>
@@ -629,6 +631,9 @@
     <string name="SwapSettings_Error_InvalidAddress">잘못된 주소</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">잘못된 %s 주소</string>
     <string name="SwapSettings_Warning_UnusualSlippage">거래가 프론트런 당할 수 있습니다</string>
+    <string name="swap_providers_title">스왑 제공자</string>
+    <string name="swap_providers_mandatory_toast">이 제공자는 비활성화할 수 없습니다</string>
+    <string name="swap_no_enabled_providers">활성화된 제공자 없음</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">%s을(를) 교환하거나 새 금액을 취소하고 승인해야 합니다.</string>
@@ -1504,7 +1509,9 @@
     <string name="premium_try_for_free">무료로 체험</string>
     <string name="premium_upgrade_text">프리미엄 기능으로 경험을 업그레이드하세요!</string>
     <string name="premium_available">⭐️ 프리미엄 이용 가능</string>
-    <string name="premium_demo_days_left">데모 프리미엄: %d일 남음</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="other">데모 프리미엄: %d일 남음</item>
+    </plurals>
     <string name="premium_select_wallet_title">데모용 지갑 선택</string>
     <string name="premium_select_wallet_description">데모 프리미엄 기능을 활성화할 지갑을 선택하세요. 한 번에 하나의 지갑만 데모 프리미엄을 사용할 수 있습니다.</string>
     <string name="premium_demo_activated">데모 프리미엄이 성공적으로 활성화되었습니다!</string>

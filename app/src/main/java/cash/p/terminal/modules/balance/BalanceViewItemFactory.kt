@@ -93,7 +93,17 @@ enum class SyncingProgressType {
     Spinner, ProgressWithRing
 }
 
-data class SyncingProgress(val type: SyncingProgressType?, val progress: Int?)
+data class SyncingProgress(val type: SyncingProgressType?, val progress: Double?)
+
+fun formatProgressPercent(progress: Double): String {
+    return when {
+        progress >= 10.0 -> progress.toInt().toString()
+        progress >= 1.0 -> "%.1f".format(progress)
+        progress >= 0.01 -> "%.2f".format(progress)
+        progress > 0.0 -> "<0.01"
+        else -> "0"
+    }
+}
 
 class BalanceViewItemFactory {
 
@@ -102,13 +112,13 @@ class BalanceViewItemFactory {
         blockchainType: BlockchainType
     ): SyncingProgress {
         return when (state) {
-            is AdapterState.Connecting -> SyncingProgress(SyncingProgressType.Spinner, 10)
+            is AdapterState.Connecting -> SyncingProgress(SyncingProgressType.Spinner, 10.0)
             is AdapterState.Syncing -> {
                 if (state.substatus != null) {
-                    SyncingProgress(SyncingProgressType.Spinner, 10)
+                    SyncingProgress(SyncingProgressType.Spinner, 10.0)
                 } else {
                     val progress = state.progress
-                    val progressValue = progress ?: getDefaultSyncingProgress(blockchainType)
+                    val progressValue = progress ?: getDefaultSyncingProgress(blockchainType).toDouble()
                     if (progress != null && progress > 0 && blockchainType.isSyncWithProgress()) {
                         SyncingProgress(SyncingProgressType.ProgressWithRing, progressValue)
                     } else {
@@ -116,7 +126,7 @@ class BalanceViewItemFactory {
                     }
                 }
             }
-            is AdapterState.SearchingTxs -> SyncingProgress(SyncingProgressType.Spinner, 10)
+            is AdapterState.SearchingTxs -> SyncingProgress(SyncingProgressType.Spinner, 10.0)
             else -> SyncingProgress(null, null)
         }
     }
@@ -202,7 +212,7 @@ class BalanceViewItemFactory {
             progress != null && progress > 0 -> {
                 Translator.getString(
                     R.string.Balance_Syncing_WithProgress,
-                    progress.toString()
+                    formatProgressPercent(progress)
                 )
             }
             else -> Translator.getString(R.string.Balance_Syncing)

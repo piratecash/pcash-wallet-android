@@ -44,6 +44,8 @@
     <string name="Button_Browser">Tarayıcı</string>
     <string name="Button_Delete">Sil</string>
     <string name="Button_LearnMore">Daha fazla bilgi edin</string>
+    <string name="hardware_wallet">Donanım Cüzdanı</string>
+    <string name="hardware_wallet_not_detected">Donanım Cüzdanı (NFC algılanmadı)</string>
     <string name="hardware_wallet_offline_confirmation_title">Çevrimdışı etkinleştirme</string>
     <string name="hardware_wallet_offline_confirmation_message">Kart doğrulaması sunucuya ulaşılamadığı için yapılamıyor. İnternet bağlantınızı kontrol edin veya çevrimdışı etkinleştirmeye izin verin. Çevrimdışı etkinleştirmede sunucu kontrolleri atlanır ve güvenlik seviyesi düşer. Çevrimdışı etkinleştirmeye devam edilsin mi?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Çevrimdışı devam et</string>
@@ -629,6 +631,9 @@
     <string name="SwapSettings_Error_InvalidAddress">Geçersiz adres</string>
     <string name="SwapSettings_Error_InvalidBlockchainAddress">Geçersiz %s adres</string>
     <string name="SwapSettings_Warning_UnusualSlippage">İşleminiz varlık fiyatını etkileyebilir</string>
+    <string name="swap_providers_title">Takas sağlayıcıları</string>
+    <string name="swap_providers_mandatory_toast">Bu sağlayıcı devre dışı bırakılamaz</string>
+    <string name="swap_no_enabled_providers">Etkin sağlayıcı yok</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">%s alışverişi yapabilir veya yeni tutarı iptal edip onaylamanız gerekir</string>
@@ -1505,7 +1510,10 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="premium_try_for_free">ÜCRETSİZ Deneyin</string>
     <string name="premium_upgrade_text">Premium özelliklerle deneyiminizi yükseltin!</string>
     <string name="premium_available">⭐️ Premium kullanılabilir</string>
-    <string name="premium_demo_days_left">Demo Premium: %d gün kaldı</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium: %d gün kaldı</item>
+        <item quantity="other">Demo Premium: %d gün kaldı</item>
+    </plurals>
     <string name="premium_select_wallet_title">Demo için Cüzdan Seçin</string>
     <string name="premium_select_wallet_description">Demo premium özelliklerini etkinleştirmek için bir cüzdan seçin. Aynı anda yalnızca bir cüzdan demo premium\'e sahip olabilir.</string>
     <string name="premium_demo_activated">Demo Premium başarıyla etkinleştirildi!</string>
