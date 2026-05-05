@@ -11,6 +11,8 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.authorizedDeleteContactsPasscodeAction
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.premiumAction
@@ -83,7 +85,7 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
             val viewModel = viewModel<ContactsViewModel>(factory = ContactsModule.ContactsViewModelFactory(mode))
             ContactsScreen(
                 viewModel = viewModel,
-                onNavigateToBack = { navController.popBackStack() },
+                onNavigateToBack = { navController.popBackStackSafely() },
                 onNavigateToCreateContact = { navHostController.navigate("contact") },
                 onNavigateToSettings = { navHostController.navigate("settings") },
                 onNavigateToContact = { contact ->
@@ -126,7 +128,7 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
                         viewModel.disableDeleteContactsPin()
                     }
                 },
-                onClose = navHostController::navigateUp
+                onClose = navHostController::navigateUpSafely
             )
         }
         composablePage(route = "contact") { backStackEntry ->
@@ -142,9 +144,9 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
                 viewModel = viewModel,
                 onNavigateToBack = {
                     if (mode == Mode.Full) {
-                        navHostController.popBackStack()
+                        navHostController.popBackStackSafely()
                     } else {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 },
                 onNavigateToAddress = { address ->
@@ -198,7 +200,7 @@ fun ContactsNavHost(navController: NavController, mode: Mode) {
                         }
                     )
                 },
-                onCloseNavHost = { navHostController.popBackStack() }
+                onCloseNavHost = { navHostController.popBackStackSafely() }
             )
         }
     }
@@ -245,10 +247,10 @@ fun AddressNavHost(
                 onSelectBlockchain = { blockchain ->
                     viewModel.onEnterBlockchain(blockchain)
 
-                    navHostController.popBackStack()
+                    navHostController.popBackStackSafely()
                 },
                 onNavigateToBack = {
-                    navHostController.popBackStack()
+                    navHostController.popBackStackSafely()
                 }
             )
         }

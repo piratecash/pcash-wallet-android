@@ -32,6 +32,7 @@ import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -80,7 +81,7 @@ fun SendStellarScreen(
 
         SendScreen(
             title = title,
-            onCloseClick = { navController.popBackStack() },
+            onCloseClick = { navController.popBackStackSafely() },
             proceedEnabled = proceedEnabled,
             onSendClick = {
                 onNextClick(

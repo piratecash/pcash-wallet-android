@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.ui_compose.components.AppBar
@@ -64,7 +65,7 @@ fun WCPairingsScreen(navController: NavController) {
             AppBar(
                 title = stringResource(R.string.WalletConnect_PairedDApps),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
         }

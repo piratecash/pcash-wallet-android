@@ -30,6 +30,7 @@ import cash.p.terminal.feature.miniapp.ui.connect.screens.TokenMissingScreen
 import cash.p.terminal.feature.miniapp.ui.connect.screens.WalletSelectionScreen
 import cash.p.terminal.navigation.BackupKeyInput
 import cash.p.terminal.navigation.entity.SwapParams
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -61,7 +62,7 @@ class ConnectMiniAppFragment : BaseComposeFragment() {
 
     private fun openMiniApp() {
         val context = requireContext()
-        findNavController().popBackStack()
+        findNavController().popBackStackSafely()
         val intent = Intent(Intent.ACTION_VIEW, TELEGRAM_BOT_URL.toUri())
         context.startActivity(intent)
     }
@@ -91,7 +92,7 @@ private fun ConnectMiniAppNavHost(
                     MenuItem(
                         title = TranslatableString.PlainString(""),
                         icon = R.drawable.ic_close_24,
-                        onClick = { fragmentNavController.popBackStack() }
+                        onClick = { fragmentNavController.popBackStackSafely() }
                     )
                 )
             )

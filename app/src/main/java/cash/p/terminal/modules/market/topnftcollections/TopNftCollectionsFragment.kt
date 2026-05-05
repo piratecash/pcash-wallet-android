@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.entities.ViewState
@@ -61,7 +62,7 @@ class TopNftCollectionsFragment : BaseComposeFragment() {
 
             TopNftCollectionsScreen(
                 viewModel,
-                { navController.popBackStack() },
+                { navController.popBackStackSafely() },
                 { blockchainType, collectionUid ->
                     val args = NftCollectionFragment.Input(collectionUid, blockchainType.uid)
                     navController.slideFromBottom(R.id.nftCollectionFragment, args)

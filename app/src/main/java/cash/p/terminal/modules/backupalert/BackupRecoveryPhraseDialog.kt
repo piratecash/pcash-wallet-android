@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.navigation.BackupKeyInput
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -61,7 +62,7 @@ fun BackupRecoveryPhraseScreen(
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
             title = stringResource(R.string.BackupRecoveryPhrase_Title),
             onCloseClick = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         ) {
             VSpacer(12.dp)
@@ -90,7 +91,7 @@ fun BackupRecoveryPhraseScreen(
                     .padding(horizontal = 24.dp),
                 title = stringResource(R.string.BackupRecoveryPhrase_Later),
                 onClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
             VSpacer(32.dp)

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.setNavigationResultX
@@ -61,7 +62,7 @@ fun SelectContactScreen(navController: NavController, input: SelectContactFragme
                     title3_leah(text = stringResource(id = R.string.Contacts))
                 },
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack)
+                    HsBackButton(onClick = navController::popBackStackSafely)
                 },
             )
         }
@@ -82,7 +83,7 @@ fun SelectContactScreen(navController: NavController, input: SelectContactFragme
                 items(uiState.items) { contact ->
                     CellContact(contact, uiState.selected) {
                         navController.setNavigationResultX(SelectContactFragment.Result(contact))
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 }
                 item {

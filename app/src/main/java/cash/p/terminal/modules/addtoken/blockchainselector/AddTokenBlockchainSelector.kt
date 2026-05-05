@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import io.horizontalsystems.chartview.cell.CellBlockchainChecked
@@ -34,7 +35,7 @@ fun AddTokenBlockchainSelectorScreen(
             AppBar(
                 title = stringResource(R.string.Market_Filter_Blockchains),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
         },
@@ -57,7 +58,7 @@ fun AddTokenBlockchainSelectorScreen(
                         navController.previousBackStackEntry
                             ?.savedStateHandle
                             ?.set(BlockchainSelectorResult, listOf(item))
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 }
             }

@@ -30,6 +30,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.navigation.popBackStackOrExecute
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.imageUrl
 import cash.p.terminal.ui.compose.components.Badge
 import cash.p.terminal.ui_compose.components.CellMultilineClear
@@ -73,7 +74,7 @@ fun FilterCoinScreen(navController: NavController, viewModel: TransactionsViewMo
             AppBar(
                 title = stringResource(R.string.Transactions_Filter_ChooseCoin),
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack)
+                    HsBackButton(onClick = navController::popBackStackSafely)
                 }
             )
             filterCoins?.let { filterCoins ->
@@ -88,7 +89,7 @@ fun FilterCoinScreen(navController: NavController, viewModel: TransactionsViewMo
                                     .fillMaxSize()
                                     .clickable {
                                         viewModel.setFilterToken(it.item)
-                                        navController.popBackStack()
+                                        navController.popBackStackSafely()
                                     }
                                     .padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically

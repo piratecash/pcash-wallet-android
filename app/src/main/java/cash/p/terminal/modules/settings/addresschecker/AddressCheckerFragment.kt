@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -44,7 +45,7 @@ class AddressCheckerFragment : BaseComposeFragment() {
             onCheckAddressClick = {
                 navController.slideFromRight(R.id.addressCheckFragment)
             },
-            onClose = navController::navigateUp
+            onClose = navController::navigateUpSafely
         )
     }
 

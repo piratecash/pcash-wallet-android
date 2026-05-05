@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui.compose.components.ListEmptyView
 
@@ -29,7 +30,7 @@ fun WCSessionError(
                 .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
                 .align(Alignment.BottomCenter),
             title = stringResource(R.string.Button_Close),
-            onClick = { navController.popBackStack() }
+            onClick = { navController.popBackStackSafely() }
         )
     }
 }

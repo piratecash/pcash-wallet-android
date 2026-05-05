@@ -28,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.isEvm
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.wallet.Wallet
@@ -86,13 +87,13 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
         coinCode = wallet.coin.code,
         errorDescription = errorDescription,
         showChangeSourceButton = viewModel.sourceChangeable,
-        onClose = navController::popBackStack,
+        onClose = navController::popBackStackSafely,
         onRetry = {
             viewModel.retry()
-            navController.popBackStack()
+            navController.popBackStackSafely()
         },
         onChangeSource = {
-            navController.popBackStack()
+            navController.popBackStackSafely()
 
             val blockchainWrapper = viewModel.blockchainWrapper
             when (blockchainWrapper?.type) {
@@ -114,7 +115,7 @@ private fun SyncErrorScreen(navController: NavController, wallet: Wallet, error:
             }
         },
         onReport = {
-            navController.popBackStack()
+            navController.popBackStackSafely()
 
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = Uri.parse("mailto:")

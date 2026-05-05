@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -57,7 +58,7 @@ fun AddRpcScreen(
                     title = TranslatableString.ResString(R.string.Button_Close),
                     icon = R.drawable.ic_close_24,
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             )

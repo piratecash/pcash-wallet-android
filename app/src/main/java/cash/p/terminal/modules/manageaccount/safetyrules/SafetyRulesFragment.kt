@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import kotlinx.parcelize.Parcelize
@@ -33,15 +34,15 @@ class SafetyRulesFragment : BaseComposeFragment() {
             onAgreeClick = {
                 viewModel.agree()
                 navController.setNavigationResultX(Result.AGREED)
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
             onRiskItClick = {
                 navController.setNavigationResultX(Result.RISK_IT)
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
             onCancelClick = {
                 navController.setNavigationResultX(Result.CANCELLED)
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         )
     }

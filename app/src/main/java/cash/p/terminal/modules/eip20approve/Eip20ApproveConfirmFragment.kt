@@ -22,6 +22,7 @@ import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.TokenRow
 import cash.p.terminal.modules.multiswap.TokenRowUnlimited
 import cash.p.terminal.modules.fee.DataFieldFee
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
@@ -58,7 +59,7 @@ internal fun Eip20ApproveConfirmScreen(navController: NavController) {
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
-        onClickBack = navController::popBackStack,
+        onClickBack = navController::popBackStackSafely,
         onClickSettings = {
             navController.slideFromRight(R.id.eip20ApproveTransactionSettingsFragment)
         },

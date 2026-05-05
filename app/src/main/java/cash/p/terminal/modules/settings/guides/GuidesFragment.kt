@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.navigation.slideFromRight
@@ -61,7 +62,7 @@ fun GuidesScreen(navController: NavController) {
         AppBar(
             title = stringResource(R.string.Guides_Title),
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             }
         )
 

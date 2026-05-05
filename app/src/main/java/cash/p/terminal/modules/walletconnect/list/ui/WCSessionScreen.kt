@@ -34,6 +34,7 @@ import cash.p.terminal.modules.walletconnect.list.WalletConnectListModule
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListUiState
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel.ConnectionResult
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.components.AppBar
@@ -120,7 +121,7 @@ fun WCSessionsScreen(
                 AppBar(
                     title = stringResource(R.string.WalletConnect_Title),
                     navigationIcon = {
-                        HsBackButton(onClick = { navController.popBackStack() })
+                        HsBackButton(onClick = { navController.popBackStackSafely() })
                     },
                     menuItems = listOf(
                         MenuItem(

@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.helpers.LinkHelper
@@ -28,7 +29,7 @@ class MarkdownFragment : BaseComposeFragment() {
         MarkdownScreen(
             showAsPopup = input?.showAsPopup ?: false,
             markdownUrl = input?.markdownUrl ?: "",
-            onCloseClick = { navController.popBackStack() },
+            onCloseClick = { navController.popBackStackSafely() },
             onUrlClick = { url ->
                 navController.openMarkdownOrWeblink(url)
             }

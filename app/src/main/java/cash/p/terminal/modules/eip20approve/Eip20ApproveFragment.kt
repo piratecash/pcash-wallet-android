@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.entities.CoinValue
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRightForResult
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -74,7 +75,7 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
-                        onClick = navController::popBackStack
+                        onClick = navController::popBackStackSafely
                     )
                 )
             )
@@ -135,7 +136,7 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
                     viewModel.freeze()
                     navController.slideFromRightForResult<Eip20ApproveConfirmFragment.Result>(R.id.eip20ApproveConfirmFragment) {
                         navController.setNavigationResultX(it)
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 },
             )

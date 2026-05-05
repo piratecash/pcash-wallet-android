@@ -28,6 +28,8 @@ import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestorePhrase
 import cash.p.terminal.modules.restoreaccount.restoremnemonicnonstandard.RestorePhraseNonStandard
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureScreen
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.Translator.getString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -107,7 +109,7 @@ private fun RestoreAccountNavHost(
                 openRestoreAdvanced = { navController.navigate(RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED) },
                 openSelectCoins = { navController.navigate("restore_select_coins") },
                 openNonStandardRestore = { navController.navigate("restore_phrase_nonstandard") },
-                onBackClick = { fragmentNavController.popBackStack() },
+                onBackClick = { fragmentNavController.popBackStackSafely() },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
                 prefillWords = prefillWords,
                 prefillPassphrase = prefillPassphrase,
@@ -123,8 +125,8 @@ private fun RestoreAccountNavHost(
                     navController.navigate("restore_phrase_nonstandard")
                 },
                 onBackClick = {
-                    if (!navController.popBackStack()) {
-                        fragmentNavController.popBackStack()
+                    if (!navController.popBackStackSafely()) {
+                        fragmentNavController.popBackStackSafely()
                     }
                 },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
@@ -166,7 +168,7 @@ private fun RestoreAccountNavHost(
                 onChangePassphrase = viewModel::onChangePassphrase,
                 onChangePassphraseConfirmation = viewModel::onChangePassphraseConfirmation,
                 onCreate = viewModel::createAccount,
-                onBackClick = { fragmentNavController.popBackStack() },
+                onBackClick = { fragmentNavController.popBackStackSafely() },
                 onOpenTerms = {
                     navController.navigate("passphrase_terms")
                 },
@@ -186,9 +188,9 @@ private fun RestoreAccountNavHost(
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("passphrase_terms_agreed", true)
-                    navController.navigateUp()
+                    navController.navigateUpSafely()
                 },
-                onBackClick = navController::navigateUp
+                onBackClick = navController::navigateUpSafely
             )
         }
         composablePage("restore_select_coins") {
@@ -203,14 +205,14 @@ private fun RestoreAccountNavHost(
                         navController.navigate("monero_configure")
                     }
                 },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStackSafely() }
             ) { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
         }
         composablePage("restore_phrase_nonstandard") {
             RestorePhraseNonStandard(
                 mainViewModel = mainViewModel,
                 openSelectCoinsScreen = { navController.navigate("restore_select_coins") },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStackSafely() }
             )
         }
         composablePopup("zcash_configure") {
@@ -219,12 +221,12 @@ private fun RestoreAccountNavHost(
                 onCloseWithResult = { config ->
                     mainViewModel.setZCashConfig(config)
                     mainViewModel.setZCashInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onCloseClick = {
                     mainViewModel.cancelZCashConfig = true
                     mainViewModel.setZCashInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
         }
@@ -237,12 +239,12 @@ private fun RestoreAccountNavHost(
                 onCloseWithResult = {
                     mainViewModel.setMoneroConfig(it)
                     mainViewModel.setMoneroInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onCloseClick = {
                     mainViewModel.cancelMoneroConfig = true
                     mainViewModel.setMoneroInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onRestoreNew = viewModel::onRestoreNew,
                 onSetBirthdayHeight = viewModel::setBirthdayHeight,

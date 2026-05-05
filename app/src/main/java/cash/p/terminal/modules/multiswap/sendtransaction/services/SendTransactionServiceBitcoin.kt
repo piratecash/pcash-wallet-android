@@ -50,6 +50,7 @@ import cash.p.terminal.modules.send.bitcoin.SendBitcoinPluginService
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.settings.SendBtcSettingsViewModel
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -304,7 +305,7 @@ fun SendBtcFeeSettingsScreen(
         AppBar(
             title = stringResource(R.string.SendEvmSettings_Title),
             navigationIcon = {
-                HsIconButton(onClick = { navController.popBackStack() }) {
+                HsIconButton(onClick = { navController.popBackStackSafely() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_back),
                         contentDescription = "back button",

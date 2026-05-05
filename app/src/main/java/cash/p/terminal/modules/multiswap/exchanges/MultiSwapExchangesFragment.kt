@@ -33,6 +33,7 @@ import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsV
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -79,8 +80,8 @@ class MultiSwapExchangesFragment : BaseComposeFragment() {
                     fragmentNavController = navController,
                     transactionsViewModel = transactionsViewModel,
                     onBack = {
-                        if (!innerNavController.navigateUp()) {
-                            navController.navigateUp()
+                        if (!innerNavController.navigateUpSafely()) {
+                            navController.navigateUpSafely()
                         }
                     },
                 )
@@ -111,7 +112,7 @@ private fun ExchangesListContent(
         uiState = viewModel.uiState,
         onSelect = { id -> innerNavController.navigate(DetailRoute(id)) },
         onDelete = viewModel::onDelete,
-        onBack = fragmentNavController::navigateUp,
+        onBack = fragmentNavController::navigateUpSafely,
     )
 }
 
@@ -196,7 +197,7 @@ private fun ExchangeDetailContent(
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
-                onClickClose = detailNavController::navigateUp,
+                onClickClose = detailNavController::navigateUpSafely,
                 onClickSettings = {
                     detailNavController.navigate(SwapProvidersSettingsRoute)
                 },
@@ -211,13 +212,13 @@ private fun ExchangeDetailContent(
                 },
                 onSelectQuote = { quote ->
                     viewModel.onSelectLeg2Quote(quote)
-                    detailNavController.navigateUp()
+                    detailNavController.navigateUpSafely()
                 }
             )
         }
         composablePage<ConfirmSwapRoute> {
             val quote = viewModel.selectedLeg2Quote ?: run {
-                LaunchedEffect(Unit) { detailNavController.navigateUp() }
+                LaunchedEffect(Unit) { detailNavController.navigateUpSafely() }
                 return@composablePage
             }
             val balanceState by viewModel.leg2BalanceStateFlow.collectAsStateWithLifecycle(viewModel.leg2BalanceStateFlow.value)

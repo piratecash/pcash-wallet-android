@@ -34,6 +34,7 @@ import cash.p.terminal.modules.xtransaction.sections.SendCoinSection
 import cash.p.terminal.modules.xtransaction.sections.SwapSection
 import cash.p.terminal.modules.xtransaction.sections.ton.ContractCallSection
 import cash.p.terminal.modules.xtransaction.sections.ton.ContractDeploySection
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -83,7 +84,7 @@ fun TonConnectSendRequestScreen(navController: NavController) {
     }
 
     ConfirmTransactionScreen(
-        onClickBack = navController::popBackStack,
+        onClickBack = navController::popBackStackSafely,
         onClickSettings = null,
         onClickClose = null,
         buttonsSlot = {
@@ -95,7 +96,7 @@ fun TonConnectSendRequestScreen(navController: NavController) {
                     title = stringResource(R.string.Button_Close),
                     enabled = true,
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             } else {
@@ -138,7 +139,7 @@ fun TonConnectSendRequestScreen(navController: NavController) {
                     enabled = uiState.rejectEnabled,
                     onClick = {
                         viewModel.reject()
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             }

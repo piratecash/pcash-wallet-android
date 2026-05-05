@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.entities.ViewState
@@ -81,7 +82,7 @@ fun NftHoldingsScreen(navController: NavController) {
         AppBar(
             title = stringResource(R.string.Nfts_Title),
             navigationIcon = {
-                HsBackButton(onClick = navController::popBackStack)
+                HsBackButton(onClick = navController::popBackStackSafely)
             }
 
         )

@@ -15,10 +15,12 @@ import cash.p.terminal.core.premiumAction
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.pin.ConfirmPinFragment
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -166,7 +168,7 @@ private fun TokenBalanceNavHost(
                     navController.navigate(TokenBalanceRoute.AddressPoisoningView)
                 },
                 navController = fragmentNavController,
-                onBack = navController::popBackStack,
+                onBack = navController::popBackStackSafely,
             )
         }
         composablePage<TokenBalanceRoute.AddressPoisoningView> {
@@ -176,7 +178,7 @@ private fun TokenBalanceNavHost(
             AddressPoisoningViewScreen(
                 uiState = addressPoisoningViewModel.uiState,
                 onSelect = addressPoisoningViewModel::onSelect,
-                onClose = navController::navigateUp,
+                onClose = navController::navigateUpSafely,
             )
         }
     }

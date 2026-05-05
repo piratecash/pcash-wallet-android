@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.tangem.ui.HardwareWalletError
 import cash.p.terminal.ui_compose.components.HsCheckbox
@@ -122,7 +123,7 @@ private fun ResetToFactorySettingsScreen(
         topBar = {
             AppBar(
                 title = stringResource(R.string.reset_to_factory_settings),
-                navigationIcon = { HsBackButton(onClick = { navController.popBackStack() }) }
+                navigationIcon = { HsBackButton(onClick = { navController.popBackStackSafely() }) }
             )
         },
         containerColor = ComposeAppTheme.colors.tyler,
@@ -195,7 +196,7 @@ private fun ResetToFactorySettingsScreen(
                         .fillMaxWidth(),
                     title = stringResource(R.string.skip_and_finish),
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     },
                     enabled = checkedItems.size == 2
                 )

@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -51,7 +52,7 @@ private fun IndicatorsAlertScreen(navController: NavController) {
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.grey),
             title = stringResource(R.string.CoinPage_Indicators),
             onCloseClick = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         ) {
             InfoText(

@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.info.ui.InfoHeader
 import cash.p.terminal.strings.helpers.shorten
@@ -46,7 +47,7 @@ class TransactionDoubleSpendInfoFragment : BaseComposeFragment() {
             InfoScreen(
                 txHash = input.transactionHash,
                 conflictingTxHash = input.conflictingTransactionHash,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStackSafely() }
             )
         }
     }

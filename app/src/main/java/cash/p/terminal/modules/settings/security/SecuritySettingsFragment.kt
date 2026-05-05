@@ -45,6 +45,7 @@ import cash.p.terminal.modules.settings.security.ui.SystemPinBlock
 import cash.p.terminal.modules.settings.security.ui.TorBlock
 import cash.p.terminal.modules.settings.security.ui.TransactionAutoHideBlock
 import cash.p.terminal.modules.settings.security.ui.TransferPasscodeBlock
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.HsSwitch
 import io.horizontalsystems.core.ui.dialogs.ConfirmationDialogFragment
@@ -259,7 +260,7 @@ private fun SecurityCenterScreen(
             AppBar(
                 title = stringResource(R.string.Settings_SecurityCenter),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
         }
