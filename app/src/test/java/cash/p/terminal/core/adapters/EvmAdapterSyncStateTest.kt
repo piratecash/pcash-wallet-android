@@ -15,10 +15,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * Tests production EvmAdapter.balanceState to ensure native coin sync state
- * is independent of ERC20 historical/forward discovery sync.
- */
+// Guards: native ETH/BNB balance must not depend on ERC-20 history sync or Etherscan.
 class EvmAdapterSyncStateTest {
 
     private val repository: EvmTransactionRepository = mockk(relaxed = true)
@@ -113,12 +110,12 @@ class EvmAdapterSyncStateTest {
     }
 
     @Test
-    fun balanceState_txSyncError_returnsNotSynced() {
+    fun balanceState_txSyncError_returnsSynced_balanceDoesNotDependOnTxHistory() {
         val adapter = createAdapter(
-            txSyncState = SyncState.NotSynced(Exception("tx sync failed")),
+            txSyncState = SyncState.NotSynced(Exception("etherscan unavailable")),
         )
 
-        assertTrue(adapter.balanceState is AdapterState.NotSynced)
+        assertEquals(AdapterState.Synced, adapter.balanceState)
     }
 
     @Test
@@ -128,5 +125,62 @@ class EvmAdapterSyncStateTest {
         )
 
         assertEquals(AdapterState.Synced, adapter.balanceState)
+    }
+
+    // --- transactionsSyncState exposes overlay independently of balanceState ---
+
+    @Test
+    fun transactionsSyncState_balanceSyncedWhileHistoricalScanning_returnsSyncing() {
+        val adapter = createAdapter(
+            historicalSyncState = HistoricalSyncState.Syncing(
+                startBlock = 83_000_000,
+                currentBlock = 50_000_000
+            ),
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        assertEquals(AdapterState.Synced, adapter.balanceState)
+        assertTrue(adapter.transactionsSyncState is AdapterState.Syncing)
+    }
+
+    @Test
+    fun transactionsSyncState_balanceSyncedWhileForwardSyncing_returnsSyncing() {
+        val adapter = createAdapter(
+            forwardSyncState = ForwardSyncState.Syncing(
+                lastSyncedTip = 83_000_000,
+                chainTipBlock = 83_000_500
+            ),
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        assertEquals(AdapterState.Synced, adapter.balanceState)
+        assertTrue(adapter.transactionsSyncState is AdapterState.Syncing)
+    }
+
+    @Test
+    fun transactionsSyncState_allIdleAndTxSynced_returnsSynced() {
+        val adapter = createAdapter(
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
+    }
+
+    @Test
+    fun transactionsSyncState_txNotStarted_returnsSynced() {
+        val adapter = createAdapter(
+            txSyncState = SyncState.NotSynced(SyncError.NotStarted()),
+        )
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
+    }
+
+    @Test
+    fun transactionsSyncState_txSyncError_returnsNotSynced() {
+        val adapter = createAdapter(
+            txSyncState = SyncState.NotSynced(Exception("etherscan unavailable")),
+        )
+
+        assertTrue(adapter.transactionsSyncState is AdapterState.NotSynced)
     }
 }

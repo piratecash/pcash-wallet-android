@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.managers.TonKitWrapper
+import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
@@ -18,8 +19,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -43,47 +44,6 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
                 balanceUpdatedSubject.onNext(Unit)
             }
         }
-        coroutineScope.launch {
-            combine(
-                tonKit.syncStateFlow,
-                tonKit.eventSyncStateFlow,
-                tonKit.jettonSyncStateFlow
-            ) { accountSync, eventSync, jettonSync ->
-                getCombinedSyncState(accountSync, eventSync, jettonSync)
-            }.collect { combinedState ->
-                _balanceState.value = combinedState
-            }
-        }
-    }
-
-    private fun getCombinedSyncState(
-        accountSync: SyncState,
-        eventSync: SyncState,
-        jettonSync: SyncState
-    ): AdapterState {
-        // Check for errors first (any sync in error state)
-        if (accountSync is SyncState.NotSynced) {
-            return AdapterState.NotSynced(accountSync.error)
-        }
-        if (eventSync is SyncState.NotSynced) {
-            return AdapterState.NotSynced(eventSync.error)
-        }
-        if (jettonSync is SyncState.NotSynced) {
-            return AdapterState.NotSynced(jettonSync.error)
-        }
-
-        // Account syncing - show as Syncing (balance sync phase)
-        if (accountSync is SyncState.Syncing) {
-            return AdapterState.Syncing()
-        }
-
-        // Account synced, but events or jettons still syncing - show as SearchingTxs
-        if (eventSync is SyncState.Syncing || jettonSync is SyncState.Syncing) {
-            return AdapterState.SearchingTxs(0)
-        }
-
-        // All synced
-        return AdapterState.Synced
     }
 
     private fun getBalanceFromAccount(account: Account?): BigDecimal {
@@ -121,16 +81,28 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
     override val debugInfo: String
         get() = ""
 
-    private val _balanceState = MutableStateFlow(
-        getCombinedSyncState(
-            tonKit.syncStateFlow.value,
-            tonKit.eventSyncStateFlow.value,
-            tonKit.jettonSyncStateFlow.value
-        )
-    )
-    override val balanceState: AdapterState get() = _balanceState.value
+    // Balance: account/balance sync only — must not block send while history (events/jettons) loads.
+    override val balanceState: AdapterState
+        get() = tonKit.syncStateFlow.value.toAdapterState()
+
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = _balanceState.map { }
+        get() = tonKit.syncStateFlow.map { }
+
+    override val transactionsSyncState: AdapterState
+        get() {
+            val event = tonKit.eventSyncStateFlow.value
+            val jetton = tonKit.jettonSyncStateFlow.value
+            return when {
+                event is SyncState.NotSynced -> AdapterState.NotSynced(event.error)
+                jetton is SyncState.NotSynced -> AdapterState.NotSynced(jetton.error)
+                event is SyncState.Syncing || jetton is SyncState.Syncing -> AdapterState.SearchingTxs(0)
+                else -> AdapterState.Synced
+            }
+        }
+
+    override val transactionsSyncStateUpdatedFlow: Flow<Unit>
+        get() = merge(tonKit.eventSyncStateFlow.map { }, tonKit.jettonSyncStateFlow.map { })
+
     override val balanceData: BalanceData
         get() = BalanceData(balance)
     override val balanceUpdatedFlow: Flow<Unit>
@@ -167,4 +139,3 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
         }
     }
 }
-

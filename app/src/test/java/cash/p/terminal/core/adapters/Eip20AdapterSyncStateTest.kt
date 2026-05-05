@@ -1,86 +1,198 @@
 package cash.p.terminal.core.adapters
 
+import android.content.Context
+import cash.p.terminal.core.ICoinManager
+import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.StackingManager
+import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.erc20kit.core.Erc20Kit
 import io.horizontalsystems.ethereumkit.core.EthereumKit.ForwardSyncState
 import io.horizontalsystems.ethereumkit.core.EthereumKit.HistoricalSyncState
+import io.horizontalsystems.ethereumkit.core.EthereumKit.SyncError
+import io.horizontalsystems.ethereumkit.core.EthereumKit.SyncState
+import io.horizontalsystems.ethereumkit.models.Address
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigDecimal
 
+// Guards: BEP-20 Send/Swap must unlock as soon as eth_getBalance returns,
+// independently of ERC-20 history sync.
 class Eip20AdapterSyncStateTest {
 
-    // Mirrors forwardSyncAdapterState() logic from Eip20Adapter
-    private fun mapForwardSyncState(state: ForwardSyncState): AdapterState? {
-        if (state is ForwardSyncState.Syncing) {
-            return AdapterState.Syncing(
-                progress = 0.0,
-                blocksRemained = state.blocksRemaining
-            )
-        }
-        return null
-    }
+    private val context: Context = mockk(relaxed = true)
+    private val repository: EvmTransactionRepository = mockk(relaxed = true)
+    private val coinManager: ICoinManager = mockk(relaxed = true)
+    private val baseToken: Token = mockk(relaxed = true)
+    private val wallet: Wallet = mockk(relaxed = true)
+    private val labelManager: EvmLabelManager = mockk(relaxed = true)
+    private val stackingManager: StackingManager = mockk(relaxed = true)
+    private val erc20Kit: Erc20Kit = mockk(relaxed = true)
 
-    // Mirrors historicalSyncAdapterState() logic from BaseEvmAdapter
-    private fun mapHistoricalSyncState(state: HistoricalSyncState): AdapterState? {
-        if (state is HistoricalSyncState.Syncing) {
-            return AdapterState.Syncing(
-                progress = state.progress * 100.0,
-                blocksRemained = state.blocksRemaining
-            )
-        }
-        return null
-    }
+    private fun createAdapter(
+        eip20SyncState: SyncState = SyncState.Synced(),
+        historicalSyncState: HistoricalSyncState = HistoricalSyncState.Idle,
+        forwardSyncState: ForwardSyncState = ForwardSyncState.Idle,
+        evmTxSyncState: SyncState = SyncState.Synced(),
+        blockchainType: BlockchainType = BlockchainType.BinanceSmartChain,
+    ): Eip20Adapter {
+        every { wallet.decimal } returns 18
+        every { erc20Kit.syncState } returns eip20SyncState
+        every { repository.buildErc20Kit(any(), any<Address>()) } returns erc20Kit
+        every { repository.historicalSyncState } returns MutableStateFlow(historicalSyncState)
+        every { repository.forwardSyncState } returns MutableStateFlow(forwardSyncState)
+        every { repository.transactionsSyncState } returns evmTxSyncState
+        every { repository.getBlockchainType() } returns blockchainType
+        every { stackingManager.unpaidFlow } returns MutableStateFlow(BigDecimal.ZERO)
 
-    // Mirrors convertToAdapterState priority: historical ?: forward ?: fallback
-    private fun resolveState(
-        historicalState: HistoricalSyncState,
-        forwardState: ForwardSyncState,
-        fallback: AdapterState
-    ): AdapterState {
-        return mapHistoricalSyncState(historicalState)
-            ?: mapForwardSyncState(forwardState)
-            ?: fallback
-    }
-
-    @Test
-    fun convertToAdapterState_historicalSyncing_takesPriorityOverForward() {
-        val historical = HistoricalSyncState.Syncing(startBlock = 50000, currentBlock = 30000)
-        val forward = ForwardSyncState.Syncing(lastSyncedTip = 1000, chainTipBlock = 1500)
-
-        val result = resolveState(historical, forward, AdapterState.Synced)
-
-        // Should return historical, not forward
-        assertTrue(result is AdapterState.Syncing)
-        val syncing = result as AdapterState.Syncing
-        assertEquals(30000L, syncing.blocksRemained)
-    }
-
-    @Test
-    fun convertToAdapterState_forwardSyncing_mapsToAdapterStateSyncing() {
-        val historical = HistoricalSyncState.Idle
-        val forward = ForwardSyncState.Syncing(lastSyncedTip = 1000, chainTipBlock = 1500)
-
-        val result = resolveState(historical, forward, AdapterState.Synced)
-
-        assertTrue(result is AdapterState.Syncing)
-        val syncing = result as AdapterState.Syncing
-        assertEquals(0.0, syncing.progress)
-        assertEquals(500L, syncing.blocksRemained)
-    }
-
-    @Test
-    fun convertToAdapterState_bothIdle_returnsFallback() {
-        val result = resolveState(
-            HistoricalSyncState.Idle,
-            ForwardSyncState.Idle,
-            AdapterState.Synced
+        return Eip20Adapter(
+            context = context,
+            evmTransactionRepository = repository,
+            contractAddress = "0x0000000000000000000000000000000000000001",
+            baseToken = baseToken,
+            coinManager = coinManager,
+            wallet = wallet,
+            evmLabelManager = labelManager,
+            stackingManager = stackingManager,
         )
-        assertEquals(AdapterState.Synced, result)
+    }
+
+    // --- balanceState: pure mapping of eip20Kit.syncState ---
+
+    @Test
+    fun balanceState_eip20Synced_returnsSynced() {
+        val adapter = createAdapter(eip20SyncState = SyncState.Synced())
+
+        assertEquals(AdapterState.Synced, adapter.balanceState)
     }
 
     @Test
-    fun forwardSyncAdapterState_idle_returnsNull() {
-        assertNull(mapForwardSyncState(ForwardSyncState.Idle))
+    fun balanceState_eip20SyncedWhileHistoricalScanning_returnsSyncedNotOverlayed() {
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            historicalSyncState = HistoricalSyncState.Syncing(
+                startBlock = 83_000_000,
+                currentBlock = 50_000_000,
+            ),
+        )
+
+        assertEquals(AdapterState.Synced, adapter.balanceState)
+    }
+
+    @Test
+    fun balanceState_eip20SyncedWhileForwardSyncing_returnsSynced() {
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            forwardSyncState = ForwardSyncState.Syncing(
+                lastSyncedTip = 83_000_000,
+                chainTipBlock = 83_000_500,
+            ),
+        )
+
+        assertEquals(AdapterState.Synced, adapter.balanceState)
+    }
+
+    @Test
+    fun balanceState_eip20Syncing_returnsSyncing() {
+        val adapter = createAdapter(eip20SyncState = SyncState.Syncing())
+
+        assertTrue(adapter.balanceState is AdapterState.Syncing)
+    }
+
+    @Test
+    fun balanceState_eip20NotSynced_returnsNotSynced() {
+        val err = Exception("rpc unavailable")
+        val adapter = createAdapter(eip20SyncState = SyncState.NotSynced(err))
+
+        val state = adapter.balanceState
+        assertTrue(state is AdapterState.NotSynced)
+        assertEquals(err, (state as AdapterState.NotSynced).error)
+    }
+
+    // --- transactionsSyncState: overlay is exposed here ---
+
+    @Test
+    fun transactionsSyncState_historicalSyncing_returnsSyncingWithBlocksRemaining() {
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            historicalSyncState = HistoricalSyncState.Syncing(
+                startBlock = 83_000_000,
+                currentBlock = 50_000_000,
+            ),
+        )
+
+        val txState = adapter.transactionsSyncState
+        assertTrue(txState is AdapterState.Syncing)
+        assertEquals(50_000_000L, (txState as AdapterState.Syncing).blocksRemained)
+    }
+
+    @Test
+    fun transactionsSyncState_forwardSyncing_returnsSyncing() {
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            forwardSyncState = ForwardSyncState.Syncing(
+                lastSyncedTip = 83_000_000,
+                chainTipBlock = 83_000_500,
+            ),
+        )
+
+        val txState = adapter.transactionsSyncState
+        assertTrue(txState is AdapterState.Syncing)
+        assertEquals(500L, (txState as AdapterState.Syncing).blocksRemained)
+    }
+
+    @Test
+    fun transactionsSyncState_allIdleAndEvmTxSynced_returnsSynced() {
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            evmTxSyncState = SyncState.Synced(),
+        )
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
+    }
+
+    @Test
+    fun transactionsSyncState_evmTxNotStarted_returnsSynced() {
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            evmTxSyncState = SyncState.NotSynced(SyncError.NotStarted()),
+        )
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
+    }
+
+    @Test
+    fun transactionsSyncState_evmTxSyncError_returnsNotSynced() {
+        val err = Exception("etherscan unavailable")
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            evmTxSyncState = SyncState.NotSynced(err),
+        )
+
+        val txState = adapter.transactionsSyncState
+        assertTrue(txState is AdapterState.NotSynced)
+        assertEquals(err, (txState as AdapterState.NotSynced).error)
+    }
+
+    @Test
+    fun transactionsSyncState_nonBscWithHistoricalSyncing_ignoresOverlay() {
+        // Historical-sync overlay is gated to BSC; on other chains the guard must skip it.
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            historicalSyncState = HistoricalSyncState.Syncing(
+                startBlock = 100_000,
+                currentBlock = 50_000,
+            ),
+            blockchainType = BlockchainType.Ethereum,
+        )
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
     }
 }
