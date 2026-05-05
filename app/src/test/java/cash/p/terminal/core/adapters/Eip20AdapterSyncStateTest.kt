@@ -119,7 +119,9 @@ class Eip20AdapterSyncStateTest {
     // --- transactionsSyncState: overlay is exposed here ---
 
     @Test
-    fun transactionsSyncState_historicalSyncing_returnsSyncingWithBlocksRemaining() {
+    fun transactionsSyncState_historicalSyncing_returnsSyncedNotOverlayed() {
+        // Historical sync is intentionally NOT surfaced as a "Syncing" state, otherwise
+        // the UI would render a misleading "~89.7M blocks remaining" message on BSC.
         val adapter = createAdapter(
             eip20SyncState = SyncState.Synced(),
             historicalSyncState = HistoricalSyncState.Syncing(
@@ -128,9 +130,7 @@ class Eip20AdapterSyncStateTest {
             ),
         )
 
-        val txState = adapter.transactionsSyncState
-        assertTrue(txState is AdapterState.Syncing)
-        assertEquals(50_000_000L, (txState as AdapterState.Syncing).blocksRemained)
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
     }
 
     @Test
@@ -182,8 +182,8 @@ class Eip20AdapterSyncStateTest {
     }
 
     @Test
-    fun transactionsSyncState_nonBscWithHistoricalSyncing_ignoresOverlay() {
-        // Historical-sync overlay is gated to BSC; on other chains the guard must skip it.
+    fun transactionsSyncState_nonBscWithHistoricalSyncing_returnsSynced() {
+        // Sanity check: the same "no historical overlay" rule holds on non-BSC chains too.
         val adapter = createAdapter(
             eip20SyncState = SyncState.Synced(),
             historicalSyncState = HistoricalSyncState.Syncing(
