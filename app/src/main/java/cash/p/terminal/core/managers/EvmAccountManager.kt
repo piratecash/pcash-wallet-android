@@ -5,7 +5,6 @@ import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
-import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
@@ -90,7 +89,7 @@ class EvmAccountManager(
         }
     }
 
-    private fun handle(
+    private suspend fun handle(
         fullTransactions: List<FullTransaction>,
         account: Account,
         evmKitWrapper: EvmKitWrapper,
@@ -104,66 +103,46 @@ class EvmAccountManager(
 
         val address = evmKitWrapper.evmKit.receiveAddress
 
-        val foundTokens = mutableSetOf<FoundToken>()
+        val foundTokenTypes = mutableSetOf<TokenType>()
         val suspiciousTokenTypes = mutableSetOf<TokenType>()
 
         for (fullTransaction in fullTransactions) {
             when (val decoration = fullTransaction.decoration) {
                 is IncomingDecoration -> {
-                    foundTokens.add(FoundToken(TokenType.Native))
+                    foundTokenTypes.add(TokenType.Native)
                 }
 
                 is SwapDecoration -> {
                     val tokenOut = decoration.tokenOut
                     if (tokenOut is SwapDecoration.Token.Eip20Coin) {
-                        foundTokens.add(
-                            FoundToken(
-                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
-                                tokenOut.tokenInfo
-                            )
-                        )
+                        foundTokenTypes.add(TokenType.Eip20(tokenOut.address.hex.lowercase()))
                     }
                 }
 
                 is OneInchSwapDecoration -> {
                     val tokenOut = decoration.tokenOut
                     if (tokenOut is OneInchDecoration.Token.Eip20Coin) {
-                        foundTokens.add(
-                            FoundToken(
-                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
-                                tokenOut.tokenInfo
-                            )
-                        )
+                        foundTokenTypes.add(TokenType.Eip20(tokenOut.address.hex.lowercase()))
                     }
                 }
 
                 is OneInchUnoswapDecoration -> {
                     val tokenOut = decoration.tokenOut
                     if (tokenOut is OneInchDecoration.Token.Eip20Coin) {
-                        foundTokens.add(
-                            FoundToken(
-                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
-                                tokenOut.tokenInfo
-                            )
-                        )
+                        foundTokenTypes.add(TokenType.Eip20(tokenOut.address.hex.lowercase()))
                     }
                 }
 
                 is OneInchUnknownDecoration -> {
                     val tokenOut = decoration.tokenAmountOut?.token
                     if (tokenOut is OneInchDecoration.Token.Eip20Coin) {
-                        foundTokens.add(
-                            FoundToken(
-                                TokenType.Eip20(tokenOut.address.hex.lowercase()),
-                                tokenOut.tokenInfo
-                            )
-                        )
+                        foundTokenTypes.add(TokenType.Eip20(tokenOut.address.hex.lowercase()))
                     }
                 }
 
                 is UnknownTransactionDecoration -> {
                     if (decoration.internalTransactions.any { it.to == address }) {
-                        foundTokens.add(FoundToken(TokenType.Native))
+                        foundTokenTypes.add(TokenType.Native)
                     }
 
                     for (eventInstance in decoration.eventInstances) {
@@ -174,7 +153,7 @@ class EvmAccountManager(
                                 TokenType.Eip20(eventInstance.contractAddress.hex.lowercase())
 
                             if (decoration.fromAddress == address) {
-                                foundTokens.add(FoundToken(tokenType, eventInstance.tokenInfo))
+                                foundTokenTypes.add(tokenType)
                             } else {
                                 suspiciousTokenTypes.add(tokenType)
                             }
@@ -185,94 +164,35 @@ class EvmAccountManager(
         }
 
         handle(
-            foundTokens = foundTokens.toList(),
-            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokens.map { it.tokenType }
-                .toSet()).toList(),
+            foundTokenTypes = foundTokenTypes.toList(),
+            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokenTypes).toList(),
             account = account,
             evmKit = evmKitWrapper.evmKit
         )
     }
 
-    private fun handle(
-        foundTokens: List<FoundToken>,
+    private suspend fun handle(
+        foundTokenTypes: List<TokenType>,
         suspiciousTokenTypes: List<TokenType>,
         account: Account,
         evmKit: EthereumKit
     ) {
-        if (foundTokens.isEmpty() && suspiciousTokenTypes.isEmpty()) return
-
-        /*Log.e("AAA", "FOUND TOKEN TYPES: ${foundTokens.size}: \n ${
-            foundTokens.joinToString(separator = "\n") { "${it.tokenType.id} --- ${it.tokenInfo?.tokenName} --- ${it.tokenInfo?.tokenSymbol} --- ${it.tokenInfo?.tokenDecimal}" }
-        }")
-
-        Log.e(
-            "AAA",
-            "SUSPICIOUS TOKEN TYPES: ${suspiciousTokenTypes.size}: \n ${suspiciousTokenTypes.joinToString(separator = "\n") { "${it.id} " }}"
-        )*/
+        if (foundTokenTypes.isEmpty() && suspiciousTokenTypes.isEmpty()) return
 
         try {
-            val queries = (foundTokens.map { it.tokenType } + suspiciousTokenTypes).map {
-                TokenQuery(
-                    blockchainType,
-                    it
-                )
-            }
-            val tokens =
-                if (queries.size >= 1000) {
-                    // 1000 is max number of arguments in sqlite
-                    queries.chunked(900) { chunk ->
-                        marketKit.tokens(chunk)
-                    }.flatten()
-                } else {
-                    marketKit.tokens(queries)
-                }
-            val tokenInfos = mutableListOf<TokenInfo>()
-
-            foundTokens.forEach { foundToken ->
-                val token = tokens.firstOrNull { it.type == foundToken.tokenType }
-                if (token != null) {
-                    tokenInfos.add(
-                        TokenInfo(
-                            type = foundToken.tokenType,
-                            coinName = token.coin.name,
-                            coinCode = token.coin.code,
-                            tokenDecimals = token.decimals
-                        )
-                    )
-                } else if (foundToken.tokenInfo != null) {
-                    tokenInfos.add(
-                        TokenInfo(
-                            type = foundToken.tokenType,
-                            coinName = foundToken.tokenInfo.tokenName,
-                            coinCode = foundToken.tokenInfo.tokenSymbol,
-                            tokenDecimals = foundToken.tokenInfo.tokenDecimal
-                        )
-                    )
-                }
-            }
-
-            suspiciousTokenTypes.forEach { tokenType ->
-                val token = tokens.firstOrNull { it.type == tokenType }
-                if (token != null) {
-                    tokenInfos.add(
-                        TokenInfo(
-                            type = tokenType,
-                            coinName = token.coin.name,
-                            coinCode = token.coin.code,
-                            tokenDecimals = token.decimals
-                        )
-                    )
-                }
-            }
+            val allTypes = foundTokenTypes + suspiciousTokenTypes
+            val queries = allTypes.map { TokenQuery(blockchainType, it) }
+            val knownTokens = marketKit.tokensChunked(queries)
+            val tokenInfos = filterKnownAutoEnableTokens(allTypes, knownTokens)
             coroutineScope.launch {
                 handle(tokenInfos, account, evmKit)
             }
         } catch (ex: Exception) {
-
+            logger.warning("handle failed", ex)
         }
     }
 
-    private suspend fun handle(tokenInfos: List<TokenInfo>, account: Account, evmKit: EthereumKit) =
+    private suspend fun handle(tokenInfos: List<AutoEnableTokenInfo>, account: Account, evmKit: EthereumKit) =
         withContext(Dispatchers.IO) {
 
             val existingWallets = walletManager.activeWallets
@@ -285,73 +205,36 @@ class EvmAccountManager(
             val dataProvider = DataProvider(evmKit)
 
             val requests = newTokenInfos.map { tokenInfo ->
-                val contractAddress = (tokenInfo.type as? TokenType.Eip20)?.let {
-                    try {
-                        Address(it.address)
-                    } catch (ex: Exception) {
-                        null
-                    }
-                }
-
                 async {
-                    if (contractAddress != null) {
-                        val balance = try {
-                            dataProvider.getBalance(contractAddress, userAddress).await()
-                        } catch (error: Throwable) {
-                            null
+                    when (val type = tokenInfo.type) {
+                        is TokenType.Native -> tokenInfo
+                        is TokenType.Eip20 -> {
+                            val contractAddress = try {
+                                Address(type.address)
+                            } catch (ex: Exception) {
+                                null
+                            } ?: return@async null
+                            val balance = try {
+                                dataProvider.getBalance(contractAddress, userAddress).await()
+                            } catch (error: Throwable) {
+                                null
+                            }
+                            if (balance == null || balance > BigInteger.ZERO) tokenInfo else null
                         }
 
-                        if (balance == null || balance > BigInteger.ZERO) {
-                            tokenInfo
-                        } else {
-                            null
-                        }
-                    } else {
-                        null
+                        else -> null
                     }
                 }
             }
 
             val enabledWallets = requests.awaitAll().filterNotNull()
-                .mapNotNull { tokenInfo ->
-                    val tokenQueryId = TokenQuery(blockchainType, tokenInfo.type).id
-                    if (userDeletedWalletManager.isDeletedByUser(
-                            account.id,
-                            tokenQueryId
-                        )
-                    ) return@mapNotNull null
-
-                    EnabledWallet(
-                        tokenQueryId = tokenQueryId,
-                        accountId = account.id,
-                        coinName = tokenInfo.coinName,
-                        coinCode = tokenInfo.coinCode,
-                        coinDecimals = tokenInfo.tokenDecimals,
-                        coinImage = null
-                    )
-                }
+                .toEnabledWallets(
+                    accountId = account.id,
+                    blockchainType = blockchainType,
+                    userDeletedWalletManager = userDeletedWalletManager,
+                )
 
             walletManager.saveEnabledWallets(enabledWallets)
         }
-
-    data class TokenInfo(
-        val type: TokenType,
-        val coinName: String,
-        val coinCode: String,
-        val tokenDecimals: Int
-    )
-
-    data class FoundToken(
-        val tokenType: TokenType,
-        val tokenInfo: io.horizontalsystems.erc20kit.events.TokenInfo? = null
-    ) {
-        override fun equals(other: Any?): Boolean {
-            return other is FoundToken && tokenType.id == other.tokenType.id
-        }
-
-        override fun hashCode(): Int {
-            return tokenType.id.hashCode()
-        }
-    }
 
 }

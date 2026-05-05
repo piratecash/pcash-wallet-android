@@ -4,8 +4,9 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
-import cash.p.terminal.wallet.entities.EnabledWallet
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.stellarkit.TagQuery
@@ -24,6 +25,7 @@ class StellarAccountManager(
     private val stellarKitManager: StellarKitManager,
     private val tokenAutoEnableManager: TokenAutoEnableManager,
     private val userDeletedWalletManager: UserDeletedWalletManager,
+    private val marketKit: MarketKitWrapper,
 ) {
     private val blockchainType: BlockchainType = BlockchainType.Stellar
     private val logger = AppLogger("stellar-account-manager")
@@ -93,31 +95,34 @@ class StellarAccountManager(
         handle(assets, account)
     }
 
-    private suspend fun handle(assets: Set<StellarAsset.Asset>, account: Account) {
+    internal suspend fun handle(assets: Set<StellarAsset.Asset>, account: Account) {
         if (assets.isEmpty()) return
 
-        val existingWallets = walletManager.activeWallets
-        val existingTokenTypeIds = existingWallets.map { it.token.type.id }
-        val newAssets = assets.filter { !existingTokenTypeIds.contains(it.tokenType.id) }
+        val existingTokenTypeIds = walletManager.activeWallets.map { it.token.type.id }
+        val newAssetTypes = assets
+            .map { TokenType.Asset(it.code, it.issuer) }
+            .filter { it.id !in existingTokenTypeIds }
 
-        if (newAssets.isEmpty()) return
+        if (newAssetTypes.isEmpty()) return
 
-        val enabledWallets = newAssets
-            .mapNotNull { asset ->
-                val tokenQuery = TokenQuery(BlockchainType.Stellar, asset.tokenType)
-                if (userDeletedWalletManager.isDeletedByUser(account.id, tokenQuery.id)) {
-                    return@mapNotNull null
-                }
+        val tokenInfos = try {
+            val queries = newAssetTypes.map { TokenQuery(blockchainType, it) }
+            val knownTokens = marketKit.tokensChunked(queries)
+            filterKnownAutoEnableTokens(newAssetTypes, knownTokens)
+        } catch (ex: Exception) {
+            logger.warning("marketKit lookup failed", ex)
+            return
+        }
 
-                EnabledWallet(
-                    tokenQueryId = tokenQuery.id,
-                    accountId = account.id,
-                    coinName = null,
-                    coinCode = asset.code,
-                    coinDecimals = null,
-                    coinImage = null
-                )
-            }
+        if (tokenInfos.isEmpty()) return
+
+        val enabledWallets = tokenInfos.toEnabledWallets(
+            accountId = account.id,
+            blockchainType = blockchainType,
+            userDeletedWalletManager = userDeletedWalletManager,
+        )
+
+        if (enabledWallets.isEmpty()) return
 
         walletManager.saveEnabledWallets(enabledWallets)
     }
