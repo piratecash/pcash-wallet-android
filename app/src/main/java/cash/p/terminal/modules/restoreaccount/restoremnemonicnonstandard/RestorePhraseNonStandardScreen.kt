@@ -352,7 +352,6 @@ private fun BottomSection(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     var showLanguageSelectorDialog by remember { mutableStateOf(false) }
-    var hidePassphrase by remember { mutableStateOf(true) }
 
     if (showLanguageSelectorDialog) {
         SelectorDialogCompose(
@@ -424,10 +423,6 @@ private fun BottomSection(
             state = uiState.passphraseError?.let { DataState.Error(Exception(it)) },
             onValueChange = viewModel::onEnterPassphrase,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            hide = hidePassphrase,
-            onToggleHide = {
-                hidePassphrase = !hidePassphrase
-            }
         )
         Spacer(modifier = Modifier.height(16.dp))
         TextImportantWarning(

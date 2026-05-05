@@ -18,11 +18,7 @@ import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -206,7 +202,6 @@ private fun RestoreLocalScreen(
     openBackupItems: () -> Unit
 ) {
     val uiState = viewModel.uiState
-    var hidePassphrase by remember { mutableStateOf(true) }
     val view = LocalView.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -300,10 +295,6 @@ private fun RestoreLocalScreen(
                         }
                     ),
                     enabled = uiState.showButtonSpinner.not(),
-                    hide = hidePassphrase,
-                    onToggleHide = {
-                        hidePassphrase = !hidePassphrase
-                    }
                 )
                 VSpacer(32.dp)
             }
