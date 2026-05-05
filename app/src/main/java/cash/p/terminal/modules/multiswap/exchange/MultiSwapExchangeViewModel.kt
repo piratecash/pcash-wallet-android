@@ -19,6 +19,7 @@ import cash.p.terminal.modules.multiswap.TokenBalanceService
 import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.QuickexProvider
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
@@ -35,6 +36,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -47,6 +49,7 @@ class MultiSwapExchangeViewModel(
     private val numberFormatter: IAppNumberFormatter,
     private val onChainMonitor: MultiSwapOnChainMonitor,
     private val swapQuoteService: SwapQuoteService,
+    private val swapProvidersRepository: SwapProvidersRepository,
     private val fetchSwapQuotesUseCase: FetchSwapQuotesUseCase,
     private val timerService: TimerService,
     private val syncPendingMultiSwapUseCase: SyncPendingMultiSwapUseCase,
@@ -122,6 +125,15 @@ class MultiSwapExchangeViewModel(
                 currentSwap?.let { swap -> uiState = mapToUiState(swap) }
             }
         }
+        viewModelScope.launch {
+            swapProvidersRepository.disabledIds.drop(1).collect {
+                val swap = currentSwap ?: return@collect
+                if (swap.leg1Status == PendingMultiSwap.STATUS_COMPLETED
+                    && swap.leg2Status == PendingMultiSwap.STATUS_PENDING) {
+                    fetchLeg2Quotes(swap)
+                }
+            }
+        }
     }
 
     private fun observeSwap() {
@@ -171,6 +183,7 @@ class MultiSwapExchangeViewModel(
         leg2QuotingJob?.cancel()
         leg2QuoteFetched = true
         leg2Quoting = true
+        val previousSelectedProvider = selectedLeg2Quote?.provider
         leg2Quotes = emptyList()
         selectedLeg2Quote = null
         timerService.reset()
@@ -178,15 +191,18 @@ class MultiSwapExchangeViewModel(
         leg2QuotingJob = viewModelScope.launch {
             try {
                 swapQuoteService.start()
+                val enabledProviders = swapQuoteService.providers
+                    .filterNot { swapProvidersRepository.isDisabled(it.id) }
                 val quotes = fetchSwapQuotesUseCase(
-                    providers = swapQuoteService.providers,
+                    providers = enabledProviders,
                     tokenIn = tokenIn,
                     tokenOut = tokenOut,
                     amountIn = amountIn,
                 )
                 leg2Quoting = false
                 leg2Quotes = quotes
-                selectedLeg2Quote = quotes.firstOrNull()
+                selectedLeg2Quote = quotes.firstOrNull { it.provider == previousSelectedProvider }
+                    ?: quotes.firstOrNull()
                 startTimerIfNeeded()
                 currentSwap?.let { uiState = mapToUiState(it) }
             } catch (e: Exception) {
@@ -320,6 +336,7 @@ class MultiSwapExchangeViewModel(
 
     override fun onCleared() {
         timerService.stop()
+        swapQuoteService.clear()
     }
 
     private fun mapToUiState(swap: PendingMultiSwap): MultiSwapExchangeUiState {

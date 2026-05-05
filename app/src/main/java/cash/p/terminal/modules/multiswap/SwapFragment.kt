@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
@@ -98,6 +99,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import cash.p.terminal.core.App
+import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
+import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsScreen
+import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsViewModel
+import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui_compose.components.MenuItem
 import io.horizontalsystems.core.toBigDecimalOrNullExt
 import java.math.BigDecimal
 import java.net.UnknownHostException
@@ -113,6 +120,7 @@ import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import org.koin.compose.viewmodel.koinViewModel
 
 @Parcelize
 data class SwapDeeplinkInput(val tokenOut: Token?) : Parcelable
@@ -145,6 +153,9 @@ private object SwapSettingsPage
 
 @Serializable
 private object SwapTransactionSettingsPage
+
+@Serializable
+private object SwapProvidersSettingsPage
 
 @Serializable
 private data class SwapSelectLegProviderPage(val legIndex: Int)
@@ -206,10 +217,18 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 viewModelStoreOwner = backStackEntry,
                 factory = SwapSelectProviderViewModel.Factory(quotes)
             )
+            val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
+            val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
                 onClickClose = swapNavController::popBackStack,
+                onClickSettings = {
+                    swapNavController.navigate(SwapProvidersSettingsPage)
+                },
                 quotes = selectProviderViewModel.uiState.quoteViewItems,
                 currentQuote = viewModel.uiState.quote,
+                mandatoryProviderIds = SwapProvidersRepository.MANDATORY_IDS,
+                disabledProviderIds = disabledIds,
+                onToggleProvider = swapProvidersRepository::setDisabled,
                 swapRates = {
                     HudHelper.vibrate(App.instance)
                     selectProviderViewModel.swapRates()
@@ -236,10 +255,18 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 viewModelStoreOwner = backStackEntry,
                 factory = SwapSelectProviderViewModel.Factory(quotes)
             )
+            val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
+            val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
                 onClickClose = swapNavController::popBackStack,
+                onClickSettings = {
+                    swapNavController.navigate(SwapProvidersSettingsPage)
+                },
                 quotes = selectProviderViewModel.uiState.quoteViewItems,
                 currentQuote = currentQuote,
+                mandatoryProviderIds = SwapProvidersRepository.MANDATORY_IDS,
+                disabledProviderIds = disabledIds,
+                onToggleProvider = swapProvidersRepository::setDisabled,
                 swapRates = {
                     HudHelper.vibrate(App.instance)
                     selectProviderViewModel.swapRates()
@@ -274,6 +301,14 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
         }
         composablePage<SwapTransactionSettingsPage> {
             SwapTransactionSettingsScreen(navController = swapNavController)
+        }
+        composablePage<SwapProvidersSettingsPage> {
+            val providersSettingsViewModel = koinViewModel<SwapProvidersSettingsViewModel>()
+            SwapProvidersSettingsScreen(
+                uiState = providersSettingsViewModel.uiState,
+                onToggle = providersSettingsViewModel::setProviderEnabled,
+                onClose = swapNavController::navigateUp,
+            )
         }
     }
 }
@@ -327,6 +362,9 @@ private fun SwapMainScreen(
         uiState = uiState,
         timeRemainingProgress = { viewModel.timeRemainingProgress },
         onClickClose = fragmentNavController::navigateUp,
+        onClickProvidersSettings = {
+            swapNavController.navigate(SwapProvidersSettingsPage)
+        },
         onClickCoinFrom = {
             swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From))
         },
@@ -375,6 +413,7 @@ private fun SwapScreenInner(
     uiState: SwapUiState,
     timeRemainingProgress: () -> Float?,
     onClickClose: () -> Unit,
+    onClickProvidersSettings: () -> Unit,
     onClickCoinFrom: () -> Unit,
     onClickCoinTo: () -> Unit,
     onSwitchPairs: () -> Unit,
@@ -413,6 +452,13 @@ private fun SwapScreenInner(
                     timeRemainingProgress()?.let { progress ->
                         add(MenuItemTimeoutIndicator(progress))
                     }
+                    add(
+                        MenuItem(
+                            title = TranslatableString.ResString(R.string.swap_providers_title),
+                            icon = R.drawable.ic_manage_2_24,
+                            onClick = onClickProvidersSettings,
+                        )
+                    )
                 }
             )
         },
@@ -492,6 +538,7 @@ private fun SwapScreenInner(
                         val errorText = when (val error = currentStep.error) {
                             SwapError.InsufficientBalanceFrom -> stringResource(id = R.string.Swap_ErrorInsufficientBalance)
                             is NoSupportedSwapProvider -> stringResource(id = R.string.Swap_ErrorNoProviders)
+                            is NoEnabledSwapProvider -> stringResource(id = R.string.swap_no_enabled_providers)
                             is SwapRouteNotFound -> stringResource(id = R.string.Swap_ErrorNoQuote)
                             is SwapDepositTooSmall -> stringResource(
                                 id = R.string.swap_out_of_min_amount,

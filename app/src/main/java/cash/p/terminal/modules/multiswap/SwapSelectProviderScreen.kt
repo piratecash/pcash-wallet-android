@@ -1,25 +1,35 @@
 package cash.p.terminal.modules.multiswap
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material.Text
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -37,8 +47,10 @@ import cash.p.terminal.modules.multiswap.settings.ISwapSetting
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
+import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
+import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -52,16 +64,35 @@ import java.math.BigDecimal
 @Composable
 fun SwapSelectProviderScreen(
     onClickClose: () -> Unit,
+    onClickSettings: () -> Unit,
     quotes: List<QuoteViewItem>,
     currentQuote: SwapProviderQuote?,
+    mandatoryProviderIds: Set<String>,
+    disabledProviderIds: Set<String>,
+    onToggleProvider: (providerId: String, disabled: Boolean) -> Unit,
     swapRates: () -> Unit,
     onSelectQuote: (SwapProviderQuote) -> Unit,
 ) {
+    var revealedProviderId by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(quotes, disabledProviderIds) {
+        val noEnabledProvidersLeft = quotes.isNotEmpty() &&
+            quotes.all { it.quote.provider.id in disabledProviderIds }
+        if (noEnabledProvidersLeft) {
+            onClickClose()
+        }
+    }
+
     Scaffold(
         topBar = {
             AppBar(
                 title = stringResource(R.string.Swap_Providers),
                 menuItems = listOf(
+                    MenuItem(
+                        title = TranslatableString.ResString(R.string.swap_providers_title),
+                        icon = R.drawable.ic_manage_2_24,
+                        onClick = onClickSettings,
+                    ),
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Done),
                         onClick = onClickClose
@@ -79,18 +110,30 @@ fun SwapSelectProviderScreen(
             item {
                 VSpacer(height = 4.dp)
             }
-            items(quotes) { viewItem ->
-                val borderColor = if (viewItem.quote.provider == currentQuote?.provider) {
+            items(quotes, key = { it.quote.provider.id }) { viewItem ->
+                val provider = viewItem.quote.provider
+                val isDisabled = provider.id in disabledProviderIds
+                val borderColor = if (provider == currentQuote?.provider) {
                     ComposeAppTheme.colors.yellow50
                 } else {
                     ComposeAppTheme.colors.steel20
                 }
+                val isMandatory = provider.id in mandatoryProviderIds
 
-                ProviderItem(
-                    borderColor = borderColor,
-                    onSelectQuote = onSelectQuote,
+                SwipableProviderItem(
                     viewItem = viewItem,
-                    swapRates = swapRates
+                    borderColor = borderColor,
+                    swipeEnabled = !isMandatory,
+                    disabled = isDisabled,
+                    revealed = revealedProviderId == provider.id,
+                    onReveal = { revealedProviderId = provider.id },
+                    onConceal = { revealedProviderId = null },
+                    onSelectQuote = onSelectQuote,
+                    swapRates = swapRates,
+                    onToggle = {
+                        revealedProviderId = null
+                        onToggleProvider(provider.id, !isDisabled)
+                    },
                 )
             }
 
@@ -103,80 +146,150 @@ fun SwapSelectProviderScreen(
 }
 
 @Composable
+private fun SwipableProviderItem(
+    viewItem: QuoteViewItem,
+    borderColor: Color,
+    swipeEnabled: Boolean,
+    disabled: Boolean,
+    revealed: Boolean,
+    onReveal: () -> Unit,
+    onConceal: () -> Unit,
+    onSelectQuote: (SwapProviderQuote) -> Unit,
+    swapRates: () -> Unit,
+    onToggle: () -> Unit,
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        HsIconButton(
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .width(72.dp)
+                .background(ComposeAppTheme.colors.tyler),
+            onClick = onToggle,
+            content = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_circle_minus_24),
+                    tint = ComposeAppTheme.colors.grey,
+                    contentDescription = "toggle provider",
+                )
+            },
+        )
+        DraggableCardSimple(
+            key = viewItem.quote.provider.id,
+            isRevealed = revealed,
+            cardOffset = 72f,
+            onReveal = onReveal,
+            onConceal = onConceal,
+            enabled = swipeEnabled,
+            content = {
+                ProviderItem(
+                    borderColor = borderColor,
+                    onSelectQuote = onSelectQuote,
+                    viewItem = viewItem,
+                    swapRates = swapRates,
+                    disabled = disabled,
+                )
+            },
+        )
+    }
+}
+
+@Composable
 private fun ProviderItem(
     borderColor: Color,
     onSelectQuote: (SwapProviderQuote) -> Unit,
     viewItem: QuoteViewItem,
-    swapRates: () -> Unit
+    swapRates: () -> Unit,
+    disabled: Boolean ,
 ) {
     val shape = RoundedCornerShape(12.dp)
-    RowUniversal(
+    Box(
         modifier = Modifier
             .clip(shape)
-            .clickable { onSelectQuote.invoke(viewItem.quote) }
+            .background(ComposeAppTheme.colors.tyler)
+            .clickable(enabled = !disabled) { onSelectQuote(viewItem.quote) }
             .border(1.dp, borderColor, shape)
-            .padding(horizontal = 16.dp),
     ) {
-        val provider = viewItem.quote.provider
-        Image(
-            modifier = Modifier.size(32.dp),
-            painter = painterResource(provider.icon),
-            contentDescription = null
-        )
-        HSpacer(width = 16.dp)
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            subhead2_leah(
-                text = viewItem.tokenAmount,
-                textAlign = TextAlign.End,
-                modifier = Modifier.align(Alignment.End)
+        RowUniversal(
+            modifier = Modifier
+                .alpha(if (disabled) 0.4f else 1f)
+                .padding(horizontal = 16.dp),
+        ) {
+            val provider = viewItem.quote.provider
+            Image(
+                modifier = Modifier.size(32.dp),
+                painter = painterResource(provider.icon),
+                contentDescription = null
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                body_leah(
-                    text = provider.title,
-                    textAlign = TextAlign.End
+            HSpacer(width = 16.dp)
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                subhead2_leah(
+                    text = viewItem.tokenAmount,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.align(Alignment.End)
                 )
-                HFillSpacer(minWidth = 8.dp)
-                viewItem.fiatAmount?.let { fiatAmount ->
-                    Row {
-                        subhead2_grey(text = fiatAmount, textAlign = TextAlign.End)
-                        viewItem.diffWithFirst?.let { diff ->
-                            HSpacer(width = 4.dp)
-                            Text(
-                                text = stringResource(
-                                    R.string.Swap_FiatPriceImpact,
-                                    diff.toPlainString()
-                                ),
-                                style = ComposeAppTheme.typography.subhead2,
-                                color = getPriceImpactColor(PriceImpactLevel.Warning),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    body_leah(
+                        text = provider.title,
+                        textAlign = TextAlign.End
+                    )
+                    HFillSpacer(minWidth = 8.dp)
+                    viewItem.fiatAmount?.let { fiatAmount ->
+                        Row {
+                            subhead2_grey(text = fiatAmount, textAlign = TextAlign.End)
+                            viewItem.diffWithFirst?.let { diff ->
+                                HSpacer(width = 4.dp)
+                                Text(
+                                    text = stringResource(
+                                        R.string.Swap_FiatPriceImpact,
+                                        diff.toPlainString()
+                                    ),
+                                    style = ComposeAppTheme.typography.subhead2,
+                                    color = getPriceImpactColor(PriceImpactLevel.Warning),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
                 }
+                ExchangeBlock(
+                    from = viewItem.rateFrom,
+                    to = viewItem.rateTo,
+                    swapRates = {
+                        onSelectQuote.invoke(viewItem.quote)
+                        swapRates()
+                    },
+                    modifier = Modifier.align(Alignment.End),
+                    enabled = !disabled,
+                )
             }
-            ExchangeBlock(
-                from = viewItem.rateFrom,
-                to = viewItem.rateTo,
-                swapRates = {
-                    onSelectQuote.invoke(viewItem.quote)
-                    swapRates()
-                },
-                modifier = Modifier.align(Alignment.End)
-            )
         }
     }
 }
 
 @Composable
-private fun ExchangeBlock(from: String, to: String, swapRates: () -> Unit, modifier: Modifier) {
+private fun ExchangeBlock(
+    from: String,
+    to: String,
+    swapRates: () -> Unit,
+    modifier: Modifier,
+    enabled: Boolean = true,
+) {
+    val rowModifier = if (enabled) {
+        modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = swapRates
+        )
+    } else {
+        modifier
+    }
     Row(
-        modifier = modifier
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = swapRates
-            ),
+        modifier = rowModifier,
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -197,9 +310,9 @@ private fun ExchangeBlock(from: String, to: String, swapRates: () -> Unit, modif
 @Preview
 @Composable
 private fun SwapSelectProviderScreenPreview() {
-    val previewProvider = object : IMultiSwapProvider {
-        override val id = "preview"
-        override val title = "Uniswap V3"
+    fun previewProvider(providerId: String, providerTitle: String) = object : IMultiSwapProvider {
+        override val id = providerId
+        override val title = providerTitle
         override val icon = R.drawable.uniswap_v3
 
         override val walletUseCase get() = throw NotImplementedError()
@@ -235,11 +348,22 @@ private fun SwapSelectProviderScreenPreview() {
         override val cautions = emptyList<HSCaution>()
     }
 
-    val quote1 = SwapProviderQuote(provider = previewProvider, swapQuote = previewQuote)
+    val quote1 = SwapProviderQuote(
+        provider = previewProvider("preview-uniswap", "Uniswap V3"),
+        swapQuote = previewQuote
+    )
+    val quote2 = SwapProviderQuote(
+        provider = previewProvider("preview-pancake", "PancakeSwap"),
+        swapQuote = previewQuote
+    )
 
     ComposeAppTheme(darkTheme = false) {
         SwapSelectProviderScreen(
             onClickClose = {},
+            onClickSettings = {},
+            mandatoryProviderIds = emptySet(),
+            disabledProviderIds = emptySet(),
+            onToggleProvider = { _, _ -> },
             quotes = listOf(
                 QuoteViewItem(
                     quote = quote1,
@@ -250,7 +374,7 @@ private fun SwapSelectProviderScreenPreview() {
                     rateTo = "100 PIRATE"
                 ),
                 QuoteViewItem(
-                    quote = quote1,
+                    quote = quote2,
                     tokenAmount = "455.12 DAI",
                     fiatAmount = "$455.12",
                     diffWithFirst = BigDecimal("-1.66"),

@@ -303,6 +303,11 @@ class SwapViewModel(
         return quote.provider.getWarningMessage(quote.tokenIn, quote.tokenOut)
     }
 
+    override fun onCleared() {
+        quoteService.clear()
+        super.onCleared()
+    }
+
     class Factory(private val tokenIn: Token?, private val tokenOut: Token?) :
         ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")

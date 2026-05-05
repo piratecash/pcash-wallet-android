@@ -3,6 +3,7 @@ package cash.p.terminal.modules.multiswap.providers
 import androidx.collection.LruCache
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendEthereumAdapter
+import cash.p.terminal.core.cache.accountScoped
 import cash.p.terminal.core.isEvm
 import cash.p.terminal.core.isUtxoBased
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
@@ -28,6 +29,7 @@ import cash.p.terminal.network.quickex.domain.entity.QuickexInstrument
 import cash.p.terminal.network.quickex.domain.repository.QuickexRepository
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
@@ -51,7 +53,8 @@ import java.math.BigDecimal
 class QuickexProvider(
     override val walletUseCase: WalletUseCase,
     private val quickexRepository: QuickexRepository,
-    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
+    accountManager: IAccountManager,
 ) : IMultiSwapProvider {
     override val id = "quickex"
     override val title = "Quickex"
@@ -69,19 +72,21 @@ class QuickexProvider(
     private var minAmountTimestamp = LruCache<String, Long>(10)
 
     // SwapConfirmViewModel calls final quote too many times, so cache results
-    private var cachedFinalQuote: Pair<NewTransactionQuickexRequest, NewTransactionQuickexResponse>? =
-        null
-    private var cacheUpdateTimestamp = 0L
+    private var finalQuote: CachedFinalQuote? by accountManager.accountScoped()
+    private var zcashTransparentAddress: String? by accountManager.accountScoped()
     private val mutex = Mutex()
     private val zcashAddressMutex = Mutex()
-    private var cachedZcashTransparentAddress: String? = null
+
+    private data class CachedFinalQuote(
+        val request: NewTransactionQuickexRequest,
+        val response: NewTransactionQuickexResponse,
+        val timestamp: Long,
+    )
 
     private companion object {
         const val CACHE_MIN_AMOUNT_DURATION = 1000L * 60
         const val CACHE_FINAL_QUOTE_DURATION = 1000L * 60 * 5
     }
-
-    private var swapProviderTransaction: SwapProviderTransaction? = null
 
     override suspend fun start() {
         currencies.clear()
@@ -325,7 +330,7 @@ class QuickexProvider(
 
     private suspend fun getCachedZcashTransparentAddress(): String? =
         zcashAddressMutex.withLock {
-            cachedZcashTransparentAddress ?: initializeZcashAddress()
+            zcashTransparentAddress ?: initializeZcashAddress()
         }
 
     private suspend fun initializeZcashAddress(): String? {
@@ -334,7 +339,7 @@ class QuickexProvider(
             walletUseCase.getOneTimeReceiveAddress(transparentToken)
         } ?: return null
 
-        cachedZcashTransparentAddress = address
+        zcashTransparentAddress = address
         return address
     }
 
@@ -403,16 +408,17 @@ class QuickexProvider(
                     refundAddress = refundAddress,
                     claimedDepositAmount = amountIn.toPlainString()
                 )
-                if (System.currentTimeMillis() - cacheUpdateTimestamp < CACHE_FINAL_QUOTE_DURATION &&
-                    cachedFinalQuote?.first == request
+                val cached = finalQuote
+                if (cached != null &&
+                    cached.request == request &&
+                    System.currentTimeMillis() - cached.timestamp < CACHE_FINAL_QUOTE_DURATION
                 ) {
-                    cachedFinalQuote?.second!!
+                    cached.response
                 } else {
                     quickexRepository.createTransaction(
                         newTransactionRequest = request
                     ).also {
-                        cachedFinalQuote = request to it
-                        cacheUpdateTimestamp = System.currentTimeMillis()
+                        finalQuote = CachedFinalQuote(request, it, System.currentTimeMillis())
                     }
                 }
             } catch (e: Exception) {
@@ -428,7 +434,7 @@ class QuickexProvider(
                 )
             }
 
-            swapProviderTransaction = SwapProviderTransaction(
+            val swapProviderTransaction = SwapProviderTransaction(
                 date = System.currentTimeMillis(),
                 outgoingRecordUid = null, //set later
                 transactionId = transaction.orderId.toString(),
@@ -456,7 +462,8 @@ class QuickexProvider(
                     transaction = transaction
                 ),
                 priceImpact = null,
-                fields = fields
+                fields = fields,
+                swapProviderTransaction = swapProviderTransaction,
             )
         }
     }
@@ -532,16 +539,15 @@ class QuickexProvider(
         }
     }
 
-    fun onTransactionCompleted(result: SendTransactionResult) {
-        swapProviderTransaction?.let {
-            swapProviderTransaction = it.copy(
+    fun onTransactionCompleted(
+        transaction: SwapProviderTransaction,
+        result: SendTransactionResult,
+    ) {
+        swapProviderTransactionsStorage.save(
+            transaction.copy(
                 outgoingRecordUid = result.getRecordUid(),
-                date = System.currentTimeMillis()
-            ).also { transactionWithRecordUid ->
-                swapProviderTransactionsStorage.save(transactionWithRecordUid)
-            }
-        }
+                date = System.currentTimeMillis(),
+            )
+        )
     }
-
-    override fun getProviderTransactionId(): String? = swapProviderTransaction?.transactionId
 }

@@ -1,45 +1,35 @@
 package cash.p.terminal.modules.multiswap
 
-import androidx.annotation.VisibleForTesting
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
-import cash.p.terminal.modules.multiswap.providers.AllBridgeProvider
-import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
-import cash.p.terminal.modules.multiswap.providers.MayaProvider
-import cash.p.terminal.modules.multiswap.providers.OneInchProvider
-import cash.p.terminal.modules.multiswap.providers.PancakeSwapProvider
-import cash.p.terminal.modules.multiswap.providers.PancakeSwapV3Provider
-import cash.p.terminal.modules.multiswap.providers.QuickSwapProvider
-import cash.p.terminal.modules.multiswap.providers.QuickexProvider
-import cash.p.terminal.modules.multiswap.providers.StonFiProvider
-import cash.p.terminal.modules.multiswap.providers.ThorChainProvider
-import cash.p.terminal.modules.multiswap.providers.UniswapProvider
-import cash.p.terminal.modules.multiswap.providers.UniswapV3Provider
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRegistry
+import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 
 class SwapQuoteService(
-    changeNowProvider: ChangeNowProvider,
-    quickexProvider: QuickexProvider,
     private val routeResolver: MultiSwapRouteResolver,
     private val fetchSwapQuotesUseCase: FetchSwapQuotesUseCase,
+    private val swapProvidersRepository: SwapProvidersRepository,
+    private val swapProvidersRegistry: SwapProvidersRegistry,
+    private val dispatcherProvider: DispatcherProvider,
 ) {
-    private val stonFiProvider: StonFiProvider by inject(StonFiProvider::class.java)
 
     private companion object {
         const val DEBOUNCE_INPUT_MSEC: Long = 300
@@ -47,26 +37,19 @@ class SwapQuoteService(
 
     private var runQuotationJob: Job? = null
 
-    @VisibleForTesting
-    internal var allProviders: List<IMultiSwapProvider> = listOf(
-        OneInchProvider,
-        PancakeSwapProvider,
-        PancakeSwapV3Provider,
-        QuickSwapProvider,
-        UniswapProvider,
-        UniswapV3Provider,
-        changeNowProvider,
-        quickexProvider,
-        ThorChainProvider,
-        MayaProvider,
-        AllBridgeProvider,
-        stonFiProvider
-    )
+    private val allProviders: List<IMultiSwapProvider>
+        get() = swapProvidersRegistry.providers
 
     val providers: List<IMultiSwapProvider> get() = allProviders
 
+    private val enabledProviders: List<IMultiSwapProvider>
+        get() = allProviders.filterNot { swapProvidersRepository.isDisabled(it.id) }
+
+    private val disabledByUserProviders: List<IMultiSwapProvider>
+        get() = allProviders.filter { swapProvidersRepository.isDisabled(it.id) }
+
     fun findProviderById(id: String): IMultiSwapProvider? =
-        allProviders.firstOrNull { it.id == id }
+        swapProvidersRegistry.findById(id)
 
     private var amountIn: BigDecimal? = null
     private var tokenIn: Token? = null
@@ -93,10 +76,42 @@ class SwapQuoteService(
     )
     val stateFlow = _stateFlow.asStateFlow()
 
-    @VisibleForTesting
-    internal var coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(dispatcherProvider.io + SupervisorJob())
     private var quotingJob: Job? = null
     private var settings: Map<String, Any?> = mapOf()
+
+    fun clear() {
+        coroutineScope.cancel()
+    }
+
+    init {
+        coroutineScope.launch {
+            swapProvidersRepository.disabledIds
+                .drop(1)
+                .collect {
+                    onDisabledProvidersChanged()
+                }
+        }
+    }
+
+    private fun onDisabledProvidersChanged() {
+        val enabledQuotes = quotes.filterNot {
+            swapProvidersRepository.isDisabled(it.provider.id)
+        }
+        val currentProviderId = quote?.provider?.id
+        val currentStillEnabled = enabledQuotes.any { it.provider.id == currentProviderId }
+
+        when {
+            currentStillEnabled -> Unit
+            enabledQuotes.isNotEmpty() -> {
+                quote = enabledQuotes.first()
+                error = null
+                multiSwapRoute = null
+                emitState()
+            }
+            else -> runQuotation()
+        }
+    }
 
     private fun emitState() {
         _stateFlow.update {
@@ -114,7 +129,7 @@ class SwapQuoteService(
         }
     }
 
-    suspend fun start() = withContext(Dispatchers.IO) {
+    suspend fun start() = withContext(dispatcherProvider.io) {
         allProviders.forEach {
             try {
                 it.start()
@@ -174,15 +189,19 @@ class SwapQuoteService(
                         preferredProvider = null
                     }
 
-                    if (quotes.isEmpty()) {
-                        tryFallbackToMultiSwapRoute(tokenIn, tokenOut, amountIn, noDirectProviders = newQuotes.isEmpty())
+                    val enabledQuotes = newQuotes.filterNot {
+                        swapProvidersRepository.isDisabled(it.provider.id)
+                    }
+
+                    if (enabledQuotes.isEmpty()) {
+                        tryFallbackToMultiSwapRoute(tokenIn, tokenOut, amountIn, noDirectProviders = enabledQuotes.isEmpty())
                         quote = multiSwapRoute?.leg1Quotes?.firstOrNull()
                     } else {
                         error = null
                         multiSwapRoute = null
                         quote = preferredProvider
-                            ?.let { provider -> quotes.find { it.provider == provider } }
-                            ?: quotes.firstOrNull()
+                            ?.let { provider -> enabledQuotes.find { it.provider == provider } }
+                            ?: enabledQuotes.firstOrNull()
                     }
 
                     quoting = false
@@ -210,14 +229,27 @@ class SwapQuoteService(
         amountIn: BigDecimal,
         noDirectProviders: Boolean,
     ) {
-        val route = routeResolver.findRoute(allProviders, tokenIn, tokenOut, amountIn, settings)
+        val route = routeResolver.findRoute(enabledProviders, tokenIn, tokenOut, amountIn, settings)
         if (route != null) {
             multiSwapRoute = route
             error = null
         } else {
             multiSwapRoute = null
-            error = if (noDirectProviders) NoSupportedSwapProvider() else SwapRouteNotFound()
+            error = resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
         }
+    }
+
+    private suspend fun resolveEmptyResultError(
+        tokenIn: Token,
+        tokenOut: Token,
+        noDirectProviders: Boolean,
+    ): Throwable = when {
+        !noDirectProviders -> SwapRouteNotFound()
+        disabledByUserProviders.isEmpty() -> NoSupportedSwapProvider()
+        fetchSwapQuotesUseCase
+            .findSupportedProviders(disabledByUserProviders, tokenIn, tokenOut)
+            .isNotEmpty() -> NoEnabledSwapProvider()
+        else -> NoSupportedSwapProvider()
     }
 
 
