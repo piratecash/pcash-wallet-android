@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -382,7 +383,11 @@ private fun TotalSection(
                         PremiumConfig.MIN_PREMIUM_AMOUNT_COSANTA
                     )
 
-                    PremiumType.TRIAL -> "⭐ " + stringResource(R.string.premium_demo_days_left, daysPremiumLeft)
+                    PremiumType.TRIAL -> "⭐ " + pluralStringResource(
+                        R.plurals.premium_demo_days_left,
+                        daysPremiumLeft,
+                        daysPremiumLeft
+                    )
 
                     PremiumType.NONE -> "" // won't happen
                 }

@@ -1482,7 +1482,10 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="premium_try_for_free">KOSTENLOS testen</string>
     <string name="premium_upgrade_text">Verbessern Sie Ihr Erlebnis mit Premium-Funktionen!</string>
     <string name="premium_available">⭐️ Premium ist verfügbar</string>
-    <string name="premium_demo_days_left">Demo Premium: %d Tage übrig</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium: %d Tag übrig</item>
+        <item quantity="other">Demo Premium: %d Tage übrig</item>
+    </plurals>
     <string name="premium_select_wallet_title">Wallet für Demo auswählen</string>
     <string name="premium_select_wallet_description">Wählen Sie ein Wallet, um die Demo-Premium-Funktionen zu aktivieren. Nur ein Wallet kann gleichzeitig Demo-Premium haben.</string>
     <string name="premium_demo_activated">Demo Premium erfolgreich aktiviert!</string>

@@ -1482,7 +1482,9 @@
     <string name="premium_try_for_free">免费试用</string>
     <string name="premium_upgrade_text">使用高级功能提升您的体验！</string>
     <string name="premium_available">⭐️ 高级版可用</string>
-    <string name="premium_demo_days_left">演示高级版：剩余 %d 天</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="other">演示高级版：剩余 %d 天</item>
+    </plurals>
     <string name="premium_select_wallet_title">选择演示钱包</string>
     <string name="premium_select_wallet_description">选择一个钱包来激活演示高级功能。一次只能有一个钱包拥有演示高级版。</string>
     <string name="premium_demo_activated">演示高级版激活成功！</string>

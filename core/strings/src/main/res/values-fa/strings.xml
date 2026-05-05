@@ -1495,7 +1495,10 @@
     <string name="premium_try_for_free">رایگان امتحان کنید</string>
     <string name="premium_upgrade_text">تجربه خود را با ویژگی‌های پریمیوم ارتقا دهید!</string>
     <string name="premium_available">⭐️ پریمیوم در دسترس است</string>
-    <string name="premium_demo_days_left">پریمیوم آزمایشی: %d روز باقی‌مانده</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">پریمیوم آزمایشی: %d روز باقی‌مانده</item>
+        <item quantity="other">پریمیوم آزمایشی: %d روز باقی‌مانده</item>
+    </plurals>
     <string name="premium_select_wallet_title">انتخاب کیف پول برای دمو</string>
     <string name="premium_select_wallet_description">یک کیف پول برای فعال‌سازی ویژگی‌های پریمیوم آزمایشی انتخاب کنید. فقط یک کیف پول می‌تواند همزمان پریمیوم آزمایشی داشته باشد.</string>
     <string name="premium_demo_activated">پریمیوم آزمایشی با موفقیت فعال شد!</string>

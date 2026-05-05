@@ -1497,7 +1497,10 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="premium_try_for_free">Probeer GRATIS</string>
     <string name="premium_upgrade_text">Verbeter uw ervaring met Premium functies!</string>
     <string name="premium_available">⭐️ Premium is beschikbaar</string>
-    <string name="premium_demo_days_left">Demo Premium: %d dagen over</string>
+    <plurals name="premium_demo_days_left">
+        <item quantity="one">Demo Premium: %d dag over</item>
+        <item quantity="other">Demo Premium: %d dagen over</item>
+    </plurals>
     <string name="premium_select_wallet_title">Selecteer portemonnee voor demo</string>
     <string name="premium_select_wallet_description">Kies een portemonnee om demo premium functies te activeren. Slechts één portemonnee kan tegelijkertijd demo premium hebben.</string>
     <string name="premium_demo_activated">Demo Premium succesvol geactiveerd!</string>
