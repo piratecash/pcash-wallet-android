@@ -84,6 +84,11 @@ class MultiSwapExchangesFragment : BaseComposeFragment() {
                             navController.navigateUpSafely()
                         }
                     },
+                    onClose = {
+                        if (!innerNavController.navigateUp()) {
+                            navController.navigateUp()
+                        }
+                    },
                 )
             }
         }
@@ -122,6 +127,7 @@ private fun ExchangeDetailContent(
     fragmentNavController: NavController,
     transactionsViewModel: TransactionsViewModel?,
     onBack: () -> Unit,
+    onClose: () -> Unit,
 ) {
     val viewModel = koinViewModel<MultiSwapExchangeViewModel> {
         parametersOf(swapId)
@@ -129,7 +135,7 @@ private fun ExchangeDetailContent(
 
     LaunchedEffect(viewModel.closeScreen) {
         if (viewModel.closeScreen) {
-            onBack()
+            onClose()
         }
     }
 
@@ -218,7 +224,7 @@ private fun ExchangeDetailContent(
         }
         composablePage<ConfirmSwapRoute> {
             val quote = viewModel.selectedLeg2Quote ?: run {
-                LaunchedEffect(Unit) { detailNavController.navigateUpSafely() }
+                LaunchedEffect(Unit) { detailNavController.navigateUp() }
                 return@composablePage
             }
             val balanceState by viewModel.leg2BalanceStateFlow.collectAsStateWithLifecycle(viewModel.leg2BalanceStateFlow.value)
