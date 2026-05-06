@@ -28,14 +28,6 @@ import io.horizontalsystems.core.IPinComponent
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import io.mockk.mockk
-import org.koin.core.annotation.InjectedParam
-import org.koin.core.annotation.KoinInternalApi
-import org.koin.core.annotation.Provided
-import org.koin.core.definition.BeanDefinition
-import org.koin.core.module.Module
-import org.koin.core.module.flatten
-import org.koin.ext.getFullName
-import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinInternalApi
@@ -50,6 +42,7 @@ import org.koin.test.verify.ParameterTypeInjection
 import org.koin.test.verify.definition
 import org.koin.test.verify.injectedParameters
 import org.koin.test.verify.verify
+import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KVisibility
