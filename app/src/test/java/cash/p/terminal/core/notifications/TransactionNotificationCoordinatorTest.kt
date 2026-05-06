@@ -1,6 +1,9 @@
 package cash.p.terminal.core.notifications
 
 import android.app.Application
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.modules.premium.settings.PollingInterval
@@ -13,12 +16,13 @@ import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -37,23 +41,34 @@ class TransactionNotificationCoordinatorTest {
     private val checkPremiumUseCase = mockk<CheckPremiumUseCase>(relaxed = true)
     private val keepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
     private val walletManager = mockk<IWalletManager>(relaxed = true)
+    private val transactionMonitor = mockk<TransactionMonitor>(relaxed = true)
     private val backgroundStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
+    private val workManager = mockk<WorkManager>(relaxed = true)
 
     private var capturedCallback: (() -> Unit)? = null
+    private var fallbackActive = false
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        fallbackActive = false
         every { backgroundManager.stateFlow } returns backgroundStateFlow
         every { backgroundManager.onBeforeEnterBackground = any() } answers {
             capturedCallback = firstArg()
         }
+        every { localStorage.pushRealtimeFallbackPollingActive } answers { fallbackActive }
+        every { localStorage.pushRealtimeFallbackPollingActive = any() } answers {
+            fallbackActive = firstArg<Boolean>()
+        }
+        mockkObject(WorkManager.Companion)
+        every { WorkManager.getInstance(any()) } returns workManager
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
         capturedCallback = null
+        unmockkObject(WorkManager.Companion)
     }
 
     private fun createCoordinator(): TransactionNotificationCoordinator {
@@ -65,6 +80,7 @@ class TransactionNotificationCoordinatorTest {
             checkPremiumUseCase = checkPremiumUseCase,
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
+            transactionMonitor = transactionMonitor,
         )
         coordinator.start()
         return coordinator
@@ -79,6 +95,7 @@ class TransactionNotificationCoordinatorTest {
         every { checkPremiumUseCase.getPremiumType() } returns PremiumType.PIRATE
         every { localStorage.pushNotificationsEnabled } returns true
         every { localStorage.pushEnabledBlockchainUids } returns setOf("bitcoin")
+        every { localStorage.pushPollingInterval } returns PollingInterval.REALTIME
         every { notificationManager.hasNotificationPermission() } returns true
         every { notificationManager.isTransactionChannelEnabled() } returns true
         every { notificationManager.isServiceChannelEnabled() } returns true
@@ -176,7 +193,8 @@ class TransactionNotificationCoordinatorTest {
         simulateEnterBackground()
 
         verify { keepAliveManager.setKeepAlive(emptySet()) }
-        verify { application.startForegroundService(any()) }
+        verify { transactionMonitor.resetPollingBaseline() }
+        verify(exactly = 0) { application.startForegroundService(any()) }
     }
 
     @Test
@@ -193,7 +211,8 @@ class TransactionNotificationCoordinatorTest {
         simulateEnterBackground()
 
         verify { keepAliveManager.setKeepAlive(emptySet()) }
-        verify { application.startForegroundService(any()) }
+        verify { transactionMonitor.resetPollingBaseline() }
+        verify(exactly = 0) { application.startForegroundService(any()) }
     }
 
     @Test
@@ -226,5 +245,177 @@ class TransactionNotificationCoordinatorTest {
         dispatcher.scheduler.advanceUntilIdle()
 
         verify(exactly = 0) { application.startService(any()) }
+    }
+
+    @Test
+    fun startService_failedOnEnterBackground_activatesPollingFallback() {
+        setupAllConditionsMet()
+        every { application.startForegroundService(any()) } throws RuntimeException("start failed")
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        verify { keepAliveManager.setKeepAlive(emptySet()) }
+        verify { transactionMonitor.resetPollingBaseline() }
+        verify { localStorage.pushRealtimeFallbackPollingActive = true }
+        verify {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                ExistingWorkPolicy.REPLACE,
+                any<OneTimeWorkRequest>(),
+            )
+        }
+    }
+
+    @Test
+    fun startService_failedOnEnterBackground_fallbackStartFails_doesNotResetBaseline() {
+        setupAllConditionsMet()
+        every { application.startForegroundService(any()) } throws RuntimeException("start failed")
+        every {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                any<ExistingWorkPolicy>(),
+                any<OneTimeWorkRequest>(),
+            )
+        } throws IllegalStateException("WorkManager unavailable")
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        verify(exactly = 0) { transactionMonitor.resetPollingBaseline() }
+        verify { localStorage.pushRealtimeFallbackPollingActive = true }
+        verify { localStorage.pushRealtimeFallbackPollingActive = false }
+    }
+
+    @Test
+    fun enterForeground_afterRealtimeFallback_doesNotStopDeadService() {
+        setupAllConditionsMet()
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        // Service has timed out → fallback flag flips to true (the worker
+        // does this from inside the service process).
+        fallbackActive = true
+        dispatcher.scheduler.advanceUntilIdle()
+
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        dispatcher.scheduler.advanceUntilIdle()
+
+        verify(exactly = 0) { application.startService(any()) }
+        verify { workManager.cancelUniqueWork(any()) }
+        verify { localStorage.pushRealtimeFallbackPollingActive = false }
+    }
+
+    @Test
+    fun start_doesNotCancelOnInit() {
+        // Critical: WorkManager wakes the process for the polling worker, which
+        // triggers Application.onCreate → coordinator.start(). A cancel here
+        // would kill the very worker that just woke us up.
+        createCoordinator()
+
+        verify(exactly = 0) { workManager.cancelUniqueWork(any()) }
+    }
+
+    @Test
+    fun pollingMode_schedulesUniqueWorkWithReplacePolicy() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        val btcWallet = mockk<Wallet>(relaxed = true)
+        every { btcWallet.token.blockchainType } returns BlockchainType.Bitcoin
+        every { walletManager.activeWallets } returns listOf(btcWallet)
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        // External start uses REPLACE — atomically swaps any prior chain.
+        verify {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                ExistingWorkPolicy.REPLACE,
+                any<OneTimeWorkRequest>(),
+            )
+        }
+    }
+
+    @Test
+    fun pollingMode_workerStartFails_doesNotResetBaseline() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+        every {
+            workManager.enqueueUniqueWork(
+                any<String>(),
+                any<ExistingWorkPolicy>(),
+                any<OneTimeWorkRequest>(),
+            )
+        } throws IllegalStateException("WorkManager unavailable")
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        verify(exactly = 0) { transactionMonitor.resetPollingBaseline() }
+    }
+
+    @Test
+    fun enterForeground_pollingMode_cancelsWorkerChain() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        val btcWallet = mockk<Wallet>(relaxed = true)
+        every { btcWallet.token.blockchainType } returns BlockchainType.Bitcoin
+        every { walletManager.activeWallets } returns listOf(btcWallet)
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        dispatcher.scheduler.advanceUntilIdle()
+
+        verify { workManager.cancelUniqueWork(any()) }
+    }
+
+    @Test
+    fun enterForeground_workerCancelThrows_stillClearsFallbackFlagAndKeepAlive() {
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        val btcWallet = mockk<Wallet>(relaxed = true)
+        every { btcWallet.token.blockchainType } returns BlockchainType.Bitcoin
+        every { walletManager.activeWallets } returns listOf(btcWallet)
+
+        createCoordinator()
+        simulateEnterBackground()
+
+        // Simulate fallback flag being set out-of-band (e.g. by service.onTimeout
+        // during the same background session) so the cleanup has work to undo.
+        fallbackActive = true
+        every {
+            workManager.cancelUniqueWork(any())
+        } throws IllegalStateException("WorkManager unavailable")
+
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        dispatcher.scheduler.advanceUntilIdle()
+
+        // The cancel attempt happened (and threw), but the rest of cleanup ran:
+        verify { workManager.cancelUniqueWork(any()) }
+        verify { localStorage.pushRealtimeFallbackPollingActive = false }
+        verify { keepAliveManager.clear() }
+    }
+
+    @Test
+    fun enterForeground_orphanChainAfterColdStart_isCancelled() {
+        // Simulates: previous process scheduled polling, died. User opens app
+        // (foreground) without backgrounding first. Orphan chain must die
+        // even though activeTransport == None at this point.
+        setupAllConditionsMet()
+        every { localStorage.pushPollingInterval } returns PollingInterval.MIN_5
+
+        createCoordinator()
+
+        backgroundStateFlow.value = BackgroundManagerState.EnterForeground
+        dispatcher.scheduler.advanceUntilIdle()
+
+        verify { workManager.cancelUniqueWork(any()) }
     }
 }

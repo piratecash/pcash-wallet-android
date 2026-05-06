@@ -132,6 +132,7 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
 
     var pushNotificationsEnabled: Boolean
     var pushPollingInterval: PollingInterval
+    var pushRealtimeFallbackPollingActive: Boolean
     var pushEnabledBlockchainUids: Set<String>
     var pushBlockchainsConfigured: Boolean
     var pushShowBlockchainName: Boolean

@@ -1,5 +1,6 @@
 package cash.p.terminal.core.notifications
 
+import androidx.work.WorkManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.modules.premium.settings.PollingInterval
@@ -12,6 +13,8 @@ import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,11 +45,14 @@ class KeepAliveOrderingTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        mockkObject(WorkManager.Companion)
+        every { WorkManager.getInstance(any()) } returns mockk(relaxed = true)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkObject(WorkManager.Companion)
     }
 
     @Test
@@ -88,6 +94,7 @@ class KeepAliveOrderingTest {
             checkPremiumUseCase = checkPremiumUseCase,
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
+            transactionMonitor = mockk(relaxed = true),
         ).start()
 
         var keepAliveWasSetWhenKitReceivedEvent = false
@@ -152,6 +159,7 @@ class KeepAliveOrderingTest {
             checkPremiumUseCase = checkPremiumUseCase,
             keepAliveManager = keepAliveManager,
             walletManager = walletManager,
+            transactionMonitor = mockk(relaxed = true),
         ).start()
 
         var solanaKeepAliveWasSet = false

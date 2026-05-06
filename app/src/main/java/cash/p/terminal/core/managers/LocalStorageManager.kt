@@ -849,6 +849,11 @@ class LocalStorageManager(
         default = PollingInterval.REALTIME
     )
 
+    override var pushRealtimeFallbackPollingActive by preferences.delegate(
+        key = "push_realtime_fallback_polling_active",
+        default = false
+    )
+
     override var pushEnabledBlockchainUids by preferences.delegate(
         key = "push_enabled_blockchain_uids",
         default = emptySet<String>()
