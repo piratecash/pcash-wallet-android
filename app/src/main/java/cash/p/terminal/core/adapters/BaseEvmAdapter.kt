@@ -7,7 +7,6 @@ import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
-import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -44,16 +43,6 @@ internal abstract class BaseEvmAdapter(
         } ?: return BigDecimal.ZERO
     }
 
-    private fun bscHistoricalSyncing(): AdapterState.Syncing? {
-        if (evmTransactionRepository.getBlockchainType() != BlockchainType.BinanceSmartChain) return null
-        val state = evmTransactionRepository.historicalSyncState.value as? EthereumKit.HistoricalSyncState.Syncing
-            ?: return null
-        return AdapterState.Syncing(
-            progress = state.progress * 100.0,
-            blocksRemained = state.blocksRemaining
-        )
-    }
-
     private fun forwardSyncing(): AdapterState.Syncing? {
         val state = evmTransactionRepository.forwardSyncState.value as? EthereumKit.ForwardSyncState.Syncing
             ?: return null
@@ -70,13 +59,14 @@ internal abstract class BaseEvmAdapter(
         }
 
     // Decoupled from balance readiness: drives the spinner, must not block send/swap.
+    // Historical sync intentionally excluded: its blocksRemaining starts from chain tip (~89.7M on BSC)
+    // and would render as a misleading "89.7M blocks remaining" message in the UI.
     override val transactionsSyncState: AdapterState
-        get() = bscHistoricalSyncing() ?: forwardSyncing() ?: txSyncToAdapterState()
+        get() = forwardSyncing() ?: txSyncToAdapterState()
 
     override val transactionsSyncStateUpdatedFlow: Flow<Unit>
         get() = merge(
             evmTransactionRepository.transactionsSyncStateFlowable.map { }.asFlow(),
-            evmTransactionRepository.historicalSyncState.map { },
             evmTransactionRepository.forwardSyncState.map { },
         )
 

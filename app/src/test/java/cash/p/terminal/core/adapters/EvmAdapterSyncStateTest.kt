@@ -130,7 +130,9 @@ class EvmAdapterSyncStateTest {
     // --- transactionsSyncState exposes overlay independently of balanceState ---
 
     @Test
-    fun transactionsSyncState_balanceSyncedWhileHistoricalScanning_returnsSyncing() {
+    fun transactionsSyncState_balanceSyncedWhileHistoricalScanning_returnsSynced() {
+        // Historical sync is intentionally NOT surfaced as a "Syncing" state, otherwise
+        // the UI would render a misleading "~89.7M blocks remaining" message on BSC.
         val adapter = createAdapter(
             historicalSyncState = HistoricalSyncState.Syncing(
                 startBlock = 83_000_000,
@@ -140,7 +142,7 @@ class EvmAdapterSyncStateTest {
         )
 
         assertEquals(AdapterState.Synced, adapter.balanceState)
-        assertTrue(adapter.transactionsSyncState is AdapterState.Syncing)
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
     }
 
     @Test
