@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -39,7 +40,7 @@ class DonateAddressesFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
         DonateScreen(
-            onBackPress = { navController.popBackStack() }
+            onBackPress = { navController.popBackStackSafely() }
         )
     }
 

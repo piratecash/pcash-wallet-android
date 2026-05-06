@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.modules.coin.analytics.CoinAnalyticsModule.OverallScore
@@ -52,7 +53,7 @@ class OverallScoreInfoFragment : BaseComposeFragment() {
                         .padding(horizontal = 48.dp)
                         .fillMaxWidth(),
                     title = stringResource(R.string.Button_Close),
-                    onClick = { navController.popBackStack() }
+                    onClick = { navController.popBackStackSafely() }
                 )
             }
         } else {
@@ -77,7 +78,7 @@ private fun InfoScreen(
         Column {
             AppBar(
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
 

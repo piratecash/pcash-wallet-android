@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -80,7 +82,7 @@ class MarketFiltersFragment : BaseComposeFragment() {
             }
         }
         if (!navGraphOnBackStack) {
-            navController.navigateUp()
+            navController.navigateUpSafely()
             return
         }
 
@@ -126,7 +128,7 @@ private fun AdvancedSearchScreen(
                 AppBar(
                     title = stringResource(R.string.Market_Filters),
                     navigationIcon = {
-                        HsBackButton(onClick = { navController.popBackStack() })
+                        HsBackButton(onClick = { navController.popBackStackSafely() })
                     },
                     menuItems = listOf(
                         MenuItem(

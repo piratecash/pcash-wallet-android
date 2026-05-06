@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.body_leah
@@ -53,7 +54,7 @@ private fun DuplicateWalletInfoScreen(navController: NavController) {
         iconPainter = painterResource(R.drawable.ic_copy_24px),
         title = stringResource(R.string.duplicate_wallet),
         onCloseClick = {
-            navController.popBackStack()
+            navController.popBackStackSafely()
         }
     ) {
         body_leah(

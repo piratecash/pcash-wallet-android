@@ -3,6 +3,7 @@ package cash.p.terminal.modules.tonconnect
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import com.tonapps.wallet.data.tonconnect.entities.DAppRequestEntity
@@ -17,7 +18,7 @@ class TonConnectNewFragment : BaseComposeFragment() {
                 requestEntity = input,
                 onResult = { approved ->
                     navController.setNavigationResultX(Result(approved))
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
             )
         }

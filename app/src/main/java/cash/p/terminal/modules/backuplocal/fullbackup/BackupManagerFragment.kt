@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.authorizedAction
@@ -50,7 +51,7 @@ class BackupManagerFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         BackupManagerScreen(
             onBackClick = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
             onRestoreBackup = { backupFilePath, fileName ->
                 navController.navigateWithTermsAccepted {

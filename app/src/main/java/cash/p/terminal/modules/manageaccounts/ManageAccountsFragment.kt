@@ -26,6 +26,7 @@ import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.modules.manageaccount.ManageAccountFragment
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule.AccountViewItem
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule.ActionViewItem
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.components.HsRadioButton
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -72,7 +73,7 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
     ) {
         AppBar(
             title = stringResource(R.string.ManageAccounts_Title),
-            navigationIcon = { HsBackButton(onClick = { navController.popBackStack() }) }
+            navigationIcon = { HsBackButton(onClick = { navController.popBackStackSafely() }) }
         )
 
         LazyColumn(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {

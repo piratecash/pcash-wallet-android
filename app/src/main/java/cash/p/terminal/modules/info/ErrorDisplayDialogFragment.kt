@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.TextImportantError
@@ -64,7 +65,7 @@ private fun ErrorDisplayScreen(
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.lucian),
             title = title,
             onCloseClick = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         ) {
             VSpacer(12.dp)
@@ -79,7 +80,7 @@ private fun ErrorDisplayScreen(
                     .padding(horizontal = 16.dp, vertical = 24.dp),
                 title = stringResource(R.string.Button_Ok),
                 onClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
             VSpacer(8.dp)

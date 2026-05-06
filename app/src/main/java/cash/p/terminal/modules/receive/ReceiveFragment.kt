@@ -20,6 +20,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.receive.ui.ReceiveAddressScreen
 import cash.p.terminal.modules.receive.ui.UsedAddressesParams
 import cash.p.terminal.modules.receive.viewmodels.ReceiveAddressViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.RowUniversal
@@ -127,10 +128,10 @@ fun ReceiveScreen(navController: NavController, wallet: Wallet, receiveEntryPoin
                 )
             }
         },
-        onBackPress = { navController.popBackStack() },
+        onBackPress = { navController.popBackStackSafely() },
         closeModule = {
             if (receiveEntryPointDestId == 0) {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             } else {
                 navController.popBackStack(receiveEntryPointDestId, true)
             }

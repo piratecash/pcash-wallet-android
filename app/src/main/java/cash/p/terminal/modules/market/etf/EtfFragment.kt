@@ -43,6 +43,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import io.horizontalsystems.core.entities.Currency
 import cash.p.terminal.ui_compose.entities.ViewState
@@ -109,7 +110,7 @@ fun EtfPage(
                     title = TranslatableString.ResString(R.string.Button_Close),
                     icon = R.drawable.ic_close_24,
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             )

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromRight
 import io.horizontalsystems.core.entities.CurrencyValue
@@ -100,7 +101,7 @@ class TvlFragment : BaseComposeFragment() {
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
                         onClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 )

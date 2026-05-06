@@ -8,6 +8,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.ui.dialogs.CancelOrScanDialog
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -28,7 +29,7 @@ class ManageWalletsFragment : BaseComposeFragment() {
                 if (viewModel.showScanToAddButton) {
                     showScanOrCancelDialog()
                 } else {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             },
             requestScan = {
@@ -63,7 +64,7 @@ class ManageWalletsFragment : BaseComposeFragment() {
             if (result.confirmed) {
                 viewModel.requestScanToAddTokens(true)
             } else {
-                findNavController().popBackStack()
+                findNavController().popBackStackSafely()
             }
         }
     }

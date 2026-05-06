@@ -1,14 +1,50 @@
 package cash.p.terminal.navigation
 
 import android.os.Parcelable
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.IdRes
 import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDirections
 import androidx.navigation.NavOptions
 import java.util.UUID
+
+private const val BACK_NAVIGATION_COOLDOWN_MS = 650L
+
+fun NavController.navigateUpSafely(): Boolean = whenResumedAndBackNavigationAllowed { navigateUp() }
+
+fun NavController.popBackStackSafely(): Boolean =
+    whenResumedAndBackNavigationAllowed { popBackStack() }
+
+private inline fun NavController.whenResumedAndBackNavigationAllowed(
+    block: NavController.() -> Boolean
+): Boolean {
+    if (currentBackStackEntry?.lifecycle?.currentState != Lifecycle.State.RESUMED) return false
+    if (!BackNavigationGate.acquire()) return false
+
+    return block().also { navigated ->
+        if (!navigated) BackNavigationGate.release()
+    }
+}
+
+private object BackNavigationGate {
+    private var lockedUntil = 0L
+
+    fun acquire(): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        if (now < lockedUntil) return false
+
+        lockedUntil = now + BACK_NAVIGATION_COOLDOWN_MS
+        return true
+    }
+
+    fun release() {
+        lockedUntil = 0L
+    }
+}
 
 fun NavController.slideFromRight(directions: NavDirections) {
     val navOptions = NavOptions.Builder()

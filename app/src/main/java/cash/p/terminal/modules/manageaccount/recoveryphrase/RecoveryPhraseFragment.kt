@@ -23,6 +23,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesFragment
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.modules.manageaccount.ui.ActionButton
 import cash.p.terminal.modules.manageaccount.ui.PassphraseCell
@@ -132,7 +133,7 @@ private fun RecoveryPhraseScreen(
             AppBar(
                 title = stringResource(titleResId),
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack)
+                    HsBackButton(onClick = navController::popBackStackSafely)
                 },
                 menuItems = listOf(
                     MenuItem(

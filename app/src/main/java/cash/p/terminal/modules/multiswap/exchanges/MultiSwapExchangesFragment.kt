@@ -33,6 +33,7 @@ import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsV
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -79,6 +80,11 @@ class MultiSwapExchangesFragment : BaseComposeFragment() {
                     fragmentNavController = navController,
                     transactionsViewModel = transactionsViewModel,
                     onBack = {
+                        if (!innerNavController.navigateUpSafely()) {
+                            navController.navigateUpSafely()
+                        }
+                    },
+                    onClose = {
                         if (!innerNavController.navigateUp()) {
                             navController.navigateUp()
                         }
@@ -111,7 +117,7 @@ private fun ExchangesListContent(
         uiState = viewModel.uiState,
         onSelect = { id -> innerNavController.navigate(DetailRoute(id)) },
         onDelete = viewModel::onDelete,
-        onBack = fragmentNavController::navigateUp,
+        onBack = fragmentNavController::navigateUpSafely,
     )
 }
 
@@ -121,6 +127,7 @@ private fun ExchangeDetailContent(
     fragmentNavController: NavController,
     transactionsViewModel: TransactionsViewModel?,
     onBack: () -> Unit,
+    onClose: () -> Unit,
 ) {
     val viewModel = koinViewModel<MultiSwapExchangeViewModel> {
         parametersOf(swapId)
@@ -128,7 +135,7 @@ private fun ExchangeDetailContent(
 
     LaunchedEffect(viewModel.closeScreen) {
         if (viewModel.closeScreen) {
-            onBack()
+            onClose()
         }
     }
 
@@ -196,7 +203,7 @@ private fun ExchangeDetailContent(
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
-                onClickClose = detailNavController::navigateUp,
+                onClickClose = detailNavController::navigateUpSafely,
                 onClickSettings = {
                     detailNavController.navigate(SwapProvidersSettingsRoute)
                 },
@@ -211,7 +218,7 @@ private fun ExchangeDetailContent(
                 },
                 onSelectQuote = { quote ->
                     viewModel.onSelectLeg2Quote(quote)
-                    detailNavController.navigateUp()
+                    detailNavController.navigateUpSafely()
                 }
             )
         }

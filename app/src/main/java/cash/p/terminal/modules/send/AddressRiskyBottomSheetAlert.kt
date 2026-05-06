@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.findNavController
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import  cash.p.terminal.R
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -45,7 +46,7 @@ class AddressRiskyBottomSheetAlert : BaseComposableBottomSheetFragment() {
                     RiskyAddressAlertView(
                         alertText = input.alertText,
                         onCloseClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         },
                         onContinueClick = {
                             navController.setNavigationResultX(Result(true))

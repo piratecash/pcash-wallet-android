@@ -56,6 +56,8 @@ import cash.p.terminal.modules.evmnetwork.addrpc.AddRpcScreen
 import cash.p.terminal.modules.walletconnect.list.ui.ActionsRow
 import cash.p.terminal.modules.walletconnect.list.ui.getShape
 import cash.p.terminal.modules.walletconnect.list.ui.showDivider
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -107,7 +109,7 @@ private fun EvmNetworkNavHost(
             EvmNetworkScreen(
                 navController = navController,
                 blockchain = blockchain,
-                onBackPress = { fragmentNavController.popBackStack() },
+                onBackPress = { fragmentNavController.popBackStackSafely() },
             )
         }
         composablePopup(AddRpcPage) {
@@ -128,7 +130,7 @@ private fun EvmNetworkNavHost(
             }
             BlockchainStatusScreen(
                 viewModel = viewModel,
-                onBack = navController::navigateUp
+                onBack = navController::navigateUpSafely
             )
         }
     }

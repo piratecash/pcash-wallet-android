@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.settings.main.HsSettingCell
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.AlertGroup
 import cash.p.terminal.ui_compose.Select
@@ -47,7 +48,7 @@ internal fun DisplayOptionsScreen(
             AppBar(
                 title = stringResource(R.string.display_options),
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack)
+                    HsBackButton(onClick = navController::popBackStackSafely)
                 }
             )
 

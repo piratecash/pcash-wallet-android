@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.ui_compose.components.AppBar
@@ -78,7 +79,7 @@ fun RecoveryPhraseVerifyScreen(navController: NavController, account: cash.p.ter
             AppBar(
                 title = stringResource(R.string.RecoveryPhraseVerify_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         }

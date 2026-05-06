@@ -40,6 +40,7 @@ import cash.p.terminal.modules.send.ConfirmAmountCell
 import cash.p.terminal.modules.send.MemoCell
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.components.SectionTitleCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
@@ -142,7 +143,7 @@ fun SendTronConfirmationScreen(
         AppBar(
             title = stringResource(R.string.Send_Confirmation_Title),
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             },
             menuItems = listOf()
         )

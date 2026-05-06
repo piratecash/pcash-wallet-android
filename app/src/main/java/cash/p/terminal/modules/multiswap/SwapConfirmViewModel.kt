@@ -18,6 +18,7 @@ import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.send.BaseSendViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet

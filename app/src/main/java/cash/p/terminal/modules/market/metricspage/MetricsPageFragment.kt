@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.core.iconPlaceholder
@@ -79,7 +80,7 @@ class MetricsPageFragment : BaseComposeFragment() {
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
                         onClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 )

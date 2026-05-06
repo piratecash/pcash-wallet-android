@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.wallet.alternativeImageUrl
 import cash.p.terminal.core.iconPlaceholder
@@ -91,7 +92,7 @@ fun MarketSearchScreen(viewModel: MarketSearchViewModel, navController: NavContr
             searchOnlyMode = true,
             searchModeInitial = true,
             focusRequester = focusRequester,
-            onClose = { navController.popBackStack() },
+            onClose = { navController.popBackStackSafely() },
             onSearchTextChanged = { query -> viewModel.searchByQuery(query) }
         )
 

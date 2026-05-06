@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.AppBar
@@ -109,7 +110,7 @@ private fun BaseCurrencyScreen(
                 AppBar(
                     title = stringResource(R.string.SettingsCurrency_Title),
                     navigationIcon = {
-                        HsBackButton(onClick = { navController.popBackStack() })
+                        HsBackButton(onClick = { navController.popBackStackSafely() })
                     }
                 )
             }

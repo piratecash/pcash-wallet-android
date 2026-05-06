@@ -20,6 +20,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.description
 import cash.p.terminal.core.title
 import cash.p.terminal.modules.receive.viewmodels.NetworkSelectViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HsBackButton
@@ -58,7 +59,7 @@ fun NetworkSelectScreen(
             AppBar(
                 title = stringResource(R.string.Balance_Network),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
                 menuItems = listOf()
             )

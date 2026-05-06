@@ -6,6 +6,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.modules.settings.addresschecker.ui.UnifiedAddressCheckScreen
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import kotlinx.parcelize.Parcelize
@@ -18,7 +19,7 @@ class AddressCheckFragment : BaseComposeFragment() {
     override fun GetContent(navController: NavController) {
         UnifiedAddressCheckScreen(
             initialAddress = args.input?.initialAddress,
-            onClose = navController::popBackStack,
+            onClose = navController::popBackStackSafely,
             onPremiumClick = {
                 navController.slideFromBottom(R.id.aboutPremiumFragment)
             }

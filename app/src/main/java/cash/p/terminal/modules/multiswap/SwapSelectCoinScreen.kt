@@ -2,6 +2,7 @@ package cash.p.terminal.modules.multiswap
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.Token
 import org.koin.compose.viewmodel.koinViewModel
@@ -28,7 +29,7 @@ fun SwapSelectCoinScreen(
         coinBalanceItems = uiState.coinBalanceItems,
         loading = uiState.loading,
         onSearchTextChanged = viewModel::setQuery,
-        onClose = navController::popBackStack
+        onClose = navController::popBackStackSafely
     ) {
         onSelect(it.token)
     }

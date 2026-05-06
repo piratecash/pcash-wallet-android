@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.coin.investments.CoinInvestmentsModule.FundViewItem
@@ -54,7 +55,7 @@ class CoinInvestmentsFragment : BaseComposeFragment() {
                     factory = CoinInvestmentsModule.Factory(input.coinUid)
                 ),
                 onClickNavigation = {
-                    navController.navigateUp()
+                    navController.navigateUpSafely()
                 },
                 onClickFundUrl = {
                     LinkHelper.openLinkInAppBrowser(requireContext(), it)

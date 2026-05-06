@@ -45,6 +45,7 @@ import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.address.AddressCheckResult
 import cash.p.terminal.modules.send.address.AddressEnterInfoBottomSheet
 import cash.p.terminal.modules.send.address.AddressValidationError
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -107,7 +108,7 @@ fun SecurityCheckScreen(
             AppBar(
                 title = stringResource(R.string.security_report),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
         },
@@ -125,7 +126,7 @@ fun SecurityCheckScreen(
                     title = stringResource(R.string.Send_Confirmation_To),
                     value = input.address,
                     riskyAddress = false,
-                    onClick = navController::popBackStack
+                    onClick = navController::popBackStackSafely
                 )
                 VSpacer(12.dp)
 

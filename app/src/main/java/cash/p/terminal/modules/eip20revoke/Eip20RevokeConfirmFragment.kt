@@ -19,6 +19,7 @@ import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.TokenRow
 import cash.p.terminal.modules.fee.DataFieldFee
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
@@ -69,11 +70,11 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
-        onClickBack = navController::popBackStack,
+        onClickBack = navController::popBackStackSafely,
         onClickSettings = {
             navController.slideFromRight(R.id.eip20RevokeTransactionSettingsFragment)
         },
-        onClickClose = navController::popBackStack,
+        onClickClose = navController::popBackStackSafely,
         buttonsSlot = {
             val coroutineScope = rememberCoroutineScope()
             var buttonEnabled by remember { mutableStateOf(true) }
@@ -116,7 +117,7 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.Button_Cancel),
                 onClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
         }

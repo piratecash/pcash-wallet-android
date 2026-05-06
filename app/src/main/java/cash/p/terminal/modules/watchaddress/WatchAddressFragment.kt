@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.watchaddress.selectblockchains.SelectBlockchainsFragment
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -88,7 +89,7 @@ fun WatchAddressScreen(navController: NavController, popUpToInclusiveId: Int, in
         AppBar(
             title = stringResource(R.string.ManageAccounts_WatchAddress),
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             },
             menuItems = buildList {
                 when (submitType) {

@@ -7,6 +7,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.modules.pin.ui.PinSet
@@ -30,7 +31,7 @@ class SetDuressPinFragment : BaseComposeFragment(screenshotEnabled = false) {
                 HudHelper.showSuccessMessage(view, R.string.Hud_Text_Created)
                 navController.popBackStack(R.id.setDuressPinIntroFragment, true)
             },
-            onBackPress = { navController.popBackStack() },
+            onBackPress = { navController.popBackStackSafely() },
         )
     }
 

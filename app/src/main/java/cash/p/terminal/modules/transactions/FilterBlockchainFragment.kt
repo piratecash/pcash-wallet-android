@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
+import cash.p.terminal.navigation.popBackStackSafely
 import coil3.compose.rememberAsyncImagePainter
 import cash.p.terminal.R
 import cash.p.terminal.core.restartMain
@@ -68,7 +69,7 @@ fun FilterBlockchainScreen(navController: NavController, viewModel: Transactions
             AppBar(
                 title = stringResource(R.string.Transactions_Filter_ChooseBlockchain),
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack)
+                    HsBackButton(onClick = navController::popBackStackSafely)
                 }
             )
             filterBlockchains?.let { blockchains ->
@@ -97,7 +98,7 @@ private fun BlockchainCell(
                 .fillMaxSize()
                 .clickable {
                     viewModel.onEnterFilterBlockchain(filterItem)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically

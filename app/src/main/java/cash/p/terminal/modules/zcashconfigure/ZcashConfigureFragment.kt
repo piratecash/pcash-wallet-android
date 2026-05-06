@@ -53,6 +53,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -101,12 +102,12 @@ class ZcashConfigureFragment : BaseComposeFragment() {
 
     private fun closeWithConfigt(config: TokenConfig, navController: NavController) {
         navController.setNavigationResultX(Result(config))
-        navController.popBackStack()
+        navController.popBackStackSafely()
     }
 
     private fun close(navController: NavController) {
         navController.setNavigationResultX(Result(null))
-        navController.popBackStack()
+        navController.popBackStackSafely()
     }
 
     @Parcelize

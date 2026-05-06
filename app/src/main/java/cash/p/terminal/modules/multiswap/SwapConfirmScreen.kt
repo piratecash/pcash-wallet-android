@@ -29,6 +29,7 @@ import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.CoinImage
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -131,7 +132,7 @@ fun SwapConfirmScreen(
     }
 
     ConfirmTransactionScreen(
-        onClickBack = swapNavController::navigateUp,
+        onClickBack = swapNavController::navigateUpSafely,
         onClickSettings = if (uiState.isAdvancedSettingsAvailable && onOpenSettings != null) {
             { onOpenSettings.invoke() }
         } else {

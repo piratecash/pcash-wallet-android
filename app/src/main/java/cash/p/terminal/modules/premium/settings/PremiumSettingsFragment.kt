@@ -50,6 +50,8 @@ import cash.p.terminal.modules.pin.ConfirmPinFragment
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.premium.smsnotification.SendSmsNotificationScreen
 import cash.p.terminal.modules.premium.smsnotification.SendSmsNotificationViewModel
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -132,7 +134,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                         navController.navigate(PremiumSettingsRoute.PushNotifications)
                     }
                 },
-                onClose = fragmentNavController::popBackStack
+                onClose = fragmentNavController::popBackStackSafely
             )
         }
         composablePage<PremiumSettingsRoute.LoginLogging> {
@@ -204,7 +206,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 ),
                 onAutoDeletePeriodChanged = loggingSettingsViewModel::setAutoDeletePeriod,
                 onDeleteAllLogs = loggingSettingsViewModel::deleteAllLogs,
-                onClose = navController::navigateUp
+                onClose = navController::navigateUpSafely
             )
         }
         composablePage<PremiumSettingsRoute.SendSmsNotification> {
@@ -221,7 +223,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 onSaveSuccessShown = smsViewModel::onSaveSuccessShown,
                 onTestResultShown = smsViewModel::onTestResultShown,
                 onCancelTest = smsViewModel::cancelTestTransaction,
-                onClose = navController::navigateUp
+                onClose = navController::navigateUpSafely
             )
         }
         composablePage<PremiumSettingsRoute.PushNotifications> {
@@ -291,7 +293,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 onShowBlockchainNameToggle = pushNotificationsViewModel::setShowBlockchainName,
                 onShowCoinAmountToggle = pushNotificationsViewModel::setShowCoinAmount,
                 onShowFiatAmountToggle = pushNotificationsViewModel::setShowFiatAmount,
-                onClose = navController::navigateUp
+                onClose = navController::navigateUpSafely
             )
 
             if (showRationaleDialog) {
@@ -361,7 +363,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 onItemClick = { recordId ->
                     navController.navigate(PremiumSettingsRoute.AuthorizationDetail(recordId))
                 },
-                onClose = navController::navigateUp
+                onClose = navController::navigateUpSafely
             )
         }
         composablePage<PremiumSettingsRoute.AuthorizationDetail> { backStackEntry ->
@@ -372,7 +374,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
 
             LoggingDetailScreen(
                 viewModel = viewModel,
-                onClose = navController::navigateUp
+                onClose = navController::navigateUpSafely
             )
         }
     }

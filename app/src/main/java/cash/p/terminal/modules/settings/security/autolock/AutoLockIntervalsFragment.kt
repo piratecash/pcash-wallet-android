@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
@@ -33,7 +34,7 @@ class AutoLockIntervalsFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
         AutoLockIntervalsScreen(
-            close = { navController.popBackStack() },
+            close = { navController.popBackStackSafely() },
         )
     }
 

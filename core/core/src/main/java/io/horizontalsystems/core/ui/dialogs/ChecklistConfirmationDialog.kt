@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -101,7 +102,7 @@ private fun ChecklistConfirmationScreen(
         iconPainter = painterResource(R.drawable.ic_attention_red_24),
         title = input.title,
         onCloseClick = {
-            navController.popBackStack()
+            navController.popBackStackSafely()
         }
     ) {
         Spacer(Modifier.height(12.dp))
@@ -140,7 +141,7 @@ private fun ChecklistConfirmationScreen(
             title = input.confirmButtonText,
             onClick = {
                 navController.setNavigationResultX(ChecklistConfirmationDialog.Result(true))
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
             enabled = allItemsChecked
         )

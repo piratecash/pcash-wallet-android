@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.multiswap.SwapViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HsBackButton
@@ -33,7 +34,7 @@ fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewMode
             AppBar(
                 title = stringResource(R.string.SwapSettings_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
         },
@@ -47,7 +48,7 @@ fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewMode
                     enabled = uiState.applyEnabled,
                     onClick = {
                         swapViewModel.onUpdateSettings(viewModel.getSettings())
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             }

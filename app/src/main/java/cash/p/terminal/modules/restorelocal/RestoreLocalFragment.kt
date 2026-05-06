@@ -49,6 +49,7 @@ import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.ManageWalletsScreen
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureScreen
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -122,7 +123,7 @@ private fun RestoreLocalNavHost(
             RestoreLocalScreen(
                 viewModel = viewModel,
                 mainViewModel = mainViewModel,
-                onBackClick = { fragmentNavController.popBackStack() },
+                onBackClick = { fragmentNavController.popBackStackSafely() },
                 close = { fragmentNavController.popBackStack(popUpToInclusiveId, popUpInclusive) },
                 openSelectCoins = { navController.navigate("restore_select_coins") },
                 openBackupItems = { navController.navigate("backup_file") }
@@ -131,7 +132,7 @@ private fun RestoreLocalNavHost(
         composablePage("backup_file") {
             BackupFileItems(
                 viewModel,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = { navController.popBackStackSafely() },
                 close = { fragmentNavController.popBackStack(popUpToInclusiveId, popUpInclusive) },
                 reloadApp = reloadApp
             )
@@ -148,7 +149,7 @@ private fun RestoreLocalNavHost(
                         navController.navigate("monero_configure")
                     }
                 },
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStackSafely() }
             ) { fragmentNavController.popBackStack(popUpToInclusiveId, popUpInclusive) }
         }
         composablePopup("zcash_configure") {
@@ -157,12 +158,12 @@ private fun RestoreLocalNavHost(
                 onCloseWithResult = { config ->
                     mainViewModel.setZCashConfig(config)
                     mainViewModel.setZCashInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onCloseClick = {
                     mainViewModel.cancelZCashConfig = true
                     mainViewModel.setZCashInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
         }
@@ -175,12 +176,12 @@ private fun RestoreLocalNavHost(
                 onCloseWithResult = {
                     mainViewModel.setMoneroConfig(it)
                     mainViewModel.setMoneroInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onCloseClick = {
                     mainViewModel.cancelMoneroConfig = true
                     mainViewModel.setMoneroInitialConfig(null)
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onRestoreNew = viewModel::onRestoreNew,
                 onSetBirthdayHeight = viewModel::setBirthdayHeight,
