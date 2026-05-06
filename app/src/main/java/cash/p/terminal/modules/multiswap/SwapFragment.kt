@@ -61,6 +61,8 @@ import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.navigation.entity.SwapParams
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.CardsSwapInfo
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -202,7 +204,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                     SwapCoinDirection.From -> viewModel.onSelectTokenIn(token)
                     SwapCoinDirection.To -> viewModel.onSelectTokenOut(token)
                 }
-                swapNavController.popBackStack()
+                swapNavController.popBackStackSafely()
             }
         }
         composablePopup<SwapSelectProviderPage> { backStackEntry ->
@@ -220,7 +222,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
-                onClickClose = swapNavController::popBackStack,
+                onClickClose = swapNavController::popBackStackSafely,
                 onClickSettings = {
                     swapNavController.navigate(SwapProvidersSettingsPage)
                 },
@@ -258,7 +260,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
             SwapSelectProviderScreen(
-                onClickClose = swapNavController::popBackStack,
+                onClickClose = swapNavController::popBackStackSafely,
                 onClickSettings = {
                     swapNavController.navigate(SwapProvidersSettingsPage)
                 },
@@ -361,7 +363,7 @@ private fun SwapMainScreen(
     SwapScreenInner(
         uiState = uiState,
         timeRemainingProgress = { viewModel.timeRemainingProgress },
-        onClickClose = fragmentNavController::navigateUp,
+        onClickClose = fragmentNavController::navigateUpSafely,
         onClickProvidersSettings = {
             swapNavController.navigate(SwapProvidersSettingsPage)
         },

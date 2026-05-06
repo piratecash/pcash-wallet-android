@@ -37,7 +37,14 @@ import org.koin.core.module.flatten
 import org.koin.ext.getFullName
 import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.annotation.InjectedParam
+import org.koin.core.annotation.KoinInternalApi
+import org.koin.core.annotation.Provided
+import org.koin.core.definition.BeanDefinition
+import org.koin.core.module.Module
+import org.koin.core.module.flatten
 import org.koin.dsl.module
+import org.koin.ext.getFullName
 import org.koin.test.KoinTest
 import org.koin.test.verify.ParameterTypeInjection
 import org.koin.test.verify.definition
@@ -83,7 +90,7 @@ class KoinGraphTest : KoinTest {
 
         fullModule.verify(
             extraTypes = extraTypes,
-            injections = injections
+            injections = injections,
         )
         fullModule.verifyOptionalConstructorParametersAreResolvable(extraTypes, injections)
     }
@@ -105,13 +112,17 @@ class KoinGraphTest : KoinTest {
             .toSet()
             .filter { it.beanDefinition.isConstructorReferenceDefinition() }
             .flatMap { factory ->
-                factory.beanDefinition.missingOptionalParameters(definitionIndex, extraTypeNames, injectionIndex)
+                factory.beanDefinition.missingOptionalParameters(
+                    definitionIndex = definitionIndex,
+                    extraTypeNames = extraTypeNames,
+                    injectionIndex = injectionIndex,
+                )
             }
 
         check(missingParameters.isEmpty()) {
             missingParameters.joinToString(
                 separator = "\n",
-                prefix = "Optional constructor parameters must be resolvable by Koin:\n"
+                prefix = "Optional constructor parameters must be resolvable by Koin:\n",
             )
         }
     }
@@ -119,7 +130,7 @@ class KoinGraphTest : KoinTest {
     private fun BeanDefinition<*>.missingOptionalParameters(
         definitionIndex: Set<String>,
         extraTypeNames: Set<String>,
-        injectionIndex: Map<String, List<String>>
+        injectionIndex: Map<String, List<String>>,
     ): List<String> {
         val originTypeName = primaryType.getFullName()
         return primaryType.constructors
@@ -128,7 +139,12 @@ class KoinGraphTest : KoinTest {
                 constructor.parameters
                     .filter(KParameter::isOptional)
                     .filterNot { parameter ->
-                        parameter.isResolvableFor(originTypeName, definitionIndex, extraTypeNames, injectionIndex)
+                        parameter.isResolvableFor(
+                            originTypeName = originTypeName,
+                            definitionIndex = definitionIndex,
+                            extraTypeNames = extraTypeNames,
+                            injectionIndex = injectionIndex,
+                        )
                     }
                     .map { parameter ->
                         val typeName = parameter.injectedType()?.qualifiedName ?: parameter.type.toString()
@@ -147,7 +163,7 @@ class KoinGraphTest : KoinTest {
         originTypeName: String,
         definitionIndex: Set<String>,
         extraTypeNames: Set<String>,
-        injectionIndex: Map<String, List<String>>
+        injectionIndex: Map<String, List<String>>,
     ): Boolean {
         if (annotations.any { it.annotationClass == InjectedParam::class || it.annotationClass == Provided::class }) {
             return true

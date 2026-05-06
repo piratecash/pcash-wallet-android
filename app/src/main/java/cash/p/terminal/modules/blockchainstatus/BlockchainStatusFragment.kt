@@ -6,6 +6,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.MoneroKitManager
 import cash.p.terminal.core.managers.StellarKitManager
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -25,7 +26,7 @@ class BlockchainStatusFragment : BaseComposeFragment() {
             }
             BlockchainStatusScreen(
                 viewModel = viewModel,
-                onBack = navController::navigateUp
+                onBack = navController::navigateUpSafely
             )
         }
     }

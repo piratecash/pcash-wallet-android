@@ -17,6 +17,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.modules.chart.ChartIndicatorSetting
@@ -62,7 +63,7 @@ fun IndicatorsScreen(navController: NavController) {
             AppBar(
                 title = stringResource(R.string.CoinPage_Indicators),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         }

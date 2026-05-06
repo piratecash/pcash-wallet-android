@@ -34,19 +34,17 @@ import cash.p.terminal.network.pirate.domain.enity.PricePoint
 import cash.p.terminal.network.pirate.domain.enity.Stake
 import cash.p.terminal.network.pirate.domain.enity.StakeData
 import java.math.BigDecimal
+import java.time.Instant
 
 internal class PiratePlaceMapper {
     fun mapInvestmentData(investmentDataDto: InvestmentDataDto) = InvestmentData(
-        id = investmentDataDto.id,
-        chain = investmentDataDto.chain,
-        source = investmentDataDto.source,
-        address = investmentDataDto.address,
         balance = investmentDataDto.balance,
         unrealizedValue = investmentDataDto.unrealizedValue,
         mint = investmentDataDto.mint,
-        balancePrice = investmentDataDto.balancePrice,
-        unrealizedValuePrice = investmentDataDto.unrealizedValuePrice,
-        mintPrice = investmentDataDto.mintPrice
+        stakingActive = investmentDataDto.stakingActive,
+        stakingInactiveReason = investmentDataDto.stakingInactiveReason,
+        nextAccrualAt = investmentDataDto.nextAccrualAt?.let(Instant::parse),
+        nextPayoutAt = investmentDataDto.nextPayoutAt?.let(Instant::parse),
     )
 
     fun mapChangeNowCoinAssociationList(coinAssociations: List<ChangeNowAssociatedCoinDto>) =

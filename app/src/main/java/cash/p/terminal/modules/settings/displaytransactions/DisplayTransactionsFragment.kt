@@ -3,6 +3,7 @@ package cash.p.terminal.modules.settings.displaytransactions
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import org.koin.android.ext.android.inject
@@ -16,10 +17,10 @@ class DisplayTransactionsFragment : BaseComposeFragment() {
             selectedItem = viewModel.uiState.collectAsStateWithLifecycle(TransactionDisplayLevel.NOTHING).value,
             onItemSelected = {
                 viewModel.onItemSelected(it)
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
             onBackPressed = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         )
     }

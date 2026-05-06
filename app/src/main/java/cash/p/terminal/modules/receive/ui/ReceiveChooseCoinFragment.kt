@@ -23,6 +23,7 @@ import cash.p.terminal.modules.receive.ui.ReceiveChooseCoinRoutes.NETWORK_SELECT
 import cash.p.terminal.modules.receive.viewmodels.BchAddressTypeSelectViewModel
 import cash.p.terminal.modules.receive.viewmodels.DerivationSelectViewModel
 import cash.p.terminal.modules.receive.viewmodels.ReceiveSharedViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.wallet.Wallet
@@ -153,9 +154,9 @@ fun navigateBack(
     fragmentNavController: NavController,
     navController: NavHostController
 ): () -> Unit = {
-    val result = navController.popBackStack()
+    val result = navController.popBackStackSafely()
     if (!result) {
-        fragmentNavController.popBackStack()
+        fragmentNavController.popBackStackSafely()
     }
 }
 
@@ -174,5 +175,5 @@ inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(
 fun CloseWithMessage(navController: NavController) {
     val view = LocalView.current
     HudHelper.showErrorMessage(view, stringResource(id = R.string.Error_ParameterNotSet))
-    navController.popBackStack()
+    navController.popBackStackSafely()
 }

@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.wallet.Account
@@ -42,7 +43,7 @@ private fun FullBackupNavHost(fragmentNavController: NavController) {
                     navController.navigate("terms_page$accountIds")
                 },
                 onBackClick = {
-                    fragmentNavController.popBackStack()
+                    fragmentNavController.popBackStackSafely()
                 }
             )
         }
@@ -57,7 +58,7 @@ private fun FullBackupNavHost(fragmentNavController: NavController) {
                     navController.navigate("password_page${if (accountIds != null) "?accountIds=$accountIds" else ""}")
                 },
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
         }
@@ -71,10 +72,10 @@ private fun FullBackupNavHost(fragmentNavController: NavController) {
                 backupType = BackupType.FullBackup(accountIds),
                 navController = fragmentNavController,
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onFinish = {
-                    fragmentNavController.popBackStack()
+                    fragmentNavController.popBackStackSafely()
                 }
             )
         }
@@ -94,7 +95,7 @@ private fun SingleWalletBackupNavHost(fragmentNavController: NavController, acco
                     navController.navigate("password_page")
                 },
                 onBackClick = {
-                    fragmentNavController.popBackStack()
+                    fragmentNavController.popBackStackSafely()
                 }
             )
         }
@@ -103,10 +104,10 @@ private fun SingleWalletBackupNavHost(fragmentNavController: NavController, acco
                 backupType = BackupType.SingleWalletBackup(accountId),
                 navController = fragmentNavController,
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onFinish = {
-                    fragmentNavController.popBackStack()
+                    fragmentNavController.popBackStackSafely()
                 }
             )
         }

@@ -5,6 +5,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.pin.SetPinFragment.Input
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.pin.ui.PinSet
 import cash.p.terminal.ui_compose.getInput
@@ -19,8 +20,8 @@ class EditPinFragment : BaseComposeFragment(screenshotEnabled = false) {
             title = stringResource(R.string.EditPin_Title),
             description = stringResource(R.string.EditPin_NewPinInfo),
             pinType = input?.pinType ?: PinType.REGULAR,
-            dismissWithSuccess = { navController.popBackStack() },
-            onBackPress = { navController.popBackStack() }
+            dismissWithSuccess = { navController.popBackStackSafely() },
+            onBackPress = { navController.popBackStackSafely() }
         )
     }
 }

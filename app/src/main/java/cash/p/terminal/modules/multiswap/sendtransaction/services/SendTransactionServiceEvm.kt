@@ -52,6 +52,7 @@ import cash.p.terminal.modules.send.evm.settings.SendEvmNonceViewModel
 import cash.p.terminal.modules.send.evm.settings.SendEvmSettingsModule
 import cash.p.terminal.modules.send.evm.settings.SendEvmSettingsService
 import cash.p.terminal.modules.send.evm.settings.SendEvmSettingsViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsIconButton
@@ -353,7 +354,7 @@ fun SendEvmFeeSettingsScreen(
         AppBar(
             title = stringResource(R.string.SendEvmSettings_Title),
             navigationIcon = {
-                HsIconButton(onClick = { navController.popBackStack() }) {
+                HsIconButton(onClick = { navController.popBackStackSafely() }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_back),
                         contentDescription = "back button",

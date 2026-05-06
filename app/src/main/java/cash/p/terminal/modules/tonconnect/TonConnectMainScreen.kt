@@ -24,6 +24,7 @@ import cash.p.terminal.core.Caution
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.navigation.openQrScanner
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.components.AppBar
@@ -103,7 +104,7 @@ fun TonConnectMainScreen(
                 AppBar(
                     title = stringResource(R.string.TonConnect_Title),
                     navigationIcon = {
-                        HsBackButton(onClick = { navController.popBackStack() })
+                        HsBackButton(onClick = { navController.popBackStackSafely() })
                     }
                 )
             }

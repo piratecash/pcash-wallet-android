@@ -19,6 +19,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.modules.manageaccount.evmaddress.PublicViewKeyFragment
 import cash.p.terminal.modules.manageaccount.showextendedkey.ShowExtendedKeyFragment
 import cash.p.terminal.modules.manageaccount.ui.KeyActionItem
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -53,7 +54,7 @@ fun ManageAccountScreen(navController: NavController, account: Account) {
             AppBar(
                 title = stringResource(R.string.PublicKeys_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         }

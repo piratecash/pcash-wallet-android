@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,7 +26,7 @@ fun Badge(modifier: Modifier = Modifier, text: String) {
         modifier = modifier,
         text = text,
         background = ComposeAppTheme.colors.jeremy,
-        textColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.bran,
+        textColor = ComposeAppTheme.colors.bran,
     )
 }
 
@@ -36,20 +36,27 @@ fun BadgeWithDiff(
     text: String,
     diff: BigDecimal? = null
 ) {
+    val background = if (diff != null) {
+        diffColor(diff).copy(alpha = 0.1f)
+    } else {
+        ComposeAppTheme.colors.jeremy
+    }
     BadgeBase(
         modifier = modifier,
-        background = ComposeAppTheme.colors.jeremy
+        background = background
     ) {
-        Text(
-            text = text,
-            color = ComposeAppTheme.colors.bran,
-            style = ComposeAppTheme.typography.microSB,
-            maxLines = 1,
-        )
+        if (text.isNotBlank()) {
+            Text(
+                text = text,
+                color = ComposeAppTheme.colors.bran,
+                style = ComposeAppTheme.typography.microSB,
+                maxLines = 1,
+            )
+        }
         diff?.let { diffValue ->
             Text(
-                modifier = Modifier.padding(start = 4.dp),
-                text = "${sign(diffValue)}${diff.abs()}",
+                modifier = if (text.isNotBlank()) Modifier.padding(start = 4.dp) else Modifier,
+                text = "${sign(diffValue)}${diffValue.abs()}",
                 color = diffColor(diffValue),
                 style = ComposeAppTheme.typography.microSB,
                 maxLines = 1,
@@ -62,8 +69,8 @@ fun BadgeWithDiff(
 fun BadgeText(
     modifier: Modifier = Modifier,
     text: String,
-    background: Color = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian,
-    textColor: Color = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.white,
+    background: Color = ComposeAppTheme.colors.lucian,
+    textColor: Color = ComposeAppTheme.colors.white,
 ) {
     BadgeBase(
         modifier = modifier,
@@ -87,9 +94,9 @@ fun BadgeBase(
 ) {
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(4.dp))
             .background(background)
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
         content = content
@@ -107,7 +114,7 @@ private fun sign(value: BigDecimal): String {
 @Preview
 @Composable
 fun BadgePreview() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         Box(
             modifier = Modifier.padding(16.dp),
             contentAlignment = Alignment.Center
@@ -120,14 +127,14 @@ fun BadgePreview() {
 @Preview
 @Composable
 fun BadgeCirclePreview() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         Box(
             modifier = Modifier.padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             BadgeText(
                 background = ComposeAppTheme.colors.issykBlue,
-                textColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.tyler,
+                textColor = ComposeAppTheme.colors.tyler,
                 text = "1"
             )
         }
@@ -137,14 +144,14 @@ fun BadgeCirclePreview() {
 @Preview
 @Composable
 fun BadgeCircleSignal_Preview() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         Box(
             modifier = Modifier.padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             BadgeText(
                 background = ComposeAppTheme.colors.red20,
-                textColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.lucian,
+                textColor = ComposeAppTheme.colors.lucian,
                 text = "Sell"
             )
         }
@@ -154,12 +161,26 @@ fun BadgeCircleSignal_Preview() {
 @Preview
 @Composable
 fun BadgeWithDiffPreview() {
-    cash.p.terminal.ui_compose.theme.ComposeAppTheme {
+    ComposeAppTheme {
         Box(
             modifier = Modifier.padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             BadgeWithDiff(text = "35", diff = BigDecimal("5"))
+        }
+    }
+}
+
+@Suppress("UnusedPrivateMember")
+@Preview
+@Composable
+private fun BadgeWithDiffOnlyPreview() {
+    ComposeAppTheme {
+        Box(
+            modifier = Modifier.padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            BadgeWithDiff(text = "", diff = BigDecimal("1.63"))
         }
     }
 }

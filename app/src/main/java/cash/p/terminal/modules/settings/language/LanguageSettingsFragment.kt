@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.ui_compose.components.AppBar
@@ -67,7 +68,7 @@ private fun LanguageScreen(
         AppBar(
             title = stringResource(R.string.Settings_Language),
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             }
         )
         Column(

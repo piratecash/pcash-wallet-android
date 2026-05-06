@@ -11,6 +11,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.markdown.MarkdownContent
 import cash.p.terminal.modules.markdown.openMarkdownOrWeblink
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -35,7 +36,7 @@ class MarkdownLocalFragment : BaseComposeFragment() {
         MarkdownLocalScreen(
             showAsPopup = input?.showAsPopup ?: false,
             viewModel = viewModel,
-            onCloseClick = navController::popBackStack,
+            onCloseClick = navController::popBackStackSafely,
             onUrlClick = { url ->
                 navController.openMarkdownOrWeblink(url)
             }

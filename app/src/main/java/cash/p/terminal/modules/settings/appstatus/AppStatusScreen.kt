@@ -29,6 +29,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.blockchainstatus.StatusSectionBlock
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockContent
 import cash.p.terminal.modules.settings.appstatus.AppStatusModule.BlockData
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -63,7 +64,7 @@ fun AppStatusScreen(
             AppBar(
                 title = stringResource(R.string.Settings_AppStatus),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
             )
         }

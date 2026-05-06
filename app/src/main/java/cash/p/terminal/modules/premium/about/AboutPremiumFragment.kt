@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import cash.p.terminal.modules.markdown.openMarkdownOrWeblink
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
@@ -28,7 +29,7 @@ class AboutPremiumFragment : BaseComposeFragment() {
             uiState = viewModel.uiState,
             uiEvents = viewModel.uiEvents,
             onRetryClick = viewModel::retry,
-            onCloseClick = navController::popBackStack,
+            onCloseClick = { navController.popBackStackSafely() },
             onUrlClick = { url ->
                 navController.openMarkdownOrWeblink(url)
             },

@@ -62,8 +62,7 @@ class TransactionMonitor(
 
         if (monitoredTypes.isEmpty()) return
 
-        val now = System.currentTimeMillis() / 1000
-        monitoredTypes.forEach { deduplicator.updateLastCheckTime(it.uid, now) }
+        resetBaseline(monitoredTypes)
 
         val interval = localStorage.pushPollingInterval
 
@@ -86,6 +85,45 @@ class TransactionMonitor(
         monitoringJob = null
         keepAliveManager.clear()
         deduplicator.reset()
+    }
+
+    /**
+     * Marks "now" as the deduplication baseline for currently monitored chains so
+     * that later polls only treat strictly newer transactions as new. Idempotent —
+     * safe to call before every fresh polling session (e.g. each WorkManager run
+     * that re-enables monitoring).
+     */
+    fun resetPollingBaseline() {
+        val enabledUids = localStorage.pushEnabledBlockchainUids
+        val types = walletManager.activeWallets
+            .map { it.token.blockchainType }
+            .filter { it.uid in enabledUids }
+            .toSet()
+        if (types.isEmpty()) return
+        resetBaseline(types)
+    }
+
+    /**
+     * Runs a single polling cycle without owning a long-lived coroutine. Used by
+     * WorkManager-driven polling — each worker invocation is one cycle.
+     */
+    suspend fun pollOnce() {
+        val enabledUids = localStorage.pushEnabledBlockchainUids
+        val types = walletManager.activeWallets
+            .map { it.token.blockchainType }
+            .filter { it.uid in enabledUids }
+            .toSet()
+        if (types.isEmpty()) return
+
+        val wallets = walletManager.activeWallets
+        val records = pollingManager.pollAll(types, wallets)
+        Timber.tag("TxMonitor").d("pollOnce returned %d records", records.size)
+        processRecords(records)
+    }
+
+    private fun resetBaseline(types: Set<BlockchainType>) {
+        val now = System.currentTimeMillis() / 1000
+        types.forEach { deduplicator.updateLastCheckTime(it.uid, now) }
     }
 
     private fun CoroutineScope.launchRealtimeCollectors(
@@ -126,9 +164,7 @@ class TransactionMonitor(
                     Timber.tag("TxMonitor").d("Premium expired, stopping monitor")
                     return@launch
                 }
-                val records = pollingManager.pollAll(monitoredTypes, activeWallets)
-                Timber.tag("TxMonitor").d("Polling returned %d records", records.size)
-                processRecords(records)
+                pollOnce()
             }
         }
     }

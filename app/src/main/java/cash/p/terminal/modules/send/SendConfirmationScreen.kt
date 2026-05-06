@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.entities.Address
+import cash.p.terminal.navigation.popBackStackSafely
 import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.modules.amount.AmountInputType
 import cash.p.terminal.modules.contacts.model.Contact
@@ -160,7 +161,7 @@ fun SendConfirmationScreen(
         AppBar(
             title = stringResource(R.string.Send_Confirmation_Title),
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             },
             menuItems = listOf()
         )

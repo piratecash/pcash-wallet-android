@@ -14,6 +14,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
     defaultConfig {
         minSdk = 27
         vectorDrawables.generatedDensities?.clear()
@@ -57,6 +63,10 @@ dependencies {
     implementation(libs.timber)
 
     implementation(libs.androidx.navigation.runtime.ktx)
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 }

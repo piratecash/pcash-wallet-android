@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.ui_compose.getInput
@@ -165,7 +166,7 @@ private fun ImportWalletScreen(
             topBar = {
                 AppBar(
                     title = stringResource(R.string.ManageAccounts_ImportWallet),
-                    navigationIcon = { HsBackButton(onClick = { navController.popBackStack() }) }
+                    navigationIcon = { HsBackButton(onClick = { navController.popBackStackSafely() }) }
                 )
             }
         ) {

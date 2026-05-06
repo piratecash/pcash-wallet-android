@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromRight
@@ -83,7 +84,7 @@ class CoinRankFragment : BaseComposeFragment() {
                         .padding(horizontal = 48.dp)
                         .fillMaxWidth(),
                     title = stringResource(R.string.Button_Close),
-                    onClick = { navController.popBackStack() }
+                    onClick = { navController.popBackStackSafely() }
                 )
             }
         }
@@ -110,7 +111,7 @@ private fun CoinRankScreen(
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
-                        onClick = { navController.popBackStack() }
+                        onClick = { navController.popBackStackSafely() }
                     )
                 )
             )

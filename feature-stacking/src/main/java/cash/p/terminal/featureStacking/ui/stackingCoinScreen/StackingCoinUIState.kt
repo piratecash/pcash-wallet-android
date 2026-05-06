@@ -18,6 +18,8 @@ internal data class StackingCoinUIState(
     val totalIncomeSecondary: String? = null,
     val unpaidStr: String? = null,
     val unpaidSecondary: String? = null,
+    val hoursUntilNextAccrual: Int? = null,
+    val nextPayoutText: String? = null,
     val payoutItems: Map<String, List<PayoutViewItem>> = emptyMap(),
     val loading: Boolean = true,
     val balanceHidden: Boolean = true,

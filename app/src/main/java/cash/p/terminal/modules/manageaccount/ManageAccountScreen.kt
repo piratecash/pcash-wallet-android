@@ -43,6 +43,7 @@ import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFrag
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsFragment.Input
 import cash.p.terminal.modules.restoreaccount.RestoreAccountFragment
 import cash.p.terminal.modules.settings.main.HsSettingCell
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
@@ -87,7 +88,7 @@ internal fun ManageAccountScreen(
         AppBar(
             title = viewState.title,
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             },
             menuItems = listOf(
                 MenuItem(

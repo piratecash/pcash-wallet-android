@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.modules.nft.collection.assets.NftCollectionAssetsScreen
@@ -73,7 +74,7 @@ private fun NftCollectionScreen(navController: NavController, viewModel: NftColl
                     title = TranslatableString.ResString(R.string.Button_Close),
                     icon = R.drawable.ic_close_24,
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             )

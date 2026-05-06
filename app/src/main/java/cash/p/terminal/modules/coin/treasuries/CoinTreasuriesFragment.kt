@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.entities.ViewState
@@ -76,7 +77,7 @@ class CoinTreasuriesFragment : BaseComposeFragment() {
                 AppBar(
                     title = stringResource(R.string.CoinPage_Treasuries),
                     navigationIcon = {
-                        HsBackButton(onClick = { findNavController().popBackStack() })
+                        HsBackButton(onClick = { findNavController().popBackStackSafely() })
                     }
                 )
             }

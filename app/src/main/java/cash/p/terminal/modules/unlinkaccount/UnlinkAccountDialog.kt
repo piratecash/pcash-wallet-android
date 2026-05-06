@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
@@ -89,7 +90,7 @@ private fun UnlinkAccountScreen(navController: NavController, account: Account) 
         iconPainter = painterResource(R.drawable.ic_attention_red_24),
         title = stringResource(R.string.ManageKeys_Delete_Title),
         onCloseClick = {
-            navController.popBackStack()
+            navController.popBackStackSafely()
         }
     ) {
 
@@ -131,7 +132,7 @@ private fun UnlinkAccountScreen(navController: NavController, account: Account) 
             onClick = {
                 viewModel.onUnlink()
                 HudHelper.showSuccessMessage(view, doneConfirmationMessage)
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
             enabled = unlinkEnabled
         )

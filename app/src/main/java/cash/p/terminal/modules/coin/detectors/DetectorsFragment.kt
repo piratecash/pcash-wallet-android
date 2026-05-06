@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.coin.detectors.DetectorsModule.DetectorsTab
 import cash.p.terminal.ui_compose.components.AppBar
@@ -63,7 +64,7 @@ class DetectorsFragment : BaseComposeFragment() {
             DetectorsScreen(
                 viewModel = viewModel,
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
             )
         }

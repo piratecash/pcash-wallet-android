@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.components.InfoTextBody
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
@@ -60,7 +61,7 @@ private fun CancelOrScanScreen(navController: NavController) {
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.lucian),
             title = stringResource(R.string.adding_tokens),
             onCloseClick = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         ) {
             InfoTextBody(
@@ -78,7 +79,7 @@ private fun CancelOrScanScreen(navController: NavController) {
                     title = stringResource(R.string.scan),
                     onClick = {
                         navController.setNavigationResultX(CancelOrScanDialog.Result(true))
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
                 ButtonPrimaryDefault(
@@ -86,7 +87,7 @@ private fun CancelOrScanScreen(navController: NavController) {
                     title = stringResource(R.string.common_cancel),
                     onClick = {
                         navController.setNavigationResultX(CancelOrScanDialog.Result(false))
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             }

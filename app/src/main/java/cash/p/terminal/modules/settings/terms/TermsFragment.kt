@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -40,7 +41,7 @@ class TermsFragment : BaseComposeFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         activity?.onBackPressedDispatcher?.addCallback(this) {
             findNavController().setNavigationResultX(Result(false))
-            findNavController().popBackStack()
+            findNavController().popBackStackSafely()
         }
     }
 
@@ -63,7 +64,7 @@ fun TermsScreen(
         viewModel.closedWithTermsAgreed()
 
         navController.setNavigationResultX(TermsFragment.Result(true))
-        navController.popBackStack()
+        navController.popBackStackSafely()
     }
 
     Scaffold(
@@ -77,7 +78,7 @@ fun TermsScreen(
                         icon = R.drawable.ic_close_24,
                         onClick = {
                             navController.setNavigationResultX(TermsFragment.Result(false))
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 )

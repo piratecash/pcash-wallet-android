@@ -34,6 +34,7 @@ import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.modules.walletconnect.session.ui.StatusCell
 import cash.p.terminal.modules.walletconnect.session.ui.TitleValueCell
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.helpers.TextHelper
@@ -71,7 +72,7 @@ class WCSessionFragment : BaseComposeFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.closeLiveEvent.observe(viewLifecycleOwner) {
-            findNavController().popBackStack()
+            findNavController().popBackStackSafely()
         }
 
         viewModel.showErrorLiveEvent.observe(viewLifecycleOwner) { error ->
@@ -106,7 +107,7 @@ fun WCSessionPage(
                 MenuItem(
                     title = TranslatableString.ResString(R.string.Button_Close),
                     icon = R.drawable.ic_close_24,
-                    onClick = { navController.popBackStack() },
+                    onClick = { navController.popBackStackSafely() },
                     enabled = uiState.closeEnabled,
                     tint = if (uiState.closeEnabled) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.grey50
                 )

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -40,11 +41,11 @@ class SubscriptionInfoFragment : BaseComposeFragment() {
                 uriHandler.openUri(AppConfigProvider.analyticsLink)
             },
             onClickHavePremium = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
                 navController.slideFromBottom(R.id.activateSubscription)
             },
             onClose = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         )
     }

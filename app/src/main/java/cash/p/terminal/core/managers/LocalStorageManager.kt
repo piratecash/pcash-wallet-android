@@ -28,10 +28,8 @@ import cash.p.terminal.modules.settings.security.autolock.AutoLockInterval
 import cash.p.terminal.modules.theme.ThemeType
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.Derivation
-import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.entities.EncryptedString
-import cash.p.terminal.wallet.getUniqueKey
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -109,8 +107,10 @@ class LocalStorageManager(
     private val STATS_SYNC_TIME = "stats_sync_time"
     private val PRICE_CHANGE_INTERVAL = "price_change_interval"
     private val SHARE_CRASH_DATA_ENABLED = "share_crash_data_enabled"
-    private val STACKING_UPDATE_TIME = "stacking_update_time"
-    private val STACKING_UNPAID = "stacking_unpaid"
+    private val STACKING_UNPAID = "stacking_unpaid_"
+    private val STACKING_NEXT_ACCRUAL_AT = "stacking_next_accrual_at_"
+    private val STACKING_BALANCE = "stacking_balance_"
+    private val STACKING_TIMESTAMP = "stacking_timestamp_"
     private val DASH_PEERS = "dash_peers"
     private val MONERO_SKIP_NEW_ADDRESS_CONFIRM = "monero_skip_new_address_confirm"
     private val CALCULATOR_MODE_ENABLED = "calculator_mode_enabled"
@@ -709,26 +709,34 @@ class LocalStorageManager(
             preferences.edit().putString(DASH_PEERS, value).apply()
         }
 
-    override fun getStackingUnpaid(wallet: Wallet) =
-        if (preferences.contains(STACKING_UNPAID + wallet.getUniqueKey())) {
-            preferences.getString(STACKING_UNPAID + wallet.getUniqueKey(), "0")?.toBigDecimal()
-                ?: BigDecimal.ZERO
-        } else {
-            null
-        }
+    private fun stackingKey(prefix: String, coin: String, address: String) =
+        "$prefix${coin}_$address"
 
-    override fun setStackingUnpaid(wallet: Wallet, unpaid: BigDecimal) {
+    override fun getStackingUnpaid(coin: String, address: String): BigDecimal? =
+        preferences.getString(stackingKey(STACKING_UNPAID, coin, address), null)?.toBigDecimal()
+
+    override fun getStackingNextAccrualAt(coin: String, address: String): String? =
+        preferences.getString(stackingKey(STACKING_NEXT_ACCRUAL_AT, coin, address), null)
+
+    override fun getStackingCachedBalance(coin: String, address: String): BigDecimal? =
+        preferences.getString(stackingKey(STACKING_BALANCE, coin, address), null)?.toBigDecimal()
+
+    override fun getStackingTimestamp(coin: String, address: String): Long =
+        preferences.getLong(stackingKey(STACKING_TIMESTAMP, coin, address), 0)
+
+    override fun saveStackingData(
+        coin: String,
+        address: String,
+        unpaid: BigDecimal,
+        nextAccrualAt: String?,
+        balance: BigDecimal,
+    ) {
         preferences.edit()
-            .putString(STACKING_UNPAID + wallet.getUniqueKey(), unpaid.toPlainString())
+            .putString(stackingKey(STACKING_UNPAID, coin, address), unpaid.toPlainString())
+            .putString(stackingKey(STACKING_NEXT_ACCRUAL_AT, coin, address), nextAccrualAt)
+            .putString(stackingKey(STACKING_BALANCE, coin, address), balance.toPlainString())
+            .putLong(stackingKey(STACKING_TIMESTAMP, coin, address), System.currentTimeMillis())
             .apply()
-        setStackingUpdateTimestamp(wallet, System.currentTimeMillis())
-    }
-
-    override fun getStackingUpdateTimestamp(wallet: Wallet) =
-        preferences.getLong(STACKING_UPDATE_TIME + wallet.getUniqueKey(), 0)
-
-    private fun setStackingUpdateTimestamp(wallet: Wallet, timestamp: Long) {
-        preferences.edit().putLong(STACKING_UPDATE_TIME + wallet.getUniqueKey(), timestamp).apply()
     }
 
     override var isSystemPinRequired by preferences.delegate(
@@ -899,6 +907,11 @@ class LocalStorageManager(
     override var pushPollingInterval by preferences.delegate(
         key = "push_polling_interval",
         default = PollingInterval.REALTIME
+    )
+
+    override var pushRealtimeFallbackPollingActive by preferences.delegate(
+        key = "push_realtime_fallback_polling_active",
+        default = false
     )
 
     override var pushEnabledBlockchainUids by preferences.delegate(

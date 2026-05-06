@@ -24,6 +24,7 @@ import cash.p.terminal.modules.walletconnect.request.sendtransaction.WCEthereumT
 import cash.p.terminal.modules.walletconnect.request.sendtransaction.WCSendEthRequestScreen
 import cash.p.terminal.modules.walletconnect.request.signtransaction.WCSignEthereumTransactionRequestScreen
 import cash.p.terminal.modules.walletconnect.session.ui.BlockchainCell
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.MessageToSign
 import cash.p.terminal.ui.compose.components.ScreenMessageWithAction
@@ -159,7 +160,7 @@ class WCRequestFragment : BaseComposeFragment() {
                             .padding(horizontal = 48.dp)
                             .fillMaxWidth(),
                         title = stringResource(R.string.Button_Close),
-                        onClick = { navController.popBackStack() }
+                        onClick = { navController.popBackStackSafely() }
                     )
                 }
             }
@@ -178,7 +179,7 @@ fun WcRequestError(navController: NavController) {
                 .padding(horizontal = 48.dp)
                 .fillMaxWidth(),
             title = stringResource(R.string.Button_Close),
-            onClick = { navController.popBackStack() }
+            onClick = { navController.popBackStackSafely() }
         )
     }
 }
@@ -200,7 +201,7 @@ fun WCNewSignRequestScreen(
                 MenuItem(
                     title = TranslatableString.ResString(R.string.Button_Close),
                     icon = R.drawable.ic_close_24,
-                    onClick = { navController.popBackStack() }
+                    onClick = { navController.popBackStackSafely() }
                 )
             )
         )

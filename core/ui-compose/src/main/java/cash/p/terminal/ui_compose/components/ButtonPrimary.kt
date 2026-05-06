@@ -19,6 +19,7 @@ import androidx.compose.material.ButtonColors
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material.ProvideTextStyle
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -56,18 +57,11 @@ fun ButtonPrimaryDefaultWithIcon(
             disabledContentColor = ComposeAppTheme.colors.grey50,
         ),
         content = {
-            if (iconTint != null) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    tint = iconTint
-                )
-            } else {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null
-                )
-            }
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = iconTint ?: LocalContentColor.current
+            )
             HSpacer(width = 8.dp)
             Text(
                 title,
@@ -196,9 +190,9 @@ fun ButtonPrimaryYellow(
 fun ButtonPrimaryYellowWithIcon(
     modifier: Modifier = Modifier,
     icon: Int,
-    iconTint: Color? = null,
     title: String,
     onClick: () -> Unit,
+    iconTint: Color? = ComposeAppTheme.colors.dark,
     enabled: Boolean = true,
 ) {
     ButtonPrimary(
@@ -211,18 +205,11 @@ fun ButtonPrimaryYellowWithIcon(
             disabledContentColor = ComposeAppTheme.colors.grey50,
         ),
         content = {
-            if (iconTint != null) {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    tint = iconTint
-                )
-            } else {
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null
-                )
-            }
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = iconTint ?: LocalContentColor.current
+            )
             HSpacer(width = 8.dp)
             Text(
                 title,

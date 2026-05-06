@@ -17,6 +17,7 @@ import cash.p.terminal.core.fullRestart
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.calculator.domain.CalculatorModeService
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import io.horizontalsystems.core.IPinComponent
 
@@ -52,7 +53,7 @@ private fun AppearanceNavHost(fragmentNavController: NavController) {
                 onMarketTabsHiddenChange = viewModel::onSetMarketTabsHidden,
                 onBalanceTabButtonsHiddenChange = viewModel::onSetBalanceTabButtonsHidden,
                 onAppIconClick = { navController.navigate(AppearanceRoutes.APP_ICON) },
-                onClose = { fragmentNavController.popBackStack() }
+                onClose = { fragmentNavController.popBackStackSafely() }
             )
         }
         composablePage(AppearanceRoutes.APP_ICON) {
@@ -87,7 +88,7 @@ private fun AppearanceNavHost(fragmentNavController: NavController) {
                         }
                     }
                 },
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStackSafely() }
             )
         }
     }

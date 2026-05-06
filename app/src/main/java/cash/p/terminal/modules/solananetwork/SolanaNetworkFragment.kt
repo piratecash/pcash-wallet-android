@@ -32,6 +32,8 @@ import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
 import cash.p.terminal.modules.blockchainstatus.SolanaBlockchainStatusProvider
 import cash.p.terminal.core.managers.SolanaKitManager
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
@@ -86,7 +88,7 @@ private fun SolanaNetworkNavHost(fragmentNavController: NavController) {
             }
             BlockchainStatusScreen(
                 viewModel = viewModel,
-                onBack = navController::navigateUp
+                onBack = navController::navigateUpSafely
             )
         }
     }
@@ -124,7 +126,7 @@ private fun SolanaNetworkScreen(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
                         onClick = {
-                            fragmentNavController.popBackStack()
+                            fragmentNavController.popBackStackSafely()
                         }
                     )
                 )

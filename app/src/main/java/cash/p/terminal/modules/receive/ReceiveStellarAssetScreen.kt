@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.modules.activatetoken.ActivateTokenFragment
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.R
 import cash.p.terminal.modules.receive.ui.ReceiveAddressScreen
@@ -157,10 +158,10 @@ fun ReceiveStellarAssetScreen(
                     }
                 }
             },
-            onBackPress = { navController.popBackStack() },
+            onBackPress = { navController.popBackStackSafely() },
             closeModule = {
                 if (receiveEntryPointDestId == 0) {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 } else {
                     navController.popBackStack(receiveEntryPointDestId, true)
                 }

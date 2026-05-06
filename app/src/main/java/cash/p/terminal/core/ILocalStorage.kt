@@ -18,7 +18,6 @@ import cash.p.terminal.modules.settings.security.autolock.AutoLockInterval
 import cash.p.terminal.modules.theme.ThemeType
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.Derivation
-import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.entities.EncryptedString
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
@@ -128,9 +127,11 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var passphraseTermsAgreed: Boolean
     var safetyRulesAgreed: Boolean
 
-    fun getStackingUpdateTimestamp(wallet: Wallet): Long
-    fun setStackingUnpaid(wallet: Wallet, unpaid: BigDecimal)
-    fun getStackingUnpaid(wallet: Wallet): BigDecimal?
+    fun getStackingUnpaid(coin: String, address: String): BigDecimal?
+    fun getStackingNextAccrualAt(coin: String, address: String): String?
+    fun getStackingCachedBalance(coin: String, address: String): BigDecimal?
+    fun getStackingTimestamp(coin: String, address: String): Long
+    fun saveStackingData(coin: String, address: String, unpaid: BigDecimal, nextAccrualAt: String?, balance: BigDecimal)
 
     var isSystemPinRequired: Boolean
     // Login Logging properties inherited from ILoggingSettings
@@ -141,6 +142,7 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
 
     var pushNotificationsEnabled: Boolean
     var pushPollingInterval: PollingInterval
+    var pushRealtimeFallbackPollingActive: Boolean
     var pushEnabledBlockchainUids: Set<String>
     var pushBlockchainsConfigured: Boolean
     var pushShowBlockchainName: Boolean

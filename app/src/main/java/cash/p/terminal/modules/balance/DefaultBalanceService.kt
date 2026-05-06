@@ -155,6 +155,7 @@ class DefaultBalanceService private constructor(
                     balanceData = adapterRepository.balanceData(balanceItem.wallet),
                     state = adapterRepository.state(balanceItem.wallet),
                     sendAllowed = adapterRepository.sendAllowed(balanceItem.wallet),
+                    transactionsSyncState = adapterRepository.transactionsSyncState(balanceItem.wallet),
                 )
             }
         }
@@ -168,6 +169,7 @@ class DefaultBalanceService private constructor(
                         balanceData = adapterRepository.balanceData(wallet),
                         state = adapterRepository.state(wallet),
                         sendAllowed = adapterRepository.sendAllowed(wallet),
+                        transactionsSyncState = adapterRepository.transactionsSyncState(wallet),
                     )
                 } else {
                     item
@@ -206,7 +208,8 @@ class DefaultBalanceService private constructor(
                     balanceData = adapterRepository.balanceData(wallet),
                     state = adapterRepository.state(wallet),
                     sendAllowed = adapterRepository.sendAllowed(wallet),
-                    coinPrice = latestRates[wallet.coin.uid]
+                    coinPrice = latestRates[wallet.coin.uid],
+                    transactionsSyncState = adapterRepository.transactionsSyncState(wallet),
                 )
             }
         }
@@ -228,6 +231,7 @@ class DefaultBalanceService private constructor(
                     balanceData = adapterRepository.balanceData(balanceItem.wallet),
                     state = adapterRepository.state(balanceItem.wallet),
                     sendAllowed = adapterRepository.sendAllowed(balanceItem.wallet),
+                    transactionsSyncState = adapterRepository.transactionsSyncState(balanceItem.wallet),
                 )
             }
         }

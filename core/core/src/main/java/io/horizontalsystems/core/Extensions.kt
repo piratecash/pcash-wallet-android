@@ -14,8 +14,11 @@ import io.horizontalsystems.core.entities.BlockchainType
 import java.io.File
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Duration
+import java.time.Instant
 import java.util.Locale
 import kotlin.math.absoluteValue
+import kotlin.math.ceil
 
 val BlockchainType.imageUrl: String
     get() = "https://p.cash/storage/blockchains/$uid.png"
@@ -123,4 +126,11 @@ fun File?.sizeInMb(): String {
     val roundedSize = String.format("%.2f", sizeInMb)
 
     return "$roundedSize MB"
+}
+
+fun Instant.hoursUntil(now: Instant = Instant.now()): Int? {
+    val seconds = Duration.between(now, this).seconds
+    if (seconds <= 0) return null
+
+    return maxOf(1, ceil(seconds / 3600.0).toInt())
 }

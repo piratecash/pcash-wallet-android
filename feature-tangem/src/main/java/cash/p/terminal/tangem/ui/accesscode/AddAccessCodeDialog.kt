@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.tangem.R
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -55,10 +56,10 @@ class AddAccessCodeDialog : BaseComposableBottomSheetFragment() {
                         onChangeCodeConfirmation = viewModel::onChangeCodeConfirmation,
                         onConfirmClick = {
                             navController.setNavigationResultX(Result(viewModel.code))
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         },
                         onCloseClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 }

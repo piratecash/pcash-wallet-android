@@ -25,6 +25,7 @@ import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureReset
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsScreen
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import io.horizontalsystems.core.IPinComponent
@@ -81,7 +82,7 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                 onCalculatorPinClick = {
                     navController.navigate(AdvancedSecurityRoutes.CALCULATOR_PIN_PAGE)
                 },
-                onClose = fragmentNavController::navigateUp
+                onClose = fragmentNavController::navigateUpSafely
             )
         }
         composablePage(AdvancedSecurityRoutes.HIDDEN_WALLET_TERM_SPAGE) {
@@ -102,7 +103,7 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                         fragmentNavController.slideFromRight(R.id.setHiddenWalletPinFragment)
                     }
                 },
-                onNavigateBack = navController::navigateUp
+                onNavigateBack = navController::navigateUpSafely
             )
         }
         composablePage(AdvancedSecurityRoutes.SECURE_RESET_TERMS_PAGE) {
@@ -123,7 +124,7 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                         viewModel.onSecureResetEnabled()
                     }
                 },
-                onNavigateBack = navController::navigateUp
+                onNavigateBack = navController::navigateUpSafely
             )
         }
         composablePage(AdvancedSecurityRoutes.CALCULATOR_PIN_PAGE) {

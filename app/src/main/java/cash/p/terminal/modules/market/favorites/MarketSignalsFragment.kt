@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -56,7 +57,7 @@ fun MarketSignalsScreen(navController: NavController) {
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
-                        onClick = navController::popBackStack
+                        onClick = navController::popBackStackSafely
                     )
                 ),
             )
@@ -126,7 +127,7 @@ fun MarketSignalsScreen(navController: NavController) {
                         .padding(start = 16.dp, end = 16.dp),
                     title = stringResource(R.string.Market_Signal_TurnOn),
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
 
                         marketFavoritesViewModel.showSignals()
                     }

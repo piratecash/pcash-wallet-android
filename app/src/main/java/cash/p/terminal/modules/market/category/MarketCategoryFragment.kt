@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.models.CoinCategory
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.navigation.slideFromRight
@@ -50,7 +51,7 @@ class MarketCategoryFragment : BaseComposeFragment() {
             CategoryScreen(
                 viewModel,
                 chartViewModel,
-                { navController.popBackStack() },
+                { navController.popBackStackSafely() },
                 { coinUid -> onCoinClick(coinUid, navController) }
             )
         }

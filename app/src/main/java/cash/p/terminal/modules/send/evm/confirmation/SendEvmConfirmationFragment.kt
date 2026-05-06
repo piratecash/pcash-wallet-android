@@ -21,6 +21,7 @@ import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.send.evm.SendEvmData
 import cash.p.terminal.modules.send.evm.SendEvmModule
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -90,7 +91,7 @@ private fun SendEvmConfirmationScreen(
     val uiState = viewModel.uiState
 
     ConfirmTransactionScreen(
-        onClickBack = { navController.popBackStack() },
+        onClickBack = { navController.popBackStackSafely() },
         onClickSettings = {
             navController.slideFromBottom(R.id.sendEvmSettingsFragment)
         },

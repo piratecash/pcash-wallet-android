@@ -1506,7 +1506,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="premium_demo_activation_error_wrong_type">Premium\'i etkinleştirmek için anımsatıcı veya donanım cüzdan türünü kullanın</string>
     <string name="premium_try_for_free">ÜCRETSİZ Deneyin</string>
     <string name="premium_upgrade_text">Premium özelliklerle deneyiminizi yükseltin!</string>
-    <string name="premium_available">⭐️ Premium kullanılabilir</string>
+    <string name="premium_available">⭐️ Premium</string>
     <plurals name="premium_demo_days_left">
         <item quantity="one">Demo Premium: %d gün kaldı</item>
         <item quantity="other">Demo Premium: %d gün kaldı</item>
@@ -1732,23 +1732,44 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking">Aktif staking işlemi yok.</string>
+    <string name="no_active_stacking_pirate_description">PIRATE Staking: 100 token ile başlayın ve yıllık _annual_interest_ kazanın!</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA Staking: 1 token ile başlayın ve yıllık _annual_interest_ kazanın!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">Staking\'i etkinleştirmek için %1$s token daha gerekli ve yıllık _annual_interest_ alacaksınız!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">%1$s token yatırın ve 36 saat içinde kazanmaya başlayın.</string>
+    <string name="buy_to_activate_premium">⭐ Ek özellikleri etkinleştirmek için %s jeton satın alın!</string>
     <string name="tokens">tokens</string>
-    <string name="buy_pirate">Buy PirateCash</string>
-    <string name="staking_details">Staking Details</string>
-    <string name="buy_cosanta">Buy Cosanta</string>
-    <string name="waiting_for_stacking">Staking of coins will begin no later than in %1$d hours</string>
-    <string name="stacking_calculator">stacking calculator</string>
-    <string name="total_balance">Total balance</string>
-    <string name="total_income">Total income</string>
+    <string name="buy_pirate">PirateCash satın al</string>
+    <string name="staking_details">Staking detayları</string>
+    <string name="buy_cosanta">Cosanta satın al</string>
+    <string name="waiting_for_stacking">Coin staking en geç %1$d saat içinde başlayacak</string>
+    <string name="stacking_calculator">staking hesaplayıcı</string>
+    <string name="total_balance">Toplam bakiye</string>
+    <string name="total_income">Toplam gelir</string>
     <string name="unpaid">Ödenmemiş</string>
-    <string name="staking_unpaid">Bekleyen staking ödemeleri:</string>
+    <string name="staking_unpaid">Bekleyen staking ödemeleri</string>
     <string name="staking_active">Staking aktif</string>
     <string name="staking_inactive">Staking aktif değil</string>
+    <string name="staking_unpaid_info_title">Ödeme bilgileri</string>
+    <string name="staking_unpaid_info_body_pirate">Token stake etmekten kazanılan ancak henüz ödenmemiş tutar.\nÖdemeler, ödenmemiş bakiyede en az 100 token bulunması ve alınmalarının üzerinden en az 9 saat geçmesi koşuluyla günde bir kez yapılır.</string>
+    <string name="staking_unpaid_info_body_cosanta">Token stake etmekten kazanılan ancak henüz ödenmemiş tutar.\nÖdemeler, ödenmemiş bakiyede en az 10 token bulunması ve alınmalarının üzerinden en az 36 saat geçmesi koşuluyla her 12 saatte bir yapılır.</string>
+    <string name="staking_status_cd">Staking durumu: %1$s</string>
+    <string name="staking_next_accrual">Sonraki tahakkuk</string>
+    <string name="staking_next_payout">Sonraki ödeme</string>
+    <string name="staking_next_accrual_info_title">Tahakkuk bilgisi</string>
+    <string name="staking_next_accrual_info_body_pirate">100 jeton bulunması halinde tahakkuk saatte bir yapılır.</string>
+    <string name="staking_next_accrual_info_body_cosanta">1 jeton bulunması halinde tahakkuk 12 saatte bir yapılır.</string>
+    <string name="staking_next_payout_info_body">Bir sonraki ödemenin tahmini tarihi.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="one">%d saat sonra</item>
+        <item quantity="other">%d saat sonra</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="one">Sonraki tahakkuk %d saat sonra gerçekleşecek</item>
+        <item quantity="other">Sonraki tahakkuk %d saat sonra gerçekleşecek</item>
+    </plurals>
     <string name="estimated_annual_interest">Tahmini yıllık faiz</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

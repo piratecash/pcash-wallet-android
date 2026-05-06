@@ -24,6 +24,7 @@ import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.fee.DataFieldFee
 import cash.p.terminal.modules.receive.ActivateTokenError
 import cash.p.terminal.modules.receive.ActivateTokenViewModel
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -73,7 +74,7 @@ fun ActivateTokenScreen(
 
     ConfirmTransactionScreen(
         onClickBack = {},
-        onClickClose = navController::popBackStack,
+        onClickClose = navController::popBackStackSafely,
         onClickSettings = null,
         buttonsSlot = {
             val coroutineScope = rememberCoroutineScope()
@@ -113,7 +114,7 @@ fun ActivateTokenScreen(
             ButtonPrimaryDefault(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.Button_Cancel),
-                onClick = navController::popBackStack
+                onClick = navController::popBackStackSafely
             )
         }
     ) {

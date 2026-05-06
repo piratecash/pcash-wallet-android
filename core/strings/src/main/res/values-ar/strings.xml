@@ -1510,7 +1510,7 @@
     <string name="premium_demo_activation_error_wrong_type">استخدم نوع محفظة ذاكري أو محفظة أجهزة لتفعيل المميزات المدفوعة</string>
     <string name="premium_try_for_free">جرب مجاناً</string>
     <string name="premium_upgrade_text">حسّن تجربتك مع الميزات المميزة!</string>
-    <string name="premium_available">⭐️ المميزات المدفوعة متاحة</string>
+    <string name="premium_available">⭐️ بريميوم</string>
     <plurals name="premium_demo_days_left">
         <item quantity="zero">النسخة التجريبية المميزة: لا أيام متبقية</item>
         <item quantity="one">النسخة التجريبية المميزة: يوم واحد متبقي</item>
@@ -1740,23 +1740,52 @@
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking">لا توجد معاملات ستاكينج نشطة.</string>
+    <string name="no_active_stacking_pirate_description">ستاكينج PIRATE: ابدأ بـ 100 توكن واكسب عائداً سنوياً قدره _annual_interest_!</string>
+    <string name="no_active_stacking_cosanta_description">ستاكينج COSANTA: ابدأ بتوكن واحد واكسب عائداً سنوياً قدره _annual_interest_!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">لتفعيل الستاكينج تحتاج إلى %1$s توكن إضافي وسوف تتلقى _annual_interest_ سنوياً!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">أودع %1$s توكن وابدأ الكسب خلال 36 ساعة.</string>
+    <string name="buy_to_activate_premium">⭐ اشترِ %s رموز لتفعيل ميزات إضافية!</string>
     <string name="tokens">tokens</string>
-    <string name="buy_pirate">Buy PirateCash</string>
-    <string name="staking_details">Staking Details</string>
-    <string name="buy_cosanta">Buy Cosanta</string>
-    <string name="waiting_for_stacking">Staking of coins will begin no later than in %1$d hours</string>
-    <string name="stacking_calculator">stacking calculator</string>
-    <string name="total_balance">Total balance</string>
-    <string name="total_income">Total income</string>
+    <string name="buy_pirate">شراء PirateCash</string>
+    <string name="staking_details">تفاصيل الستاكينج</string>
+    <string name="buy_cosanta">شراء Cosanta</string>
+    <string name="waiting_for_stacking">سيبدأ ستاكينج العملات في موعد أقصاه %1$d ساعة</string>
+    <string name="stacking_calculator">حاسبة الستاكينج</string>
+    <string name="total_balance">الرصيد الإجمالي</string>
+    <string name="total_income">إجمالي الدخل</string>
     <string name="unpaid">غير مدفوع</string>
-    <string name="staking_unpaid">مدفوعات الستيكينغ المعلقة:</string>
+    <string name="staking_unpaid">مدفوعات الستيكينغ المعلقة</string>
     <string name="staking_active">الستيكينغ نشط</string>
     <string name="staking_inactive">الستيكينغ غير نشط</string>
+    <string name="staking_unpaid_info_title">معلومات المدفوعات</string>
+    <string name="staking_unpaid_info_body_pirate">المبلغ المكتسب من خلال ستيكينغ التوكنات الذي لم يتم صرفه بعد.\nتُجرى المدفوعات مرة واحدة يومياً، شريطة أن يكون هناك 100 توكن على الأقل في الرصيد غير المدفوع وأن تكون قد مضت 9 ساعات على الأقل منذ استلامها.</string>
+    <string name="staking_unpaid_info_body_cosanta">المبلغ المكتسب من خلال ستيكينغ التوكنات الذي لم يتم صرفه بعد.\nتُجرى المدفوعات كل 12 ساعة، شريطة أن يكون هناك 10 توكنات على الأقل في الرصيد غير المدفوع وأن تكون قد مضت 36 ساعة على الأقل منذ استلامها.</string>
+    <string name="staking_status_cd">حالة الستيكينغ: %1$s</string>
+    <string name="staking_next_accrual">الاستحقاق التالي</string>
+    <string name="staking_next_payout">الدفعة التالية</string>
+    <string name="staking_next_accrual_info_title">معلومات الاستحقاق</string>
+    <string name="staking_next_accrual_info_body_pirate">يتم الاستحقاق مرة كل ساعة بشرط وجود 100 توكن.</string>
+    <string name="staking_next_accrual_info_body_cosanta">يتم الاستحقاق كل 12 ساعة بشرط وجود توكن واحد.</string>
+    <string name="staking_next_payout_info_body">التاريخ التقديري للدفعة التالية.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="zero">خلال %d ساعة</item>
+        <item quantity="one">خلال %d ساعة</item>
+        <item quantity="two">خلال %d ساعة</item>
+        <item quantity="few">خلال %d ساعات</item>
+        <item quantity="many">خلال %d ساعة</item>
+        <item quantity="other">خلال %d ساعة</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="zero">الاستحقاق التالي سيكون خلال %d ساعة</item>
+        <item quantity="one">الاستحقاق التالي سيكون خلال %d ساعة</item>
+        <item quantity="two">الاستحقاق التالي سيكون خلال %d ساعة</item>
+        <item quantity="few">الاستحقاق التالي سيكون خلال %d ساعات</item>
+        <item quantity="many">الاستحقاق التالي سيكون خلال %d ساعة</item>
+        <item quantity="other">الاستحقاق التالي خلال %d ساعة</item>
+    </plurals>
     <string name="estimated_annual_interest">الفائدة السنوية المقدرة</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

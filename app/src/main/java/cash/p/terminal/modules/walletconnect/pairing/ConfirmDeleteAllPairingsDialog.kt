@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -57,7 +58,7 @@ fun ConfirmDeleteAllScreen(navController: NavController) {
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.lucian),
             title = stringResource(R.string.WalletConnect_DeleteAllPairs),
             onCloseClick = {
-                navController.popBackStack()
+                navController.popBackStackSafely()
             }
         ) {
             TextImportantWarning(
@@ -72,7 +73,7 @@ fun ConfirmDeleteAllScreen(navController: NavController) {
                 title = stringResource(R.string.WalletConnect_Pairings_Delete),
                 onClick = {
                     navController.setNavigationResultX(ConfirmDeleteAllPairingsDialog.Result(true))
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
             Spacer(Modifier.height(32.dp))

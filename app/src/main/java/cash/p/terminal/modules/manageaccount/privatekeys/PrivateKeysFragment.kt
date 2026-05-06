@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.ui_compose.getInput
@@ -55,7 +56,7 @@ fun ManageAccountScreen(navController: NavController, account: Account) {
             AppBar(
                 title = stringResource(R.string.PrivateKeys_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         }
