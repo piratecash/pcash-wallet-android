@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.setNavigationResultX
@@ -23,9 +24,9 @@ class SetPinFragment : BaseComposeFragment(screenshotEnabled = false) {
             pinType = input?.pinType ?: PinType.REGULAR,
             dismissWithSuccess = {
                 navController.setNavigationResultX(Result(true))
-                navController.popBackStack()
+                navController.popBackStackSafely()
             },
-            onBackPress = { navController.popBackStack() }
+            onBackPress = { navController.popBackStackSafely() }
         )
     }
 

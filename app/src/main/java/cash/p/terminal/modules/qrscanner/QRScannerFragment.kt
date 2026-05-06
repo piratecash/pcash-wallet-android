@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.p.terminal.navigation.QrScannerInput
 import cash.p.terminal.navigation.QrScannerResult
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -50,7 +51,7 @@ class QRScannerFragment : BaseComposeFragment() {
             onScan = { decoded ->
                 handleScanResult(decoded, navController)
             },
-            onCloseClick = navController::popBackStack,
+            onCloseClick = { navController.popBackStackSafely() },
             onCameraPermissionSettingsClick = ::openCameraPermissionSettings,
             onGalleryImagePicked = viewModel::onImagePicked,
             onErrorMessageConsumed = viewModel::onErrorMessageConsumed

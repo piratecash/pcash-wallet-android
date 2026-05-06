@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
@@ -65,13 +64,10 @@ internal class EvmAdapter(evmTransactionRepository: EvmTransactionRepository, co
     // IBalanceAdapter
 
     override val balanceState: AdapterState
-        get() = getCombinedSyncState()
+        get() = balanceSyncStateToAdapterState(evmTransactionRepository.syncState)
 
     override val balanceStateUpdatedFlow: Flow<Unit>
-        get() = merge(
-            evmTransactionRepository.syncStateFlowable.map {}.asFlow(),
-            evmTransactionRepository.transactionsSyncStateFlowable.map {}.asFlow(),
-        )
+        get() = evmTransactionRepository.syncStateFlowable.map { }.asFlow()
 
     override val balanceData: BalanceData
         get() = BalanceData(balanceInBigDecimal(evmTransactionRepository.accountState?.balance, decimal))
@@ -79,32 +75,14 @@ internal class EvmAdapter(evmTransactionRepository: EvmTransactionRepository, co
     override val balanceUpdatedFlow: Flow<Unit>
         get() = evmTransactionRepository.accountStateFlowable.map { }.asFlow()
 
-    private fun getCombinedSyncState(): AdapterState {
-        val balanceSyncState = evmTransactionRepository.syncState
-        val txSyncState = evmTransactionRepository.transactionsSyncState
-
-        return when {
-            // Connecting phase: not started yet
-            balanceSyncState is EthereumKit.SyncState.NotSynced &&
-                balanceSyncState.error is EthereumKit.SyncError.NotStarted -> AdapterState.Connecting
-
-            // Error state
-            balanceSyncState is EthereumKit.SyncState.NotSynced ->
-                AdapterState.NotSynced(balanceSyncState.error)
-
-            // Syncing balance
-            balanceSyncState is EthereumKit.SyncState.Syncing -> AdapterState.Syncing()
-
-            // Transaction sync error (balance is synced)
-            balanceSyncState is EthereumKit.SyncState.Synced &&
-                txSyncState is EthereumKit.SyncState.NotSynced &&
-                txSyncState.error !is EthereumKit.SyncError.NotStarted ->
-                    AdapterState.NotSynced(txSyncState.error)
-
-            // Fully synced: native balance does not depend on ERC20 discovery sync
-            else -> AdapterState.Synced
+    private fun balanceSyncStateToAdapterState(syncState: EthereumKit.SyncState): AdapterState =
+        when (syncState) {
+            is EthereumKit.SyncState.Synced -> AdapterState.Synced
+            is EthereumKit.SyncState.Syncing -> AdapterState.Syncing()
+            is EthereumKit.SyncState.NotSynced ->
+                if (syncState.error is EthereumKit.SyncError.NotStarted) AdapterState.Connecting
+                else AdapterState.NotSynced(syncState.error)
         }
-    }
 
     // ISendEthereumAdapter
 

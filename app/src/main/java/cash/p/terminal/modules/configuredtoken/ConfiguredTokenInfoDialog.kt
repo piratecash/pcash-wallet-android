@@ -24,6 +24,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeaderMultiline
@@ -87,7 +88,7 @@ private fun ConfiguredTokenInfo(navController: NavController, token: Token) {
             iconPainter = uiState.iconSource.painter(),
             title = uiState.title,
             subtitle = uiState.subtitle,
-            onCloseClick = { navController.popBackStack() }
+            onCloseClick = { navController.popBackStackSafely() }
         ) {
             when (val tokenInfoType = uiState.tokenInfoType) {
                 is ConfiguredTokenInfoType.Contract -> {

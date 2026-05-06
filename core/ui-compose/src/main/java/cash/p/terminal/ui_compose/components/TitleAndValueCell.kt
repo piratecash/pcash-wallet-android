@@ -20,12 +20,18 @@ fun TitleAndValueCell(
     value: String,
     modifier: Modifier = Modifier,
     minHeight: Dp = 24.dp,
+    titleAction: (@Composable () -> Unit)? = null,
 ) {
     RowUniversal(
         modifier = modifier.padding(horizontal = 16.dp),
         minHeight = minHeight
     ) {
-        subhead2_grey(text = title, modifier = Modifier.padding(end = 16.dp))
+        subhead2_grey(text = title)
+        if (titleAction != null) {
+            Spacer(Modifier.padding(start = 4.dp))
+            titleAction()
+        }
+        Spacer(Modifier.padding(start = 16.dp))
         Spacer(Modifier.weight(1f))
         subhead1_leah(text = value, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
@@ -106,12 +112,18 @@ fun TitleAndTwoValuesCell(
     value: String,
     value2: String?,
     minHeight: Dp = 48.dp,
+    titleAction: (@Composable () -> Unit)? = null,
 ) {
     RowUniversal(
         modifier = Modifier.padding(horizontal = 16.dp),
         minHeight = minHeight
     ) {
-        subhead2_grey(text = title, modifier = Modifier.padding(end = 16.dp))
+        subhead2_grey(text = title)
+        if (titleAction != null) {
+            Spacer(Modifier.padding(start = 4.dp))
+            titleAction()
+        }
+        Spacer(Modifier.padding(start = 16.dp))
         Spacer(Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.End) {
             subhead1_leah(text = value, maxLines = 1, overflow = TextOverflow.Ellipsis)

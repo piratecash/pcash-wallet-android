@@ -8,6 +8,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.ensurePinSet
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.pin.SetPinFragment
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRightForResult
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -37,11 +38,11 @@ class DeleteContactsTermsFragment : BaseComposeFragment() {
                         )
                     ) {
                         HudHelper.showSuccessMessage(view, R.string.Hud_Text_Created)
-                        navController.navigateUp()
+                        navController.navigateUpSafely()
                     }
                 }
             },
-            onNavigateBack = navController::navigateUp
+            onNavigateBack = navController::navigateUpSafely
         )
     }
 }

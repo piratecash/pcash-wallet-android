@@ -23,6 +23,7 @@ import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.manageaccount.ui.PassphraseCell
 import cash.p.terminal.modules.manageaccount.ui.SeedPhraseList
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -87,7 +88,7 @@ fun RecoveryPhraseScreen(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
                         onClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 )

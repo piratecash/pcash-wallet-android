@@ -24,6 +24,7 @@ import cash.p.terminal.modules.send.tron.SendTronConfirmationScreen
 import cash.p.terminal.modules.send.tron.SendTronViewModel
 import cash.p.terminal.modules.send.zcash.SendZCashConfirmationScreen
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import kotlinx.parcelize.Parcelize
 
@@ -43,7 +44,7 @@ class SendConfirmationFragment : BaseComposeFragment() {
             }
         }
         if (!navGraphOnBackStack) {
-            navController.navigateUp()
+            navController.navigateUpSafely()
             return
         }
 

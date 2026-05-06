@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.coin.analytics.CoinAnalyticsScreen
@@ -91,7 +92,7 @@ fun CoinTabs(
             AppBar(
                 title = viewModel.fullCoin.coin.code,
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
                 menuItems = buildList {
                     if (viewModel.isWatchlistEnabled) {
@@ -185,7 +186,7 @@ fun CoinNotFound(coinUid: String, navController: NavController) {
             AppBar(
                 title = coinUid,
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         },

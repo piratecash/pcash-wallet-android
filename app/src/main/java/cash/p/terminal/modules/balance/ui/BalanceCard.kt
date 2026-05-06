@@ -40,12 +40,12 @@ import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.syncerror.SyncErrorDialog
 import cash.p.terminal.ui_compose.components.DraggableCardSimple
 import cash.p.terminal.navigation.slideFromBottom
+import cash.p.terminal.ui.compose.components.Badge
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui_compose.components.CellMultilineClear
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.body_leah
-import cash.p.terminal.ui_compose.components.captionSB_leah
 import cash.p.terminal.ui_compose.components.diffColor
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.oneLineHeight
@@ -180,23 +180,10 @@ fun BalanceCardInner(
                                 overflow = TextOverflow.Ellipsis
                             )
                             if (!viewItem.badge.isNullOrBlank()) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 8.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(ComposeAppTheme.colors.jeremy)
-                                ) {
-                                    Text(
-                                        modifier = Modifier.padding(
-                                            horizontal = 4.dp,
-                                            vertical = 2.dp
-                                        ),
-                                        text = viewItem.badge,
-                                        color = ComposeAppTheme.colors.bran,
-                                        style = ComposeAppTheme.typography.microSB,
-                                        maxLines = 1,
-                                    )
-                                }
+                                Badge(
+                                    modifier = Modifier.padding(start = 8.dp),
+                                    text = viewItem.badge,
+                                )
                             }
                         }
                         Spacer(Modifier.width(24.dp))

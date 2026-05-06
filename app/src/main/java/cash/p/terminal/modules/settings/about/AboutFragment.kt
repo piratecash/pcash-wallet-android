@@ -24,6 +24,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.modules.releasenotes.ReleaseNotesScreen
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
@@ -72,7 +73,7 @@ private fun AboutNavHost(fragmentNavController: NavController) {
             AboutScreen(
                 navController,
                 { fragmentNavController.slideFromBottom(R.id.contactOptionsDialog) },
-                { fragmentNavController.popBackStack() }
+                { fragmentNavController.popBackStackSafely() }
             )
         }
         composablePage(ReleaseNotesPage) {
@@ -81,7 +82,7 @@ private fun AboutNavHost(fragmentNavController: NavController) {
                 ReleaseNotesScreen(
                     closeablePopup = false,
                     uiState = viewModel.uiState,
-                    onCloseClick = navController::popBackStack,
+                    onCloseClick = navController::popBackStackSafely,
                     onRetryClick = { viewModel.retry() },
                     onWhatsNewShown = { viewModel.whatsNewShown() },
                     onShowChangelogToggle = viewModel::setShowChangeLogAfterUpdate

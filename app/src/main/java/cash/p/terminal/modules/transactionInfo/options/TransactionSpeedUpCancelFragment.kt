@@ -16,6 +16,8 @@ import cash.p.terminal.R
 import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -34,7 +36,7 @@ class TransactionSpeedUpCancelFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
         val input = navController.getInput<Input>() ?: run {
-            navController.navigateUp()
+            navController.navigateUpSafely()
             return
         }
         TransactionSpeedUpCancelScreen(navController, input)
@@ -85,7 +87,7 @@ private fun TransactionSpeedUpCancelScreen(
 
     ConfirmTransactionScreen(
         title = viewModel.title,
-        onClickBack = { navController.popBackStack() },
+        onClickBack = { navController.popBackStackSafely() },
         onClickSettings = {
             navController.slideFromBottom(R.id.transactionSpeedUpCancelTransactionSettings)
         },

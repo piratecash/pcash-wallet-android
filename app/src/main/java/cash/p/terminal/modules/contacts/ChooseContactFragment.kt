@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.strings.helpers.shorten
@@ -115,7 +116,7 @@ fun ChooseContactScreen(
                             viewModel.onEnterQuery(null)
                             searchMode = false
                         } else {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     })
                 },
@@ -151,7 +152,7 @@ fun ChooseContactScreen(
                                     .fillMaxWidth()
                                     .clickable {
                                         navController.setNavigationResultX(ChooseContactFragment.Result(contact.address))
-                                        navController.popBackStack()
+                                        navController.popBackStackSafely()
                                     }
                                     .padding(horizontal = 16.dp, vertical = 12.dp)
                             ) {

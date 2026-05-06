@@ -3,6 +3,7 @@ package cash.p.terminal.feature.miniapp.ui.miniapp
 import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.lifecycleScope
+import cash.p.terminal.navigation.popBackStackSafely
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.ui.platform.LocalContext
@@ -43,7 +44,7 @@ class MiniAppFragment : BaseComposeFragment() {
                 val intent = Intent(Intent.ACTION_VIEW, TELEGRAM_BOT_START_URL.toUri())
                 context.startActivity(intent)
             },
-            onClose = navController::popBackStack
+            onClose = navController::popBackStackSafely
         )
     }
 

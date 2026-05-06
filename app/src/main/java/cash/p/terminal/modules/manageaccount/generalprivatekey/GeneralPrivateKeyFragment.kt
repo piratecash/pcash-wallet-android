@@ -22,6 +22,7 @@ import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.manageaccount.ui.ActionButton
 import cash.p.terminal.modules.manageaccount.ui.ConfirmCopyBottomSheet
 import cash.p.terminal.modules.manageaccount.ui.HidableContent
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -90,7 +91,7 @@ private fun GeneralPrivateKeyScreen(
                 AppBar(
                     title = title,
                     navigationIcon = {
-                        HsBackButton(onClick = navController::popBackStack)
+                        HsBackButton(onClick = navController::popBackStackSafely)
                     },
                     menuItems = listOf(
                         MenuItem(

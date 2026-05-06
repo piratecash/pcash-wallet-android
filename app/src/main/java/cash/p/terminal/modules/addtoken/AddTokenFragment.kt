@@ -22,6 +22,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.Caution
 import cash.p.terminal.core.composablePage
@@ -77,10 +78,10 @@ private fun AddTokenNavHost(
         composable(AddTokenPage) {
             AddTokenScreen(
                 navController = navController,
-                onBack = { fragmentNavController.popBackStack() },
+                onBack = { fragmentNavController.popBackStackSafely() },
                 onCompleted = { result ->
                     fragmentNavController.setNavigationResultX(result)
-                    fragmentNavController.popBackStack()
+                    fragmentNavController.popBackStackSafely()
                 },
                 viewModel = viewModel
             )

@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.core.composablePage
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 
 private object AppearanceRoutes {
@@ -41,14 +42,14 @@ private fun AppearanceNavHost(fragmentNavController: NavController) {
                 onMarketTabsHiddenChange = viewModel::onSetMarketTabsHidden,
                 onBalanceTabButtonsHiddenChange = viewModel::onSetBalanceTabButtonsHidden,
                 onAppIconClick = { navController.navigate(AppearanceRoutes.APP_ICON) },
-                onClose = { fragmentNavController.popBackStack() }
+                onClose = { fragmentNavController.popBackStackSafely() }
             )
         }
         composablePage(AppearanceRoutes.APP_ICON) {
             AppIconScreen(
                 appIconOptions = viewModel.uiState.appIconOptions,
                 onAppIconSelect = viewModel::onEnterAppIcon,
-                onClose = { navController.popBackStack() }
+                onClose = { navController.popBackStackSafely() }
             )
         }
     }

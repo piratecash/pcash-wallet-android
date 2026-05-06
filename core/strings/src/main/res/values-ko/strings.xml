@@ -1494,7 +1494,7 @@
     <string name="premium_demo_activation_error_wrong_type">프리미엄을 활성화하려면 니모닉 또는 하드웨어 지갑 유형을 사용하세요</string>
     <string name="premium_try_for_free">무료로 체험</string>
     <string name="premium_upgrade_text">프리미엄 기능으로 경험을 업그레이드하세요!</string>
-    <string name="premium_available">⭐️ 프리미엄 이용 가능</string>
+    <string name="premium_available">⭐️ 프리미엄</string>
     <plurals name="premium_demo_days_left">
         <item quantity="other">데모 프리미엄: %d일 남음</item>
     </plurals>
@@ -1719,23 +1719,42 @@
 
     <!-- Stacking screen -->
     <string name="stacking">Stacking</string>
-    <string name="no_active_stacking">There are no active staking transactions.</string>
-    <string name="no_active_stacking_pirate_description">PIRATE Staking: Go ahead with 100 tokens and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_cosanta_description">COSANTA Staking: Go ahead with 1 token and earn _annual_interest_ annual returns!</string>
-    <string name="no_active_stacking_pirate_buy_more_description">To activate staking you need %1$s token(s) more and you will receive _annual_interest_ per annum!</string>
-    <string name="no_active_stacking_cosanta_buy_more_description">Deposit %1$s token(s) and start earning in 24 hours.</string>
+    <string name="no_active_stacking">활성화된 스테이킹 트랜잭션이 없습니다.</string>
+    <string name="no_active_stacking_pirate_description">PIRATE 스테이킹: 100 토큰으로 시작하고 연 _annual_interest_의 수익을 얻으세요!</string>
+    <string name="no_active_stacking_cosanta_description">COSANTA 스테이킹: 1 토큰으로 시작하고 연 _annual_interest_의 수익을 얻으세요!</string>
+    <string name="no_active_stacking_pirate_buy_more_description">스테이킹을 활성화하려면 %1$s개의 토큰이 더 필요하며, 연 _annual_interest_을 받게 됩니다!</string>
+    <string name="no_active_stacking_cosanta_buy_more_description">%1$s 토큰을 예치하고 36시간 안에 수익 창출을 시작하세요.</string>
+    <string name="buy_to_activate_premium">⭐ %s 토큰을 구매하여 추가 기능을 활성화하세요!</string>
     <string name="tokens">tokens</string>
-    <string name="buy_pirate">Buy PirateCash</string>
-    <string name="staking_details">Staking Details</string>
-    <string name="buy_cosanta">Buy Cosanta</string>
-    <string name="waiting_for_stacking">Staking of coins will begin no later than in %1$d hours</string>
-    <string name="stacking_calculator">stacking calculator</string>
-    <string name="total_balance">Total balance</string>
-    <string name="total_income">Total income</string>
+    <string name="buy_pirate">PirateCash 구매</string>
+    <string name="staking_details">스테이킹 세부정보</string>
+    <string name="buy_cosanta">Cosanta 구매</string>
+    <string name="waiting_for_stacking">코인 스테이킹은 늦어도 %1$d시간 내에 시작됩니다</string>
+    <string name="stacking_calculator">스테이킹 계산기</string>
+    <string name="total_balance">총 잔액</string>
+    <string name="total_income">총 수익</string>
     <string name="unpaid">미지급</string>
-    <string name="staking_unpaid">스테이킹 미지급금:</string>
+    <string name="staking_unpaid">스테이킹 미지급금</string>
     <string name="staking_active">스테이킹 활성</string>
     <string name="staking_inactive">스테이킹 비활성</string>
+    <string name="staking_unpaid_info_title">지급 정보</string>
+    <string name="staking_unpaid_info_body_pirate">아직 지급되지 않은 토큰 스테이킹으로 얻은 금액입니다.\n미지급 잔액에 토큰이 최소 100개 이상 있고 수령 후 9시간이 경과된 경우 하루에 한 번 지급됩니다.</string>
+    <string name="staking_unpaid_info_body_cosanta">아직 지급되지 않은 토큰 스테이킹으로 얻은 금액입니다.\n미지급 잔액에 토큰이 최소 10개 이상 있고 수령 후 36시간이 경과된 경우 12시간마다 지급됩니다.</string>
+    <string name="staking_status_cd">스테이킹 상태: %1$s</string>
+    <string name="staking_next_accrual">다음 적립</string>
+    <string name="staking_next_payout">다음 지급</string>
+    <string name="staking_next_accrual_info_title">적립 정보</string>
+    <string name="staking_next_accrual_info_body_pirate">100개의 토큰이 있을 경우 1시간마다 적립됩니다.</string>
+    <string name="staking_next_accrual_info_body_cosanta">1개의 토큰이 있을 경우 12시간마다 적립됩니다.</string>
+    <string name="staking_next_payout_info_body">다음 지급 예정일입니다.</string>
+
+    <plurals name="staking_in_hours">
+        <item quantity="other">%d시간 후</item>
+    </plurals>
+
+    <plurals name="staking_next_accrual_in_hours">
+        <item quantity="other">다음 적립은 %d시간 후에 진행됩니다</item>
+    </plurals>
     <string name="estimated_annual_interest">예상 연간 이자율</string>
     <string name="accruals">Accruals</string>
     <string name="payouts">Payouts</string>

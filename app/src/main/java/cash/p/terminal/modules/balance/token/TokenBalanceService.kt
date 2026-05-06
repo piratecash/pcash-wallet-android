@@ -49,7 +49,8 @@ class TokenBalanceService(
             state = balanceAdapterRepository.state(wallet),
             sendAllowed = balanceAdapterRepository.sendAllowed(wallet),
             coinPrice = latestRates[wallet.coin.uid],
-            warning = balanceAdapterRepository.warning(wallet)
+            warning = balanceAdapterRepository.warning(wallet),
+            transactionsSyncState = balanceAdapterRepository.transactionsSyncState(wallet),
         )
 
         coroutineScope.launch {
@@ -83,7 +84,8 @@ class TokenBalanceService(
         balanceItem = balanceItem?.copy(
             balanceData = balanceAdapterRepository.balanceData(wallet),
             state = balanceAdapterRepository.state(wallet),
-            sendAllowed = balanceAdapterRepository.sendAllowed(wallet)
+            sendAllowed = balanceAdapterRepository.sendAllowed(wallet),
+            transactionsSyncState = balanceAdapterRepository.transactionsSyncState(wallet),
         )
     }
 

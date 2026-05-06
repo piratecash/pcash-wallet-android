@@ -18,6 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
@@ -38,7 +39,7 @@ class WCErrorNoAccountFragment : BaseComposableBottomSheetFragment() {
             setContent {
                 cash.p.terminal.ui_compose.theme.ComposeAppTheme {
                     WalletConnectErrorNoAccount() {
-                        findNavController().popBackStack()
+                        findNavController().popBackStackSafely()
                     }
                 }
             }

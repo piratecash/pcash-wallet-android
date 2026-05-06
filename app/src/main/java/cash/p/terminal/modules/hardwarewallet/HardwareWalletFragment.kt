@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.tangem.ui.HardwareWalletError
 import cash.p.terminal.tangem.ui.HardwareWalletOnboardingFragment.*
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -112,7 +113,7 @@ internal fun HardwareWalletScreen(
         AppBar(
             title = stringResource(R.string.hardware_wallet),
             navigationIcon = {
-                HsBackButton(onClick = { navController.popBackStack() })
+                HsBackButton(onClick = { navController.popBackStackSafely() })
             }
         )
 

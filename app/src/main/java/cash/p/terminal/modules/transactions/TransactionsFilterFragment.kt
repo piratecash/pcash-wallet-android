@@ -32,6 +32,7 @@ import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.core.restartMain
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.navigation.slideFromRight
@@ -137,8 +138,8 @@ private fun FilterScreen(
             }
         },
         onAmlInfoClick = { showAmlInfoSheet = true },
-        onApply = navController::navigateUp,
-        onBack = navController::navigateUp
+        onApply = navController::navigateUpSafely,
+        onBack = navController::navigateUpSafely
     )
 
     if (showAmlInfoSheet) {

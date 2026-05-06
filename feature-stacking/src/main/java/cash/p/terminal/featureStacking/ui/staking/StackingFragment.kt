@@ -5,6 +5,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.featureStacking.R
 import cash.p.terminal.featureStacking.ui.calculatorScreen.CalculatorViewModel
 import cash.p.terminal.navigation.entity.SwapParams
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.CoinFragmentInput
@@ -41,7 +42,7 @@ class StackingFragment : BaseComposeFragment() {
             onChartClicked = { coinUid ->
                 navController.slideFromRight(R.id.coinFragment, CoinFragmentInput(coinUid))
             },
-            onClickClose = navController::popBackStack,
+            onClickClose = navController::popBackStackSafely,
             setCalculatorData = ::setCalculatorData
         )
     }

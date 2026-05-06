@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.modules.coin.overview.ui.Loading
@@ -38,7 +39,7 @@ class CoinReportsFragment : BaseComposeFragment() {
             CoinReportsScreen(
                 viewModel = viewModel(factory = CoinReportsModule.Factory(input.coinUid)),
                 onClickNavigation = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 },
                 onClickReportUrl = {
                     LinkHelper.openLinkInAppBrowser(requireContext(), it)

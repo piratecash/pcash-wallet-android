@@ -15,7 +15,7 @@ import cash.p.terminal.network.pirate.domain.enity.StakeData
 interface PiratePlaceRepository {
     suspend fun getCoinInfo(coinGeckoUid: String): PiratePlaceCoin
     suspend fun getCoinsPriceChange(coinGeckoUidList: List<String>, currencyCode: String): List<PriceChangeCoinInfo>?
-    suspend fun getInvestmentData(coinGeckoUid: String, address: String): InvestmentData
+    suspend fun getInvestmentData(coinGeckoUid: String, address: String, fiat: String = "usd"): InvestmentData
     suspend fun getChangeNowCoinAssociation(coinGeckoUid: String): List<ChangeNowAssociatedCoin>
     suspend fun getInvestmentChart(coinGeckoUid: String, address: String, period: ChartPeriod): InvestmentGraphData
     suspend fun getStakeData(coinGeckoUid: String, address: String): StakeData

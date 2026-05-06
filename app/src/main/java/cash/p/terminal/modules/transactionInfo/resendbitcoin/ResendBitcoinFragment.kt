@@ -24,6 +24,8 @@ import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
@@ -82,7 +84,7 @@ class ResendBitcoinFragment : BaseComposeFragment() {
             }
         }
         if (!navGraphOnBackStack) {
-            navController.navigateUp()
+            navController.navigateUpSafely()
             return
         }
 
@@ -153,7 +155,7 @@ class ResendBitcoinFragment : BaseComposeFragment() {
             AppBar(
                 title = stringResource(uiState.titleResId),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 },
                 menuItems = listOf()
             )

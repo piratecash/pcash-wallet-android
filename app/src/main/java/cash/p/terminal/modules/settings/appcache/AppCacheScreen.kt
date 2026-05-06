@@ -21,6 +21,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.settings.appcache.AppCacheModule.CacheItemViewItem
 import cash.p.terminal.modules.settings.appcache.AppCacheModule.CacheType
 import cash.p.terminal.modules.settings.appcache.AppCacheModule.UiState
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -44,7 +45,7 @@ fun AppCacheScreen(navController: NavController) {
 
     AppCacheContent(
         uiState = uiState,
-        onBackClick = { navController.popBackStack() },
+        onBackClick = { navController.popBackStackSafely() },
         onClearAllClick = {
             viewModel.clearAllCaches()
             HudHelper.showSuccessMessage(localView, R.string.settings_app_cache_cleared)

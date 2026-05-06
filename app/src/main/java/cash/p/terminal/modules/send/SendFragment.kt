@@ -63,6 +63,7 @@ import cash.p.terminal.modules.send.zcash.SendZCashModule
 import cash.p.terminal.modules.send.zcash.SendZCashScreen
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromBottomForResult
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
@@ -95,7 +96,7 @@ class SendFragment : BaseComposeFragment() {
             }
         }
         if (!navGraphOnBackStack) {
-            navController.navigateUp()
+            navController.navigateUpSafely()
             return
         }
 

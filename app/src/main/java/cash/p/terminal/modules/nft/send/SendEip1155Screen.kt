@@ -33,6 +33,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import cash.p.terminal.navigation.popBackStackSafely
 import coil3.compose.rememberAsyncImagePainter
 import cash.p.terminal.R
 import cash.p.terminal.ui_compose.entities.DataState
@@ -71,7 +72,7 @@ fun SendEip1155Screen(
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
-                        onClick = { navController.popBackStack() }
+                        onClick = { navController.popBackStackSafely() }
                     )
                 )
             )

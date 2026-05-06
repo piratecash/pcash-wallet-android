@@ -30,6 +30,7 @@ import cash.p.terminal.modules.receive.viewmodels.MoneroSubaddressParcelable
 import cash.p.terminal.modules.receive.viewmodels.MoneroUsedAddressesParams
 import cash.p.terminal.modules.receive.viewmodels.ReceiveMoneroUiState
 import cash.p.terminal.modules.receive.viewmodels.ReceiveMoneroViewModel
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
@@ -65,10 +66,10 @@ fun ReceiveMoneroScreen(
         bottomContent = {
             MoneroBottomContent(uiState, viewModel) { showConfirmDialog = true }
         },
-        onBackPress = navController::navigateUp,
+        onBackPress = navController::navigateUpSafely,
         closeModule = {
             if (receiveEntryPointDestId == 0) {
-                navController.navigateUp()
+                navController.navigateUpSafely()
             } else {
                 navController.popBackStack(receiveEntryPointDestId, true)
             }

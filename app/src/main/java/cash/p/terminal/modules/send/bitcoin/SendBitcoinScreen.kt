@@ -50,6 +50,7 @@ import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.advanced.SendBtcAdvancedSettingsScreen
 import cash.p.terminal.modules.send.bitcoin.utxoexpert.UtxoExpertModeScreen
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
@@ -110,7 +111,7 @@ fun SendBitcoinNavHost(
                 amountInputType = amountInputModeViewModel.inputType,
             )
         }
-        composablePopup(TransactionInputsSortInfoPage) { BtcTransactionInputSortInfoScreen { navController.popBackStack() } }
+        composablePopup(TransactionInputsSortInfoPage) { BtcTransactionInputSortInfoScreen { navController.popBackStackSafely() } }
         composablePage(UtxoExpertModePage) {
             UtxoExpertModeScreen(
                 adapter = viewModel.adapter,
@@ -120,7 +121,7 @@ fun SendBitcoinNavHost(
                     viewModel.updateCustomUnspentOutputs(it)
                 },
                 onBackClick = {
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
         }
@@ -171,7 +172,7 @@ private fun SendBitcoinScreen(
             AppBar(
                 title = title,
                 navigationIcon = {
-                    HsBackButton(onClick = { fragmentNavController.popBackStack() })
+                    HsBackButton(onClick = { fragmentNavController.popBackStackSafely() })
                 },
                 menuItems = if (uiState.isAdvancedSettingsAvailable) {
                     listOf(

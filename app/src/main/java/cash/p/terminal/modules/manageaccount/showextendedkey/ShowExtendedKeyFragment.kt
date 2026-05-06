@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.core.managers.FaqManager
@@ -134,7 +135,7 @@ private fun ShowExtendedKeyScreen(
                 AppBar(
                     title = viewModel.title.getString(),
                     navigationIcon = {
-                        HsBackButton(onClick = navController::popBackStack)
+                        HsBackButton(onClick = navController::popBackStackSafely)
                     },
                     menuItems = listOf(
                         MenuItem(

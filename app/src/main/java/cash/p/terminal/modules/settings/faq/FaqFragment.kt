@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.navigation.slideFromRight
@@ -38,7 +39,7 @@ class FaqListFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
         FaqScreen(
-            onCloseClick = { navController.popBackStack() },
+            onCloseClick = { navController.popBackStackSafely() },
             onItemClick = { faqItem ->
                 navController.slideFromRight(
                     R.id.markdownFragment,

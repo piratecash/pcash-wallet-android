@@ -3,6 +3,8 @@ package cash.p.terminal.tangem.di
 import cash.p.terminal.tangem.domain.policy.TangemHardwareWalletTokenPolicy
 import cash.p.terminal.tangem.domain.sdk.CardSdkConfigRepository
 import cash.p.terminal.tangem.domain.sdk.CardSdkProvider
+import cash.p.terminal.tangem.domain.sdk.DefaultSdkInitializer
+import cash.p.terminal.tangem.domain.sdk.SdkInitializer
 import cash.p.terminal.tangem.domain.sdk.TangemSdkManager
 import cash.p.terminal.tangem.domain.usecase.BackupHardwareWalletUseCase
 import cash.p.terminal.tangem.domain.usecase.CollectDerivationsUseCase
@@ -40,6 +42,7 @@ val featureTangemModule = module {
     singleOf(::ValidateBackUseCase)
     singleOf(::ResetToFactorySettingsUseCase)
 
+    single<SdkInitializer> { DefaultSdkInitializer }
     singleOf(::CardSdkProvider)
     singleOf(::TangemSdkManager)
     singleOf(::CardSdkConfigRepository)

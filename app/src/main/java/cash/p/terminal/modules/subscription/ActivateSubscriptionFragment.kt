@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
@@ -74,7 +75,7 @@ fun ActivateSubscriptionScreen(navController: NavController) {
                     MenuItem(
                         title = TranslatableString.ResString(R.string.Button_Close),
                         icon = R.drawable.ic_close_24,
-                        onClick = { navController.popBackStack() }
+                        onClick = { navController.popBackStackSafely() }
                     )
                 )
             )
@@ -141,7 +142,7 @@ fun ActivateSubscriptionScreen(navController: NavController) {
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.Button_Cancel),
                         onClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 }

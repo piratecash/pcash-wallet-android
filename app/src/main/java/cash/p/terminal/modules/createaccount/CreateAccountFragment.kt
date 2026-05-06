@@ -36,6 +36,8 @@ import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsScre
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.mnemonic.NonEnglishMnemonicTermsScreen
 import io.horizontalsystems.hdwalletkit.Language
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -90,7 +92,7 @@ private fun CreateAccountNavHost(
             CreateAccountIntroScreen(
                 viewModel = viewModel,
                 openCreateAdvancedScreen = { navController.navigate("create_account_advanced") },
-                onBackClick = fragmentNavController::popBackStack,
+                onBackClick = fragmentNavController::popBackStackSafely,
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
             )
         }
@@ -122,8 +124,8 @@ private fun CreateAccountNavHost(
                 preselectMonero = preselectMonero,
                 passphraseTermsAccepted = viewModel.passphraseTermsAgreed,
                 onBackClick = {
-                    if (!navController.popBackStack()) {
-                        fragmentNavController.popBackStack()
+                    if (!navController.popBackStackSafely()) {
+                        fragmentNavController.popBackStackSafely()
                     }
                 },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
@@ -166,9 +168,9 @@ private fun CreateAccountNavHost(
                     navController.previousBackStackEntry
                         ?.savedStateHandle
                         ?.set("passphrase_terms_agreed", true)
-                    navController.navigateUp()
+                    navController.navigateUpSafely()
                 },
-                onBackClick = navController::navigateUp
+                onBackClick = navController::navigateUpSafely
             )
         }
     }

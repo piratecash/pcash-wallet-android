@@ -21,6 +21,7 @@ import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.modules.manageaccount.evmaddress.PublicViewKeyFragment.Input
 import cash.p.terminal.modules.manageaccount.ui.ActionButton
 import cash.p.terminal.modules.manageaccount.ui.HidableContent
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -58,7 +59,7 @@ private fun PublicViewKeyScreen(input: Input, navController: NavController) {
             AppBar(
                 title = stringResource(input.titleResId),
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack)
+                    HsBackButton(onClick = navController::popBackStackSafely)
                 },
                 menuItems = if (input.showInfo) {
                     listOf(

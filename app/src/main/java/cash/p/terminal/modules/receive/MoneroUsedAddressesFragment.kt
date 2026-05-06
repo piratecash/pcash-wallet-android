@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import cash.p.terminal.modules.receive.ui.MoneroUsedAddressesScreen
 import cash.p.terminal.modules.receive.viewmodels.MoneroUsedAddressesParams
+import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 
 class MoneroUsedAddressesFragment : BaseComposeFragment() {
@@ -12,7 +13,7 @@ class MoneroUsedAddressesFragment : BaseComposeFragment() {
         withInput<MoneroUsedAddressesParams>(navController) { params ->
             MoneroUsedAddressesScreen(
                 params = params,
-                onBackPress = navController::navigateUp
+                onBackPress = navController::navigateUpSafely
             )
         }
     }

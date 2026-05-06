@@ -12,6 +12,7 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
 import cash.p.terminal.modules.blockchainstatus.BtcBlockchainStatusProvider
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import io.horizontalsystems.core.entities.Blockchain
 import org.koin.compose.viewmodel.koinViewModel
@@ -67,7 +68,7 @@ private fun BtcBlockchainSettingsNavHost(
             }
             BlockchainStatusScreen(
                 viewModel = viewModel,
-                onBack = navController::popBackStack
+                onBack = navController::popBackStackSafely
             )
         }
     }

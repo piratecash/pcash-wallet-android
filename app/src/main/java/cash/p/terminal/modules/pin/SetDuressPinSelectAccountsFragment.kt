@@ -22,6 +22,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -72,7 +73,7 @@ fun SetDuressPinSelectAccountsScreen(
             AppBar(
                 title = stringResource(R.string.DuressPinSelectAccounts_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = navController::popBackStack )
+                    HsBackButton(onClick = navController::popBackStackSafely )
                 },
             )
         }

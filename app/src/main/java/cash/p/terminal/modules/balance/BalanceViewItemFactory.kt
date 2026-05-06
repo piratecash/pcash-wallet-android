@@ -105,6 +105,17 @@ fun formatProgressPercent(progress: Double): String {
     }
 }
 
+private val BalanceItem.displaySyncState: AdapterState
+    get() {
+        val txDisplayState = when (transactionsSyncState) {
+            is AdapterState.Syncing,
+            is AdapterState.SearchingTxs,
+            is AdapterState.NotSynced -> transactionsSyncState
+            else -> null
+        }
+        return if (state is AdapterState.Synced && txDisplayState != null) txDisplayState else state
+    }
+
 class BalanceViewItemFactory {
 
     private fun getSyncingProgress(
@@ -293,6 +304,7 @@ class BalanceViewItemFactory {
     ): BalanceViewItem {
         val wallet = item.wallet
         val state = item.state
+        val displaySyncState = item.displaySyncState
         val latestRate = item.coinPrice
 
         val balanceTotalVisibility = !hideBalance
@@ -403,15 +415,15 @@ class BalanceViewItemFactory {
             lockedValues = lockedValues,
             exchangeValue = BalanceViewHelper.rateValue(latestRate, currency, true),
             sendEnabled = item.sendAllowed,
-            syncingProgress = getSyncingProgress(state, wallet.token.blockchainType),
-            syncingTextValue = getSyncingText(state),
-            syncedUntilTextValue = getSyncedUntilText(state),
-            failedIconVisible = state is AdapterState.NotSynced,
-            coinIconVisible = state !is AdapterState.NotSynced,
+            syncingProgress = getSyncingProgress(displaySyncState, wallet.token.blockchainType),
+            syncingTextValue = getSyncingText(displaySyncState),
+            syncedUntilTextValue = getSyncedUntilText(displaySyncState),
+            failedIconVisible = displaySyncState is AdapterState.NotSynced,
+            coinIconVisible = displaySyncState !is AdapterState.NotSynced,
             badge = wallet.badge,
             swapVisible = isSwappable,
             swapEnabled = state !is AdapterState.NotSynced,
-            errorMessage = (state as? AdapterState.NotSynced)?.error?.message,
+            errorMessage = (displaySyncState as? AdapterState.NotSynced)?.error?.message,
             isWatchAccount = watchAccount,
             warning = item.warning?.warningText,
             isSendDisabled = sendDisabled,
@@ -436,6 +448,7 @@ class BalanceViewItemFactory {
     ): BalanceViewItem2 {
         val wallet = item.wallet
         val state = item.state
+        val displaySyncState = item.displaySyncState
         val latestRate = item.coinPrice
 
         val balanceTotalVisibility = !hideBalance
@@ -469,7 +482,7 @@ class BalanceViewItemFactory {
             }
 
         val errorMessage = if (networkAvailable) {
-            (state as? AdapterState.NotSynced)?.error?.message
+            (displaySyncState as? AdapterState.NotSynced)?.error?.message
         } else {
             Translator.getString(R.string.Hud_Text_NoInternet)
         }
@@ -482,10 +495,10 @@ class BalanceViewItemFactory {
             diff = item.coinPrice?.diffPercentage,
             fullDiff = getFullDiff(item, displayDiffOptionType, currency),
             sendEnabled = item.sendAllowed,
-            syncingProgress = getSyncingProgress(state, wallet.token.blockchainType),
-            syncingTextValue = getSyncingText(state),
-            syncedUntilTextValue = getSyncedUntilText(state),
-            failedIconVisible = state is AdapterState.NotSynced,
+            syncingProgress = getSyncingProgress(displaySyncState, wallet.token.blockchainType),
+            syncingTextValue = getSyncingText(displaySyncState),
+            syncedUntilTextValue = getSyncedUntilText(displaySyncState),
+            failedIconVisible = displaySyncState is AdapterState.NotSynced,
             badge = wallet.badge,
             swapEnabled = state !is AdapterState.NotSynced,
             errorMessage = errorMessage,

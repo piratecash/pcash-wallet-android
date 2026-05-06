@@ -13,6 +13,7 @@ import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.modules.confirm.ConfirmTransactionScreen
 import cash.p.terminal.modules.sendevmtransaction.SendEvmTransactionView
 import cash.p.terminal.modules.walletconnect.request.sendtransaction.WalletConnectTransaction
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -43,9 +44,9 @@ fun WCSignEthereumTransactionRequestScreen(
 
     ConfirmTransactionScreen(
         title = stringResource(id = R.string.WalletConnect_SignMessageRequest_Title),
-        onClickBack = navController::popBackStack,
+        onClickBack = navController::popBackStackSafely,
         onClickSettings = null,
-        onClickClose = navController::popBackStack,
+        onClickClose = navController::popBackStackSafely,
         buttonsSlot = {
             val coroutineScope = rememberCoroutineScope()
             val view = LocalView.current
@@ -78,7 +79,7 @@ fun WCSignEthereumTransactionRequestScreen(
                 title = stringResource(R.string.Button_Reject),
                 onClick = {
                     viewModel.reject()
-                    navController.popBackStack()
+                    navController.popBackStackSafely()
                 }
             )
         }

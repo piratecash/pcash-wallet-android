@@ -26,6 +26,7 @@ import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.core.orHide
+import cash.p.terminal.navigation.popBackStackSafely
 import org.koin.compose.koinInject
 import cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment
 import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
@@ -107,7 +108,7 @@ fun TransactionInfoScreen(
                     title = TranslatableString.ResString(R.string.Button_Close),
                     icon = R.drawable.ic_close_24,
                     onClick = {
-                        navController.popBackStack()
+                        navController.popBackStackSafely()
                     }
                 )
             )

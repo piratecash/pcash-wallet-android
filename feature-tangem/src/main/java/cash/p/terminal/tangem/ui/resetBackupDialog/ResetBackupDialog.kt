@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.tangem.R
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -45,10 +46,10 @@ class ResetBackupDialog : BaseComposableBottomSheetFragment() {
                     ResetBackupScreen(
                         onResetClick = {
                             navController.setNavigationResultX(Result(true))
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         },
                         onCloseClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         }
                     )
                 }

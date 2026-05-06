@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.navGraphViewModels
 import cash.p.terminal.R
+import cash.p.terminal.navigation.navigateUpSafely
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
@@ -47,7 +49,7 @@ class BlockchainsSelectorFragment : BaseComposeFragment() {
             }
         }
         if (!navGraphOnBackStack) {
-            navController.navigateUp()
+            navController.navigateUpSafely()
             return
         }
 
@@ -64,7 +66,7 @@ class BlockchainsSelectorFragment : BaseComposeFragment() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    findNavController().popBackStack()
+                    findNavController().popBackStackSafely()
                 }
             })
     }
@@ -83,7 +85,7 @@ private fun FilterByBlockchainsScreen(
             AppBar(
                 title = stringResource(R.string.Market_Filter_Blockchains),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStack() })
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         },

@@ -27,6 +27,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.market.topcoins.OptionController
 import cash.p.terminal.modules.market.topplatforms.Platform
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.AlertGroup
@@ -65,7 +66,7 @@ class MarketPlatformFragment : BaseComposeFragment() {
 
         PlatformScreen(
             factory = factory,
-            onCloseButtonClick = { navController.popBackStack() },
+            onCloseButtonClick = { navController.popBackStackSafely() },
             onCoinClick = { coinUid ->
                 val arguments = CoinFragmentInput(coinUid)
                 navController.slideFromRight(R.id.coinFragment, arguments)

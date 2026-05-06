@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -63,10 +64,10 @@ class AccountTypeNotSupportedDialog : BaseComposableBottomSheetFragment() {
                     AccountTypeNotSupportedScreen(
                         uiState = uiState,
                         onCloseClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                         },
                         onSwitchClick = {
-                            navController.popBackStack()
+                            navController.popBackStackSafely()
                             navController.slideFromRight(
                                 R.id.manageAccountsFragment,
                                 ManageAccountsModule.Mode.Manage
