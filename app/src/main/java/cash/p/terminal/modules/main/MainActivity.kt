@@ -46,7 +46,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
-class MainActivity : BaseActivity() {
+open class MainActivity : BaseActivity() {
 
     val viewModel: MainActivityViewModel by inject()
     private val cardSdkProvider: CardSdkProvider by inject()

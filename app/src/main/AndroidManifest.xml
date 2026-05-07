@@ -111,6 +111,19 @@
                 <data android:scheme="wc" />
             </intent-filter>
         </activity>
+        <!-- Stealth-mode launcher entry. A dedicated Activity (subclass of MainActivity)
+             is needed so that its `android:label` is statically "Calculator" in the manifest.
+             Recents UIs (AOSP, Pixel Quickstep, MIUI/HyperOS) read the label from the
+             manifest, not from runtime setTaskDescription. -->
+        <activity
+            android:name=".CalculatorEntryActivity"
+            android:exported="true"
+            android:icon="@mipmap/launcher_calculator"
+            android:label="@string/calculator_app_name"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.App.Starting"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
         <activity
             android:name=".modules.intro.IntroActivity"
             android:screenOrientation="portrait" />
@@ -236,7 +249,7 @@
             android:icon="@mipmap/launcher_calculator"
             android:label="@string/calculator_app_name"
             android:exported="true"
-            android:targetActivity=".modules.main.MainActivity">
+            android:targetActivity=".CalculatorEntryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
