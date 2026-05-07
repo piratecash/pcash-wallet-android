@@ -49,20 +49,22 @@ internal abstract class BaseEvmAdapter(
         return AdapterState.Syncing(progress = 0.0, blocksRemained = state.blocksRemaining)
     }
 
-    private fun txSyncToAdapterState(): AdapterState =
+    // Background polling cycle (BSC re-runs TransactionSyncManager every ~15s on each new
+    // block height) is intentionally suppressed: only error states are surfaced. Otherwise
+    // the wallet row would flash a parameter-less spinner on every poll.
+    private fun txSyncErrorOrSynced(): AdapterState =
         when (val txSync = evmTransactionRepository.transactionsSyncState) {
-            is EthereumKit.SyncState.Synced -> AdapterState.Synced
-            is EthereumKit.SyncState.Syncing -> AdapterState.Syncing()
             is EthereumKit.SyncState.NotSynced ->
                 if (txSync.error is EthereumKit.SyncError.NotStarted) AdapterState.Synced
                 else AdapterState.NotSynced(txSync.error)
+            else -> AdapterState.Synced
         }
 
     // Decoupled from balance readiness: drives the spinner, must not block send/swap.
     // Historical sync intentionally excluded: its blocksRemaining starts from chain tip (~89.7M on BSC)
     // and would render as a misleading "89.7M blocks remaining" message in the UI.
     override val transactionsSyncState: AdapterState
-        get() = forwardSyncing() ?: txSyncToAdapterState()
+        get() = forwardSyncing() ?: txSyncErrorOrSynced()
 
     override val transactionsSyncStateUpdatedFlow: Flow<Unit>
         get() = merge(

@@ -195,4 +195,18 @@ class Eip20AdapterSyncStateTest {
 
         assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
     }
+
+    @Test
+    fun transactionsSyncState_evmTxSyncingFromBackgroundPoll_returnsSynced() {
+        // Each BSC block height update re-runs TransactionSyncManager.sync(), flipping
+        // transactionsSyncState to Syncing for ~1s every poll. We must not surface that
+        // as a UI sync indicator — it would flash a parameter-less spinner every cycle
+        // on every BEP-20 row that shares the same EthereumKit.
+        val adapter = createAdapter(
+            eip20SyncState = SyncState.Synced(),
+            evmTxSyncState = SyncState.Syncing(),
+        )
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
+    }
 }

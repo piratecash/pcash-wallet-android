@@ -185,4 +185,14 @@ class EvmAdapterSyncStateTest {
 
         assertTrue(adapter.transactionsSyncState is AdapterState.NotSynced)
     }
+
+    @Test
+    fun transactionsSyncState_txSyncingFromBackgroundPoll_returnsSynced() {
+        // Each BSC block height update re-runs TransactionSyncManager.sync(), flipping
+        // transactionsSyncState to Syncing for ~1s every poll. We must not surface that
+        // as a UI sync indicator — it would flash a parameter-less spinner every cycle.
+        val adapter = createAdapter(txSyncState = SyncState.Syncing())
+
+        assertEquals(AdapterState.Synced, adapter.transactionsSyncState)
+    }
 }
