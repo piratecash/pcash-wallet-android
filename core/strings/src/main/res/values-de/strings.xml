@@ -27,6 +27,8 @@
     <string name="Button_Disconnect">Verbindung trennen</string>
     <string name="Button_Create">Erstellen</string>
     <string name="Button_Advanced">Erweitert</string>
+    <string name="hardware_wallet">Hardware-Wallet</string>
+    <string name="hardware_wallet_not_detected_error">Kein NFC-Leser erkannt. Bitte aktivieren, um Hardware-Karten zu nutzen</string>
     <string name="Button_Restore">Wiederherstellen</string>
     <string name="Button_Reset">Zurücksetzen</string>
     <string name="Button_Understand">Ich stimme zu</string>
@@ -42,11 +44,16 @@
     <string name="Button_Browser">Browser</string>
     <string name="Button_Delete">Löschen</string>
     <string name="Button_LearnMore">Mehr erfahren</string>
-    <string name="hardware_wallet">Hardware-Wallet</string>
     <string name="hardware_wallet_not_detected">Hardware-Wallet (kein NFC erkannt)</string>
     <string name="hardware_wallet_offline_confirmation_title">Offline-Aktivierung</string>
     <string name="hardware_wallet_offline_confirmation_message">Die Kartenprüfung kann den Server nicht erreichen. Prüfe deine Internetverbindung oder erlaube eine Offline-Aktivierung. Bei der Offline-Aktivierung entfallen Serverprüfungen, wodurch die Sicherheit sinkt. Offline-Aktivierung fortsetzen?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Offline fortfahren</string>
+    <string name="trezor_wallet">Trezor Wallet</string>
+    <string name="connect_trezor">Trezor verbinden</string>
+    <string name="trezor_setup_description">Stelle sicher, dass Trezor Suite installiert ist und dein Trezor-Gerät verbunden ist.</string>
+    <string name="trezor_suite_required_title">Trezor Suite erforderlich</string>
+    <string name="trezor_suite_required_description">Um dein Trezor-Gerät zu verbinden, muss die Trezor Suite App auf deinem Telefon installiert sein.</string>
+    <string name="install_from_play_store">Aus dem Play Store installieren</string>
     <string name="Button_Activate">Aktivieren</string>
     <string name="Button_Sign">Signieren</string>
     <string name="Button_TryAgain">Bitte versuche es noch einmal</string>
@@ -511,7 +518,13 @@
     <string name="delete_all">Alle löschen</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Möchten Sie alle gekoppelten dApps löschen?</string>
     <string name="WalletConnect_Pairings_Delete">Löschen</string>
-    <string name="WalletConnect_DeleteAllPairs">Alle Kopplungen löschen</string>
+    <string name="WalletConnect_DeleteAllPairs">Alle Paare löschen</string>
+
+    <string name="scan">Scannen</string>
+    <string name="connect">Verbinden</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">Sie müssen die Karte scannen, um Token hinzuzufügen</string>
+    <string name="connect_trezor_to_add_message">Sie müssen Trezor verbinden, um Token hinzuzufügen</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">Warnung</string>
     <string name="EthereumTransaction_Error_Title">Fehler</string>
@@ -566,7 +579,7 @@
     <string name="swap_create_wallet_description_with_zcash">You don\'t have all chosen wallets, need to create first,\nto exchange ZEC you need to create transparent address first</string>
     <string name="Swap_Approve">Genehmigen</string>
     <string name="Swap_Approving">Wird bestätigt</string>
-    <string name="Swap_Swapping">Swapping</string>
+    <string name="Swap_Swapping">Wird getauscht</string>
     <string name="Swap_Quoting">Preisabfrage</string>
     <string name="Swap_Providers">Anbieter</string>
     <string name="Swap_SwapProvider_Title">Swap-Anbieter</string>
@@ -1040,6 +1053,8 @@
     <string name="ManageAccounts_CreateNewWallet">Erstellen</string>
     <string name="ManageAccounts_ImportWallet">Wiederherstellen</string>
     <string name="ManageAccounts_WatchAddress">Watch-Adresse</string>
+    <string name="scan_card_to_add">Karte scannen, um Token hinzuzufügen</string>
+    <string name="add_via_trezor">Über Trezor hinzufügen</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">aus Datei</string>
     <string name="ImportWallet_BackupFile_Description">Aus Backup-Datei importieren.</string>
@@ -1924,4 +1939,5 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="multi_swap_cancel_swap">Tausch abbrechen</string>
     <string name="multi_swap_cancel_swap_warning">Der erste Tausch wurde bereits abgeschlossen. Die Zwischenmünzen befinden sich in Ihrer Wallet und bleiben Ihnen erhalten. Nur der zweite Tauschschritt wird abgebrochen.</string>
     <string name="swap_leg_title">Tausch %d</string>
+    <string name="scan_tangem_card">Tangem-Karte scannen</string>
 </resources>

@@ -35,7 +35,6 @@ import cash.p.terminal.core.App
 import cash.p.terminal.entities.Address
 import cash.p.terminal.navigation.popBackStackSafely
 import io.horizontalsystems.core.entities.CurrencyValue
-import cash.p.terminal.modules.amount.AmountInputType
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningData
@@ -73,7 +72,6 @@ fun SendConfirmationScreen(
     navController: NavController,
     coinMaxAllowedDecimals: Int,
     feeCoinMaxAllowedDecimals: Int,
-    amountInputType: AmountInputType,
     rate: CurrencyValue?,
     feeCoinRate: CurrencyValue?,
     sendResult: SendResult?,

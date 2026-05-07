@@ -96,8 +96,8 @@ class WalletFactory(
             return null
         }
 
-        if (account.type is AccountType.HardwareCard &&
-            !hardwareWalletTokenPolicy.isSupported(token)
+        if (account.isHardwareWalletAccount &&
+            !hardwareWalletTokenPolicy.isSupported(account, token)
         ) {
             Timber.d(
                 "Skipping wallet creation for token ${token.blockchainType} ${token.type} - hardware wallet not supported"

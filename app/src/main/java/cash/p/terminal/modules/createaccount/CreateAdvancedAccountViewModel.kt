@@ -20,7 +20,6 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.BuildConfig
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.PassphraseValidator
 import cash.p.terminal.wallet.data.MnemonicKind
@@ -134,7 +133,7 @@ class CreateAdvancedAccountViewModel(
         activateDefaultWallets(account)
 
         // Prepare birthdayHeight for blockchains that require it
-        if (accountType !is AccountType.HardwareCard) {
+        if (accountType !is AccountType.HardwareCard && accountType !is AccountType.TrezorDevice) {
             when (accountType) {
                 is AccountType.MnemonicMonero -> {
                     // For Monero-only accounts, height is already saved above (line 107-111)
@@ -236,17 +235,7 @@ class CreateAdvancedAccountViewModel(
         walletActivator.activateWalletsSuspended(account, tokenQueries)
     }
 
-    private fun getDefaultTokens() = listOfNotNull(
-        TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)),
-        TokenQuery(BlockchainType.Monero, TokenType.Native),
-        TokenQuery(BlockchainType.Zcash, TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified)),
-        TokenQuery(BlockchainType.Ethereum, TokenType.Native),
-        TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Native),
-        //TokenQuery(BlockchainType.Ethereum, TokenType.Eip20("0xdac17f958d2ee523a2206206994597c13d831ec7")),
-        TokenQuery.eip20(BlockchainType.BinanceSmartChain, BuildConfig.PIRATE_CONTRACT),
-        TokenQuery.eip20(BlockchainType.BinanceSmartChain, BuildConfig.COSANTA_CONTRACT),
-        //TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Eip20("0xe9e7cea3dedca5984780bafc599bd69add087d56")),
-    )
+    private fun getDefaultTokens() = TokenQuery.defaultTokenQueries
 
     private fun mnemonicAccountType(wordCount: Int): AccountType? {
         return try {

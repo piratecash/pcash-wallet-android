@@ -60,7 +60,6 @@ import cash.p.terminal.core.managers.TronKitManager
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.network.pirate.domain.repository.MasterNodesRepository
 import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCase
-import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.Wallet
@@ -190,7 +189,7 @@ class AdapterFactory(
      * to detect premium by addresses
      */
     private suspend fun storeBnbAddresses(adapter: IAdapter, wallet: Wallet) {
-        if (wallet.account.type !is AccountType.HardwareCard ||
+        if (!wallet.account.isHardwareWalletAccount ||
             (!wallet.isPirateCash() && !wallet.isCosanta())
         ) return
 

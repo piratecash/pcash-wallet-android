@@ -18,6 +18,7 @@ import cash.p.terminal.wallet.AccountType.EvmAddress
 import cash.p.terminal.wallet.AccountType.EvmPrivateKey
 import cash.p.terminal.wallet.AccountType.HardwareCard
 import cash.p.terminal.wallet.AccountType.HdExtendedKey
+import cash.p.terminal.wallet.AccountType.TrezorDevice
 import cash.p.terminal.wallet.AccountType.Mnemonic
 import cash.p.terminal.wallet.AccountType.MnemonicMonero
 import cash.p.terminal.wallet.AccountType.SolanaAddress
@@ -189,6 +190,7 @@ class DuplicateWalletViewModel(
                 is ZCashUfvKey,
                 is EvmPrivateKey,
                 is HardwareCard,
+                is TrezorDevice,
                 is HdExtendedKey,
                 is StellarSecretKey -> {
                     uiState = uiState.copy(

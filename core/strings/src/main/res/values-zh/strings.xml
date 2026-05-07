@@ -27,6 +27,8 @@
     <string name="Button_Disconnect">断连</string>
     <string name="Button_Create">创建</string>
     <string name="Button_Advanced">高级</string>
+    <string name="hardware_wallet">硬件钱包</string>
+    <string name="hardware_wallet_not_detected_error">未检测到NFC读取器，请启用以使用硬件卡</string>
     <string name="Button_Restore">恢复</string>
     <string name="Button_Reset">重置</string>
     <string name="Button_Understand">我理解</string>
@@ -42,11 +44,16 @@
     <string name="Button_Browser">浏览器</string>
     <string name="Button_Delete">删除</string>
     <string name="Button_LearnMore">了解更多</string>
-    <string name="hardware_wallet">硬件钱包</string>
     <string name="hardware_wallet_not_detected">硬件钱包（未检测到 NFC）</string>
     <string name="hardware_wallet_offline_confirmation_title">离线激活</string>
     <string name="hardware_wallet_offline_confirmation_message">无法在服务器上验证卡片真实性。请检查网络连接或允许离线激活。离线激活会跳过服务器验证，从而降低安全性保障。是否继续离线激活？</string>
     <string name="hardware_wallet_offline_confirmation_positive">继续离线</string>
+    <string name="trezor_wallet">Trezor 钱包</string>
+    <string name="connect_trezor">连接 Trezor</string>
+    <string name="trezor_setup_description">请确保已安装 Trezor Suite 并且您的 Trezor 设备已连接。</string>
+    <string name="trezor_suite_required_title">需要 Trezor Suite</string>
+    <string name="trezor_suite_required_description">要连接您的 Trezor 设备，需要在手机上安装 Trezor Suite 应用。</string>
+    <string name="install_from_play_store">从 Play Store 安装</string>
     <string name="Button_Activate">激活</string>
     <string name="Button_Sign">签名</string>
     <string name="Button_TryAgain">再试一次</string>
@@ -513,7 +520,13 @@
     <string name="delete_all">全部删除</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">你要删除所有已配对的 dApp 吗？</string>
     <string name="WalletConnect_Pairings_Delete">删除</string>
-    <string name="WalletConnect_DeleteAllPairs">删除所有配对</string>
+    <string name="WalletConnect_DeleteAllPairs">删除所有对</string>
+
+    <string name="scan">扫描</string>
+    <string name="connect">连接</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">您需要扫描卡片以添加代币</string>
+    <string name="connect_trezor_to_add_message">您需要连接 Trezor 以添加代币</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">警告</string>
     <string name="EthereumTransaction_Error_Title">出错</string>
@@ -1041,6 +1054,8 @@
     <string name="ManageAccounts_CreateNewWallet">创建</string>
     <string name="ManageAccounts_ImportWallet">恢复自</string>
     <string name="ManageAccounts_WatchAddress">观察地址</string>
+    <string name="scan_card_to_add">扫描卡片以添加代币</string>
+    <string name="add_via_trezor">通过 Trezor 添加</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">从文件</string>
     <string name="ImportWallet_BackupFile_Description">从备份文件导入.</string>
@@ -1903,6 +1918,7 @@
     <string name="native_library_error_title">无法启动</string>
     <string name="native_library_error_message">无法加载所需组件。请尝试从 Play 商店重新安装应用。</string>
     <string name="native_library_error_close">关闭</string>
+    <string name="scan_tangem_card">扫描 Tangem 卡</string>
     <!--Multi-Swap-->
     <string name="multi_swap_completed">兑换完成</string>
     <string name="multi_swap_no_providers">没有可用的提供商</string>

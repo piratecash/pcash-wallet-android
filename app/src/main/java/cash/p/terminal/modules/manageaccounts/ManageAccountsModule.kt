@@ -45,6 +45,7 @@ object ManageAccountsModule {
         val showAlertIcon: Boolean,
         val isWatchAccount: Boolean,
         val isHardwareWallet: Boolean,
+        val showNfcIcon: Boolean,
         val migrationRequired: Boolean,
     )
 

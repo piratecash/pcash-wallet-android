@@ -175,7 +175,7 @@ class ConnectMiniAppViewModel(
 
     private fun getEligibleAccountsToChoose(): List<Account> {
         return accountManager.accounts.filter { account ->
-            !account.isWatchAccount && (account.type.canAddTokens || account.type is AccountType.HardwareCard)
+            !account.isWatchAccount && (account.type.canAddTokens || account.isHardwareWalletAccount)
         }
     }
 

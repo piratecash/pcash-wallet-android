@@ -27,6 +27,8 @@
     <string name="Button_Disconnect">Bağlantıyı Kes</string>
     <string name="Button_Create">Oluştur</string>
     <string name="Button_Advanced">İleri düzey</string>
+    <string name="hardware_wallet">Donanım cüzdanı</string>
+    <string name="hardware_wallet_not_detected_error">NFC okuyucu algılanmadı, donanım kartlarını kullanmak için etkinleştirin</string>
     <string name="Button_Restore">Geri Yükle</string>
     <string name="Button_Reset">Sıfırla</string>
     <string name="Button_Understand">Anlıyorum</string>
@@ -42,11 +44,16 @@
     <string name="Button_Browser">Tarayıcı</string>
     <string name="Button_Delete">Sil</string>
     <string name="Button_LearnMore">Daha fazla bilgi edin</string>
-    <string name="hardware_wallet">Donanım Cüzdanı</string>
     <string name="hardware_wallet_not_detected">Donanım Cüzdanı (NFC algılanmadı)</string>
     <string name="hardware_wallet_offline_confirmation_title">Çevrimdışı etkinleştirme</string>
     <string name="hardware_wallet_offline_confirmation_message">Kart doğrulaması sunucuya ulaşılamadığı için yapılamıyor. İnternet bağlantınızı kontrol edin veya çevrimdışı etkinleştirmeye izin verin. Çevrimdışı etkinleştirmede sunucu kontrolleri atlanır ve güvenlik seviyesi düşer. Çevrimdışı etkinleştirmeye devam edilsin mi?</string>
     <string name="hardware_wallet_offline_confirmation_positive">Çevrimdışı devam et</string>
+    <string name="trezor_wallet">Trezor Cüzdan</string>
+    <string name="connect_trezor">Trezor Bağla</string>
+    <string name="trezor_setup_description">Trezor Suite\'un yüklü olduğundan ve Trezor cihazınızın bağlı olduğundan emin olun.</string>
+    <string name="trezor_suite_required_title">Trezor Suite gerekli</string>
+    <string name="trezor_suite_required_description">Trezor cihazınızı bağlamak için telefonunuzda Trezor Suite uygulamasının yüklü olması gerekir.</string>
+    <string name="install_from_play_store">Play Store\'dan yükle</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">kaydol</string>
     <string name="Button_TryAgain">Tekrar deneyin</string>
@@ -517,7 +524,13 @@
     <string name="delete_all">Tümünü sil</string>
     <string name="WalletConnect_Pairings_ConfirmationDeleteAll">Eşleştirilmiş tüm dApps\'leri silmek istiyor musunuz?</string>
     <string name="WalletConnect_Pairings_Delete">Sil</string>
-    <string name="WalletConnect_DeleteAllPairs">Tüm eşleştirmeleri sil</string>
+    <string name="WalletConnect_DeleteAllPairs">Hepsini sil</string>
+
+    <string name="scan">Tara</string>
+    <string name="connect">Bağlan</string>
+    <string name="adding_tokens">Adding tokens</string>
+    <string name="scan_to_add_mesage">Token eklemek için kartı taramanız gerekir</string>
+    <string name="connect_trezor_to_add_message">Token eklemek için Trezor\'u bağlamanız gerekir</string>
     <!--EthereumTransaction-->
     <string name="EthereumTransaction_Warning_Title">Uyarı</string>
     <string name="EthereumTransaction_Error_Title">Hata</string>
@@ -1050,6 +1063,8 @@
     <string name="ManageAccounts_CreateNewWallet">Oluştur</string>
     <string name="ManageAccounts_ImportWallet">Geri Yükle</string>
     <string name="ManageAccounts_WatchAddress">Adresi İzle</string>
+    <string name="scan_card_to_add">Token eklemek için kartı tarayın</string>
+    <string name="add_via_trezor">Trezor ile ekle</string>
     <!-- Import Wallet -->
     <string name="ImportWallet_BackupFile">Dosyadan</string>
     <string name="ImportWallet_BackupFile_Description">Bir yedek dosyadan içe aktar.</string>
@@ -1919,6 +1934,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="native_library_error_title">Başlatılamıyor</string>
     <string name="native_library_error_message">Gerekli bir bileşen yüklenemedi. Lütfen uygulamayı Play Store\'dan yeniden yüklemeyi deneyin.</string>
     <string name="native_library_error_close">Kapat</string>
+    <string name="scan_tangem_card">Tangem Kartı Tara</string>
     <!--Multi-Swap-->
     <string name="multi_swap_completed">Takas tamamlandı</string>
     <string name="multi_swap_no_providers">Kullanılabilir sağlayıcı yok</string>

@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -30,21 +29,27 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAccountManager
 import kotlinx.parcelize.Parcelize
+import org.koin.android.ext.android.inject
 
 class CancelOrScanDialog : BaseComposableBottomSheetFragment() {
+
+    private val accountManager: IAccountManager by inject()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val accountType = accountManager.activeAccount?.type
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(
                 ViewCompositionStrategy.DisposeOnLifecycleDestroyed(viewLifecycleOwner)
             )
             setContent {
-                CancelOrScanScreen(findNavController())
+                CancelOrScanScreen(findNavController(), accountType)
             }
         }
     }
@@ -54,19 +59,24 @@ class CancelOrScanDialog : BaseComposableBottomSheetFragment() {
 }
 
 @Composable
-private fun CancelOrScanScreen(navController: NavController) {
+private fun CancelOrScanScreen(navController: NavController, accountType: AccountType?) {
+    val isTrezor = accountType is AccountType.TrezorDevice
+    val bodyText = stringResource(
+        if (isTrezor) R.string.connect_trezor_to_add_message else R.string.scan_to_add_mesage
+    )
+    val confirmText = stringResource(
+        if (isTrezor) R.string.connect else R.string.scan
+    )
+
     ComposeAppTheme {
         BottomSheetHeader(
-            iconPainter = painterResource(R.drawable.ic_card),
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.lucian),
             title = stringResource(R.string.adding_tokens),
             onCloseClick = {
                 navController.popBackStackSafely()
             }
         ) {
-            InfoTextBody(
-                text = stringResource(R.string.scan_to_add_mesage)
-            )
+            InfoTextBody(text = bodyText)
             Spacer(Modifier.height(12.dp))
             Row(
                 modifier = Modifier.padding(horizontal = 24.dp),
@@ -76,7 +86,7 @@ private fun CancelOrScanScreen(navController: NavController) {
                 ButtonPrimaryYellow(
                     modifier = Modifier
                         .weight(1f),
-                    title = stringResource(R.string.scan),
+                    title = confirmText,
                     onClick = {
                         navController.setNavigationResultX(CancelOrScanDialog.Result(true))
                         navController.popBackStackSafely()

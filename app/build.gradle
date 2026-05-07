@@ -439,6 +439,7 @@ dependencies {
     implementation project(':components:chartview')
     implementation project(':feature-stacking')
     implementation project(':feature-tangem')
+    implementation project(':feature-trezor')
     implementation project(':feature-premium')
     implementation project(':feature-logging')
     implementation project(':feature-mini-app')

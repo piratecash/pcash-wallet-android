@@ -37,6 +37,7 @@ class SelectBlockchainsViewModel(
             is AccountType.StellarAddress,
             is AccountType.Mnemonic,
             is AccountType.HardwareCard,
+            is AccountType.TrezorDevice,
             is AccountType.MnemonicMonero,
             is AccountType.StellarSecretKey,
             is AccountType.EvmPrivateKey -> Unit // N/A

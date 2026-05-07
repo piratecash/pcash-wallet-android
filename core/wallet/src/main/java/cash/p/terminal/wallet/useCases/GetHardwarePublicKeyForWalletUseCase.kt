@@ -1,7 +1,6 @@
 package cash.p.terminal.wallet.useCases
 
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.HardwarePublicKey
@@ -18,8 +17,8 @@ class GetHardwarePublicKeyForWalletUseCase(
         blockchainType: BlockchainType,
         tokenType: TokenType
     ): HardwarePublicKey? {
-        if (account.type !is AccountType.HardwareCard) {
-            return null // Hardware accounts do not have public keys
+        if (!account.isHardwareWalletAccount) {
+            return null
         }
 
         return hardwareWalletStorage.getKey(account.id, blockchainType, tokenType)

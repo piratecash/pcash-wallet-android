@@ -19,6 +19,8 @@ import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.TransactionLockInfo
 import cash.p.terminal.tangem.signer.HardwareWalletEcdaSigner
 import cash.p.terminal.tangem.signer.HardwareWalletSchnorrSigner
+import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezor.signer.TrezorBtcSigner
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -696,6 +698,31 @@ abstract class BitcoinBaseAdapter(
             }
             return HardwareWalletSchnorrSigner(
                 hardwarePublicKey = hardwarePublicKey
+            )
+        }
+
+        @JvmStatic
+        protected fun buildTrezorBtcSigner(
+            accountId: String,
+            blockchainType: BlockchainType,
+            coin: String
+        ): TrezorBtcSigner {
+            val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
+                    by inject(IHardwarePublicKeyStorage::class.java)
+            val trezorDeepLinkManager: TrezorDeepLinkManager
+                    by inject(TrezorDeepLinkManager::class.java)
+            val hardwarePublicKey = runBlocking {
+                requireNotNull(
+                    hardwarePublicKeyStorage.getKeyByBlockchain(
+                        accountId = accountId,
+                        blockchainType = blockchainType
+                    )
+                )
+            }
+            return TrezorBtcSigner(
+                coin = coin,
+                derivationPath = hardwarePublicKey.derivationPath,
+                deepLinkManager = trezorDeepLinkManager
             )
         }
     }

@@ -18,8 +18,12 @@ class CreateRequiredTokensUseCaseImpl(
             userDeletedWalletManager.unmarkAsDeleted(account.id, tokenQuery.id)
         }
 
-        val hardwareCard = account.type as? AccountType.HardwareCard
-        if (hardwareCard != null) {
+        if (account.isHardwareWalletAccount) {
+            val hardwareId = when (val type = account.type) {
+                is AccountType.HardwareCard -> type.cardId
+                is AccountType.TrezorDevice -> type.deviceId
+                else -> error("Not a hardware wallet account")
+            }
             val existingKeys = hardwarePublicKeyStorage.getAllPublicKeys(account.id)
             val missingQueries = tokenQueries.filter { query ->
                 existingKeys.none {
@@ -31,7 +35,7 @@ class CreateRequiredTokensUseCaseImpl(
             if (missingQueries.isNotEmpty()) {
                 scanToAddUseCase.addTokensByScan(
                     blockchainsToDerive = missingQueries,
-                    cardId = hardwareCard.cardId,
+                    cardId = hardwareId,
                     accountId = account.id
                 )
             }

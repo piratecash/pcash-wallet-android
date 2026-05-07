@@ -40,6 +40,18 @@ data class TokenQuery(
 
         val PirateJetton = TokenQuery(BlockchainType.Ton, TokenType.Jetton(BuildConfig.PIRATE_JETTON_ADDRESS))
 
+        val defaultTokenQueries by lazy {
+            listOfNotNull(
+                TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)),
+                TokenQuery(BlockchainType.Monero, TokenType.Native),
+                TokenQuery(BlockchainType.Zcash, TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified)),
+                TokenQuery(BlockchainType.Ethereum, TokenType.Native),
+                TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Native),
+                PirateCashBnb,
+                CosantaBnb,
+            )
+        }
+
         fun eip20(blockchainType: BlockchainType, address: String): TokenQuery {
             val normalized = if (blockchainType.isEvmLike()) {
                 address.lowercase(Locale.US)

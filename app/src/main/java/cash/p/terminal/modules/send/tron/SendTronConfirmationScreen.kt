@@ -34,6 +34,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.modules.amount.AmountInputModeViewModel
+
 import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.fee.HSFeeRaw
 import cash.p.terminal.modules.send.ConfirmAmountCell

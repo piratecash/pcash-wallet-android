@@ -159,6 +159,24 @@ class BitcoinCashAdapter(
                     )
                 }
 
+                is AccountType.TrezorDevice -> {
+                    val trezorSigner = buildTrezorBtcSigner(
+                        accountId = account.id,
+                        blockchainType = wallet.token.blockchainType,
+                        coin = "Bcash"
+                    )
+                    return BitcoinCashKit(
+                        context = App.instance,
+                        extendedKey = requireNotNull(wallet.getHDExtendedKey()),
+                        walletId = account.id,
+                        syncMode = syncMode,
+                        networkType = networkType,
+                        confirmationsThreshold = KIT_CONFIRMATIONS_THRESHOLD,
+                        iInputSigner = trezorSigner,
+                        iSchnorrInputSigner = trezorSigner,
+                    )
+                }
+
                 else -> throw UnsupportedAccountException()
             }
 
@@ -208,6 +226,7 @@ class BitcoinCashAdapter(
                 is AccountType.EvmAddress,
                 is AccountType.EvmPrivateKey,
                 is AccountType.HardwareCard,
+                is AccountType.TrezorDevice,
                 is AccountType.MnemonicMonero,
                 is AccountType.SolanaAddress,
                 is AccountType.TonAddress,

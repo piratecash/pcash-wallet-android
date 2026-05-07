@@ -292,6 +292,7 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
             this == BlockchainType.Monero
 
         is AccountType.HardwareCard,
+        is AccountType.TrezorDevice,
         is AccountType.Mnemonic -> true
 
         is AccountType.HdExtendedKey -> {
