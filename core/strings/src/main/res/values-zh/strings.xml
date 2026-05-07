@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">确认</string>
     <string name="CreateWallet_N_WordsRecommended">%s 个单词(推荐)</string>
     <string name="CreateWallet_N_Words">%s 个单词</string>
+    <string name="create_wallet_n_words_monero">%s 个单词（仅限 Monero）</string>
     <string name="CreateWallet_Error_EmptyPassphrase">助记词不能为空</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">请只使用支持的符号： <![CDATA[A-Z a-z 0-9 \' " & / ? ！: ; 。 ，~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">确认密码不匹配</string>
     <string name="create_wallet_error_failed">创建钱包失败。请重试或重启应用。</string>
     <string name="CreateWallet_PassphraseDescription">密码为钱包添加一个额外的安全层。要恢复这个钱包，用户既需要密码，也需要密码。\n\n密码也使得用户可以轻松地使用单一的密钥但不同的密码来拥有许多多币钱包。</string>
-    <!--Languages-->
-    <string name="Language_English">汉语</string>
-    <string name="Language_Japanese">日语</string>
-    <string name="Language_Korean">韩语</string>
-    <string name="Language_Spanish">西班牙文</string>
-    <string name="Language_SimplifiedChinese">中文（简体）</string>
-    <string name="Language_TraditionalChinese">中文（繁体）</string>
-    <string name="Language_French">法语</string>
-    <string name="Language_Italian">意大利语</string>
-    <string name="Language_Czech">捷克语</string>
-    <string name="Language_Portuguese">葡萄牙语</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐</string>
     <string name="RateApp_Description_Rate_This_App">喜欢P.CASH？分享反馈和想法以使其更进一步。</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">高级</string>
     <string name="Restore_Error_MnemonicWordCount">个数有误。必须为12到24个单词。您输入了：%d</string>
+    <string name="restoreheight_title">恢复起始区块</string>
+    <string name="restoreheight_hint">输入区块或日期 (YYYY-MM-DD)</string>
     <string name="invalid_height">无效高度</string>
     <string name="invalid_height_format">无效高度，请确保您输入的是 YYYY-MM-DD 格式或出生高度</string>
     <string name="invalid_qr_code">无效的二维码</string>
@@ -1129,6 +1121,15 @@
     <string name="local_backup_error_empty_password">密码不能为空。</string>
     <string name="error_no_file_manager">没有可用的文件管理器。请安装文件管理器应用程序以保存备份。</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">条款</string>
+    <string name="non_english_mnemonic_terms_warning_title">助记词兼容性</string>
+    <string name="non_english_mnemonic_terms_warning">你选择的助记词语言是：%1$s。\n\n不同语言的助记词可能不受其他钱包或服务支持。\n\n为避免失去访问权限，请确保你计划导入的钱包支持 BIP39 %2$s。</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">不受其他钱包或服务支持</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>我理解导入到其他钱包可能无法完成。</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">密码短语条款</string>
     <string name="passphrase_terms_warning">在激活密码短语 (BIP-39 Passphrase) 之前，请确认您理解：</string>
@@ -1153,6 +1154,7 @@
     <string name="RecoveryPhrase_ShowPhrase">点击显示恢复密语</string>
     <string name="tap_to_show_qr_code">点击显示二维码</string>
     <string name="seed_qr_decryption_failed">解密失败。二维码可能已过期或无效。</string>
+    <string name="seed_qr_invalid_format">这不是有效的种子二维码。</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">请勿保存此二维码——它仅在1小时内有效。</string>
     <string name="RecoveryPhrase_QrGenerationError">无法生成助记词二维码</string>

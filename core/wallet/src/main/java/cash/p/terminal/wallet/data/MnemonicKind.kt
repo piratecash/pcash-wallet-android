@@ -25,7 +25,7 @@ enum class MnemonicKind(val wordsCount: Int) {
             )
 
             Mnemonic25 -> Translator.getString(
-                R.string.CreateWallet_N_Words_monero,
+                R.string.create_wallet_n_words_monero,
                 wordsCount
             )
 

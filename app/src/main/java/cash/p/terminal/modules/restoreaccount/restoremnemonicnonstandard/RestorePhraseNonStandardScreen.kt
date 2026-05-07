@@ -56,10 +56,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.findNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cash.p.terminal.R
-import cash.p.terminal.core.displayNameStringRes
 import cash.p.terminal.core.utils.Utils
 import cash.p.terminal.ui_compose.entities.DataState
-import cash.p.terminal.modules.createaccount.MnemonicLanguageCell
+import cash.p.terminal.modules.mnemonic.MnemonicLanguageCell
+import cash.p.terminal.modules.mnemonic.MnemonicLanguageSelectorDialog
 import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.modules.restoreaccount.RestoreViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.SuggestionsBar
@@ -77,8 +77,6 @@ import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui.compose.components.SelectorDialogCompose
-import cash.p.terminal.ui.compose.components.SelectorItem
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.body_grey50
 import cash.p.terminal.ui_compose.components.body_leah
@@ -354,15 +352,9 @@ private fun BottomSection(
     var showLanguageSelectorDialog by remember { mutableStateOf(false) }
 
     if (showLanguageSelectorDialog) {
-        SelectorDialogCompose(
-            title = stringResource(R.string.CreateWallet_Wordlist),
-            items = viewModel.mnemonicLanguages.map {
-                SelectorItem(
-                    stringResource(it.displayNameStringRes),
-                    it == uiState.language,
-                    it
-                )
-            },
+        MnemonicLanguageSelectorDialog(
+            languages = viewModel.mnemonicLanguages,
+            selectedLanguage = uiState.language,
             onDismissRequest = {
                 coroutineScope.launch {
                     showLanguageSelectorDialog = false
@@ -370,9 +362,7 @@ private fun BottomSection(
                     keyboardController?.show()
                 }
             },
-            onSelectItem = {
-                viewModel.setMnemonicLanguage(it)
-            }
+            onSelectLanguage = viewModel::setMnemonicLanguage
         )
     }
 
@@ -382,7 +372,8 @@ private fun BottomSection(
                 language = uiState.language,
                 showLanguageSelectorDialog = {
                     showLanguageSelectorDialog = true
-                }
+                },
+                enabled = true
             )
         },
             {

@@ -5,6 +5,7 @@ import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuModule.Rest
 import cash.p.terminal.modules.restoreaccount.restoremenu.RestoreMenuViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestorePhrase
 import cash.p.terminal.modules.restoreaccount.restoreprivatekey.RestorePrivateKey
+import io.horizontalsystems.hdwalletkit.Language
 
 @Composable
 fun AdvancedRestoreScreen(
@@ -16,7 +17,8 @@ fun AdvancedRestoreScreen(
     onFinish: () -> Unit,
     prefillWords: List<String>? = null,
     prefillPassphrase: String? = null,
-    prefillMoneroHeight: Long? = null
+    prefillMoneroHeight: Long? = null,
+    prefillMnemonicLanguage: Language? = null
 ) {
     when (restoreMenuViewModel.restoreOption) {
         RestoreOption.RecoveryPhrase -> {
@@ -30,7 +32,8 @@ fun AdvancedRestoreScreen(
                 onFinish = onFinish,
                 prefillWords = prefillWords,
                 prefillPassphrase = prefillPassphrase,
-                prefillMoneroHeight = prefillMoneroHeight
+                prefillMoneroHeight = prefillMoneroHeight,
+                prefillMnemonicLanguage = prefillMnemonicLanguage
             )
         }
         RestoreOption.PrivateKey -> {

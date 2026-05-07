@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">확인</string>
     <string name="CreateWallet_N_WordsRecommended">%s 단어 (권장)</string>
     <string name="CreateWallet_N_Words">%s 단어</string>
+    <string name="create_wallet_n_words_monero">%s 단어 (Monero 전용)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">암호 문구는 필수 입력 사항입니다</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">지원되는 기호만 사용하세요:  <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">암호 확인이 일치하지 않습니다</string>
     <string name="create_wallet_error_failed">지갑 생성에 실패했습니다. 다시 시도하거나 앱을 재시작해 주세요.</string>
     <string name="CreateWallet_PassphraseDescription">암호는 지갑에 대한 추가 보안 계층을 추가합니다. 이러한 지갑을 복원하려면 사용자는 니모닉과 암호가 모두 필요했습니다.\n\n암호는 또한 사용자가 하나의 니모닉을 사용하지만 다른 암호를 사용하여 여러 코인 지갑을 쉽게 가질 수 있도록 합니다.</string>
-    <!--Languages-->
-    <string name="Language_English">영어</string>
-    <string name="Language_Japanese">일본어</string>
-    <string name="Language_Korean">한국어</string>
-    <string name="Language_Spanish">스페인어</string>
-    <string name="Language_SimplifiedChinese">중국어(간체)</string>
-    <string name="Language_TraditionalChinese">중국어 (번체)</string>
-    <string name="Language_French">프랑스어</string>
-    <string name="Language_Italian">이탈리아어</string>
-    <string name="Language_Czech">체코어</string>
-    <string name="Language_Portuguese">포르투갈어</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐</string>
     <string name="RateApp_Description_Rate_This_App">P.CASH을 즐기고 계십니까? 더 발전하기 위해 피드백과 아이디어를 공유해 주세요.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">고급의</string>
     <string name="Restore_Error_MnemonicWordCount">단어 수가 틀렸습니다. 12 개 와 24개 사이여야 합니다. 이렇게 입력했습니다: %d</string>
+    <string name="restoreheight_title">복원 시작 블록</string>
+    <string name="restoreheight_hint">블록 또는 날짜를 입력하세요(YYYY-MM-DD)</string>
     <string name="invalid_height">잘못된 높이</string>
     <string name="invalid_height_format">잘못된 높이, YYYY-MM-DD 형식이나 출생 높이를 입력했는지 확인하세요</string>
     <string name="invalid_qr_code">잘못된 QR 코드</string>
@@ -1139,6 +1131,15 @@
     <string name="local_backup_error_empty_password">비밀번호는 비어 있을 수 없습니다.</string>
     <string name="error_no_file_manager">파일 관리자를 사용할 수 없습니다. 백업을 저장하려면 파일 관리자 앱을 설치하세요.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">약관</string>
+    <string name="non_english_mnemonic_terms_warning_title">시드 문구 호환성</string>
+    <string name="non_english_mnemonic_terms_warning">선택한 시드 문구 언어: %1$s.\n\n다른 언어의 시드 문구는 일부 지갑이나 서비스에서 지원되지 않을 수 있습니다.\n\n접근 권한을 잃지 않도록 가져오려는 지갑이 BIP39 %2$s를 지원하는지 확인하세요.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">지원되지 않을 수 있습니다</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>다른 지갑으로 가져오기가 불가능할 수 있음을 이해합니다.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">암호문 약관</string>
     <string name="passphrase_terms_warning">암호문 (BIP-39 Passphrase) 활성화 전에 다음 사항을 이해하셨는지 확인해 주세요:</string>
@@ -1163,6 +1164,7 @@
     <string name="RecoveryPhrase_ShowPhrase">탭하여 복구 문구 표시</string>
     <string name="tap_to_show_qr_code">QR 코드를 표시하려면 탭하세요</string>
     <string name="seed_qr_decryption_failed">복호화 실패. QR 코드가 만료되었거나 유효하지 않을 수 있습니다.</string>
+    <string name="seed_qr_invalid_format">유효한 시드 QR 코드가 아닙니다.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">이 QR 코드를 저장하지 마세요 — 1시간 동안만 유효합니다.</string>
     <string name="RecoveryPhrase_QrGenerationError">시드 문구 QR 코드를 생성할 수 없습니다</string>

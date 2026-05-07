@@ -13,6 +13,7 @@ import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.core.factories.uriScheme
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.managers.toSeedQrErrorStringRes
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.utils.AddressUriParser
@@ -54,6 +55,7 @@ import com.reown.walletkit.client.Wallet.Params.Pair
 import com.reown.walletkit.client.WalletKit
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -428,14 +430,13 @@ class BalanceViewModel(
                 openRestoreFromQr = OpenRestoreFromQr(
                     words = decrypted.words,
                     passphrase = decrypted.passphrase,
-                    moneroHeight = decrypted.height
+                    moneroHeight = decrypted.height,
+                    language = decrypted.language
                 )
                 emitState()
             }
-            .onFailure {
-                errorMessage = Translator.getString(
-                    R.string.seed_qr_decryption_failed
-                )
+            .onFailure { error ->
+                errorMessage = Translator.getString(error.toSeedQrErrorStringRes())
                 emitState()
             }
     }
@@ -599,7 +600,8 @@ data class OpenSendTokenSelect(
 data class OpenRestoreFromQr(
     val words: List<String>,
     val passphrase: String,
-    val moneroHeight: Long?  // Non-null for 25-word Monero seeds
+    val moneroHeight: Long?, // Non-null for 25-word Monero seeds
+    val language: Language?
 )
 
 sealed class TotalUIState {

@@ -89,23 +89,12 @@
     <string name="ConfirmPassphrase">Підтвердити</string>
     <string name="CreateWallet_N_WordsRecommended">%s слів (рекомендовано)</string>
     <string name="CreateWallet_N_Words">%s слів</string>
-    <string name="CreateWallet_N_Words_monero">%s слів (тільки Monero)</string>
+    <string name="create_wallet_n_words_monero">%s слів (тільки Monero)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Поле для кодової фрази не може бути порожнім</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Будь ласка, використовуйте лише підтримувані символи: A-Z a-z 0-9 \' " ` &amp; / ? ! : ; . , ~ * $ = + - [ ](){} &lt;&gt; \ _ # @ | % </string>
     <string name="CreateWallet_Error_InvalidConfirmation">Підтверджена кодова фраза не збігається</string>
     <string name="create_wallet_error_failed">Не вдалося створити гаманець. Спробуйте ще раз або перезапустіть додаток.</string>
     <string name="CreateWallet_PassphraseDescription">Кодова фраза додає додатковий шар безпеки для гаманців. Щоб відновити такий гаманець, потрібні як мнемонік, так і кодова фраза.\n\nКодова фраза також полегшує користувачам можливість мати безліч мульти-монетних гаманців, використовуючи одну фразу відновлення, але інший пароль.</string>
-    <!--Languages-->
-    <string name="Language_English">Англійська</string>
-    <string name="Language_Japanese">Японська</string>
-    <string name="Language_Korean">Корейська</string>
-    <string name="Language_Spanish">Іспанська</string>
-    <string name="Language_SimplifiedChinese">Китайська (спрощена)</string>
-    <string name="Language_TraditionalChinese">Китайська (традиційна)</string>
-    <string name="Language_French">Французька</string>
-    <string name="Language_Italian">Італійська</string>
-    <string name="Language_Czech">Чеська</string>
-    <string name="Language_Portuguese">Португальська</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐️</string>
     <string name="RateApp_Description_Rate_This_App">Вам подобається P.CASH? Поділіться відгуками та ідеями для подальшого розвитку гаманця.</string>
@@ -1158,6 +1147,15 @@
     <string name="local_backup_error_empty_password">Пароль не може бути порожнім.</string>
     <string name="error_no_file_manager">Файловий менеджер недоступний. Будь ласка, встановіть додаток для керування файлами, щоб зберігати резервні копії.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Умови</string>
+    <string name="non_english_mnemonic_terms_warning_title">Сумісність сід-фрази</string>
+    <string name="non_english_mnemonic_terms_warning">Ви вибрали мову сід-фрази: %1$s.\n\nСід-фрази різними мовами можуть не підтримуватися іншими гаманцями або сервісами.\n\nЩоб уникнути втрати доступу, переконайтеся, що гаманець, у який ви плануєте імпорт, підтримує BIP39 %2$s.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">не підтримуватися</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>Я розумію, що імпорт в інші гаманці може бути неможливим.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Умови використання кодової фрази</string>
     <string name="passphrase_terms_warning">Перед активацією кодової фрази (BIP-39 Passphrase), будь ласка, підтвердіть, що ви розумієте:</string>
@@ -1183,6 +1181,7 @@
     <string name="RecoveryPhrase_ShowPhrase">Натисніть, щоб показати фразу відновлення</string>
     <string name="tap_to_show_qr_code">Натисніть, щоб показати QR-код</string>
     <string name="seed_qr_decryption_failed">Не вдалося розшифрувати. QR-код міг закінчитися або недійсний.</string>
+    <string name="seed_qr_invalid_format">Це не QR-код seed.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">Не зберігайте цей QR-код — він дійсний лише протягом 1 години.</string>
     <string name="RecoveryPhrase_QrGenerationError">Не вдалося згенерувати QR-код сід-фрази</string>

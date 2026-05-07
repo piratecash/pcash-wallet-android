@@ -36,6 +36,7 @@ import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.wallet.IAccountManager
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Language
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.koin.java.KoinJavaComponent.inject
@@ -63,7 +64,8 @@ class RestoreAccountFragment : BaseComposeFragment(screenshotEnabled = false) {
             accountId = input?.accountId.orEmpty(),
             prefillWords = input?.prefillWords,
             prefillPassphrase = input?.prefillPassphrase,
-            prefillMoneroHeight = input?.prefillMoneroHeight
+            prefillMoneroHeight = input?.prefillMoneroHeight,
+            prefillMnemonicLanguage = input?.prefillMnemonicLanguage
         )
     }
 
@@ -78,7 +80,8 @@ private fun RestoreAccountNavHost(
     accountId: String,
     prefillWords: List<String>? = null,
     prefillPassphrase: String? = null,
-    prefillMoneroHeight: Long? = null
+    prefillMoneroHeight: Long? = null,
+    prefillMnemonicLanguage: Language? = null
 ) {
     val navController = rememberNavController()
     val restoreMenuViewModel: RestoreMenuViewModel =
@@ -86,8 +89,13 @@ private fun RestoreAccountNavHost(
     val mainViewModel: RestoreViewModel = viewModel()
 
     // Initialize prefill data in shared ViewModel
-    LaunchedEffect(prefillWords, prefillPassphrase, prefillMoneroHeight) {
-        mainViewModel.setPrefillData(prefillWords, prefillPassphrase, prefillMoneroHeight)
+    LaunchedEffect(prefillWords, prefillPassphrase, prefillMoneroHeight, prefillMnemonicLanguage) {
+        mainViewModel.setPrefillData(
+            prefillWords,
+            prefillPassphrase,
+            prefillMoneroHeight,
+            prefillMnemonicLanguage
+        )
     }
 
     // Navigate to advanced screen if passphrase is present from QR code
@@ -113,7 +121,8 @@ private fun RestoreAccountNavHost(
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
                 prefillWords = prefillWords,
                 prefillPassphrase = prefillPassphrase,
-                prefillMoneroHeight = prefillMoneroHeight
+                prefillMoneroHeight = prefillMoneroHeight,
+                prefillMnemonicLanguage = prefillMnemonicLanguage
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_RESTORE_PHRASE_ADVANCED) {
@@ -132,7 +141,9 @@ private fun RestoreAccountNavHost(
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
                 prefillWords = mainViewModel.prefillWords ?: prefillWords,
                 prefillPassphrase = mainViewModel.prefillPassphrase ?: prefillPassphrase,
-                prefillMoneroHeight = mainViewModel.prefillMoneroHeight ?: prefillMoneroHeight
+                prefillMoneroHeight = mainViewModel.prefillMoneroHeight ?: prefillMoneroHeight,
+                prefillMnemonicLanguage = mainViewModel.prefillMnemonicLanguage
+                    ?: prefillMnemonicLanguage
             )
         }
         composablePage(RestoreAccountFragment.ROUTE_DUPLICATE) { backStackEntry ->

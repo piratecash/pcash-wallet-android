@@ -30,6 +30,7 @@ import cash.p.terminal.wallet.entities.TokenQuery
 import cash.z.ecc.android.sdk.model.FirstClassByteArray
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.core.logger.AppLogger
+import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.solanakit.models.FullTransaction
 import io.horizontalsystems.tonkit.FriendlyAddress
 import io.horizontalsystems.tronkit.models.Contract
@@ -103,7 +104,7 @@ interface IWordsManager {
     fun validateChecksumStrict(words: List<String>)
     fun isWordValid(word: String): Boolean
     fun isWordPartiallyValid(word: String): Boolean
-    fun generateWords(count: Int = 12): List<String>
+    fun generateWords(count: Int, language: Language): List<String>
 }
 
 interface ITransactionsAdapter {

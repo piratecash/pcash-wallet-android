@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">تاييد</string>
     <string name="CreateWallet_N_WordsRecommended">%s words (recommended)</string>
     <string name="CreateWallet_N_Words">%s کلمه</string>
+    <string name="create_wallet_n_words_monero">%s کلمه (فقط Monero)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">رمز عبور نمی تواند خالی باشد</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Please use only supported symbols: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">تأیید عبارت عبور مطابقت ندارد</string>
     <string name="create_wallet_error_failed">ایجاد کیف پول ناموفق بود. لطفاً دوباره تلاش کنید یا برنامه را مجدداً راه‌اندازی کنید.</string>
     <string name="CreateWallet_PassphraseDescription">Passphrases add additional security layer for wallets. To restore such wallet a user required both a recovery phrase as well as a passphrase.\n\nPassphrases also make it easy for users to have many multi-coin wallets using a single mnemonic but different passwords.</string>
-    <!--Languages-->
-    <string name="Language_English">انگلیسی</string>
-    <string name="Language_Japanese">ژاپنی</string>
-    <string name="Language_Korean">کره ای</string>
-    <string name="Language_Spanish">اسپانیایی</string>
-    <string name="Language_SimplifiedChinese">زبان چینی ساده شده</string>
-    <string name="Language_TraditionalChinese">چینی - سنتی</string>
-    <string name="Language_French">فرانسوی</string>
-    <string name="Language_Italian">ایتالیایی</string>
-    <string name="Language_Czech">کشور چک</string>
-    <string name="Language_Portuguese">پرتغالی</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐️</string>
     <string name="RateApp_Description_Rate_This_App">آیا از کارکردن با توقف ناپذیر لذت می برید؟ نظرات و ایده های خود را برای پیشبرد بیشتر با ما به اشتراک بگذارید.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Advanced</string>
     <string name="Restore_Error_MnemonicWordCount">تعداد کلمات اشتباه. باید بین ۱۲ تا ۱۴ کلمه باشد. شما وارد کردید: %d</string>
+    <string name="restoreheight_title">بلوک شروع برای بازیابی</string>
+    <string name="restoreheight_hint">بلوک یا تاریخ را وارد کنید (YYYY-MM-DD)</string>
     <string name="invalid_height">ارتفاع نامعتبر</string>
     <string name="invalid_height_format">ارتفاع نامعتبر، مطمئن شوید که تاریخ را به صورت YYYY-MM-DD یا ارتفاع تولد وارد کرده‌اید</string>
     <string name="invalid_qr_code">کد QR نامعتبر</string>
@@ -1142,6 +1134,15 @@
     <string name="local_backup_error_empty_password">رمز عبور نمی‌تواند خالی باشد.</string>
     <string name="error_no_file_manager">مدیر فایل در دسترس نیست. لطفاً برای ذخیره پشتیبان‌ها یک برنامه مدیریت فایل نصب کنید.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">شرایط</string>
+    <string name="non_english_mnemonic_terms_warning_title">سازگاری عبارت بازیابی</string>
+    <string name="non_english_mnemonic_terms_warning">زبان عبارت بازیابی را انتخاب کرده‌اید: %1$s.\n\nعبارت‌های بازیابی به زبان‌های مختلف ممکن است توسط برخی کیف‌پول‌ها یا سرویس‌ها پشتیبانی نشوند.\n\nبرای جلوگیری از از دست دادن دسترسی، مطمئن شوید کیف‌پولی که قصد وارد کردن به آن را دارید از BIP39 %2$s پشتیبانی می‌کند.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">پشتیبانی نشوند</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>می‌دانم که وارد کردن به کیف‌پول‌های دیگر ممکن است امکان‌پذیر نباشد.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">شرایط عبارت عبور</string>
     <string name="passphrase_terms_warning">قبل از فعال‌سازی عبارت عبور (BIP-39 Passphrase)، لطفاً تأیید کنید که موارد زیر را درک می‌کنید:</string>
@@ -1166,6 +1167,7 @@
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
     <string name="tap_to_show_qr_code">برای نمایش کد QR ضربه بزنید</string>
     <string name="seed_qr_decryption_failed">رمزگشایی ناموفق بود. کد QR ممکن است منقضی شده یا نامعتبر باشد.</string>
+    <string name="seed_qr_invalid_format">این یک کد QR seed معتبر نیست.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">این کد QR را ذخیره نکنید — فقط ۱ ساعت اعتبار دارد.</string>
     <string name="RecoveryPhrase_QrGenerationError">امکان تولید کد QR عبارت بازیابی وجود ندارد</string>

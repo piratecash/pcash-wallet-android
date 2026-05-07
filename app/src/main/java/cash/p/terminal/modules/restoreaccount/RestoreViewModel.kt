@@ -1,8 +1,9 @@
 package cash.p.terminal.modules.restoreaccount
 
 import androidx.lifecycle.ViewModel
-import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
+import cash.p.terminal.wallet.AccountType
+import io.horizontalsystems.hdwalletkit.Language
 
 class RestoreViewModel: ViewModel() {
 
@@ -25,15 +26,19 @@ class RestoreViewModel: ViewModel() {
         private set
     var prefillMoneroHeight: Long? = null
         private set
+    var prefillMnemonicLanguage: Language? = null
+        private set
 
     fun setPrefillData(
         words: List<String>?,
         passphrase: String?,
-        moneroHeight: Long?
+        moneroHeight: Long?,
+        mnemonicLanguage: Language? = null
     ) {
         prefillWords = words
         prefillPassphrase = passphrase
         prefillMoneroHeight = moneroHeight
+        prefillMnemonicLanguage = mnemonicLanguage
     }
 
     var tokenZCashConfig: TokenConfig? = null

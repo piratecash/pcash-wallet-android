@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">Confirmer</string>
     <string name="CreateWallet_N_WordsRecommended">%s mots (recommandé)</string>
     <string name="CreateWallet_N_Words">%s mots</string>
+    <string name="create_wallet_n_words_monero">%s mots (Monero uniquement)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">La phrase d\'authentification ne peut pas être laissée en blanc</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Veuillez utiliser uniquement les symboles pris en charge : <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">La confirmation de la phrase d\'authentification ne correspond pas</string>
     <string name="create_wallet_error_failed">Impossible de créer le portefeuille. Veuillez réessayer ou redémarrer l\'application.</string>
     <string name="CreateWallet_PassphraseDescription">Les phrases de passe ajoutent une couche de sécurité supplémentaire pour les portefeuilles. Pour restaurer un tel portefeuille, un utilisateur a besoin à la fois de mnémonique et d\'une phrase de passe.\n\nLes phrases de passe permettent également aux utilisateurs d\'avoir facilement de nombreux portefeuilles multi-pièces en utilisant un seul mot de passe mnémonique mais différent.</string>
-    <!--Languages-->
-    <string name="Language_English">Anglais</string>
-    <string name="Language_Japanese">Japonais</string>
-    <string name="Language_Korean">Coréen</string>
-    <string name="Language_Spanish">Espagnol</string>
-    <string name="Language_SimplifiedChinese">Chinois (simplifié)</string>
-    <string name="Language_TraditionalChinese">Chinois (Traditionnel)</string>
-    <string name="Language_French">Français</string>
-    <string name="Language_Italian">Italien</string>
-    <string name="Language_Czech">Tchèque</string>
-    <string name="Language_Portuguese">Portugais</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐</string>
     <string name="RateApp_Description_Rate_This_App">Vous aimez P.CASH? Partagez vos commentaires et vos idées pour aller plus loin.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">Avancé</string>
     <string name="Restore_Error_MnemonicWordCount">Le nombre de mots est incorrect. Il doit être compris entre 12 et 24 mots. Vous avez saisi : %d</string>
+    <string name="restoreheight_title">Bloc initial de restauration</string>
+    <string name="restoreheight_hint">Indiquez le bloc ou la date (AAAA-MM-JJ)</string>
     <string name="invalid_height">Hauteur invalide</string>
     <string name="invalid_height_format">Hauteur invalide, assurez-vous d\'avoir entré AAAA-MM-JJ ou la hauteur de naissance</string>
     <string name="invalid_qr_code">Code QR invalide</string>
@@ -1136,6 +1128,15 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="local_backup_error_empty_password">Le mot de passe ne peut pas être vide.</string>
     <string name="error_no_file_manager">Aucun gestionnaire de fichiers disponible. Veuillez installer une application de gestion de fichiers pour sauvegarder les backups.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Conditions</string>
+    <string name="non_english_mnemonic_terms_warning_title">Compatibilité de la phrase de récupération</string>
+    <string name="non_english_mnemonic_terms_warning">Vous avez sélectionné la langue de la phrase de récupération : %1$s.\n\nLes phrases de récupération dans différentes langues peuvent ne pas être prises en charge par d’autres portefeuilles ou services.\n\nPour éviter de perdre l’accès, assurez-vous que le portefeuille dans lequel vous prévoyez d’importer prend en charge BIP39 %2$s.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">ne pas être prises en charge</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>Je comprends que l’importation dans d’autres portefeuilles peut être impossible.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Conditions de la Phrase Secrète</string>
     <string name="passphrase_terms_warning">Avant d\'activer la phrase secrète (BIP-39 Passphrase), veuillez confirmer que vous comprenez :</string>
@@ -1160,6 +1161,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="RecoveryPhrase_ShowPhrase">Appuyez pour afficher la phrase de récupération</string>
     <string name="tap_to_show_qr_code">Appuyez pour afficher le code QR</string>
     <string name="seed_qr_decryption_failed">Échec du déchiffrement. Le code QR a peut-être expiré ou est invalide.</string>
+    <string name="seed_qr_invalid_format">Ce n\'est pas un code QR de phrase de récupération valide.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">Ne sauvegardez pas ce code QR — il n\'est valide que pendant 1 heure.</string>
     <string name="RecoveryPhrase_QrGenerationError">Impossible de générer le code QR de la phrase de récupération</string>

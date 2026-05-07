@@ -1,6 +1,7 @@
 package cash.p.terminal.core.managers
 
 import android.util.Base64
+import io.horizontalsystems.hdwalletkit.Language
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -51,6 +52,15 @@ class SeedPhraseQrCryptoTest {
     private val words21 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art".split(" ")
     private val words24 = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art".split(" ")
     private val words25Monero = "tavern total bail plutonium faked faster beneath reinvest syndrome dagger razor nobody acoustic tubes people germs myriad next victim sipped oasis dagger razor acoustic acoustic".split(" ")
+
+    // Non-English BIP39 fixtures (all-zero entropy: word[0]*11 + word[3] of each language wordlist)
+    private val wordsJapanese12 = List(11) { "あいこくしん" } + "あおぞら"
+    private val wordsSimplifiedChinese12 = List(11) { "的" } + "在"
+    private val wordsKorean12 = List(11) { "가격" } + "가능"
+    private val wordsSpanish12 = List(11) { "ábaco" } + "abierto"
+    // Traditional-Chinese-only chars: 這 (index 9 in TC, the SC equivalent is 这)
+    private val wordsTraditionalChinese12 = List(11) { "的" } + "這"
+    private val wordsFrench12 = List(11) { "abaisser" } + "abeille"
 
     // ==================== BIP39 Encryption/Decryption Tests ====================
 
@@ -205,6 +215,53 @@ class SeedPhraseQrCryptoTest {
     fun `decrypt fails for invalid base64`() {
         val result = crypto.decrypt("seed:not-valid-base64!!!")
         assertTrue(result.isFailure)
+    }
+
+    // ==================== Error Type Discrimination ====================
+
+    @Test
+    fun decrypt_invalidPrefix_returnsInvalidFormatError() {
+        val result = crypto.decrypt("invalid:somebase64data")
+
+        assertTrue(
+            "Wrong prefix is a format problem, not an expired-key problem",
+            result.exceptionOrNull() is SeedPhraseQrCrypto.QrDecodeError.InvalidFormat
+        )
+    }
+
+    @Test
+    fun decrypt_invalidBase64_returnsInvalidFormatError() {
+        val result = crypto.decrypt("seed:not-valid-base64!!!")
+
+        assertTrue(
+            result.exceptionOrNull() is SeedPhraseQrCrypto.QrDecodeError.InvalidFormat
+        )
+    }
+
+    @Test
+    fun decrypt_truncatedData_returnsInvalidFormatError() {
+        // 5 bytes -> base64 -> way too short to contain IV (16 bytes) + ciphertext
+        val tinyPayload = Base64.encodeToString(ByteArray(5), Base64.NO_WRAP)
+        val result = crypto.decrypt("seed:$tinyPayload")
+
+        assertTrue(
+            result.exceptionOrNull() is SeedPhraseQrCrypto.QrDecodeError.InvalidFormat
+        )
+    }
+
+    @Test
+    fun decrypt_validFormatButGarbageCiphertext_returnsDecryptFailedError() {
+        // Format check passes (16-byte IV + 1+ bytes), but cipher key is wrong
+        // for any time offset, so we exhaust all offsets and report decrypt failure.
+        val randomBytes = ByteArray(32)
+        java.util.Random(42).nextBytes(randomBytes)
+        val payload = Base64.encodeToString(randomBytes, Base64.NO_WRAP)
+        val result = crypto.decrypt("seed:$payload")
+
+        assertTrue(
+            "Garbage ciphertext is a decrypt failure, not a format failure",
+            result.exceptionOrNull() is SeedPhraseQrCrypto.QrDecodeError.DecryptFailed
+        )
     }
 
     // ==================== Passphrase Edge Cases ====================
@@ -421,5 +478,195 @@ class SeedPhraseQrCryptoTest {
         val resultExpired = decryptExpired.decrypt(encryptedExpired)
 
         assertTrue("Monero seed from -2 hours should fail", resultExpired.isFailure)
+    }
+
+    // ==================== Non-English BIP39 round-trip (#1, #9) ====================
+
+    @Test
+    fun encryptAndDecrypt_japaneseSeed_roundTripsCorrectly() {
+        val encrypted = crypto.encrypt(wordsJapanese12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Japanese 12-word seed must decrypt", result.isSuccess)
+        assertEquals(wordsJapanese12, result.getOrNull()!!.words)
+    }
+
+    @Test
+    fun encryptAndDecrypt_simplifiedChineseSeed_roundTripsCorrectly() {
+        val encrypted = crypto.encrypt(wordsSimplifiedChinese12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Simplified Chinese 12-word seed must decrypt", result.isSuccess)
+        assertEquals(wordsSimplifiedChinese12, result.getOrNull()!!.words)
+    }
+
+    @Test
+    fun encryptAndDecrypt_koreanSeed_roundTripsCorrectly() {
+        val encrypted = crypto.encrypt(wordsKorean12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Korean 12-word seed must decrypt", result.isSuccess)
+        assertEquals(wordsKorean12, result.getOrNull()!!.words)
+    }
+
+    @Test
+    fun encryptAndDecrypt_traditionalChineseSeed_roundTripsCorrectly() {
+        val encrypted = crypto.encrypt(wordsTraditionalChinese12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Traditional Chinese 12-word seed must decrypt", result.isSuccess)
+        assertEquals(wordsTraditionalChinese12, result.getOrNull()!!.words)
+    }
+
+    @Test
+    fun encryptAndDecrypt_traditionalChineseWithLanguageHint_preservesLanguage() {
+        val encrypted = crypto.encrypt(
+            wordsTraditionalChinese12,
+            "",
+            language = Language.TraditionalChinese
+        )
+
+        val decrypted = crypto.decrypt(encrypted).getOrNull()
+            ?: error("Decrypt must succeed")
+        assertEquals(wordsTraditionalChinese12, decrypted.words)
+        assertEquals(Language.TraditionalChinese, decrypted.language)
+    }
+
+    @Test
+    fun encryptAndDecrypt_frenchSeed_roundTripsCorrectly() {
+        val encrypted = crypto.encrypt(wordsFrench12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("French 12-word seed must decrypt", result.isSuccess)
+        assertEquals(wordsFrench12, result.getOrNull()!!.words)
+    }
+
+    @Test
+    fun encryptAndDecrypt_spanishSeed_roundTripsCorrectly() {
+        val encrypted = crypto.encrypt(wordsSpanish12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Spanish 12-word seed (Latin diacritics) must decrypt", result.isSuccess)
+        assertEquals(wordsSpanish12, result.getOrNull()!!.words)
+    }
+
+    // ==================== Language field (#3, JSON v2) ====================
+
+    @Test
+    fun encryptAndDecrypt_v2WithLanguage_preservesLanguage() {
+        val encrypted = crypto.encrypt(wordsJapanese12, "", language = Language.Japanese)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue(result.isSuccess)
+        val decrypted = result.getOrNull()!!
+        assertEquals(wordsJapanese12, decrypted.words)
+        assertEquals(Language.Japanese, decrypted.language)
+    }
+
+    @Test
+    fun encryptAndDecrypt_v2WithoutLanguage_languageIsNull() {
+        val encrypted = crypto.encrypt(words12, "")
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue(result.isSuccess)
+        assertNull(
+            "Language must be null when caller did not pass one",
+            result.getOrNull()!!.language
+        )
+    }
+
+    @Test
+    fun encryptAndDecrypt_v2MoneroWithLanguage_preservesAllFields() {
+        // Monero seeds are always English, but verify language field round-trips alongside height
+        val encrypted =
+            crypto.encrypt(words25Monero, "pass", 2500000L, language = Language.English)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue(result.isSuccess)
+        val decrypted = result.getOrNull()!!
+        assertEquals(words25Monero, decrypted.words)
+        assertEquals("pass", decrypted.passphrase)
+        assertEquals(2500000L, decrypted.height)
+        assertEquals(Language.English, decrypted.language)
+    }
+
+    // ==================== Legacy format backward compat (#4) ====================
+
+    @Test
+    fun decryptLegacy_12WordsWithPipeNumberPassphrase_doesNotMisextractAsHeight() {
+        // Bug #4: old format `words@passphrase|height` is ambiguous when passphrase ends with |digits.
+        // Conservative legacy parser must NOT extract |height for non-25-word seeds.
+        val passphrase = "secret|2500000"
+        val encrypted = crypto.encryptLegacyForTest(words12, passphrase, height = null)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Legacy 12-word with pipe-passphrase must decrypt", result.isSuccess)
+        val decrypted = result.getOrNull()!!
+        assertEquals(words12, decrypted.words)
+        assertEquals(
+            "Passphrase must be preserved verbatim, not split on pipe",
+            passphrase,
+            decrypted.passphrase
+        )
+        assertNull("12-word seed must never carry height", decrypted.height)
+    }
+
+    @Test
+    fun decryptLegacy_25WordsWithHeight_stillWorks() {
+        // Backward compat: existing legacy Monero QRs must keep working.
+        val encrypted = crypto.encryptLegacyForTest(words25Monero, "", height = 1500000L)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue(result.isSuccess)
+        val decrypted = result.getOrNull()!!
+        assertEquals(words25Monero, decrypted.words)
+        assertEquals(1500000L, decrypted.height)
+        assertNull("Legacy QRs must report null language", decrypted.language)
+    }
+
+    @Test
+    fun decryptLegacy_12WordsWithSimplePassphrase_stillWorks() {
+        val encrypted = crypto.encryptLegacyForTest(words12, "myPass", height = null)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue(result.isSuccess)
+        val decrypted = result.getOrNull()!!
+        assertEquals(words12, decrypted.words)
+        assertEquals("myPass", decrypted.passphrase)
+        assertNull(decrypted.language)
+    }
+
+    @Test
+    fun decryptLegacy_japaneseWords_doesNotRejectOnLowercaseCheck() {
+        // Bug #1: legacy parser must accept CJK words too (no `isLowerCase()` rejection)
+        val encrypted = crypto.encryptLegacyForTest(wordsJapanese12, "", height = null)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Legacy CJK seed must decrypt after #1 fix", result.isSuccess)
+        assertEquals(wordsJapanese12, result.getOrNull()!!.words)
+    }
+
+    // ==================== Decoder dispatch (#4) ====================
+
+    @Test
+    fun decrypt_malformedJsonPlaintext_failsWithoutLegacyFallback() {
+        // When plaintext starts with `{` but is not valid JSON, decoder must hard-fail
+        // rather than silently treat as legacy.
+        val malformedJson = "{this is not valid json"
+        val encrypted = crypto.encryptRawForTest(malformedJson)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue("Malformed JSON must fail", result.isFailure)
+    }
+
+    // ==================== Word count validation in JSON v2 ====================
+
+    @Test
+    fun decrypt_v2With25WordsWithoutHeight_fails() {
+        // Even in v2, a 25-word seed without height is invalid (must be Monero).
+        val encrypted = crypto.encrypt(words25Monero, "", height = null)
+
+        val result = crypto.decrypt(encrypted)
+        assertTrue(result.isFailure)
     }
 }

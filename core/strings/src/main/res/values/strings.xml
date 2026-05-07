@@ -111,7 +111,7 @@
     <string name="CreateWallet_N_Words">%s words</string>
     <string name="restoreheight_title">Restore Height</string>
     <string name="restoreheight_hint">Restore Height or Date (YYYY-MM-DD)</string>
-    <string name="CreateWallet_N_Words_monero">%s words (Monero only)</string>
+    <string name="create_wallet_n_words_monero">%s words (Monero only)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Please use only supported symbols: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">Passphrase confirmation does not match</string>
@@ -119,16 +119,16 @@
     <string name="CreateWallet_PassphraseDescription">Passphrases add additional security layer for wallets. To restore such wallet a user required both a recovery phrase as well as a passphrase.\n\nPassphrases also make it easy for users to have many multi-coin wallets using a single mnemonic but different passwords.</string>
 
     <!--Languages-->
-    <string name="Language_English">English</string>
-    <string name="Language_Japanese">Japanese</string>
-    <string name="Language_Korean">Korean</string>
-    <string name="Language_Spanish">Spanish</string>
-    <string name="Language_SimplifiedChinese">Chinese (Simplified)</string>
-    <string name="Language_TraditionalChinese">Chinese (Traditional)</string>
-    <string name="Language_French">French</string>
-    <string name="Language_Italian">Italian</string>
-    <string name="Language_Czech">Czech</string>
-    <string name="Language_Portuguese">Portuguese</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_japanese" translatable="false">日本語</string>
+    <string name="language_korean" translatable="false">한국어</string>
+    <string name="language_spanish" translatable="false">Español</string>
+    <string name="language_simplified_chinese" translatable="false">中文(简体)</string>
+    <string name="language_traditional_chinese" translatable="false">中文(繁體)</string>
+    <string name="language_french" translatable="false">Français</string>
+    <string name="language_italian" translatable="false">Italiano</string>
+    <string name="language_czech" translatable="false">Čeština</string>
+    <string name="language_portuguese" translatable="false">Português</string>
 
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐️</string>
@@ -1527,6 +1527,15 @@ Proceed only if you\'re sure.</string>
     <string name="local_backup_error_empty_password">Password cannot be empty.</string>
     <string name="error_no_file_manager">No file manager available. Please install a file manager app to save backups.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Terms</string>
+    <string name="non_english_mnemonic_terms_warning_title">Seed phrase compatibility</string>
+    <string name="non_english_mnemonic_terms_warning">You selected the seed phrase language: %1$s.\n\nSeed phrases in different languages may not be supported by other wallets or services.\n\nTo avoid losing access, make sure the wallet you plan to import into supports BIP39 %2$s.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">not be supported</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>I understand that importing into other wallets may be impossible.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Passphrase Terms</string>
     <string name="passphrase_terms_warning">Before activating the passphrase (BIP-39 Passphrase), please confirm that you understand:</string>
@@ -1552,6 +1561,7 @@ Proceed only if you\'re sure.</string>
     <string name="RecoveryPhrase_ShowPhrase">Tap to show recovery phrase</string>
     <string name="tap_to_show_qr_code">Tap to show QR-code</string>
     <string name="seed_qr_decryption_failed">Failed to decrypt. The QR code may have expired or is invalid.</string>
+    <string name="seed_qr_invalid_format">This is not a valid seed QR code.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">Do not save this QR code — it is valid for 1 hour only.</string>
     <string name="RecoveryPhrase_QrGenerationError">Can\'t generate seed QR code</string>

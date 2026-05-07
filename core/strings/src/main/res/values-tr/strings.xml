@@ -85,22 +85,12 @@
     <string name="ConfirmPassphrase">Onayla</string>
     <string name="CreateWallet_N_WordsRecommended">%s kelimeler (Tavsiye edilen)</string>
     <string name="CreateWallet_N_Words">%s kelime</string>
+    <string name="create_wallet_n_words_monero">%s kelime (yalnızca Monero)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Parola boş olamaz</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Lütfen yalnızca desteklenen sembolleri kullanın:  <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
     <string name="CreateWallet_Error_InvalidConfirmation">Parola onayı eşleşmiyor</string>
     <string name="create_wallet_error_failed">Cüzdan oluşturulamadı. Lütfen tekrar deneyin veya uygulamayı yeniden başlatın.</string>
     <string name="CreateWallet_PassphraseDescription">Parolalar, cüzdanlar için ek bir güvenlik katmanı ekler. Bir cüzdanı geri yüklemek için bir kullanıcı hem anımsatıcı hem de bir parola gerektiriyordu.\n\n\nParolalar, kullanıcıların tek bir anımsatıcı ancak farklı bir parola kullanarak çok paralı cüzdanlara sahip olmalarını da kolaylaştırır.</string>
-    <!--Languages-->
-    <string name="Language_English">İngilizce</string>
-    <string name="Language_Japanese">Japonca</string>
-    <string name="Language_Korean">Korece</string>
-    <string name="Language_Spanish">İspanyolca</string>
-    <string name="Language_SimplifiedChinese">Çince (Basitleştirilmiş)</string>
-    <string name="Language_TraditionalChinese">Çince (Geleneksel)</string>
-    <string name="Language_French">Fransızca</string>
-    <string name="Language_Italian">İtalyanca</string>
-    <string name="Language_Czech">Çekçe</string>
-    <string name="Language_Portuguese">Portekizce</string>
     <!--Rate App-->
     <string name="RateApp_Title_Rate_This_App">⭐️⭐️⭐️⭐️⭐</string>
     <string name="RateApp_Description_Rate_This_App">P.CASH kullanmaktan keyif alıyor musunuz? Daha da iyi olması için görüşlerinizi paylaşın.</string>
@@ -109,6 +99,8 @@
     <!--Restore-->
     <string name="Restore_Advanced_Title">İleri düzey</string>
     <string name="Restore_Error_MnemonicWordCount">Hatalı sözcük sayısı. 12-24 arası sözcük olmalıdır. Girilen: %d</string>
+    <string name="restoreheight_title">Geri yükleme başlangıç bloğu</string>
+    <string name="restoreheight_hint">Blok veya tarih girin (YYYY-AA-GG)</string>
     <string name="invalid_height">Geçersiz yükseklik</string>
     <string name="invalid_height_format">Geçersiz yükseklik, YYYY-AA-GG veya doğum yüksekliği girdiğinizden emin olun</string>
     <string name="invalid_qr_code">Geçersiz QR Kodu</string>
@@ -1140,6 +1132,15 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="local_backup_error_empty_password">Şifre boş olamaz.</string>
     <string name="error_no_file_manager">Dosya yöneticisi bulunamadı. Yedekleri kaydetmek için lütfen bir dosya yöneticisi uygulaması yükleyin.</string>
 
+    <!-- Non-English Recovery Phrase Terms -->
+    <string name="non_english_mnemonic_terms_title">Şartlar</string>
+    <string name="non_english_mnemonic_terms_warning_title">Kurtarma ifadesi uyumluluğu</string>
+    <string name="non_english_mnemonic_terms_warning">Kurtarma ifadesi dilini seçtiniz: %1$s.\n\nFarklı dillerdeki kurtarma ifadeleri diğer cüzdanlar veya hizmetler tarafından desteklenmeyebilir.\n\nErişim kaybını önlemek için içe aktarmayı planladığınız cüzdanın BIP39 %2$s desteklediğinden emin olun.</string>
+    <string name="non_english_mnemonic_terms_warning_unsupported_bold">desteklenmeyebilir</string>
+    <string-array name="non_english_mnemonic_terms_checkboxes">
+        <item>Diğer cüzdanlara içe aktarmanın mümkün olmayabileceğini anlıyorum.</item>
+    </string-array>
+
     <!-- Passphrase Terms -->
     <string name="passphrase_terms_title">Parola Koşulları</string>
     <string name="passphrase_terms_warning">Parolayı (BIP-39 Passphrase) etkinleştirmeden önce aşağıdakileri anladığınızı lütfen onaylayın:</string>
@@ -1164,6 +1165,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="RecoveryPhrase_ShowPhrase">Kurtarma ifadesini göstermek için dokunun</string>
     <string name="tap_to_show_qr_code">QR kodunu göstermek için dokunun</string>
     <string name="seed_qr_decryption_failed">Şifre çözme başarısız. QR kodunun süresi dolmuş veya geçersiz olabilir.</string>
+    <string name="seed_qr_invalid_format">Bu geçerli bir tohum QR kodu değil.</string>
     <string name="seed_qr_monero_restore_hint">Monero seed copied. Enable Monero toggle and enter height: %s</string>
     <string name="RecoveryPhrase_QrCodeWarning">Bu QR kodunu kaydetmeyin — yalnızca 1 saat geçerlidir.</string>
     <string name="RecoveryPhrase_QrGenerationError">Tohum QR kodu oluşturulamıyor</string>

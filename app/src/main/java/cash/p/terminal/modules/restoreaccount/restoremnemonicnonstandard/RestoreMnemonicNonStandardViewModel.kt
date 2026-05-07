@@ -19,7 +19,7 @@ class RestoreMnemonicNonStandardViewModel(
     private val thirdKeyboardStorage: IThirdKeyboard,
 ) : ViewModelUiState<UiState>() {
 
-    val mnemonicLanguages = Language.values().toList()
+    val mnemonicLanguages = Language.entries.toList()
 
     private var passphraseEnabled: Boolean = false
     private var passphrase: String = ""

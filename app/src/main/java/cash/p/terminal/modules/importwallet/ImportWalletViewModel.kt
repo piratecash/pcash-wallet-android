@@ -9,10 +9,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
+import cash.p.terminal.core.managers.toSeedQrErrorStringRes
 import cash.p.terminal.core.openInputStreamSafe
 import cash.p.terminal.core.validateAndSaveBackup
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.DispatcherProvider
+import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -60,16 +62,17 @@ class ImportWalletViewModel(
                             NavigationEvent.OpenRestoreFromQr(
                                 words = decrypted.words,
                                 passphrase = decrypted.passphrase,
-                                moneroHeight = decrypted.height
+                                moneroHeight = decrypted.height,
+                                language = decrypted.language
                             )
                         )
                     }
                 }
-                .onFailure {
-                    errorMessage = Translator.getString(R.string.seed_qr_decryption_failed)
+                .onFailure { error ->
+                    errorMessage = Translator.getString(error.toSeedQrErrorStringRes())
                 }
         } else {
-            errorMessage = Translator.getString(R.string.seed_qr_decryption_failed)
+            errorMessage = Translator.getString(R.string.seed_qr_invalid_format)
         }
     }
 
@@ -81,7 +84,8 @@ class ImportWalletViewModel(
         data class OpenRestoreFromQr(
             val words: List<String>,
             val passphrase: String,
-            val moneroHeight: Long?
+            val moneroHeight: Long?,
+            val language: Language?
         ) : NavigationEvent()
 
         data class OpenRestoreLocal(

@@ -24,13 +24,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsScreen
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
+import cash.p.terminal.modules.mnemonic.NonEnglishMnemonicTermsScreen
+import io.horizontalsystems.hdwalletkit.Language
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -104,6 +109,16 @@ private fun CreateAccountNavHost(
                 }
             }
 
+            val nonEnglishMnemonicConfirmed by backStackEntry.savedStateHandle
+                .getStateFlow("non_english_mnemonic_confirmed", false)
+                .collectAsStateWithLifecycle()
+            LaunchedEffect(nonEnglishMnemonicConfirmed) {
+                if (nonEnglishMnemonicConfirmed) {
+                    viewModel.createMnemonicAccount()
+                    backStackEntry.savedStateHandle["non_english_mnemonic_confirmed"] = false
+                }
+            }
+
             CreateAccountAdvancedScreen(
                 viewModel = viewModel,
                 preselectMonero = preselectMonero,
@@ -116,7 +131,28 @@ private fun CreateAccountNavHost(
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) },
                 onOpenTerms = {
                     navController.navigate("passphrase_terms")
+                },
+                onOpenNonEnglishMnemonicTerms = { language ->
+                    navController.navigate("non_english_mnemonic_terms/${language.name}")
                 }
+            )
+        }
+        composablePage(
+            route = "non_english_mnemonic_terms/{language}",
+            arguments = listOf(navArgument("language") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val languageName = backStackEntry.arguments?.getString("language")
+            val language = languageName?.let { tryOrNull { Language.valueOf(it) } }
+                ?: Language.English
+            NonEnglishMnemonicTermsScreen(
+                language = language,
+                onConfirm = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("non_english_mnemonic_confirmed", true)
+                    navController.navigateUp()
+                },
+                onBack = navController::navigateUp
             )
         }
         composablePage("passphrase_terms") {
