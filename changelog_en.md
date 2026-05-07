@@ -1,3 +1,25 @@
+## 🚀 Version 0.54.3 Update
+_Release date: May 7, 2026_
+
+### ✨ Improvements
+
+- **Improved the Zcash loading indicator when scanning from block zero**
+
+- **Added the ability to exclude a swap provider from the list of swap offers**
+
+- **Added staking payout information**
+  The app now shows when the next payout is expected and when holding rewards will be credited.
+
+- **Improved the synchronization mechanism for BEP-20 tokens**
+
+### 🐛 Fixes
+
+- **Improved handling of `429` errors in the TON SDK**
+
+- **Fixed a crash after closing the Tangem card scanning flow**
+
+- **Reworked the password visibility behavior in input fields**
+
 ## 🚀 Version 0.54.2 Update
 _Release date: April 21, 2026_
 
@@ -1485,14 +1507,13 @@ _Release date: August 13, 2025_
 ## Main changes in version 0.45.2
 _Release date: August 7, 2025_
 
-## 🪙 Fixes for TRON
+## Fixes for TRON
 
-- 🚀 Fixed an issue with sending TRC-20 tokens and TRX coin.
+- Fixed an issue with sending TRC-20 tokens and TRX coin.
 
-## 🌙 Interface improvements
+## Interface improvements
 
-- 🌗 Fixed a dark mode display issue when checking addresses
-  All interface elements are now readable in both light and dark themes.
+- Fixed a dark mode display issue when checking addresses. All interface elements are now readable in both light and dark themes.
 
 
 
