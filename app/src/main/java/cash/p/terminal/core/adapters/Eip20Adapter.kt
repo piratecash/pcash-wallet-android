@@ -19,12 +19,18 @@ import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.DefaultBlockParameter
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.reactivex.Single
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -37,7 +43,8 @@ internal class Eip20Adapter(
     coinManager: ICoinManager,
     private val wallet: Wallet,
     evmLabelManager: EvmLabelManager,
-    private val stackingManager: StackingManager
+    private val stackingManager: StackingManager,
+    coroutineDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : BaseEvmAdapter(evmTransactionRepository, wallet.decimal, coinManager), INativeBalanceProvider {
 
     private val transactionConverter = EvmTransactionConverter(
@@ -55,14 +62,25 @@ internal class Eip20Adapter(
     val pendingTransactions: List<TransactionRecord>
         get() = eip20Kit.getPendingTransactions().map { transactionConverter.transactionRecord(it) }
 
+    private val scope = CoroutineScope(SupervisorJob() + coroutineDispatcher)
+    private var balanceSubscriptionJob: Job? = null
+
     // IAdapter
 
     override fun start() {
         stackingManager.loadInvestmentData(wallet, receiveAddress, balanceData.available)
+        balanceSubscriptionJob?.cancel()
+        balanceSubscriptionJob = scope.launch {
+            eip20Kit.balanceFlowable.asFlow().collect {
+                stackingManager.loadInvestmentData(wallet, receiveAddress, balanceData.available)
+            }
+        }
         // started via EthereumKitManager
     }
 
     override fun stop() {
+        balanceSubscriptionJob?.cancel()
+        balanceSubscriptionJob = null
         // stopped via EthereumKitManager
     }
 

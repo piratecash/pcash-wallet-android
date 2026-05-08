@@ -66,8 +66,8 @@ import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import cash.p.terminal.wallet.tokenQueryId
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.ViewModelUiState
-import io.horizontalsystems.core.hoursUntil
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.hoursUntil
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -162,11 +162,7 @@ class TokenBalanceViewModel(
             transactionsService.start()
             if (isStakingCoin) {
                 stakingAddress = adapterManager.getReceiveAdapterForWallet(wallet)?.receiveAddress
-                stakingAddress?.let { address ->
-                    val balance = adapterManager.getBalanceAdapterForWallet(wallet)
-                        ?.balanceData?.available
-                    stackingManager.loadInvestmentData(wallet, address, balance)
-                }
+                refreshStaking()
             }
 
             balanceService.balanceItemFlow.collect { balanceItem ->
@@ -178,6 +174,7 @@ class TokenBalanceViewModel(
                     )
                     if (isStakingCoin) {
                         checkStakingStatus(it)
+                        refreshStaking()
                     }
                 }
             }
@@ -400,6 +397,13 @@ class TokenBalanceViewModel(
     private fun shouldShowAmlPromo(): Boolean {
         val hasTransactions = transactions?.values?.flatten()?.isNotEmpty() == true
         return amlPromoAlertEnabled && hasTransactions
+    }
+
+    private fun refreshStaking() {
+        val address = stakingAddress ?: return
+        val rawBalance = adapterManager.getBalanceAdapterForWallet(wallet)
+            ?.balanceData?.available
+        stackingManager.loadInvestmentData(wallet, address, rawBalance)
     }
 
     private fun checkStakingStatus(balanceItem: BalanceItem) {
