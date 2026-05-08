@@ -34,7 +34,8 @@ class Eip20AdapterStakingSubscriptionTest {
     private val eip20Kit = mockk<Erc20Kit>(relaxed = true)
     private val repositoryReceiveAddress = mockk<Address>()
 
-    private val wallet: Wallet = WalletFactory.previewWallet()
+    private val wallet: Wallet = WalletFactory.previewStakingWallet()
+    private val nonStakingWallet: Wallet = WalletFactory.previewWallet()
     private val receiveAddress = "0x0000000000000000000000000000000000000001"
 
     private fun stubCommon(balanceProcessor: PublishProcessor<BigInteger>) {
@@ -47,7 +48,10 @@ class Eip20AdapterStakingSubscriptionTest {
         every { eip20Kit.balance } returns BigInteger("100000000") // = 1.0 (decimal = 8)
     }
 
-    private fun createAdapter(dispatcher: CoroutineDispatcher) = Eip20Adapter(
+    private fun createAdapter(
+        dispatcher: CoroutineDispatcher,
+        wallet: Wallet = this.wallet,
+    ) = Eip20Adapter(
         context = context,
         evmTransactionRepository = evmTransactionRepository,
         contractAddress = receiveAddress,
@@ -101,6 +105,22 @@ class Eip20AdapterStakingSubscriptionTest {
                 match(bigDecimalEq(BigDecimal("0.5"))),
                 forceRefresh = false,
             )
+        }
+    }
+
+    @Test
+    fun start_nonStakingWallet_doesNotLoadStakingData() = runTest {
+        val balanceProcessor = PublishProcessor.create<BigInteger>()
+        stubCommon(balanceProcessor)
+
+        val adapter = createAdapter(UnconfinedTestDispatcher(testScheduler), nonStakingWallet)
+        adapter.start()
+
+        every { eip20Kit.balance } returns BigInteger("200000000")
+        balanceProcessor.onNext(BigInteger("200000000"))
+
+        verify(exactly = 0) {
+            stackingManager.loadInvestmentData(any(), any(), any(), any())
         }
     }
 

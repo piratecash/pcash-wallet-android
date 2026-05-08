@@ -44,9 +44,8 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.canSwap
 import cash.p.terminal.wallet.isBackedUpOrNotRequired
 import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
-import cash.p.terminal.wallet.isCosanta
 import cash.p.terminal.wallet.isOldZCash
-import cash.p.terminal.wallet.isPirateCash
+import cash.p.terminal.wallet.isStakingWallet
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
@@ -308,7 +307,7 @@ class BalanceViewModel(
 
     private fun detectPirateAndCosanta(balanceItems: List<BalanceItem>?) {
         showStackingForWatchAccount =
-            balanceItems?.any { it.wallet.isPirateCash() || it.wallet.isCosanta() } ?: false
+            balanceItems?.any { it.wallet.isStakingWallet() } ?: false
     }
 
     fun onHandleRoute() {

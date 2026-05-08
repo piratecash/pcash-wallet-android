@@ -66,15 +66,43 @@ class WalletFactory(
         /***
          * Preview wallet for Compose previews
          */
-        fun previewWallet(): Wallet {
+        fun previewWallet(): Wallet = previewWallet(
+            coinName = "Preview Coin",
+            coinCode = "PCN",
+            coinUid = "code",
+            blockchainType = BlockchainType.Ethereum,
+            blockchainName = "Ethereum",
+            tokenType = TokenType.Native,
+        )
+
+        /***
+         * Preview wallet that satisfies [isStakingWallet] (PCASH on BNB Smart Chain).
+         */
+        fun previewStakingWallet(): Wallet = previewWallet(
+            coinName = "PirateCash",
+            coinCode = "PCASH",
+            coinUid = "pirate-cash",
+            blockchainType = BlockchainType.BinanceSmartChain,
+            blockchainName = "BNB Smart Chain",
+            tokenType = TokenType.Eip20(BuildConfig.PIRATE_CONTRACT),
+        )
+
+        private fun previewWallet(
+            coinName: String,
+            coinCode: String,
+            coinUid: String,
+            blockchainType: BlockchainType,
+            blockchainName: String,
+            tokenType: TokenType,
+        ): Wallet {
             val token = Token(
-                coin = Coin("Preview Coin", "PCN", "code"),
+                coin = Coin(coinName, coinCode, coinUid),
                 blockchain = Blockchain(
-                    type = BlockchainType.Ethereum,
-                    name = "Ethereum",
+                    type = blockchainType,
+                    name = blockchainName,
                     eip3091url = null
                 ),
-                type = TokenType.Native,
+                type = tokenType,
                 decimals = 8
             )
             val account = Account(

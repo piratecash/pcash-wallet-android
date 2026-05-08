@@ -100,8 +100,7 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.balance.DeemedValue
-import cash.p.terminal.wallet.isCosanta
-import cash.p.terminal.wallet.isPirateCash
+import cash.p.terminal.wallet.isStakingWallet
 
 @Composable
 fun TokenBalanceScreen(
@@ -709,7 +708,7 @@ private fun ButtonsRow(
                 title = stringResource(R.string.Balance_Address),
                 onClick = onClickReceive,
             )
-            if (viewItem.wallet.isCosanta() || viewItem.wallet.isPirateCash()) {
+            if (viewItem.wallet.isStakingWallet()) {
                 HSpacer(8.dp)
                 ButtonPrimaryCircle(
                     icon = R.drawable.ic_coins_stacking,
@@ -777,7 +776,7 @@ private fun ButtonsRow(
                     background = Color.White,
                 )
             }
-            if (viewItem.wallet.isCosanta() || viewItem.wallet.isPirateCash()) {
+            if (viewItem.wallet.isStakingWallet()) {
                 HSpacer(8.dp)
                 ButtonPrimaryCircle(
                     icon = R.drawable.ic_coins_stacking,

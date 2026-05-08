@@ -12,6 +12,7 @@ import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
+import cash.p.terminal.wallet.isStakingWallet
 import io.horizontalsystems.erc20kit.core.Erc20Kit
 import io.horizontalsystems.ethereumkit.core.EthereumKit.SyncState
 import io.horizontalsystems.ethereumkit.models.Address
@@ -68,14 +69,13 @@ internal class Eip20Adapter(
     // IAdapter
 
     override fun start() {
-        stackingManager.loadInvestmentData(wallet, receiveAddress, balanceData.available)
+        // started via EthereumKitManager
+        if (!wallet.isStakingWallet()) return
+        refreshStaking()
         balanceSubscriptionJob?.cancel()
         balanceSubscriptionJob = scope.launch {
-            eip20Kit.balanceFlowable.asFlow().collect {
-                stackingManager.loadInvestmentData(wallet, receiveAddress, balanceData.available)
-            }
+            eip20Kit.balanceFlowable.asFlow().collect { refreshStaking() }
         }
-        // started via EthereumKitManager
     }
 
     override fun stop() {
@@ -86,11 +86,15 @@ internal class Eip20Adapter(
 
     override suspend fun refresh() {
         eip20Kit.refresh()
+        if (wallet.isStakingWallet()) refreshStaking(forceRefresh = true)
+    }
+
+    private fun refreshStaking(forceRefresh: Boolean = false) {
         stackingManager.loadInvestmentData(
             wallet = wallet,
             address = receiveAddress,
             currentBalance = balanceData.available,
-            forceRefresh = true,
+            forceRefresh = forceRefresh,
         )
     }
 

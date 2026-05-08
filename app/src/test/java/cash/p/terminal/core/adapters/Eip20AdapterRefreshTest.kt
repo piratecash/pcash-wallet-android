@@ -12,6 +12,7 @@ import io.horizontalsystems.ethereumkit.core.storage.TransactionSyncSourceStorag
 import io.horizontalsystems.ethereumkit.models.Address
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import io.mockk.verifyOrder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
@@ -29,35 +30,52 @@ class Eip20AdapterRefreshTest {
     private val eip20Kit = mockk<Erc20Kit>(relaxed = true)
     private val repositoryReceiveAddress = mockk<Address>()
 
-    private val wallet: Wallet = WalletFactory.previewWallet()
+    private val stakingWallet: Wallet = WalletFactory.previewStakingWallet()
+    private val nonStakingWallet: Wallet = WalletFactory.previewWallet()
     private val receiveAddress = "0x0000000000000000000000000000000000000001"
     private val tokenBalance = BigDecimal.ONE
 
-    @Test
-    fun refresh_refreshesKitBeforeReloadingStakingData() = runTest {
+    private fun stubCommon() {
         every { evmTransactionRepository.transactionSyncSourceStorage } returns mockk<TransactionSyncSourceStorage>(relaxed = true)
         every { evmTransactionRepository.buildErc20Kit(context, any()) } returns eip20Kit
         every { repositoryReceiveAddress.eip55 } returns receiveAddress
         every { evmTransactionRepository.receiveAddress } returns repositoryReceiveAddress
         every { stackingManager.unpaidFlow } returns MutableStateFlow(BigDecimal.ZERO)
         every { eip20Kit.balance } returns BigInteger("100000000")
+    }
 
-        val adapter = Eip20Adapter(
-            context = context,
-            evmTransactionRepository = evmTransactionRepository,
-            contractAddress = receiveAddress,
-            baseToken = wallet.token,
-            coinManager = coinManager,
-            wallet = wallet,
-            evmLabelManager = evmLabelManager,
-            stackingManager = stackingManager,
-        )
+    private fun createAdapter(wallet: Wallet) = Eip20Adapter(
+        context = context,
+        evmTransactionRepository = evmTransactionRepository,
+        contractAddress = receiveAddress,
+        baseToken = wallet.token,
+        coinManager = coinManager,
+        wallet = wallet,
+        evmLabelManager = evmLabelManager,
+        stackingManager = stackingManager,
+    )
+
+    @Test
+    fun refresh_stakingWallet_refreshesKitBeforeReloadingStakingData() = runTest {
+        stubCommon()
+        val adapter = createAdapter(stakingWallet)
 
         adapter.refresh()
 
         verifyOrder {
             eip20Kit.refresh()
-            stackingManager.loadInvestmentData(wallet, receiveAddress, tokenBalance, forceRefresh = true)
+            stackingManager.loadInvestmentData(stakingWallet, receiveAddress, tokenBalance, forceRefresh = true)
         }
+    }
+
+    @Test
+    fun refresh_nonStakingWallet_refreshesKitButSkipsStakingReload() = runTest {
+        stubCommon()
+        val adapter = createAdapter(nonStakingWallet)
+
+        adapter.refresh()
+
+        verify(exactly = 1) { eip20Kit.refresh() }
+        verify(exactly = 0) { stackingManager.loadInvestmentData(any(), any(), any(), any()) }
     }
 }

@@ -65,8 +65,7 @@ import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
-import cash.p.terminal.wallet.isCosanta
-import cash.p.terminal.wallet.isPirateCash
+import cash.p.terminal.wallet.isStakingWallet
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.entities.BlockchainType
@@ -189,9 +188,7 @@ class AdapterFactory(
      * to detect premium by addresses
      */
     private suspend fun storeBnbAddresses(adapter: IAdapter, wallet: Wallet) {
-        if (!wallet.account.isHardwareWalletAccount ||
-            (!wallet.isPirateCash() && !wallet.isCosanta())
-        ) return
+        if (!wallet.account.isHardwareWalletAccount || !wallet.isStakingWallet()) return
 
         (adapter as? IReceiveAdapter)?.receiveAddress?.let {
             getBnbAddressUseCase.saveAddress(it, wallet.account.id)

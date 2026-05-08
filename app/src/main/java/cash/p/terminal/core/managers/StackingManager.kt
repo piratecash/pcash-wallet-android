@@ -37,13 +37,15 @@ class StackingManager(
         currentBalance: BigDecimal? = null,
         forceRefresh: Boolean = false,
     ) {
-        if (wallet.isPirateCash()) {
-            loadInvestmentData(address, StackingType.PCASH.value.lowercase(), currentBalance, forceRefresh)
-        } else if (wallet.isCosanta()) {
-            loadInvestmentData(address, StackingType.COSANTA.value.lowercase(), currentBalance, forceRefresh)
-        } else {
-            _unpaidFlow.value = BigDecimal.ZERO
+        val coin = when {
+            wallet.isPirateCash() -> StackingType.PCASH.value.lowercase()
+            wallet.isCosanta() -> StackingType.COSANTA.value.lowercase()
+            else -> {
+                _unpaidFlow.value = BigDecimal.ZERO
+                return
+            }
         }
+        loadInvestmentData(address, coin, currentBalance, forceRefresh)
     }
 
     private fun loadInvestmentData(
