@@ -2,19 +2,20 @@ package cash.p.terminal.modules.coin
 
 import androidx.annotation.DrawableRes
 import cash.p.terminal.R
+import cash.p.terminal.core.urlDisplayHostOrNull
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.Currency
 import cash.p.terminal.modules.coin.overview.CoinOverviewItem
 import cash.p.terminal.modules.coin.overview.CoinOverviewViewItem
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.helpers.DateHelper
 import io.horizontalsystems.core.models.HsTimePeriod
 import cash.p.terminal.wallet.models.LinkType
 import cash.p.terminal.wallet.models.MarketInfoOverview
 import cash.p.terminal.wallet.models.TokenHolders
 import java.math.BigDecimal
-import java.net.URI
 
 data class MarketTickerViewItem(
     val market: String,
@@ -143,7 +144,7 @@ class CoinViewFactory(
             val marketCapRankString = overview.marketCapRank?.let { "#$it" }
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_MarketCap),
+                    Translator.getString(R.string.CoinPage_MarketCap),
                     marketCapString,
                     rankLabel = marketCapRankString
                 )
@@ -157,7 +158,7 @@ class CoinViewFactory(
             )
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_TotalSupply),
+                    Translator.getString(R.string.CoinPage_TotalSupply),
                     totalSupplyString
                 )
             )
@@ -170,7 +171,7 @@ class CoinViewFactory(
             )
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_inCirculation),
+                    Translator.getString(R.string.CoinPage_inCirculation),
                     supplyString
                 )
             )
@@ -180,7 +181,7 @@ class CoinViewFactory(
             val volumeString = formatFiatShortened(it, currency.symbol)
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_TradingVolume),
+                    Translator.getString(R.string.CoinPage_TradingVolume),
                     volumeString
                 )
             )
@@ -190,7 +191,7 @@ class CoinViewFactory(
             val tvlString = formatFiatShortened(it, currency.symbol)
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Tvl),
+                    Translator.getString(R.string.CoinPage_Tvl),
                     tvlString
                 )
             )
@@ -200,7 +201,7 @@ class CoinViewFactory(
             val dilutedMarketCapString = formatFiatShortened(it, currency.symbol)
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_DilutedMarketCap),
+                    Translator.getString(R.string.CoinPage_DilutedMarketCap),
                     dilutedMarketCapString
                 )
             )
@@ -210,7 +211,7 @@ class CoinViewFactory(
             val genesisDateString = DateHelper.formatDate(it, "MMM d, yyyy")
             items.add(
                 CoinDataItem(
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_LaunchDate),
+                    Translator.getString(R.string.CoinPage_LaunchDate),
                     genesisDateString
                 )
             )
@@ -264,21 +265,21 @@ class CoinViewFactory(
 
     private fun getTitle(linkType: LinkType, link: String? = null): String {
         return when (linkType) {
-            LinkType.Guide -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Guide)
+            LinkType.Guide -> Translator.getString(R.string.CoinPage_Guide)
             LinkType.Website -> {
-                link?.let { URI(it).host.replaceFirst("www.", "") }
-                    ?: cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Website)
+                link?.urlDisplayHostOrNull()
+                    ?: Translator.getString(R.string.CoinPage_Website)
             }
 
-            LinkType.Whitepaper -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Whitepaper)
+            LinkType.Whitepaper -> Translator.getString(R.string.CoinPage_Whitepaper)
             LinkType.Twitter -> {
                 link?.split("/")?.lastOrNull()?.replaceFirst("@", "")?.let { "@$it" }
-                    ?: cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Twitter)
+                    ?: Translator.getString(R.string.CoinPage_Twitter)
             }
 
-            LinkType.Telegram -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Telegram)
-            LinkType.Reddit -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Reddit)
-            LinkType.Github -> cash.p.terminal.strings.helpers.Translator.getString(R.string.CoinPage_Github)
+            LinkType.Telegram -> Translator.getString(R.string.CoinPage_Telegram)
+            LinkType.Reddit -> Translator.getString(R.string.CoinPage_Reddit)
+            LinkType.Github -> Translator.getString(R.string.CoinPage_Github)
         }
     }
 
