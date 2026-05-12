@@ -58,6 +58,7 @@ import org.koin.core.parameter.ParametersDefinition
 import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 import java.math.BigDecimal
+import java.net.URI
 import java.util.Locale
 import java.util.Optional
 
@@ -399,6 +400,19 @@ inline fun <T> tryOrNull(block: () -> T): T? {
         null
     }
 }
+
+/**
+ * Returns the host of this URL string suitable for display (without the leading "www." prefix),
+ * or null when the string is not parseable as a URI or has no authority component
+ * (e.g. missing scheme like "example.com", opaque URIs like "mailto:..."), or when
+ * the URI constructor throws on a malformed input.
+ *
+ * Centralizes the safe-host extraction so call sites never touch the platform-typed
+ * java.net.URI.getHost() directly — that returns a non-null platform String that
+ * silently becomes null at runtime for any non-hierarchical URI.
+ */
+fun String.urlDisplayHostOrNull(): String? =
+    tryOrNull { URI(this).host?.removePrefix("www.")?.takeIf { it.isNotBlank() } }
 
 fun writeBackupToTempFile(data: ByteArray): String {
     val file = File.createTempFile("backup_", ".tmp", App.instance.cacheDir)
