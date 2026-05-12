@@ -469,13 +469,21 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             initCipherForMonero()
 
             TronAccountManager(
-                accountManager, walletManager, marketKit, tronKitManager,
-                tokenAutoEnableManager, get()
+                accountManager = accountManager,
+                walletManager = walletManager,
+                marketKit = get(),
+                tronKitManager = tronKitManager,
+                tokenAutoEnableManager = tokenAutoEnableManager,
+                userDeletedWalletManager = get()
             ).start()
 
             TonAccountManager(
-                accountManager, walletManager, tonKitManager,
-                tokenAutoEnableManager, get()
+                accountManager = accountManager,
+                walletManager = walletManager,
+                tonKitManager = tonKitManager,
+                tokenAutoEnableManager = tokenAutoEnableManager,
+                userDeletedWalletManager = get(),
+                marketKit = get()
             ).start()
 
             StellarAccountManager(
@@ -483,7 +491,8 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
                 walletManager = walletManager,
                 stellarKitManager = get(),
                 tokenAutoEnableManager = tokenAutoEnableManager,
-                userDeletedWalletManager = get()
+                userDeletedWalletManager = get(),
+                marketKit = get()
             ).start()
 
             wcWalletRequestHandler = WCWalletRequestHandler(evmBlockchainManager)

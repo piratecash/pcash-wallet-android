@@ -5,7 +5,6 @@ import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
-import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
@@ -79,7 +78,7 @@ class TronAccountManager(
         }
     }
 
-    private fun handle(
+    private suspend fun handle(
         fullTransactions: List<FullTransaction>,
         account: Account,
         tronKitWrapper: TronKitWrapper,
@@ -92,7 +91,7 @@ class TronAccountManager(
         }
 
         val address = tronKitWrapper.tronKit.address
-        val foundTokens = mutableSetOf<FoundToken>()
+        val foundTokenTypes = mutableSetOf<TokenType>()
         val suspiciousTokenTypes = mutableSetOf<TokenType>()
 
         for (fullTransaction in fullTransactions) {
@@ -100,7 +99,7 @@ class TronAccountManager(
                 is NativeTransactionDecoration -> {
                     when (decoration.contract) {
                         is TransferContract -> {
-                            foundTokens.add(FoundToken(TokenType.Native))
+                            foundTokenTypes.add(TokenType.Native)
                         }
 
                         else -> {}
@@ -109,7 +108,7 @@ class TronAccountManager(
 
                 is UnknownTransactionDecoration -> {
                     if (decoration.internalTransactions.any { it.to == address }) {
-                        foundTokens.add(FoundToken(TokenType.Native))
+                        foundTokenTypes.add(TokenType.Native)
                     }
 
                     for (event in decoration.events) {
@@ -119,7 +118,7 @@ class TronAccountManager(
                             val tokenType = TokenType.Eip20(event.contractAddress.base58)
 
                             if (decoration.fromAddress == address) {
-                                foundTokens.add(FoundToken(tokenType, event.tokenInfo))
+                                foundTokenTypes.add(tokenType)
                             } else {
                                 suspiciousTokenTypes.add(tokenType)
                             }
@@ -130,81 +129,36 @@ class TronAccountManager(
         }
 
         handle(
-            foundTokens = foundTokens.toList(),
-            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokens.map { it.tokenType }
-                .toSet()).toList(),
+            foundTokenTypes = foundTokenTypes.toList(),
+            suspiciousTokenTypes = suspiciousTokenTypes.minus(foundTokenTypes).toList(),
             account = account,
             tronKit = tronKitWrapper.tronKit
         )
     }
 
-    private fun handle(
-        foundTokens: List<FoundToken>,
+    private suspend fun handle(
+        foundTokenTypes: List<TokenType>,
         suspiciousTokenTypes: List<TokenType>,
         account: Account,
         tronKit: TronKit
     ) {
-        if (foundTokens.isEmpty() && suspiciousTokenTypes.isEmpty()) return
+        if (foundTokenTypes.isEmpty() && suspiciousTokenTypes.isEmpty()) return
 
         try {
-            val queries = (foundTokens.map { it.tokenType } + suspiciousTokenTypes).map {
-                TokenQuery(
-                    blockchainType,
-                    it
-                )
-            }
-            val tokens = marketKit.tokens(queries)
-            val tokenInfos = mutableListOf<TokenInfo>()
-
-            foundTokens.forEach { foundToken ->
-                val token = tokens.firstOrNull { it.type == foundToken.tokenType }
-                if (token != null) {
-                    tokenInfos.add(
-                        TokenInfo(
-                            type = foundToken.tokenType,
-                            coinName = token.coin.name,
-                            coinCode = token.coin.code,
-                            tokenDecimals = token.decimals,
-                            coinImage = token.coin.image
-                        )
-                    )
-                } else if (foundToken.tokenInfo != null) {
-                    tokenInfos.add(
-                        TokenInfo(
-                            type = foundToken.tokenType,
-                            coinName = foundToken.tokenInfo.tokenName,
-                            coinCode = foundToken.tokenInfo.tokenSymbol,
-                            tokenDecimals = foundToken.tokenInfo.tokenDecimal,
-                            coinImage = null
-                        )
-                    )
-                }
-            }
-
-            suspiciousTokenTypes.forEach { tokenType ->
-                val token = tokens.firstOrNull { it.type == tokenType }
-                if (token != null) {
-                    tokenInfos.add(
-                        TokenInfo(
-                            type = tokenType,
-                            coinName = token.coin.name,
-                            coinCode = token.coin.code,
-                            tokenDecimals = token.decimals,
-                            coinImage = token.coin.image
-                        )
-                    )
-                }
-            }
+            val allTypes = foundTokenTypes + suspiciousTokenTypes
+            val queries = allTypes.map { TokenQuery(blockchainType, it) }
+            val knownTokens = marketKit.tokensChunked(queries)
+            val tokenInfos = filterKnownAutoEnableTokens(allTypes, knownTokens)
 
             coroutineScope.launch {
                 handle(tokenInfos, account, tronKit)
             }
         } catch (ex: Exception) {
-
+            logger.warning("handle failed", ex)
         }
     }
 
-    private suspend fun handle(tokenInfos: List<TokenInfo>, account: Account, tronKit: TronKit) =
+    private suspend fun handle(tokenInfos: List<AutoEnableTokenInfo>, account: Account, tronKit: TronKit) =
         withContext(Dispatchers.IO) {
             val existingWallets = walletManager.activeWallets
             val existingTokenTypeIds = existingWallets.map { it.token.type.id }
@@ -232,47 +186,15 @@ class TronAccountManager(
                 }
             }
 
-            val enabledWallets = tokensWithBalance
-                .mapNotNull { tokenInfo ->
-                    val tokenQueryId = TokenQuery(blockchainType, tokenInfo.type).id
-                    if (userDeletedWalletManager.isDeletedByUser(account.id, tokenQueryId)) {
-                        return@mapNotNull null
-                    }
-
-                    EnabledWallet(
-                        tokenQueryId = tokenQueryId,
-                        accountId = account.id,
-                        coinName = tokenInfo.coinName,
-                        coinCode = tokenInfo.coinCode,
-                        coinDecimals = tokenInfo.tokenDecimals,
-                        coinImage = tokenInfo.coinImage
-                    )
-                }
+            val enabledWallets = tokensWithBalance.toEnabledWallets(
+                accountId = account.id,
+                blockchainType = blockchainType,
+                userDeletedWalletManager = userDeletedWalletManager,
+            )
 
             if (isActive) {
                 walletManager.saveEnabledWallets(enabledWallets)
             }
         }
-
-    data class TokenInfo(
-        val type: TokenType,
-        val coinName: String,
-        val coinCode: String,
-        val tokenDecimals: Int,
-        val coinImage: String?,
-    )
-
-    data class FoundToken(
-        val tokenType: TokenType,
-        val tokenInfo: io.horizontalsystems.tronkit.decoration.TokenInfo? = null
-    ) {
-        override fun equals(other: Any?): Boolean {
-            return other is FoundToken && tokenType.id == other.tokenType.id
-        }
-
-        override fun hashCode(): Int {
-            return tokenType.id.hashCode()
-        }
-    }
 
 }

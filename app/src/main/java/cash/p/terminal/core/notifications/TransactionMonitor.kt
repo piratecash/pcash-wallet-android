@@ -8,6 +8,7 @@ import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import cash.p.terminal.entities.TransactionValue
+import cash.p.terminal.entities.TransactionValue.CoinValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.transactions.FilterTransactionType
@@ -178,7 +179,27 @@ class TransactionMonitor(
         val showCoinAmount = localStorage.pushShowCoinAmount
         val showFiatAmount = localStorage.pushShowFiatAmount
 
-        records.forEach { record ->
+        // Read snapshot dynamically so wallets added/removed after start() are honored.
+        val activeTokenIds = walletManager.activeWallets
+            .mapTo(mutableSetOf()) { it.token.tokenQuery.id }
+
+        // Notify only when the record carries a single, identifiable token via
+        // mainValue=CoinValue and that token is in the user's active wallets.
+        //
+        // record.token always holds the chain's base/native token (even for ERC20
+        // transfers), so we cannot fall back to it: an active native wallet would
+        // let unrelated/spoof tokens through whenever mainValue is absent
+        // (multi-event contract calls, swaps, address-poisoning batches).
+        //
+        // TokenValue / JettonValue / RawValue / NftValue carry no Token reference —
+        // they mean the chain produced an event we can't map to a known token, so
+        // those records are dropped too.
+        val activeRecords = records.filter { record ->
+            val tokenId = record.actualTokenQueryId() ?: return@filter false
+            tokenId in activeTokenIds
+        }
+
+        activeRecords.forEach { record ->
             val blockchainUid = record.blockchainType.uid
             if (deduplicator.isNew(record.uid, blockchainUid, record.timestamp)) {
                 val mainValue = record.mainValue
@@ -208,7 +229,7 @@ class TransactionMonitor(
             }
         }
 
-        records.groupBy { it.blockchainType.uid }.forEach { (blockchainUid, blockchainRecords) ->
+        activeRecords.groupBy { it.blockchainType.uid }.forEach { (blockchainUid, blockchainRecords) ->
             val maxTimestamp = blockchainRecords.maxOf { it.timestamp }
             val maxTimestampUids = blockchainRecords
                 .filter { it.timestamp == maxTimestamp }
@@ -278,3 +299,6 @@ class TransactionMonitor(
         private const val PREMIUM_CHECK_INTERVAL_MS = 30 * 60 * 1000L
     }
 }
+
+private fun TransactionRecord.actualTokenQueryId(): String? =
+    (mainValue as? CoinValue)?.token?.tokenQuery?.id

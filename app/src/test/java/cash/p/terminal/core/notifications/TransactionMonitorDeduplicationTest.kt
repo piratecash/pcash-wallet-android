@@ -8,6 +8,7 @@ import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import io.horizontalsystems.core.BackgroundManager
+import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.transactions.FilterTransactionType
@@ -127,9 +128,13 @@ class TransactionMonitorDeduplicationTest {
     )
 
 
-    private fun mockWallet(blockchainType: BlockchainType): Wallet =
+    private fun mockWallet(
+        blockchainType: BlockchainType,
+        tokenQueryId: String = "${blockchainType.uid}|native",
+    ): Wallet =
         mockk(relaxed = true) {
             every { token.blockchainType } returns blockchainType
+            every { token.tokenQuery.id } returns tokenQueryId
         }
 
     private fun mockAdapter(): Pair<ITransactionsAdapter, MutableSharedFlow<List<TransactionRecord>>> {
@@ -146,12 +151,16 @@ class TransactionMonitorDeduplicationTest {
         uid: String,
         timestamp: Long,
         source: TransactionSource,
+        tokenQueryId: String = "${source.blockchain.type.uid}|native",
     ): TransactionRecord = mockk(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { this@mockk.timestamp } returns timestamp
         every { this@mockk.source } returns source
         every { this@mockk.blockchainType } returns source.blockchain.type
-        every { this@mockk.mainValue } returns null
+        val coinValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+            every { token.tokenQuery.id } returns tokenQueryId
+        }
+        every { this@mockk.mainValue } returns coinValue
     }
 
     @Test
