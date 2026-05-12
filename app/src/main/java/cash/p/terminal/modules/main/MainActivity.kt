@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.main
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.os.Bundle
 import android.view.View.GONE
@@ -15,16 +16,23 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.compose.runtime.LaunchedEffect
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BaseActivity
+import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.notifications.TransactionNotificationManager
 import cash.p.terminal.core.navigateWithTermsAccepted
 import cash.p.terminal.modules.createaccount.CreateAccountFragment
 import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreen
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreenActions
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreenViewModel
 import cash.p.terminal.modules.pin.ui.PinUnlock
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
@@ -32,20 +40,29 @@ import cash.p.terminal.navigation.slideFromRightClearingBackStack
 import cash.p.terminal.tangem.domain.sdk.CardSdkProvider
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import com.reown.walletkit.client.Wallet
+import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.hideKeyboard
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
-class MainActivity : BaseActivity() {
+open class MainActivity : BaseActivity() {
 
     val viewModel: MainActivityViewModel by inject()
     private val cardSdkProvider: CardSdkProvider by inject()
+    private val localStorage: ILocalStorage by inject()
+    private val pinComponent: IPinComponent by inject()
     private lateinit var pinLockComposeView: ComposeView
     private var showPinLockScreen by mutableStateOf(false)
 
     override fun onResume() {
         super.onResume()
         validate()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        showCalculatorLockScreenInRecents()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -70,6 +87,7 @@ class MainActivity : BaseActivity() {
         if (App.sqlCipherLoadFailed) return
 
         cardSdkProvider.register(this)
+        applyTaskDescription(localStorage.isCalculatorModeEnabled)
 
         setContentView(R.layout.activity_main)
 
@@ -149,12 +167,40 @@ class MainActivity : BaseActivity() {
         pinLockComposeView = findViewById(R.id.pinLockComposeView)
         pinLockComposeView.setContent {
             ComposeAppTheme {
-                PinUnlock(
-                    showPinLockScreen = showPinLockScreen,
-                    onSuccess = {
-                        showPinLockScreen = false
+                val calculatorMode by localStorage.isCalculatorModeEnabledFlow
+                    .collectAsStateWithLifecycle()
+                if (calculatorMode) {
+                    val viewModel: CalculatorLockScreenViewModel = koinViewModel()
+                    val state = viewModel.uiState
+                    LaunchedEffect(state.unlocked) {
+                        if (state.unlocked) {
+                            showPinLockScreen = false
+                            viewModel.onUnlockedConsumed()
+                        }
                     }
-                )
+                    if (showPinLockScreen) {
+                        CalculatorLockScreen(
+                            uiState = state,
+                            actions = CalculatorLockScreenActions(
+                                onDigit = viewModel::onDigitClick,
+                                onOperator = viewModel::onOperatorClick,
+                                onDecimal = viewModel::onDecimalClick,
+                                onParen = viewModel::onParenClick,
+                                onToggleSign = viewModel::onToggleSignClick,
+                                onDelete = viewModel::onDeleteClick,
+                                onClear = viewModel::onClearClick,
+                                onEquals = viewModel::onEqualsClick,
+                            ),
+                        )
+                    }
+                } else {
+                    PinUnlock(
+                        showPinLockScreen = showPinLockScreen,
+                        onSuccess = {
+                            showPinLockScreen = false
+                        }
+                    )
+                }
             }
         }
         observeLockState()
@@ -185,20 +231,57 @@ class MainActivity : BaseActivity() {
 
     private fun observeLockState() {
         lifecycleScope.launch {
-            viewModel.isLockedFlow.collect { isLocked ->
-                showPinLockScreen = isLocked
-                pinLockComposeView.visibility = if (isLocked) VISIBLE else GONE
-                if (isLocked) {
-                    val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.hideSoftInputFromWindow(window.decorView.windowToken, 0)
-                    window.addFlags(WindowManager.LayoutParams.FLAG_SECURE or
-                            WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
-                } else {
-                    window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE or
-                            WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            combine(
+                viewModel.isLockedFlow,
+                localStorage.isCalculatorModeEnabledFlow,
+            ) { locked, calculatorMode -> locked to calculatorMode }
+                .collect { (isLocked, calculatorMode) ->
+                    showPinLockScreen = isLocked
+                    pinLockComposeView.visibility = if (isLocked) VISIBLE else GONE
+                    applyTaskDescription(calculatorMode)
+                    applyLockWindowFlags(isLocked, calculatorMode)
                 }
-            }
         }
+    }
+
+    private fun showCalculatorLockScreenInRecents() {
+        if (!localStorage.isCalculatorModeEnabled ||
+            !pinComponent.isPinSet ||
+            !::pinLockComposeView.isInitialized
+        ) {
+            return
+        }
+
+        pinComponent.lock()
+        showPinLockScreen = true
+        pinLockComposeView.visibility = VISIBLE
+        applyTaskDescription(calculatorMode = true)
+        applyLockWindowFlags(isLocked = true, calculatorMode = true)
+    }
+
+    private fun applyLockWindowFlags(isLocked: Boolean, calculatorMode: Boolean) {
+        if (isLocked) {
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(window.decorView.windowToken, 0)
+            window.addFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+            if (calculatorMode) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            } else {
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        } else {
+            window.clearFlags(
+                WindowManager.LayoutParams.FLAG_SECURE or
+                        WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+            )
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun applyTaskDescription(calculatorMode: Boolean) {
+        val labelRes = if (calculatorMode) R.string.calculator_app_name else R.string.App_Name
+        setTitle(labelRes)
+        setTaskDescription(ActivityManager.TaskDescription(getString(labelRes)))
     }
 
     private fun findNavController(): NavController {

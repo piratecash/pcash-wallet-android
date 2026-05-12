@@ -1482,6 +1482,19 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
         <item>Der Benutzer versteht, dass die Wallet wiederhergestellt werden kann, wenn er seine Seed-Phrase kennt, falls er seine PIN vergisst.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Sicheres Zurücksetzen</string>
+    <string name="calculator_app_name">Rechner</string>
+    <string name="calculator_mode">Rechner</string>
+    <string name="calculator_pin_settings_title">Rechner-PIN</string>
+    <string name="calculator_pin_settings_intro">Die App sieht aus und funktioniert wie ein normaler Rechner.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Es gibt zwei Wege, in die Wallet zu gelangen:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">Geben Sie Ihre PIN direkt ein und drücken Sie „=“ — zum Beispiel 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">Geben Sie einen beliebigen Ausdruck ein, dessen Ergebnis der PIN entspricht, und drücken Sie „=“ — zum Beispiel 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">Wenn Ihre PIN mit Null beginnt — geben Sie nur die signifikanten Ziffern ein. Für PIN 000010 reicht es zum Beispiel, 10 = einzugeben</string>
+    <string name="calculator_pin_settings_throttle_invisible">Die zeitbasierte Sperre wird im Rechner nicht angezeigt. Der Rechner arbeitet weiter wie gewohnt — es erscheinen keine Fehlermeldungen.</string>
+    <string name="calculator_pin_settings_outro">Für alle anderen ist es einfach ein Rechner.</string>
+    <string name="calculator_auto_lock_title">Auto-Sperre</string>
+    <string name="calculator_error_divide_by_zero">Durch 0 kann nicht geteilt werden</string>
+    <string name="appearance_app_icon_premium">PREMIUM</string>
     <string name="SecureReset_Pin_Title">PIN für sicheres Zurücksetzen</string>
     <string name="SecureReset_Pin_Description">PIN für sicheres Zurücksetzen erstellen</string>
     <string name="SecureReset_Terms_Title">Bedingungen</string>

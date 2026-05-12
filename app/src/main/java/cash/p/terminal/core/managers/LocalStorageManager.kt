@@ -23,6 +23,7 @@ import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.market.favorites.WatchlistSorting
 import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
+import cash.p.terminal.modules.calculator.domain.CalculatorAutoLockOption
 import cash.p.terminal.modules.settings.security.autolock.AutoLockInterval
 import cash.p.terminal.modules.theme.ThemeType
 import cash.p.terminal.wallet.BalanceSortType
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.update
 import java.math.BigDecimal
 import java.util.UUID
 
+@Suppress("VariableNaming") // SharedPreferences keys use UPPER_SNAKE_CASE by convention
 class LocalStorageManager(
     private val preferences: SharedPreferences
 ) : ILocalStorage, IPinSettingsStorage, ILockoutStorage, IThirdKeyboard, IMarketStorage, IUniqueCodeStorage {
@@ -111,6 +113,9 @@ class LocalStorageManager(
     private val STACKING_TIMESTAMP = "stacking_timestamp_"
     private val DASH_PEERS = "dash_peers"
     private val MONERO_SKIP_NEW_ADDRESS_CONFIRM = "monero_skip_new_address_confirm"
+    private val CALCULATOR_MODE_ENABLED = "calculator_mode_enabled"
+    private val PREVIOUS_APP_ICON = "previous_app_icon"
+    private val CALCULATOR_AUTO_LOCK_OPTION = "calculator_auto_lock_option"
 
     private val _utxoExpertModeEnabledFlow = MutableStateFlow(false)
     override val utxoExpertModeEnabledFlow = _utxoExpertModeEnabledFlow
@@ -485,11 +490,66 @@ class LocalStorageManager(
             AppIcon.fromString(it)
         }
         set(value) {
-            preferences.edit().putString(APP_ICON, value?.name).apply()
+            // commit() — write must survive immediate process exit on icon change.
+            preferences.edit(commit = true) { putString(APP_ICON, value?.name) }
         }
 
     override val appIconRaw: String?
         get() = preferences.getString(APP_ICON, null)
+
+    override var isCalculatorModeEnabled: Boolean
+        get() = preferences.getBoolean(CALCULATOR_MODE_ENABLED, false)
+        set(value) {
+            // commit() — write must survive immediate process exit on calculator toggle.
+            preferences.edit(commit = true) { putBoolean(CALCULATOR_MODE_ENABLED, value) }
+            _isCalculatorModeEnabledFlow.update { value }
+        }
+
+    private val _isCalculatorModeEnabledFlow =
+        MutableStateFlow(preferences.getBoolean(CALCULATOR_MODE_ENABLED, false))
+    override val isCalculatorModeEnabledFlow = _isCalculatorModeEnabledFlow.asStateFlow()
+
+    override var calculatorModeCreatedPin by preferences.delegate(
+        key = "calculator_mode_created_pin",
+        default = false,
+        commit = true,
+    )
+
+    override var previousAppIconName: String?
+        get() = preferences.getString(PREVIOUS_APP_ICON, null)
+        set(value) {
+            preferences.edit(commit = true) {
+                if (value == null) remove(PREVIOUS_APP_ICON) else putString(PREVIOUS_APP_ICON, value)
+            }
+        }
+
+    override var calculatorThrottleTokens by preferences.delegate(
+        key = "calculator_throttle_tokens",
+        default = Int.MIN_VALUE
+    )
+
+    override var calculatorThrottleLastUptime by preferences.delegate(
+        key = "calculator_throttle_last_uptime",
+        default = 0L
+    )
+
+    override var calculatorThrottleLastWallClock by preferences.delegate(
+        key = "calculator_throttle_last_wall_clock",
+        default = 0L
+    )
+
+    private val _calculatorAutoLockOptionFlow = MutableStateFlow(
+        CalculatorAutoLockOption.fromRaw(preferences.getString(CALCULATOR_AUTO_LOCK_OPTION, null))
+            ?: CalculatorAutoLockOption.DEFAULT
+    )
+    override val calculatorAutoLockOptionFlow = _calculatorAutoLockOptionFlow.asStateFlow()
+
+    override var calculatorAutoLockOption: CalculatorAutoLockOption
+        get() = _calculatorAutoLockOptionFlow.value
+        set(value) {
+            preferences.edit { putString(CALCULATOR_AUTO_LOCK_OPTION, value.raw) }
+            _calculatorAutoLockOptionFlow.update { value }
+        }
 
     override var mainTab: MainModule.MainNavigation?
         get() = preferences.getString(MAIN_TAB, null)?.let {

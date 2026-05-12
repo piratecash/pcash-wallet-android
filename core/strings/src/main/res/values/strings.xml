@@ -2179,6 +2179,19 @@ Proceed only if you\'re sure.</string>
         <item>The user understands that if they forget their PIN, the wallet can be restored by knowing its seed phrase.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Secure Reset</string>
+    <string name="calculator_app_name">Calculator</string>
+    <string name="calculator_mode">Calculator</string>
+    <string name="calculator_pin_settings_title">Calculator PIN</string>
+    <string name="calculator_pin_settings_intro">The app looks and works like a normal calculator.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">There are two ways to enter the wallet:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">enter your PIN directly and press \"=\" — for example, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">enter any expression whose result equals the PIN and press \"=\" — for example, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">if your PIN starts with zero — type only the significant digits. For example, for PIN 000010 it is enough to enter 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">The time-based lock is not shown in the calculator. The calculator keeps working as usual — no error messages appear.</string>
+    <string name="calculator_pin_settings_outro">For everyone else it is just a calculator.</string>
+    <string name="calculator_auto_lock_title">Auto-Lock</string>
+    <string name="calculator_error_divide_by_zero">Can\'t divide by 0</string>
+    <string name="appearance_app_icon_premium">PREMIUM</string>
     <string name="SecureReset_Pin_Title">Secure Reset PIN</string>
     <string name="SecureReset_Pin_Description">Create PIN for Secure Reset</string>
     <string name="SecureReset_Terms_Title">Terms</string>

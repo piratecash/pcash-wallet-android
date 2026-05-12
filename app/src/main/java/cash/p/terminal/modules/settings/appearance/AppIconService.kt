@@ -75,6 +75,17 @@ class AppIconService(private val localStorage: ILocalStorage) {
     }
 
     fun setAppIcon(appIcon: AppIcon) {
+        // Keep the calculator-mode flag in lock-step with the launcher icon so
+        // any path that swaps the icon (settings UI, full-backup restore,
+        // normalizeAppIconState) cannot leave a Calculator launcher paired with
+        // a normal PIN screen, or vice versa. Flag is set BEFORE icon swap on
+        // enable (preserves lock behavior on partial writes) and AFTER icon
+        // swap on disable (same property in reverse).
+        val enableCalculatorMode = appIcon == AppIcon.Calculator
+        if (enableCalculatorMode) {
+            localStorage.isCalculatorModeEnabled = true
+        }
+
         localStorage.appIcon = appIcon
 
         _optionsFlow.update {
@@ -90,6 +101,11 @@ class AppIconService(private val localStorage: ILocalStorage) {
                 if (appIcon == item) enabled else disabled,
                 PackageManager.DONT_KILL_APP
             )
+        }
+
+        if (!enableCalculatorMode) {
+            localStorage.isCalculatorModeEnabled = false
+            localStorage.previousAppIconName = null
         }
     }
 }

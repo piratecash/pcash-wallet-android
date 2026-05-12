@@ -7,6 +7,7 @@ import io.horizontalsystems.core.DispatcherProvider
 import cash.p.terminal.core.storage.AppDatabase
 import cash.p.terminal.core.tor.torcore.TorConstants
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.strings.helpers.LocaleHelper
 import cash.p.terminal.wallet.IAccountCleaner
@@ -28,7 +29,8 @@ class ResetUseCase(
     private val accountCleaner: IAccountCleaner,
     private val contactsRepository: ContactsRepository,
     private val dispatcherProvider: DispatcherProvider,
-    private val glanceManager: GlanceAppWidgetManager
+    private val glanceManager: GlanceAppWidgetManager,
+    private val appIconService: AppIconService,
 ) {
 
     suspend operator fun invoke() {
@@ -49,7 +51,7 @@ class ResetUseCase(
 
                 App.keyStoreManager.resetApp("InvalidKey")
 
-                localStorage.appIcon = appIcon
+                appIcon?.let(appIconService::setAppIcon)
                 localStorage.mainShowedOnce = mainShowedOnce
                 localStorage.isSystemPinRequired = isSystemPinRequired
             }.onFailure { Timber.w(it, "Failed resetting keystore") }

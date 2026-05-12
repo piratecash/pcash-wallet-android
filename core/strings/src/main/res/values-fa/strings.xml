@@ -1495,6 +1495,19 @@
         <item>کاربر می‌داند که اگر رمز PIN خود را فراموش کند، می‌تواند با استفاده از عبارت بازیابی (seed phrase) به کیف پول دسترسی پیدا کند.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">بازنشانی امن</string>
+    <string name="calculator_app_name">ماشین حساب</string>
+    <string name="calculator_mode">ماشین حساب</string>
+    <string name="calculator_pin_settings_title">PIN ماشین حساب</string>
+    <string name="calculator_pin_settings_intro">برنامه ظاهر و عملکردی مانند یک ماشین حساب معمولی دارد.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">دو روش برای ورود به کیف پول وجود دارد:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">PIN خود را مستقیماً وارد کنید و «=» را فشار دهید — برای مثال، 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">هر عبارتی را که نتیجه‌اش برابر با PIN است وارد کنید و «=» را فشار دهید — برای مثال، 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">اگر PIN شما با صفر شروع می‌شود — فقط ارقام معنی‌دار را وارد کنید. برای مثال، برای PIN 000010 کافی است 10 = را وارد کنید</string>
+    <string name="calculator_pin_settings_throttle_invisible">قفل زمانی در ماشین حساب نمایش داده نمی‌شود. ماشین حساب به‌طور عادی به کار خود ادامه می‌دهد — هیچ پیام خطایی ظاهر نمی‌شود.</string>
+    <string name="calculator_pin_settings_outro">برای بقیه، این فقط یک ماشین حساب است.</string>
+    <string name="calculator_auto_lock_title">قفل خودکار</string>
+    <string name="calculator_error_divide_by_zero">نمی‌توان بر ۰ تقسیم کرد</string>
+    <string name="appearance_app_icon_premium">پرمیوم</string>
     <string name="SecureReset_Pin_Title">پین بازنشانی امن</string>
     <string name="SecureReset_Pin_Description">ایجاد پین برای بازنشانی امن</string>
     <string name="SecureReset_Terms_Title">شرایط</string>

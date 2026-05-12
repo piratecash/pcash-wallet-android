@@ -65,7 +65,7 @@ style:
     active: true
   UnusedPrivateMember:
     active: true
-    allowedNames: '(_.*|Preview.*)'
+    allowedNames: '(_.*|.*Preview)'
   WildcardImport:
     active: false  # Compose imports often use wildcard
   UnnecessaryAbstractClass:

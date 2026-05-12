@@ -135,7 +135,7 @@ object HudHelper {
         )
     }
 
-    fun vibrate(context: Context) {
+    fun vibrate(context: Context, durationMs: Long = 20L) {
         val vibratorService = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager =
                 context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
@@ -145,7 +145,7 @@ object HudHelper {
             context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
 
-        val vibrationEffect = VibrationEffect.createOneShot(20, VibrationEffect.DEFAULT_AMPLITUDE)
+        val vibrationEffect = VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
 
         vibratorService?.vibrate(vibrationEffect)
     }

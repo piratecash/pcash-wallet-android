@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
+import cash.p.terminal.modules.calculator.domain.CalculatorModeService
 import cash.p.terminal.tangem.domain.sdk.CardSdkConfigRepository
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import io.horizontalsystems.core.IPinComponent
@@ -18,7 +19,8 @@ class SecuritySettingsViewModel(
     private val pinComponent: IPinComponent,
     private val balanceHiddenManager: BalanceHiddenManager,
     private val localStorage: ILocalStorage,
-    private val transactionHiddenManager: TransactionHiddenManager
+    private val transactionHiddenManager: TransactionHiddenManager,
+    private val calculatorModeService: CalculatorModeService,
 ) : ViewModelUiState<SecuritySettingsUiState>() {
 
     val biometricSettingsVisible = systemInfoManager.biometricAuthSupported
@@ -90,6 +92,7 @@ class SecuritySettingsViewModel(
     }
 
     fun disablePin() {
+        calculatorModeService.disable()
         pinComponent.disablePin()
         if (localStorage.transactionHideSecretPin == null) {
             onTransactionAutoHideEnabledChange(enabled = false, emitState = false)

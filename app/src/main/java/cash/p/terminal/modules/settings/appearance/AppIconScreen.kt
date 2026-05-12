@@ -18,11 +18,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,28 +30,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
-import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.Select
 import cash.p.terminal.ui_compose.components.AppBar
-import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
-import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.AppCloseWarningBottomSheet
 import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
-import cash.p.terminal.ui_compose.components.TextImportantWarning
+import cash.p.terminal.ui_compose.components.PremiumHeader
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AppIconScreen(
     appIconOptions: Select<AppIcon>,
@@ -61,84 +56,45 @@ internal fun AppIconScreen(
     onClose: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    var selectedAppIcon by remember { mutableStateOf<AppIcon?>(null) }
-    val sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
+    var pendingAppIcon by remember { mutableStateOf<AppIcon?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    ModalBottomSheetLayout(
-        sheetState = sheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
-        sheetContent = {
-            AppCloseWarningBottomSheet(
-                onCloseClick = { scope.launch { sheetState.hide() } },
-                onChangeClick = {
-                    selectedAppIcon?.let { onAppIconSelect(it) }
-                    scope.launch { sheetState.hide() }
+    pendingAppIcon?.let { icon ->
+        AppCloseWarningBottomSheet(
+            sheetState = sheetState,
+            onDismiss = { pendingAppIcon = null },
+            onConfirm = {
+                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                    pendingAppIcon = null
+                    onAppIconSelect(icon)
+                }
+            },
+        )
+    }
+
+    Scaffold(
+        containerColor = ComposeAppTheme.colors.tyler,
+        topBar = {
+            AppBar(
+                title = stringResource(R.string.Appearance_AppIcon),
+                navigationIcon = {
+                    HsBackButton(onClick = onClose)
                 }
             )
         }
-    ) {
-        Scaffold(
-            containerColor = ComposeAppTheme.colors.tyler,
-            topBar = {
-                AppBar(
-                    title = stringResource(R.string.Appearance_AppIcon),
-                    navigationIcon = {
-                        HsBackButton(onClick = onClose)
-                    }
-                )
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(paddingValues)
+        ) {
+            VSpacer(12.dp)
+            AppIconContent(appIconOptions) { appIcon ->
+                pendingAppIcon = appIcon
             }
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(paddingValues)
-            ) {
-                VSpacer(12.dp)
-                AppIconContent(appIconOptions) { appIcon ->
-                    scope.launch {
-                        selectedAppIcon = appIcon
-                        sheetState.show()
-                    }
-                }
-                VSpacer(32.dp)
-            }
+            VSpacer(32.dp)
         }
-    }
-}
-
-@Composable
-private fun AppCloseWarningBottomSheet(
-    onCloseClick: () -> Unit,
-    onChangeClick: () -> Unit
-) {
-    BottomSheetHeader(
-        iconPainter = painterResource(id = R.drawable.ic_attention_24),
-        title = stringResource(id = R.string.Alert_TitleWarning),
-        iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
-        onCloseClick = onCloseClick
-    ) {
-        TextImportantWarning(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            text = stringResource(R.string.Appearance_Warning_CloseApplication)
-        )
-
-        ButtonPrimaryYellow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 20.dp),
-            title = stringResource(id = R.string.Button_Change),
-            onClick = onChangeClick
-        )
-
-        ButtonPrimaryTransparent(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            title = stringResource(id = R.string.Button_Cancel),
-            onClick = onCloseClick
-        )
-        VSpacer(20.dp)
     }
 }
 
@@ -150,12 +106,24 @@ private fun AppIconContent(
     val ourIcons = remember(appIconOptions.options) {
         appIconOptions.options.filter { it.category == AppIconCategory.OUR }
     }
+    val premiumIcons = remember(appIconOptions.options) {
+        appIconOptions.options.filter { it.category == AppIconCategory.OUR_PREMIUM }
+    }
     val otherIcons = remember(appIconOptions.options) {
         appIconOptions.options.filter { it.category == AppIconCategory.OTHER }
     }
 
     HeaderText(text = stringResource(R.string.appearance_app_icon_our_icon))
     AppIconCard(ourIcons, appIconOptions.selected, onAppIconSelect)
+
+    if (premiumIcons.isNotEmpty()) {
+        VSpacer(16.dp)
+        PremiumHeader(
+            text = stringResource(R.string.appearance_app_icon_premium),
+            horizontalPadding = 16.dp,
+        )
+        AppIconCard(premiumIcons, appIconOptions.selected, onAppIconSelect, premium = true)
+    }
 
     VSpacer(16.dp)
 
@@ -167,7 +135,8 @@ private fun AppIconContent(
 private fun AppIconCard(
     icons: List<AppIcon>,
     selected: AppIcon,
-    onAppIconSelect: (AppIcon) -> Unit
+    onAppIconSelect: (AppIcon) -> Unit,
+    premium: Boolean = false,
 ) {
     Column(
         modifier = Modifier
@@ -178,7 +147,7 @@ private fun AppIconCard(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         icons.chunked(3).forEach { row ->
-            AppIconsRow(row, selected, onAppIconSelect)
+            AppIconsRow(row, selected, onAppIconSelect, premium)
         }
     }
 }
@@ -187,7 +156,8 @@ private fun AppIconCard(
 private fun AppIconsRow(
     chunk: List<AppIcon?>,
     selected: AppIcon,
-    onAppIconSelect: (AppIcon) -> Unit
+    onAppIconSelect: (AppIcon) -> Unit,
+    premium: Boolean,
 ) {
     Row(
         modifier = Modifier
@@ -202,7 +172,8 @@ private fun AppIconsRow(
                     appIcon.foreground,
                     appIcon.background,
                     appIcon.title.getString(),
-                    appIcon == selected
+                    appIcon == selected,
+                    premium,
                 ) { onAppIconSelect(appIcon) }
             } else {
                 Spacer(modifier = Modifier.size(60.dp))
@@ -217,6 +188,7 @@ private fun IconBox(
     background: Int,
     name: String,
     selected: Boolean,
+    premium: Boolean,
     onAppIconSelect: () -> Unit
 ) {
     val iconCornerShape = RoundedCornerShape(14.dp)
@@ -256,7 +228,7 @@ private fun IconBox(
         }
 
         Box(Modifier.height(6.dp))
-        if (selected) {
+        if (selected || premium) {
             subhead1_jacob(name)
         } else {
             subhead1_leah(name)
