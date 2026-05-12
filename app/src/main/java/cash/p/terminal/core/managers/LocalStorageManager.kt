@@ -106,7 +106,9 @@ class LocalStorageManager(
     private val PRICE_CHANGE_INTERVAL = "price_change_interval"
     private val SHARE_CRASH_DATA_ENABLED = "share_crash_data_enabled"
     private val STACKING_UNPAID = "stacking_unpaid_"
+    private val STACKING_MINT = "stacking_mint_"
     private val STACKING_NEXT_ACCRUAL_AT = "stacking_next_accrual_at_"
+    private val STACKING_NEXT_PAYOUT_AT = "stacking_next_payout_at_"
     private val STACKING_BALANCE = "stacking_balance_"
     private val STACKING_TIMESTAMP = "stacking_timestamp_"
     private val DASH_PEERS = "dash_peers"
@@ -655,8 +657,14 @@ class LocalStorageManager(
     override fun getStackingUnpaid(coin: String, address: String): BigDecimal? =
         preferences.getString(stackingKey(STACKING_UNPAID, coin, address), null)?.toBigDecimal()
 
+    override fun getStackingMint(coin: String, address: String): BigDecimal? =
+        preferences.getString(stackingKey(STACKING_MINT, coin, address), null)?.toBigDecimal()
+
     override fun getStackingNextAccrualAt(coin: String, address: String): String? =
         preferences.getString(stackingKey(STACKING_NEXT_ACCRUAL_AT, coin, address), null)
+
+    override fun getStackingNextPayoutAt(coin: String, address: String): String? =
+        preferences.getString(stackingKey(STACKING_NEXT_PAYOUT_AT, coin, address), null)
 
     override fun getStackingCachedBalance(coin: String, address: String): BigDecimal? =
         preferences.getString(stackingKey(STACKING_BALANCE, coin, address), null)?.toBigDecimal()
@@ -668,12 +676,16 @@ class LocalStorageManager(
         coin: String,
         address: String,
         unpaid: BigDecimal,
+        totalIncome: BigDecimal,
         nextAccrualAt: String?,
+        nextPayoutAt: String?,
         balance: BigDecimal,
     ) {
         preferences.edit()
             .putString(stackingKey(STACKING_UNPAID, coin, address), unpaid.toPlainString())
+            .putString(stackingKey(STACKING_MINT, coin, address), totalIncome.toPlainString())
             .putString(stackingKey(STACKING_NEXT_ACCRUAL_AT, coin, address), nextAccrualAt)
+            .putString(stackingKey(STACKING_NEXT_PAYOUT_AT, coin, address), nextPayoutAt)
             .putString(stackingKey(STACKING_BALANCE, coin, address), balance.toPlainString())
             .putLong(stackingKey(STACKING_TIMESTAMP, coin, address), System.currentTimeMillis())
             .apply()

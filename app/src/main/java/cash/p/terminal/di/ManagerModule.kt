@@ -213,7 +213,7 @@ val managerModule = module {
     singleOf(::GetTonAddressUseCaseImpl) bind GetTonAddressUseCase::class
     singleOf(::CreateRequiredTokensUseCaseImpl) bind CreateRequiredTokensUseCase::class
     singleOf(::TronKitManager)
-    factoryOf(::StackingManager)
+    singleOf(::StackingManager)
     singleOf(::RestoreSettingsManager)
     singleOf(::TimePasswordProvider)
     singleOf(::SeedPhraseQrCrypto)

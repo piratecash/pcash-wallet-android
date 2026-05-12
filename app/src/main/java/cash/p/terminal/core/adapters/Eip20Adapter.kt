@@ -84,18 +84,20 @@ internal class Eip20Adapter(
     override val balanceStateUpdatedFlow: Flow<Unit>
         get() = merge(
             eip20Kit.syncStateFlowable.asFlow().map { },
-            stackingManager.unpaidFlow.filterNotNull().map { }
+            stackingManager.unpaidFlow(wallet).filterNotNull().map { }
         )
 
     override val balanceData: BalanceData
         get() = BalanceData(
             available = balanceInBigDecimal(eip20Kit.balance, decimal),
-            stackingUnpaid = stackingManager.unpaidFlow.value ?: BigDecimal.ZERO
+            stackingUnpaid = stackingManager.unpaidFor(wallet)
         )
 
     override val balanceUpdatedFlow: Flow<Unit>
-        get() = merge(eip20Kit.balanceFlowable.asFlow(), stackingManager.unpaidFlow.filterNotNull())
-            .map { }
+        get() = merge(
+            eip20Kit.balanceFlowable.asFlow(),
+            stackingManager.unpaidFlow(wallet).filterNotNull()
+        ).map { }
 
     // ISendEthereumAdapter
 

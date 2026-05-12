@@ -9,6 +9,7 @@ import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.PriceManager
+import cash.p.terminal.core.managers.StackingInfo
 import cash.p.terminal.core.managers.StackingManager
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
@@ -186,8 +187,10 @@ class TokenBalanceViewModelTest : KoinTest {
         every { amlStatusManager.applyStatus(any()) } answers { firstArg() }
         every { premiumSettings.getAmlCheckShowAlert() } returns false
         every { totalBalance.stateFlow } returns MutableStateFlow(TotalService.State.Hidden)
-        every { stackingManager.unpaidFlow } returns MutableStateFlow<BigDecimal?>(BigDecimal.ZERO)
-        every { stackingManager.nextAccrualAtFlow } returns MutableStateFlow(null)
+        every { stackingManager.infoFlow(any()) } returns MutableStateFlow<StackingInfo?>(null)
+        every { stackingManager.unpaidFlow(any()) } returns MutableStateFlow<BigDecimal?>(BigDecimal.ZERO)
+        every { stackingManager.infoFor(any()) } returns null
+        every { stackingManager.unpaidFor(any()) } returns BigDecimal.ZERO
         every { priceManager.displayPricePeriodFlow } returns MutableStateFlow(DisplayPricePeriod.ONE_DAY)
         every { priceManager.displayDiffOptionTypeFlow } returns MutableStateFlow(DisplayDiffOptionType.BOTH)
         every { localStorage.displayDiffPricePeriod } returns DisplayPricePeriod.ONE_DAY
@@ -507,8 +510,8 @@ class TokenBalanceViewModelTest : KoinTest {
         testWallet = pirateWallet
 
         // Simulate unpaid rewards from StackingManager
-        val unpaidFlow = MutableStateFlow<BigDecimal?>(BigDecimal("0.7897"))
-        every { stackingManager.unpaidFlow } returns unpaidFlow
+        val infoFlow = MutableStateFlow<StackingInfo?>(StackingInfo(unpaid = BigDecimal("0.7897")))
+        every { stackingManager.infoFlow(any()) } returns infoFlow
 
         val balanceItem = createBalanceItem(balance = BigDecimal("1"), wallet = pirateWallet)
         every { balanceService.balanceItem } returns balanceItem

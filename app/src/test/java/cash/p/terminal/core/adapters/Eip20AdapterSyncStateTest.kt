@@ -50,7 +50,7 @@ class Eip20AdapterSyncStateTest {
         every { repository.forwardSyncState } returns MutableStateFlow(forwardSyncState)
         every { repository.transactionsSyncState } returns evmTxSyncState
         every { repository.getBlockchainType() } returns blockchainType
-        every { stackingManager.unpaidFlow } returns MutableStateFlow(BigDecimal.ZERO)
+        every { stackingManager.unpaidFlow(any()) } returns MutableStateFlow(BigDecimal.ZERO)
 
         return Eip20Adapter(
             context = context,
