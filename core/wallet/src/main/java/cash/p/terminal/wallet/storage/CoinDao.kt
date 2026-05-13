@@ -38,18 +38,23 @@ interface CoinDao {
     @Query("SELECT * FROM Coin")
     fun getAllCoins(): List<Coin>
 
+    @Transaction
     @RawQuery
     fun getFullCoins(query: SupportSQLiteQuery): List<FullCoinWrapper>
 
+    @Transaction
     @Query("SELECT * FROM Coin WHERE uid = :uid LIMIT 1")
     fun getFullCoin(uid: String): FullCoinWrapper?
 
+    @Transaction
     @Query("SELECT * FROM Coin WHERE uid IN (:uids)")
     fun getFullCoins(uids: List<String>): List<FullCoinWrapper>
 
+    @Transaction
     @RawQuery
     fun getToken(query: SupportSQLiteQuery): TokenWrapper?
 
+    @Transaction
     @RawQuery
     fun getTokens(filter: SimpleSQLiteQuery): List<TokenWrapper>
 
