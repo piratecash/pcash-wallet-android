@@ -29,7 +29,6 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
-import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.parcelize.Parcelize
 
@@ -37,8 +36,9 @@ class PublicViewKeyFragment : BaseComposeFragment(screenshotEnabled = false) {
 
     @Composable
     override fun GetContent(navController: NavController) {
-        val input = navController.getInput<Input>()!!
-        PublicViewKeyScreen(input, navController)
+        withInput<Input>(navController) { input ->
+            PublicViewKeyScreen(input, navController)
+        }
     }
 
     @Parcelize
