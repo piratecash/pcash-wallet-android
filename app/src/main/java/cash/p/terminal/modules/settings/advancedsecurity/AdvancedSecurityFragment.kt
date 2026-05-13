@@ -25,6 +25,7 @@ import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureReset
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsScreen
 import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTermsViewModel
+import cash.p.terminal.navigation.navigateSafely
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -54,13 +55,13 @@ private fun AdvancedSecurityNavHost(fragmentNavController: NavController) {
                 uiState = viewModel.uiState,
                 onCreateHiddenWalletClick = {
                     fragmentNavController.premiumAction {
-                        navController.navigate(AdvancedSecurityRoutes.HIDDEN_WALLET_TERM_SPAGE)
+                        navController.navigateSafely(AdvancedSecurityRoutes.HIDDEN_WALLET_TERM_SPAGE)
                     }
                 },
                 onSecureResetToggle = { enabled ->
                     if (enabled) {
                         fragmentNavController.premiumAction {
-                            navController.navigate(AdvancedSecurityRoutes.SECURE_RESET_TERMS_PAGE)
+                            navController.navigateSafely(AdvancedSecurityRoutes.SECURE_RESET_TERMS_PAGE)
                         }
                     } else {
                         fragmentNavController.authorizedAction {
