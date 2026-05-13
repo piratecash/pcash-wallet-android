@@ -128,10 +128,20 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var safetyRulesAgreed: Boolean
 
     fun getStackingUnpaid(coin: String, address: String): BigDecimal?
+    fun getStackingMint(coin: String, address: String): BigDecimal?
     fun getStackingNextAccrualAt(coin: String, address: String): String?
+    fun getStackingNextPayoutAt(coin: String, address: String): String?
     fun getStackingCachedBalance(coin: String, address: String): BigDecimal?
     fun getStackingTimestamp(coin: String, address: String): Long
-    fun saveStackingData(coin: String, address: String, unpaid: BigDecimal, nextAccrualAt: String?, balance: BigDecimal)
+    fun saveStackingData(
+        coin: String,
+        address: String,
+        unpaid: BigDecimal,
+        totalIncome: BigDecimal,
+        nextAccrualAt: String?,
+        nextPayoutAt: String?,
+        balance: BigDecimal,
+    )
 
     var isSystemPinRequired: Boolean
     // Login Logging properties inherited from ILoggingSettings
