@@ -31,6 +31,7 @@ internal fun AdvancedSecurityScreen(
     onCreateHiddenWalletClick: () -> Unit,
     onSecureResetToggle: (Boolean) -> Unit,
     onDeleteContactsToggle: (Boolean) -> Unit,
+    onCalculatorPinClick: () -> Unit,
     onClose: () -> Unit
 ) {
     Scaffold(
@@ -105,6 +106,26 @@ internal fun AdvancedSecurityScreen(
                     }
                 )
             )
+            VSpacer(16.dp)
+            CellUniversalLawrenceSection(
+                listOf({
+                    RowUniversal(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        onClick = onCalculatorPinClick,
+                    ) {
+                        body_leah(
+                            text = stringResource(R.string.calculator_pin_settings_title),
+                            maxLines = 1,
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Image(
+                            modifier = Modifier.size(20.dp),
+                            painter = painterResource(id = R.drawable.ic_arrow_right),
+                            contentDescription = null,
+                        )
+                    }
+                })
+            )
         }
     }
 }
@@ -116,11 +137,12 @@ private fun AdvancedSecurityScreenPreview() {
         AdvancedSecurityScreen(
             uiState = AdvancedSecurityUiState(
                 isSecureResetPinSet = false,
-                isDeleteContactsPinSet = false
+                isDeleteContactsPinSet = false,
             ),
             onCreateHiddenWalletClick = {},
             onSecureResetToggle = {},
             onDeleteContactsToggle = {},
+            onCalculatorPinClick = {},
             onClose = {}
         )
     }

@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.main
 
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -9,8 +10,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
+import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.wallet.Account
 import kotlinx.parcelize.Parcelize
@@ -24,23 +25,23 @@ object MainModule {
     }
 
     fun startAsNewTask(context: Context) {
-        val packageManager = context.packageManager
-        val intent = packageManager.getLaunchIntentForPackage(context.packageName)
-            ?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-
-        intent?.let {
-            context.startActivity(Intent.makeRestartActivityTask(intent.component))
-            Runtime.getRuntime().exit(0) // To recreate the process to fix keystore issues
-        }
+        val component = launcherComponent(context)
+        context.startActivity(Intent.makeRestartActivityTask(component))
+        Runtime.getRuntime().exit(0) // To recreate the process to fix keystore issues
     }
 
     fun startAsNewTask(context: Activity) {
-        val intent = Intent(context, MainActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val intent = Intent.makeRestartActivityTask(launcherComponent(context))
+        context.finishAndRemoveTask()
         context.startActivity(intent)
         context.overridePendingTransition(0, 0)
+    }
+
+    private fun launcherComponent(context: Context): ComponentName {
+        return ComponentName(
+            context.packageName,
+            (App.localStorage.appIcon ?: AppIcon.Main).launcherName
+        )
     }
 
     sealed class BadgeType {

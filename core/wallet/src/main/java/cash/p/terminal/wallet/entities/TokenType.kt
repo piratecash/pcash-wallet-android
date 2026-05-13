@@ -112,6 +112,18 @@ sealed class TokenType : Parcelable {
                     }
                 }
 
+                "stellar" -> {
+                    if (reference.isNotBlank()) {
+                        val dash = reference.indexOf('-')
+                        if (dash > 0 && dash < reference.length - 1) {
+                            return Asset(
+                                code = reference.substring(0, dash),
+                                issuer = reference.substring(dash + 1),
+                            )
+                        }
+                    }
+                }
+
                 "address_type" -> {
                     if (reference.isNotBlank()) {
                         try {

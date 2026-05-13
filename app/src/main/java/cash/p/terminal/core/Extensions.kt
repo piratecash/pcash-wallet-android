@@ -34,6 +34,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupFileValidator
 import cash.p.terminal.modules.main.MainActivity
+import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.topplatforms.Platform
 import cash.p.terminal.modules.premium.about.AboutPremiumFragment
 import cash.p.terminal.navigation.slideFromBottomForResult
@@ -47,6 +48,7 @@ import coil3.load
 import io.horizontalsystems.ethereumkit.core.toRawHexString
 import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.hodler.LockTimeInterval
+import kotlin.system.exitProcess
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,6 +58,7 @@ import org.koin.core.parameter.ParametersDefinition
 import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 import java.math.BigDecimal
+import java.net.URI
 import java.util.Locale
 import java.util.Optional
 
@@ -398,6 +401,19 @@ inline fun <T> tryOrNull(block: () -> T): T? {
     }
 }
 
+/**
+ * Returns the host of this URL string suitable for display (without the leading "www." prefix),
+ * or null when the string is not parseable as a URI or has no authority component
+ * (e.g. missing scheme like "example.com", opaque URIs like "mailto:..."), or when
+ * the URI constructor throws on a malformed input.
+ *
+ * Centralizes the safe-host extraction so call sites never touch the platform-typed
+ * java.net.URI.getHost() directly — that returns a non-null platform String that
+ * silently becomes null at runtime for any non-hierarchical URI.
+ */
+fun String.urlDisplayHostOrNull(): String? =
+    tryOrNull { URI(this).host?.removePrefix("www.")?.takeIf { it.isNotBlank() } }
+
 fun writeBackupToTempFile(data: ByteArray): String {
     val file = File.createTempFile("backup_", ".tmp", App.instance.cacheDir)
     file.writeBytes(data)
@@ -500,4 +516,9 @@ fun Activity.restartMain() {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
     startActivity(intent)
+}
+
+fun Activity.fullRestart() {
+    MainModule.startAsNewTask(this)
+    exitProcess(0)
 }

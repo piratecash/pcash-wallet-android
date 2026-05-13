@@ -1875,6 +1875,19 @@
         <item>Користувач розуміє, що якщо забуде свій PIN-код, гаманець можна відновити, знаючи його seed-фразу.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Безпечне скидання</string>
+    <string name="calculator_app_name">Калькулятор</string>
+    <string name="calculator_mode">Калькулятор</string>
+    <string name="calculator_pin_settings_title">PIN-код калькулятора</string>
+    <string name="calculator_pin_settings_intro">Застосунок виглядає та працює як звичайний калькулятор.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Увійти до гаманця можна двома способами:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">введіть свій PIN безпосередньо і натисніть «=» — наприклад, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">введіть будь-який вираз, результат якого дорівнює PIN, і натисніть «=» — наприклад, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">якщо ваш PIN починається з нуля — вводьте тільки значущі цифри. Наприклад, для PIN 000010 достатньо ввести 10 =</string>
+    <string name="calculator_pin_settings_throttle_invisible">Блокування за часом ніяк не відображається в калькуляторі. Калькулятор продовжує працювати у звичайному режимі — жодних повідомлень про помилку не з\'являється.</string>
+    <string name="calculator_pin_settings_outro">Для всіх це просто калькулятор.</string>
+    <string name="calculator_auto_lock_title">Блокування</string>
+    <string name="calculator_error_divide_by_zero">Не можна ділити на 0</string>
+    <string name="appearance_app_icon_premium">ПРЕМІУМ</string>
     <string name="SecureReset_Pin_Title">PIN-код безпечного скидання</string>
     <string name="SecureReset_Pin_Description">Створити PIN-код для безпечного скидання</string>
     <string name="SecureReset_Terms_Title">Умови</string>

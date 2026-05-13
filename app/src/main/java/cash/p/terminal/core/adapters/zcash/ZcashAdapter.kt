@@ -65,12 +65,12 @@ import io.horizontalsystems.core.logger.AppLogger
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -80,6 +80,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
@@ -380,6 +381,8 @@ class ZcashAdapter(
 
             importWatchAccountIfNeeded()
 
+        } catch (ex: CancellationException) {
+            throw ex
         } catch (ex: Exception) {
             // To prevent crash with synchronizer creation in some situations
             // when java.lang.IllegalStateException: Another synchronizer with SynchronizerKey
@@ -751,8 +754,15 @@ class ZcashAdapter(
                 eraseWithRetry()
                 corruptionRecovery.set(true)
                 createNewSynchronizer()
+                if (!isActive) {
+                    closeSynchronizer()
+                    return@launch
+                }
                 subscribe(synchronizer as SdkSynchronizer)
                 subscribeToStatus()
+            } catch (e: CancellationException) {
+                closeSynchronizer()
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Zcash database corruption recovery failed")
                 syncState = AdapterState.NotSynced(Exception("Recovery failed", e))
@@ -770,6 +780,8 @@ class ZcashAdapter(
             try {
                 Synchronizer.erase(App.instance, network, alias)
                 return
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: IllegalStateException) {
                 if (attempt < 2) {
                     val delayMs = 1000L * (attempt + 1)

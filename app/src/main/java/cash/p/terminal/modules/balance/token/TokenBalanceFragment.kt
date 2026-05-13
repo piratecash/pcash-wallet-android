@@ -90,6 +90,7 @@ class TokenBalanceFragment : BaseComposeFragment() {
     override fun onResume() {
         super.onResume()
         viewModel?.startStatusChecker()
+        viewModel?.onResume()
     }
 
     override fun onPause() {

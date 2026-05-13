@@ -32,6 +32,9 @@ import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsViewModel
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicViewModel
+import cash.p.terminal.modules.calculator.autolock.CalculatorAutoLockViewModel
+import cash.p.terminal.modules.calculator.lockscreen.CalculatorLockScreenViewModel
+import cash.p.terminal.modules.calculator.pinsettings.CalculatorPinSettingsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.DeleteContactsTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
@@ -120,6 +123,9 @@ val viewModelModule = module {
         BackupKeyViewModel(accountId = accountId, accountManager = get())
     }
     viewModelOf(::AdvancedSecurityViewModel)
+    viewModelOf(::CalculatorPinSettingsViewModel)
+    viewModelOf(::CalculatorAutoLockViewModel)
+    viewModel { CalculatorLockScreenViewModel(get(), get(), get()) }
     viewModelOf(::DeleteContactsTermsViewModel)
     viewModelOf(::HiddenWalletTermsViewModel)
     viewModelOf(::SecureResetTermsViewModel)

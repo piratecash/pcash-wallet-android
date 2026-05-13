@@ -1493,6 +1493,19 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
         <item>Kullanıcı, PIN kodunu unutursa, tohum ifadesini bilerek cüzdanı geri yükleyebileceğini anlar.</item>
     </string-array>
     <string name="AdvancedSecurity_SecureReset">Güvenli Sıfırlama</string>
+    <string name="calculator_app_name">Hesap Makinesi</string>
+    <string name="calculator_mode">Hesap Makinesi</string>
+    <string name="calculator_pin_settings_title">Hesap Makinesi PIN\'i</string>
+    <string name="calculator_pin_settings_intro">Uygulama, normal bir hesap makinesi gibi görünür ve çalışır.</string>
+    <string name="calculator_pin_settings_unlock_methods_title">Cüzdana girmenin iki yolu vardır:</string>
+    <string name="calculator_pin_settings_unlock_method_pin">PIN\'inizi doğrudan girin ve «=» tuşuna basın — örneğin, 1234 =</string>
+    <string name="calculator_pin_settings_unlock_method_expression">Sonucu PIN\'e eşit olan herhangi bir ifade girin ve «=» tuşuna basın — örneğin, 1000+234 =</string>
+    <string name="calculator_pin_settings_leading_zeros">PIN\'iniz sıfırla başlıyorsa — yalnızca anlamlı rakamları girin. Örneğin, PIN 000010 için 10 = girmek yeterlidir</string>
+    <string name="calculator_pin_settings_throttle_invisible">Süreye dayalı kilit hesap makinesinde gösterilmez. Hesap makinesi normal şekilde çalışmaya devam eder — herhangi bir hata mesajı görünmez.</string>
+    <string name="calculator_pin_settings_outro">Diğer herkes için bu yalnızca bir hesap makinesidir.</string>
+    <string name="calculator_auto_lock_title">Otomatik kilit</string>
+    <string name="calculator_error_divide_by_zero">0\'a bölünemez</string>
+    <string name="appearance_app_icon_premium">PREMIUM</string>
     <string name="SecureReset_Pin_Title">Güvenli Sıfırlama PIN\'i</string>
     <string name="SecureReset_Pin_Description">Güvenli Sıfırlama için PIN oluşturun</string>
     <string name="SecureReset_Terms_Title">Şartlar</string>

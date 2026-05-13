@@ -50,6 +50,7 @@ import cash.p.terminal.modules.pin.ConfirmPinFragment
 import cash.p.terminal.modules.pin.PinType
 import cash.p.terminal.modules.premium.smsnotification.SendSmsNotificationScreen
 import cash.p.terminal.modules.premium.smsnotification.SendSmsNotificationViewModel
+import cash.p.terminal.navigation.navigateSafely
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -131,7 +132,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 },
                 onPushNotificationsClick = {
                     fragmentNavController.premiumAction {
-                        navController.navigate(PremiumSettingsRoute.PushNotifications)
+                        navController.navigateSafely(PremiumSettingsRoute.PushNotifications)
                     }
                 },
                 onClose = fragmentNavController::popBackStackSafely
@@ -196,7 +197,7 @@ private fun PremiumSettingsNavHost(fragmentNavController: NavController) {
                 onSendLoginNotificationClick = {
                     fragmentNavController.premiumAction {
                         fragmentNavController.ensurePinSet(R.string.pin_set_for_login_logging) {
-                            navController.navigate(PremiumSettingsRoute.SendSmsNotification)
+                            navController.navigateSafely(PremiumSettingsRoute.SendSmsNotification)
                         }
                     }
                 },

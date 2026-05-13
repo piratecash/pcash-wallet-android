@@ -4,6 +4,7 @@ import android.util.Log
 import cash.p.terminal.R
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BaseTokenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
@@ -34,6 +35,7 @@ import cash.p.terminal.modules.settings.appearance.LaunchScreenService
 import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
 import cash.p.terminal.modules.theme.ThemeService
 import cash.p.terminal.modules.theme.ThemeType
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -46,6 +48,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.toRawHexString
 import kotlinx.coroutines.Dispatchers
@@ -390,9 +393,17 @@ class BackupProvider(
             blockchainSettingsStorage.save(settings.solanaSyncSource.name, BlockchainType.Solana)
         }
 
-        if (settings.appIcon != (localStorage.appIcon ?: AppIcon.Main).titleText) {
-            AppIcon.fromTitle(settings.appIcon)?.let { appIconService.setAppIcon(it) }
-        }
+        AppIcon.fromTitle(settings.appIcon)
+            ?.let(::sanitizeRestoredAppIcon)
+            ?.takeIf { it != (localStorage.appIcon ?: AppIcon.Main) }
+            ?.let { appIconService.setAppIcon(it) }
+    }
+
+    private fun sanitizeRestoredAppIcon(icon: AppIcon): AppIcon {
+        if (icon != AppIcon.Calculator) return icon
+        val premiumActive = getKoinInstance<CheckPremiumUseCase>().getPremiumType().isPremium()
+        val pinSet = getKoinInstance<IPinComponent>().isPinSet
+        return if (premiumActive && pinSet) icon else AppIcon.Main
     }
 
     private fun restoreChartSettings(

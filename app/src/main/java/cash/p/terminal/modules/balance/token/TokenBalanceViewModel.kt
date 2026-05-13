@@ -316,18 +316,13 @@ class TokenBalanceViewModel(
 
         if (isStakingCoin) {
             viewModelScope.launch {
-                stackingManager.unpaidFlow.collect { unpaid ->
-                    stakingUnpaid = unpaid?.let { value ->
+                stackingManager.infoFlow(wallet).collect { info ->
+                    stakingUnpaid = info?.unpaid?.let { value ->
                         if (value > BigDecimal.ZERO) {
                             numberFormatter.formatCoinShort(value, wallet.coin.code, wallet.decimal)
                         } else null
                     }
-                    emitState()
-                }
-            }
-            viewModelScope.launch {
-                stackingManager.nextAccrualAtFlow.collect { accrualAt ->
-                    nextAccrualAt = accrualAt
+                    nextAccrualAt = info?.nextAccrualAt
                     emitState()
                 }
             }
@@ -681,6 +676,19 @@ class TokenBalanceViewModel(
         adapterManager.refreshByWallet(wallet)
         delay(1000) // to show refresh indicator because `refreshByWallet` works asynchronously
         refreshing = false
+    }
+
+    fun onResume() {
+        if (!isStakingCoin) return
+        viewModelScope.launch {
+            val address = stakingAddress
+                ?: adapterManager.getReceiveAdapterForWallet(wallet)?.receiveAddress
+                ?: return@launch
+            stakingAddress = address
+            val balance = adapterManager.getBalanceAdapterForWallet(wallet)
+                ?.balanceData?.available
+            stackingManager.loadInvestmentData(wallet, address, balance)
+        }
     }
 
     override fun onCleared() {

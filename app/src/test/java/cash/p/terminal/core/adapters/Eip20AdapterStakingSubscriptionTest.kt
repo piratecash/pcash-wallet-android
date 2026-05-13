@@ -43,7 +43,7 @@ class Eip20AdapterStakingSubscriptionTest {
         every { evmTransactionRepository.buildErc20Kit(context, any()) } returns eip20Kit
         every { repositoryReceiveAddress.eip55 } returns receiveAddress
         every { evmTransactionRepository.receiveAddress } returns repositoryReceiveAddress
-        every { stackingManager.unpaidFlow } returns MutableStateFlow(BigDecimal.ZERO)
+        every { stackingManager.unpaidFlow(any()) } returns MutableStateFlow(BigDecimal.ZERO)
         every { eip20Kit.balanceFlowable } returns balanceProcessor
         every { eip20Kit.balance } returns BigInteger("100000000") // = 1.0 (decimal = 8)
     }

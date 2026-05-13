@@ -1,6 +1,7 @@
 package cash.p.terminal.wallet.providers
 
 import androidx.core.text.HtmlCompat
+import cash.p.terminal.network.data.EncodedSecrets
 import cash.p.terminal.network.piratenews.domain.repository.PirateNewsRepository
 import cash.p.terminal.wallet.models.Post
 import io.reactivex.Single
@@ -22,7 +23,14 @@ class CryptoCompareProvider(
     }
 
     fun postsSingle() = Single.merge(
-        handleNews(cryptoCompareService.news(excludeCategories, newsFeeds, extraParams)),
+        handleNews(
+            cryptoCompareService.news(
+                excludedCategories = excludeCategories,
+                feeds = newsFeeds,
+                extraParams = extraParams,
+                apiKey = EncodedSecrets.NEWS_API_KEY
+            )
+        ),
         getPirateNews()
     ).toList()
         .map { it.flatten().sortedByDescending { it.timestamp } }
@@ -60,6 +68,10 @@ class CryptoCompareProvider(
                 )
             }
         }.retryWhenError(Throwable::class)
+            .onErrorReturn { e ->
+                e.printStackTrace()
+                emptyList()
+            }
 
     interface CryptoCompareService {
         @GET("data/v2/news/")
@@ -67,6 +79,7 @@ class CryptoCompareProvider(
             @Query("excludedCategories") excludedCategories: String,
             @Query("feeds") feeds: String,
             @Query("extraParams") extraParams: String,
+            @Query("api_key") apiKey: String,
         ): Single<PostsResponse>
     }
 

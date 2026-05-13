@@ -10,6 +10,7 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
+import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -132,9 +133,13 @@ class TransactionMonitorTest {
     )
 
 
-    private fun mockWallet(blockchainType: BlockchainType): Wallet =
+    private fun mockWallet(
+        blockchainType: BlockchainType,
+        tokenQueryId: String = "",
+    ): Wallet =
         mockk(relaxed = true) {
             every { token.blockchainType } returns blockchainType
+            every { token.tokenQuery.id } returns tokenQueryId
         }
 
     private fun mockAdapter(
@@ -150,12 +155,18 @@ class TransactionMonitorTest {
         timestamp: Long,
         source: TransactionSource = bitcoinSource,
         mainValue: TransactionValue? = null,
+        tokenQueryId: String = "",
+        spam: Boolean = false,
+        transactionRecordType: TransactionRecordType = TransactionRecordType.BITCOIN_INCOMING,
     ): TransactionRecord = mockk(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { this@mockk.timestamp } returns timestamp
         every { this@mockk.source } returns source
         every { this@mockk.blockchainType } returns source.blockchain.type
         every { this@mockk.mainValue } returns mainValue
+        every { this@mockk.token.tokenQuery.id } returns tokenQueryId
+        every { this@mockk.spam } returns spam
+        every { this@mockk.transactionRecordType } returns transactionRecordType
     }
 
     @Test
@@ -224,7 +235,7 @@ class TransactionMonitorTest {
     fun processRecords_showFiatAmountEnabled_includesFiatInNotificationText() =
         runTest(StandardTestDispatcher()) {
             every { walletManager.activeWallets } returns listOf(
-                mockWallet(BlockchainType.Bitcoin)
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
             )
 
             val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
@@ -232,11 +243,12 @@ class TransactionMonitorTest {
             val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
             every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
 
-            val mainValue = mockk<TransactionValue>(relaxed = true) {
+            val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { coinCode } returns "BTC"
                 every { coinUid } returns "bitcoin"
                 every { decimalValue } returns BigDecimal("0.5")
                 every { decimals } returns 8
+                every { token.tokenQuery.id } returns "bitcoin|native"
             }
             val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
             val record = mockRecord(
@@ -284,7 +296,7 @@ class TransactionMonitorTest {
             every { localStorage.pushShowFiatAmount } returns false
 
             every { walletManager.activeWallets } returns listOf(
-                mockWallet(BlockchainType.Bitcoin)
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
             )
 
             val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
@@ -293,7 +305,11 @@ class TransactionMonitorTest {
             every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
 
             val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
-            val record = mockRecord(uid = "tx-2", timestamp = futureTimestamp)
+            val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
+            }
+            val record = mockRecord(uid = "tx-2", timestamp = futureTimestamp, mainValue = mainValue)
 
             val monitor = createMonitor()
             monitor.start(backgroundScope)
@@ -322,7 +338,7 @@ class TransactionMonitorTest {
             every { localStorage.pushShowFiatAmount } returns true
 
             every { walletManager.activeWallets } returns listOf(
-                mockWallet(BlockchainType.Bitcoin)
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
             )
 
             val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
@@ -331,11 +347,12 @@ class TransactionMonitorTest {
             every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
 
             val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
-            val mainValue = mockk<TransactionValue>(relaxed = true) {
+            val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { coinUid } returns "bitcoin"
                 every { coinCode } returns "BTC"
                 every { decimalValue } returns BigDecimal("1.0")
                 every { decimals } returns 8
+                every { token.tokenQuery.id } returns "bitcoin|native"
             }
             val record = mockRecord(uid = "tx-eur", timestamp = futureTimestamp, mainValue = mainValue)
 
@@ -427,6 +444,330 @@ class TransactionMonitorTest {
 
             verify(exactly = 0) {
                 notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_recordTokenNotInActiveWallets_doesNotShowNotification() =
+        runTest(StandardTestDispatcher()) {
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            val scamRecord = mockRecord(
+                uid = "scam-tx",
+                timestamp = futureTimestamp,
+                tokenQueryId = "binance-smart-chain|eip20|0xSCAM",
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(scamRecord))
+            runCurrent()
+
+            verify(exactly = 0) {
+                notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_evmStyleSpoofMainValue_doesNotShowNotification() =
+        runTest(StandardTestDispatcher()) {
+            // Production EVM/Tron/TON/Stellar adapters set record.token to the base/native
+            // token of the chain even for ERC20 transfers; the actual transferred token
+            // lives on mainValue. Filtering by record.token would let spoof tokens pass
+            // whenever the native wallet is enabled — this test guards against regression.
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val spoofMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "binance-smart-chain|eip20|0xSCAM"
+            }
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            // record.token mimics production: base/native token (matches active wallet),
+            // but mainValue carries the real (spoof) token.
+            val scamRecord = mockRecord(
+                uid = "scam-tx",
+                timestamp = futureTimestamp,
+                mainValue = spoofMainValue,
+                tokenQueryId = "bitcoin|native",
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(scamRecord))
+            runCurrent()
+
+            verify(exactly = 0) {
+                notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_inactiveTokenRecord_doesNotAdvanceDedupClock() =
+        runTest(StandardTestDispatcher()) {
+            // A spoof token record with a future timestamp must not advance the dedup clock,
+            // otherwise a later legitimate record on the same blockchain would be suppressed.
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val now = System.currentTimeMillis() / 1000
+            val futureTimestamp = now + 1000
+            val scamRecord = mockRecord(
+                uid = "scam-tx",
+                timestamp = futureTimestamp,
+                tokenQueryId = "bitcoin|brc20|0xSCAM",
+            )
+            val legitMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
+            }
+            val legitRecord = mockRecord(
+                uid = "legit-tx",
+                timestamp = now + 500,
+                mainValue = legitMainValue,
+                tokenQueryId = "bitcoin|native",
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(scamRecord))
+            runCurrent()
+            recordsFlow.emit(listOf(legitRecord))
+            runCurrent()
+
+            verify(exactly = 1) {
+                notificationManager.showTransactionNotification(
+                    recordUid = "legit-tx",
+                    title = any(),
+                    text = any(),
+                )
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_walletAddedAfterStart_notifiesForNewlyAddedTokenRecord() =
+        runTest(StandardTestDispatcher()) {
+            // activeTokenIds must be read per processRecords call so a wallet added
+            // on an already-monitored blockchain after start() is honored.
+            val initialWallets = listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+            val updatedWallets = initialWallets + mockWallet(
+                BlockchainType.Bitcoin,
+                tokenQueryId = "bitcoin|brc20|legit",
+            )
+            every { walletManager.activeWallets } returns initialWallets
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            // Now user adds the token manually after start()
+            every { walletManager.activeWallets } returns updatedWallets
+
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|brc20|legit"
+                every { decimalValue } returns BigDecimal.ONE
+            }
+            val record = mockRecord(
+                uid = "legit-tx",
+                timestamp = futureTimestamp,
+                mainValue = mainValue,
+                tokenQueryId = "bitcoin|brc20|legit",
+            )
+
+            recordsFlow.emit(listOf(record))
+            runCurrent()
+
+            verify(exactly = 1) {
+                notificationManager.showTransactionNotification(
+                    recordUid = "legit-tx",
+                    title = any(),
+                    text = any(),
+                )
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_spamFlaggedRecordForActiveToken_doesNotShowNotification() =
+        runTest(StandardTestDispatcher()) {
+            // Adapters mark scam/dust transfers with record.spam=true via SpamManager.
+            // Such records must never raise a notification, even when the carried
+            // token is in the user's active wallets (e.g. legit native wallet that
+            // received an unrelated dust/poisoning transfer).
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+            }
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            val spamRecord = mockRecord(
+                uid = "spam-tx",
+                timestamp = futureTimestamp,
+                mainValue = mainValue,
+                tokenQueryId = "bitcoin|native",
+                spam = true,
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(spamRecord))
+            runCurrent()
+
+            verify(exactly = 0) {
+                notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_zeroAmountTransferRecord_doesNotShowNotification() =
+        runTest(StandardTestDispatcher()) {
+            // Some adapters (e.g. EVM OutgoingEip20Decoration, Bitcoin/Solana incoming)
+            // don't set record.spam, so a zero-amount transfer can slip through the
+            // spam flag. SpamManager.shouldHide() hides such records in the transaction
+            // list — push notifications must do the same.
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val zeroMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ZERO
+            }
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            val zeroRecord = mockRecord(
+                uid = "zero-tx",
+                timestamp = futureTimestamp,
+                mainValue = zeroMainValue,
+                tokenQueryId = "bitcoin|native",
+                spam = false,
+                transactionRecordType = TransactionRecordType.BITCOIN_INCOMING,
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(zeroRecord))
+            runCurrent()
+
+            verify(exactly = 0) {
+                notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_spamFlaggedRecord_doesNotAdvanceDedupClock() =
+        runTest(StandardTestDispatcher()) {
+            // A future-timestamp spam record must not advance the dedup clock,
+            // otherwise a later legitimate record on the same blockchain would
+            // be suppressed.
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val now = System.currentTimeMillis() / 1000
+            val spamMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
+            }
+            val spamRecord = mockRecord(
+                uid = "spam-tx",
+                timestamp = now + 1000,
+                mainValue = spamMainValue,
+                tokenQueryId = "bitcoin|native",
+                spam = true,
+            )
+            val legitMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
+            }
+            val legitRecord = mockRecord(
+                uid = "legit-tx",
+                timestamp = now + 500,
+                mainValue = legitMainValue,
+                tokenQueryId = "bitcoin|native",
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(spamRecord))
+            runCurrent()
+            recordsFlow.emit(listOf(legitRecord))
+            runCurrent()
+
+            verify(exactly = 1) {
+                notificationManager.showTransactionNotification(
+                    recordUid = "legit-tx",
+                    title = any(),
+                    text = any(),
+                )
             }
 
             monitor.stop()

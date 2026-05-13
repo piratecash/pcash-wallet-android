@@ -856,6 +856,51 @@ class PoisonAddressManagerTest {
         assertEquals(PoisonStatus.CREATED, manager.getPoisonStatus(record))
     }
 
+    // --- Watch accounts: no signing key → cannot author transactions (MOBILE-664) ---
+
+    @Test
+    fun getPoisonStatus_watchAccountEvmSwap_returnsBlockchain() {
+        // Bug scenario: user adds their own address as a watch account.
+        // A PancakeSwap swap previously made from that address has `from == receiveAddress`,
+        // so `foreignTransaction` is false. With signing-key wallets this would correctly
+        // be CREATED, but a watch account has no key — it cannot have authored anything.
+        val record = createEvmRecord(
+            transactionRecordType = TransactionRecordType.EVM_SWAP,
+            exchangeAddress = "0xpancakeswap_router",
+            foreignTransaction = false,
+            isWatch = true,
+        )
+
+        assertEquals(PoisonStatus.BLOCKCHAIN, manager.getPoisonStatus(record))
+    }
+
+    @Test
+    fun getPoisonStatus_watchAccountEvmOutgoing_returnsBlockchain() {
+        val record = createEvmRecord(
+            to = "0xrecipient_address_aaa",
+            transactionRecordType = TransactionRecordType.EVM_OUTGOING,
+            foreignTransaction = false,
+            isWatch = true,
+        )
+
+        assertEquals(PoisonStatus.BLOCKCHAIN, manager.getPoisonStatus(record))
+    }
+
+    @Test
+    fun getPoisonStatus_watchAccountTronOutgoing_returnsBlockchain() {
+        every {
+            contactsRepository.getContactsFiltered(BlockchainType.Tron, addressQuery = any())
+        } returns emptyList()
+        val record = createTronRecord(
+            to = "trecipient_address_xxx",
+            transactionRecordType = TransactionRecordType.TRON_OUTGOING,
+            foreignTransaction = false,
+            isWatch = true,
+        )
+
+        assertEquals(PoisonStatus.BLOCKCHAIN, manager.getPoisonStatus(record))
+    }
+
     // --- Helpers ---
 
     private fun createEvmRecord(
@@ -866,6 +911,7 @@ class PoisonAddressManagerTest {
         outgoingEvents: List<TransferEvent>? = null,
         exchangeAddress: String? = null,
         foreignTransaction: Boolean = false,
+        isWatch: Boolean = false,
     ): EvmTransactionRecord {
         val evmTransaction = mockk<io.horizontalsystems.ethereumkit.models.Transaction>(relaxed = true) {
             every { hashString } returns "0xhash123"
@@ -883,6 +929,7 @@ class PoisonAddressManagerTest {
             }
             every { account } returns mockk(relaxed = true) {
                 every { id } returns accountId
+                every { isWatchAccount } returns isWatch
             }
         }
         return EvmTransactionRecord(
@@ -907,6 +954,7 @@ class PoisonAddressManagerTest {
         incomingEvents: List<TransferEvent>? = null,
         outgoingEvents: List<TransferEvent>? = null,
         foreignTransaction: Boolean = false,
+        isWatch: Boolean = false,
     ): TronTransactionRecord {
         val tronTransaction = mockk<io.horizontalsystems.tronkit.models.Transaction>(relaxed = true) {
             every { hashString } returns "tronhash123"
@@ -925,6 +973,7 @@ class PoisonAddressManagerTest {
             }
             every { account } returns mockk(relaxed = true) {
                 every { id } returns accountId
+                every { isWatchAccount } returns isWatch
             }
         }
         return TronTransactionRecord(

@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -41,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.toSpanned
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import cash.p.terminal.featureStacking.R
 import cash.p.terminal.featureStacking.data.toAnnotatedString
 import cash.p.terminal.featureStacking.ui.staking.StackingType
@@ -83,7 +83,10 @@ internal fun StackingCoinScreen(
     viewModel: StackingCoinViewModel,
     chartViewModel: StackingCoinChartViewModel
 ) {
-    LaunchedEffect(viewModel) { viewModel.loadData() }
+    LifecycleResumeEffect(viewModel) {
+        val job = viewModel.loadData()
+        onPauseOrDispose { job.cancel() }
+    }
     LaunchedEffect(viewModel.uiState.value.receiveAddress) {
         viewModel.uiState.value.receiveAddress?.let(chartViewModel::setReceiveAddress)
     }

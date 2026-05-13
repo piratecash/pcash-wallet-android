@@ -4,7 +4,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
-import cash.p.terminal.wallet.entities.EnabledWallet
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.entities.TokenQuery
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
@@ -24,9 +24,10 @@ class TonAccountManager(
     private val tonKitManager: TonKitManager,
     private val tokenAutoEnableManager: TokenAutoEnableManager,
     private val userDeletedWalletManager: UserDeletedWalletManager,
+    private val marketKit: MarketKitWrapper,
 ) {
     private val blockchainType: BlockchainType = BlockchainType.Ton
-    private val logger = AppLogger("evm-account-manager")
+    private val logger = AppLogger("ton-account-manager")
     private val singleDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     private val singleDispatcherCoroutineScope = CoroutineScope(singleDispatcher)
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
@@ -97,8 +98,8 @@ class TonAccountManager(
                     }
                 }
                 action.jettonSwap?.let {
-                    it.jettonMasterIn?.let {
-                        jettons.add(it)
+                    it.jettonMasterIn?.let { jetton ->
+                        jettons.add(jetton)
                     }
                 }
             }
@@ -107,31 +108,34 @@ class TonAccountManager(
         handle(jettons, account)
     }
 
-    private suspend fun handle(jettons: Set<Jetton>, account: Account) {
+    internal suspend fun handle(jettons: Set<Jetton>, account: Account) {
         if (jettons.isEmpty()) return
 
-        val existingWallets = walletManager.activeWallets
-        val existingTokenTypeIds = existingWallets.map { it.token.type.id }
-        val newJettons = jettons.filter { !existingTokenTypeIds.contains(it.tokenType.id) }
+        val existingTokenTypeIds = walletManager.activeWallets.map { it.token.type.id }
+        val newJettonTypes = jettons
+            .map { it.tokenType }
+            .filter { it.id !in existingTokenTypeIds }
 
-        if (newJettons.isEmpty()) return
+        if (newJettonTypes.isEmpty()) return
 
-        val enabledWallets = newJettons
-            .mapNotNull { jetton ->
-                val tokenQueryId = TokenQuery(BlockchainType.Ton, jetton.tokenType).id
-                if (userDeletedWalletManager.isDeletedByUser(account.id, tokenQueryId)) {
-                    return@mapNotNull null
-                }
+        val tokenInfos = try {
+            val queries = newJettonTypes.map { TokenQuery(blockchainType, it) }
+            val knownTokens = marketKit.tokensChunked(queries)
+            filterKnownAutoEnableTokens(newJettonTypes, knownTokens)
+        } catch (ex: Exception) {
+            logger.warning("marketKit lookup failed", ex)
+            return
+        }
 
-                EnabledWallet(
-                    tokenQueryId = tokenQueryId,
-                    accountId = account.id,
-                    coinName = jetton.name,
-                    coinCode = jetton.symbol,
-                    coinDecimals = jetton.decimals,
-                    coinImage = jetton.image
-                )
-            }
+        if (tokenInfos.isEmpty()) return
+
+        val enabledWallets = tokenInfos.toEnabledWallets(
+            accountId = account.id,
+            blockchainType = blockchainType,
+            userDeletedWalletManager = userDeletedWalletManager,
+        )
+
+        if (enabledWallets.isEmpty()) return
 
         walletManager.saveEnabledWallets(enabledWallets)
     }

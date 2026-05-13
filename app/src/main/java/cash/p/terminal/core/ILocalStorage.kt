@@ -11,6 +11,7 @@ import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.market.favorites.WatchlistSorting
+import cash.p.terminal.modules.calculator.domain.CalculatorAutoLockOption
 import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
 import cash.p.terminal.modules.settings.security.autolock.AutoLockInterval
@@ -77,6 +78,15 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var launchPage: LaunchPage?
     var appIcon: AppIcon?
     val appIconRaw: String?
+    var isCalculatorModeEnabled: Boolean
+    val isCalculatorModeEnabledFlow: StateFlow<Boolean>
+    var calculatorModeCreatedPin: Boolean
+    var previousAppIconName: String?
+    var calculatorThrottleTokens: Int
+    var calculatorThrottleLastUptime: Long
+    var calculatorThrottleLastWallClock: Long
+    var calculatorAutoLockOption: CalculatorAutoLockOption
+    val calculatorAutoLockOptionFlow: StateFlow<CalculatorAutoLockOption>
     var mainTab: MainModule.MainNavigation?
     var marketFavoritesSorting: WatchlistSorting?
     var marketFavoritesShowSignals: Boolean
@@ -118,10 +128,20 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var safetyRulesAgreed: Boolean
 
     fun getStackingUnpaid(coin: String, address: String): BigDecimal?
+    fun getStackingMint(coin: String, address: String): BigDecimal?
     fun getStackingNextAccrualAt(coin: String, address: String): String?
+    fun getStackingNextPayoutAt(coin: String, address: String): String?
     fun getStackingCachedBalance(coin: String, address: String): BigDecimal?
     fun getStackingTimestamp(coin: String, address: String): Long
-    fun saveStackingData(coin: String, address: String, unpaid: BigDecimal, nextAccrualAt: String?, balance: BigDecimal)
+    fun saveStackingData(
+        coin: String,
+        address: String,
+        unpaid: BigDecimal,
+        totalIncome: BigDecimal,
+        nextAccrualAt: String?,
+        nextPayoutAt: String?,
+        balance: BigDecimal,
+    )
 
     var isSystemPinRequired: Boolean
     // Login Logging properties inherited from ILoggingSettings

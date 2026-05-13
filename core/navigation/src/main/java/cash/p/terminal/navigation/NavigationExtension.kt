@@ -13,31 +13,46 @@ import androidx.navigation.NavOptions
 import java.util.UUID
 
 private const val BACK_NAVIGATION_COOLDOWN_MS = 650L
+private const val FORWARD_NAVIGATION_COOLDOWN_MS = 300L
 
-fun NavController.navigateUpSafely(): Boolean = whenResumedAndBackNavigationAllowed { navigateUp() }
+fun NavController.navigateUpSafely(): Boolean =
+    whenResumedAndNavigationAllowed(BackNavigationGate) { navigateUp() }
 
 fun NavController.popBackStackSafely(): Boolean =
-    whenResumedAndBackNavigationAllowed { popBackStack() }
+    whenResumedAndNavigationAllowed(BackNavigationGate) { popBackStack() }
 
-private inline fun NavController.whenResumedAndBackNavigationAllowed(
+fun NavController.navigateSafely(route: String): Boolean =
+    whenResumedAndNavigationAllowed(ForwardNavigationGate) {
+        navigate(route)
+        true
+    }
+
+fun NavController.navigateSafely(route: Any): Boolean =
+    whenResumedAndNavigationAllowed(ForwardNavigationGate) {
+        navigate(route)
+        true
+    }
+
+private inline fun NavController.whenResumedAndNavigationAllowed(
+    gate: NavigationGate,
     block: NavController.() -> Boolean
 ): Boolean {
     if (currentBackStackEntry?.lifecycle?.currentState != Lifecycle.State.RESUMED) return false
-    if (!BackNavigationGate.acquire()) return false
+    if (!gate.acquire()) return false
 
     return block().also { navigated ->
-        if (!navigated) BackNavigationGate.release()
+        if (!navigated) gate.release()
     }
 }
 
-private object BackNavigationGate {
+private class NavigationGate(private val cooldownMs: Long) {
     private var lockedUntil = 0L
 
     fun acquire(): Boolean {
         val now = SystemClock.elapsedRealtime()
         if (now < lockedUntil) return false
 
-        lockedUntil = now + BACK_NAVIGATION_COOLDOWN_MS
+        lockedUntil = now + cooldownMs
         return true
     }
 
@@ -45,6 +60,9 @@ private object BackNavigationGate {
         lockedUntil = 0L
     }
 }
+
+private val BackNavigationGate = NavigationGate(BACK_NAVIGATION_COOLDOWN_MS)
+private val ForwardNavigationGate = NavigationGate(FORWARD_NAVIGATION_COOLDOWN_MS)
 
 fun NavController.slideFromRight(directions: NavDirections) {
     val navOptions = NavOptions.Builder()

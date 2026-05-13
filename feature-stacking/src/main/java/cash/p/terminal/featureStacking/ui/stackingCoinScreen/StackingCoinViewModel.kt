@@ -119,7 +119,7 @@ internal abstract class StackingCoinViewModel(
     fun loadData() = viewModelScope.launch {
         createWalletIfNotExist()
         loadAnnualInterest()
-        viewModelScope.launch {
+        launch {
             balanceService.balanceItemsFlow.collect { items ->
                 if (items?.find {
                         it.state == AdapterState.Synced && it.wallet.token.type is TokenType.Eip20 &&

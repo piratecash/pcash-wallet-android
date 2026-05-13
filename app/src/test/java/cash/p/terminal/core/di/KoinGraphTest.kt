@@ -28,7 +28,6 @@ import io.horizontalsystems.core.IPinComponent
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import io.mockk.mockk
-import org.junit.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.KoinInternalApi
@@ -43,6 +42,7 @@ import org.koin.test.verify.ParameterTypeInjection
 import org.koin.test.verify.definition
 import org.koin.test.verify.injectedParameters
 import org.koin.test.verify.verify
+import org.junit.Test
 import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KVisibility
@@ -91,7 +91,7 @@ class KoinGraphTest : KoinTest {
     @OptIn(KoinExperimentalAPI::class, KoinInternalApi::class)
     private fun Module.verifyOptionalConstructorParametersAreResolvable(
         extraTypes: List<KClass<*>>,
-        injections: List<ParameterTypeInjection>,
+        injections: List<ParameterTypeInjection>
     ) {
         val allModules = flatten(includedModules.toList()) + this
         val definitionIndex = allModules.flatMap { it.mappings.keys }.toSet()
@@ -148,6 +148,7 @@ class KoinGraphTest : KoinTest {
 
     private fun BeanDefinition<*>.isConstructorReferenceDefinition(): Boolean {
         val definitionClassName = definition.javaClass.name
+        // Explicit Koin lambdas can choose which constructor parameters to pass; constructor DSL cannot.
         return constructorReferenceMarkers.any(definitionClassName::contains)
     }
 

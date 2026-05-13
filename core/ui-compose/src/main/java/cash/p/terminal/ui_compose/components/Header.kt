@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.ui_compose.R
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -133,10 +134,13 @@ fun HeaderSorting(
 }
 
 @Composable
-fun PremiumHeader() {
+fun PremiumHeader(
+    text: String = stringResource(R.string.premium_title),
+    horizontalPadding: Dp = 32.dp,
+) {
     Row(
         modifier = Modifier
-            .padding(horizontal = 32.dp)
+            .padding(horizontal = horizontalPadding)
             .height(32.dp)
             .padding(top = 1.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -150,7 +154,7 @@ fun PremiumHeader() {
             contentDescription = null,
         )
         subhead1_jacob(
-            text = stringResource(R.string.premium_title),
+            text = text,
             maxLines = 1
         )
     }

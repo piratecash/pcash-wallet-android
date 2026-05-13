@@ -53,7 +53,6 @@ import cash.p.terminal.modules.market.favorites.MarketFavoritesMenuService
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsRepository
 import cash.p.terminal.modules.market.topnftcollections.TopNftCollectionsViewItemFactory
 import cash.p.terminal.modules.market.topplatforms.TopPlatformsRepository
-import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.settings.appearance.LaunchScreenService
 import cash.p.terminal.modules.theme.ThemeService
 import cash.p.terminal.modules.theme.ThemeType
@@ -212,7 +211,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
                 evmBlockchainManager = evmBlockchainManager,
                 marketFavoritesManager = marketFavoritesManager,
                 balanceViewTypeManager = balanceViewTypeManager,
-                appIconService = AppIconService(localStorage),
+                appIconService = getKoinInstance(),
                 themeService = ThemeService(localStorage),
                 chartIndicatorManager = chartIndicatorManager,
                 chartIndicatorSettingsDao = appDatabase.chartIndicatorSettingsDao(),
@@ -470,13 +469,21 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             initCipherForMonero()
 
             TronAccountManager(
-                accountManager, walletManager, marketKit, tronKitManager,
-                tokenAutoEnableManager, get()
+                accountManager = accountManager,
+                walletManager = walletManager,
+                marketKit = get(),
+                tronKitManager = tronKitManager,
+                tokenAutoEnableManager = tokenAutoEnableManager,
+                userDeletedWalletManager = get()
             ).start()
 
             TonAccountManager(
-                accountManager, walletManager, tonKitManager,
-                tokenAutoEnableManager, get()
+                accountManager = accountManager,
+                walletManager = walletManager,
+                tonKitManager = tonKitManager,
+                tokenAutoEnableManager = tokenAutoEnableManager,
+                userDeletedWalletManager = get(),
+                marketKit = get()
             ).start()
 
             StellarAccountManager(
@@ -484,7 +491,8 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
                 walletManager = walletManager,
                 stellarKitManager = get(),
                 tokenAutoEnableManager = tokenAutoEnableManager,
-                userDeletedWalletManager = get()
+                userDeletedWalletManager = get(),
+                marketKit = get()
             ).start()
 
             wcWalletRequestHandler = WCWalletRequestHandler(evmBlockchainManager)
