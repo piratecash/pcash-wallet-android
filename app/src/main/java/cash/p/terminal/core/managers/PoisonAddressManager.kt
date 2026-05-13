@@ -55,12 +55,16 @@ class PoisonAddressManager(
 
     fun getPoisonStatus(record: TransactionRecord): PoisonStatus {
         val blockchainType = record.source.blockchain.type
-        val accountId = record.source.account.id
+        val account = record.source.account
+        val accountId = account.id
         val outgoing = isOutgoing(record)
 
         val relevantAddress = getRelevantAddress(record, outgoing)
 
-        val isCreatedByWallet = when (record) {
+        // Watch accounts have no signing key — they observe the chain, they cannot
+        // author transactions. Any tx visible at a watched address came from outside,
+        // even if `from` equals the watched address.
+        val isCreatedByWallet = !account.isWatchAccount && when (record) {
             is EvmTransactionRecord -> outgoing && !record.foreignTransaction
             is TronTransactionRecord -> outgoing && !record.foreignTransaction
             else -> false
