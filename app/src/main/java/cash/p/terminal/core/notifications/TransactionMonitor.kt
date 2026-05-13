@@ -5,6 +5,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
+import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import cash.p.terminal.entities.TransactionValue
@@ -195,7 +196,7 @@ class TransactionMonitor(
         // they mean the chain produced an event we can't map to a known token, so
         // those records are dropped too.
         val activeRecords = records.filter { record ->
-            if (record.spam) return@filter false
+            if (record.spam || SpamManager.isZeroAmountTransfer(record)) return@filter false
             val tokenId = record.actualTokenQueryId() ?: return@filter false
             tokenId in activeTokenIds
         }

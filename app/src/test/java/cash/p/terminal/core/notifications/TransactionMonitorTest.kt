@@ -10,6 +10,7 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
+import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.modules.premium.settings.PollingInterval
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -156,6 +157,7 @@ class TransactionMonitorTest {
         mainValue: TransactionValue? = null,
         tokenQueryId: String = "",
         spam: Boolean = false,
+        transactionRecordType: TransactionRecordType = TransactionRecordType.BITCOIN_INCOMING,
     ): TransactionRecord = mockk(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { this@mockk.timestamp } returns timestamp
@@ -164,6 +166,7 @@ class TransactionMonitorTest {
         every { this@mockk.mainValue } returns mainValue
         every { this@mockk.token.tokenQuery.id } returns tokenQueryId
         every { this@mockk.spam } returns spam
+        every { this@mockk.transactionRecordType } returns transactionRecordType
     }
 
     @Test
@@ -304,6 +307,7 @@ class TransactionMonitorTest {
             val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
             val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
             }
             val record = mockRecord(uid = "tx-2", timestamp = futureTimestamp, mainValue = mainValue)
 
@@ -544,6 +548,7 @@ class TransactionMonitorTest {
             )
             val legitMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
             }
             val legitRecord = mockRecord(
                 uid = "legit-tx",
@@ -601,6 +606,7 @@ class TransactionMonitorTest {
             val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
             val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { token.tokenQuery.id } returns "bitcoin|brc20|legit"
+                every { decimalValue } returns BigDecimal.ONE
             }
             val record = mockRecord(
                 uid = "legit-tx",
@@ -666,6 +672,50 @@ class TransactionMonitorTest {
         }
 
     @Test
+    fun processRecords_zeroAmountTransferRecord_doesNotShowNotification() =
+        runTest(StandardTestDispatcher()) {
+            // Some adapters (e.g. EVM OutgoingEip20Decoration, Bitcoin/Solana incoming)
+            // don't set record.spam, so a zero-amount transfer can slip through the
+            // spam flag. SpamManager.shouldHide() hides such records in the transaction
+            // list — push notifications must do the same.
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val zeroMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ZERO
+            }
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            val zeroRecord = mockRecord(
+                uid = "zero-tx",
+                timestamp = futureTimestamp,
+                mainValue = zeroMainValue,
+                tokenQueryId = "bitcoin|native",
+                spam = false,
+                transactionRecordType = TransactionRecordType.BITCOIN_INCOMING,
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(zeroRecord))
+            runCurrent()
+
+            verify(exactly = 0) {
+                notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
     fun processRecords_spamFlaggedRecord_doesNotAdvanceDedupClock() =
         runTest(StandardTestDispatcher()) {
             // A future-timestamp spam record must not advance the dedup clock,
@@ -683,6 +733,7 @@ class TransactionMonitorTest {
             val now = System.currentTimeMillis() / 1000
             val spamMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
             }
             val spamRecord = mockRecord(
                 uid = "spam-tx",
@@ -693,6 +744,7 @@ class TransactionMonitorTest {
             )
             val legitMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
                 every { token.tokenQuery.id } returns "bitcoin|native"
+                every { decimalValue } returns BigDecimal.ONE
             }
             val legitRecord = mockRecord(
                 uid = "legit-tx",
