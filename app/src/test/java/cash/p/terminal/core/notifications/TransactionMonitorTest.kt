@@ -155,6 +155,7 @@ class TransactionMonitorTest {
         source: TransactionSource = bitcoinSource,
         mainValue: TransactionValue? = null,
         tokenQueryId: String = "",
+        spam: Boolean = false,
     ): TransactionRecord = mockk(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { this@mockk.timestamp } returns timestamp
@@ -162,6 +163,7 @@ class TransactionMonitorTest {
         every { this@mockk.blockchainType } returns source.blockchain.type
         every { this@mockk.mainValue } returns mainValue
         every { this@mockk.token.tokenQuery.id } returns tokenQueryId
+        every { this@mockk.spam } returns spam
     }
 
     @Test
@@ -608,6 +610,104 @@ class TransactionMonitorTest {
             )
 
             recordsFlow.emit(listOf(record))
+            runCurrent()
+
+            verify(exactly = 1) {
+                notificationManager.showTransactionNotification(
+                    recordUid = "legit-tx",
+                    title = any(),
+                    text = any(),
+                )
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_spamFlaggedRecordForActiveToken_doesNotShowNotification() =
+        runTest(StandardTestDispatcher()) {
+            // Adapters mark scam/dust transfers with record.spam=true via SpamManager.
+            // Such records must never raise a notification, even when the carried
+            // token is in the user's active wallets (e.g. legit native wallet that
+            // received an unrelated dust/poisoning transfer).
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val mainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+            }
+            val futureTimestamp = System.currentTimeMillis() / 1000 + 1000
+            val spamRecord = mockRecord(
+                uid = "spam-tx",
+                timestamp = futureTimestamp,
+                mainValue = mainValue,
+                tokenQueryId = "bitcoin|native",
+                spam = true,
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(spamRecord))
+            runCurrent()
+
+            verify(exactly = 0) {
+                notificationManager.showTransactionNotification(any(), any(), any())
+            }
+
+            monitor.stop()
+        }
+
+    @Test
+    fun processRecords_spamFlaggedRecord_doesNotAdvanceDedupClock() =
+        runTest(StandardTestDispatcher()) {
+            // A future-timestamp spam record must not advance the dedup clock,
+            // otherwise a later legitimate record on the same blockchain would
+            // be suppressed.
+            every { walletManager.activeWallets } returns listOf(
+                mockWallet(BlockchainType.Bitcoin, tokenQueryId = "bitcoin|native")
+            )
+
+            val recordsFlow = MutableSharedFlow<List<TransactionRecord>>()
+            val adapter = mockAdapter(recordsFlow)
+            val adaptersFlow = MutableStateFlow(mapOf(bitcoinSource to adapter))
+            every { transactionAdapterManager.adaptersReadyFlow } returns adaptersFlow
+
+            val now = System.currentTimeMillis() / 1000
+            val spamMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+            }
+            val spamRecord = mockRecord(
+                uid = "spam-tx",
+                timestamp = now + 1000,
+                mainValue = spamMainValue,
+                tokenQueryId = "bitcoin|native",
+                spam = true,
+            )
+            val legitMainValue = mockk<TransactionValue.CoinValue>(relaxed = true) {
+                every { token.tokenQuery.id } returns "bitcoin|native"
+            }
+            val legitRecord = mockRecord(
+                uid = "legit-tx",
+                timestamp = now + 500,
+                mainValue = legitMainValue,
+                tokenQueryId = "bitcoin|native",
+            )
+
+            val monitor = createMonitor()
+            monitor.start(backgroundScope)
+            runCurrent()
+
+            recordsFlow.emit(listOf(spamRecord))
+            runCurrent()
+            recordsFlow.emit(listOf(legitRecord))
             runCurrent()
 
             verify(exactly = 1) {

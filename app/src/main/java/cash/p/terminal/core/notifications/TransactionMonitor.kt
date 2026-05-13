@@ -195,6 +195,7 @@ class TransactionMonitor(
         // they mean the chain produced an event we can't map to a known token, so
         // those records are dropped too.
         val activeRecords = records.filter { record ->
+            if (record.spam) return@filter false
             val tokenId = record.actualTokenQueryId() ?: return@filter false
             tokenId in activeTokenIds
         }
