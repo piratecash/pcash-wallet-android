@@ -12,12 +12,12 @@ For each release we publish the following artifacts:
 - `p.cash-<version>.apk.sha256.asc` - detached GPG signature of the checksum file
 - `piratecash-release-public-key.asc` - maintainer public GPG key (for verification)
 
-Example (v0.51.15):
+Example (v0.55.0):
 
-- `p.cash-0.51.15.apk`
-- `p.cash-0.51.15.apk.asc`
-- `p.cash-0.51.15.apk.sha256`
-- `p.cash-0.51.15.apk.sha256.asc`
+- `p.cash-0.55.0.apk`
+- `p.cash-0.55.0.apk.asc`
+- `p.cash-0.55.0.apk.sha256`
+- `p.cash-0.55.0.apk.sha256.asc`
 
 ## Maintainer public key
 
@@ -66,38 +66,71 @@ This only changes the output filename. It does not require GPG and is safe for o
 
 > Signing is performed on the release machine or in CI where the maintainer GPG key is available.
 
-From the project root:
+Use [`tools/sign-release-apk.sh`](tools/sign-release-apk.sh) to generate all
+release signing artifacts for the version currently defined in `app/build.gradle`.
+
+### Script usage
+
+Build the release APK first:
+
+```bash
+./gradlew :app:assembleRelease
+```
+
+Then run the signing script from the project root:
+
+```bash
+tools/sign-release-apk.sh
+```
+
+The script reads `versionName` from `app/build.gradle`, expects the release APK
+at `app/build/outputs/apk/release/p.cash-<version>.apk`, then creates:
+
+- `p.cash-<version>.apk.asc`
+- `p.cash-<version>.apk.sha256`
+- `p.cash-<version>.apk.sha256.asc`
+
+For the current release, `versionName` is `0.55.0`, so the expected APK is:
+
+```bash
+app/build/outputs/apk/release/p.cash-0.55.0.apk
+```
+
+Useful options:
+
+```bash
+# Print the commands without creating files
+tools/sign-release-apk.sh --dry-run
+
+# Use a different GPG key
+tools/sign-release-apk.sh --key-id A6F0CB1BB25FFE99
+GPG_KEY_ID=A6F0CB1BB25FFE99 tools/sign-release-apk.sh
+
+# Read the APK from a different directory
+tools/sign-release-apk.sh --apk-dir /path/to/release
+
+# Show script help
+tools/sign-release-apk.sh --help
+```
+
+Manual equivalent for release `0.55.0`:
 
 ```bash
 # 1) Sign APK (detached signature)
 gpg --local-user A6F0CB1BB25FFE99 \
   --armor --detach-sign \
-  --output app/build/outputs/apk/release/p.cash-0.51.15.apk.asc \
-  app/build/outputs/apk/release/p.cash-0.51.15.apk
+  --output app/build/outputs/apk/release/p.cash-0.55.0.apk.asc \
+  app/build/outputs/apk/release/p.cash-0.55.0.apk
 
 # 2) Create SHA-256 checksum file
 cd app/build/outputs/apk/release
-shasum -a 256 p.cash-0.51.15.apk > p.cash-0.51.15.apk.sha256
+shasum -a 256 p.cash-0.55.0.apk > p.cash-0.55.0.apk.sha256
 
 # 3) Sign checksum file (detached signature)
 gpg --local-user A6F0CB1BB25FFE99 \
   --armor --detach-sign \
-  --output p.cash-0.51.15.apk.sha256.asc \
-  p.cash-0.51.15.apk.sha256
-```
-
-### Tip: avoid hardcoding the APK name in scripts
-
-If you want a script that automatically signs the APK for the current version, pass the version as an argument:
-
-```bash
-VERSION="0.51.15"
-APK="app/build/outputs/apk/release/p.cash-${VERSION}.apk"
-
-gpg --local-user A6F0CB1BB25FFE99 --armor --detach-sign --output "${APK}.asc" "${APK}"
-cd "$(dirname "${APK}")"
-shasum -a 256 "$(basename "${APK}")" > "$(basename "${APK}").sha256"
-gpg --local-user A6F0CB1BB25FFE99 --armor --detach-sign --output "$(basename "${APK}").sha256.asc" "$(basename "${APK}").sha256"
+  --output p.cash-0.55.0.apk.sha256.asc \
+  p.cash-0.55.0.apk.sha256
 ```
 
 ## How to verify a release (users)
@@ -128,7 +161,7 @@ Expected fingerprint:
 ### 3) Verify the APK signature
 
 ```bash
-gpg --verify p.cash-0.51.15.apk.asc p.cash-0.51.15.apk
+gpg --verify p.cash-0.55.0.apk.asc p.cash-0.55.0.apk
 ```
 
 You should see a message like:
@@ -140,14 +173,14 @@ Good signature from "Dmitriy Korniychuk <dmitriy@korniychuk.org.ua>"
 ### 4) Verify the SHA-256 checksum (optional, recommended)
 
 ```bash
-gpg --verify p.cash-0.51.15.apk.sha256.asc p.cash-0.51.15.apk.sha256
-shasum -a 256 -c p.cash-0.51.15.apk.sha256
+gpg --verify p.cash-0.55.0.apk.sha256.asc p.cash-0.55.0.apk.sha256
+shasum -a 256 -c p.cash-0.55.0.apk.sha256
 ```
 
 Expected output:
 
 ```
-p.cash-0.51.15.apk: OK
+p.cash-0.55.0.apk: OK
 ```
 
 If these checks pass, the APK is authentic and has not been tampered with.
