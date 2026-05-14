@@ -20,6 +20,10 @@ See the full verification guide:
 
 📄 [RELEASE_SIGNING_AND_VERIFICATION.md](./RELEASE_SIGNING_AND_VERIFICATION.md)
 
+## Release Notes
+
+Current changelogs and the archived bilingual release notes index are available in [release-notes/README.md](./release-notes/README.md).
+
 ## Supported Android Versions
 
 Devices with Android versions 8.1 and above
