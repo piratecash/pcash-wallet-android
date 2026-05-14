@@ -597,7 +597,7 @@
     <string name="unsupported_refund_address">Unsupported refund address</string>
     <string name="unsupported_address">Unsupported address</string>
     <string name="unexpected_error">Unexpected error</string>
-    <string name="unsupported_token">Unsupported token</string>
+    <string name="unsupported_token">Nicht unterstützter Token</string>
     <string name="zec_transparent_used">Beim Erstellen des Austauschs wird eine temporäre t-Adresse verwendet: %s. Sie wird an den Austauschdienst übermittelt und ist erforderlich für eine Rückerstattung, falls der Austausch nicht abgeschlossen wird. Die Verwendung einer t-Adresse kann zu einer teilweisen Deanonymisierung der Transaktion führen.</string>
     <!-- Swap Settings -->
     <string name="SwapSettings_Title">Swap-Einstellungen</string>

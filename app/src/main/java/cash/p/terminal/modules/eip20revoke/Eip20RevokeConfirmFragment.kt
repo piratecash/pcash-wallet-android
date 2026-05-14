@@ -3,6 +3,7 @@ package cash.p.terminal.modules.eip20revoke
 import android.os.Parcelable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,17 +70,27 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
         ?: return
 
     val uiState = viewModel.uiState
+    val view = LocalView.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is Eip20RevokeConfirmViewModel.Event.ShowError -> {
+                    HudHelper.showErrorMessage(view, event.message)
+                }
+            }
+        }
+    }
 
     ConfirmTransactionScreen(
         onClickBack = navController::popBackStackSafely,
         onClickSettings = {
-            navController.slideFromRight(R.id.eip20RevokeTransactionSettingsFragment)
+            navController.slideFromRight(R.id.eip20RevokeTransactionSettingsFragment, input)
         },
         onClickClose = navController::popBackStackSafely,
         buttonsSlot = {
             val coroutineScope = rememberCoroutineScope()
             var buttonEnabled by remember { mutableStateOf(true) }
-            val view = LocalView.current
 
             ButtonPrimaryYellow(
                 modifier = Modifier.fillMaxWidth(),
@@ -114,7 +125,8 @@ fun Eip20RevokeScreen(navController: NavController, input: Eip20RevokeConfirmFra
                         navController.popBackStack()
                     }
                 },
-                enabled = uiState.revokeEnabled && buttonEnabled
+                enabled = uiState.revokeEnabled && buttonEnabled,
+                loadingIndicator = uiState.preparing,
             )
             VSpacer(16.dp)
             ButtonPrimaryDefault(

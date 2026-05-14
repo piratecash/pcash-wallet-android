@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.eip20approve
 
 import android.os.Parcelable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,7 +44,9 @@ import kotlinx.parcelize.Parcelize
 class Eip20ApproveConfirmFragment : BaseComposeFragment() {
     @Composable
     override fun GetContent(navController: NavController) {
-        Eip20ApproveConfirmScreen(navController)
+        withInput<Eip20ApproveFragment.Input>(navController) { input ->
+            Eip20ApproveConfirmScreen(navController, input)
+        }
     }
 
     @Parcelize
@@ -51,9 +54,20 @@ class Eip20ApproveConfirmFragment : BaseComposeFragment() {
 }
 
 @Composable
-internal fun Eip20ApproveConfirmScreen(navController: NavController) {
+internal fun Eip20ApproveConfirmScreen(
+    navController: NavController,
+    input: Eip20ApproveFragment.Input
+) {
     val viewModel =
-        rememberViewModelFromGraph<Eip20ApproveViewModel>(navController, R.id.eip20ApproveFragment)
+        rememberViewModelFromGraph<Eip20ApproveViewModel>(
+            navController,
+            R.id.eip20ApproveFragment,
+            Eip20ApproveViewModel.Factory(
+                input.token,
+                input.requiredAllowance,
+                input.spenderAddress
+            )
+        )
             ?: return
 
     val uiState = viewModel.uiState
@@ -61,109 +75,157 @@ internal fun Eip20ApproveConfirmScreen(navController: NavController) {
     ConfirmTransactionScreen(
         onClickBack = navController::popBackStackSafely,
         onClickSettings = {
-            navController.slideFromRight(R.id.eip20ApproveTransactionSettingsFragment)
+            navController.slideFromRight(
+                R.id.eip20ApproveTransactionSettingsFragment,
+                uiState.toInput()
+            )
         },
         onClickClose = {
             navController.popBackStack(R.id.eip20ApproveFragment, true)
         },
         buttonsSlot = {
-            val coroutineScope = rememberCoroutineScope()
-            var buttonEnabled by remember { mutableStateOf(true) }
-            val view = LocalView.current
-
-            ButtonPrimaryYellow(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.Swap_Approve),
-                onClick = {
-                    coroutineScope.launch {
-                        buttonEnabled = false
-                        HudHelper.showInProcessMessage(
-                            view,
-                            R.string.Swap_Approving,
-                            SnackbarDuration.INDEFINITE
-                        )
-
-                        val result = try {
-                            viewModel.approve()
-
-                            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-                            delay(1200)
-                            Eip20ApproveConfirmFragment.Result(true)
-                        } catch (t: Throwable) {
-                            val msg =
-                                (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
-                            HudHelper.showErrorMessage(view, msg)
-                            Eip20ApproveConfirmFragment.Result(false)
-                        }
-
-                        buttonEnabled = true
-                        navController.setNavigationResultX(result)
-                        navController.popBackStack()
-                    }
-                },
-                enabled = uiState.approveEnabled && buttonEnabled
-            )
-            VSpacer(16.dp)
-            ButtonPrimaryDefault(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.Button_Cancel),
-                onClick = {
+            Eip20ApproveConfirmButtons(
+                onApprove = viewModel::approve,
+                onResult = navController::finishApproveFlow,
+                onCancel = {
                     navController.popBackStack(R.id.eip20ApproveFragment, true)
-                }
+                },
+                approveEnabled = uiState.approveEnabled
             )
         }
     ) {
-        SectionUniversalLawrence {
-            when (uiState.allowanceMode) {
-                OnlyRequired -> {
-                    TokenRow(
-                        token = uiState.token,
-                        amount = uiState.requiredAllowance,
-                        fiatAmount = uiState.fiatAmount,
-                        currency = uiState.currency,
-                        borderTop = false,
-                        title = stringResource(R.string.Approve_YouApprove),
-                        amountColor = ComposeAppTheme.colors.leah
-                    )
-                }
+        Eip20ApproveConfirmContent(uiState, navController)
+    }
+}
 
-                Unlimited -> {
-                    TokenRowUnlimited(
-                        token = uiState.token,
-                        borderTop = false,
-                        title = stringResource(R.string.Approve_YouApprove),
-                        amountColor = ComposeAppTheme.colors.leah
-                    )
-                }
-            }
+private fun NavController.finishApproveFlow(result: Eip20ApproveConfirmFragment.Result) {
+    if (!popBackStack()) return
 
-            BoxBorderedTop {
-                TransactionInfoAddressCell(
-                    title = stringResource(R.string.Approve_Spender),
-                    value = uiState.spenderAddress,
-                    showAdd = uiState.contact == null,
-                    blockchainType = uiState.token.blockchainType,
-                    navController = navController
+    // The approve screen is current after popping confirm, so this targets the original swap caller.
+    setNavigationResultX(result)
+    popBackStack()
+}
+
+@Composable
+private fun Eip20ApproveConfirmButtons(
+    onApprove: suspend () -> Unit,
+    onResult: (Eip20ApproveConfirmFragment.Result) -> Unit,
+    onCancel: () -> Unit,
+    approveEnabled: Boolean,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var buttonEnabled by remember { mutableStateOf(true) }
+    val view = LocalView.current
+
+    Column {
+        ButtonPrimaryYellow(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.Swap_Approve),
+            onClick = {
+                coroutineScope.launch {
+                    buttonEnabled = false
+                    HudHelper.showInProcessMessage(
+                        view,
+                        R.string.Swap_Approving,
+                        SnackbarDuration.INDEFINITE
+                    )
+
+                    val result = try {
+                        onApprove()
+
+                        HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
+                        delay(1200)
+                        Eip20ApproveConfirmFragment.Result(true)
+                    } catch (t: Throwable) {
+                        val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                        HudHelper.showErrorMessage(view, msg)
+                        Eip20ApproveConfirmFragment.Result(false)
+                    }
+
+                    buttonEnabled = true
+                    onResult(result)
+                }
+            },
+            enabled = approveEnabled && buttonEnabled
+        )
+        VSpacer(16.dp)
+        ButtonPrimaryDefault(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.Button_Cancel),
+            onClick = onCancel
+        )
+    }
+}
+
+@Composable
+private fun Eip20ApproveConfirmContent(
+    uiState: Eip20ApproveUiState,
+    navController: NavController
+) {
+    Eip20ApproveTokenSection(uiState, navController)
+
+    VSpacer(height = 16.dp)
+    SectionUniversalLawrence {
+        DataFieldFee(
+            uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
+            uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
+        )
+    }
+
+    if (uiState.cautions.isNotEmpty()) {
+        Cautions(cautions = uiState.cautions)
+    }
+}
+
+@Composable
+private fun Eip20ApproveTokenSection(
+    uiState: Eip20ApproveUiState,
+    navController: NavController
+) {
+    SectionUniversalLawrence {
+        when (uiState.allowanceMode) {
+            OnlyRequired -> {
+                TokenRow(
+                    token = uiState.token,
+                    amount = uiState.requiredAllowance,
+                    fiatAmount = uiState.fiatAmount,
+                    currency = uiState.currency,
+                    borderTop = false,
+                    title = stringResource(R.string.Approve_YouApprove),
+                    amountColor = ComposeAppTheme.colors.leah
                 )
             }
 
-            uiState.contact?.let {
-                BoxBorderedTop {
-                    TransactionInfoContactCell(it.name)
-                }
+            Unlimited -> {
+                TokenRowUnlimited(
+                    token = uiState.token,
+                    borderTop = false,
+                    title = stringResource(R.string.Approve_YouApprove),
+                    amountColor = ComposeAppTheme.colors.leah
+                )
             }
         }
 
-        VSpacer(height = 16.dp)
-        SectionUniversalLawrence {
-            DataFieldFee(
-                uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
-                uiState.networkFee?.secondary?.getFormattedPlain() ?: "---"
+        BoxBorderedTop {
+            TransactionInfoAddressCell(
+                title = stringResource(R.string.Approve_Spender),
+                value = uiState.spenderAddress,
+                showAdd = uiState.contact == null,
+                blockchainType = uiState.token.blockchainType,
+                navController = navController
             )
         }
 
-        if (uiState.cautions.isNotEmpty()) {
-            Cautions(cautions = uiState.cautions)
+        uiState.contact?.let {
+            BoxBorderedTop {
+                TransactionInfoContactCell(it.name)
+            }
         }
     }
 }
+
+private fun Eip20ApproveUiState.toInput() = Eip20ApproveFragment.Input(
+    token,
+    requiredAllowance,
+    spenderAddress
+)

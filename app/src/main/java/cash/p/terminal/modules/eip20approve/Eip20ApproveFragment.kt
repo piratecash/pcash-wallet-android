@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -16,8 +18,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.rememberViewModelFromGraph
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.navigation.popBackStackSafely
-import cash.p.terminal.navigation.setNavigationResultX
-import cash.p.terminal.navigation.slideFromRightForResult
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.AppBar
@@ -25,6 +26,7 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsCheckbox
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
@@ -66,6 +68,24 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
     ) ?: return
 
     val uiState = viewModel.uiState
+    val view = LocalView.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { event ->
+            when (event) {
+                Eip20ApproveViewModel.Event.NavigateToConfirm -> {
+                    navController.slideFromRight(
+                        R.id.eip20ApproveConfirmFragment,
+                        input
+                    )
+                }
+
+                is Eip20ApproveViewModel.Event.ShowError -> {
+                    HudHelper.showErrorMessage(view, event.message)
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -95,12 +115,14 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
             VSpacer(height = 24.dp)
 
             SectionUniversalLawrence {
+                val allowanceModeEnabled = !uiState.preparing
                 val setOnlyRequired = { viewModel.setAllowanceMode(AllowanceMode.OnlyRequired) }
                 CellUniversal(
-                    onClick = setOnlyRequired
+                    onClick = setOnlyRequired.takeIf { allowanceModeEnabled }
                 ) {
                     HsCheckbox(
                         checked = uiState.allowanceMode == AllowanceMode.OnlyRequired,
+                        enabled = allowanceModeEnabled,
                         onCheckedChange = { setOnlyRequired.invoke() }
                     )
                     HSpacer(width = 16.dp)
@@ -114,10 +136,11 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
                 val setUnlimited = { viewModel.setAllowanceMode(AllowanceMode.Unlimited) }
                 CellUniversal(
                     borderTop = true,
-                    onClick = setUnlimited
+                    onClick = setUnlimited.takeIf { allowanceModeEnabled }
                 ) {
                     HsCheckbox(
                         checked = uiState.allowanceMode == AllowanceMode.Unlimited,
+                        enabled = allowanceModeEnabled,
                         onCheckedChange = { setUnlimited.invoke() }
                     )
                     HSpacer(width = 16.dp)
@@ -132,13 +155,9 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
                     .fillMaxWidth()
                     .padding(16.dp),
                 title = stringResource(R.string.Button_Next),
-                onClick = {
-                    viewModel.freeze()
-                    navController.slideFromRightForResult<Eip20ApproveConfirmFragment.Result>(R.id.eip20ApproveConfirmFragment) {
-                        navController.setNavigationResultX(it)
-                        navController.popBackStackSafely()
-                    }
-                },
+                onClick = viewModel::prepareApprove,
+                enabled = !uiState.preparing,
+                loadingIndicator = uiState.preparing,
             )
         }
     }
