@@ -4,6 +4,7 @@ import android.os.Parcelable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,15 +63,18 @@ internal fun Eip20ApproveConfirmScreen(
         rememberViewModelFromGraph<Eip20ApproveViewModel>(
             navController,
             R.id.eip20ApproveFragment,
-            Eip20ApproveViewModel.Factory(
-                input.token,
-                input.requiredAllowance,
-                input.spenderAddress
-            )
+            Eip20ApproveViewModel.Factory(input)
         )
             ?: return
 
     val uiState = viewModel.uiState
+    val view = LocalView.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.restoreApproveTransaction()?.let { message ->
+            HudHelper.showErrorMessage(view, message)
+        }
+    }
 
     ConfirmTransactionScreen(
         onClickBack = navController::popBackStackSafely,
@@ -90,7 +94,8 @@ internal fun Eip20ApproveConfirmScreen(
                 onCancel = {
                     navController.popBackStack(R.id.eip20ApproveFragment, true)
                 },
-                approveEnabled = uiState.approveEnabled
+                approveEnabled = uiState.approveEnabled,
+                preparing = uiState.preparing
             )
         }
     ) {
@@ -112,6 +117,7 @@ private fun Eip20ApproveConfirmButtons(
     onResult: (Eip20ApproveConfirmFragment.Result) -> Unit,
     onCancel: () -> Unit,
     approveEnabled: Boolean,
+    preparing: Boolean,
 ) {
     val coroutineScope = rememberCoroutineScope()
     var buttonEnabled by remember { mutableStateOf(true) }
@@ -146,7 +152,8 @@ private fun Eip20ApproveConfirmButtons(
                     onResult(result)
                 }
             },
-            enabled = approveEnabled && buttonEnabled
+            enabled = approveEnabled && buttonEnabled && !preparing,
+            loadingIndicator = preparing
         )
         VSpacer(16.dp)
         ButtonPrimaryDefault(
@@ -227,5 +234,6 @@ private fun Eip20ApproveTokenSection(
 private fun Eip20ApproveUiState.toInput() = Eip20ApproveFragment.Input(
     token,
     requiredAllowance,
-    spenderAddress
+    spenderAddress,
+    allowanceMode
 )

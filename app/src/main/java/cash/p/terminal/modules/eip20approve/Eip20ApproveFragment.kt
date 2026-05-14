@@ -51,7 +51,8 @@ class Eip20ApproveFragment : BaseComposeFragment() {
     data class Input(
         val token: Token,
         val requiredAllowance: BigDecimal,
-        val spenderAddress: String
+        val spenderAddress: String,
+        val allowanceMode: AllowanceMode = AllowanceMode.OnlyRequired
     ) : Parcelable
 }
 
@@ -60,11 +61,7 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
     val viewModel = rememberViewModelFromGraph<Eip20ApproveViewModel>(
         navController,
         R.id.eip20ApproveFragment,
-        Eip20ApproveViewModel.Factory(
-            input.token,
-            input.requiredAllowance,
-            input.spenderAddress,
-        )
+        Eip20ApproveViewModel.Factory(input)
     ) ?: return
 
     val uiState = viewModel.uiState
@@ -73,10 +70,10 @@ fun Eip20ApproveScreen(navController: NavController, input: Eip20ApproveFragment
     LaunchedEffect(viewModel) {
         viewModel.events.collect { event ->
             when (event) {
-                Eip20ApproveViewModel.Event.NavigateToConfirm -> {
+                is Eip20ApproveViewModel.Event.NavigateToConfirm -> {
                     navController.slideFromRight(
                         R.id.eip20ApproveConfirmFragment,
-                        input
+                        event.input
                     )
                 }
 

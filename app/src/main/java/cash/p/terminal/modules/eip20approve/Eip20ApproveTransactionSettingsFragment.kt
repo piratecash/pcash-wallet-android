@@ -26,11 +26,7 @@ fun Eip20ApproveTransactionSettingsScreen(
         rememberViewModelFromGraph<Eip20ApproveViewModel>(
             navController,
             R.id.eip20ApproveFragment,
-            Eip20ApproveViewModel.Factory(
-                input.token,
-                input.requiredAllowance,
-                input.spenderAddress
-            )
+            Eip20ApproveViewModel.Factory(input)
         )
             ?: return
 

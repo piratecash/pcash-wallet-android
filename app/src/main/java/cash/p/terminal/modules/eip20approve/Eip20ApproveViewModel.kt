@@ -7,7 +7,6 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
-import cash.p.terminal.modules.eip20approve.AllowanceMode.OnlyRequired
 import cash.p.terminal.modules.eip20allowance.Eip20AllowanceSendTransactionFactory
 import cash.p.terminal.modules.eip20allowance.collectSendTransactionServiceState
 import cash.p.terminal.modules.multiswap.FiatService
@@ -32,6 +31,7 @@ internal class Eip20ApproveViewModel(
     private val token: Token,
     private val requiredAllowance: BigDecimal,
     private val spenderAddress: String,
+    initialAllowanceMode: AllowanceMode,
     private val adapterManager: IAdapterManager,
     private val currencyManager: CurrencyManager,
     private val fiatService: FiatService,
@@ -39,7 +39,7 @@ internal class Eip20ApproveViewModel(
     private val dispatcherProvider: DispatcherProvider,
 ) : ViewModelUiState<Eip20ApproveUiState>() {
     private val currency = currencyManager.baseCurrency
-    private var allowanceMode = OnlyRequired
+    private var allowanceMode = initialAllowanceMode
     private val sendTransactionServiceFlow = MutableStateFlow<ISendTransactionService<*>?>(null)
     val sendTransactionService: ISendTransactionService<*>?
         get() = sendTransactionServiceFlow.value
@@ -95,34 +95,53 @@ internal class Eip20ApproveViewModel(
     }
 
     fun prepareApprove() {
-        if (preparing) return
-
-        preparing = true
-        emitState()
+        if (!startPreparing()) return
 
         viewModelScope.launch {
-            try {
-                val transactionData = Eip20AllowanceSendTransactionFactory.buildApproveTransactionData(
-                    token = token,
-                    spenderAddress = spenderAddress,
-                    amount = requiredAllowance,
-                    allowanceMode = allowanceMode,
-                    adapterManager = adapterManager
-                )
-                val service = sendTransactionService
-                    ?: Eip20AllowanceSendTransactionFactory.createSendTransactionService(token)
-                        .also(::bindSendTransactionService)
-
-                service.setSendTransactionData(transactionData)
-                _events.send(Event.NavigateToConfirm)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (t: Throwable) {
-                _events.send(Event.ShowError(Eip20AllowanceSendTransactionFactory.userMessage(t)))
-            } finally {
-                preparing = false
-                emitState()
+            val error = prepareApproveTransaction()
+            if (error != null) {
+                _events.send(Event.ShowError(error))
+            } else {
+                _events.send(Event.NavigateToConfirm(createInput()))
             }
+        }
+    }
+
+    suspend fun restoreApproveTransaction(): String? {
+        if (sendTransactionService != null || !startPreparing()) return null
+
+        return prepareApproveTransaction()
+    }
+
+    private fun startPreparing(): Boolean {
+        if (preparing) return false
+        preparing = true
+        emitState()
+        return true
+    }
+
+    private suspend fun prepareApproveTransaction(): String? {
+        return try {
+            val transactionData = Eip20AllowanceSendTransactionFactory.buildApproveTransactionData(
+                token = token,
+                spenderAddress = spenderAddress,
+                amount = requiredAllowance,
+                allowanceMode = allowanceMode,
+                adapterManager = adapterManager
+            )
+            val service = sendTransactionService
+                ?: Eip20AllowanceSendTransactionFactory.createSendTransactionService(token)
+                    .also(::bindSendTransactionService)
+
+            service.setSendTransactionData(transactionData)
+            null
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            Eip20AllowanceSendTransactionFactory.userMessage(t)
+        } finally {
+            preparing = false
+            emitState()
         }
     }
 
@@ -132,8 +151,15 @@ internal class Eip20ApproveViewModel(
         sendTransactionService.start(viewModelScope)
     }
 
+    private fun createInput() = Eip20ApproveFragment.Input(
+        token = token,
+        requiredAllowance = requiredAllowance,
+        spenderAddress = spenderAddress,
+        allowanceMode = allowanceMode
+    )
+
     sealed class Event {
-        data object NavigateToConfirm : Event()
+        data class NavigateToConfirm(val input: Eip20ApproveFragment.Input) : Event()
         data class ShowError(val message: String) : Event()
     }
 
@@ -142,19 +168,16 @@ internal class Eip20ApproveViewModel(
             .sendTransaction()
     }
 
-    class Factory(
-        private val token: Token,
-        private val requiredAllowance: BigDecimal,
-        private val spenderAddress: String,
-    ) : ViewModelProvider.Factory {
+    class Factory(private val input: Eip20ApproveFragment.Input) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
             return Eip20ApproveViewModel(
-                token = token,
-                requiredAllowance = requiredAllowance,
-                spenderAddress = spenderAddress,
+                token = input.token,
+                requiredAllowance = input.requiredAllowance,
+                spenderAddress = input.spenderAddress,
+                initialAllowanceMode = input.allowanceMode,
                 adapterManager = App.adapterManager,
                 currencyManager = App.currencyManager,
                 fiatService = FiatService(App.marketKit),

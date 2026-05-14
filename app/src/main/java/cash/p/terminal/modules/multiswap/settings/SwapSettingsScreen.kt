@@ -23,7 +23,11 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
 @Composable
-fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewModel) {
+fun SwapSettingsScreen(
+    settingsNavController: NavController,
+    appNavController: NavController,
+    swapViewModel: SwapViewModel
+) {
     val viewModel =
         viewModel<SwapSettingsViewModel>(factory = SwapSettingsViewModel.Factory(swapViewModel.getSettings()))
 
@@ -34,7 +38,7 @@ fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewMode
             AppBar(
                 title = stringResource(R.string.SwapSettings_Title),
                 navigationIcon = {
-                    HsBackButton(onClick = { navController.popBackStackSafely() })
+                    HsBackButton(onClick = { settingsNavController.popBackStackSafely() })
                 },
             )
         },
@@ -48,7 +52,7 @@ fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewMode
                     enabled = uiState.applyEnabled,
                     onClick = {
                         swapViewModel.onUpdateSettings(viewModel.getSettings())
-                        navController.popBackStackSafely()
+                        settingsNavController.popBackStackSafely()
                     }
                 )
             }
@@ -67,7 +71,7 @@ fun SwapSettingsScreen(navController: NavController, swapViewModel: SwapViewMode
                     val settingId = setting.id
 
                     setting.GetContent(
-                        navController = navController,
+                        navController = appNavController,
                         onError = {
                             viewModel.onSettingError(settingId, it)
                         },
