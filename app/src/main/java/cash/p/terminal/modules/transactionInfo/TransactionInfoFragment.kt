@@ -28,8 +28,13 @@ import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.core.orHide
+import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankActionSection
+import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankHost
+import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankUiState
+import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankViewModel
 import cash.p.terminal.navigation.popBackStackSafely
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 import cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment
 import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
 import cash.p.terminal.modules.transactions.AmlStatus
@@ -87,8 +92,16 @@ class TransactionInfoFragment : BaseComposeFragment() {
         val viewModel by navGraphViewModels<TransactionInfoViewModel>(R.id.transactionInfoFragment) {
             TransactionInfoModule.Factory(viewItem)
         }
+        val selectBankViewModel = koinViewModel<PayCoreSelectBankViewModel>()
 
-        TransactionInfoScreen(viewModel, navController)
+        TransactionInfoScreen(
+            viewModel = viewModel,
+            navController = navController,
+            selectBankUiState = selectBankViewModel.uiState,
+            onSelectBankClick = selectBankViewModel::onSelectBankClick,
+            onSelectBankWebViewClose = selectBankViewModel::onWebViewClosed,
+            onSelectBankErrorClear = selectBankViewModel::clearError,
+        )
     }
 
 }
@@ -97,6 +110,10 @@ class TransactionInfoFragment : BaseComposeFragment() {
 fun TransactionInfoScreen(
     viewModel: TransactionInfoViewModel,
     navController: NavController,
+    selectBankUiState: PayCoreSelectBankUiState,
+    onSelectBankClick: (String) -> Unit,
+    onSelectBankWebViewClose: () -> Unit,
+    onSelectBankErrorClear: () -> Unit,
     amlStatusManager: AmlStatusManager = koinInject()
 ) {
     var showAmlInfoSheet by remember { mutableStateOf(false) }
@@ -104,57 +121,65 @@ fun TransactionInfoScreen(
     var tapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
 
-    Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
-        AppBar(
-            title = stringResource(R.string.TransactionInfo_Title),
-            menuItems = listOf(
-                MenuItem(
-                    title = TranslatableString.ResString(R.string.Button_Close),
-                    icon = R.drawable.ic_close_24,
-                    onClick = {
-                        navController.popBackStackSafely()
-                    }
+    PayCoreSelectBankHost(
+        uiState = selectBankUiState,
+        onCloseWebView = onSelectBankWebViewClose,
+        onClearError = onSelectBankErrorClear,
+    ) {
+        Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
+            AppBar(
+                title = stringResource(R.string.TransactionInfo_Title),
+                menuItems = listOf(
+                    MenuItem(
+                        title = TranslatableString.ResString(R.string.Button_Close),
+                        icon = R.drawable.ic_close_24,
+                        onClick = {
+                            navController.popBackStackSafely()
+                        }
+                    )
                 )
             )
-        )
-        Box(modifier = Modifier.weight(1f)) {
-            TransactionInfo(
-                viewModel = viewModel,
-                navController = navController,
-                onAmlInfoClick = { showAmlInfoSheet = true },
-                onPendingStatusTap = if (viewModel.isPending) {
-                    {
-                        val now = System.currentTimeMillis()
-                        if (now - lastTapTime > 2000) tapCount = 0
-                        lastTapTime = now
-                        tapCount++
-                        if (tapCount >= 5) {
-                            tapCount = 0
-                            viewModel.deletePendingTransaction()
-                            navController.navigateUp()
-                        }
-                    }
-                } else null,
-                onAmlRiskClick = { addresses, status ->
-                    if (addresses.size == 1) {
-                        navController.slideFromRight(
-                            R.id.addressCheckFragment,
-                            AddressCheckFragment.Input(addresses.first())
-                        )
-                    } else {
-                        amlAddressSelectionData = AmlAddressSelectionData(
-                            addresses = addresses.map { address ->
-                                address to (amlStatusManager.getAddressStatus(address) ?: status)
+            Box(modifier = Modifier.weight(1f)) {
+                TransactionInfo(
+                    viewModel = viewModel,
+                    navController = navController,
+                    onAmlInfoClick = { showAmlInfoSheet = true },
+                    onPendingStatusTap = if (viewModel.isPending) {
+                        {
+                            val now = System.currentTimeMillis()
+                            if (now - lastTapTime > 2000) tapCount = 0
+                            lastTapTime = now
+                            tapCount++
+                            if (tapCount >= 5) {
+                                tapCount = 0
+                                viewModel.deletePendingTransaction()
+                                navController.navigateUp()
                             }
-                        )
-                    }
-                }
-            )
-            ConnectionStatusView(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-            )
+                        }
+                    } else null,
+                    onAmlRiskClick = { addresses, status ->
+                        if (addresses.size == 1) {
+                            navController.slideFromRight(
+                                R.id.addressCheckFragment,
+                                AddressCheckFragment.Input(addresses.first())
+                            )
+                        } else {
+                            amlAddressSelectionData = AmlAddressSelectionData(
+                                addresses = addresses.map { address ->
+                                    address to (amlStatusManager.getAddressStatus(address) ?: status)
+                                }
+                            )
+                        }
+                    },
+                    selectBankLoading = selectBankUiState.loading,
+                    onSelectBankClick = onSelectBankClick,
+                )
+                ConnectionStatusView(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .navigationBarsPadding()
+                )
+            }
         }
     }
 
@@ -195,7 +220,9 @@ fun TransactionInfo(
     navController: NavController,
     onAmlInfoClick: () -> Unit = {},
     onPendingStatusTap: (() -> Unit)? = null,
-    onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
+    onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> },
+    selectBankLoading: Boolean = false,
+    onSelectBankClick: (String) -> Unit = {},
 ) {
     LazyColumn(
         modifier = Modifier.navigationBarsPadding(),
@@ -214,7 +241,9 @@ fun TransactionInfo(
                 hideSensitiveInfo = viewModel.balanceHidden,
                 onAmlInfoClick = onAmlInfoClick,
                 onPendingStatusTap = onPendingStatusTap,
-                onAmlRiskClick = onAmlRiskClick
+                onAmlRiskClick = onAmlRiskClick,
+                selectBankLoading = selectBankLoading,
+                onSelectBankClick = onSelectBankClick,
             )
         }
     }
@@ -229,7 +258,9 @@ fun TransactionInfoSection(
     hideSensitiveInfo: Boolean,
     onAmlInfoClick: () -> Unit = {},
     onPendingStatusTap: (() -> Unit)? = null,
-    onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> }
+    onAmlRiskClick: (List<String>, AmlStatus) -> Unit = { _, _ -> },
+    selectBankLoading: Boolean = false,
+    onSelectBankClick: (String) -> Unit = {},
 ) {
     //items without background
     if (section.size == 1) {
@@ -250,6 +281,14 @@ fun TransactionInfoSection(
 
             is TransactionInfoViewItem.Description -> {
                 DescriptionCell(text = item.text)
+                return
+            }
+
+            is TransactionInfoViewItem.PayCoreSelectBankAction -> {
+                PayCoreSelectBankActionSection(
+                    onClick = { onSelectBankClick(item.swapTransactionId) },
+                    showSpinner = selectBankLoading,
+                )
                 return
             }
 
@@ -416,7 +455,8 @@ fun TransactionInfoSection(
                             add {
                                 TransactionInfoExplorerCell(
                                     title = viewItem.title,
-                                    url = viewItem.url
+                                    url = viewItem.url,
+                                    iconResId = viewItem.iconResId,
                                 )
                             }
                         }
@@ -476,4 +516,3 @@ fun TransactionInfoSection(
         }
     )
 }
-

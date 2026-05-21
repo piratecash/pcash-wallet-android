@@ -620,6 +620,7 @@
     <string name="swap_providers_title">Proveedores de intercambio</string>
     <string name="swap_providers_mandatory_toast">Este proveedor no puede desactivarse</string>
     <string name="swap_no_enabled_providers">Sin proveedores activos</string>
+    <string name="swap_no_providers_for_this_amount">Sin proveedores para este importe</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Puedes cambiar %so necesitas revocar y aprobar la nueva cantidad</string>
@@ -661,6 +662,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Esperando selección de banco</string>
     <string name="Transactions_Failed">Falla</string>
     <string name="Transactions_ContractCall">Llamada de Contrato</string>
     <string name="Transactions_ExternalContractCall">Llamada externa</string>
@@ -698,6 +700,7 @@
     <string name="TransactionInfo_Date">Fecha</string>
     <string name="transaction_info_sync_source">Fuente de sincronización</string>
     <string name="TransactionInfo_Id">ID</string>
+    <string name="TransactionInfo_Service">Servicio</string>
     <string name="TransactionInfo_RawTransaction">Transacción sin procesar</string>
     <string name="TransactionInfo_ContactName">Nombre de contacto</string>
     <string name="TransactionInfo_To">Para</string>
@@ -1466,11 +1469,6 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="SubscriptionInfo_HavePremium">Ya tengo Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Acerca de Premium</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[Acuerdo del usuario para establecer un código PIN para eliminar la libreta de direcciones de cripto-direcciones<br/><br/>Al establecer un código PIN, confirma que comprende su propósito como mecanismo para proteger su privacidad.<br/><b>1. Función protectora del código PIN</b><br/>Este código PIN está diseñado para la eliminación de emergencia de la libreta de direcciones de cripto-direcciones del dispositivo con el fin de prevenir una posible exposición de sus vínculos financieros y direcciones guardadas a terceros.<br/><b>2. Mecanismo de funcionamiento</b><br/>Introducir el código PIN configurado provocará la eliminación inmediata de su libreta de direcciones de cripto-direcciones almacenada en este dispositivo.<br/><b>3. Irreversibilidad de la eliminación</b><br/>La eliminación de la libreta de direcciones tras introducir el código PIN es definitiva e irreversible.<br/><b>4. Ausencia de recuperación</b><br/>Si la libreta de direcciones se elimina, los datos no podrán recuperarse, a menos que se haya creado previamente una copia de seguridad.<br/><b>5. Almacenamiento local</b><br/>La libreta de direcciones se almacena exclusivamente de forma local en su dispositivo y no se transfiere a desarrolladores ni a servidores externos.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>Entiendo que el código PIN se utiliza para eliminar de inmediato la libreta de direcciones de cripto-direcciones.</item>
-        <item>Entiendo que, tras introducir el código PIN, la libreta de direcciones se eliminará sin posibilidad de recuperación sin una copia de seguridad.</item>
-    </string-array>
     <string name="premium_settings">Configuración Premium</string>
     <string name="advanced_security">Seguridad avanzada</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Crear billetera oculta</string>
@@ -1506,6 +1504,11 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
         <item>Si no ha realizado copias de seguridad de las claves privadas de todas las billeteras, perderá el acceso a todos sus fondos.</item>
         <item>El usuario es consciente de los riesgos y entiende que esta acción será irreversible.</item>
         <item>Después del reinicio, su PIN principal se convertirá en su PIN de reinicio, y el PIN de reinicio se desactivará.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[Acuerdo del usuario para establecer un código PIN para eliminar la libreta de direcciones de cripto-direcciones<br/><br/>Al establecer un código PIN, confirma que comprende su propósito como mecanismo para proteger su privacidad.<br/><b>1. Función protectora del código PIN</b><br/>Este código PIN está diseñado para la eliminación de emergencia de la libreta de direcciones de cripto-direcciones del dispositivo con el fin de prevenir una posible exposición de sus vínculos financieros y direcciones guardadas a terceros.<br/><b>2. Mecanismo de funcionamiento</b><br/>Introducir el código PIN configurado provocará la eliminación inmediata de su libreta de direcciones de cripto-direcciones almacenada en este dispositivo.<br/><b>3. Irreversibilidad de la eliminación</b><br/>La eliminación de la libreta de direcciones tras introducir el código PIN es definitiva e irreversible.<br/><b>4. Ausencia de recuperación</b><br/>Si la libreta de direcciones se elimina, los datos no podrán recuperarse, a menos que se haya creado previamente una copia de seguridad.<br/><b>5. Almacenamiento local</b><br/>La libreta de direcciones se almacena exclusivamente de forma local en su dispositivo y no se transfiere a desarrolladores ni a servidores externos.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>Entiendo que el código PIN se utiliza para eliminar de inmediato la libreta de direcciones de cripto-direcciones.</item>
+        <item>Entiendo que, tras introducir el código PIN, la libreta de direcciones se eliminará sin posibilidad de recuperación sin una copia de seguridad.</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1953,4 +1956,36 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="multi_swap_cancel_swap_warning">El primer intercambio ya se ha completado. Las monedas intermedias están en su billetera y seguirán siendo suyas. Solo se cancelará el segundo paso del intercambio.</string>
     <string name="swap_leg_title">Intercambio %d</string>
     <string name="scan_tangem_card">Escanear tarjeta Tangem</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Verificar teléfono</string>
+    <string name="paycore_verifying">Verificando…</string>
+    <string name="paycore_service_fee">Tarifa de servicio</string>
+    <string name="paycore_network">Red</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Continuar</string>
+    <string name="paycore_verification_processing">En proceso…</string>
+    <string name="paycore_verification_operations_via_altyn">Las operaciones se realizan a través del monedero electrónico Altyn.one</string>
+    <string name="settings_contact_us_pcash_support">Soporte P.Cash</string>
+    <string name="settings_contact_us_paycore_support">Soporte Paycore</string>
+    <string name="paycore_verification_not_verified">Número no verificado</string>
+    <string name="paycore_verification_pass_kyc">Completar KYC</string>
+    <string name="paycore_verification_verified_title">Su verificación está completa</string>
+    <string name="paycore_verification_warning_title">ATENCIÓN</string>
+    <string name="paycore_verification_warning_text">SE PERMITE LA TRANSFERENCIA DE FONDOS EXCLUSIVAMENTE DESDE LA CUENTA QUE LE PERTENECE, CON NÚMERO DE TELÉFONO E IDENTIDAD VERIFICADOS.</string>
+    <string name="paycore_verification_warning_detail">Las transferencias desde otras cuentas no serán acreditadas, ¡los fondos enviados se perderán!</string>
+    <string name="paycore_verification_back">Atrás</string>
+    <string name="paycore_verification_error">No se pudo completar el inicio de sesión. Inténtelo más tarde.</string>
+    <string name="paycore_verification_retry">Reintentar</string>
+    <string name="paycore_verification_phone_label">Número de teléfono:</string>
+    <string name="paycore_verification_contact_support">La recuperación automática falló. Por favor, contacte al soporte.</string>
+    <string name="paycore_verification_support_line"><![CDATA[Soporte técnico 24/7: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Servicio</string>
+    <string name="paycore_support">Soporte de PayCore</string>
+    <string name="paycore_section_currency">Moneda</string>
+    <string name="paycore_section_crypto">Criptomonedas</string>
+    <string name="paycore_select_bank">Seleccionar banco</string>
+    <string name="paycore_select_bank_error">No se pudo abrir la selección de banco. Inténtalo de nuevo más tarde.</string>
+    <string name="paycore_delete_restricted_warning">Esta transacción no se puede eliminar porque la procesa un servicio externo.</string>
+    <string name="paycore_delete_to_complete_select_bank">Selecciona un banco para completar el swap.</string>
 </resources>

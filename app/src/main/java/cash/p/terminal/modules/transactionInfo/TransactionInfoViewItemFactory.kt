@@ -2,6 +2,7 @@ package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.TonHelper
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
@@ -19,6 +20,8 @@ import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.Transacti
 import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper.getSwapEventSectionItems
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.TransactionViewItem
+import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
+import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.entities.BlockchainType
 
@@ -644,6 +647,21 @@ class TransactionInfoViewItemFactory(
             else -> {}
         }
 
+        transactionItem.swapTransactionId
+            ?.takeIf {
+                transactionItem.swapProvider == SwapProvider.PAYCORE &&
+                        transactionItem.swapTransactionStatus == TransactionStatusEnum.CREATED_OR_WAIT_USER
+            }
+            ?.let { swapTransactionId ->
+                itemSections.add(
+                    listOf(
+                        TransactionInfoViewItem.PayCoreSelectBankAction(
+                            swapTransactionId = swapTransactionId
+                        )
+                    )
+                )
+            }
+
         // Add swap provider amount comparison section if available
         if (transactionItem.swapAmountOut != null &&
             transactionItem.swapCoinCodeOut != null &&
@@ -708,6 +726,7 @@ class TransactionInfoViewItemFactory(
                 hideSensitiveInfo = transactionItem.hideAmount
             )
         )
+
         if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected && status == TransactionStatus.Pending && resendEnabled) {
             itemSections.add(
                 listOf(
@@ -758,7 +777,13 @@ class TransactionInfoViewItemFactory(
                 TransactionViewItemFactoryHelper.getExplorerSectionItems(
                     TransactionInfoModule.ExplorerData(
                         title = it.first,
-                        url = it.second
+                        url = it.second,
+                        useDirectTitle = it.second == AppConfigProvider.payCoreSupportUrl,
+                        iconResId = if (it.second == AppConfigProvider.payCoreSupportUrl) {
+                            R.drawable.ic_support_24
+                        } else {
+                            R.drawable.ic_language
+                        },
                     )
                 )
             )

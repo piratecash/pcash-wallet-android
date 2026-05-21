@@ -3,9 +3,12 @@ package cash.p.terminal.core.storage
 import cash.p.terminal.core.utils.SwapTransactionMatcher
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.network.swaprepository.SwapProvider
+import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
@@ -52,9 +55,27 @@ class SwapProviderTransactionsStorage(
 
     fun observeAll(): Flow<List<SwapProviderTransaction>> = dao.observeAll()
 
+    fun observeAllByAccount(accountId: String): Flow<List<SwapProviderTransaction>> =
+        dao.observeAllByAccount(accountId)
+
+    fun observeForActiveAccount(
+        activeAccountStateFlow: Flow<ActiveAccountState>
+    ): Flow<List<SwapProviderTransaction>> =
+        activeAccountStateFlow.flatMapLatest { state ->
+            val accountId = (state as? ActiveAccountState.ActiveAccount)?.account?.id
+            if (accountId != null) dao.observeAllByAccount(accountId) else flowOf(emptyList())
+        }
+
+    fun observeByDate(date: Long): Flow<SwapProviderTransaction?> = dao.observeByDate(date)
+
     suspend fun getTransaction(transactionId: String) =
         withContext(dispatcherProvider.io) {
             dao.getTransaction(transactionId)
+        }
+
+    suspend fun getByDate(date: Long): SwapProviderTransaction? =
+        withContext(dispatcherProvider.io) {
+            dao.getByDate(date)
         }
 
     fun getByCoinUidIn(
@@ -118,11 +139,14 @@ class SwapProviderTransactionsStorage(
         dao.setOutgoingRecordUid(date, outgoingRecordUid)
 
     fun updateStatusFields(
-        transactionId: String,
+        date: Long,
         status: String,
         amountOutReal: BigDecimal?,
         finishedAt: Long?
-    ) = dao.updateStatusFields(transactionId, status, amountOutReal, finishedAt)
+    ) = dao.updateStatusFields(date, status, amountOutReal, finishedAt)
+
+    fun updateTransactionId(date: Long, newTransactionId: String) =
+        dao.updateTransactionId(date, newTransactionId)
 
     fun getByProviderAndTokenOut(
         provider: SwapProvider,

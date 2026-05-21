@@ -21,6 +21,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
 import cash.p.terminal.modules.multiswap.MultiSwapLegInfo
 import cash.p.terminal.modules.multiswap.SwapConfirmScreen
 import cash.p.terminal.modules.multiswap.SwapSelectProviderScreen
@@ -31,16 +32,21 @@ import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel
 import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsScreen
 import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsViewModel
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
+import cash.p.terminal.modules.paycore.exchange.PayCoreExchangeDetailScreen
+import cash.p.terminal.modules.paycore.exchange.PayCoreExchangeDetailViewModel
+import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankHost
+import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankViewModel
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.components.HudHelper
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -55,13 +61,20 @@ class MultiSwapExchangesFragment : BaseComposeFragment() {
         }
 
         val directSwapId = arguments?.getString(ARG_PENDING_MULTI_SWAP_ID)
-        val startDestination: Any = if (directSwapId != null) {
-            DetailRoute(directSwapId)
-        } else {
-            ListRoute
+        val directPayCoreDate = arguments?.getLong(ARG_PAYCORE_DATE, 0L)?.takeIf { it > 0 }
+        val startDestination: Any = when {
+            directSwapId != null -> DetailRoute(directSwapId)
+            directPayCoreDate != null -> PayCoreDetailRoute(directPayCoreDate)
+            else -> ListRoute
         }
 
+        val viewModel = koinViewModel<MultiSwapExchangesViewModel>()
         val innerNavController = rememberNavController()
+
+        PayCoreNavigationHandler(
+            viewModel = viewModel,
+            innerNavController = innerNavController,
+        )
 
         NavHost(
             navController = innerNavController,
@@ -69,6 +82,7 @@ class MultiSwapExchangesFragment : BaseComposeFragment() {
         ) {
             composable<ListRoute> {
                 ExchangesListContent(
+                    viewModel = viewModel,
                     fragmentNavController = navController,
                     innerNavController = innerNavController,
                 )
@@ -91,21 +105,48 @@ class MultiSwapExchangesFragment : BaseComposeFragment() {
                     },
                 )
             }
+            composable<PayCoreDetailRoute> { backStackEntry ->
+                val route = backStackEntry.toRoute<PayCoreDetailRoute>()
+                PayCoreExchangeDetailContent(
+                    date = route.date,
+                    onBack = {
+                        if (!innerNavController.navigateUp()) {
+                            navController.navigateUp()
+                        }
+                    },
+                )
+            }
         }
     }
 
     companion object {
         const val ARG_PENDING_MULTI_SWAP_ID = "pendingMultiSwapId"
+        const val ARG_PAYCORE_DATE = "payCoreDate"
+    }
+}
+
+@Composable
+private fun PayCoreNavigationHandler(
+    viewModel: MultiSwapExchangesViewModel,
+    innerNavController: NavController,
+) {
+    LaunchedEffect(viewModel) {
+        viewModel.events.collect { effect ->
+            when (effect) {
+                is PayCoreNavigationEffect.OpenPayCoreDetail -> {
+                    innerNavController.navigate(PayCoreDetailRoute(effect.date))
+                }
+            }
+        }
     }
 }
 
 @Composable
 private fun ExchangesListContent(
+    viewModel: MultiSwapExchangesViewModel,
     fragmentNavController: NavController,
     innerNavController: NavController,
 ) {
-    val viewModel = koinViewModel<MultiSwapExchangesViewModel>()
-
     LaunchedEffect(Unit) {
         snapshotFlow { viewModel.uiState.items }
             .drop(1)
@@ -115,8 +156,15 @@ private fun ExchangesListContent(
 
     MultiSwapExchangesScreen(
         uiState = viewModel.uiState,
-        onSelect = { id -> innerNavController.navigate(DetailRoute(id)) },
+        onSelect = { item ->
+            if (item.isPayCore) {
+                viewModel.onPayCoreItemClick(item)
+            } else {
+                innerNavController.navigate(DetailRoute(item.id))
+            }
+        },
         onDelete = viewModel::onDelete,
+        onPayCoreSelectBank = viewModel::onPayCoreItemClick,
         onBack = fragmentNavController::navigateUpSafely,
     )
 }
@@ -132,6 +180,7 @@ private fun ExchangeDetailContent(
     val viewModel = koinViewModel<MultiSwapExchangeViewModel> {
         parametersOf(swapId)
     }
+    val resolveTransactionItem = koinInject<ResolveTransactionItemUseCase>()
 
     LaunchedEffect(viewModel.closeScreen) {
         if (viewModel.closeScreen) {
@@ -181,8 +230,9 @@ private fun ExchangeDetailContent(
                 onClickLeg1 = {
                     coroutineScope.launch {
                         val recordUid = viewModel.leg1NavigationRecordUid ?: return@launch
-                        val transactionItem = transactionsViewModel?.getTransactionItem(recordUid) ?: return@launch
-                        transactionsViewModel.tmpItemToShow = transactionItem
+                        val targetVm = transactionsViewModel ?: return@launch
+                        val transactionItem = resolveTransactionItem(recordUid) ?: return@launch
+                        targetVm.tmpItemToShow = transactionItem
                         fragmentNavController.slideFromBottom(R.id.transactionInfoFragment)
                     }
                 },
@@ -257,11 +307,40 @@ private fun ExchangeDetailContent(
     }
 }
 
+@Composable
+private fun PayCoreExchangeDetailContent(
+    date: Long,
+    onBack: () -> Unit,
+) {
+    val viewModel = koinViewModel<PayCoreExchangeDetailViewModel> {
+        parametersOf(date)
+    }
+    val selectBankViewModel = koinViewModel<PayCoreSelectBankViewModel>()
+    val transactionId = viewModel.uiState?.transactionId
+    PayCoreSelectBankHost(
+        uiState = selectBankViewModel.uiState,
+        onCloseWebView = selectBankViewModel::onWebViewClosed,
+        onClearError = selectBankViewModel::clearError,
+    ) {
+        PayCoreExchangeDetailScreen(
+            uiState = viewModel.uiState,
+            onBack = onBack,
+            onSelectBankClick = {
+                transactionId?.let(selectBankViewModel::onSelectBankClick)
+            },
+            selectBankLoading = selectBankViewModel.uiState.loading,
+        )
+    }
+}
+
 @Serializable
 private object ListRoute
 
 @Serializable
 private data class DetailRoute(val swapId: String)
+
+@Serializable
+private data class PayCoreDetailRoute(val date: Long)
 
 @Serializable
 private object ExchangeMainRoute

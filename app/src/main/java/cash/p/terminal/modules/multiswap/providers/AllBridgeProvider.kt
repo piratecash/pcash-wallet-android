@@ -170,7 +170,7 @@ object AllBridgeProvider : IMultiSwapProvider {
 
         val cautions = mutableListOf<HSCaution>()
         val allowance: BigDecimal?
-        var actionRequired: ISwapProviderAction? = getCreateTokenActionRequired(tokenIn, tokenOut)
+        var actionRequired: ISwapProviderAction? = getCreateTokenActionRequired(listOf(tokenIn, tokenOut))
 
         if (tokenIn.blockchainType.isEvm) {
             val proxyAddress = getProxyAddress(bridgeAddress)

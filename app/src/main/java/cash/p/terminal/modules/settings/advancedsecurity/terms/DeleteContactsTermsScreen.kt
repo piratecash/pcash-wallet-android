@@ -149,6 +149,7 @@ private val SECTION_REGEX = Regex(
     options = setOf(RegexOption.DOT_MATCHES_ALL)
 )
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
 private fun DeleteContactsTermsScreenPreview() {

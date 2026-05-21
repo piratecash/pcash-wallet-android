@@ -22,6 +22,8 @@ object AppConfigProvider {
     val appTelegramLink by lazy { Translator.getString(R.string.appTelegramLink) }
     val appRedditLink by lazy { Translator.getString(R.string.appRedditLink) }
     val reportEmail by lazy { Translator.getString(R.string.reportEmail) }
+    val payCoreSupportEmail by lazy { Translator.getString(R.string.payCoreSupportEmail) }
+    val payCoreSupportUrl by lazy { Translator.getString(R.string.payCoreSupportUrl) }
     const val mempoolSpaceUrl: String = "https://mempool.space"
     const val blockCypherUrl: String = "https://api.blockcypher.com"
     const val walletConnectUrl = "relay.walletconnect.com"

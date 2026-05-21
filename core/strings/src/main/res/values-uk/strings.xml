@@ -618,6 +618,7 @@
     <string name="swap_providers_title">Провайдери обміну</string>
     <string name="swap_providers_mandatory_toast">Цього провайдера не можна вимкнути</string>
     <string name="swap_no_enabled_providers">Немає увімкнених провайдерів</string>
+    <string name="swap_no_providers_for_this_amount">Немає провайдерів для цієї суми</string>
     <!-- Swap Confirmation -->
     <string name="Activate_InsufficientBalance_Description">У вас недостатньо балансу XLM для активації цього токена.</string>
     <!--Approve-->
@@ -661,6 +662,7 @@
     <string name="transaction_swap_status_refunded">Кошти повернуто</string>
     <string name="transaction_swap_status_verifying">Верифікація користувача</string>
     <string name="transaction_swap_status_unknown">Невідомий статус</string>
+    <string name="transaction_swap_status_created_or_wait_user">Очікування вибору банку</string>
     <string name="Transactions_Failed">Не вдалося</string>
     <string name="Transactions_ContractCall">Виклик контракту</string>
     <string name="Transactions_ExternalContractCall">Зовнішній виклик</string>
@@ -700,6 +702,7 @@
     <string name="TransactionInfo_Date">Дата</string>
     <string name="transaction_info_sync_source">Джерело синхронізації</string>
     <string name="TransactionInfo_Id">ID Транзакції</string>
+    <string name="TransactionInfo_Service">Сервіс</string>
     <string name="TransactionInfo_RawTransaction">Непідтверджена транзакція</string>
     <string name="TransactionInfo_ContactName">Ім\'я контакту</string>
     <string name="TransactionInfo_To">Кому</string>
@@ -2114,4 +2117,36 @@
     <string name="multi_swap_cancel_swap">Скасувати обмін</string>
     <string name="multi_swap_cancel_swap_warning">Перший обмін вже завершено. Проміжні монети знаходяться у вашому гаманці та залишаться вашими. Буде скасовано лише другий крок обміну.</string>
     <string name="swap_leg_title">Обмін %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Підтвердити телефон</string>
+    <string name="paycore_verifying">Перевірка…</string>
+    <string name="paycore_service_fee">Комісія за послугу</string>
+    <string name="paycore_network">Мережа</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Продовжити</string>
+    <string name="paycore_verification_processing">В обробці…</string>
+    <string name="paycore_verification_operations_via_altyn">Операції виконуються через електронний гаманець Altyn.one</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Підтримка</string>
+    <string name="settings_contact_us_paycore_support">Paycore Підтримка</string>
+    <string name="paycore_verification_not_verified">Номер не верифіковано</string>
+    <string name="paycore_verification_pass_kyc">Пройти KYC</string>
+    <string name="paycore_verification_verified_title">Вашу верифікацію пройдено</string>
+    <string name="paycore_verification_warning_title">УВАГА</string>
+    <string name="paycore_verification_warning_text">ДОЗВОЛЕНО ПЕРЕКАЗ ГРОШОВИХ КОШТІВ ВИКЛЮЧНО З РАХУНКУ, ЩО НАЛЕЖИТЬ ВАМ, З ВЕРИФІКОВАНИМ НОМЕРОМ ТЕЛЕФОНУ ТА ОСОБОЮ.</string>
+    <string name="paycore_verification_warning_detail">Перекази з інших рахунків не зараховуються, відправлені кошти будуть втрачені!</string>
+    <string name="paycore_verification_back">Назад</string>
+    <string name="paycore_verification_error">Не вдалося завершити вхід. Спробуйте пізніше.</string>
+    <string name="paycore_verification_retry">Повторити</string>
+    <string name="paycore_verification_phone_label">Номер телефону:</string>
+    <string name="paycore_verification_contact_support">Автоматичне відновлення не вдалося. Зверніться до служби підтримки.</string>
+    <string name="paycore_verification_support_line"><![CDATA[Технічна підтримка 24/7: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Сервіс</string>
+    <string name="paycore_support">Підтримка PayCore</string>
+    <string name="paycore_section_currency">Валюта</string>
+    <string name="paycore_section_crypto">Криптовалюти</string>
+    <string name="paycore_select_bank">Виберіть банк</string>
+    <string name="paycore_select_bank_error">Не вдалося відкрити вибір банку. Спробуйте пізніше.</string>
+    <string name="paycore_delete_restricted_warning">Цю транзакцію не можна видалити, оскільки вона виконується стороннім сервісом.</string>
+    <string name="paycore_delete_to_complete_select_bank">Для завершення обміну виберіть банк.</string>
 </resources>

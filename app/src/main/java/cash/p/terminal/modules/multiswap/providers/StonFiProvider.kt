@@ -129,7 +129,7 @@ class StonFiProvider(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
             amountIn = amountIn,
-            actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut),
+            actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut)),
             swapData = swapData
         )
     }

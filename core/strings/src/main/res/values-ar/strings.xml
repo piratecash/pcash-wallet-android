@@ -624,6 +624,7 @@
     <string name="swap_providers_title">موفرو التبادل</string>
     <string name="swap_providers_mandatory_toast">لا يمكن تعطيل هذا الموفر</string>
     <string name="swap_no_enabled_providers">لا يوجد موفرون مفعَّلون</string>
+    <string name="swap_no_providers_for_this_amount">لا يوجد مزودون لهذا المبلغ</string>
     <!-- Swap Confirmation -->
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>
@@ -665,6 +666,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">في انتظار اختيار البنك</string>
     <string name="Transactions_Failed">Failed</string>
     <string name="Transactions_ContractCall">Contract Call</string>
     <string name="Transactions_ExternalContractCall">External Call</string>
@@ -702,6 +704,7 @@
     <string name="TransactionInfo_Date">Date</string>
     <string name="transaction_info_sync_source">مصدر المزامنة</string>
     <string name="TransactionInfo_Id">ID</string>
+    <string name="TransactionInfo_Service">Service</string>
     <string name="TransactionInfo_RawTransaction">Raw Transaction</string>
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">To</string>
@@ -1478,11 +1481,6 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">بريميوم</string>
     <string name="about_premium">حول بريميوم</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[اتفاقية المستخدم بشأن إعداد رمز PIN لحذف دفتر عناوين العملات المشفرة<br/><br/>عند إعداد رمز PIN، فإنك تؤكد أنك تفهم الغرض منه كآلية لحماية خصوصيتك.<br/><b>1. الوظيفة الوقائية لرمز PIN</b><br/>هذا الرمز مخصص للحذف الطارئ لدفتر عناوين العملات المشفرة من الجهاز بهدف منع أي كشف محتمل لعلاقاتك المالية والعناوين المحفوظة من قبل أطراف ثالثة.<br/><b>2. آلية العمل</b><br/>سيؤدي إدخال رمز PIN المُعد إلى حذف دفتر عناوين العملات المشفرة المخزن على هذا الجهاز فوراً.<br/><b>3. عدم قابلية الحذف للتراجع</b><br/>يُعد حذف دفتر العناوين بعد إدخال رمز PIN إجراءً نهائياً وغير قابل للتراجع.<br/><b>4. عدم وجود استعادة</b><br/>إذا تم حذف دفتر العناوين، فلن يكون من الممكن استعادة البيانات ما لم يتم إنشاء نسخة احتياطية مسبقاً.<br/><b>5. التخزين المحلي</b><br/>يُخزن دفتر العناوين محلياً على جهازك فقط ولا يتم نقله إلى المطورين أو إلى خوادم خارجية.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>أفهم أن رمز PIN يُستخدم لحذف دفتر عناوين العملات المشفرة فوراً.</item>
-        <item>أفهم أنه بعد إدخال رمز PIN سيتم حذف دفتر العناوين من دون إمكانية الاستعادة من دون نسخة احتياطية.</item>
-    </string-array>
     <string name="premium_settings">إعدادات المميزات المدفوعة</string>
     <string name="advanced_security">أمان متقدم</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
@@ -1518,6 +1516,11 @@
         <item>إذا لم تقم بعمل نسخ احتياطية من المفاتيح الخاصة لجميع المحافظ، فستفقد الوصول إلى جميع أموالك.</item>
         <item>المستخدم على دراية بالمخاطر ويفهم أن هذا الإجراء سيكون غير قابل للعكس.</item>
         <item>بعد إعادة التعيين، سيصبح رمز PIN الرئيسي الخاص بك هو رمز PIN لإعادة التعيين، وسيتم إيقاف تشغيل رمز PIN لإعادة التعيين.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[اتفاقية المستخدم بشأن إعداد رمز PIN لحذف دفتر عناوين العملات المشفرة<br/><br/>عند إعداد رمز PIN، فإنك تؤكد أنك تفهم الغرض منه كآلية لحماية خصوصيتك.<br/><b>1. الوظيفة الوقائية لرمز PIN</b><br/>هذا الرمز مخصص للحذف الطارئ لدفتر عناوين العملات المشفرة من الجهاز بهدف منع أي كشف محتمل لعلاقاتك المالية والعناوين المحفوظة من قبل أطراف ثالثة.<br/><b>2. آلية العمل</b><br/>سيؤدي إدخال رمز PIN المُعد إلى حذف دفتر عناوين العملات المشفرة المخزن على هذا الجهاز فوراً.<br/><b>3. عدم قابلية الحذف للتراجع</b><br/>يُعد حذف دفتر العناوين بعد إدخال رمز PIN إجراءً نهائياً وغير قابل للتراجع.<br/><b>4. عدم وجود استعادة</b><br/>إذا تم حذف دفتر العناوين، فلن يكون من الممكن استعادة البيانات ما لم يتم إنشاء نسخة احتياطية مسبقاً.<br/><b>5. التخزين المحلي</b><br/>يُخزن دفتر العناوين محلياً على جهازك فقط ولا يتم نقله إلى المطورين أو إلى خوادم خارجية.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>أفهم أن رمز PIN يُستخدم لحذف دفتر عناوين العملات المشفرة فوراً.</item>
+        <item>أفهم أنه بعد إدخال رمز PIN سيتم حذف دفتر العناوين من دون إمكانية الاستعادة من دون نسخة احتياطية.</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1984,4 +1987,36 @@
     <string name="multi_swap_cancel_swap_warning">تم إتمام التبادل الأول بالفعل. العملات الوسيطة موجودة في محفظتك وستبقى ملكك. سيتم إلغاء الخطوة الثانية من التبادل فقط.</string>
     <string name="swap_leg_title">مبادلة %d</string>
     <string name="scan_tangem_card">مسح بطاقة Tangem</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">التحقق من الهاتف</string>
+    <string name="paycore_verifying">جارٍ التحقق…</string>
+    <string name="paycore_service_fee">رسوم الخدمة</string>
+    <string name="paycore_network">الشبكة</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">متابعة</string>
+    <string name="paycore_verification_processing">جارٍ المعالجة…</string>
+    <string name="paycore_verification_operations_via_altyn">تتم العمليات عبر محفظة Altyn.one الإلكترونية</string>
+    <string name="settings_contact_us_pcash_support">دعم P.Cash</string>
+    <string name="settings_contact_us_paycore_support">دعم Paycore</string>
+    <string name="paycore_verification_not_verified">الرقم غير مُحقَّق</string>
+    <string name="paycore_verification_pass_kyc">إكمال KYC</string>
+    <string name="paycore_verification_verified_title">اكتملت عملية التحقق الخاصة بك</string>
+    <string name="paycore_verification_warning_title">تنبيه</string>
+    <string name="paycore_verification_warning_text">يُسمح بتحويل الأموال حصرياً من الحساب العائد لك، مع رقم هاتف وهوية موثقين.</string>
+    <string name="paycore_verification_warning_detail">التحويلات من حسابات أخرى لن تُقيد، والأموال المرسلة ستُفقد!</string>
+    <string name="paycore_verification_back">رجوع</string>
+    <string name="paycore_verification_error">تعذَّر إتمام تسجيل الدخول. يُرجى المحاولة لاحقاً.</string>
+    <string name="paycore_verification_retry">إعادة المحاولة</string>
+    <string name="paycore_verification_phone_label">رقم الهاتف:</string>
+    <string name="paycore_verification_contact_support">فشل الاسترداد التلقائي. يرجى التواصل مع الدعم.</string>
+    <string name="paycore_verification_support_line"><![CDATA[الدعم الفني على مدار الساعة طوال أيام الأسبوع: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">الخدمة</string>
+    <string name="paycore_support">دعم PayCore</string>
+    <string name="paycore_section_currency">العملة</string>
+    <string name="paycore_section_crypto">العملات الرقمية</string>
+    <string name="paycore_select_bank">اختر البنك</string>
+    <string name="paycore_select_bank_error">تعذّر فتح اختيار البنك. حاول مرة أخرى لاحقًا.</string>
+    <string name="paycore_delete_restricted_warning">لا يمكن حذف هذه المعاملة لأنها تتم عبر خدمة طرف ثالث.</string>
+    <string name="paycore_delete_to_complete_select_bank">اختر البنك لإكمال عملية التبادل.</string>
 </resources>

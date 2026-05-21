@@ -3,6 +3,7 @@ package cash.p.terminal.wallet.providers
 import cash.p.terminal.network.data.entity.ChartPeriod
 import cash.p.terminal.network.pirate.domain.enity.PriceChangeCoinInfo
 import cash.p.terminal.network.pirate.domain.repository.PiratePlaceRepository
+import cash.p.terminal.network.pirate.domain.useCase.FiatCurrencyRateService
 import cash.p.terminal.wallet.models.Analytics
 import cash.p.terminal.wallet.models.AnalyticsPreview
 import cash.p.terminal.wallet.models.BlockchainResponse
@@ -60,10 +61,8 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
     private val piratePlaceRepository: PiratePlaceRepository by inject(PiratePlaceRepository::class.java)
     private val pirateCoinInfoMapper: PirateCoinInfoMapper by inject(PirateCoinInfoMapper::class.java)
+    private val fiatCurrencyRateService: FiatCurrencyRateService by inject(FiatCurrencyRateService::class.java)
     private val retrofitUtils: RetrofitUtils by inject(RetrofitUtils::class.java)
-
-    @Volatile
-    private var cachedConversionRate: CachedConversionRate? = null
 
     // TODO Remove old base URL https://api-dev.blocksdecoded.com/v1 and switch it to new servers
     private val pirateService by lazy {
@@ -211,7 +210,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
             coinGeckoUid = coinGeckoUid,
             periodType = period
         )
-        val rate = currencyConversionRate(currencyCode)
+        val rate = fiatCurrencyRateService.usdtToCurrencyRate(currencyCode) ?: BigDecimal.ONE
         return chartPoints.map {
             ChartCoinPriceResponse(
                 price = it.price * rate,
@@ -219,32 +218,6 @@ class HsProvider(baseUrl: String, apiKey: String) {
                 totalVolume = BigDecimal.ZERO
             )
         }
-    }
-
-    private suspend fun currencyConversionRate(currencyCode: String): BigDecimal {
-        if (currencyCode.equals("USD", ignoreCase = true)) return BigDecimal.ONE
-        val key = currencyCode.lowercase()
-        val cached = cachedConversionRate
-        if (cached != null && cached.currencyCode == key && System.currentTimeMillis() - cached.timestamp < RATE_CACHE_TTL) {
-            return cached.rate
-        }
-        val rate = try {
-            piratePlaceRepository.getCoinInfo("tether").price[key] ?: BigDecimal.ONE
-        } catch (_: Exception) {
-            BigDecimal.ONE
-        }
-        cachedConversionRate = CachedConversionRate(key, rate, System.currentTimeMillis())
-        return rate
-    }
-
-    private data class CachedConversionRate(
-        val currencyCode: String,
-        val rate: BigDecimal,
-        val timestamp: Long,
-    )
-
-    private companion object {
-        const val RATE_CACHE_TTL = 10 * 60 * 1000L // 10 minutes
     }
 
     fun coinPriceChartStartTime(coinGeckoUid: String): Single<Long> {
@@ -327,7 +300,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
             responseList.mapNotNull {
                 try {
                     CoinTreasury(
-                        type = CoinTreasury.TreasuryType.fromString(it.type)!!,
+                        type = checkNotNull(CoinTreasury.TreasuryType.fromString(it.type)),
                         fund = it.fund,
                         fundUid = it.fundUid,
                         amount = it.amount,

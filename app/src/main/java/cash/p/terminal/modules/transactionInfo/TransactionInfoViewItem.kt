@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.transactionInfo
 
 
+import cash.p.terminal.R
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionStatus
@@ -55,7 +56,11 @@ sealed class TransactionInfoViewItem {
 
     class TransactionHash(val transactionHash: String) : TransactionInfoViewItem()
 
-    class Explorer(val title: String, val url: String?) : TransactionInfoViewItem()
+    class Explorer(
+        val title: String,
+        val url: String?,
+        val iconResId: Int = R.drawable.ic_language,
+    ) : TransactionInfoViewItem()
 
     class Status(val status: TransactionStatus) : TransactionInfoViewItem()
 
@@ -87,6 +92,8 @@ sealed class TransactionInfoViewItem {
         val senderAddresses: List<String>,
         val blockchainType: BlockchainType
     ) : TransactionInfoViewItem()
+
+    class PayCoreSelectBankAction(val swapTransactionId: String) : TransactionInfoViewItem()
 }
 
 enum class AmountType {

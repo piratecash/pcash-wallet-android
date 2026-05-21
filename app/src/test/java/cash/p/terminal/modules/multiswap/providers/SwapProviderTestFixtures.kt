@@ -40,6 +40,7 @@ internal fun buildSwapProviderTransaction(
     blockchainTypeOut = "bitcoin",
     amountOut = BigDecimal.TEN,
     addressOut = "addr-out",
+    accountId = "test-account",
 )
 
 internal fun TranslatableString?.formatArgFirst(): String? =

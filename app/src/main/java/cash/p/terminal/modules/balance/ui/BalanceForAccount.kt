@@ -41,6 +41,7 @@ import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -59,7 +60,8 @@ import kotlinx.coroutines.launch
 fun BalanceForAccount(
     navController: NavController,
     accountViewItem: AccountViewItem,
-    paddingValuesParent: PaddingValues
+    paddingValuesParent: PaddingValues,
+    onOpenTransactionInfo: (TransactionItem) -> Unit,
 ) {
     val viewModel = viewModel<BalanceViewModel>(factory = BalanceModule.Factory())
 
@@ -189,6 +191,7 @@ fun BalanceForAccount(
                             navController = navController,
                             uiState = uiState,
                             totalState = viewModel.totalUiState,
+                            onOpenTransactionInfo = onOpenTransactionInfo,
                         )
                     }
 

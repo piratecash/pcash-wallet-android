@@ -54,7 +54,7 @@ class QuickexProvider(
     override val walletUseCase: WalletUseCase,
     private val quickexRepository: QuickexRepository,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
-    accountManager: IAccountManager,
+    private val accountManager: IAccountManager,
 ) : IMultiSwapProvider {
     override val id = "quickex"
     override val title = "Quickex"
@@ -265,7 +265,7 @@ class QuickexProvider(
                 throw IllegalStateException("QuickexProvider: amount is not found")
             }
 
-            val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut)
+            val actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut))
 
             SwapQuoteChangeNow(
                 amountOut = amountOut,
@@ -280,43 +280,24 @@ class QuickexProvider(
         }
     }
 
-    override fun getCreateTokenActionRequired(
-        tokenIn: Token,
-        tokenOut: Token
-    ): ActionCreate? {
-        val tokenInWalletCreated = walletUseCase.getWallet(tokenIn) != null
-        val tokenOutWalletCreated = walletUseCase.getWallet(tokenOut) != null
-
-        var tokenZCashToCreate: Token? = null
-        if (isZCashUnifiedOrShielded(tokenIn)) {
-            tokenZCashToCreate = getZCashTransparentToken()
+    override fun getCreateTokenActionRequired(tokens: List<Token>): ActionCreate? {
+        val createAction = super.getCreateTokenActionRequired(tokens)
+        val tokenIn = tokens.firstOrNull() ?: return createAction
+        val tokenZCashToCreate = if (isZCashUnifiedOrShielded(tokenIn)) {
+            getZCashTransparentToken()
+        } else {
+            null
         }
         val needCreateTransparentWallet =
             tokenZCashToCreate != null && walletUseCase.getWallet(tokenZCashToCreate) == null
 
-        return if (!tokenInWalletCreated || !tokenOutWalletCreated || needCreateTransparentWallet) {
-            val tokensToAdd = mutableSetOf<Token>()
-            if (!tokenInWalletCreated) {
-                tokensToAdd.add(tokenIn)
-            }
-            if (!tokenOutWalletCreated) {
-                tokensToAdd.add(tokenOut)
-            }
-            if (needCreateTransparentWallet) {
-                tokensToAdd.add(tokenZCashToCreate)
-            }
-            ActionCreate(
-                inProgress = false,
-                descriptionResId = if (!needCreateTransparentWallet) {
-                    R.string.swap_create_wallet_description
-                } else {
-                    R.string.swap_create_wallet_description_with_zcash
-                },
-                tokensToAdd = tokensToAdd
-            )
-        } else {
-            null
-        }
+        if (!needCreateTransparentWallet) return createAction
+
+        return ActionCreate(
+            inProgress = false,
+            descriptionResId = R.string.swap_create_wallet_description_with_zcash,
+            tokensToAdd = createAction?.tokensToAdd.orEmpty() + tokenZCashToCreate
+        )
     }
 
     override suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? =
@@ -447,7 +428,8 @@ class QuickexProvider(
                 coinUidOut = tokenOut.coin.uid,
                 blockchainTypeOut = tokenOut.blockchainType.uid,
                 amountOut = transaction.amountToGet,
-                addressOut = walletUseCase.getReceiveAddress(tokenOut)
+                addressOut = walletUseCase.getReceiveAddress(tokenOut),
+                accountId = accountManager.activeAccount?.id.orEmpty(),
             )
 
             SwapFinalQuoteEvm(

@@ -10,6 +10,7 @@ import cash.p.terminal.modules.multiswap.ISwapQuote
 import cash.p.terminal.modules.multiswap.MultiSwapOnChainMonitor
 import cash.p.terminal.modules.multiswap.SwapProviderQuote
 import cash.p.terminal.modules.multiswap.SwapQuoteService
+import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel.Companion.resolveButtonState
@@ -77,6 +78,7 @@ class MultiSwapExchangeViewModelTest {
     }
     private val fetchSwapQuotesUseCase = mockk<FetchSwapQuotesUseCase>(relaxed = true)
     private val onChainMonitor = mockk<MultiSwapOnChainMonitor>(relaxed = true)
+    private val assetFiatRateService = mockk<AssetFiatRateService>(relaxed = true)
     private val marketKit = mockk<MarketKitWrapper>(relaxed = true)
     private val numberFormatter = mockk<IAppNumberFormatter>(relaxed = true)
     private val syncPendingMultiSwapUseCase = mockk<SyncPendingMultiSwapUseCase>(relaxed = true)
@@ -636,7 +638,7 @@ class MultiSwapExchangeViewModelTest {
             tokensToAdd = setOf(testToken),
         )
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns actionCreate
+        every { provider.getCreateTokenActionRequired(any()) } returns actionCreate
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -653,7 +655,7 @@ class MultiSwapExchangeViewModelTest {
     fun mapToUiState_enabledWithWalletsPresent_actionCreateNull() = runTest(dispatcher) {
         setupTokenResolution()
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns null
+        every { provider.getCreateTokenActionRequired(any()) } returns null
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -676,7 +678,7 @@ class MultiSwapExchangeViewModelTest {
             tokensToAdd = setOf(testToken),
         )
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns actionCreate
+        every { provider.getCreateTokenActionRequired(any()) } returns actionCreate
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -702,7 +704,7 @@ class MultiSwapExchangeViewModelTest {
             tokensToAdd = setOf(testToken),
         )
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns actionCreate
+        every { provider.getCreateTokenActionRequired(any()) } returns actionCreate
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -713,7 +715,7 @@ class MultiSwapExchangeViewModelTest {
         assertNotNull(vm.uiState?.actionCreate)
 
         // Simulate wallets now present -> provider returns null
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns null
+        every { provider.getCreateTokenActionRequired(any()) } returns null
         vm.createMissingWallets(setOf(testToken))
         activeWalletsFlow.value = listOf(mockk(relaxed = true))
         advanceUntilIdle()
@@ -730,7 +732,7 @@ class MultiSwapExchangeViewModelTest {
             tokensToAdd = setOf(testToken),
         )
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns null
+        every { provider.getCreateTokenActionRequired(any()) } returns null
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -741,7 +743,7 @@ class MultiSwapExchangeViewModelTest {
         assertNull(vm.uiState?.actionCreate)
 
         // Simulate wallets deleted -> provider now returns actionCreate
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns actionCreate
+        every { provider.getCreateTokenActionRequired(any()) } returns actionCreate
         activeWalletsFlow.value = listOf(mockk(relaxed = true))
         advanceUntilIdle()
 
@@ -757,7 +759,7 @@ class MultiSwapExchangeViewModelTest {
             tokensToAdd = setOf(testToken),
         )
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns actionCreate
+        every { provider.getCreateTokenActionRequired(any()) } returns actionCreate
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -795,7 +797,7 @@ class MultiSwapExchangeViewModelTest {
             tokensToAdd = setOf(testToken),
         )
         val provider = mockOnChainProvider()
-        every { provider.getCreateTokenActionRequired(any(), any()) } returns actionCreate
+        every { provider.getCreateTokenActionRequired(any()) } returns actionCreate
         every { swapQuoteService.providers } returns listOf(provider)
         val quote = createQuote(provider)
         coEvery { fetchSwapQuotesUseCase(any(), any(), any(), any(), any(), any()) } returns listOf(quote)
@@ -859,24 +861,25 @@ class MultiSwapExchangeViewModelTest {
         // Clear previous VM before creating a new one
         viewModelStore.clear()
         val vm = MultiSwapExchangeViewModel(
-        pendingMultiSwapId = "test-swap",
-        pendingMultiSwapStorage = pendingMultiSwapStorage,
-        marketKit = marketKit,
-        numberFormatter = numberFormatter,
-        onChainMonitor = onChainMonitor,
-        swapQuoteService = swapQuoteService,
-        swapProvidersRepository = swapProvidersRepository,
-        fetchSwapQuotesUseCase = fetchSwapQuotesUseCase,
-        timerService = timerService,
-        syncPendingMultiSwapUseCase = syncPendingMultiSwapUseCase,
-        syncIntervalMs = Long.MAX_VALUE,
-        currencyManager = currencyManager,
-        adapterManager = adapterManager,
-        balanceHiddenManager = balanceHiddenManager,
-        walletManager = walletManager,
-        walletUseCase = walletUseCase,
-        accountManager = accountManager,
-    )
+            pendingMultiSwapId = "test-swap",
+            pendingMultiSwapStorage = pendingMultiSwapStorage,
+            marketKit = marketKit,
+            numberFormatter = numberFormatter,
+            onChainMonitor = onChainMonitor,
+            swapQuoteService = swapQuoteService,
+            swapProvidersRepository = swapProvidersRepository,
+            fetchSwapQuotesUseCase = fetchSwapQuotesUseCase,
+            timerService = timerService,
+            syncPendingMultiSwapUseCase = syncPendingMultiSwapUseCase,
+            assetFiatRateService = assetFiatRateService,
+            currencyManager = currencyManager,
+            adapterManager = adapterManager,
+            balanceHiddenManager = balanceHiddenManager,
+            walletManager = walletManager,
+            walletUseCase = walletUseCase,
+            accountManager = accountManager,
+            syncIntervalMs = Long.MAX_VALUE,
+        )
         viewModelStore.put("test-vm", vm)
         return vm
     }

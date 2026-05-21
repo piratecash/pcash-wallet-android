@@ -19,9 +19,7 @@ import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.send.BaseSendViewModel
-import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.IAdapterManager
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ethereum.CautionViewItem
@@ -422,10 +420,11 @@ class SwapConfirmViewModel(
     }
 
     fun onTransactionCompleted(result: SendTransactionResult) {
-        val transaction = swapProviderTransaction ?: return
+        swapProvider.onTransactionCompleted(result)
+        val transaction = swapProviderTransaction
         when (swapProvider) {
-            is ChangeNowProvider -> swapProvider.onTransactionCompleted(transaction, result)
-            is QuickexProvider -> swapProvider.onTransactionCompleted(transaction, result)
+            is ChangeNowProvider -> transaction?.let { swapProvider.onTransactionCompleted(it, result) }
+            is QuickexProvider -> transaction?.let { swapProvider.onTransactionCompleted(it, result) }
         }
     }
 
@@ -487,15 +486,15 @@ class SwapConfirmViewModel(
 
                 // When wallet is null the dummy service above (sendable=false)
                 // prevents any swap execution while the screen navigates back.
-                val marketKit: MarketKitWrapper = getKoinInstance()
+                val assetFiatRateService: AssetFiatRateService = getKoinInstance()
                 return SwapConfirmViewModel(
                     swapProvider = quote.provider,
                     swapQuote = quote.swapQuote,
                     swapSettings = settings,
                     currencyManager = App.currencyManager,
-                    fiatServiceIn = FiatService(marketKit),
-                    fiatServiceOut = FiatService(marketKit),
-                    fiatServiceOutMin = FiatService(marketKit),
+                    fiatServiceIn = FiatService(assetFiatRateService),
+                    fiatServiceOut = FiatService(assetFiatRateService),
+                    fiatServiceOutMin = FiatService(assetFiatRateService),
                     sendTransactionService = sendTransactionService,
                     timerService = TimerService(),
                     priceImpactService = PriceImpactService(),

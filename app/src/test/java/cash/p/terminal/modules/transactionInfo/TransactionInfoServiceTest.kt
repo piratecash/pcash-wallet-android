@@ -142,7 +142,8 @@ class TransactionInfoServiceTest : KoinTest {
             coinUidOut = "ethereum",
             blockchainTypeOut = "ethereum",
             amountOut = BigDecimal("1.5"),
-            addressOut = "addr-out"
+            addressOut = "addr-out",
+            accountId = "test-account",
         )
 
     private fun createService(

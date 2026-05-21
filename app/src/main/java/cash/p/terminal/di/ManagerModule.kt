@@ -43,6 +43,7 @@ import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
+import cash.p.terminal.core.managers.GuidesManager
 import cash.p.terminal.core.managers.KeyStoreCleaner
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.managers.LocalStorageManager
@@ -95,6 +96,7 @@ import cash.p.terminal.modules.addtoken.AddTokenService
 import cash.p.terminal.modules.market.favorites.MarketFavoritesMenuService
 import cash.p.terminal.modules.market.favorites.MarketFavoritesRepository
 import cash.p.terminal.modules.market.favorites.MarketFavoritesService
+import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.pin.PinComponent
 import cash.p.terminal.modules.pin.core.ILockoutManager
 import cash.p.terminal.modules.pin.core.ILockoutUntilDateFactory
@@ -107,6 +109,7 @@ import cash.p.terminal.modules.calculator.domain.CalculatorModeService
 import cash.p.terminal.modules.calculator.domain.CalculatorPinAttemptThrottle
 import cash.p.terminal.modules.pin.unlock.AttemptPinUnlockUseCase
 import cash.p.terminal.modules.settings.appearance.AppIconService
+import cash.p.terminal.modules.settings.guides.GuidesRepository
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.transactions.CheckAmlIncomingTransactionUseCase
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
@@ -127,6 +130,7 @@ import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.CurrentDateProvider
 import io.horizontalsystems.core.ICurrentDateProvider
+import io.horizontalsystems.core.IEncryptionManager
 import io.horizontalsystems.core.IKeyProvider
 import io.horizontalsystems.core.IKeyStoreCleaner
 import io.horizontalsystems.core.IKeyStoreManager
@@ -140,6 +144,7 @@ import io.horizontalsystems.core.ISmsNotificationSettings
 import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.IThirdKeyboard
 import io.horizontalsystems.core.logger.AppLogger
+import io.horizontalsystems.core.security.EncryptionManager
 import io.horizontalsystems.core.security.KeyStoreManager
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import org.koin.core.module.dsl.bind
@@ -293,6 +298,7 @@ val managerModule = module {
     }
     single<IKeyStoreManager> { get<KeyStoreManager>() }
     single<IKeyProvider> { get<KeyStoreManager>() }
+    singleOf(::EncryptionManager) bind IEncryptionManager::class
     single {
         TonConnectManager(
             context = get(),
@@ -321,6 +327,11 @@ val managerModule = module {
     singleOf(::MarketFavoritesRepository)
     singleOf(::MarketFavoritesMenuService)
     factoryOf(::MarketFavoritesService)
+    singleOf(::AssetFiatRateService)
+
+    // Guides
+    single { GuidesManager }
+    singleOf(::GuidesRepository)
 
     // Pending transactions
     singleOf(::PendingTransactionRepository)

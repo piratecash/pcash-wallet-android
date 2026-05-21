@@ -737,11 +737,16 @@ object TransactionViewItemFactoryHelper {
     fun getExplorerSectionItems(explorerData: TransactionInfoModule.ExplorerData): List<TransactionInfoViewItem> =
         listOf(
             TransactionInfoViewItem.Explorer(
-                Translator.getString(
-                    R.string.TransactionInfo_ButtonViewOnExplorerName,
+                title = if (explorerData.useDirectTitle) {
                     explorerData.title
-                ),
-                explorerData.url
+                } else {
+                    Translator.getString(
+                        R.string.TransactionInfo_ButtonViewOnExplorerName,
+                        explorerData.title
+                    )
+                },
+                url = explorerData.url,
+                iconResId = explorerData.iconResId,
             )
         )
 

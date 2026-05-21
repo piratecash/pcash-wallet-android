@@ -11,6 +11,7 @@ import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.modules.multiswap.MultiSwapOnChainMonitor
 import cash.p.terminal.modules.multiswap.PriceImpactLevel
+import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.multiswap.SwapProviderQuote
 import cash.p.terminal.modules.multiswap.SwapQuoteService
 import cash.p.terminal.modules.multiswap.TimerService
@@ -21,6 +22,7 @@ import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.modules.multiswap.action.ActionCreate
+import cash.p.terminal.modules.paycore.PayCoreAssets
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
@@ -53,13 +55,14 @@ class MultiSwapExchangeViewModel(
     private val fetchSwapQuotesUseCase: FetchSwapQuotesUseCase,
     private val timerService: TimerService,
     private val syncPendingMultiSwapUseCase: SyncPendingMultiSwapUseCase,
-    private val syncIntervalMs: Long = SYNC_INTERVAL_MS,
+    private val assetFiatRateService: AssetFiatRateService,
     currencyManager: CurrencyManager,
     adapterManager: IAdapterManager,
     private val balanceHiddenManager: IBalanceHiddenManager,
     private val walletManager: IWalletManager,
     private val walletUseCase: WalletUseCase,
     private val accountManager: IAccountManager,
+    private val syncIntervalMs: Long = SYNC_INTERVAL_MS,
 ) : ViewModel() {
 
     var uiState by mutableStateOf<MultiSwapExchangeUiState?>(null)
@@ -187,7 +190,7 @@ class MultiSwapExchangeViewModel(
         leg2Quotes = emptyList()
         selectedLeg2Quote = null
         timerService.reset()
-        currentSwap?.let { uiState = mapToUiState(it) }
+        refreshUiState()
         leg2QuotingJob = viewModelScope.launch {
             try {
                 swapQuoteService.start()
@@ -216,7 +219,7 @@ class MultiSwapExchangeViewModel(
     fun onSelectLeg2Quote(quote: SwapProviderQuote) {
         selectedLeg2Quote = quote
         startTimerIfNeeded()
-        currentSwap?.let { uiState = mapToUiState(it) }
+        refreshUiState()
     }
 
     fun toggleLeg2BalanceHidden() {
@@ -302,13 +305,16 @@ class MultiSwapExchangeViewModel(
         }
     }
 
-    private fun fiatAmount(coinUid: String, amount: BigDecimal?): BigDecimal? {
+    private suspend fun fiatAmount(token: Token?, amount: BigDecimal?): BigDecimal? {
         if (amount == null) return null
-        val rate = marketKit.coinPrice(coinUid, currency.code)?.value ?: return null
+        val token = token ?: return null
+        val rate = assetFiatRateService.rate(token, currency) ?: return null
         return amount * rate
     }
 
     private fun resolveToken(coinUid: String, blockchainTypeUid: String): Token? {
+        if (PayCoreAssets.isRub(coinUid)) return PayCoreAssets.rubToken
+
         val blockchainType = BlockchainType.fromUid(blockchainTypeUid)
         return marketKit.fullCoins(listOf(coinUid))
             .firstOrNull()
@@ -339,7 +345,14 @@ class MultiSwapExchangeViewModel(
         swapQuoteService.clear()
     }
 
-    private fun mapToUiState(swap: PendingMultiSwap): MultiSwapExchangeUiState {
+    private fun refreshUiState() {
+        val swap = currentSwap ?: return
+        viewModelScope.launch {
+            uiState = mapToUiState(swap)
+        }
+    }
+
+    private suspend fun mapToUiState(swap: PendingMultiSwap): MultiSwapExchangeUiState {
         val tokenIn = resolveToken(swap.coinUidIn, swap.blockchainTypeIn)
         val tokenIntermediate = resolveToken(swap.coinUidIntermediate, swap.blockchainTypeIntermediate)
         val tokenOut = resolveToken(swap.coinUidOut, swap.blockchainTypeOut)
@@ -348,9 +361,9 @@ class MultiSwapExchangeViewModel(
         val coinIntermediate = marketKit.coin(swap.coinUidIntermediate)
         val coinOut = marketKit.coin(swap.coinUidOut)
 
-        val coinInCode = coinIn?.code ?: swap.coinUidIn
-        val intermediateCoinCode = coinIntermediate?.code ?: swap.coinUidIntermediate
-        val coinOutCode = coinOut?.code ?: swap.coinUidOut
+        val coinInCode = coinIn?.code ?: tokenIn?.coin?.code ?: swap.coinUidIn
+        val intermediateCoinCode = coinIntermediate?.code ?: tokenIntermediate?.coin?.code ?: swap.coinUidIntermediate
+        val coinOutCode = coinOut?.code ?: tokenOut?.coin?.code ?: swap.coinUidOut
 
         val leg1Status = mapStatus(swap.leg1Status)
         val leg2Status = mapStatus(swap.leg2Status)
@@ -359,7 +372,7 @@ class MultiSwapExchangeViewModel(
         val buttonState = resolveButtonState(leg1Status, leg2Status, hasQuotes, timerState.timeout, quoting = leg2Quoting)
         val actionCreate = if (buttonState == ButtonState.Enabled) {
             if (tokenIntermediate != null && tokenOut != null) {
-                selectedLeg2Quote?.provider?.getCreateTokenActionRequired(tokenIntermediate, tokenOut)
+                selectedLeg2Quote?.provider?.getCreateTokenActionRequired(listOf(tokenIntermediate, tokenOut))
                     ?.let { ActionCreate(creatingWallets, it.descriptionResId, it.tokensToAdd) }
             } else null
         } else null
@@ -374,12 +387,12 @@ class MultiSwapExchangeViewModel(
         // After fetch completes with no quotes, show null → "No providers available".
         val leg2Provider = selectedLeg2Quote?.provider
             ?: if (!leg2QuoteFetched) findProvider(swap.leg2ProviderId) else null
-        val fiatAmountIn = fiatAmount(swap.coinUidIn, swap.amountIn)
-        val fiatAmountIntermediate = fiatAmount(swap.coinUidIntermediate, swap.leg1AmountOut)
+        val fiatAmountIn = fiatAmount(tokenIn, swap.amountIn)
+        val fiatAmountIntermediate = fiatAmount(tokenIntermediate, swap.leg1AmountOut)
 
         // Leg2 amounts: use quote data if available, otherwise stored/expected values
         val leg2AmountOut = selectedLeg2Quote?.amountOut ?: swap.leg2AmountOut ?: swap.expectedAmountOut
-        val fiatAmountOut = fiatAmount(swap.coinUidOut, leg2AmountOut)
+        val fiatAmountOut = fiatAmount(tokenOut, leg2AmountOut)
 
         return MultiSwapExchangeUiState(
             leg1 = LegUiState(
@@ -457,7 +470,7 @@ class MultiSwapExchangeViewModel(
     fun createMissingWallets(tokens: Set<Token>) {
         if (creatingWallets) return
         creatingWallets = true
-        currentSwap?.let { uiState = mapToUiState(it) }
+        refreshUiState()
         viewModelScope.launch {
             try {
                 walletUseCase.createWallets(tokens)

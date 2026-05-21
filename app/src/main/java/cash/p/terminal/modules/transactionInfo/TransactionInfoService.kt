@@ -8,6 +8,7 @@ import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
@@ -21,6 +22,7 @@ import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecor
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
+import cash.p.terminal.modules.paycore.PayCoreAssetResolver
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionStatus
@@ -32,6 +34,7 @@ import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.entities.CurrencyValue
 import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -64,6 +67,11 @@ class TransactionInfoService(
 
     private val mutex = Mutex()
 
+    // Captured once from the initial DB lookup; remains stable across
+    // PayCore's txHash → payoutId migration (which mutates transactionId).
+    // All subsequent reads must key off this, not userSwapTransactionId.
+    private var userSwapDate: Long? = null
+
     private var _transactionRecord = initialTransactionRecord
     val transactionRecord: TransactionRecord get() = _transactionRecord
 
@@ -74,7 +82,8 @@ class TransactionInfoService(
     val transactionInfoItemFlow = _transactionInfoItemFlow.filterNotNull()
 
     private fun getCoinCode(coinUid: String): String? {
-        return marketKit.allCoins().find { it.uid == coinUid }?.code
+        return PayCoreAssetResolver.coinCode(coinUid)
+            ?: marketKit.allCoins().find { it.uid == coinUid }?.code
     }
 
     var transactionInfoItem = TransactionInfoItem(
@@ -288,25 +297,30 @@ class TransactionInfoService(
     }
 
     suspend fun start() = withContext(dispatcherProvider.io) {
-        // Load swap transaction data asynchronously
-        userSwapTransactionId?.let { id ->
+        // Resolve once and capture the stable PK. PayCore swaps can rewrite
+        // transactionId during the status refresh below (placeholder txHash →
+        // payoutId), so the observer and periodic refresh must key off `date`.
+        userSwapDate = userSwapTransactionId?.let { id ->
             swapProviderTransactionsStorage.getTransaction(id)?.let { swapTransaction ->
-                transactionInfoItem = transactionInfoItem.copy(
-                    swapAmountOut = swapTransaction.amountOut,
-                    swapAmountOutReal = swapTransaction.amountOutReal,
-                    swapAmountIn = swapTransaction.amountIn,
-                    swapCoinCodeOut = getCoinCode(swapTransaction.coinUidOut),
-                    swapCoinCodeIn = getCoinCode(swapTransaction.coinUidIn),
-                    swapCoinUidOut = swapTransaction.coinUidOut,
-                    swapCoinUidIn = swapTransaction.coinUidIn,
-                    swapProvider = swapTransaction.provider,
-                    externalStatus = swapTransaction.status.toStatus().toUniversalStatus()
-                )
+                applySwapTransaction(swapTransaction)
+                swapTransaction.date
             }
         }
 
         handleLastBlockUpdate(getUserSwapTransactionStatus())
         _transactionInfoItemFlow.update { transactionInfoItem }
+
+        userSwapDate?.let { date ->
+            launch {
+                swapProviderTransactionsStorage.observeByDate(date)
+                    .distinctUntilChanged()
+                    .collect { swapTransaction ->
+                        if (swapTransaction != null) {
+                            applySwapTransaction(swapTransaction)
+                        }
+                    }
+            }
+        }
 
         launch {
             adapter.getTransactionRecordsFlow(null, FilterTransactionType.All, null)
@@ -334,11 +348,8 @@ class TransactionInfoService(
             adapter.lastBlockUpdatedFlowable.asFlow()
                 .collect {
                     val currentStatus = transactionInfoItem.externalStatus
-                    val swapStatus = if (currentStatus is TransactionStatus.Completed) {
-                        currentStatus
-                    } else {
-                        getUserSwapTransactionStatus()
-                    }
+                    val swapStatus = currentStatus as? TransactionStatus.Completed
+                        ?: getUserSwapTransactionStatus()
                     handleLastBlockUpdate(swapStatus)
                 }
         }
@@ -381,8 +392,8 @@ class TransactionInfoService(
     }
 
     private suspend fun getUserSwapTransactionStatus(): TransactionStatus? =
-        userSwapTransactionId?.let { userSwapTransactionId ->
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus(userSwapTransactionId)
+        userSwapDate?.let { date ->
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(date)
                 .toUniversalStatus()
         }
 
@@ -419,6 +430,25 @@ class TransactionInfoService(
         }.toMap()
 
         handleRates(rates)
+    }
+
+    private suspend fun applySwapTransaction(swapTransaction: SwapProviderTransaction) {
+        val swapStatus = swapTransaction.status.toStatus()
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(
+                swapAmountOut = swapTransaction.amountOut,
+                swapAmountOutReal = swapTransaction.amountOutReal,
+                swapAmountIn = swapTransaction.amountIn,
+                swapCoinCodeOut = getCoinCode(swapTransaction.coinUidOut),
+                swapCoinCodeIn = getCoinCode(swapTransaction.coinUidIn),
+                swapCoinUidOut = swapTransaction.coinUidOut,
+                swapCoinUidIn = swapTransaction.coinUidIn,
+                swapProvider = swapTransaction.provider,
+                swapTransactionId = swapTransaction.transactionId,
+                swapTransactionStatus = swapStatus,
+                externalStatus = swapStatus.toUniversalStatus(),
+            )
+        }
     }
 
     private suspend fun handleLastBlockUpdate(externalStatus: TransactionStatus?) {

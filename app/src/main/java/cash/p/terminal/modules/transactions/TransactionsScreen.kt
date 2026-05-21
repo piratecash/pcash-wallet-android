@@ -832,6 +832,7 @@ private fun TransactionCellPreviewContent(item: TransactionViewItem) {
     }
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
 private fun TransactionCellPreview() {
@@ -854,6 +855,7 @@ private fun TransactionCellPreview() {
     )
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(name = "Failed Swap Cropped", widthDp = 300, showBackground = true)
 @Composable
 private fun FailedSwapTransactionCellPreview() {

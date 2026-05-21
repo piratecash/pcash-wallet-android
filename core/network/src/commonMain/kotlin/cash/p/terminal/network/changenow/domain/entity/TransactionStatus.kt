@@ -23,6 +23,7 @@ enum class TransactionStatusEnum {
     FAILED,
     REFUNDED,
     VERIFYING,
+    CREATED_OR_WAIT_USER,
     UNKNOWN
 }
 

@@ -3,8 +3,6 @@ package cash.p.terminal.modules.multiswap
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
-import java.math.BigDecimal
-import cash.p.terminal.modules.multiswap.providers.StonFiProvider
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRegistry
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.wallet.Token
@@ -31,14 +29,11 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
-import org.koin.dsl.module
+import java.math.BigDecimal
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapQuoteServiceTest {
 
-    private val stonFiProvider = mockk<StonFiProvider>(relaxed = true)
     private val mainDispatcher = UnconfinedTestDispatcher()
 
     private val tokenIn = mockk<Token>()
@@ -68,14 +63,10 @@ class SwapQuoteServiceTest {
     fun setUp() {
         // Set Main dispatcher to absorb any leaked exceptions from other test classes
         Dispatchers.setMain(mainDispatcher)
-        startKoin {
-            modules(module { single { stonFiProvider } })
-        }
     }
 
     @After
     fun tearDown() {
-        stopKoin()
         Dispatchers.resetMain()
         unmockkAll()
     }
@@ -278,6 +269,100 @@ class SwapQuoteServiceTest {
             "Selecting must immediately move to next-best enabled provider",
             "lower",
             service.stateFlow.value.quote?.provider?.id,
+        )
+    }
+
+    @Test
+    fun setAmount_singleProviderThrowsAmountOutOfRange_emitsSwapAmountOutOfRange() = runTest {
+        val provider = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "paycore"
+            coEvery { supports(tokenIn, tokenOut) } returns true
+            coEvery { fetchQuote(tokenIn, tokenOut, any(), any()) } throws SwapAmountOutOfRange()
+        }
+
+        val service = createService(listOf(provider), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val state = service.stateFlow.value
+        assertTrue(
+            "Expected SwapAmountOutOfRange but got ${state.error}",
+            state.error is SwapAmountOutOfRange,
+        )
+        assertTrue("Quotes must be empty when only provider failed", state.quotes.isEmpty())
+    }
+
+    @Test
+    fun setAmount_someProvidersSucceedAndOneAmountOutOfRange_errorCleared() = runTest {
+        val succeeding = mockProvider(providerId = "ok", quoteAmountOut = BigDecimal("5"))
+        val failing = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "paycore"
+            coEvery { supports(tokenIn, tokenOut) } returns true
+            coEvery { fetchQuote(tokenIn, tokenOut, any(), any()) } throws SwapAmountOutOfRange()
+        }
+
+        val service = createService(listOf(succeeding, failing), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val state = service.stateFlow.value
+        assertNull("Error must be cleared when at least one provider has a quote", state.error)
+        assertEquals(listOf("ok"), state.quotes.map { it.provider.id })
+    }
+
+    @Test
+    fun setAmount_allProvidersFailAtLeastOneAmountOutOfRange_emitsSwapAmountOutOfRange() = runTest {
+        val networkFailing = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "network"
+            coEvery { supports(tokenIn, tokenOut) } returns true
+            coEvery { fetchQuote(tokenIn, tokenOut, any(), any()) } throws RuntimeException("offline")
+        }
+        val amountFailing = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "paycore"
+            coEvery { supports(tokenIn, tokenOut) } returns true
+            coEvery { fetchQuote(tokenIn, tokenOut, any(), any()) } throws SwapAmountOutOfRange()
+        }
+
+        val service = createService(listOf(networkFailing, amountFailing), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val state = service.stateFlow.value
+        assertTrue(
+            "Generic provider failure must NOT override SwapAmountOutOfRange (got ${state.error})",
+            state.error is SwapAmountOutOfRange,
+        )
+    }
+
+    @Test
+    fun setAmount_swapDepositTooSmallTakesPrecedenceOverAmountOutOfRange() = runTest {
+        val depositTooSmall = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "changenow"
+            coEvery { supports(tokenIn, tokenOut) } returns true
+            coEvery { fetchQuote(tokenIn, tokenOut, any(), any()) } throws SwapDepositTooSmall(BigDecimal("0.001"))
+        }
+        val amountOutOfRange = mockk<IMultiSwapProvider>(relaxed = true) {
+            every { id } returns "paycore"
+            coEvery { supports(tokenIn, tokenOut) } returns true
+            coEvery { fetchQuote(tokenIn, tokenOut, any(), any()) } throws SwapAmountOutOfRange()
+        }
+
+        val service = createService(listOf(amountOutOfRange, depositTooSmall), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmount(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        val state = service.stateFlow.value
+        assertTrue(
+            "SwapDepositTooSmall must take precedence (got ${state.error})",
+            state.error is SwapDepositTooSmall,
         )
     }
 

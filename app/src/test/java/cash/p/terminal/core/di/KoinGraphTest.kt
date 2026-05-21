@@ -16,6 +16,10 @@ import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
+import cash.p.terminal.modules.paycore.exchange.PayCoreExchangeDetailViewModel
+import cash.p.terminal.modules.paycore.payment.PayCorePaymentParams
+import cash.p.terminal.modules.paycore.payment.PayCorePaymentViewModel
+import cash.p.terminal.modules.paycore.verification.PayCoreVerificationViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.AdvancedSecurityViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.securereset.SecureResetTermsViewModel
 import cash.p.terminal.modules.settings.advancedsecurity.terms.DeleteContactsTermsViewModel
@@ -78,6 +82,9 @@ class KoinGraphTest : KoinTest {
             definition<BlockchainStatusViewModel>(BlockchainStatusProvider::class),
             definition<SwapSelectCoinViewModel>(Token::class, Account::class),
             definition<AddressPoisoningViewModel>(String::class, Boolean::class, BlockchainType::class),
+            definition<PayCoreVerificationViewModel>(String::class),
+            definition<PayCorePaymentViewModel>(PayCorePaymentParams::class),
+            definition<PayCoreExchangeDetailViewModel>(Long::class),
             definition<TransactionPollingManager>(List::class),
         )
 

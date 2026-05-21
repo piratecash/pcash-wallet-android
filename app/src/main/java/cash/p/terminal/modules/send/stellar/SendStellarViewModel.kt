@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.LocalizedException
@@ -27,7 +26,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import cash.p.terminal.R
-import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.providers.AppConfigProvider
 import org.koin.java.KoinJavaComponent.inject
 import java.net.UnknownHostException

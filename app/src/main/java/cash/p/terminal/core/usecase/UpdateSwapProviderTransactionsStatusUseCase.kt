@@ -45,14 +45,31 @@ class UpdateSwapProviderTransactionsStatusUseCase(
     suspend fun updateTransactionStatus(
         transactionId: String
     ): TransactionStatusEnum? = withContext(Dispatchers.IO) {
-        swapProviderTransactionsStorage.getTransaction(transactionId)?.let { transaction ->
-            if (!transaction.isFinished()) {
-                getTransactionStatus(transaction)?.let { result ->
-                    updateIfChanged(transaction, result)
-                }
+        val initial = swapProviderTransactionsStorage.getTransaction(transactionId)
+            ?: return@withContext null
+        refreshAndReread(initial)
+    }
+
+    suspend fun updateTransactionStatusByDate(
+        date: Long
+    ): TransactionStatusEnum? = withContext(Dispatchers.IO) {
+        val initial = swapProviderTransactionsStorage.getByDate(date)
+            ?: return@withContext null
+        refreshAndReread(initial)
+    }
+
+    private suspend fun refreshAndReread(
+        initial: SwapProviderTransaction
+    ): TransactionStatusEnum? {
+        if (!initial.isFinished()) {
+            getTransactionStatus(initial)?.let { result ->
+                updateIfChanged(initial, result)
             }
-            swapProviderTransactionsStorage.getTransaction(transactionId)?.status?.toStatus()
         }
+        // The status repository may have rewritten transactionId during the call
+        // (PayCore placeholder txHash → payoutId). Re-read by the stable PK so we
+        // observe the post-migration row instead of a vanished one.
+        return swapProviderTransactionsStorage.getByDate(initial.date)?.status?.toStatus()
     }
 
     private fun updateIfChanged(
@@ -67,7 +84,7 @@ class UpdateSwapProviderTransactionsStatusUseCase(
 
         return if (statusChanged || amountOutRealChanged || finishedAtChanged) {
             swapProviderTransactionsStorage.updateStatusFields(
-                transactionId = transaction.transactionId,
+                date = transaction.date,
                 status = result.status.name.lowercase(),
                 // Keep actual blockchain amount if already matched
                 amountOutReal = if (transaction.incomingRecordUid != null) {

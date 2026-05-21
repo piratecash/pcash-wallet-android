@@ -14,7 +14,6 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.storage.toRecordUidMap
-import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.SwapProviderTransaction
@@ -49,11 +48,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -495,52 +490,6 @@ class TransactionsViewModel(
             transactionStatusUrl = viewItem.transactionStatusUrl,
             changeNowTransactionId = viewItem.changeNowTransactionId
         )
-
-    suspend fun awaitTransactionItem(recordUid: String, timeoutMs: Long = 5_000): TransactionItem? {
-        getTransactionItem(recordUid)?.let { return it }
-
-        return withTimeoutOrNull(timeoutMs) {
-            merge(
-                service.transactionItemsFlow.map { },
-                transactionAdapterManager.adaptersReadyFlow.map { },
-            ).first { getTransactionItem(recordUid) != null }
-            getTransactionItem(recordUid)
-        }
-    }
-
-    suspend fun getTransactionItem(recordUid: String): TransactionItem? {
-        val item = service.getTransactionItem(recordUid)
-            ?: findTransactionRecordInAdapters(recordUid)?.let {
-                TransactionItem(
-                    record = it,
-                    currencyValue = null,
-                    lastBlockInfo = null,
-                    nftMetadata = emptyMap(),
-                )
-            }
-            ?: return null
-
-        val swapTx = swapProviderTransactionsStorage.getByOutgoingRecordUid(recordUid)
-            ?: swapProviderTransactionsStorage.getByIncomingRecordUid(recordUid)
-        return if (swapTx != null) {
-            item.copy(
-                changeNowTransactionId = swapTx.transactionId,
-                transactionStatusUrl = swapTx.toStatusUrl(),
-            )
-        } else {
-            item
-        }
-    }
-
-    private suspend fun findTransactionRecordInAdapters(recordUid: String): TransactionRecord? {
-        for ((_, adapter) in transactionAdapterManager.adaptersReadyFlow.value) {
-            val record = tryOrNull {
-                adapter.getTransactions(null, null, 100, FilterTransactionType.All, null)
-            }?.firstOrNull { it.uid == recordUid }
-            if (record != null) return record
-        }
-        return null
-    }
 
     fun updateFilterHideSuspiciousTx(checked: Boolean) {
         transactionFilterService.updateFilterHideSuspiciousTx(checked)

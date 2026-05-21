@@ -59,7 +59,7 @@ abstract class BaseUniswapV3Provider(dexType: DexType) : EvmSwapProvider() {
             tokenIn,
             tokenOut,
             amountIn,
-            getCreateTokenActionRequired(tokenIn, tokenOut) ?: actionApprove(allowance, amountIn, routerAddress, tokenIn)
+            getCreateTokenActionRequired(listOf(tokenIn, tokenOut)) ?: actionApprove(allowance, amountIn, routerAddress, tokenIn)
         )
     }
 

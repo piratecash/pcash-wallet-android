@@ -4,6 +4,7 @@ import cash.p.terminal.R
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
 import cash.p.terminal.modules.multiswap.action.ActionCreate
+import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
@@ -43,22 +44,12 @@ interface IMultiSwapProvider {
         swapQuote: ISwapQuote
     ) : ISwapFinalQuote
 
-    fun getCreateTokenActionRequired(
-        tokenIn: Token,
-        tokenOut: Token
-    ): ActionCreate? {
-        val tokenInWalletCreated = walletUseCase.getWallet(tokenIn) != null
-        val tokenOutWalletCreated = walletUseCase.getWallet(tokenOut) != null
+    fun getCreateTokenActionRequired(tokens: List<Token>): ActionCreate? {
+        val tokensToAdd = tokens.filterTo(mutableSetOf()) { token ->
+            walletUseCase.getWallet(token) == null
+        }
 
-
-        return if (!tokenInWalletCreated || !tokenOutWalletCreated) {
-            val tokensToAdd = mutableSetOf<Token>()
-            if (!tokenInWalletCreated) {
-                tokensToAdd.add(tokenIn)
-            }
-            if (!tokenOutWalletCreated) {
-                tokensToAdd.add(tokenOut)
-            }
+        return if (tokensToAdd.isNotEmpty()) {
             ActionCreate(
                 inProgress = false,
                 descriptionResId = R.string.swap_create_wallet_description,
@@ -71,4 +62,7 @@ interface IMultiSwapProvider {
 
     suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? = null
 
+    fun getProviderTransactionId(): String? = null
+
+    fun onTransactionCompleted(result: SendTransactionResult) = Unit
 }

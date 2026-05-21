@@ -469,7 +469,16 @@
         android:name="io.horizontalsystems.core.ui.dialogs.ChecklistConfirmationDialog"/>
     <dialog
         android:id="@+id/contactOptionsDialog"
-        android:name="cash.p.terminal.modules.settings.about.ContactOptionsDialog" />
+        android:name="cash.p.terminal.modules.settings.about.ContactOptionsDialog">
+        <argument
+            android:name="input"
+            app:argType="cash.p.terminal.modules.settings.about.ContactOptionsDialog$Input"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </dialog>
+    <fragment
+        android:id="@+id/contactUsFragment"
+        android:name="cash.p.terminal.modules.settings.about.ContactUsFragment" />
     <dialog
         android:id="@+id/accessCodeRecoveryDialog"
         android:name="cash.p.terminal.tangem.ui.accesscoderecovery.AccessCodeRecoveryDialog" />

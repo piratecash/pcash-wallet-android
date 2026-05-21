@@ -74,6 +74,7 @@ android {
         buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
         buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
         buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
+        buildConfigField "boolean", "PAYCORE_ENABLED", "true"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         ksp {
@@ -93,6 +94,8 @@ android {
         resValue "string", "appTelegramLink", "https://t.me/pcash"
         resValue "string", "appRedditLink", "https://www.reddit.com/r/PirateCash/"
         resValue "string", "reportEmail", "i@p.cash"
+        resValue "string", "payCoreSupportEmail", "support@paycore.pw"
+        resValue "string", "payCoreSupportUrl", "https://t.me/paycore_supp"
         resValue "string", "walletConnectAppMetaDataName", "pcash"
         resValue "string", "walletConnectAppMetaDataUrl", "p.cash"
         resValue "string", "walletConnectAppMetaDataIcon", "https://raw.githubusercontent.com/piratecash/pcash-wallet-ios/master/UnstoppableWallet/UnstoppableWallet/AppIcon.xcassets/AppIcon.appiconset/p.cash_1024.png"

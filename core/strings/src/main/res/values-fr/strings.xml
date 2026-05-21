@@ -621,6 +621,7 @@
     <string name="swap_providers_title">Fournisseurs de swap</string>
     <string name="swap_providers_mandatory_toast">Ce fournisseur ne peut pas être désactivé</string>
     <string name="swap_no_enabled_providers">Aucun fournisseur actif</string>
+    <string name="swap_no_providers_for_this_amount">Aucun fournisseur pour ce montant</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Vous pouvez échanger %s, ou vous devez révoquer et approuver le nouveau montant</string>
@@ -662,6 +663,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">En attente de la sélection de la banque</string>
     <string name="Transactions_Failed">Échec</string>
     <string name="Transactions_ContractCall">Appel de contrat</string>
     <string name="Transactions_ExternalContractCall">Appel externe</string>
@@ -699,6 +701,7 @@
     <string name="TransactionInfo_Date">Date du Virement</string>
     <string name="transaction_info_sync_source">Source de synchronisation</string>
     <string name="TransactionInfo_Id">Identifiant</string>
+    <string name="TransactionInfo_Service">Service</string>
     <string name="TransactionInfo_RawTransaction">Transaction brute</string>
     <string name="TransactionInfo_ContactName">Nom du contact</string>
     <string name="TransactionInfo_To">À</string>
@@ -1472,11 +1475,6 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="SubscriptionInfo_HavePremium">J\'ai déjà Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">À propos de Premium</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[Accord d’utilisation pour configurer un code PIN permettant de supprimer le carnet d’adresses crypto<br/><br/>En configurant un code PIN, vous confirmez comprendre sa finalité en tant que mécanisme de protection de votre confidentialité.<br/><b>1. Fonction de protection du code PIN</b><br/>Ce code PIN est destiné à la suppression d’urgence du carnet d’adresses crypto de l’appareil afin d’éviter une possible compromission de vos liens financiers et des adresses enregistrées par des tiers.<br/><b>2. Mécanisme de fonctionnement</b><br/>La saisie du code PIN configuré entraînera la suppression immédiate de votre carnet d’adresses crypto stocké sur cet appareil.<br/><b>3. Caractère irréversible de la suppression</b><br/>La suppression du carnet d’adresses après la saisie du code PIN est définitive et irréversible.<br/><b>4. Absence de restauration</b><br/>En cas de suppression du carnet d’adresses, les données ne peuvent pas être restaurées, sauf si une sauvegarde a été créée au préalable.<br/><b>5. Stockage local</b><br/>Le carnet d’adresses est stocké exclusivement localement sur votre appareil et n’est transmis ni aux développeurs ni à des serveurs externes.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>Je comprends que le code PIN est utilisé pour supprimer immédiatement le carnet d\'adresses crypto.</item>
-        <item>Je comprends qu\'après la saisie du code PIN, le carnet d\'adresses sera supprimé sans possibilité de restauration sans sauvegarde.</item>
-    </string-array>
     <string name="premium_settings">Paramètres Premium</string>
     <string name="advanced_security">Sécurité avancée</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Créer un portefeuille caché</string>
@@ -1512,6 +1510,11 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
         <item>Si vous n\'avez pas effectué de copies de sauvegarde des clés privées de tous les portefeuilles, vous perdrez l\'accès à tous vos fonds.</item>
         <item>L\'utilisateur est conscient des risques et comprend que cette action sera irréversible.</item>
         <item>Après la réinitialisation, votre PIN principal deviendra votre PIN de réinitialisation, et le PIN de réinitialisation sera désactivé.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[Accord d’utilisation pour configurer un code PIN permettant de supprimer le carnet d’adresses crypto<br/><br/>En configurant un code PIN, vous confirmez comprendre sa finalité en tant que mécanisme de protection de votre confidentialité.<br/><b>1. Fonction de protection du code PIN</b><br/>Ce code PIN est destiné à la suppression d’urgence du carnet d’adresses crypto de l’appareil afin d’éviter une possible compromission de vos liens financiers et des adresses enregistrées par des tiers.<br/><b>2. Mécanisme de fonctionnement</b><br/>La saisie du code PIN configuré entraînera la suppression immédiate de votre carnet d’adresses crypto stocké sur cet appareil.<br/><b>3. Caractère irréversible de la suppression</b><br/>La suppression du carnet d’adresses après la saisie du code PIN est définitive et irréversible.<br/><b>4. Absence de restauration</b><br/>En cas de suppression du carnet d’adresses, les données ne peuvent pas être restaurées, sauf si une sauvegarde a été créée au préalable.<br/><b>5. Stockage local</b><br/>Le carnet d’adresses est stocké exclusivement localement sur votre appareil et n’est transmis ni aux développeurs ni à des serveurs externes.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>Je comprends que le code PIN est utilisé pour supprimer immédiatement le carnet d\'adresses crypto.</item>
+        <item>Je comprends qu\'après la saisie du code PIN, le carnet d\'adresses sera supprimé sans possibilité de restauration sans sauvegarde.</item>
     </string-array>
 
     <!--Premium Screens-->
@@ -1959,4 +1962,36 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="multi_swap_cancel_swap_warning">Le premier échange a déjà été effectué. Les jetons intermédiaires sont dans votre portefeuille et resteront les vôtres. Seule la deuxième étape de l\'échange sera annulée.</string>
     <string name="swap_leg_title">Échange %d</string>
     <string name="scan_tangem_card">Scanner la carte Tangem</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Vérifier le téléphone</string>
+    <string name="paycore_verifying">Vérification…</string>
+    <string name="paycore_service_fee">Frais de service</string>
+    <string name="paycore_network">Réseau</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Continuer</string>
+    <string name="paycore_verification_processing">En cours de traitement…</string>
+    <string name="paycore_verification_operations_via_altyn">Les opérations sont effectuées via le portefeuille électronique Altyn.one</string>
+    <string name="settings_contact_us_pcash_support">Support P.Cash</string>
+    <string name="settings_contact_us_paycore_support">Support Paycore</string>
+    <string name="paycore_verification_not_verified">Numéro non vérifié</string>
+    <string name="paycore_verification_pass_kyc">Effectuer le KYC</string>
+    <string name="paycore_verification_verified_title">Votre vérification est terminée</string>
+    <string name="paycore_verification_warning_title">ATTENTION</string>
+    <string name="paycore_verification_warning_text">LE TRANSFERT DE FONDS EST AUTORISÉ EXCLUSIVEMENT DEPUIS LE COMPTE VOUS APPARTENANT, AVEC UN NUMÉRO DE TÉLÉPHONE ET UNE IDENTITÉ VÉRIFIÉS.</string>
+    <string name="paycore_verification_warning_detail">Les transferts depuis d\'autres comptes ne seront pas crédités, les fonds envoyés seront perdus !</string>
+    <string name="paycore_verification_back">Retour</string>
+    <string name="paycore_verification_error">La connexion a échoué. Veuillez réessayer plus tard.</string>
+    <string name="paycore_verification_retry">Réessayer</string>
+    <string name="paycore_verification_phone_label">Numéro de téléphone :</string>
+    <string name="paycore_verification_contact_support">La récupération automatique a échoué. Veuillez contacter l\'assistance.</string>
+    <string name="paycore_verification_support_line"><![CDATA[Assistance technique 24/7 : <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Service</string>
+    <string name="paycore_support">Assistance PayCore</string>
+    <string name="paycore_section_currency">Devise</string>
+    <string name="paycore_section_crypto">Cryptomonnaies</string>
+    <string name="paycore_select_bank">Sélectionner une banque</string>
+    <string name="paycore_select_bank_error">Impossible d\'ouvrir la sélection de banque. Réessayez plus tard.</string>
+    <string name="paycore_delete_restricted_warning">Cette transaction ne peut pas être supprimée car elle est traitée par un service tiers.</string>
+    <string name="paycore_delete_to_complete_select_bank">Sélectionnez une banque pour finaliser le swap.</string>
 </resources>

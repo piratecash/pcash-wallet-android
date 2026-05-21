@@ -30,7 +30,6 @@ class SwapQuoteService(
     private val swapProvidersRegistry: SwapProvidersRegistry,
     private val dispatcherProvider: DispatcherProvider,
 ) {
-
     private companion object {
         const val DEBOUNCE_INPUT_MSEC: Long = 300
     }
@@ -170,13 +169,19 @@ class SwapQuoteService(
                         amountIn = amountIn,
                         settings = settings,
                         onProviderError = { _, e ->
-                            if (e is SwapDepositTooSmall) {
-                                val current = error as? SwapDepositTooSmall
-                                if (current == null || current.minValue > e.minValue) {
-                                    error = e
+                            when (e) {
+                                is SwapDepositTooSmall -> {
+                                    val current = error as? SwapDepositTooSmall
+                                    if (current == null || current.minValue > e.minValue) {
+                                        error = e
+                                    }
                                 }
-                            } else {
-                                Timber.d(e, "fetchQuoteError")
+                                is SwapAmountOutOfRange -> {
+                                    if (error !is SwapDepositTooSmall) {
+                                        error = e
+                                    }
+                                }
+                                else -> Timber.d(e, "fetchQuoteError")
                             }
                         },
                     )
@@ -235,9 +240,12 @@ class SwapQuoteService(
             error = null
         } else {
             multiSwapRoute = null
-            error = resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
+            error = preservedAmountError() ?: resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
         }
     }
+
+    private fun preservedAmountError(): Throwable? =
+        error?.takeIf { it is SwapDepositTooSmall || it is SwapAmountOutOfRange }
 
     private suspend fun resolveEmptyResultError(
         tokenIn: Token,

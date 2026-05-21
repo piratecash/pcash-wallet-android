@@ -146,6 +146,7 @@ class SyncPendingMultiSwapUseCaseTest {
         amountOut = BigDecimal("1.5"),
         addressOut = "UQ123",
         amountOutReal = amountOutReal,
+        accountId = "test-account",
     )
 
     @Test

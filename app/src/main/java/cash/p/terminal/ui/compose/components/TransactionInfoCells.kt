@@ -676,7 +676,8 @@ fun TransactionInfoTransactionHashCell(transactionHash: String) {
 @Composable
 fun TransactionInfoExplorerCell(
     title: String,
-    url: String
+    url: String,
+    iconResId: Int = R.drawable.ic_language,
 ) {
     val context = LocalContext.current
     RowUniversal(
@@ -687,7 +688,7 @@ fun TransactionInfoExplorerCell(
     ) {
         Image(
             modifier = Modifier.size(20.dp),
-            painter = painterResource(id = R.drawable.ic_language),
+            painter = painterResource(id = iconResId),
             contentDescription = null,
         )
         body_leah(

@@ -26,6 +26,7 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -46,6 +47,9 @@ class SwapConfirmViewModelLeg2Test {
     private val dispatcher = UnconfinedTestDispatcher()
     private val pendingMultiSwapStorage = mockk<PendingMultiSwapStorage>(relaxed = true)
     private val localStorage = mockk<ILocalStorage>(relaxed = true)
+    private val assetFiatRateService = mockk<AssetFiatRateService> {
+        every { rateFlow(any(), any(), any()) } returns flowOf(null)
+    }
     private val sendResult = mockk<SendTransactionResult>(relaxed = true)
 
     private val previewWallet = WalletFactory.previewWallet()
@@ -94,6 +98,7 @@ class SwapConfirmViewModelLeg2Test {
                 single<ILocalStorage> { localStorage }
                 single<PendingMultiSwapStorage> { pendingMultiSwapStorage }
                 single<MarketKitWrapper> { mockk(relaxed = true) }
+                single<AssetFiatRateService> { assetFiatRateService }
                 single<IBalanceHiddenManager> {
                     mockk(relaxed = true) {
                         every { balanceHiddenFlow } returns MutableStateFlow(false)
@@ -133,7 +138,6 @@ class SwapConfirmViewModelLeg2Test {
 
     private fun createViewModel(legInfo: MultiSwapLegInfo): SwapConfirmViewModel {
         val adapterManager = mockk<IAdapterManager>(relaxed = true)
-        val marketKit = mockk<MarketKitWrapper>(relaxed = true)
         val currencyManager = mockk<CurrencyManager> {
             every { baseCurrency } returns Currency("USD", "$", 2, 0)
         }
@@ -142,9 +146,9 @@ class SwapConfirmViewModelLeg2Test {
             swapQuote = swapQuote,
             swapSettings = emptyMap(),
             currencyManager = currencyManager,
-            fiatServiceIn = FiatService(marketKit),
-            fiatServiceOut = FiatService(marketKit),
-            fiatServiceOutMin = FiatService(marketKit),
+            fiatServiceIn = FiatService(assetFiatRateService),
+            fiatServiceOut = FiatService(assetFiatRateService),
+            fiatServiceOutMin = FiatService(assetFiatRateService),
             sendTransactionService = sendTransactionService,
             timerService = TimerService(),
             priceImpactService = PriceImpactService(),

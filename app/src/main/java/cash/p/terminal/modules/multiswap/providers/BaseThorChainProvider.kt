@@ -157,7 +157,7 @@ abstract class BaseThorChainProvider(
         }
 
         val allowance = routerAddress?.let { EvmSwapHelper.getAllowance(tokenIn, it) }
-        val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut) ?: routerAddress?.let {
+        val actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut)) ?: routerAddress?.let {
             EvmSwapHelper.actionApprove(allowance, amountIn, it, tokenIn)
         }
 

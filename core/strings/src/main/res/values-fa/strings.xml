@@ -625,6 +625,7 @@
     <string name="swap_providers_title">ارائه‌دهندگان سواپ</string>
     <string name="swap_providers_mandatory_toast">این ارائه‌دهنده را نمی‌توان غیرفعال کرد</string>
     <string name="swap_no_enabled_providers">هیچ ارائه‌دهنده فعالی وجود ندارد</string>
+    <string name="swap_no_providers_for_this_amount">هیچ ارائه‌دهنده‌ای برای این مبلغ وجود ندارد</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>
@@ -666,6 +667,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">در انتظار انتخاب بانک</string>
     <string name="Transactions_Failed">ناموفق</string>
     <string name="Transactions_ContractCall">تماس قرارداد</string>
     <string name="Transactions_ExternalContractCall">External Call</string>
@@ -703,6 +705,7 @@
     <string name="TransactionInfo_Date">تاریخ</string>
     <string name="transaction_info_sync_source">منبع همگام‌سازی</string>
     <string name="TransactionInfo_Id">شناسه</string>
+    <string name="TransactionInfo_Service">خدمات</string>
     <string name="TransactionInfo_RawTransaction">تراکنش خام</string>
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">به</string>
@@ -1478,11 +1481,6 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">پریمیوم</string>
     <string name="about_premium">درباره پریمیوم</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[توافق‌نامه کاربر برای تنظیم رمز PIN جهت حذف دفترچه آدرس رمزارز<br/><br/>با تنظیم رمز PIN، شما تأیید می‌کنید که هدف آن را به‌عنوان سازوکاری برای محافظت از حریم خصوصی خود درک می‌کنید.<br/><b>1. کارکرد حفاظتی رمز PIN</b><br/>این رمز PIN برای حذف اضطراری دفترچه آدرس رمزارز از دستگاه در نظر گرفته شده است تا از افشای احتمالی ارتباطات مالی و آدرس‌های ذخیره‌شده شما به اشخاص ثالث جلوگیری شود.<br/><b>2. سازوکار عملکرد</b><br/>وارد کردن رمز PIN تنظیم‌شده باعث حذف فوری دفترچه آدرس رمزارز ذخیره‌شده در این دستگاه می‌شود.<br/><b>3. غیرقابل‌برگشت بودن حذف</b><br/>حذف دفترچه آدرس پس از وارد کردن رمز PIN نهایی و غیرقابل بازگشت است.<br/><b>4. نبود امکان بازیابی</b><br/>در صورت حذف دفترچه آدرس، داده‌ها قابل بازیابی نخواهند بود مگر اینکه از قبل نسخه پشتیبان ایجاد شده باشد.<br/><b>5. ذخیره‌سازی محلی</b><br/>دفترچه آدرس فقط به‌صورت محلی در دستگاه شما ذخیره می‌شود و به توسعه‌دهندگان یا سرورهای خارجی منتقل نمی‌شود.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>می‌دانم که رمز PIN برای حذف فوری دفترچه آدرس رمزارز استفاده می‌شود.</item>
-        <item>می‌دانم که پس از وارد کردن رمز PIN، دفترچه آدرس بدون امکان بازیابی و بدون نسخه پشتیبان حذف خواهد شد.</item>
-    </string-array>
     <string name="premium_settings">تنظیمات پریمیوم</string>
     <string name="advanced_security">امنیت پیشرفته</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
@@ -1518,6 +1516,11 @@
         <item>اگر از کلیدهای خصوصی تمام کیف پول‌ها نسخه پشتیبان تهیه نکرده‌اید، دسترسی به تمام وجوه خود را از دست خواهید داد.</item>
         <item>کاربر از خطرات آگاه است و می‌داند که این اقدام برگشت‌ناپذیر خواهد بود.</item>
         <item>پس از بازنشانی، پین اصلی شما به پین بازنشانی شما تبدیل می‌شود و پین بازنشانی غیرفعال خواهد شد.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[توافق‌نامه کاربر برای تنظیم رمز PIN جهت حذف دفترچه آدرس رمزارز<br/><br/>با تنظیم رمز PIN، شما تأیید می‌کنید که هدف آن را به‌عنوان سازوکاری برای محافظت از حریم خصوصی خود درک می‌کنید.<br/><b>1. کارکرد حفاظتی رمز PIN</b><br/>این رمز PIN برای حذف اضطراری دفترچه آدرس رمزارز از دستگاه در نظر گرفته شده است تا از افشای احتمالی ارتباطات مالی و آدرس‌های ذخیره‌شده شما به اشخاص ثالث جلوگیری شود.<br/><b>2. سازوکار عملکرد</b><br/>وارد کردن رمز PIN تنظیم‌شده باعث حذف فوری دفترچه آدرس رمزارز ذخیره‌شده در این دستگاه می‌شود.<br/><b>3. غیرقابل‌برگشت بودن حذف</b><br/>حذف دفترچه آدرس پس از وارد کردن رمز PIN نهایی و غیرقابل بازگشت است.<br/><b>4. نبود امکان بازیابی</b><br/>در صورت حذف دفترچه آدرس، داده‌ها قابل بازیابی نخواهند بود مگر اینکه از قبل نسخه پشتیبان ایجاد شده باشد.<br/><b>5. ذخیره‌سازی محلی</b><br/>دفترچه آدرس فقط به‌صورت محلی در دستگاه شما ذخیره می‌شود و به توسعه‌دهندگان یا سرورهای خارجی منتقل نمی‌شود.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>می‌دانم که رمز PIN برای حذف فوری دفترچه آدرس رمزارز استفاده می‌شود.</item>
+        <item>می‌دانم که پس از وارد کردن رمز PIN، دفترچه آدرس بدون امکان بازیابی و بدون نسخه پشتیبان حذف خواهد شد.</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1965,4 +1968,36 @@
     <string name="multi_swap_cancel_swap_warning">اولین تبادل قبلاً انجام شده است. سکه‌های واسطه در کیف پول شما هستند و متعلق به شما باقی می‌مانند. فقط مرحله دوم تبادل لغو خواهد شد.</string>
     <string name="swap_leg_title">مبادله %d</string>
     <string name="scan_tangem_card">اسکن کارت Tangem</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">تأیید تلفن</string>
+    <string name="paycore_verifying">در حال تأیید…</string>
+    <string name="paycore_service_fee">کارمزد خدمات</string>
+    <string name="paycore_network">شبکه</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">ادامه</string>
+    <string name="paycore_verification_processing">در حال پردازش…</string>
+    <string name="paycore_verification_operations_via_altyn">عملیات از طریق کیف پول الکترونیکی Altyn.one انجام می‌شود</string>
+    <string name="settings_contact_us_pcash_support">پشتیبانی P.Cash</string>
+    <string name="settings_contact_us_paycore_support">پشتیبانی Paycore</string>
+    <string name="paycore_verification_not_verified">شماره تأیید نشده است</string>
+    <string name="paycore_verification_pass_kyc">انجام KYC</string>
+    <string name="paycore_verification_verified_title">تأیید شما کامل شد</string>
+    <string name="paycore_verification_warning_title">هشدار</string>
+    <string name="paycore_verification_warning_text">انتقال وجوه فقط از حساب متعلق به شما، با شماره تلفن و هویت تأیید شده مجاز است.</string>
+    <string name="paycore_verification_warning_detail">انتقال از حساب‌های دیگر اعتبار نخواهد داشت، وجوه ارسالی از بین خواهد رفت!</string>
+    <string name="paycore_verification_back">بازگشت</string>
+    <string name="paycore_verification_error">ورود ناموفق بود. لطفاً بعداً دوباره امتحان کنید.</string>
+    <string name="paycore_verification_retry">تلاش مجدد</string>
+    <string name="paycore_verification_phone_label">شماره تلفن:</string>
+    <string name="paycore_verification_contact_support">بازیابی خودکار ناموفق بود. لطفاً با پشتیبانی تماس بگیرید.</string>
+    <string name="paycore_verification_support_line"><![CDATA[پشتیبانی فنی ۲۴/۷: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">سرویس</string>
+    <string name="paycore_support">پشتیبانی PayCore</string>
+    <string name="paycore_section_currency">ارز</string>
+    <string name="paycore_section_crypto">رمزارزها</string>
+    <string name="paycore_select_bank">انتخاب بانک</string>
+    <string name="paycore_select_bank_error">باز کردن انتخاب بانک ناموفق بود. لطفاً بعداً دوباره امتحان کنید.</string>
+    <string name="paycore_delete_restricted_warning">این تراکنش قابل حذف نیست زیرا توسط یک سرویس شخص ثالث پردازش می‌شود.</string>
+    <string name="paycore_delete_to_complete_select_bank">برای تکمیل سواپ، یک بانک انتخاب کنید.</string>
 </resources>
