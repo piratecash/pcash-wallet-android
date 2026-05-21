@@ -42,9 +42,9 @@ import cash.p.terminal.wallet.Token
 import com.tangem.common.core.TangemSdkError
 import io.horizontalsystems.bitcoincore.managers.SendValueErrors
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Currency
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,6 +70,7 @@ class SwapConfirmViewModel(
     private val priceImpactService: PriceImpactService,
     wallet: Wallet,
     adapterManager: IAdapterManager,
+    private val dispatcherProvider: DispatcherProvider,
     private val multiSwapLegInfo: MultiSwapLegInfo? = null,
 ) : BaseSendViewModel<SwapConfirmUiState>(wallet, adapterManager) {
     private val accountId: String = wallet.account.id
@@ -273,7 +274,7 @@ class SwapConfirmViewModel(
 
     private fun fetchFinalQuote() {
         fetchJob?.cancel()
-        fetchJob = viewModelScope.launch(Dispatchers.IO) {
+        fetchJob = viewModelScope.launch(dispatcherProvider.io) {
             try {
                 val finalQuote = swapProvider.fetchFinalQuote(
                     tokenIn = tokenIn,
@@ -325,7 +326,7 @@ class SwapConfirmViewModel(
         }
     }
 
-    suspend fun swap() = withContext(Dispatchers.Default) {
+    suspend fun swap() = withContext(dispatcherProvider.default) {
         sendTransactionService.sendTransaction(uiState.mevProtectionEnabled)
     }
 
@@ -487,6 +488,7 @@ class SwapConfirmViewModel(
                 // When wallet is null the dummy service above (sendable=false)
                 // prevents any swap execution while the screen navigates back.
                 val assetFiatRateService: AssetFiatRateService = getKoinInstance()
+                val dispatcherProvider: DispatcherProvider = getKoinInstance()
                 return SwapConfirmViewModel(
                     swapProvider = quote.provider,
                     swapQuote = quote.swapQuote,
@@ -500,6 +502,7 @@ class SwapConfirmViewModel(
                     priceImpactService = PriceImpactService(),
                     wallet = wallet ?: App.walletManager.activeWallets.first(),
                     adapterManager = App.adapterManager,
+                    dispatcherProvider = dispatcherProvider,
                     multiSwapLegInfo = multiSwapLegInfo,
                 ) as T
             }

@@ -2,6 +2,7 @@ package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ServiceStateFlow
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
@@ -20,6 +21,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -45,6 +47,7 @@ import java.math.BigDecimal
 class SwapConfirmViewModelLeg2Test {
 
     private val dispatcher = UnconfinedTestDispatcher()
+    private val dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher))
     private val pendingMultiSwapStorage = mockk<PendingMultiSwapStorage>(relaxed = true)
     private val localStorage = mockk<ILocalStorage>(relaxed = true)
     private val assetFiatRateService = mockk<AssetFiatRateService> {
@@ -154,6 +157,7 @@ class SwapConfirmViewModelLeg2Test {
             priceImpactService = PriceImpactService(),
             wallet = previewWallet,
             adapterManager = adapterManager,
+            dispatcherProvider = dispatcherProvider,
             multiSwapLegInfo = legInfo,
         )
         viewModelStore.put("test-vm", vm)
