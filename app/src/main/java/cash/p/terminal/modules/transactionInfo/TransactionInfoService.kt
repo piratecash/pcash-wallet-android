@@ -103,7 +103,7 @@ class TransactionInfoService(
         swapAmountIn = null,
         swapCoinCodeOut = null,
         swapCoinCodeIn = null,
-        poisonStatus = computePoisonStatus(transactionRecord)
+        poisonStatus = PoisonStatus.BLOCKCHAIN
     )
         private set(value) {
             field = value
@@ -297,6 +297,8 @@ class TransactionInfoService(
     }
 
     suspend fun start() = withContext(dispatcherProvider.io) {
+        handlePoisonStatusUpdate(computePoisonStatus(transactionRecord))
+
         // Resolve once and capture the stable PK. PayCore swaps can rewrite
         // transactionId during the status refresh below (placeholder txHash →
         // payoutId), so the observer and periodic refresh must key off `date`.
@@ -461,8 +463,12 @@ class TransactionInfoService(
     }
 
     private suspend fun handleRecordUpdate(transactionRecord: TransactionRecord) {
+        val poisonStatus = computePoisonStatus(transactionRecord)
         mutex.withLock {
-            transactionInfoItem = transactionInfoItem.copy(record = transactionRecord)
+            transactionInfoItem = transactionInfoItem.copy(
+                record = transactionRecord,
+                poisonStatus = poisonStatus,
+            )
         }
     }
 
@@ -496,7 +502,13 @@ class TransactionInfoService(
         }
     }
 
-    fun computePoisonStatus(record: TransactionRecord): PoisonStatus {
+    private suspend fun handlePoisonStatusUpdate(poisonStatus: PoisonStatus) {
+        mutex.withLock {
+            transactionInfoItem = transactionInfoItem.copy(poisonStatus = poisonStatus)
+        }
+    }
+
+    suspend fun computePoisonStatus(record: TransactionRecord): PoisonStatus {
         return poisonAddressManager.getPoisonStatus(record)
     }
 
