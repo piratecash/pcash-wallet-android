@@ -734,21 +734,27 @@ object TransactionViewItemFactoryHelper {
         return items
     }
 
+    fun getExplorerSectionItems(explorerData: List<TransactionInfoModule.ExplorerData>): List<TransactionInfoViewItem> =
+        explorerData.mapNotNull { getExplorerSectionItem(it) }
+
     fun getExplorerSectionItems(explorerData: TransactionInfoModule.ExplorerData): List<TransactionInfoViewItem> =
-        listOf(
-            TransactionInfoViewItem.Explorer(
-                title = if (explorerData.useDirectTitle) {
+        listOfNotNull(getExplorerSectionItem(explorerData))
+
+    private fun getExplorerSectionItem(explorerData: TransactionInfoModule.ExplorerData): TransactionInfoViewItem? {
+        val url = explorerData.url ?: return null
+        return TransactionInfoViewItem.Explorer(
+            title = if (explorerData.useDirectTitle) {
+                explorerData.title
+            } else {
+                Translator.getString(
+                    R.string.TransactionInfo_ButtonViewOnExplorerName,
                     explorerData.title
-                } else {
-                    Translator.getString(
-                        R.string.TransactionInfo_ButtonViewOnExplorerName,
-                        explorerData.title
-                    )
-                },
-                url = explorerData.url,
-                iconResId = explorerData.iconResId,
-            )
+                )
+            },
+            url = url,
+            iconResId = explorerData.iconResId,
         )
+    }
 
     fun getSwapProviderAmountSectionItems(
         amountOut: BigDecimal,

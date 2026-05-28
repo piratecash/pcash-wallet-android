@@ -4,18 +4,44 @@ import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
+import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.litecoinkit.LitecoinKit
+import io.horizontalsystems.litecoinkit.mweb.address.MwebAddressCodec
 import java.math.BigDecimal
 import kotlin.math.abs
 
 data class MatchScore(
     val isMatch: Boolean,
-    val confidence: Double
+    val confidence: Double,
+    val kind: PendingTransactionMatchKind = PendingTransactionMatchKind.Regular
 )
 
+const val PENDING_TRANSACTION_MATCH_TIMESTAMP_TOLERANCE_SECONDS = 10
+const val LITECOIN_MWEB_PEG_IN_MATCH_TIMESTAMP_TOLERANCE_SECONDS = 10
+
+enum class PendingTransactionMatchKind {
+    Regular,
+    LitecoinMwebPegIn
+}
+
 class PendingTransactionMatcher {
+    private companion object {
+        const val FUZZY_MATCH_CONFIDENCE = 0.8
+        const val LITECOIN_MWEB_PEG_IN_CONFIDENCE = 0.85
+        const val ADDRESS_MATCH_CONFIDENCE = 0.9
+        // Pending and real transaction amounts may be rounded by different data sources.
+        val AMOUNT_MATCH_THRESHOLD_RATE = BigDecimal("0.001")
+        val LITECOIN_MWEB_PEG_IN_MAX_PUBLIC_AMOUNT_RATE = BigDecimal("10")
+
+        val LITECOIN_MWEB_ADDRESS_CODECS = listOf(
+            MwebAddressCodec(LitecoinKit.NetworkType.MainNet)
+        )
+    }
 
     fun matchScoreForRealRecord(
         pending: PendingTransactionRecord,
@@ -33,11 +59,14 @@ class PendingTransactionMatcher {
             return MatchScore(isMatch = false, confidence = 0.0)
         }
 
+        litecoinMwebMatchScore(pending, real)?.let {
+            return it
+        }
+
         return calculateFuzzyMatchScore(
             timestampPending = pending.timestamp,
             blockchainTypeUid = pending.blockchainType.uid,
-            amountAtomic = pending.amount.movePointRight(pending.token.decimals).toBigInteger()
-                .toString(),
+            pendingAmount = pending.amount.abs(),
             toAddress = pending.to?.firstOrNull() ?: "",
             real = real
         )
@@ -51,12 +80,12 @@ class PendingTransactionMatcher {
     private fun calculateFuzzyMatchScore(
         timestampPending: Long,
         blockchainTypeUid: String,
-        amountAtomic: String,
+        pendingAmount: BigDecimal,
         toAddress: String,
         real: TransactionRecord
     ): MatchScore {
         val blockchainMatches = blockchainTypeUid == real.blockchainType.uid
-        val amountMatches = compareAmounts(amountAtomic, real)
+        val amountMatches = compareAmounts(pendingAmount, real)
         val timestampMatches = compareTimestamps(timestampPending, real.timestamp)
         val realTo = real.to?.firstOrNull()
 
@@ -66,12 +95,101 @@ class PendingTransactionMatcher {
 
             return MatchScore(
                 isMatch = true,
-                confidence = if (addressMatches) 0.9 else 0.8
+                confidence = if (addressMatches) ADDRESS_MATCH_CONFIDENCE else FUZZY_MATCH_CONFIDENCE
             )
         }
 
         return MatchScore(isMatch = false, confidence = 0.0)
     }
+
+    private fun litecoinMwebMatchScore(
+        pending: PendingTransactionRecord,
+        real: TransactionRecord
+    ): MatchScore? {
+        if (!isLitecoinMwebMatchCandidate(pending, real)) {
+            return null
+        }
+
+        if (isLitecoinMwebLocalIdentifierMatch(pending, real)) {
+            return MatchScore(isMatch = true, confidence = 1.0)
+        }
+
+        if (isLitecoinMwebPegInPending(pending)) {
+            return litecoinMwebPegInMatchScore(pending, real)
+                ?: MatchScore(isMatch = false, confidence = 0.0)
+        }
+
+        return null
+    }
+
+    private fun isLitecoinMwebMatchCandidate(
+        pending: PendingTransactionRecord,
+        real: TransactionRecord
+    ): Boolean {
+        return pending.blockchainType == BlockchainType.Litecoin &&
+            real.blockchainType == BlockchainType.Litecoin
+    }
+
+    private fun isLitecoinMwebLocalIdentifierMatch(
+        pending: PendingTransactionRecord,
+        real: TransactionRecord
+    ): Boolean {
+        val pendingIdentifier = pending.transactionHash.takeIf { it.isNotBlank() } ?: return false
+        val bitcoinRecord = real as? BitcoinTransactionRecord ?: return false
+        val canonicalHash = bitcoinRecord.canonicalTransactionHash?.takeIf { it.isNotBlank() } ?: return false
+
+        return pending.token.type == TokenType.Mweb &&
+            canonicalHash.equals(real.transactionHash, ignoreCase = true) &&
+            real.uid.matchesMwebLocalIdentifier(pendingIdentifier) &&
+            compareAmounts(pending.amount.abs(), real) &&
+            compareAddresses(pending.to?.firstOrNull(), real.to?.firstOrNull())
+    }
+
+    private fun compareAddresses(pendingTo: String?, realTo: String?): Boolean {
+        val pendingAddress = pendingTo?.takeIf { it.isNotBlank() } ?: return false
+        val realAddress = realTo?.takeIf { it.isNotBlank() } ?: return false
+        return pendingAddress.equals(realAddress, ignoreCase = true)
+    }
+
+    private fun litecoinMwebPegInMatchScore(
+        pending: PendingTransactionRecord,
+        real: TransactionRecord
+    ): MatchScore? {
+        if (!real.hasLitecoinMwebPegInDestination()) {
+            return null
+        }
+        if (!compareTimestamps(
+                timestampPending = pending.timestamp,
+                timestampReal = real.timestamp,
+                toleranceSeconds = LITECOIN_MWEB_PEG_IN_MATCH_TIMESTAMP_TOLERANCE_SECONDS
+            )
+        ) {
+            return null
+        }
+
+        val pendingAmount = pending.amount.abs()
+        val realAmount = getRealAmount(real)?.abs() ?: return null
+        // Public peg-in spends selected public UTXOs into the extension output, including MWEB-side change.
+        val maxPublicAmount = pendingAmount.multiply(LITECOIN_MWEB_PEG_IN_MAX_PUBLIC_AMOUNT_RATE)
+        if (realAmount < pendingAmount || realAmount > maxPublicAmount) {
+            return null
+        }
+
+        return MatchScore(
+            isMatch = true,
+            confidence = LITECOIN_MWEB_PEG_IN_CONFIDENCE,
+            kind = PendingTransactionMatchKind.LitecoinMwebPegIn
+        )
+    }
+
+    private fun isLitecoinMwebPegInPending(pending: PendingTransactionRecord): Boolean {
+        return pending.to.orEmpty().any { it.isLitecoinMwebAddress() }
+    }
+
+    fun calculateMatchScore(
+        pending: PendingTransactionRecord,
+        real: TransactionRecord
+    ): MatchScore = matchScoreForRealRecord(pending, real)
 
     private fun TransactionRecord.isOutgoingForPendingMatch(): Boolean {
         return when (transactionRecordType) {
@@ -112,36 +230,23 @@ class PendingTransactionMatcher {
     }
 
     private fun compareAmounts(
-        pendingAmountAtomic: String,
+        pendingAmount: BigDecimal,
         real: TransactionRecord
     ): Boolean {
-        return try {
-            val pendingAmount = BigDecimal(pendingAmountAtomic)
-                .movePointLeft(getRealDecimal(real))
-                .abs()
+        val realAmount = getRealAmount(real)?.abs() ?: return false
 
-            val realAmount = getRealAmount(real)?.abs() ?: return false
-
-            // Allow 0.1% difference for floating point errors
-            val difference = (pendingAmount - realAmount).abs()
-            val threshold = pendingAmount.multiply(BigDecimal("0.001"))
-
-            difference <= threshold
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    private fun getRealDecimal(real: TransactionRecord): Int {
-        return getRealValue(real)?.decimals ?: real.token.decimals
+        val difference = (pendingAmount - realAmount).abs()
+        val threshold = pendingAmount.multiply(AMOUNT_MATCH_THRESHOLD_RATE)
+        return difference <= threshold
     }
 
     private fun compareTimestamps(
         timestampPending: Long,
-        timestampReal: Long
+        timestampReal: Long,
+        toleranceSeconds: Int = PENDING_TRANSACTION_MATCH_TIMESTAMP_TOLERANCE_SECONDS
     ): Boolean {
         val differenceSeconds = abs(timestampPending - timestampReal)
-        return differenceSeconds <= 10 // 10 seconds tolerance
+        return differenceSeconds <= toleranceSeconds.toLong()
     }
 
     private fun getRealAmount(
@@ -167,5 +272,33 @@ class PendingTransactionMatcher {
         }
 
         return real.mainValue
+    }
+
+    private fun String.isLitecoinMwebAddress(): Boolean {
+        return LITECOIN_MWEB_ADDRESS_CODECS.any { it.isValid(this) }
+    }
+
+    private fun String.matchesMwebLocalIdentifier(identifier: String): Boolean {
+        return equals(identifier, ignoreCase = true) ||
+            substringAfterLast(':').equals(identifier, ignoreCase = true)
+    }
+
+    private fun TransactionRecord.hasLitecoinMwebPegInDestination(): Boolean {
+        if (this !is BitcoinTransactionRecord) {
+            return false
+        }
+
+        val changeAddresses = changeAddresses.orEmpty()
+        val recipients = to ?: return changeAddresses.isNotEmpty()
+        val publicRecipients = recipients.filter { it.isNotBlank() }
+        if (publicRecipients.isEmpty()) {
+            return changeAddresses.isNotEmpty()
+        }
+
+        return changeAddresses.isNotEmpty() && publicRecipients.all { recipient ->
+            changeAddresses.any { changeAddress ->
+                recipient.equals(changeAddress, ignoreCase = true)
+            }
+        }
     }
 }

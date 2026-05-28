@@ -63,7 +63,7 @@ timber = "5.0.1"
 
 tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
 piratecash-ton = "v1.0.0-pcash.1"
-piratecash-bitcoin = "18ce969"
+piratecash-bitcoin = "v0.1.0-pcash.7"
 stellar-kit = "c2b7994"
 piratecash-ethereum = "633b922"
 horizontalsystems-blockchain-fee = "393cc14"
@@ -72,7 +72,7 @@ monero-kit-android = "07fdaf1"
 netcipher = "2.1.0"
 solanakt = "5d5a0cb"
 piratecash-tron = "cdae838"
-tangem-sdk = "197d147"
+tangem-sdk = "3.9.2-pcash.1"
 gson = "2.13.2"
 retrofit = "3.0.0"
 okhttp-logging-interceptor = "4.12.0"
@@ -138,6 +138,7 @@ androidx-room-rxjava2 = { module = "androidx.room:room-rxjava2", version.ref = "
 desugar_jdk_libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-crashlytics-ndk = { module = "com.google.firebase:firebase-crashlytics-ndk" }
 firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
 google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpcApi" }
