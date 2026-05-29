@@ -69,6 +69,11 @@ open class MainActivity : BaseActivity() {
             showPinLockScreen = false
             pinLockComposeView?.visibility = GONE
             applyLockWindowFlags(isLocked = false, calculatorMode = true)
+        } else if (pinComponent.isLockedFlow.value) {
+            // Locked on return: a dialog left open in the background lives in its own
+            // Window and would surface above the calculator/PIN disguise. The collect in
+            // observeLockState reacts asynchronously, so close synchronously here too.
+            closeWindowsAboveLockScreen()
         }
         validate()
     }
@@ -260,14 +265,19 @@ open class MainActivity : BaseActivity() {
                     applyTaskDescription(calculatorMode)
                     applyLockWindowFlags(isLocked, calculatorMode)
                     if (isLocked) {
-                        dismissOpenDialogFragments()
+                        closeWindowsAboveLockScreen()
                     }
                 }
         }
     }
 
-    // BottomSheet/DialogFragments live in their own Window — they render above the
-    // in-activity lock/calculator screen and would leak wallet UI through the disguise.
+    // Tangem NFC reader and DialogFragments live in separate Window instances,
+    // so they can render above the in-activity lock/calculator screen.
+    private fun closeWindowsAboveLockScreen() {
+        cardSdkProvider.cancelSession()
+        dismissOpenDialogFragments()
+    }
+
     private fun dismissOpenDialogFragments() {
         collectDialogFragments(supportFragmentManager).forEach {
             it.dismissAllowingStateLoss()

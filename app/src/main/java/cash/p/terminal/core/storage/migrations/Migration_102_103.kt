@@ -3,20 +3,12 @@ package cash.p.terminal.core.storage.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
+/**
+ * Keeps hashless pending rows available for transaction matching after balance-side confirmation.
+ */
 @Suppress("ClassName")
 object Migration_102_103 : Migration(102, 103) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        val cursor = db.query("PRAGMA table_info(SwapProviderTransaction)")
-        val columns = mutableListOf<String>()
-        while (cursor.moveToNext()) {
-            columns.add(cursor.getString(cursor.getColumnIndexOrThrow("name")))
-        }
-        cursor.close()
-
-        if ("accountId" !in columns) {
-            db.execSQL(
-                "ALTER TABLE SwapProviderTransaction ADD COLUMN accountId TEXT NOT NULL DEFAULT ''"
-            )
-        }
+        db.execSQL("ALTER TABLE PendingTransaction ADD COLUMN balanceConfirmedAt INTEGER")
     }
 }
