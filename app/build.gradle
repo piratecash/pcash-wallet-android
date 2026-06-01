@@ -537,3 +537,9 @@ tasks.register('cleanMacOsMetadata') {
     }
 }
 preBuild.dependsOn cleanMacOsMetadata
+
+tasks.whenTaskAdded {
+    if (name.contains("ArtProfile")) {
+        enabled = false
+    }
+}
