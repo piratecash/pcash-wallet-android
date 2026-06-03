@@ -64,6 +64,7 @@ class SyncPendingMultiSwapUseCase(
         coinUidOut: String,
         blockchainTypeOut: String,
         amountOut: BigDecimal?,
+        accountId: String,
         legStartTime: Long,
         updateLeg: suspend (String, BigDecimal?) -> Unit,
     ) {
@@ -74,6 +75,7 @@ class SyncPendingMultiSwapUseCase(
             coinUidOut = coinUidOut,
             blockchainTypeOut = blockchainTypeOut,
             amountOut = amountOut,
+            accountId = accountId,
             legStartTime = legStartTime,
         ) ?: return
 
@@ -88,6 +90,7 @@ class SyncPendingMultiSwapUseCase(
         coinUidOut: String,
         blockchainTypeOut: String,
         amountOut: BigDecimal?,
+        accountId: String,
         legStartTime: Long,
     ): SwapProviderTransaction? {
         providerTransactionId?.let { id ->
@@ -104,6 +107,7 @@ class SyncPendingMultiSwapUseCase(
             provider = swapProvider,
             coinUidOut = coinUidOut,
             blockchainTypeOut = blockchainTypeOut,
+            accountId = accountId,
             addressOut = receiveAddress,
             expectedAmount = amountOut ?: return null,
             legStartTime = legStartTime,
@@ -267,8 +271,6 @@ class SyncPendingMultiSwapUseCase(
                 amountOut = amount,
                 transactionId = swap.leg1TransactionId,
             )
-
-
         }
 
         if (swap.leg1IsOffChain) {
@@ -279,6 +281,7 @@ class SyncPendingMultiSwapUseCase(
                 coinUidOut = swap.coinUidIntermediate,
                 blockchainTypeOut = swap.blockchainTypeIntermediate,
                 amountOut = swap.leg1AmountOut,
+                accountId = swap.accountId,
                 legStartTime = swap.createdAt,
                 updateLeg = updateLeg,
             )
@@ -314,6 +317,7 @@ class SyncPendingMultiSwapUseCase(
             coinUidOut = swap.coinUidIntermediate,
             blockchainTypeOut = swap.blockchainTypeIntermediate,
             amountOut = swap.leg1AmountOut,
+            accountId = swap.accountId,
             legStartTime = swap.createdAt,
         ) ?: return
         val recordUid = swapTx.incomingRecordUid ?: swap.leg1TransactionId ?: return
@@ -340,8 +344,6 @@ class SyncPendingMultiSwapUseCase(
                 amountOut = amount,
                 transactionId = swap.leg2TransactionId,
             )
-
-
         }
 
         val isOffChain = swap.leg2IsOffChain ?: return
@@ -354,6 +356,7 @@ class SyncPendingMultiSwapUseCase(
                 coinUidOut = swap.coinUidOut,
                 blockchainTypeOut = swap.blockchainTypeOut,
                 amountOut = swap.leg2AmountOut,
+                accountId = swap.accountId,
                 legStartTime = swap.leg2StartTime(),
                 updateLeg = updateLeg,
             )

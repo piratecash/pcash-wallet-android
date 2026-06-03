@@ -32,6 +32,7 @@ import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.strings.helpers.shorten
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.alternativeImageUrl
@@ -56,6 +57,7 @@ class TransactionViewItemFactory(
     private val marketKit: MarketKitWrapper,
     private val localStorage: ILocalStorage,
     private val poisonAddressManager: PoisonAddressManager,
+    private val accountManager: IAccountManager,
 ) {
     private data class CacheKey(
         val transactionItemVersion: Long,
@@ -1483,7 +1485,8 @@ class TransactionViewItemFactory(
             timestamp = timestamp * 1000,
             coinUid = token.coin.uid,
             blockchainType = token.blockchainType.uid,
-            addresses = addressesTo
+            addresses = addressesTo,
+            accountId = accountManager.activeAccount?.id.orEmpty()
         )
         return swapTransactionMatcher.findMatchingSwap(incomingTransaction)
     }

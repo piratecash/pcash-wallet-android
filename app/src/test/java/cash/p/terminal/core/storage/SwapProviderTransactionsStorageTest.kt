@@ -2,6 +2,7 @@ package cash.p.terminal.core.storage
 
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.entities.SwapProviderTransaction
+import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -32,23 +33,23 @@ class SwapProviderTransactionsStorageTest {
         dispatcherProvider = TestDispatcherProvider(dispatcher, testScope)
     )
 
-    private fun tx(
-        date: Long = 1000L,
+    private fun swap(
+        date: Long = 1_000L,
         accountId: String = "acc-A",
     ) = SwapProviderTransaction(
         date = date,
         outgoingRecordUid = null,
         transactionId = "tx-$date",
-        status = "new",
-        provider = SwapProvider.PAYCORE,
-        coinUidIn = "tether",
-        blockchainTypeIn = "tron",
-        amountIn = BigDecimal("100"),
-        addressIn = "",
-        coinUidOut = "rub",
-        blockchainTypeOut = "fiat",
-        amountOut = BigDecimal("9000"),
-        addressOut = "",
+        status = TransactionStatusEnum.NEW.name.lowercase(),
+        provider = SwapProvider.CHANGENOW,
+        coinUidIn = "binancecoin",
+        blockchainTypeIn = "binance-smart-chain",
+        amountIn = BigDecimal.ONE,
+        addressIn = "addr-in",
+        coinUidOut = "litecoin",
+        blockchainTypeOut = "litecoin",
+        amountOut = BigDecimal.TEN,
+        addressOut = "addr-out",
         accountId = accountId,
     )
 
@@ -61,19 +62,19 @@ class SwapProviderTransactionsStorageTest {
     )
 
     @Test
-    fun observeAllByAccount_delegatesToDao() = runTest(dispatcher) {
-        val txs = listOf(tx(date = 1, accountId = "acc-A"))
-        every { dao.observeAllByAccount("acc-A") } returns flowOf(txs)
+    fun observeAllByAccount_delegatesToDaoWithDefaultLimit() = runTest(dispatcher) {
+        val transactions = listOf(swap(date = 1, accountId = "acc-A"))
+        every { dao.observeAllByAccount("acc-A", 100) } returns flowOf(transactions)
 
         val result = storage.observeAllByAccount("acc-A").first()
 
-        assertEquals(txs, result)
-        verify { dao.observeAllByAccount("acc-A") }
+        assertEquals(transactions, result)
+        verify { dao.observeAllByAccount("acc-A", 100) }
     }
 
     @Test
     fun observeAllByAccount_returnsEmptyForUnknownAccount() = runTest(dispatcher) {
-        every { dao.observeAllByAccount("unknown") } returns flowOf(emptyList())
+        every { dao.observeAllByAccount("unknown", 100) } returns flowOf(emptyList())
 
         val result = storage.observeAllByAccount("unknown").first()
 
@@ -82,8 +83,8 @@ class SwapProviderTransactionsStorageTest {
 
     @Test
     fun observeForActiveAccount_emitsTransactionsForActiveAccount() = runTest(dispatcher) {
-        val txs = listOf(tx(date = 1, accountId = "acc-A"))
-        every { dao.observeAllByAccount("acc-A") } returns flowOf(txs)
+        val txs = listOf(swap(date = 1, accountId = "acc-A"))
+        every { dao.observeAllByAccount("acc-A", 100) } returns flowOf(txs)
         val accountFlow = MutableStateFlow<ActiveAccountState>(
             ActiveAccountState.ActiveAccount(account("acc-A"))
         )
@@ -115,10 +116,10 @@ class SwapProviderTransactionsStorageTest {
 
     @Test
     fun observeForActiveAccount_switchesWhenAccountChanges() = runTest(dispatcher) {
-        val txsA = listOf(tx(date = 1, accountId = "acc-A"))
-        val txsB = listOf(tx(date = 2, accountId = "acc-B"))
-        every { dao.observeAllByAccount("acc-A") } returns flowOf(txsA)
-        every { dao.observeAllByAccount("acc-B") } returns flowOf(txsB)
+        val txsA = listOf(swap(date = 1, accountId = "acc-A"))
+        val txsB = listOf(swap(date = 2, accountId = "acc-B"))
+        every { dao.observeAllByAccount("acc-A", 100) } returns flowOf(txsA)
+        every { dao.observeAllByAccount("acc-B", 100) } returns flowOf(txsB)
 
         val accountFlow = MutableStateFlow<ActiveAccountState>(
             ActiveAccountState.ActiveAccount(account("acc-A"))
@@ -131,5 +132,17 @@ class SwapProviderTransactionsStorageTest {
         accountFlow.value = ActiveAccountState.ActiveAccount(account("acc-B"))
 
         assertEquals(txsB, flow.first())
+    }
+
+    @Test
+    fun getAllUnfinishedByAccount_delegatesToDao() {
+        val transactions = listOf(swap(accountId = "acc-A"))
+        val excluded = SwapProviderTransaction.FINISHED_STATUSES
+        every { dao.getAllUnfinishedByAccount("acc-A", excluded, 10) } returns transactions
+
+        val result = storage.getAllUnfinishedByAccount("acc-A", excluded, 10)
+
+        assertEquals(transactions, result)
+        verify { dao.getAllUnfinishedByAccount("acc-A", excluded, 10) }
     }
 }

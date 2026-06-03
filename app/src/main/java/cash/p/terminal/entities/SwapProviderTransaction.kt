@@ -1,5 +1,6 @@
 package cash.p.terminal.entities
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import cash.p.terminal.R
@@ -33,7 +34,8 @@ data class SwapProviderTransaction(
     val amountOutReal: BigDecimal? = null,
     val finishedAt: Long? = null,
     val incomingRecordUid: String? = null,
-    val accountId: String,
+    @ColumnInfo(defaultValue = "''")
+    val accountId: String = "",
 ) {
     fun isFinished() = status in FINISHED_STATUSES
 
