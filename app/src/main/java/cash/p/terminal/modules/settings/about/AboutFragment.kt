@@ -96,7 +96,6 @@ private fun AboutNavHost(fragmentNavController: NavController) {
             PrivacyScreen(
                 navController = navController,
                 uiState = viewModel.uiState,
-                toggleCrashData = viewModel::toggleCrashData
             )
         }
         composablePopup(TermsPage) { TermsScreen(navController) }

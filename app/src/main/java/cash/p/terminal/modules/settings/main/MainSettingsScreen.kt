@@ -91,24 +91,6 @@ private fun SettingSections(
     val uiState = viewModel.uiState
     val context = LocalContext.current
 
-    if (uiState.isUpdateAvailable) {
-        CellUniversalLawrenceSection(
-            listOf {
-                HsSettingCell(
-                    title = R.string.update_app,
-                    icon = R.drawable.ic_refresh,
-                    iconTint = ComposeAppTheme.colors.jacob,
-                    showAlert = true,
-                    onClick = {
-                        RateAppManager.openPlayMarket(context)
-                    }
-                )
-            }
-        )
-
-        VSpacer(32.dp)
-    }
-
     CellUniversalLawrenceSection(
         listOf {
             HsSettingCell(
