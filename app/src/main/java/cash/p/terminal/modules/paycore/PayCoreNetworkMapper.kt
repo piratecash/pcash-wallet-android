@@ -12,8 +12,8 @@ object PayCoreNetworkMapper {
     fun fromBlockchainType(blockchainType: BlockchainType): String? {
         return when (blockchainType) {
             BlockchainType.Tron -> PayCoreNetworkType.TRC20
-            BlockchainType.BinanceSmartChain -> PayCoreNetworkType.BEP20
             BlockchainType.Ethereum -> PayCoreNetworkType.ERC20
+            BlockchainType.Solana -> PayCoreNetworkType.SPL
             else -> null
         }
     }
@@ -32,11 +32,11 @@ object PayCoreNetworkMapper {
 
     private const val TETHER_COIN_UID = "tether"
 
-    private fun normalizeNetworkType(value: String): String? {
+    internal fun normalizeNetworkType(value: String): String? {
         return when (value.uppercase()) {
             PayCoreNetworkType.TRC20 -> PayCoreNetworkType.TRC20
-            PayCoreNetworkType.BEP20 -> PayCoreNetworkType.BEP20
             PayCoreNetworkType.ERC20 -> PayCoreNetworkType.ERC20
+            PayCoreNetworkType.SPL -> PayCoreNetworkType.SPL
             PayCoreNetworkType.RUB -> PayCoreNetworkType.RUB
             else -> null
         }

@@ -214,6 +214,13 @@ class PayCoreProvider(
                 )
             }
 
+            tokenIn.blockchainType == BlockchainType.Solana -> {
+                SendTransactionData.Solana.Regular(
+                    amount = amountIn,
+                    address = depositAddress
+                )
+            }
+
             else -> SendTransactionData.Unsupported
         }
     }

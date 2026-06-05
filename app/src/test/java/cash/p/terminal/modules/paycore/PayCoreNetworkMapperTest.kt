@@ -31,9 +31,9 @@ class PayCoreNetworkMapperTest {
     }
 
     @Test
-    fun isUsdtOnSupportedNetwork_tetherOnBsc_returnsTrue() {
+    fun isUsdtOnSupportedNetwork_tetherOnBsc_returnsFalse() {
         val token = makeToken("tether", "BSC-USD", BlockchainType.BinanceSmartChain)
-        assertTrue(PayCoreNetworkMapper.isUsdtOnSupportedNetwork(token))
+        assertFalse(PayCoreNetworkMapper.isUsdtOnSupportedNetwork(token))
     }
 
     @Test
@@ -43,9 +43,9 @@ class PayCoreNetworkMapperTest {
     }
 
     @Test
-    fun isUsdtOnSupportedNetwork_tetherOnSolana_returnsFalse() {
+    fun isUsdtOnSupportedNetwork_tetherOnSolana_returnsTrue() {
         val token = makeToken("tether", "USDT", BlockchainType.Solana)
-        assertFalse(PayCoreNetworkMapper.isUsdtOnSupportedNetwork(token))
+        assertTrue(PayCoreNetworkMapper.isUsdtOnSupportedNetwork(token))
     }
 
     @Test
@@ -73,9 +73,9 @@ class PayCoreNetworkMapperTest {
     }
 
     @Test
-    fun toNetworkType_bsc_returnsBEP20() {
+    fun toNetworkType_bsc_returnsNull() {
         val token = makeToken("tether", "BSC-USD", BlockchainType.BinanceSmartChain)
-        assertEquals("BEP20", PayCoreNetworkMapper.toNetworkType(token))
+        assertNull(PayCoreNetworkMapper.toNetworkType(token))
     }
 
     @Test
@@ -85,9 +85,9 @@ class PayCoreNetworkMapperTest {
     }
 
     @Test
-    fun toNetworkType_unsupportedChain_returnsNull() {
+    fun toNetworkType_solana_returnsSPL() {
         val token = makeToken("tether", "USDT", BlockchainType.Solana)
-        assertNull(PayCoreNetworkMapper.toNetworkType(token))
+        assertEquals("SPL", PayCoreNetworkMapper.toNetworkType(token))
     }
 
     @Test
@@ -103,6 +103,11 @@ class PayCoreNetworkMapperTest {
     @Test
     fun fromCurrencies_trc20ToRub_returnsTRC20() {
         assertEquals("TRC20", PayCoreNetworkMapper.fromCurrencies("TRC20", "RUB"))
+    }
+
+    @Test
+    fun fromCurrencies_splToRub_returnsSPL() {
+        assertEquals("SPL", PayCoreNetworkMapper.fromCurrencies("SPL", "RUB"))
     }
 
     @Test

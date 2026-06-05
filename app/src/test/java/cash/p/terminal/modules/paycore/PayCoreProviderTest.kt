@@ -93,7 +93,7 @@ class PayCoreProviderTest {
     }
 
     @Test
-    fun supports_bscUsdToRub_returnsTrue() = runTest {
+    fun supports_bscUsdToRub_returnsFalse() = runTest {
         val bscUsdToken = Token(
             coin = Coin(uid = "tether", name = "BSC-USD", code = "BSC-USD", marketCapRank = null, coinGeckoId = null, image = null),
             blockchain = Blockchain(BlockchainType.BinanceSmartChain, "BNB Smart Chain", null),
@@ -101,7 +101,7 @@ class PayCoreProviderTest {
             decimals = 18
         )
         val provider = createProvider()
-        assertTrue(provider.supports(bscUsdToken, rubToken))
+        assertFalse(provider.supports(bscUsdToken, rubToken))
     }
 
     @Test

@@ -85,11 +85,6 @@ class PayCoreSignatureHelperTest {
     }
 
     @Test
-    fun getWalletAddress_bep20_returnsChecksumEvmAddress() {
-        assertEquals(evmAddress, helper.getWalletAddress(PayCoreNetworkType.BEP20))
-    }
-
-    @Test
     fun getWalletAddress_trc20_returnsBase58TronAddress() {
         assertEquals(tronAddress, helper.getWalletAddress(PayCoreNetworkType.TRC20))
     }
@@ -100,15 +95,6 @@ class PayCoreSignatureHelperTest {
 
         assertEquals(evmAddress, headers["X-Wallet"])
         assertEquals(timestampSeconds.toString(), headers["X-Timestamp"])
-        assertEquals(expectedSignatureBase64(expectedErcSignatureHex), headers["X-Signature"])
-    }
-
-    @Test
-    fun getSignedHeaders_bep20_usesEthereumPrefixAndEvmAddress() {
-        val headers = helper.getSignedHeaders(url, PayCoreNetworkType.BEP20)
-
-        // BEP20 should use the same EVM address and Ethereum-prefixed signature as ERC20
-        assertEquals(evmAddress, headers["X-Wallet"])
         assertEquals(expectedSignatureBase64(expectedErcSignatureHex), headers["X-Signature"])
     }
 
