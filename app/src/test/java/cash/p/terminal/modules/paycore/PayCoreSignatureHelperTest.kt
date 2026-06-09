@@ -20,7 +20,7 @@ import java.math.BigInteger
 
 class PayCoreSignatureHelperTest {
 
-    // Test vectors from altyn_api/sign.md
+    // Test vectors from sign.md
     private val privateKey = BigInteger(
         "7c7ab0b8e74b5b036bb02701d9ef8acd9251bfa13672858afb8ef60116ace488",
         16,
