@@ -1990,7 +1990,6 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Continuar</string>
     <string name="paycore_verification_processing">En proceso…</string>
-    <string name="paycore_verification_operations_via_altyn">Las operaciones se realizan a través del monedero electrónico Altyn.one</string>
     <string name="settings_contact_us_pcash_support">Soporte P.Cash</string>
     <string name="settings_contact_us_paycore_support">Soporte Paycore</string>
     <string name="paycore_verification_not_verified">Número no verificado</string>

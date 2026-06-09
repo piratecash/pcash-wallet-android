@@ -1998,7 +1998,6 @@
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Continuar</string>
     <string name="paycore_verification_processing">Em processamento…</string>
-    <string name="paycore_verification_operations_via_altyn">As operações são realizadas através da carteira eletrónica Altyn.one</string>
     <string name="settings_contact_us_pcash_support">Suporte P.Cash</string>
     <string name="settings_contact_us_paycore_support">Suporte Paycore</string>
     <string name="paycore_verification_not_verified">Número não verificado</string>

@@ -1992,7 +1992,6 @@
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">계속</string>
     <string name="paycore_verification_processing">처리 중…</string>
-    <string name="paycore_verification_operations_via_altyn">거래는 Altyn.one 전자 지갑을 통해 수행됩니다</string>
     <string name="settings_contact_us_pcash_support">P.Cash 지원</string>
     <string name="settings_contact_us_paycore_support">Paycore 지원</string>
     <string name="paycore_verification_not_verified">번호 미인증</string>

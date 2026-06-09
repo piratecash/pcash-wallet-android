@@ -1983,7 +1983,6 @@
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">继续</string>
     <string name="paycore_verification_processing">处理中…</string>
-    <string name="paycore_verification_operations_via_altyn">操作通过 Altyn.one 电子钱包执行</string>
     <string name="settings_contact_us_pcash_support">P.Cash 支持</string>
     <string name="settings_contact_us_paycore_support">Paycore 支持</string>
     <string name="paycore_verification_not_verified">号码未验证</string>

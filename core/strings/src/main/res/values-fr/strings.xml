@@ -1996,7 +1996,6 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Continuer</string>
     <string name="paycore_verification_processing">En cours de traitement…</string>
-    <string name="paycore_verification_operations_via_altyn">Les opérations sont effectuées via le portefeuille électronique Altyn.one</string>
     <string name="settings_contact_us_pcash_support">Support P.Cash</string>
     <string name="settings_contact_us_paycore_support">Support Paycore</string>
     <string name="paycore_verification_not_verified">Numéro non vérifié</string>

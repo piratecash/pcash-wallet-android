@@ -2021,7 +2021,6 @@
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">متابعة</string>
     <string name="paycore_verification_processing">جارٍ المعالجة…</string>
-    <string name="paycore_verification_operations_via_altyn">تتم العمليات عبر محفظة Altyn.one الإلكترونية</string>
     <string name="settings_contact_us_pcash_support">دعم P.Cash</string>
     <string name="settings_contact_us_paycore_support">دعم Paycore</string>
     <string name="paycore_verification_not_verified">الرقم غير مُحقَّق</string>

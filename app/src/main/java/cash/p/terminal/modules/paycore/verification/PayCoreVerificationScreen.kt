@@ -210,8 +210,6 @@ private fun PhoneInputScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         SupportLine()
-
-        OperationsFooter()
     }
 }
 
@@ -322,8 +320,6 @@ private fun ProcessingScreen(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-
-        OperationsFooter()
     }
 }
 
@@ -497,22 +493,6 @@ private fun LargeCircleWithExclamation() {
 }
 
 @Composable
-private fun OperationsFooter() {
-    subhead2_grey(
-        text = stringResource(R.string.paycore_verification_operations_via_altyn),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = 16.dp,
-                end = 16.dp,
-                top = 16.dp
-            )
-            .padding(bottom = 24.dp),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
 private fun KycRequiredScreen(
     paddingValues: PaddingValues,
     kycUrl: String?,
@@ -543,8 +523,6 @@ private fun KycRequiredScreen(
         }
 
         Spacer(modifier = Modifier.weight(1f))
-
-        OperationsFooter()
     }
 }
 

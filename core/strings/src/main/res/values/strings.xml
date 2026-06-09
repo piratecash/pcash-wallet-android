@@ -2442,7 +2442,6 @@ Proceed only if you\'re sure.</string>
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Continue</string>
     <string name="paycore_verification_processing">Processing…</string>
-    <string name="paycore_verification_operations_via_altyn">Operations are performed via the Altyn.one e-wallet</string>
     <string name="settings_contact_us_pcash_support">P.Cash Support</string>
     <string name="settings_contact_us_paycore_support">Paycore Support</string>
     <string name="paycore_verification_not_verified">Number not verified</string>

@@ -2005,7 +2005,6 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Doorgaan</string>
     <string name="paycore_verification_processing">Wordt verwerkt…</string>
-    <string name="paycore_verification_operations_via_altyn">Transacties worden uitgevoerd via de Altyn.one e-wallet</string>
     <string name="settings_contact_us_pcash_support">P.Cash Ondersteuning</string>
     <string name="settings_contact_us_paycore_support">Paycore Ondersteuning</string>
     <string name="paycore_verification_not_verified">Nummer niet geverifieerd</string>

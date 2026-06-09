@@ -2002,7 +2002,6 @@
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">ادامه</string>
     <string name="paycore_verification_processing">در حال پردازش…</string>
-    <string name="paycore_verification_operations_via_altyn">عملیات از طریق کیف پول الکترونیکی Altyn.one انجام می‌شود</string>
     <string name="settings_contact_us_pcash_support">پشتیبانی P.Cash</string>
     <string name="settings_contact_us_paycore_support">پشتیبانی Paycore</string>
     <string name="paycore_verification_not_verified">شماره تأیید نشده است</string>

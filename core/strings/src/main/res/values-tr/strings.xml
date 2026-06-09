@@ -1999,7 +1999,6 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Devam et</string>
     <string name="paycore_verification_processing">İşleniyor…</string>
-    <string name="paycore_verification_operations_via_altyn">İşlemler Altyn.one e-cüzdanı üzerinden gerçekleştirilir</string>
     <string name="settings_contact_us_pcash_support">P.Cash Destek</string>
     <string name="settings_contact_us_paycore_support">Paycore Destek</string>
     <string name="paycore_verification_not_verified">Numara doğrulanmadı</string>

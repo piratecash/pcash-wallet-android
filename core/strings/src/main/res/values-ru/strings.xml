@@ -2186,7 +2186,6 @@
     <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
     <string name="paycore_verification_continue">Продолжить</string>
     <string name="paycore_verification_processing">В обработке…</string>
-    <string name="paycore_verification_operations_via_altyn">Операции выполняются через электронный кошелек Altyn.one</string>
     <string name="settings_contact_us_pcash_support">P.Cash Поддержка</string>
     <string name="settings_contact_us_paycore_support">Paycore Поддержка</string>
     <string name="paycore_verification_not_verified">Номер не верифицирован</string>
