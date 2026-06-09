@@ -34,8 +34,6 @@ import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsV
 import cash.p.terminal.modules.multiswap.settings.SwapTransactionSettingsScreen
 import cash.p.terminal.modules.paycore.exchange.PayCoreExchangeDetailScreen
 import cash.p.terminal.modules.paycore.exchange.PayCoreExchangeDetailViewModel
-import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankHost
-import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankViewModel
 import cash.p.terminal.modules.transactions.TransactionsModule
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.navigation.navigateUpSafely
@@ -315,22 +313,10 @@ private fun PayCoreExchangeDetailContent(
     val viewModel = koinViewModel<PayCoreExchangeDetailViewModel> {
         parametersOf(date)
     }
-    val selectBankViewModel = koinViewModel<PayCoreSelectBankViewModel>()
-    val transactionId = viewModel.uiState?.transactionId
-    PayCoreSelectBankHost(
-        uiState = selectBankViewModel.uiState,
-        onCloseWebView = selectBankViewModel::onWebViewClosed,
-        onClearError = selectBankViewModel::clearError,
-    ) {
-        PayCoreExchangeDetailScreen(
-            uiState = viewModel.uiState,
-            onBack = onBack,
-            onSelectBankClick = {
-                transactionId?.let(selectBankViewModel::onSelectBankClick)
-            },
-            selectBankLoading = selectBankViewModel.uiState.loading,
-        )
-    }
+    PayCoreExchangeDetailScreen(
+        uiState = viewModel.uiState,
+        onBack = onBack,
+    )
 }
 
 @Serializable

@@ -28,7 +28,7 @@ class PayCoreApiService(
 
     private fun HttpRequestBuilder.signedHeaders(
         url: String,
-        networkType: String,
+        networkType: PayCoreTicker,
         signingAccount: Account? = null
     ) {
         val headers = if (signingAccount == null) {
@@ -40,21 +40,10 @@ class PayCoreApiService(
     }
 
     suspend fun getRate(
-        currencyFrom: String,
-        currencyTo: String,
-        amountFrom: String? = null,
-        amountTo: String? = null
+        ticker: PayCoreTicker,
+        networkType: PayCoreTicker,
     ): PayCoreRateResponse = withContext(dispatcherProvider.io) {
-        val queryParams = mutableListOf(
-            "currency_from" to currencyFrom,
-            "currency_to" to currencyTo
-        )
-        amountFrom?.let { queryParams.add("amount_from" to it) }
-        amountTo?.let { queryParams.add("amount_to" to it) }
-
-        val queryString = queryParams.joinToString("&") { "${it.first}=${it.second}" }
-        val url = "${BASE_URL}api/v2/wallet/rate?$queryString"
-        val networkType = networkTypeForRate(currencyFrom, currencyTo)
+        val url = "${BASE_URL}api/v2/wallet/rate?ticker=$ticker"
 
         val response = httpClient.get(url) {
             signedHeaders(url, networkType)
@@ -71,7 +60,7 @@ class PayCoreApiService(
 
     suspend fun createWallet(
         request: PayCoreWalletCreateRequest,
-        signingNetworkType: String = request.networkType
+        signingNetworkType: PayCoreTicker = request.networkType
     ): PayCoreWalletCreateResponse = withContext(dispatcherProvider.io) {
         val url = BASE_URL + "api/v2/wallet/create"
         httpClient.post(url) {
@@ -82,7 +71,7 @@ class PayCoreApiService(
 
     suspend fun changeWallet(
         request: PayCoreWalletChangeRequest,
-        signingNetworkType: String = request.networkType,
+        signingNetworkType: PayCoreTicker = request.networkType,
         signingAccount: Account? = null
     ) = withContext(dispatcherProvider.io) {
         val url = BASE_URL + "api/v2/wallet/change"
@@ -92,49 +81,67 @@ class PayCoreApiService(
         }.requireSuccess()
     }
 
-    suspend fun getPayoutAddress(request: PayCorePayoutAddressRequest): PayCorePayoutAddressResponse = withContext(dispatcherProvider.io) {
-        val url = BASE_URL + "api/v2/wallet/payout/address"
-        httpClient.post(url) {
-            signedHeaders(url, request.networkType)
-            setJsonBody(request)
-        }.parseBody()
-    }
-
-    suspend fun processPayOut(
-        request: PayCorePayoutProcessRequest,
-        networkType: String
-    ): PayCorePayoutProcessResponse = withContext(dispatcherProvider.io) {
-        val url = BASE_URL + "api/v2/wallet/payout/process"
-        httpClient.post(url) {
-            signedHeaders(url, networkType)
-            setJsonBody(request)
-        }.parseBody()
-    }
-
-    suspend fun createPayment(request: PayCorePaymentCreateRequest): PayCorePaymentCreateResponse = withContext(dispatcherProvider.io) {
-        val url = BASE_URL + "api/v2/wallet/payment/create"
-        httpClient.post(url) {
-            signedHeaders(url, request.networkType)
-            setJsonBody(request)
-        }.parseBody()
-    }
-
-    suspend fun getTransactionStatus(
-        transactionType: String,
-        transactionId: String,
-        networkType: String
-    ): PayCoreTransactionStatusResponse = withContext(dispatcherProvider.io) {
-        val url = "${BASE_URL}api/v2/wallet/status?transaction_type=$transactionType&transaction_id=$transactionId"
+    suspend fun getBanks(networkType: PayCoreTicker): List<PayCoreBankResponse> = withContext(dispatcherProvider.io) {
+        val url = BASE_URL + "api/v2/wallet/banks"
         httpClient.get(url) {
             signedHeaders(url, networkType)
         }.parseBody()
     }
 
-    private fun networkTypeForRate(currencyFrom: String, currencyTo: String): String {
-        return requireNotNull(PayCoreNetworkMapper.fromCurrencies(currencyFrom, currencyTo)) {
-            "Unsupported PayCore rate pair: $currencyFrom -> $currencyTo"
-        }
+    suspend fun calculatePayout(
+        request: PayCorePayoutCalculationRequest,
+        networkType: PayCoreTicker
+    ): PayCorePayoutCalculationResponse = withContext(dispatcherProvider.io) {
+        val url = BASE_URL + "api/v2/wallet/payout/calculation"
+        httpClient.post(url) {
+            signedHeaders(url, networkType)
+            setJsonBody(request)
+        }.parseBody()
     }
+
+    suspend fun createPayout(
+        request: PayCorePayoutCreateRequest,
+        networkType: PayCoreTicker
+    ): PayCorePayoutCreateResponse = withContext(dispatcherProvider.io) {
+        val url = BASE_URL + "api/v2/wallet/payout/create"
+        httpClient.post(url) {
+            signedHeaders(url, networkType)
+            setJsonBody(request)
+        }.parseBody()
+    }
+
+    suspend fun calculatePayment(
+        request: PayCorePaymentCalculationRequest,
+        networkType: PayCoreTicker
+    ): PayCorePaymentCalculationResponse = withContext(dispatcherProvider.io) {
+        val url = BASE_URL + "api/v2/wallet/payment/calculation"
+        httpClient.post(url) {
+            signedHeaders(url, networkType)
+            setJsonBody(request)
+        }.parseBody()
+    }
+
+    suspend fun createPayment(
+        request: PayCorePaymentCreateRequest,
+        networkType: PayCoreTicker
+    ): PayCorePaymentCreateResponse = withContext(dispatcherProvider.io) {
+        val url = BASE_URL + "api/v2/wallet/payment/create"
+        httpClient.post(url) {
+            signedHeaders(url, networkType)
+            setJsonBody(request)
+        }.parseBody()
+    }
+
+    suspend fun getTransactionStatus(
+        transactionId: String,
+        networkType: PayCoreTicker
+    ): PayCoreTransactionStatusResponse = withContext(dispatcherProvider.io) {
+        val url = "${BASE_URL}api/v2/wallet/status?transaction_id=$transactionId"
+        httpClient.get(url) {
+            signedHeaders(url, networkType)
+        }.parseBody()
+    }
+
 }
 
 private suspend fun HttpResponse.requireSuccess() {

@@ -20,7 +20,7 @@ import java.math.BigDecimal
 class PayCoreStatusRepositoryTest {
 
     private val apiService = mockk<PayCoreApiService>()
-    private val storage = mockk<SwapProviderTransactionsStorage>(relaxed = true)
+    private val storage = mockk<SwapProviderTransactionsStorage>()
 
     private lateinit var repository: PayCoreStatusRepository
 
@@ -45,33 +45,16 @@ class PayCoreStatusRepositoryTest {
         )
 
         coEvery { storage.getTransaction(payoutId) } returns transaction
-        coEvery { apiService.getTransactionStatus("payout", payoutId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "SUCCESS",
-            fiatTransactionStatus = "OK"
-        )
+        coEvery { apiService.getTransactionStatus(payoutId, PayCoreTicker.USDT_ERC20) } returns statusResponse("Completed")
 
         val result = repository.getTransactionStatus(payoutId, "")
 
-        coVerify { apiService.getTransactionStatus("payout", payoutId, "ERC20") }
+        coVerify { apiService.getTransactionStatus(payoutId, PayCoreTicker.USDT_ERC20) }
         assertEquals(TransactionStatusEnum.FINISHED, result.status)
     }
 
     @Test
-    fun getTransactionStatus_unknownCryptoStatus_returnsFailed() = runTest {
-        val transactionId = "tx-unknown"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "SOMETHING_NEW",
-            fiatTransactionStatus = "OK"
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.FAILED, result.status)
-    }
-
-    @Test
-    fun getTransactionStatus_payment_usesPaymentType() = runTest {
+    fun getTransactionStatus_payment_usesPaymentNetwork() = runTest {
         val transactionId = "payment-123"
         val transaction = createTransaction(
             transactionId = transactionId,
@@ -80,142 +63,80 @@ class PayCoreStatusRepositoryTest {
         )
 
         coEvery { storage.getTransaction(transactionId) } returns transaction
-        coEvery { apiService.getTransactionStatus("payment", transactionId, "TRC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "SUCCESS",
-            fiatTransactionStatus = "OK"
-        )
+        coEvery { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT) } returns statusResponse("Pending")
 
         repository.getTransactionStatus(transactionId, "")
 
-        coVerify { apiService.getTransactionStatus("payment", transactionId, "TRC20") }
-        coVerify(exactly = 0) { apiService.getTransactionStatus("payout", any(), any()) }
+        coVerify { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT) }
     }
 
     @Test
-    fun getTransactionStatus_cryptoSuccessFiatOk_returnsFinished() = runTest {
-        val transactionId = "tx-1"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "SUCCESS",
-            fiatTransactionStatus = "OK"
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.FINISHED, result.status)
-    }
-
-    @Test
-    fun getTransactionStatus_cryptoFailedFiatOk_returnsFailed() = runTest {
-        val transactionId = "tx-2"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "FAILED",
-            fiatTransactionStatus = "OK"
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.FAILED, result.status)
-    }
-
-    @Test
-    fun getTransactionStatus_cryptoProcessingFiatOk_returnsWaiting() = runTest {
-        val transactionId = "tx-3"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "PROCESSING",
-            fiatTransactionStatus = "OK"
-        )
+    fun getTransactionStatus_missingLocalTransaction_returnsWaiting() = runTest {
+        val transactionId = "missing"
+        coEvery { storage.getTransaction(transactionId) } returns null
 
         val result = repository.getTransactionStatus(transactionId, "")
 
         assertEquals(TransactionStatusEnum.WAITING, result.status)
+        coVerify(exactly = 0) { apiService.getTransactionStatus(any(), any()) }
     }
 
     @Test
-    fun getTransactionStatus_payoutFailStatus_returnsFailed() = runTest {
-        val transactionId = "tx-fail"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "FAIL",
-            fiatTransactionStatus = null
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.FAILED, result.status)
+    fun getTransactionStatus_calculated_returnsNew() = runTest {
+        assertStatus("Calculated", TransactionStatusEnum.NEW)
     }
 
     @Test
-    fun getTransactionStatus_payoutCancelByUserStatus_returnsFailed() = runTest {
-        val transactionId = "tx-cancel"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "CANCEL_BY_USER",
-            fiatTransactionStatus = null
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.FAILED, result.status)
+    fun getTransactionStatus_pending_returnsWaiting() = runTest {
+        assertStatus("Pending", TransactionStatusEnum.WAITING)
     }
 
     @Test
-    fun getTransactionStatus_fiatTimeoutStatus_returnsWaiting() = runTest {
-        val transactionId = "tx-timeout"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = null,
-            fiatTransactionStatus = "TIMEOUT"
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.WAITING, result.status)
+    fun getTransactionStatus_paid_returnsExchanging() = runTest {
+        assertStatus("Paid", TransactionStatusEnum.EXCHANGING)
     }
 
     @Test
-    fun getTransactionStatus_fiatCreatedOrWaitUser_returnsCreatedOrWaitUser() = runTest {
-        val transactionId = "tx-wait-user"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = null,
-            fiatTransactionStatus = "CREATED_OR_WAIT_USER"
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.CREATED_OR_WAIT_USER, result.status)
+    fun getTransactionStatus_exchanged_returnsSending() = runTest {
+        assertStatus("Exchanged", TransactionStatusEnum.SENDING)
     }
 
     @Test
-    fun getTransactionStatus_cryptoSuccessFiatCreatedOrWaitUser_returnsCreatedOrWaitUser() = runTest {
-        val transactionId = "tx-success-wait"
-        coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "SUCCESS",
-            fiatTransactionStatus = "CREATED_OR_WAIT_USER"
-        )
-
-        val result = repository.getTransactionStatus(transactionId, "")
-
-        assertEquals(TransactionStatusEnum.CREATED_OR_WAIT_USER, result.status)
+    fun getTransactionStatus_completed_returnsFinished() = runTest {
+        assertStatus("Completed", TransactionStatusEnum.FINISHED)
     }
 
     @Test
-    fun getTransactionStatus_cryptoCreatedOrWaitUserFiatFailed_returnsCreatedOrWaitUser() = runTest {
-        val transactionId = "tx-wait-fail"
+    fun getTransactionStatus_expired_returnsFailed() = runTest {
+        assertStatus("Expired", TransactionStatusEnum.FAILED)
+    }
+
+    @Test
+    fun getTransactionStatus_unknownStatus_returnsFailed() = runTest {
+        assertStatus("SomethingNew", TransactionStatusEnum.FAILED)
+    }
+
+    @Test
+    fun getTransactionStatus_nullStatus_returnsWaiting() = runTest {
+        assertStatus(null, TransactionStatusEnum.WAITING)
+    }
+
+    private suspend fun assertStatus(
+        payCoreStatus: String?,
+        expectedStatus: TransactionStatusEnum,
+    ) {
+        val transactionId = "tx-${payCoreStatus ?: "missing"}"
         coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
-        coEvery { apiService.getTransactionStatus("payout", transactionId, "ERC20") } returns PayCoreTransactionStatusResponse(
-            cryptoTransactionStatus = "CREATED_OR_WAIT_USER",
-            fiatTransactionStatus = "CANCELED"
-        )
+        coEvery { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT_ERC20) } returns statusResponse(payCoreStatus)
 
         val result = repository.getTransactionStatus(transactionId, "")
 
-        assertEquals(TransactionStatusEnum.CREATED_OR_WAIT_USER, result.status)
+        assertEquals(expectedStatus, result.status)
     }
+
+    private fun statusResponse(status: String?) = PayCoreTransactionStatusResponse(
+        transactionStatus = status
+    )
 
     private fun createTransaction(
         transactionId: String,

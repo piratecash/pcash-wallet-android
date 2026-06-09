@@ -15,11 +15,11 @@ class PayCoreSignatureHelper(
     private val accountManager: IAccountManager,
     private val currentTimeSeconds: () -> Long = { System.currentTimeMillis() / 1000 },
 ) {
-    fun getSignedHeaders(url: String, networkType: String): Map<String, String> {
+    fun getSignedHeaders(url: String, networkType: PayCoreTicker): Map<String, String> {
         return getSignedHeaders(url, networkType, activeAccount())
     }
 
-    fun getSignedHeaders(url: String, networkType: String, account: Account): Map<String, String> {
+    fun getSignedHeaders(url: String, networkType: PayCoreTicker, account: Account): Map<String, String> {
         val privateKey = extractPrivateKey(account)
         val walletAddress = resolveWalletAddress(privateKey, networkType)
         val timestamp = currentTimeSeconds().toString()
@@ -33,18 +33,12 @@ class PayCoreSignatureHelper(
         )
     }
 
-    fun getWalletAddress(networkType: String): String {
+    fun getWalletAddress(networkType: PayCoreTicker): String {
         return getWalletAddress(networkType, activeAccount())
     }
 
-    fun getWalletAddress(networkType: String, account: Account): String {
+    fun getWalletAddress(networkType: PayCoreTicker, account: Account): String {
         return resolveWalletAddress(extractPrivateKey(account), networkType)
-    }
-
-    fun signPhone(phone: String): String {
-        val hash = CryptoUtils.sha3(phone.toByteArray())
-        val signature = CryptoUtils.ellipticSign(hash, extractPrivateKey(activeAccount()))
-        return Base64.encodeToString(signature, Base64.NO_WRAP)
     }
 
     private fun activeAccount(): Account {
@@ -59,9 +53,9 @@ class PayCoreSignatureHelper(
         }
     }
 
-    private fun resolveWalletAddress(privateKey: BigInteger, networkType: String): String {
+    private fun resolveWalletAddress(privateKey: BigInteger, networkType: PayCoreTicker): String {
         return when (networkType) {
-            PayCoreNetworkType.TRC20 -> TronSigner.address(privateKey, Network.Mainnet).base58
+            PayCoreTicker.USDT -> TronSigner.address(privateKey, Network.Mainnet).base58
             else -> EthereumSigner.address(privateKey).eip55
         }
     }
@@ -70,15 +64,15 @@ class PayCoreSignatureHelper(
         url: String,
         timestamp: String,
         walletAddress: String,
-        networkType: String,
+        networkType: PayCoreTicker,
     ): ByteArray {
         val payload = "$url\n$timestamp\n$walletAddress".toByteArray()
         val prefix = (signedMessagePrefix(networkType) + payload.size).toByteArray()
         return CryptoUtils.sha3(prefix + payload)
     }
 
-    private fun signedMessagePrefix(networkType: String): String = when (networkType) {
-        PayCoreNetworkType.TRC20 -> TRON_SIGNED_MESSAGE_PREFIX
+    private fun signedMessagePrefix(networkType: PayCoreTicker): String = when (networkType) {
+        PayCoreTicker.USDT -> TRON_SIGNED_MESSAGE_PREFIX
         else -> ETHEREUM_SIGNED_MESSAGE_PREFIX
     }
 

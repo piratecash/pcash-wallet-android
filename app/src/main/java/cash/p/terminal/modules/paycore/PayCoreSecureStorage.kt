@@ -61,5 +61,5 @@ class PayCoreSecureStorage(
 data class PayCoreLinkedWallet(
     val accountId: String,
     val address: String,
-    val networkType: String,
+    val networkType: PayCoreTicker,
 )

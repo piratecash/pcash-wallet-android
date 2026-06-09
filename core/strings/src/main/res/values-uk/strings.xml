@@ -614,7 +614,7 @@
     <string name="zec_transparent_used">Під час створення обміну використовується тимчасова t-адреса: %s. Вона передається провайдеру обміну та потрібна для повернення коштів, якщо обмін не буде завершено. Використання t-адреси може призвести до часткової деанонімізації транзакції.</string>
     <!-- Swap Settings -->
     <string name="Fee_LiquidityFee">Комісія за ліквідність</string>
-    <string name="SwapSettings_Title">Налаштування обміну</string>
+    <string name="SwapSettings_Title">Налаштування свапу</string>
     <string name="SwapSettings_SlippageTitle">Допустимість відхилень</string>
     <string name="SwapSettings_SlippageDescription">Ваша транзакція буде скасована, якщо ціна зміниться в несприятливу сторону більш ніж на цей відсоток</string>
     <string name="SwapSettings_DeadlineTitle">Термін транзакції</string>
@@ -2181,6 +2181,7 @@
     <string name="paycore_section_crypto">Криптовалюти</string>
     <string name="paycore_select_bank">Виберіть банк</string>
     <string name="paycore_select_bank_error">Не вдалося відкрити вибір банку. Спробуйте пізніше.</string>
+    <string name="paycore_banks_unavailable">Банки тимчасово недоступні. Спробуйте пізніше.</string>
     <string name="paycore_delete_restricted_warning">Цю транзакцію не можна видалити, оскільки вона виконується стороннім сервісом.</string>
     <string name="paycore_delete_to_complete_select_bank">Для завершення обміну виберіть банк.</string>
 </resources>

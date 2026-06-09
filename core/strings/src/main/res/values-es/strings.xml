@@ -614,7 +614,7 @@
     <string name="unsupported_token">Token no compatible</string>
     <string name="zec_transparent_used">Al crear el intercambio se utiliza una dirección t temporal: %s. Se proporciona al proveedor del intercambio y es necesaria para el reembolso en caso de que el intercambio no se complete. El uso de una dirección t puede provocar una desanonimización parcial de la transacción.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Ajustes de intercambio</string>
+    <string name="SwapSettings_Title">Ajustes de swap</string>
     <string name="SwapSettings_SlippageTitle">Tolerancia de deslizamiento</string>
     <string name="SwapSettings_SlippageDescription">Tu transacción se revertirá si el precio cambia desfavorablemente en más de este porcentaje</string>
     <string name="SwapSettings_DeadlineTitle">Fecha límite de transacción</string>
@@ -2011,6 +2011,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="paycore_section_crypto">Criptomonedas</string>
     <string name="paycore_select_bank">Seleccionar banco</string>
     <string name="paycore_select_bank_error">No se pudo abrir la selección de banco. Inténtalo de nuevo más tarde.</string>
+    <string name="paycore_banks_unavailable">Los bancos no están disponibles temporalmente. Inténtalo más tarde.</string>
     <string name="paycore_delete_restricted_warning">Esta transacción no se puede eliminar porque la procesa un servicio externo.</string>
     <string name="paycore_delete_to_complete_select_bank">Selecciona un banco para completar el swap.</string>
     <string name="scan">Escanear</string>

@@ -2020,6 +2020,7 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="paycore_section_crypto">Kripto Paralar</string>
     <string name="paycore_select_bank">Banka seç</string>
     <string name="paycore_select_bank_error">Banka seçimi açılamadı. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="paycore_banks_unavailable">Bankalar geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.</string>
     <string name="paycore_delete_restricted_warning">Bu işlem üçüncü taraf bir hizmet tarafından gerçekleştirildiği için silinemez.</string>
     <string name="paycore_delete_to_complete_select_bank">Swap’i tamamlamak için bir banka seçin.</string>
     <string name="scan">Tara</string>

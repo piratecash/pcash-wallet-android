@@ -2017,6 +2017,7 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="paycore_section_crypto">Cryptomonnaies</string>
     <string name="paycore_select_bank">Sélectionner une banque</string>
     <string name="paycore_select_bank_error">Impossible d\'ouvrir la sélection de banque. Réessayez plus tard.</string>
+    <string name="paycore_banks_unavailable">Les banques sont temporairement indisponibles. Réessayez plus tard.</string>
     <string name="paycore_delete_restricted_warning">Cette transaction ne peut pas être supprimée car elle est traitée par un service tiers.</string>
     <string name="paycore_delete_to_complete_select_bank">Sélectionnez une banque pour finaliser le swap.</string>
     <string name="scan">Scanner</string>

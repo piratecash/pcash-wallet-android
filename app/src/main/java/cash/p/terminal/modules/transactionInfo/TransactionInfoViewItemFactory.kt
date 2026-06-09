@@ -20,8 +20,6 @@ import cash.p.terminal.modules.transactionInfo.TransactionInfoViewItem.Transacti
 import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper.getSwapEventSectionItems
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.TransactionViewItem
-import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
-import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.Translator
 import io.horizontalsystems.core.entities.BlockchainType
 
@@ -646,21 +644,6 @@ class TransactionInfoViewItemFactory(
 
             else -> {}
         }
-
-        transactionItem.swapTransactionId
-            ?.takeIf {
-                transactionItem.swapProvider == SwapProvider.PAYCORE &&
-                        transactionItem.swapTransactionStatus == TransactionStatusEnum.CREATED_OR_WAIT_USER
-            }
-            ?.let { swapTransactionId ->
-                itemSections.add(
-                    listOf(
-                        TransactionInfoViewItem.PayCoreSelectBankAction(
-                            swapTransactionId = swapTransactionId
-                        )
-                    )
-                )
-            }
 
         // Add swap provider amount comparison section if available
         if (transactionItem.swapAmountOut != null &&

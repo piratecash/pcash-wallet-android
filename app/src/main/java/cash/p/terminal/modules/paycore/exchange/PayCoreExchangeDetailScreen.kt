@@ -27,7 +27,6 @@ import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.fee.QuoteInfoRow
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
-import cash.p.terminal.modules.paycore.selectbank.PayCoreSelectBankActionSection
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui.helpers.TextHelper
@@ -50,8 +49,6 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 internal fun PayCoreExchangeDetailScreen(
     uiState: PayCoreExchangeDetailUiState?,
     onBack: () -> Unit,
-    onSelectBankClick: () -> Unit = {},
-    selectBankLoading: Boolean = false,
 ) {
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -92,14 +89,6 @@ internal fun PayCoreExchangeDetailScreen(
                 DateRow(dateFormatted = state.dateFormatted)
                 StatusRow(status = state.status)
                 TransactionIdRow(transactionId = state.transactionId)
-            }
-
-            if (state.status == TransactionStatusEnum.CREATED_OR_WAIT_USER) {
-                VSpacer(height = 16.dp)
-                PayCoreSelectBankActionSection(
-                    onClick = onSelectBankClick,
-                    showSpinner = selectBankLoading,
-                )
             }
 
             VSpacer(height = 16.dp)

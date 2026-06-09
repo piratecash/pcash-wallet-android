@@ -92,8 +92,6 @@ sealed class TransactionInfoViewItem {
         val senderAddresses: List<String>,
         val blockchainType: BlockchainType
     ) : TransactionInfoViewItem()
-
-    class PayCoreSelectBankAction(val swapTransactionId: String) : TransactionInfoViewItem()
 }
 
 enum class AmountType {

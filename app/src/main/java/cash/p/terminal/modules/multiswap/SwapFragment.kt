@@ -123,7 +123,8 @@ import cash.p.terminal.core.composablePopup
 import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
 import cash.p.terminal.modules.paycore.PayCoreAssets
-import cash.p.terminal.modules.paycore.PayCoreNetworkMapper
+import cash.p.terminal.modules.paycore.PayCoreQuote
+import cash.p.terminal.modules.paycore.PayCoreSelectBankAction
 import cash.p.terminal.modules.paycore.PayCoreVerificationAction
 import cash.p.terminal.modules.paycore.payment.PayCorePaymentDisplayParams
 import cash.p.terminal.modules.paycore.payment.PayCorePaymentParams
@@ -131,6 +132,8 @@ import cash.p.terminal.modules.paycore.payment.PayCorePaymentScreen
 import cash.p.terminal.modules.paycore.payment.PayCorePaymentViewModel
 import cash.p.terminal.modules.paycore.verification.PayCoreVerificationScreen
 import android.os.Parcelable
+import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
+import cash.p.terminal.modules.paycore.PayCoreTicker
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -174,13 +177,17 @@ private object SwapProvidersSettingsPage
 private data class SwapSelectLegProviderPage(val legIndex: Int)
 
 @Serializable
-private data class PayCoreVerificationPage(val networkType: String)
+private data class PayCoreVerificationPage(
+    val networkType: PayCoreTicker,
+    val walletAddress: String,
+)
 
 @Serializable
 private data class PayCorePaymentPage(
     val amountIn: String,
     val amountOut: String,
-    val networkType: String,
+    val serviceFee: String,
+    val networkType: PayCoreTicker,
     val tokenInUid: String,
     val tokenOutUid: String,
     val blockchainTypeIn: String,
@@ -338,17 +345,18 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             SwapProvidersSettingsScreen(
                 uiState = providersSettingsViewModel.uiState,
                 onToggle = providersSettingsViewModel::setProviderEnabled,
-                onClose = swapNavController::navigateUp,
+                onClose = swapNavController::navigateUpSafely,
             )
         }
         composablePage<PayCoreVerificationPage> { backStackEntry ->
             val args = backStackEntry.toRoute<PayCoreVerificationPage>()
             PayCoreVerificationScreen(
                 networkType = args.networkType,
-                onClose = swapNavController::navigateUp,
+                walletAddress = args.walletAddress,
+                onClose = swapNavController::navigateUpSafely,
                 onComplete = {
                     viewModel.onActionCompleted()
-                    swapNavController.navigateUp()
+                    swapNavController.navigateUpSafely()
                 }
             )
         }
@@ -382,14 +390,17 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 displayParams = PayCorePaymentDisplayParams(
                     amountIn = paymentViewModel.amountIn,
                     amountOut = paymentViewModel.amountOut,
+                    serviceFee = args.serviceFee.toBigDecimal(),
                     networkType = paymentViewModel.networkType,
                     tokenIn = tokenIn,
                     tokenOut = tokenOut,
                     currency = viewModel.uiState.currency,
                 ),
                 onConfirm = paymentViewModel::onConfirm,
+                onOpenWebView = paymentViewModel::onWebViewOpened,
                 onCompleteWebView = paymentViewModel::onWebViewCompleted,
-                onClose = swapNavController::navigateUp
+                onCloseWebView = paymentViewModel::onWebViewClosed,
+                onClose = swapNavController::navigateUpSafely
             )
         }
     }
@@ -410,16 +421,21 @@ private fun buildPayCorePaymentPage(uiState: SwapUiState): PayCorePaymentPage? {
     val isPayCoreRubPayment = quote.provider.id == "paycore" && PayCoreAssets.isRub(tokenIn)
     if (!isPayCoreRubPayment) return null
 
-    val networkType = PayCoreNetworkMapper.toNetworkType(tokenOut) ?: return null
+    val networkType = tokenOut.toTicker() ?: return null
     return PayCorePaymentPage(
         amountIn = amountIn.toPlainString(),
         amountOut = quote.amountOut.toPlainString(),
+        serviceFee = payCoreQuoteServiceFee(quote).toPlainString(),
         networkType = networkType,
         tokenInUid = tokenIn.coin.uid,
         tokenOutUid = tokenOut.coin.uid,
         blockchainTypeIn = tokenIn.blockchainType.uid,
         blockchainTypeOut = tokenOut.blockchainType.uid
     )
+}
+
+private fun payCoreQuoteServiceFee(quote: SwapProviderQuote): BigDecimal {
+    return (quote.swapQuote as? PayCoreQuote)?.serviceFee ?: BigDecimal.ZERO
 }
 
 private fun buildMultiSwapLeg1Info(viewModel: SwapViewModel): MultiSwapLegInfo? {
@@ -517,8 +533,13 @@ private fun SwapMainScreen(
             val tokenIn = viewModel.uiState.tokenIn
             val tokenOut = viewModel.uiState.tokenOut
             val usdtToken = if (tokenIn != null && PayCoreAssets.isRub(tokenIn)) tokenOut else tokenIn
-            val networkType = usdtToken?.let { PayCoreNetworkMapper.toNetworkType(it) } ?: "TRC20"
-            swapNavController.navigate(PayCoreVerificationPage(networkType))
+            val networkType = usdtToken?.toTicker()
+            val walletAddress = usdtToken?.let { token ->
+                tryOrNull { getKoinInstance<WalletUseCase>().getReceiveAddress(token) }
+            }
+            if (networkType != null && !walletAddress.isNullOrBlank()) {
+                swapNavController.navigate(PayCoreVerificationPage(networkType, walletAddress))
+            }
         },
     )
 }
@@ -696,6 +717,7 @@ private fun SwapScreenInner(
                                 onActionStarted.invoke()
                                 when (action) {
                                     is ActionCreate -> onCreateMissingTokens(action.tokensToAdd)
+                                    is PayCoreSelectBankAction -> onClickProviderSettings()
                                     is PayCoreVerificationAction -> onOpenVerification()
                                     else -> action.execute(navController, onActionCompleted)
                                 }

@@ -13,7 +13,7 @@ import java.math.BigDecimal
 
 class PayCoreDataFieldServiceFee(
     private val fee: BigDecimal,
-    private val networkType: String
+    private val networkType: PayCoreTicker
 ) : DataField {
     @Composable
     override fun GetContent(navController: NavController, borderTop: Boolean) {
@@ -24,7 +24,7 @@ class PayCoreDataFieldServiceFee(
             },
             value = {
                 subhead2_leah(
-                    text = "$fee USDT ($networkType)",
+                    text = formatPayCoreServiceFee(fee, networkType),
                     textAlign = TextAlign.End
                 )
             }
@@ -32,8 +32,16 @@ class PayCoreDataFieldServiceFee(
     }
 }
 
+internal fun formatPayCoreServiceFee(
+    fee: BigDecimal,
+    networkType: PayCoreTicker? = null,
+): String {
+    val networkSuffix = networkType?.let { " ($it)" }.orEmpty()
+    return "${fee.stripTrailingZeros().toPlainString()} USDT$networkSuffix"
+}
+
 class PayCoreDataFieldNetwork(
-    private val networkType: String
+    private val networkType: PayCoreTicker
 ) : DataField {
     @Composable
     override fun GetContent(navController: NavController, borderTop: Boolean) {
@@ -44,7 +52,7 @@ class PayCoreDataFieldNetwork(
             },
             value = {
                 subhead2_leah(
-                    text = networkType,
+                    text = networkType.name,
                     textAlign = TextAlign.End
                 )
             }

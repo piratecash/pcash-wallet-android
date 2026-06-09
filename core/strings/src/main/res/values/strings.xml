@@ -2464,6 +2464,7 @@ Proceed only if you\'re sure.</string>
     <string name="paycore_section_crypto">Cryptocurrencies</string>
     <string name="paycore_select_bank">Select bank</string>
     <string name="paycore_select_bank_error">Failed to open bank selection. Try again later.</string>
+    <string name="paycore_banks_unavailable">Banks are temporarily unavailable. Try again later.</string>
     <string name="paycore_delete_restricted_warning">This transaction cannot be deleted because it is processed by a third-party service.</string>
     <string name="paycore_delete_to_complete_select_bank">Select a bank to complete the swap.</string>
 </resources>

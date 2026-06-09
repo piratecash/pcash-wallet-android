@@ -619,7 +619,7 @@
     <string name="unsupported_token">Token não suportado</string>
     <string name="zec_transparent_used">Ao criar a troca, um endereço t temporário é utilizado: %s. Ele é enviado ao provedor de troca e é necessário para o reembolso caso a troca não seja concluída. O uso de um endereço t pode resultar na desanonimização parcial da transação.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Configurações de troca</string>
+    <string name="SwapSettings_Title">Configurações de swap</string>
     <string name="SwapSettings_SlippageTitle">Tolerância de Slippage</string>
     <string name="SwapSettings_SlippageDescription">Sua transação será revertida se o preço mudar desfavoravelmente em mais do que esta porcentagem</string>
     <string name="SwapSettings_DeadlineTitle">Data-limite da operação</string>
@@ -2019,6 +2019,7 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="paycore_section_crypto">Criptomoedas</string>
     <string name="paycore_select_bank">Selecionar banco</string>
     <string name="paycore_select_bank_error">Não foi possível abrir a seleção de banco. Tente novamente mais tarde.</string>
+    <string name="paycore_banks_unavailable">Os bancos estão temporariamente indisponíveis. Tente novamente mais tarde.</string>
     <string name="paycore_delete_restricted_warning">Esta transação não pode ser excluída porque é processada por um serviço terceirizado.</string>
     <string name="paycore_delete_to_complete_select_bank">Selecione um banco para concluir o swap.</string>
     <string name="scan">Escanear</string>

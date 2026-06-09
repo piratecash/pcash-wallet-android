@@ -68,9 +68,8 @@ class TransactionInfoService(
 
     private val mutex = Mutex()
 
-    // Captured once from the initial DB lookup; remains stable across
-    // PayCore's txHash → payoutId migration (which mutates transactionId).
-    // All subsequent reads must key off this, not userSwapTransactionId.
+    // Captured once from the initial DB lookup so observers keep tracking the
+    // same swap row while status fields are refreshed.
     private var userSwapDate: Long? = null
 
     private var _transactionRecord = initialTransactionRecord
@@ -300,9 +299,8 @@ class TransactionInfoService(
     suspend fun start() = withContext(dispatcherProvider.io) {
         handlePoisonStatusUpdate(computePoisonStatus(transactionRecord))
 
-        // Resolve once and capture the stable PK. PayCore swaps can rewrite
-        // transactionId during the status refresh below (placeholder txHash →
-        // payoutId), so the observer and periodic refresh must key off `date`.
+        // Resolve once and capture the stable PK so the observer and periodic
+        // refresh keep reading the same swap row.
         userSwapDate = userSwapTransactionId?.let { id ->
             swapProviderTransactionsStorage.getTransaction(id)?.let { swapTransaction ->
                 applySwapTransaction(swapTransaction)

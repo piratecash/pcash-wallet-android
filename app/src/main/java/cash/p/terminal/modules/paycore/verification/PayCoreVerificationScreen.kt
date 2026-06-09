@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.paycore.PAYCORE_COMPLETE_BACK_URL
+import cash.p.terminal.modules.paycore.PayCoreTicker
 import cash.p.terminal.modules.paycore.webview.PayCoreWebViewScreen
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
@@ -70,12 +71,13 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun PayCoreVerificationScreen(
-    networkType: String,
+    networkType: PayCoreTicker,
+    walletAddress: String,
     onClose: () -> Unit,
     onComplete: () -> Unit
 ) {
     val viewModel: PayCoreVerificationViewModel = koinViewModel(
-        parameters = { parametersOf(networkType) }
+        parameters = { parametersOf(networkType, walletAddress) }
     )
     val uiState = viewModel.uiState
     val currentOnComplete by rememberUpdatedState(onComplete)
@@ -147,7 +149,10 @@ internal fun PayCoreVerificationScreenContent(
                 )
 
             VerificationScreen.Processing ->
-                ProcessingScreen(paddingValues = paddingValues)
+                ProcessingScreen(
+                    paddingValues = paddingValues,
+                    onRetry = onRetry
+                )
 
             VerificationScreen.KycRequired ->
                 KycRequiredScreen(
@@ -290,7 +295,10 @@ private fun SupportLine() {
 }
 
 @Composable
-private fun ProcessingScreen(paddingValues: PaddingValues) {
+private fun ProcessingScreen(
+    paddingValues: PaddingValues,
+    onRetry: () -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(paddingValues)
@@ -308,9 +316,8 @@ private fun ProcessingScreen(paddingValues: PaddingValues) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                title = stringResource(R.string.paycore_verification_continue),
-                enabled = false,
-                onClick = {}
+                title = stringResource(R.string.paycore_verification_retry),
+                onClick = onRetry
             )
         }
 

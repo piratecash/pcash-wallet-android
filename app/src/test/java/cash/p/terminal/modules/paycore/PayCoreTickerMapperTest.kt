@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.paycore
 
+import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
@@ -11,7 +12,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class PayCoreNetworkMapperTest {
+class PayCoreTickerMapperTest {
 
     private fun makeToken(coinUid: String, coinCode: String, blockchainType: BlockchainType): Token {
         return Token(
@@ -59,59 +60,42 @@ class PayCoreNetworkMapperTest {
         assertFalse(PayCoreNetworkMapper.isUsdtOnSupportedNetwork(PayCoreAssets.rubToken))
     }
 
-    // --- toNetworkType ---
+    // --- toTicker ---
 
     @Test
-    fun toNetworkType_rub_returnsRUB() {
-        assertEquals("RUB", PayCoreNetworkMapper.toNetworkType(PayCoreAssets.rubToken))
+    fun toTicker_rub_returnsRub() {
+        assertEquals(PayCoreTicker.RUB, PayCoreAssets.rubToken.toTicker())
     }
 
     @Test
-    fun toNetworkType_ethereum_returnsERC20() {
+    fun toTicker_ethereum_returnsUsdtErc20() {
         val token = makeToken("tether", "USDT", BlockchainType.Ethereum)
-        assertEquals("ERC20", PayCoreNetworkMapper.toNetworkType(token))
+        assertEquals(PayCoreTicker.USDT_ERC20, token.toTicker())
     }
 
     @Test
-    fun toNetworkType_bsc_returnsNull() {
+    fun toTicker_bsc_returnsNull() {
         val token = makeToken("tether", "BSC-USD", BlockchainType.BinanceSmartChain)
-        assertNull(PayCoreNetworkMapper.toNetworkType(token))
+        assertNull(token.toTicker())
     }
 
     @Test
-    fun toNetworkType_tron_returnsTRC20() {
+    fun toTicker_tron_returnsUsdt() {
         val token = makeToken("tether", "USDT", BlockchainType.Tron)
-        assertEquals("TRC20", PayCoreNetworkMapper.toNetworkType(token))
+        assertEquals(PayCoreTicker.USDT, token.toTicker())
     }
 
     @Test
-    fun toNetworkType_solana_returnsSPL() {
+    fun toTicker_solana_returnsUsdtSpl() {
         val token = makeToken("tether", "USDT", BlockchainType.Solana)
-        assertEquals("SPL", PayCoreNetworkMapper.toNetworkType(token))
+        assertEquals(PayCoreTicker.USDT_SPL, token.toTicker())
     }
 
     @Test
-    fun fromBlockchainTypeUid_tron_returnsTRC20() {
-        assertEquals("TRC20", PayCoreNetworkMapper.fromBlockchainTypeUid("tron"))
-    }
-
-    @Test
-    fun fromCurrencies_rubToErc20_returnsERC20() {
-        assertEquals("ERC20", PayCoreNetworkMapper.fromCurrencies("RUB", "ERC20"))
-    }
-
-    @Test
-    fun fromCurrencies_trc20ToRub_returnsTRC20() {
-        assertEquals("TRC20", PayCoreNetworkMapper.fromCurrencies("TRC20", "RUB"))
-    }
-
-    @Test
-    fun fromCurrencies_splToRub_returnsSPL() {
-        assertEquals("SPL", PayCoreNetworkMapper.fromCurrencies("SPL", "RUB"))
-    }
-
-    @Test
-    fun fromCurrencies_rubToRub_returnsNull() {
-        assertNull(PayCoreNetworkMapper.fromCurrencies("RUB", "RUB"))
+    fun payCoreNetworkTypeFromBlockchainTypeUid_tron_returnsUsdt() {
+        assertEquals(
+            PayCoreTicker.USDT,
+            PayCoreNetworkMapper.payCoreNetworkTypeFromBlockchainTypeUid("tron"),
+        )
     }
 }

@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.paycore
 
 import cash.p.terminal.core.HSCaution
+import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.ui.DataField
@@ -15,7 +16,7 @@ data class PayCoreFinalQuote(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    val payCoreTransactionId: String? = null,
+    override val swapProviderTransaction: SwapProviderTransaction? = null,
     override val amountOutMin: BigDecimal? = null,
     override val cautions: List<HSCaution> = emptyList()
 ) : ISwapFinalQuote

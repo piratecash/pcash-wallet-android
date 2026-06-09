@@ -1,106 +1,189 @@
 package cash.p.terminal.modules.paycore
 
-import cash.p.terminal.core.tryOrNull
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.net.URI
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
+import java.math.BigDecimal
 
 internal const val PAYCORE_COMPLETE_BACK_URL = "pcash://paycore/complete"
 
 @Serializable
 data class PayCoreRateResponse(
-    @SerialName("currency_from") val currencyFrom: String,
-    @SerialName("currency_to") val currencyTo: String,
-    @SerialName("amount_from") val amountFrom: String,
-    @SerialName("amount_to") val amountTo: String,
-    val rate: String,
-    @SerialName("min_rub_count") val minRubCount: Long? = null,
-    @SerialName("max_rub_count") val maxRubCount: Long? = null,
+    val ticker: String,
+    val network: String,
+    @Serializable(with = PayCoreBigDecimalSerializer::class) val sell: BigDecimal,
+    @Serializable(with = PayCoreBigDecimalSerializer::class) val buy: BigDecimal,
+    @Serializable(with = PayCoreBigDecimalSerializer::class) val withdrawFee: BigDecimal,
+    @SerialName("updated_at") val updatedAt: String? = null,
+    val limits: PayCoreRateLimits? = null,
+)
+
+@Serializable
+data class PayCoreRateLimits(
+    @SerialName("min_buy_limit_rub")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val minBuyLimitRub: BigDecimal? = null,
+    @SerialName("max_buy_limit_rub")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val maxBuyLimitRub: BigDecimal? = null,
+    @SerialName("min_buy_limit_usdt")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val minBuyLimitUsdt: BigDecimal? = null,
+    @SerialName("max_buy_limit_usdt")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val maxBuyLimitUsdt: BigDecimal? = null,
+    @SerialName("min_sell_limit_rub")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val minSellLimitRub: BigDecimal? = null,
+    @SerialName("max_sell_limit_rub")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val maxSellLimitRub: BigDecimal? = null,
+    @SerialName("min_sell_limit_usdt")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val minSellLimitUsdt: BigDecimal? = null,
+    @SerialName("max_sell_limit_usdt")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val maxSellLimitUsdt: BigDecimal? = null,
 )
 
 @Serializable
 data class PayCoreWalletCreateRequest(
     val phone: String,
     val address: String,
-    @SerialName("network_type") val networkType: String,
-    @SerialName("verify_sign_key") val verifySignKey: String,
+    @SerialName("network_type") val networkType: PayCoreTicker,
     @SerialName("back_url") val backUrl: String
 )
 
 @Serializable
 data class PayCoreWalletCreateResponse(
-    val status: Int,
+    val status: String,
     val url: String? = null
 )
+
+object PayCoreWalletCreateStatus {
+    const val NO_ACCESS = "NoAccess"
+    const val NOT_REGISTERED = "NotRegistered"
+    const val PENDING = "Pending"
+    const val APPROVED = "Approved"
+    const val REJECTED = "Rejected"
+    const val SUSPENDED = "Suspended"
+}
 
 @Serializable
 data class PayCoreWalletChangeRequest(
     val address: String,
-    @SerialName("network_type") val networkType: String
+    @SerialName("network_type") val networkType: PayCoreTicker
 )
 
 @Serializable
-data class PayCorePayoutAddressRequest(
-    @SerialName("network_type") val networkType: String
+data class PayCoreBankResponse(
+    val id: String,
+    val name: String
 )
 
 @Serializable
-data class PayCorePayoutAddressResponse(
+data class PayCorePayoutCalculationRequest(
+    @Serializable(with = PayCoreBigDecimalSerializer::class) val amount: BigDecimal,
+    @SerialName("amount_type") val amountType: String,
+    @SerialName("bank_id") val bankId: String,
+    val ticker: PayCoreTicker
+)
+
+@Serializable
+data class PayCorePayoutCalculationResponse(
+    @SerialName("amount_crypto")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val amountCrypto: BigDecimal,
+    @SerialName("full_amount_rub")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val fullAmountRub: BigDecimal,
+    val ticker: String,
+    val uuid: String,
+    @SerialName("expires_at") val expiresAt: String
+)
+
+@Serializable
+data class PayCorePayoutCreateRequest(
+    val uuid: String
+)
+
+@Serializable
+data class PayCorePayoutCreateResponse(
     val address: String,
-    @SerialName("network_type") val networkType: String
+    val network: String,
+    val uuid: String,
+    @SerialName("expires_at") val expiresAt: String
+)
+
+object PayCoreAmountType {
+    const val CRYPTO = "Crypto"
+    const val RUB = "Rub"
+}
+
+@Serializable
+data class PayCorePaymentCalculationRequest(
+    @Serializable(with = PayCoreBigDecimalSerializer::class) val amount: BigDecimal,
+    @SerialName("amount_type") val amountType: String,
+    val ticker: PayCoreTicker
 )
 
 @Serializable
-data class PayCorePayoutProcessRequest(
-    @SerialName("transaction_hash") val transactionHash: String,
-    @SerialName("back_url") val backUrl: String
-)
-
-@Serializable
-data class PayCorePayoutProcessResponse(
-    val status: Int,
-    val url: String? = null
+data class PayCorePaymentCalculationResponse(
+    @SerialName("amount_crypto")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val amountCrypto: BigDecimal,
+    @SerialName("full_amount_rub")
+    @Serializable(with = PayCoreBigDecimalSerializer::class)
+    val fullAmountRub: BigDecimal,
+    val ticker: String,
+    val uuid: String,
+    @SerialName("expires_at") val expiresAt: String
 )
 
 @Serializable
 data class PayCorePaymentCreateRequest(
-    val amount: String,
-    @SerialName("network_type") val networkType: String,
-    @SerialName("back_url") val backUrl: String
+    val uuid: String
 )
 
 @Serializable
 data class PayCorePaymentCreateResponse(
-    val url: String
+    @SerialName("payment_url") val paymentUrl: String,
+    val uuid: String,
+    @SerialName("expires_at") val expiresAt: String
 )
 
 @Serializable
 data class PayCoreTransactionStatusResponse(
-    @SerialName("crypto_transaction_status") val cryptoTransactionStatus: String? = null,
-    @SerialName("fiat_transaction_status") val fiatTransactionStatus: String? = null
+    @SerialName("transaction_status") val transactionStatus: String? = null
 )
 
-internal fun PayCorePaymentCreateResponse.transactionIdOrNull(): String? {
-    return parsePayCoreRedirectTransactionId(url, "payment")
-}
+private object PayCoreBigDecimalSerializer : KSerializer<BigDecimal> {
+    override val descriptor = PrimitiveSerialDescriptor("PayCoreBigDecimal", PrimitiveKind.STRING)
 
-internal fun PayCorePayoutProcessResponse.transactionIdOrNull(): String? {
-    return url?.let { parsePayCoreRedirectTransactionId(it, "payout") }
-}
+    override fun serialize(encoder: Encoder, value: BigDecimal) {
+        if (encoder is JsonEncoder) {
+            encoder.encodeJsonElement(JsonPrimitive(value))
+        } else {
+            encoder.encodeString(value.toPlainString())
+        }
+    }
 
-/**
- * Per API contract (`status=3` → "транзакция завершилась неудачно"),
- * collapsing this into a transient "no url yet" would leave the swap
- * pending forever instead of transitioning to FAILED.
- */
-internal fun PayCorePayoutProcessResponse.isTerminalFailure(): Boolean = status == PAYCORE_PAYOUT_STATUS_FAILED
-
-private const val PAYCORE_PAYOUT_STATUS_FAILED = 3
-
-private fun parsePayCoreRedirectTransactionId(url: String, routeSegment: String): String? {
-    val path = tryOrNull { URI(url).path } ?: return null
-    val pathSegments = path.split('/').filter(String::isNotBlank)
-    val routeIndex = pathSegments.indexOf(routeSegment)
-    if (routeIndex < 0) return null
-    return pathSegments.getOrNull(routeIndex + 1)?.takeIf(String::isNotBlank)
+    override fun deserialize(decoder: Decoder): BigDecimal {
+        if (decoder is JsonDecoder) {
+            val content = decoder.decodeJsonElement().jsonPrimitive.contentOrNull
+            return requireNotNull(content?.toBigDecimalOrNull()) {
+                "Invalid PayCore decimal value: $content"
+            }
+        }
+        return decoder.decodeString().toBigDecimal()
+    }
 }

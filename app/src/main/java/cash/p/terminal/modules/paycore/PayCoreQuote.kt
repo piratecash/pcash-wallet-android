@@ -15,6 +15,7 @@ class PayCoreQuote(
     override val tokenIn: Token,
     override val tokenOut: Token,
     override val amountIn: BigDecimal,
+    val serviceFee: BigDecimal,
     override val actionRequired: ISwapProviderAction?,
     override val settings: List<ISwapSetting> = emptyList(),
     override val cautions: List<HSCaution> = emptyList()

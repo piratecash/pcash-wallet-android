@@ -37,7 +37,6 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.wallet.IAdapterManager
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import com.tangem.common.core.TangemSdkError
@@ -287,12 +286,14 @@ class SwapConfirmViewModel(
                     swapQuote = swapQuote
                 )
 
+                amountIn = finalQuote.amountIn
                 amountOut = finalQuote.amountOut
                 amountOutMin = finalQuote.amountOutMin
                 quoteFields = finalQuote.fields
                 criticalError = null
                 swapProviderTransaction = finalQuote.swapProviderTransaction
 
+                fiatServiceIn.setAmount(amountIn)
                 fiatServiceOut.setAmount(amountOut)
                 fiatServiceOutMin.setAmount(amountOutMin)
                 sendTransactionService.setSendTransactionData(finalQuote.sendTransactionData)
@@ -361,11 +362,12 @@ class SwapConfirmViewModel(
             } catch (e: TangemSdkError) {
                 // Other Tangem errors - reset state
                 sendResult = null
+            } catch (e: ResponseError.RpcError) {
+                val caution = HSCaution(TranslatableString.PlainString(e.error.message))
+                sendResult = SendResult.Failed(caution)
             } catch (t: Throwable) {
                 val caution = if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
                     HSCaution(TranslatableString.ResString(R.string.EthereumTransaction_Error_InsufficientBalance_Title))
-                } else if (t is ResponseError.RpcError) {
-                    HSCaution(TranslatableString.PlainString(t.error.message))
                 } else {
                     HSCaution(TranslatableString.PlainString(t.javaClass.simpleName))
                 }

@@ -29,6 +29,12 @@ class SwapProviderTransactionsStorage(
         swapProviderTransaction: SwapProviderTransaction
     ) = dao.insert(swapProviderTransaction)
 
+    suspend fun saveAsync(
+        swapProviderTransaction: SwapProviderTransaction
+    ) = withContext(dispatcherProvider.io) {
+        dao.insert(swapProviderTransaction)
+    }
+
     fun getAll(
         token: Token,
         address: String,

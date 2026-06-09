@@ -81,17 +81,17 @@ class PayCoreSignatureHelperTest {
 
     @Test
     fun getWalletAddress_erc20_returnsChecksumEvmAddress() {
-        assertEquals(evmAddress, helper.getWalletAddress(PayCoreNetworkType.ERC20))
+        assertEquals(evmAddress, helper.getWalletAddress(PayCoreTicker.USDT_ERC20))
     }
 
     @Test
     fun getWalletAddress_trc20_returnsBase58TronAddress() {
-        assertEquals(tronAddress, helper.getWalletAddress(PayCoreNetworkType.TRC20))
+        assertEquals(tronAddress, helper.getWalletAddress(PayCoreTicker.USDT))
     }
 
     @Test
     fun getSignedHeaders_erc20_matchesSpec() {
-        val headers = helper.getSignedHeaders(url, PayCoreNetworkType.ERC20)
+        val headers = helper.getSignedHeaders(url, PayCoreTicker.USDT_ERC20)
 
         assertEquals(evmAddress, headers["X-Wallet"])
         assertEquals(timestampSeconds.toString(), headers["X-Timestamp"])
@@ -100,7 +100,7 @@ class PayCoreSignatureHelperTest {
 
     @Test
     fun getSignedHeaders_trc20_matchesSpec() {
-        val headers = helper.getSignedHeaders(url, PayCoreNetworkType.TRC20)
+        val headers = helper.getSignedHeaders(url, PayCoreTicker.USDT)
 
         assertEquals(tronAddress, headers["X-Wallet"])
         assertEquals(timestampSeconds.toString(), headers["X-Timestamp"])

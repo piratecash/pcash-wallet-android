@@ -618,7 +618,7 @@
     <string name="unsupported_token">رمز غير مدعوم</string>
     <string name="zec_transparent_used">يتم استخدام عنوان t مؤقت عند إنشاء عملية التبادل: ‎%s‎. يتم إرساله إلى مزود خدمة التبادل ويُستخدم لاسترداد الأموال في حال لم تكتمل عملية التبادل. قد يؤدي استخدام عنوان t إلى كشف جزئي لهوية المعاملة.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Swap Settings</string>
+    <string name="SwapSettings_Title">إعدادات السواب</string>
     <string name="SwapSettings_SlippageTitle">Slippage Tolerance</string>
     <string name="SwapSettings_SlippageDescription">Your transaction will revert if the price changes unfavorably by more than this percentage</string>
     <string name="SwapSettings_DeadlineTitle">Transaction Deadline</string>
@@ -2042,6 +2042,7 @@
     <string name="paycore_section_crypto">العملات الرقمية</string>
     <string name="paycore_select_bank">اختر البنك</string>
     <string name="paycore_select_bank_error">تعذّر فتح اختيار البنك. حاول مرة أخرى لاحقًا.</string>
+    <string name="paycore_banks_unavailable">البنوك غير متاحة مؤقتًا. حاول مرة أخرى لاحقًا.</string>
     <string name="paycore_delete_restricted_warning">لا يمكن حذف هذه المعاملة لأنها تتم عبر خدمة طرف ثالث.</string>
     <string name="paycore_delete_to_complete_select_bank">اختر البنك لإكمال عملية التبادل.</string>
     <string name="scan">مسح</string>

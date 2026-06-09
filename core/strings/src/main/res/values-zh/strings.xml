@@ -615,7 +615,7 @@
     <string name="unsupported_token">不支持的代币</string>
     <string name="zec_transparent_used">在创建兑换时会使用临时 t 地址：%s。该地址会提供给兑换服务提供商，如果兑换未完成，则需要用于退款。使用 t 地址可能会导致交易部分去匿名化。</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">掉期设置</string>
+    <string name="SwapSettings_Title">Swap 设置</string>
     <string name="SwapSettings_SlippageTitle">无效滑点</string>
     <string name="SwapSettings_SlippageDescription">如果价格的不利变化超出此百分比，您的交易将退回。</string>
     <string name="SwapSettings_DeadlineTitle">交易截止日期</string>
@@ -2004,6 +2004,7 @@
     <string name="paycore_section_crypto">加密货币</string>
     <string name="paycore_select_bank">选择银行</string>
     <string name="paycore_select_bank_error">无法打开银行选择。请稍后再试。</string>
+    <string name="paycore_banks_unavailable">银行暂时不可用。请稍后再试。</string>
     <string name="paycore_delete_restricted_warning">此交易由第三方服务处理，无法删除。</string>
     <string name="paycore_delete_to_complete_select_bank">请选择银行以完成兑换。</string>
     <string name="scan">扫描</string>

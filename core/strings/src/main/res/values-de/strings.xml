@@ -2011,6 +2011,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="paycore_section_crypto">Kryptowährungen</string>
     <string name="paycore_select_bank">Bank auswählen</string>
     <string name="paycore_select_bank_error">Bankauswahl konnte nicht geöffnet werden. Versuche es später erneut.</string>
+    <string name="paycore_banks_unavailable">Banken sind vorübergehend nicht verfügbar. Versuche es später erneut.</string>
     <string name="paycore_delete_restricted_warning">Diese Transaktion kann nicht gelöscht werden, da sie von einem Drittanbieter abgewickelt wird.</string>
     <string name="paycore_delete_to_complete_select_bank">Wähle eine Bank aus, um den Swap abzuschließen.</string>
     <string name="scan">Scannen</string>

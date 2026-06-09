@@ -20,7 +20,8 @@ import cash.p.terminal.modules.multiswap.PriceField
 import cash.p.terminal.modules.multiswap.TokenRowPure
 import cash.p.terminal.modules.fee.QuoteInfoRow
 import cash.p.terminal.modules.paycore.PAYCORE_COMPLETE_BACK_URL
-import cash.p.terminal.modules.paycore.PayCoreFees
+import cash.p.terminal.modules.paycore.PayCoreTicker
+import cash.p.terminal.modules.paycore.formatPayCoreServiceFee
 import cash.p.terminal.modules.paycore.webview.PayCoreWebViewScreen
 import cash.p.terminal.ui.compose.components.CardsSwapInfo
 import cash.p.terminal.ui_compose.components.AppBar
@@ -41,7 +42,8 @@ import java.math.BigDecimal
 data class PayCorePaymentDisplayParams(
     val amountIn: BigDecimal,
     val amountOut: BigDecimal,
-    val networkType: String,
+    val serviceFee: BigDecimal,
+    val networkType: PayCoreTicker,
     val tokenIn: Token,
     val tokenOut: Token,
     val currency: Currency,
@@ -52,18 +54,26 @@ fun PayCorePaymentScreen(
     uiState: PayCorePaymentUiState,
     displayParams: PayCorePaymentDisplayParams,
     onConfirm: () -> Unit,
+    onOpenWebView: () -> Unit,
     onCompleteWebView: () -> Unit,
+    onCloseWebView: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val paymentUrl = uiState.paymentUrl
+    val paymentId = uiState.paymentId
     val currentOnClose by rememberUpdatedState(onClose)
+    val currentOnOpenWebView by rememberUpdatedState(onOpenWebView)
+    val currentOnCloseWebView by rememberUpdatedState(onCloseWebView)
 
-    if (paymentUrl != null && !uiState.completed) {
+    if (uiState.showWebView && paymentUrl != null && paymentId != null && !uiState.completed) {
+        LaunchedEffect(paymentId, paymentUrl) {
+            currentOnOpenWebView()
+        }
         PayCoreWebViewScreen(
             url = paymentUrl,
             title = stringResource(R.string.paycore_verification_title),
-            onClose = onClose,
+            onClose = currentOnCloseWebView,
             onInterceptBackUrl = onCompleteWebView,
             backUrlPrefix = PAYCORE_COMPLETE_BACK_URL
         )
@@ -169,7 +179,7 @@ private fun SwapInfoCards(displayParams: PayCorePaymentDisplayParams) {
             amountOut = displayParams.amountOut,
             borderTop = true
         )
-        ServiceFeeRow(networkType = displayParams.networkType)
+        ServiceFeeRow(serviceFee = displayParams.serviceFee)
     }
 }
 
@@ -183,12 +193,13 @@ private fun ServiceRow() {
 }
 
 @Composable
-private fun ServiceFeeRow(networkType: String) {
-    val fee = PayCoreFees.forNetwork(networkType)
+private fun ServiceFeeRow(serviceFee: BigDecimal) {
+    if (serviceFee <= BigDecimal.ZERO) return
+
     QuoteInfoRow(
         borderTop = true,
         title = { subhead2_grey(text = stringResource(R.string.paycore_service_fee)) },
-        value = { subhead2_leah(text = "$fee USDT") }
+        value = { subhead2_leah(text = formatPayCoreServiceFee(serviceFee)) }
     )
 }
 
@@ -224,7 +235,7 @@ private fun PayCorePaymentScreenPreview() {
                 amountFormatted = "10.5 USDT"
             )
             ServiceRow()
-            ServiceFeeRow(networkType = "TRC20")
+            ServiceFeeRow(serviceFee = BigDecimal("2"))
         }
     }
 }

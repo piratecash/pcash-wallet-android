@@ -620,7 +620,7 @@
     <string name="unsupported_token">Niet-ondersteunde token</string>
     <string name="zec_transparent_used">Bij het aanmaken van de wissel wordt een tijdelijk t-adres gebruikt: %s. Dit wordt doorgegeven aan de wisselprovider en is nodig voor een terugbetaling als de wissel niet wordt voltooid. Het gebruik van een t-adres kan leiden tot gedeeltelijke deanonimisering van de transactie.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Swap Settings</string>
+    <string name="SwapSettings_Title">Swap-instellingen</string>
     <string name="SwapSettings_SlippageTitle">Slippage Tolerance</string>
     <string name="SwapSettings_SlippageDescription">Your transaction will revert if the price changes unfavorably by more than this percentage</string>
     <string name="SwapSettings_DeadlineTitle">Transaction Deadline</string>
@@ -2026,6 +2026,7 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="paycore_section_crypto">Cryptovaluta\'s</string>
     <string name="paycore_select_bank">Bank selecteren</string>
     <string name="paycore_select_bank_error">Bankselectie kon niet worden geopend. Probeer het later opnieuw.</string>
+    <string name="paycore_banks_unavailable">Banken zijn tijdelijk niet beschikbaar. Probeer het later opnieuw.</string>
     <string name="paycore_delete_restricted_warning">Deze transactie kan niet worden verwijderd omdat deze door een externe dienst wordt verwerkt.</string>
     <string name="paycore_delete_to_complete_select_bank">Selecteer een bank om de swap te voltooien.</string>
     <string name="scan">Scannen</string>

@@ -7,9 +7,12 @@ import cash.p.terminal.modules.paycore.PayCoreLinkedWallet
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage.VerificationStatus
 import cash.p.terminal.modules.paycore.PayCoreSignatureHelper
+import cash.p.terminal.modules.paycore.PayCoreTicker
+import cash.p.terminal.modules.paycore.PayCoreWalletApprovalService
 import cash.p.terminal.modules.paycore.PayCoreWalletChangeRequest
 import cash.p.terminal.modules.paycore.PayCoreWalletCreateRequest
 import cash.p.terminal.modules.paycore.PayCoreWalletCreateResponse
+import cash.p.terminal.modules.paycore.PayCoreWalletCreateStatus
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -17,6 +20,7 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import java.math.BigInteger
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -46,15 +50,15 @@ class PayCoreVerificationViewModelTest {
     private val secureStorage = mockk<PayCoreSecureStorage>(relaxed = true)
     private val signatureHelper = mockk<PayCoreSignatureHelper>()
     private val accountManager = mockk<IAccountManager>(relaxed = true)
+    private val walletApprovalService = PayCoreWalletApprovalService(apiService, secureStorage)
 
     private val dispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        every { signatureHelper.getWalletAddress(any()) } returns CURRENT_ADDRESS
-        every { signatureHelper.getWalletAddress(any(), any()) } returns CURRENT_ADDRESS
-        every { signatureHelper.signPhone(any()) } returns "signed-key"
+        every { signatureHelper.getWalletAddress(any()) } returns SIGNING_ADDRESS
+        every { signatureHelper.getWalletAddress(any(), any()) } returns SIGNING_ADDRESS
         every { secureStorage.getLinkedWallet() } returns null
         every { accountManager.activeAccount } returns activeAccount
     }
@@ -66,10 +70,10 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status0_showsKycRequired() = runTest(dispatcher) {
+    fun onContinueClick_notRegistered_showsKycRequired() = runTest(dispatcher) {
         val kycUrl = "https://kyc.example.com"
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 0, url = kycUrl
+            status = PayCoreWalletCreateStatus.NOT_REGISTERED, url = kycUrl
         )
 
         val viewModel = createViewModel()
@@ -82,9 +86,9 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status1_noStoredWallet_showsSupportRequired() = runTest(dispatcher) {
+    fun onContinueClick_noAccessNoStoredWallet_showsSupportRequired() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 1
+            status = PayCoreWalletCreateStatus.NO_ACCESS
         )
 
         val viewModel = createViewModel()
@@ -98,9 +102,9 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status1_linkedAccountMissing_showsSupportRequired() = runTest(dispatcher) {
+    fun onContinueClick_noAccessLinkedAccountMissing_showsSupportRequired() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 1
+            status = PayCoreWalletCreateStatus.NO_ACCESS
         )
         every { secureStorage.getLinkedWallet() } returns PayCoreLinkedWallet(
             accountId = OLD_ACCOUNT_ID,
@@ -117,9 +121,9 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status1_recoveryAddressMismatch_showsSupportRequired() = runTest(dispatcher) {
+    fun onContinueClick_noAccessRecoveryAddressMismatch_showsSupportRequired() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 1
+            status = PayCoreWalletCreateStatus.NO_ACCESS
         )
         every { secureStorage.getLinkedWallet() } returns PayCoreLinkedWallet(
             accountId = OLD_ACCOUNT_ID,
@@ -137,9 +141,9 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status1_changeWalletFails_showsSupportRequired() = runTest(dispatcher) {
+    fun onContinueClick_noAccessChangeWalletFails_showsSupportRequired() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 1
+            status = PayCoreWalletCreateStatus.NO_ACCESS
         )
         every { secureStorage.getLinkedWallet() } returns PayCoreLinkedWallet(
             accountId = OLD_ACCOUNT_ID,
@@ -158,10 +162,10 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status1_autoRecoverySucceeds_showsWarning() = runTest(dispatcher) {
+    fun onContinueClick_noAccessAutoRecoverySucceeds_showsWarning() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returnsMany listOf(
-            PayCoreWalletCreateResponse(status = 1),
-            PayCoreWalletCreateResponse(status = 2)
+            PayCoreWalletCreateResponse(status = PayCoreWalletCreateStatus.NO_ACCESS),
+            PayCoreWalletCreateResponse(status = PayCoreWalletCreateStatus.APPROVED)
         )
         every { secureStorage.getLinkedWallet() } returns PayCoreLinkedWallet(
             accountId = OLD_ACCOUNT_ID,
@@ -186,14 +190,14 @@ class PayCoreVerificationViewModelTest {
 
         assertEquals(VerificationScreen.VerificationWarning, viewModel.uiState.screen)
         assertFalse(viewModel.uiState.supportRequired)
-        assertEquals(CURRENT_ADDRESS, changeRequestSlot.captured.address)
+        assertEquals(RECEIVE_ADDRESS, changeRequestSlot.captured.address)
         assertEquals(OLD_ACCOUNT_ID, signingAccountSlot.captured.id)
     }
 
     @Test
-    fun onContinueClick_status2_showsWarningWithoutSavingVerified() = runTest(dispatcher) {
+    fun onContinueClick_approved_showsWarningWithoutSavingVerified() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 2
+            status = PayCoreWalletCreateStatus.APPROVED
         )
 
         val viewModel = createViewModel()
@@ -206,9 +210,38 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
-    fun onContinueClick_status0_savesLinkedWalletForActiveAccount() = runTest(dispatcher) {
+    fun onContinueClick_pending_showsProcessing() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 0, url = "https://kyc.example.com"
+            status = PayCoreWalletCreateStatus.PENDING
+        )
+
+        val viewModel = createViewModel()
+        submitPhone(viewModel)
+        advanceUntilIdle()
+
+        assertEquals(VerificationScreen.Processing, viewModel.uiState.screen)
+        assertFalse(viewModel.uiState.loading)
+    }
+
+    @Test
+    fun onContinueClick_rejected_showsSupportRequired() = runTest(dispatcher) {
+        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.REJECTED
+        )
+
+        val viewModel = createViewModel()
+        submitPhone(viewModel)
+        advanceUntilIdle()
+
+        assertEquals(VerificationScreen.PhoneInput, viewModel.uiState.screen)
+        assertTrue(viewModel.uiState.supportRequired)
+        assertFalse(viewModel.uiState.loading)
+    }
+
+    @Test
+    fun onContinueClick_notRegistered_savesLinkedWalletForActiveAccount() = runTest(dispatcher) {
+        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.NOT_REGISTERED, url = "https://kyc.example.com"
         )
         val linkedSlot = slot<PayCoreLinkedWallet>()
         every { secureStorage.setLinkedWallet(capture(linkedSlot)) } returns Unit
@@ -218,14 +251,14 @@ class PayCoreVerificationViewModelTest {
         advanceUntilIdle()
 
         assertEquals(ACTIVE_ACCOUNT_ID, linkedSlot.captured.accountId)
-        assertEquals(CURRENT_ADDRESS, linkedSlot.captured.address)
+        assertEquals(SIGNING_ADDRESS, linkedSlot.captured.address)
         assertEquals(NETWORK_TYPE, linkedSlot.captured.networkType)
     }
 
     @Test
-    fun onContinueClick_status2_savesLinkedWalletForActiveAccount() = runTest(dispatcher) {
+    fun onContinueClick_approved_savesLinkedWalletForActiveAccount() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 2
+            status = PayCoreWalletCreateStatus.APPROVED
         )
         val linkedSlot = slot<PayCoreLinkedWallet>()
         every { secureStorage.setLinkedWallet(capture(linkedSlot)) } returns Unit
@@ -235,13 +268,15 @@ class PayCoreVerificationViewModelTest {
         advanceUntilIdle()
 
         assertEquals(ACTIVE_ACCOUNT_ID, linkedSlot.captured.accountId)
-        assertEquals(CURRENT_ADDRESS, linkedSlot.captured.address)
+        assertEquals(SIGNING_ADDRESS, linkedSlot.captured.address)
         assertEquals(NETWORK_TYPE, linkedSlot.captured.networkType)
     }
 
     @Test
     fun onVerificationWarningAccepted_savesVerifiedAndCompletes() = runTest(dispatcher) {
-        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(status = 2)
+        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.APPROVED
+        )
 
         val viewModel = createViewModel()
         submitPhone(viewModel)
@@ -257,7 +292,7 @@ class PayCoreVerificationViewModelTest {
     fun onContinueClick_passesVerificationBackUrl() = runTest(dispatcher) {
         val requestSlot = slot<PayCoreWalletCreateRequest>()
         coEvery { apiService.createWallet(capture(requestSlot), any()) } returns PayCoreWalletCreateResponse(
-            status = 0, url = "https://kyc.example.com"
+            status = PayCoreWalletCreateStatus.NOT_REGISTERED, url = "https://kyc.example.com"
         )
 
         val viewModel = createViewModel()
@@ -268,11 +303,25 @@ class PayCoreVerificationViewModelTest {
     }
 
     @Test
+    fun onContinueClick_passesReceiveAddressToWalletCreate() = runTest(dispatcher) {
+        val requestSlot = slot<PayCoreWalletCreateRequest>()
+        coEvery { apiService.createWallet(capture(requestSlot), any()) } returns PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.APPROVED
+        )
+
+        val viewModel = createViewModel()
+        submitPhone(viewModel)
+        advanceUntilIdle()
+
+        assertEquals(RECEIVE_ADDRESS, requestSlot.captured.address)
+    }
+
+    @Test
     fun onKycCompleted_rechecksStatus() = runTest(dispatcher) {
         coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
-            status = 0, url = "https://kyc.example.com"
+            status = PayCoreWalletCreateStatus.NOT_REGISTERED, url = "https://kyc.example.com"
         ) andThen PayCoreWalletCreateResponse(
-            status = 2
+            status = PayCoreWalletCreateStatus.APPROVED
         )
         every { secureStorage.getPhone() } returns "+79001234567"
 
@@ -283,7 +332,26 @@ class PayCoreVerificationViewModelTest {
         viewModel.onKycCompleted()
         advanceUntilIdle()
 
-        io.mockk.coVerify(exactly = 2) { apiService.createWallet(any(), any()) }
+        coVerify(exactly = 2) { apiService.createWallet(any(), any()) }
+        assertEquals(VerificationScreen.VerificationWarning, viewModel.uiState.screen)
+    }
+
+    @Test
+    fun onRetry_processing_rechecksStatus() = runTest(dispatcher) {
+        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.PENDING
+        ) andThen PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.APPROVED
+        )
+
+        val viewModel = createViewModel()
+        submitPhone(viewModel)
+        advanceUntilIdle()
+
+        viewModel.onRetry()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { apiService.createWallet(any(), any()) }
         assertEquals(VerificationScreen.VerificationWarning, viewModel.uiState.screen)
     }
 
@@ -292,7 +360,10 @@ class PayCoreVerificationViewModelTest {
         val gate = CompletableDeferred<Unit>()
         coEvery { apiService.createWallet(any(), any()) } coAnswers {
             gate.await()
-            PayCoreWalletCreateResponse(status = 0, url = "https://kyc.example.com")
+            PayCoreWalletCreateResponse(
+                status = PayCoreWalletCreateStatus.NOT_REGISTERED,
+                url = "https://kyc.example.com"
+            )
         }
 
         val viewModel = createViewModel()
@@ -309,7 +380,9 @@ class PayCoreVerificationViewModelTest {
 
     @Test
     fun onPhoneChange_afterInlineError_clearsErrorAndSupportFlag() = runTest(dispatcher) {
-        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(status = 1)
+        coEvery { apiService.createWallet(any(), any()) } returns PayCoreWalletCreateResponse(
+            status = PayCoreWalletCreateStatus.NO_ACCESS
+        )
 
         val viewModel = createViewModel()
         submitPhone(viewModel)
@@ -342,6 +415,8 @@ class PayCoreVerificationViewModelTest {
 
     private fun createViewModel() = PayCoreVerificationViewModel(
         networkType = NETWORK_TYPE,
+        walletAddress = RECEIVE_ADDRESS,
+        walletApprovalService = walletApprovalService,
         apiService = apiService,
         secureStorage = secureStorage,
         signatureHelper = signatureHelper,
@@ -354,8 +429,9 @@ class PayCoreVerificationViewModelTest {
     }
 
     private companion object {
-        const val NETWORK_TYPE = "ERC20"
-        const val CURRENT_ADDRESS = "0xCurrentAddress"
+        val NETWORK_TYPE = PayCoreTicker.USDT_ERC20
+        const val SIGNING_ADDRESS = "0xCurrentAddress"
+        const val RECEIVE_ADDRESS = "0xReceiveAddress"
         const val OLD_ADDRESS = "0xOldAddress"
         const val ACTIVE_ACCOUNT_ID = "active-account-id"
         const val OLD_ACCOUNT_ID = "old-account-id"

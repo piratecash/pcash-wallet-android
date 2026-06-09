@@ -3,8 +3,8 @@ package cash.p.terminal.modules.paycore
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.isEvm
-import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
@@ -14,8 +14,14 @@ import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
+import cash.p.terminal.modules.multiswap.settings.ISwapSetting
 import cash.p.terminal.modules.multiswap.ui.DataField
+import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
+import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage.VerificationStatus
+import cash.p.terminal.modules.paycore.selectbank.PayCoreBankNotSelectedException
+import cash.p.terminal.modules.paycore.selectbank.PayCoreBankSwapSetting
+import cash.p.terminal.modules.paycore.selectbank.PayCoreBanksUnavailableException
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.wallet.AccountType
@@ -26,14 +32,16 @@ import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.models.Address
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import timber.log.Timber
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 class PayCoreProvider(
     override val walletUseCase: WalletUseCase,
     private val apiService: PayCoreApiService,
+    private val banksRepository: PayCoreBanksRepository,
+    private val walletApprovalService: PayCoreWalletApprovalService,
     private val secureStorage: PayCoreSecureStorage,
     private val featureToggle: PayCoreFeatureToggle,
     private val accountManager: IAccountManager,
@@ -74,17 +82,39 @@ class PayCoreProvider(
         settings: Map<String, Any?>
     ): ISwapQuote {
         val networkType = resolveNetworkType(tokenIn, tokenOut)
-        val (currencyFrom, currencyTo) = resolveCurrencyPair(tokenIn, networkType)
+        val ticker = requireTicker(tokenIn, tokenOut)
         val rateResponse = try {
-            apiService.getRate(currencyFrom, currencyTo, amountFrom = amountIn.toPlainString())
+            apiService.getRate(ticker = ticker, networkType = networkType)
         } catch (e: PayCoreAmountOutOfRangeException) {
             throw SwapAmountOutOfRange()
         }
 
-        val amountOut = rateResponse.amountTo.toBigDecimal()
+        val amountOut = estimateAmountOut(
+            tokenIn = tokenIn,
+            tokenOut = tokenOut,
+            amountIn = amountIn,
+            rateResponse = rateResponse,
+        )
+        validateRateLimits(
+            tokenIn = tokenIn,
+            amountIn = amountIn,
+            limits = rateResponse.limits,
+        )
 
-        val fields = buildQuoteFields(networkType)
-        val actionRequired = resolveActionRequired(tokenIn, tokenOut)
+        val serviceFee = rateResponse.withdrawFee
+        val fields = buildQuoteFields(networkType, serviceFee)
+        val payoutBanks = payoutBanks(tokenIn, tokenOut, networkType)
+        val actionRequired =
+            getCreateTokenActionRequired(
+                listOf(tokenIn, tokenOut).filterNot(PayCoreAssets::isFiat)
+            ) ?: resolveWalletApproveActionRequired(
+                tokenIn = tokenIn,
+                tokenOut = tokenOut
+            ) ?: resolveWalletVerifiedActionRequired()
+            ?: resolvePayoutBankAction(
+                settings = settings,
+                banks = payoutBanks,
+            )
 
         return PayCoreQuote(
             amountOut = amountOut,
@@ -93,7 +123,12 @@ class PayCoreProvider(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
             amountIn = amountIn,
-            actionRequired = actionRequired
+            serviceFee = serviceFee,
+            actionRequired = actionRequired,
+            settings = buildSettings(
+                settings = settings,
+                banks = payoutBanks,
+            ),
         )
     }
 
@@ -105,34 +140,36 @@ class PayCoreProvider(
         sendTransactionSettings: SendTransactionSettings?,
         swapQuote: ISwapQuote
     ): ISwapFinalQuote {
-        val networkType = resolveNetworkType(tokenIn, tokenOut)
-        val (currencyFrom, currencyTo) = resolveCurrencyPair(tokenIn, networkType)
-        val rateResponse = try {
-            apiService.getRate(currencyFrom, currencyTo, amountFrom = amountIn.toPlainString())
-        } catch (e: PayCoreAmountOutOfRangeException) {
-            throw SwapAmountOutOfRange()
+        require(isPayout(tokenIn, tokenOut)) {
+            "PayCore final quote is only used for Crypto -> RUB flow"
         }
-        val amountOut = rateResponse.amountTo.toBigDecimal()
-
-        val payoutResponse = apiService.getPayoutAddress(
-            PayCorePayoutAddressRequest(networkType = networkType)
+        val networkType = resolveNetworkType(tokenIn, tokenOut)
+        val payoutCalculation = calculatePayout(
+            tokenIn = tokenIn,
+            tokenOut = tokenOut,
+            amountIn = amountIn,
+            settings = swapSettings,
         )
+        val payout = createPayout(payoutCalculation, networkType)
+
+        val finalAmountIn = payoutCalculation.amountCrypto
+        val amountOut = payoutCalculation.fullAmountRub
 
         val sendTransactionData = buildTransactionData(
             tokenIn = tokenIn,
-            amountIn = amountIn,
-            depositAddress = payoutResponse.address
+            amountIn = finalAmountIn,
+            depositAddress = payout.address
         )
 
         swapProviderTransaction = SwapProviderTransaction(
             date = System.currentTimeMillis(),
             outgoingRecordUid = null,
-            transactionId = "",
+            transactionId = payout.uuid,
             status = TransactionStatusEnum.NEW.name.lowercase(),
             provider = SwapProvider.PAYCORE,
             coinUidIn = tokenIn.coin.uid,
             blockchainTypeIn = tokenIn.blockchainType.uid,
-            amountIn = amountIn,
+            amountIn = finalAmountIn,
             addressIn = tryOrNull { walletUseCase.getReceiveAddress(tokenIn) }.orEmpty(),
             coinUidOut = tokenOut.coin.uid,
             blockchainTypeOut = tokenOut.blockchainType.uid,
@@ -144,50 +181,188 @@ class PayCoreProvider(
         return PayCoreFinalQuote(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
-            amountIn = amountIn,
+            amountIn = finalAmountIn,
             amountOut = amountOut,
             sendTransactionData = sendTransactionData,
             priceImpact = null,
-            fields = buildQuoteFields(networkType),
-            payCoreTransactionId = null
+            fields = buildQuoteFields(networkType, serviceFeeFrom(swapQuote)),
+            swapProviderTransaction = swapProviderTransaction,
         )
     }
 
-    private fun resolveNetworkType(tokenIn: Token, tokenOut: Token): String {
+    private fun resolveNetworkType(tokenIn: Token, tokenOut: Token): PayCoreTicker {
         val usdtToken = if (PayCoreAssets.isRub(tokenIn)) tokenOut else tokenIn
-        return requireNotNull(PayCoreNetworkMapper.toNetworkType(usdtToken)) {
+        return requireNotNull(usdtToken.toTicker()) {
             "Unsupported network for token: $usdtToken"
         }
     }
 
-    private fun resolveCurrencyPair(tokenIn: Token, networkType: String): Pair<String, String> {
-        return if (PayCoreAssets.isRub(tokenIn)) {
-            "RUB" to networkType
-        } else {
-            networkType to "RUB"
+    private fun requireTicker(tokenIn: Token, tokenOut: Token): PayCoreTicker {
+        val usdtToken = if (PayCoreAssets.isRub(tokenIn)) tokenOut else tokenIn
+        return requireNotNull(usdtToken.toTicker()) {
+            "Unsupported PayCore ticker for type: $usdtToken"
         }
     }
 
-    private fun buildQuoteFields(networkType: String): List<DataField> {
-        val fee = PayCoreFees.forNetwork(networkType)
+    private fun estimateAmountOut(
+        tokenIn: Token,
+        tokenOut: Token,
+        amountIn: BigDecimal,
+        rateResponse: PayCoreRateResponse,
+    ): BigDecimal {
+        return if (PayCoreAssets.isRub(tokenIn)) {
+            amountIn.divide(rateResponse.buy, tokenOut.decimals, RoundingMode.DOWN)
+        } else {
+            amountIn.multiply(rateResponse.sell).setScale(tokenOut.decimals, RoundingMode.DOWN)
+        }.stripTrailingZeros()
+    }
+
+    private fun validateRateLimits(
+        tokenIn: Token,
+        amountIn: BigDecimal,
+        limits: PayCoreRateLimits?,
+    ) {
+        limits ?: return
+        val outOfRange = if (PayCoreAssets.isRub(tokenIn)) {
+            amountIn.isOutside(limits.minBuyLimitRub, limits.maxBuyLimitRub)
+        } else {
+            amountIn.isOutside(limits.minSellLimitUsdt, limits.maxSellLimitUsdt)
+        }
+        if (outOfRange) throw SwapAmountOutOfRange()
+    }
+
+    private fun BigDecimal.isOutside(min: BigDecimal?, max: BigDecimal?): Boolean {
+        if (min != null && this < min) return true
+        if (max != null && this > max) return true
+        return false
+    }
+
+    private fun buildQuoteFields(networkType: PayCoreTicker, serviceFee: BigDecimal): List<DataField> {
         return buildList {
-            if (fee > BigDecimal.ZERO) {
-                add(PayCoreDataFieldServiceFee(fee = fee, networkType = networkType))
+            if (serviceFee > BigDecimal.ZERO) {
+                add(PayCoreDataFieldServiceFee(fee = serviceFee, networkType = networkType))
             }
             add(PayCoreDataFieldNetwork(networkType = networkType))
         }
     }
 
-    private fun resolveActionRequired(tokenIn: Token, tokenOut: Token): ISwapProviderAction? {
-        val createAction = getCreateTokenActionRequired(
-            listOf(tokenIn, tokenOut).filterNot(PayCoreAssets::isFiat)
+    private fun serviceFeeFrom(swapQuote: ISwapQuote): BigDecimal {
+        return requireNotNull((swapQuote as? PayCoreQuote)?.serviceFee) {
+            "PayCore final quote requires PayCoreQuote"
+        }
+    }
+
+    private suspend fun calculatePayout(
+        tokenIn: Token,
+        tokenOut: Token,
+        amountIn: BigDecimal,
+        settings: Map<String, Any?>,
+    ): PayCorePayoutCalculationResponse {
+        val ticker = requireTicker(tokenIn, tokenOut)
+        val networkType = resolveNetworkType(tokenIn, tokenOut)
+        val bank = requireSelectedBank(settings, networkType)
+        val request = PayCorePayoutCalculationRequest(
+            amount = amountIn,
+            amountType = PayCoreAmountType.CRYPTO,
+            bankId = bank.id,
+            ticker = ticker,
         )
-        if (createAction != null) return createAction
+        return try {
+            apiService.calculatePayout(request = request, networkType = networkType)
+        } catch (e: PayCoreAmountOutOfRangeException) {
+            throw SwapAmountOutOfRange()
+        }
+    }
 
-        val status = secureStorage.getVerificationStatus()
-        if (status == VerificationStatus.VERIFIED) return null
+    private suspend fun createPayout(
+        payoutCalculation: PayCorePayoutCalculationResponse,
+        networkType: PayCoreTicker,
+    ): PayCorePayoutCreateResponse {
+        return apiService.createPayout(
+            request = PayCorePayoutCreateRequest(uuid = payoutCalculation.uuid),
+            networkType = networkType,
+        )
+    }
 
-        return PayCoreVerificationAction()
+    private suspend fun payoutBanks(
+        tokenIn: Token,
+        tokenOut: Token,
+        networkType: PayCoreTicker,
+    ): List<PayCoreBankResponse>? {
+        if (!isPayout(tokenIn, tokenOut)) return null
+        return banksRepository.getBanks(networkType)
+    }
+
+    private fun buildSettings(
+        settings: Map<String, Any?>,
+        banks: List<PayCoreBankResponse>?,
+    ): List<ISwapSetting> {
+        banks ?: return emptyList()
+        return listOf(
+            PayCoreBankSwapSetting(
+                banks = banks,
+                selectedBank = selectedBank(settings, banks),
+            )
+        )
+    }
+
+    private suspend fun resolveWalletVerifiedActionRequired(): ISwapProviderAction? =
+        withContext(dispatcherProvider.io) {
+            val status = secureStorage.getVerificationStatus()
+            if (status == VerificationStatus.VERIFIED) return@withContext null
+
+            return@withContext PayCoreVerificationAction()
+        }
+
+    private suspend fun resolveWalletApproveActionRequired(
+        tokenIn: Token,
+        tokenOut: Token
+    ): ISwapProviderAction? = withContext(dispatcherProvider.io) {
+        // fiat doesn't have adapter, so here we'll get crypto address
+        val cryptoWalletAddress = tryOrNull { walletUseCase.getReceiveAddress(tokenOut) }
+            ?: tryOrNull { walletUseCase.getReceiveAddress(tokenIn) }
+        try {
+            val networkType = resolveNetworkType(tokenIn, tokenOut)
+            walletApprovalService.ensureApprovedForSavedPhone(
+                walletAddress = cryptoWalletAddress.orEmpty(),
+                networkType = networkType
+            )
+            return@withContext null
+        } catch (e: PayCoreWalletNotApprovedException) {
+            return@withContext PayCoreVerificationAction()
+        }
+    }
+
+    private fun resolvePayoutBankAction(
+        settings: Map<String, Any?>,
+        banks: List<PayCoreBankResponse>?,
+    ): ISwapProviderAction? {
+        banks ?: return null
+        if (selectedBank(settings, banks) != null) return null
+        return PayCoreSelectBankAction()
+    }
+
+    private suspend fun requireSelectedBank(
+        settings: Map<String, Any?>,
+        networkType: PayCoreTicker,
+    ): PayCoreBankResponse {
+        val banks = banksRepository.getBanks(networkType)
+        if (banks.isEmpty()) throw PayCoreBanksUnavailableException()
+        return selectedBank(settings, banks) ?: throw PayCoreBankNotSelectedException()
+    }
+
+    private fun selectedBank(
+        settings: Map<String, Any?>,
+        banks: List<PayCoreBankResponse>,
+    ): PayCoreBankResponse? {
+        val selected = PayCoreBankSwapSetting.selectedBank(settings) ?: return null
+        return banks.firstOrNull { it.id == selected.id }
+    }
+
+    private fun isPayout(tokenIn: Token, tokenOut: Token): Boolean {
+        return PayCoreNetworkMapper.isUsdtOnSupportedNetwork(tokenIn) && PayCoreAssets.isRub(
+            tokenOut
+        )
     }
 
     private fun buildTransactionData(
@@ -228,87 +403,22 @@ class PayCoreProvider(
     override fun onTransactionCompleted(result: SendTransactionResult) {
         val pending = swapProviderTransaction ?: return
         val txHash = result.getRecordUid() ?: return
-        val network = payoutNetworkType(pending)
 
-        // Persist the swap record up-front using txHash as a placeholder
-        // transactionId. The blockchain side already succeeded — losing the
-        // record because the backend hasn't indexed the tx yet is unacceptable.
-        // The real payoutId is migrated in later, either by the retry loop below
-        // or by PayCoreStatusRepository on a subsequent status refresh.
         val saved = pending.copy(
             outgoingRecordUid = txHash,
-            transactionId = txHash,
             date = System.currentTimeMillis()
         )
         swapProviderTransaction = saved
 
         dispatcherProvider.applicationScope.launch {
             swapProviderTransactionsStorage.save(saved)
-            val payoutId = requestPayoutIdWithRetries(txHash, network)
-            if (payoutId == null) {
-                Timber.w(
-                    "PayCore processPayOut failed after %d attempts (txHash=%s) — record kept with placeholder id, will retry on next status refresh",
-                    PAYOUT_RETRY_DELAYS_MS.size, txHash
-                )
-                return@launch
-            }
-            migratePayoutId(saved.date, payoutId)
-            Timber.d("PayCore payout processed: txHash=%s, payoutId=%s", txHash, payoutId)
         }
-    }
-
-    private fun migratePayoutId(date: Long, payoutId: String) {
-        swapProviderTransactionsStorage.updateTransactionId(date, payoutId)
-        swapProviderTransaction = swapProviderTransaction?.copy(transactionId = payoutId)
-    }
-
-    private suspend fun requestPayoutIdWithRetries(txHash: String, network: String): String? {
-        PAYOUT_RETRY_DELAYS_MS.forEachIndexed { attempt, delayMs ->
-            if (delayMs > 0) delay(delayMs)
-            val response = tryOrNull {
-                apiService.processPayOut(
-                    PayCorePayoutProcessRequest(
-                        transactionHash = txHash,
-                        backUrl = PAYCORE_COMPLETE_BACK_URL
-                    ),
-                    networkType = network
-                )
-            }
-            if (response == null) {
-                Timber.w(
-                    "PayCore processPayOut attempt %d/%d failed (txHash=%s)",
-                    attempt + 1, PAYOUT_RETRY_DELAYS_MS.size, txHash
-                )
-                return@forEachIndexed
-            }
-            if (response.isTerminalFailure()) {
-                Timber.w("PayCore: terminal failure (status=3) on processPayOut for txHash=%s — stopping retries", txHash)
-                return null
-            }
-            val payoutId = response.transactionIdOrNull()
-            if (payoutId != null) return payoutId
-            Timber.w(
-                "PayCore processPayOut attempt %d/%d returned no payoutId (txHash=%s, status=%d)",
-                attempt + 1, PAYOUT_RETRY_DELAYS_MS.size, txHash, response.status
-            )
-        }
-        return null
     }
 
     override fun getProviderTransactionId(): String? = swapProviderTransaction?.transactionId
 
-    private fun payoutNetworkType(transaction: SwapProviderTransaction): String {
-        return requireNotNull(PayCoreNetworkMapper.fromBlockchainTypeUid(transaction.blockchainTypeIn)) {
-            "Unsupported payout blockchain type: ${transaction.blockchainTypeIn}"
-        }
-    }
-
     private fun isAccountCapable(): Boolean {
         val accountType = accountManager.activeAccount?.type ?: return false
         return accountType is AccountType.Mnemonic || accountType is AccountType.EvmPrivateKey
-    }
-
-    private companion object {
-        val PAYOUT_RETRY_DELAYS_MS = longArrayOf(0L, 1_000L, 3_000L, 8_000L)
     }
 }

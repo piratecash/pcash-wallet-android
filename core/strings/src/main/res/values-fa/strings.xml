@@ -619,7 +619,7 @@
     <string name="unsupported_token">توکن پشتیبانی نمی‌شود</string>
     <string name="zec_transparent_used">در هنگام ایجاد مبادله از آدرس t موقت استفاده می‌شود: ‎%s‎. این آدرس به ارائه‌دهنده مبادله ارسال می‌شود و در صورت عدم تکمیل مبادله برای بازپرداخت وجه مورد نیاز است. استفاده از آدرس t ممکن است منجر به ناشناس‌زدایی جزئی تراکنش شود.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Swap Settings</string>
+    <string name="SwapSettings_Title">تنظیمات سواپ</string>
     <string name="SwapSettings_SlippageTitle">تحمل لغزش</string>
     <string name="SwapSettings_SlippageDescription">در صورت تغییر نامطلوب قیمت بیش از این درصد، معامله شما برگردانده خواهد شد</string>
     <string name="SwapSettings_DeadlineTitle">مهلت تراکنش</string>
@@ -2023,6 +2023,7 @@
     <string name="paycore_section_crypto">رمزارزها</string>
     <string name="paycore_select_bank">انتخاب بانک</string>
     <string name="paycore_select_bank_error">باز کردن انتخاب بانک ناموفق بود. لطفاً بعداً دوباره امتحان کنید.</string>
+    <string name="paycore_banks_unavailable">بانک‌ها موقتاً در دسترس نیستند. لطفاً بعداً دوباره امتحان کنید.</string>
     <string name="paycore_delete_restricted_warning">این تراکنش قابل حذف نیست زیرا توسط یک سرویس شخص ثالث پردازش می‌شود.</string>
     <string name="paycore_delete_to_complete_select_bank">برای تکمیل سواپ، یک بانک انتخاب کنید.</string>
     <string name="scan">اسکن</string>

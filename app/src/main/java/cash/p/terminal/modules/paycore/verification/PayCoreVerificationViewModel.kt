@@ -6,24 +6,28 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.core.isNoInternetException
 import cash.p.terminal.core.tryOrNull
-import cash.p.terminal.modules.paycore.PAYCORE_COMPLETE_BACK_URL
 import cash.p.terminal.modules.paycore.PayCoreApiService
 import cash.p.terminal.modules.paycore.PayCoreLinkedWallet
+import cash.p.terminal.modules.paycore.PayCoreTicker
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage.VerificationStatus
 import cash.p.terminal.modules.paycore.PayCoreSignatureHelper
+import cash.p.terminal.modules.paycore.PayCoreWalletApprovalResult
+import cash.p.terminal.modules.paycore.PayCoreWalletApprovalService
 import cash.p.terminal.modules.paycore.PayCoreWalletChangeRequest
-import cash.p.terminal.modules.paycore.PayCoreWalletCreateRequest
-import cash.p.terminal.modules.paycore.PayCoreWalletCreateResponse
 import cash.p.terminal.modules.paycore.payCoreUserMessage
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 class PayCoreVerificationViewModel(
-    private val networkType: String,
+    private val networkType: PayCoreTicker,
+    private val walletAddress: String,
+    private val walletApprovalService: PayCoreWalletApprovalService,
     private val apiService: PayCoreApiService,
     private val secureStorage: PayCoreSecureStorage,
     private val signatureHelper: PayCoreSignatureHelper,
@@ -62,11 +66,14 @@ class PayCoreVerificationViewModel(
 
         val fullPhone = "+7$digits"
         viewModelScope.launch {
-            runCatching { createWallet(fullPhone) }
-                .fold(
-                    onSuccess = { response -> handleCreateWalletSuccess(response, fullPhone, presentation) },
-                    onFailure = { error -> handleCreateWalletFailure(error, presentation) }
-                )
+            try {
+                val result = requestApproval(fullPhone)
+                handleApprovalResult(result, fullPhone, presentation)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
+                handleCreateWalletFailure(error, presentation)
+            }
         }
     }
 
@@ -82,6 +89,10 @@ class PayCoreVerificationViewModel(
     }
 
     fun onRetry() {
+        if (uiState.screen == VerificationScreen.Processing && uiState.phone.length == 10) {
+            submitPhone(uiState.phone, VerificationRequestPresentation.FullScreen)
+            return
+        }
         uiState = uiState.copy(
             screen = VerificationScreen.PhoneInput,
             loading = false,
@@ -90,44 +101,54 @@ class PayCoreVerificationViewModel(
         )
     }
 
-    private suspend fun createWallet(fullPhone: String): PayCoreWalletCreateResponse {
-        val address = signatureHelper.getWalletAddress(networkType)
-        val verifySignKey = signatureHelper.signPhone(fullPhone)
-        return apiService.createWallet(
-            PayCoreWalletCreateRequest(
-                phone = fullPhone,
-                address = address,
-                networkType = networkType,
-                verifySignKey = verifySignKey,
-                backUrl = PAYCORE_COMPLETE_BACK_URL
-            )
+    private suspend fun requestApproval(fullPhone: String): PayCoreWalletApprovalResult {
+        return walletApprovalService.requestApproval(
+            phone = fullPhone,
+            walletAddress = walletAddress,
+            networkType = networkType,
         )
     }
 
-    private suspend fun handleCreateWalletSuccess(
-        response: PayCoreWalletCreateResponse,
+    private suspend fun handleApprovalResult(
+        result: PayCoreWalletApprovalResult,
         fullPhone: String,
         presentation: VerificationRequestPresentation
     ) {
         secureStorage.setPhone(fullPhone)
-        when (response.status) {
-            0 -> {
+        when (result) {
+            is PayCoreWalletApprovalResult.NotRegistered -> {
                 saveLinkedWalletForActiveAccount()
                 uiState = uiState.copy(
                     screen = VerificationScreen.KycRequired,
-                    kycUrl = response.url,
+                    kycUrl = result.url,
                     loading = false
                 )
             }
-            1 -> recoverLinkedWallet(fullPhone, presentation)
-            2 -> {
+            PayCoreWalletApprovalResult.NoAccess -> recoverLinkedWallet(fullPhone, presentation)
+            PayCoreWalletApprovalResult.Pending -> {
+                uiState = uiState.copy(
+                    screen = VerificationScreen.Processing,
+                    loading = false
+                )
+            }
+            PayCoreWalletApprovalResult.Approved -> {
                 saveLinkedWalletForActiveAccount()
                 uiState = uiState.copy(
                     screen = VerificationScreen.VerificationWarning,
                     loading = false
                 )
             }
-            else -> uiState = verificationErrorState("Unknown status: ${response.status}", presentation)
+            PayCoreWalletApprovalResult.Rejected,
+            PayCoreWalletApprovalResult.Suspended -> {
+                uiState = supportRequiredState(presentation)
+            }
+            PayCoreWalletApprovalResult.MissingPhone,
+            PayCoreWalletApprovalResult.MissingWalletAddress -> {
+                uiState = verificationErrorState(defaultVerificationError(), presentation)
+            }
+            is PayCoreWalletApprovalResult.Unknown -> {
+                uiState = verificationErrorState(defaultVerificationError(), presentation)
+            }
         }
     }
 
@@ -141,32 +162,46 @@ class PayCoreVerificationViewModel(
             return
         }
 
-        val newAddress = signatureHelper.getWalletAddress(networkType)
-        val changeResult = runCatching {
+        try {
             apiService.changeWallet(
                 request = PayCoreWalletChangeRequest(
-                    address = newAddress,
+                    address = walletAddress,
                     networkType = networkType
                 ),
                 signingAccount = oldAccount
             )
-        }
-        if (changeResult.isFailure) {
-            uiState = supportRequiredState(presentation)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            uiState = recoveryFailureState(error, presentation)
             return
         }
 
-        runCatching { createWallet(fullPhone) }
-            .fold(
-                onSuccess = { retryResponse ->
-                    if (retryResponse.status == 1) {
-                        uiState = supportRequiredState(presentation)
-                    } else {
-                        handleCreateWalletSuccess(retryResponse, fullPhone, presentation)
-                    }
-                },
-                onFailure = { uiState = supportRequiredState(presentation) }
-            )
+        try {
+            val retryResult = requestApproval(fullPhone)
+            if (retryResult == PayCoreWalletApprovalResult.NoAccess) {
+                uiState = supportRequiredState(presentation)
+            } else {
+                handleApprovalResult(retryResult, fullPhone, presentation)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            uiState = recoveryFailureState(error, presentation)
+        }
+    }
+
+    private fun recoveryFailureState(
+        error: Throwable,
+        presentation: VerificationRequestPresentation
+    ): PayCoreVerificationUiState {
+        // A transient connectivity failure is recoverable, so surface it as a
+        // network error instead of the terminal "support required" state.
+        return if (error.isNoInternetException()) {
+            verificationErrorState(error.payCoreUserMessage(), presentation)
+        } else {
+            supportRequiredState(presentation)
+        }
     }
 
     private fun findPreviouslyLinkedAccount(): Account? {

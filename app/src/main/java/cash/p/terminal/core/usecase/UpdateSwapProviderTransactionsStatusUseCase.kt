@@ -85,9 +85,7 @@ class UpdateSwapProviderTransactionsStatusUseCase(
                 updateIfChanged(initial, result)
             }
         }
-        // The status repository may have rewritten transactionId during the call
-        // (PayCore placeholder txHash → payoutId). Re-read by the stable PK so we
-        // observe the post-migration row instead of a vanished one.
+        // Re-read by the stable PK because status updates are applied by date.
         return swapProviderTransactionsStorage.getByDate(initial.date)?.status?.toStatus()
     }
 

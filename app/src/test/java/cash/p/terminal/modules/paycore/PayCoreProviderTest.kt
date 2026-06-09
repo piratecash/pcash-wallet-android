@@ -2,9 +2,11 @@ package cash.p.terminal.modules.paycore
 
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.SwapAmountOutOfRange
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage.VerificationStatus
+import cash.p.terminal.modules.paycore.selectbank.PayCoreBankSwapSetting
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
@@ -50,10 +52,14 @@ class PayCoreProviderTest {
     private val accountManager = mockk<IAccountManager>()
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val storage = mockk<SwapProviderTransactionsStorage>(relaxed = true)
+    private val banksRepository = mockk<PayCoreBanksRepository>()
+    private val walletApprovalService = mockk<PayCoreWalletApprovalService>(relaxed = true)
 
     private val dispatcher = UnconfinedTestDispatcher()
 
     private val rubToken = PayCoreAssets.rubToken
+    private val bank = PayCoreBankResponse(id = "sber", name = "Sberbank")
+    private val selectedBankSettings = mapOf(PayCoreBankSwapSetting.ID to bank)
 
     private val usdtToken = Token(
         coin = Coin(uid = "tether", name = "Tether", code = "USDT", marketCapRank = null, coinGeckoId = null, image = null),
@@ -72,6 +78,20 @@ class PayCoreProviderTest {
         Dispatchers.setMain(dispatcher)
         every { featureToggle.isEnabled() } returns true
         every { accountManager.activeAccount } returns mnemonicAccount
+        coEvery { banksRepository.getBanks(any()) } returns listOf(bank)
+        coEvery { apiService.calculatePayout(any(), any()) } returns PayCorePayoutCalculationResponse(
+            amountCrypto = BigDecimal.ONE,
+            fullAmountRub = BigDecimal("100"),
+            ticker = "USDT_ERC20",
+            uuid = "calculation-uuid",
+            expiresAt = "2026-06-05T00:00:00Z"
+        )
+        coEvery { apiService.createPayout(any(), any()) } returns PayCorePayoutCreateResponse(
+            address = "0x000000000000000000000000000000000000dEaD",
+            network = "ERC20",
+            uuid = "payout-uuid",
+            expiresAt = "2026-06-05T00:10:00Z"
+        )
     }
 
     @After
@@ -166,16 +186,81 @@ class PayCoreProviderTest {
     }
 
     @Test
-    fun onTransactionCompleted_processPayOutSucceeds_savesPlaceholderThenMigrates() = runTest {
+    fun fetchQuote_rubToUsdt_usesTickerAndBuyRate() = runTest {
+        every { walletUseCase.getWallet(any<Token>()) } returns mockk<Wallet>()
+        every { secureStorage.getVerificationStatus() } returns VerificationStatus.VERIFIED
+        coEvery { apiService.getRate(PayCoreTicker.USDT_ERC20, PayCoreTicker.USDT_ERC20) } returns rateResponse(
+            buy = BigDecimal("80"),
+            sell = BigDecimal("70"),
+        )
+
+        val provider = createProvider()
+        val quote = provider.fetchQuote(rubToken, usdtToken, BigDecimal("160"), emptyMap())
+
+        coVerify { apiService.getRate(PayCoreTicker.USDT_ERC20, PayCoreTicker.USDT_ERC20) }
+        assertEquals(0, quote.amountOut.compareTo(BigDecimal("2")))
+    }
+
+    @Test
+    fun fetchQuote_usdtToRub_usesTickerAndSellRate() = runTest {
+        every { walletUseCase.getWallet(any<Token>()) } returns mockk<Wallet>()
+        every { secureStorage.getVerificationStatus() } returns VerificationStatus.VERIFIED
+        coEvery { apiService.getRate(PayCoreTicker.USDT_ERC20, PayCoreTicker.USDT_ERC20) } returns rateResponse(
+            buy = BigDecimal("80"),
+            sell = BigDecimal("70"),
+        )
+
+        val provider = createProvider()
+        val quote = provider.fetchQuote(usdtToken, rubToken, BigDecimal("2"), selectedBankSettings)
+
+        coVerify { apiService.getRate(PayCoreTicker.USDT_ERC20, PayCoreTicker.USDT_ERC20) }
+        assertEquals(0, quote.amountOut.compareTo(BigDecimal("140")))
+    }
+
+    @Test
+    fun fetchQuote_rateHasWithdrawFee_usesWithdrawFeeAsServiceFee() = runTest {
+        every { walletUseCase.getWallet(any<Token>()) } returns mockk<Wallet>()
+        every { secureStorage.getVerificationStatus() } returns VerificationStatus.VERIFIED
+        coEvery { apiService.getRate(any(), any()) } returns rateResponse(
+            withdrawFee = BigDecimal("0.05")
+        )
+
+        val provider = createProvider()
+        val quote = provider.fetchQuote(rubToken, usdtToken, BigDecimal("160"), emptyMap()) as PayCoreQuote
+
+        assertEquals(0, quote.serviceFee.compareTo(BigDecimal("0.05")))
+    }
+
+    @Test
+    fun fetchFinalQuote_payoutCreatesOrderFromCalculationUuid() = runTest {
+        val provider = createProvider()
+        val finalQuote = prepareFinalQuote(provider) as PayCoreFinalQuote
+
+        coVerify(exactly = 1) {
+            apiService.calculatePayout(
+                match {
+                    it.amount == BigDecimal.ONE &&
+                        it.amountType == PayCoreAmountType.CRYPTO &&
+                        it.bankId == bank.id &&
+                        it.ticker == PayCoreTicker.USDT_ERC20
+                },
+                PayCoreTicker.USDT_ERC20
+            )
+        }
+        coVerify(exactly = 1) {
+            apiService.createPayout(PayCorePayoutCreateRequest(uuid = "calculation-uuid"), PayCoreTicker.USDT_ERC20)
+        }
+        assertEquals("payout-uuid", finalQuote.swapProviderTransaction?.transactionId)
+        assertEquals(BigDecimal.ONE, finalQuote.amountIn)
+        assertEquals(BigDecimal("100"), finalQuote.amountOut)
+    }
+
+    @Test
+    fun onTransactionCompleted_payoutCreated_savesOrderWithOutgoingTxHash() = runTest {
         val txHash = "0xdeadbeef"
-        val payoutId = "payout-1"
         val sendResult = mockk<SendTransactionResult> {
             every { getRecordUid() } returns txHash
         }
-        coEvery { apiService.processPayOut(any(), "ERC20") } returns PayCorePayoutProcessResponse(
-            status = 0,
-            url = "https://pirate.paycore.pw/payout/$payoutId"
-        )
 
         val provider = createProvider()
         prepareFinalQuote(provider)
@@ -183,75 +268,9 @@ class PayCoreProviderTest {
         provider.onTransactionCompleted(sendResult)
         advanceUntilIdle()
 
-        coVerify(exactly = 1) { apiService.processPayOut(match { it.transactionHash == txHash }, "ERC20") }
         verify(exactly = 1) {
-            storage.save(match { it.outgoingRecordUid == txHash && it.transactionId == txHash })
+            storage.save(match { it.outgoingRecordUid == txHash && it.transactionId == "payout-uuid" })
         }
-        verify(exactly = 1) { storage.updateTransactionId(any(), payoutId) }
-    }
-
-    @Test
-    fun onTransactionCompleted_processPayOutFailsThenSucceeds_migratesAfterRetry() = runTest {
-        val txHash = "0xdeadbeef"
-        val payoutId = "payout-after-retry"
-        val sendResult = mockk<SendTransactionResult> {
-            every { getRecordUid() } returns txHash
-        }
-        coEvery { apiService.processPayOut(any(), "ERC20") } throwsMany listOf(
-            RuntimeException("transient")
-        ) andThen PayCorePayoutProcessResponse(
-            status = 0,
-            url = "https://pirate.paycore.pw/payout/$payoutId"
-        )
-
-        val provider = createProvider()
-        prepareFinalQuote(provider)
-
-        provider.onTransactionCompleted(sendResult)
-        advanceUntilIdle()
-
-        coVerify(exactly = 2) { apiService.processPayOut(any(), "ERC20") }
-        verify(exactly = 1) { storage.save(match { it.transactionId == txHash }) }
-        verify(exactly = 1) { storage.updateTransactionId(any(), payoutId) }
-    }
-
-    @Test
-    fun onTransactionCompleted_allRetriesFail_keepsPlaceholderWithoutMigration() = runTest {
-        val txHash = "0xdeadbeef"
-        val sendResult = mockk<SendTransactionResult> {
-            every { getRecordUid() } returns txHash
-        }
-        coEvery { apiService.processPayOut(any(), "ERC20") } throws RuntimeException("offline")
-
-        val provider = createProvider()
-        prepareFinalQuote(provider)
-
-        provider.onTransactionCompleted(sendResult)
-        advanceUntilIdle()
-
-        coVerify(exactly = 4) { apiService.processPayOut(any(), "ERC20") }
-        verify(exactly = 1) { storage.save(match { it.transactionId == txHash }) }
-        verify(exactly = 0) { storage.updateTransactionId(any(), any()) }
-    }
-
-    @Test
-    fun onTransactionCompleted_responseWithoutPayoutId_keepsPlaceholderWithoutMigration() = runTest {
-        val txHash = "0xdeadbeef"
-        val sendResult = mockk<SendTransactionResult> {
-            every { getRecordUid() } returns txHash
-        }
-        coEvery { apiService.processPayOut(any(), "ERC20") } returns PayCorePayoutProcessResponse(
-            status = 0,
-            url = null
-        )
-
-        val provider = createProvider()
-        prepareFinalQuote(provider)
-
-        provider.onTransactionCompleted(sendResult)
-        advanceUntilIdle()
-
-        verify(exactly = 1) { storage.save(match { it.transactionId == txHash }) }
         verify(exactly = 0) { storage.updateTransactionId(any(), any()) }
     }
 
@@ -267,14 +286,14 @@ class PayCoreProviderTest {
         provider.onTransactionCompleted(sendResult)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { apiService.processPayOut(any(), any()) }
         verify(exactly = 0) { storage.save(any()) }
     }
 
     @Test
     fun fetchQuote_amountOutOfRange_throwsSwapAmountOutOfRange() = runTest {
-        coEvery { apiService.getRate(any(), any(), any(), any()) } throws
-            PayCoreAmountOutOfRangeException("the amount in rubles is less than the specified limit")
+        coEvery { apiService.getRate(any(), any()) } returns rateResponse(
+            limits = PayCoreRateLimits(minBuyLimitRub = BigDecimal("1000"))
+        )
 
         val provider = createProvider()
 
@@ -293,7 +312,7 @@ class PayCoreProviderTest {
 
     @Test
     fun fetchFinalQuote_amountOutOfRange_throwsSwapAmountOutOfRange() = runTest {
-        coEvery { apiService.getRate(any(), any(), any(), any()) } throws
+        coEvery { apiService.calculatePayout(any(), any()) } throws
             PayCoreAmountOutOfRangeException("the amount in rubles is more than the specified limit")
 
         val provider = createProvider()
@@ -303,7 +322,7 @@ class PayCoreProviderTest {
                 usdtToken,
                 rubToken,
                 BigDecimal.ONE,
-                emptyMap(),
+                selectedBankSettings,
                 null,
                 mockk()
             )
@@ -330,30 +349,19 @@ class PayCoreProviderTest {
         provider.onTransactionCompleted(sendResult)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { apiService.processPayOut(any(), any()) }
         verify(exactly = 0) { storage.save(any()) }
     }
 
     private suspend fun fetchQuoteWithMockedRate(provider: PayCoreProvider): PayCoreQuote {
-        coEvery { apiService.getRate(any(), any(), any(), any()) } returns PayCoreRateResponse(
-            currencyFrom = "RUB",
-            currencyTo = "ERC20",
-            amountFrom = "100",
-            amountTo = "1.1",
-            rate = "0.011"
+        coEvery { apiService.getRate(any(), any()) } returns rateResponse(
+            buy = BigDecimal("100"),
+            sell = BigDecimal("90"),
         )
 
         return provider.fetchQuote(rubToken, usdtToken, BigDecimal("100"), emptyMap()) as PayCoreQuote
     }
 
-    private suspend fun prepareFinalQuote(provider: PayCoreProvider) {
-        coEvery { apiService.getRate(any(), any(), any(), any()) } returns PayCoreRateResponse(
-            currencyFrom = "ERC20", currencyTo = "RUB",
-            amountFrom = "1", amountTo = "100", rate = "100"
-        )
-        coEvery { apiService.getPayoutAddress(any()) } returns PayCorePayoutAddressResponse(
-            address = "0x000000000000000000000000000000000000dEaD", networkType = "ERC20"
-        )
+    private suspend fun prepareFinalQuote(provider: PayCoreProvider): ISwapFinalQuote {
         coEvery { walletUseCase.getReceiveAddress(any()) } returns "0xMyAddr"
 
         val adapter = mockk<cash.p.terminal.core.ISendEthereumAdapter> {
@@ -361,12 +369,46 @@ class PayCoreProviderTest {
         }
         every { adapterManager.getAdapterForToken<cash.p.terminal.core.ISendEthereumAdapter>(any()) } returns adapter
 
-        provider.fetchFinalQuote(usdtToken, rubToken, BigDecimal.ONE, emptyMap(), null, mockk())
+        return provider.fetchFinalQuote(
+            usdtToken,
+            rubToken,
+            BigDecimal.ONE,
+            selectedBankSettings,
+            null,
+            payCoreQuote(serviceFee = BigDecimal("2"))
+        )
     }
+
+    private fun rateResponse(
+        buy: BigDecimal = BigDecimal("80"),
+        sell: BigDecimal = BigDecimal("70"),
+        withdrawFee: BigDecimal = BigDecimal.ZERO,
+        limits: PayCoreRateLimits? = null,
+    ) = PayCoreRateResponse(
+        ticker = "USDT_ERC20",
+        network = "ETH",
+        buy = buy,
+        sell = sell,
+        withdrawFee = withdrawFee,
+        limits = limits,
+    )
+
+    private fun payCoreQuote(serviceFee: BigDecimal) = PayCoreQuote(
+        amountOut = BigDecimal("100"),
+        priceImpact = null,
+        fields = emptyList(),
+        tokenIn = usdtToken,
+        tokenOut = rubToken,
+        amountIn = BigDecimal.ONE,
+        serviceFee = serviceFee,
+        actionRequired = null,
+    )
 
     private fun createProvider() = PayCoreProvider(
         walletUseCase = walletUseCase,
         apiService = apiService,
+        banksRepository = banksRepository,
+        walletApprovalService = walletApprovalService,
         secureStorage = secureStorage,
         featureToggle = featureToggle,
         accountManager = accountManager,
