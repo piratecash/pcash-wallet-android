@@ -9,11 +9,12 @@ import cash.p.terminal.modules.fee.QuoteInfoRow
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
+import cash.p.terminal.wallet.title
+import io.horizontalsystems.core.entities.BlockchainType
 import java.math.BigDecimal
 
 class PayCoreDataFieldServiceFee(
-    private val fee: BigDecimal,
-    private val networkType: PayCoreTicker
+    private val fee: BigDecimal
 ) : DataField {
     @Composable
     override fun GetContent(navController: NavController, borderTop: Boolean) {
@@ -24,7 +25,7 @@ class PayCoreDataFieldServiceFee(
             },
             value = {
                 subhead2_leah(
-                    text = formatPayCoreServiceFee(fee, networkType),
+                    text = formatPayCoreServiceFee(fee),
                     textAlign = TextAlign.End
                 )
             }
@@ -33,12 +34,8 @@ class PayCoreDataFieldServiceFee(
 }
 
 internal fun formatPayCoreServiceFee(
-    fee: BigDecimal,
-    networkType: PayCoreTicker? = null,
-): String {
-    val networkSuffix = networkType?.let { " ($it)" }.orEmpty()
-    return "${fee.stripTrailingZeros().toPlainString()} USDT$networkSuffix"
-}
+    fee: BigDecimal
+): String = "${fee.stripTrailingZeros().toPlainString()} USDT"
 
 class PayCoreDataFieldNetwork(
     private val networkType: PayCoreTicker
@@ -52,10 +49,21 @@ class PayCoreDataFieldNetwork(
             },
             value = {
                 subhead2_leah(
-                    text = networkType.name,
+                    text = networkType.displayNetworkName,
                     textAlign = TextAlign.End
                 )
             }
         )
     }
 }
+
+private val PayCoreTicker.displayNetworkName: String
+    get() = blockchainType?.title ?: name
+
+private val PayCoreTicker.blockchainType: BlockchainType?
+    get() = when (this) {
+        PayCoreTicker.USDT -> BlockchainType.Tron
+        PayCoreTicker.USDT_ERC20 -> BlockchainType.Ethereum
+        PayCoreTicker.USDT_SPL -> BlockchainType.Solana
+        PayCoreTicker.RUB -> null
+    }

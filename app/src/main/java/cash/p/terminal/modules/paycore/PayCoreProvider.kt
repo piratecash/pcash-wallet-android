@@ -240,7 +240,7 @@ class PayCoreProvider(
     private fun buildQuoteFields(networkType: PayCoreTicker, serviceFee: BigDecimal): List<DataField> {
         return buildList {
             if (serviceFee > BigDecimal.ZERO) {
-                add(PayCoreDataFieldServiceFee(fee = serviceFee, networkType = networkType))
+                add(PayCoreDataFieldServiceFee(fee = serviceFee))
             }
             add(PayCoreDataFieldNetwork(networkType = networkType))
         }
