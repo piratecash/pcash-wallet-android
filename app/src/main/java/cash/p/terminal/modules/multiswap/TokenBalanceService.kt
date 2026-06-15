@@ -3,6 +3,7 @@ package cash.p.terminal.modules.multiswap
 import cash.p.terminal.core.ServiceState
 import cash.p.terminal.core.getFeeTokenBalance
 import cash.p.terminal.core.isNative
+import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -81,12 +82,11 @@ class TokenBalanceService(
             val currentFee = fee ?: return
             val currentToken = token ?: return
 
-            insufficientFeeBalance = if (currentToken.type.isNative) {
-                false // fee already accounted for in maxSpendableBalance
-            } else {
-                val currentFeeCoinBalance = feeCoinBalance ?: BigDecimal.ZERO
-                currentFee > currentFeeCoinBalance
-            }
+            insufficientFeeBalance = hasInsufficientFeeTokenBalance(
+                token = currentToken,
+                fee = currentFee,
+                feeTokenBalance = feeCoinBalance,
+            )
         }
     }
 

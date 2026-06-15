@@ -142,10 +142,11 @@ abstract class BaseSendViewModel<T>(
     }
 
     fun isInsufficientFeeBalance(fee: BigDecimal?): Boolean {
-        if (wallet.token.type.isNative) return false
-        val currentFee = fee ?: return false
-        val balance = feeCoinBalance ?: BigDecimal.ZERO
-        return currentFee > balance
+        return hasInsufficientFeeTokenBalance(
+            token = wallet.token,
+            fee = fee,
+            feeTokenBalance = feeCoinBalance,
+        )
     }
 
     fun formatFeePrimary(fee: BigDecimal?): String {
