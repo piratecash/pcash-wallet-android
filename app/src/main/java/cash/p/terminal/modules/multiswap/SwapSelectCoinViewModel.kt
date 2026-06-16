@@ -100,7 +100,7 @@ class SwapSelectCoinViewModel(
             //Enabled Tokens
             activeWallets.map { wallet ->
                 val balance =
-                    adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.available
+                    adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.total
                 CoinBalanceItem(wallet.token, balance, getFiatValue(wallet.token, balance))
             }.sortedWith(
                 if (otherSelectedToken != null) {
@@ -186,7 +186,7 @@ class SwapSelectCoinViewModel(
                                     wallet.token.type == it.type
                         }
                             ?.let { wallet ->
-                                adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.available
+                                adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.total
                             }
                     CoinBalanceItem(it, balance, getFiatValue(it, balance))
                 }

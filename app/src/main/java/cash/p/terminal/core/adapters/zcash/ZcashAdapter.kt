@@ -154,11 +154,6 @@ class ZcashAdapter(
     private val balanceCheckMutex = Mutex()
     private var importUfvkError : Throwable? = null
 
-    init {
-        Timber.i("ZcashAdapter type $addressSpecTyped")
-    }
-
-
     companion object {
         private const val DECIMAL_COUNT = 8
         private val DATABASE_CORRUPTION_MESSAGES = listOf(
@@ -322,7 +317,6 @@ class ZcashAdapter(
     private var syncState: AdapterState = AdapterState.Connecting
         set(value) {
             if (value != field) {
-                traceSync("state ${field.toLogString()} -> ${value.toLogString()}")
                 field = value
                 adapterStateUpdatedSubject.onNext(Unit)
             }
@@ -502,7 +496,7 @@ class ZcashAdapter(
         get() = adapterStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
 
     override val balanceData: BalanceData
-        get() = BalanceData(balance, pending = balancePending)
+        get() = walletBalance.toBalanceData(DECIMAL_COUNT)
 
     override val statusInfo: Map<String, Any>
         get() {
@@ -511,14 +505,6 @@ class ZcashAdapter(
             statusInfo["Sync State"] = syncState
             statusInfo["Birthday Height"] = accountBirthday
             return statusInfo
-        }
-
-    private val balance: BigDecimal
-        get() {
-            return with(walletBalance) {
-                available.convertZatoshiToZec(DECIMAL_COUNT) +
-                        pending.convertZatoshiToZec(DECIMAL_COUNT)
-            }
         }
 
     private val walletBalance: WalletBalance
@@ -538,15 +524,6 @@ class ZcashAdapter(
                 AddressSpecType.Unified -> synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)?.orchard
                     ?: WalletBalance(Zatoshi(0), Zatoshi(0), Zatoshi(0))
             }
-        }
-
-    private val balancePending: BigDecimal
-        get() {
-            // TODO: Waiting when adjust option MIN_CONFIRMATIONS will appear in
-            //  zcash-android-wallet-sdk
-            // val walletBalance = synchronizer.saplingBalances.value ?: return BigDecimal.ZERO
-            // return walletBalance.pending.convertZatoshiToZec(decimalCount)
-            return BigDecimal.ZERO
         }
 
     override val balanceUpdatedFlow: Flow<Unit>
@@ -606,8 +583,6 @@ class ZcashAdapter(
     override val maxSpendableBalance: BigDecimal
         get() {
             return with(walletBalance) {
-                val available = available + pending
-
                 val defaultFee = fee.value.convertZecToZatoshi()
                 if (available <= defaultFee) {
                     BigDecimal.ZERO
@@ -622,7 +597,7 @@ class ZcashAdapter(
     override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
 
     private suspend fun calculateFee(
-        balance: Zatoshi = walletBalance.available + walletBalance.pending,
+        balance: Zatoshi = walletBalance.available,
         tryCounter: Int = 4
     ): Unit = withContext(dispatcherProvider.io) {
         try {
@@ -831,10 +806,6 @@ class ZcashAdapter(
     private fun onChainError(errorHeight: BlockHeight, rewindHeight: BlockHeight) = Unit
 
     private fun onStatus(status: Synchronizer.Status) {
-        traceSync(
-            "status=$status current=${syncState.toLogString()} " +
-                    "progressDecimal=$lastDownloadProgressDecimal networkHeight=$lastNetworkHeight"
-        )
         syncState = when (status) {
             Synchronizer.Status.STOPPED -> AdapterState.NotSynced(Exception("stopped"))
             Synchronizer.Status.DISCONNECTED -> AdapterState.NotSynced(Exception("disconnected"))
@@ -860,18 +831,10 @@ class ZcashAdapter(
 
     private fun onDownloadProgress(progress: PercentDecimal) {
         lastDownloadProgressDecimal = progress.decimal
-        traceSync("progress decimal=${progress.decimal} state=${syncState.toLogString()}")
         updateSyncingState()
     }
 
     private fun onProcessorInfo(processorInfo: CompactBlockProcessor.ProcessorInfo) {
-        val syncRange = processorInfo.overallSyncRange
-        traceSync(
-            "processorInfo networkHeight=${processorInfo.networkBlockHeight?.value} " +
-                    "range=${syncRange?.start?.value}..${syncRange?.endInclusive?.value} " +
-                    "firstUnenhanced=${processorInfo.firstUnenhancedHeight?.value} " +
-                    "progressDecimal=$lastDownloadProgressDecimal state=${syncState.toLogString()}"
-        )
         processorInfo.networkBlockHeight?.value?.let { lastNetworkHeight = it }
         updateSyncingState()
         lastBlockUpdatedSubject.onNext(Unit)
@@ -883,12 +846,10 @@ class ZcashAdapter(
     // block-equivalent of the SDK's decimal so the UI reads consistently.
     private fun updateSyncingState() {
         if (syncState is AdapterState.Synced) {
-            traceSync("updateSyncingState skipped: already synced")
             return
         }
 
         if (lastDownloadProgressDecimal >= 1f) {
-            traceSync("updateSyncingState completeProgress -> processing")
             syncState = AdapterState.Syncing(progress = 100.0, blocksRemained = null)
             return
         }
@@ -900,37 +861,14 @@ class ZcashAdapter(
         }
         val rawPercent = lastDownloadProgressDecimal.toDouble() * 100.0
         val progressPercent = (Math.round(rawPercent * 10000.0) / 10000.0).coerceIn(0.0, 100.0)
-        traceSync(
-            "updateSyncingState progress=$progressPercent blocksRemained=$blocksRemained " +
-                    "totalBlocks=$totalBlocks effectiveBirthday=$effectiveBirthday"
-        )
         syncState = AdapterState.Syncing(progress = progressPercent, blocksRemained = blocksRemained)
     }
 
     private fun onBalance(balance: Map<AccountUuid, AccountBalance>?) {
-        traceSync("balance hasAccount=${zcashAccount?.accountUuid?.let { balance?.containsKey(it) }}")
         balance?.get(zcashAccount?.accountUuid)?.sapling?.let {
             balanceUpdatedSubject.onNext(Unit)
         }
         startOneTimeAddressBalanceCheck()
-    }
-
-    private fun traceSync(message: String) {
-        Timber.tag("ZcashSync").d("${syncTraceType()} $message")
-    }
-
-    private fun syncTraceType(): String {
-        return addressSpecTyped?.toString() ?: "Unified"
-    }
-
-    private fun AdapterState.toLogString(): String {
-        return when (this) {
-            AdapterState.Synced -> "Synced"
-            AdapterState.Connecting -> "Connecting"
-            is AdapterState.Syncing -> "Syncing(progress=$progress, blocksRemained=$blocksRemained, substatus=$substatus)"
-            is AdapterState.SearchingTxs -> "SearchingTxs(count=$count)"
-            is AdapterState.NotSynced -> "NotSynced(${error.message})"
-        }
     }
 
     private suspend fun checkTransparentAddressesBalance() = withContext(dispatcherProvider.io) {
@@ -1012,6 +950,11 @@ class ZcashAdapter(
         object SendToSelfNotAllowed : ZcashError()
     }
 }
+
+internal fun WalletBalance.toBalanceData(decimalCount: Int) = BalanceData(
+    available = available.convertZatoshiToZec(decimalCount),
+    pending = pending.convertZatoshiToZec(decimalCount)
+)
 
 object ZcashAddressValidator {
     fun validate(address: String): Boolean {
