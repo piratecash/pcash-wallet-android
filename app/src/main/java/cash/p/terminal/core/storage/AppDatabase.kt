@@ -78,6 +78,8 @@ import cash.p.terminal.core.storage.migrations.Migration_100_101
 import cash.p.terminal.core.storage.migrations.Migration_101_102
 import cash.p.terminal.core.storage.migrations.Migration_102_103
 import cash.p.terminal.core.storage.migrations.Migration_103_104
+import cash.p.terminal.core.storage.migrations.Migration_104_105
+import cash.p.terminal.core.storage.migrations.Migration_105_106
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
@@ -88,6 +90,7 @@ import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.EvmSyncSourceRecord
 import cash.p.terminal.entities.LocallyCreatedTransactionRecord
 import cash.p.terminal.entities.MoneroFileRecord
+import cash.p.terminal.entities.OfflineSignedTransactionEntity
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.entities.PendingTransactionEntity
 import cash.p.terminal.entities.RecentAddress
@@ -116,7 +119,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 104,
+    version = 106,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -150,7 +153,8 @@ import io.horizontalsystems.core.storage.LogsDao
         ZcashSingleUseAddress::class,
         UserDeletedWallet::class,
         PoisonAddress::class,
-        LocallyCreatedTransactionRecord::class
+        LocallyCreatedTransactionRecord::class,
+        OfflineSignedTransactionEntity::class
     ]
 )
 @TypeConverters(DatabaseConverters::class)
@@ -183,6 +187,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userDeletedWalletDao(): UserDeletedWalletDao
     abstract fun poisonAddressDao(): PoisonAddressDao
     abstract fun locallyCreatedTransactionDao(): LocallyCreatedTransactionDao
+    abstract fun offlineSignedTransactionDao(): OfflineSignedTransactionDao
 
     companion object {
 
@@ -271,7 +276,9 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_100_101,
                     Migration_101_102,
                     Migration_102_103,
-                    Migration_103_104
+                    Migration_103_104,
+                    Migration_104_105,
+                    Migration_105_106
                 )
                 .build()
         }

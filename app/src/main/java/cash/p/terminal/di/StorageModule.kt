@@ -103,6 +103,7 @@ val storageModule = module {
     single { get<AppDatabase>().pendingMultiSwapDao() }
     single { get<AppDatabase>().pendingTransactionDao() }
     single { get<AppDatabase>().locallyCreatedTransactionDao() }
+    single { get<AppDatabase>().offlineSignedTransactionDao() }
     single { get<AppDatabase>().swapProviderTransactionsDao() }
     single { get<AppDatabase>().pinDao() }
     singleOf(::PendingMultiSwapStorage)

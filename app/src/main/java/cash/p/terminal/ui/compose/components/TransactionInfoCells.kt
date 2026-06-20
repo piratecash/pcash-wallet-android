@@ -84,10 +84,12 @@ import cash.p.terminal.ui_compose.components.body_leah
 // import cash.p.terminal.ui_compose.components.body_lucian // MOBILE-593
 import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_grey
+import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead1_lucian
 import cash.p.terminal.ui_compose.components.subhead1_remus
 import cash.p.terminal.ui_compose.components.subhead2_grey
+import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.components.subhead2_lucian
 import cash.p.terminal.ui_compose.components.subhead2_remus
@@ -555,6 +557,49 @@ fun TransactionInfoStatusCell(
 }
 
 @Composable
+fun TransactionInfoOfflineStatusCell(
+    status: ColoredValue,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+) {
+    RowUniversal(
+        modifier = modifier.padding(horizontal = 16.dp),
+    ) {
+        subhead2_grey(
+            text = stringResource(R.string.TransactionInfo_Status),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        HsIconButton(
+            modifier = Modifier.size(20.dp),
+            onClick = {
+                navController.slideFromBottom(R.id.statusInfoDialog)
+            }
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_info_20),
+                contentDescription = null
+            )
+        }
+        Spacer(
+            Modifier
+                .weight(1f)
+                .defaultMinSize(minWidth = 8.dp)
+        )
+        subhead1_leah(
+            text = status.value,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+        Icon(
+            painter = painterResource(id = R.drawable.ic_attention_20),
+            contentDescription = null,
+            tint = status.color.compose(),
+        )
+    }
+}
+
+@Composable
 fun TransactionInfoSpeedUpCell(
     transactionHash: String,
     blockchainType: BlockchainType,
@@ -961,6 +1006,10 @@ private fun SubHead2ColoredValue(value: ColoredValue, modifier: Modifier = Modif
         ColorName.Leah -> {
             subhead2_leah(text = value.value, modifier = modifier)
         }
+
+        ColorName.Jacob -> {
+            subhead2_jacob(text = value.value, modifier = modifier)
+        }
     }
 }
 
@@ -982,6 +1031,10 @@ private fun SubHead1ColoredValue(value: ColoredValue, modifier: Modifier = Modif
 
         ColorName.Leah -> {
             subhead2_leah(text = value.value, modifier = modifier)
+        }
+
+        ColorName.Jacob -> {
+            subhead1_jacob(text = value.value, modifier = modifier)
         }
     }
 }

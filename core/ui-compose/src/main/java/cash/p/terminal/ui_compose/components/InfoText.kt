@@ -1,9 +1,10 @@
 package cash.p.terminal.ui_compose.components
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -24,6 +25,11 @@ fun InfoText(
 
 @Composable
 fun InfoTextBody(text: String) {
+    InfoTextBody(AnnotatedString(text))
+}
+
+@Composable
+fun InfoTextBody(text: AnnotatedString) {
     Text(
         modifier = Modifier.padding(horizontal = 32.dp, vertical = 12.dp),
         text = text,

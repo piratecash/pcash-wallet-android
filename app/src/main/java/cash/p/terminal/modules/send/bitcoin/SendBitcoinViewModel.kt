@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.send.bitcoin
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,10 +11,18 @@ import cash.p.terminal.core.IMwebAddressValidator
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineBitcoinSignRequest
+import cash.p.terminal.core.OfflineSignAdapter
+import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.entities.OfflineSignedTransaction
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
@@ -21,6 +30,7 @@ import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule.rbfSupported
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAdapterManager
@@ -37,6 +47,8 @@ import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.hodler.LockTimeInterval
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,9 +91,17 @@ class SendBitcoinViewModel(
     )
 
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder = getKoinInstance()
+    private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository = getKoinInstance()
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineSignAdapter<SignedOfflineBitcoinTransaction>
 
     val coinMaxAllowedDecimals = wallet.token.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
+    // MWEB transactions cannot be signed offline (the sign path rejects them), so do not advertise the
+    // capability for an MWEB wallet. Sending to an MWEB address from a regular wallet is still caught at
+    // sign time, since that can only be known once the destination address is entered.
+    val offlineSignSupported = offlineSignAdapter != null && !wallet.token.isLitecoinMweb
 
     val blockchainType by adapter::blockchainType
     val feeRateChangeable by feeRateService::feeRateChangeable
@@ -107,6 +127,12 @@ class SendBitcoinViewModel(
         private set
 
     var sendResult by mutableStateOf<SendResult?>(null)
+
+    var offlineSignState by mutableStateOf<OfflineSignState>(OfflineSignState.Idle)
+        private set
+    var offlineSignedTransaction by mutableStateOf<OfflineSignedTransaction?>(null)
+        private set
+    private var offlineSignJob: Job? = null
 
     var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
@@ -344,6 +370,105 @@ class SendBitcoinViewModel(
         }
     }
 
+    fun onClickSignOffline(format: OfflineTransactionFormat) {
+        // Arm the Signing state synchronously on the UI thread so rapid taps cannot launch a second
+        // signing pass (which would prompt the hardware wallet twice and store a duplicate record).
+        if (offlineSignState is OfflineSignState.Signing) return
+        offlineSignState = OfflineSignState.Signing
+        offlineSignJob = viewModelScope.launch {
+            signOffline(format)
+        }
+    }
+
+    // Resets signing back to Idle, cancelling any in-flight pass. Called both when leaving the screen
+    // (Back/Cancel) and after the UI consumes a terminal Failed/Signed state. Cancelling matters for the
+    // leave case: a late hardware result could otherwise persist the signed transaction and flip the UI
+    // to Signed after the user already backed out. In the consume case the job has already completed, so
+    // the cancel is a no-op.
+    fun resetOfflineSignState() {
+        offlineSignJob?.cancel()
+        offlineSignJob = null
+        offlineSignState = OfflineSignState.Idle
+    }
+
+    fun onOfflineTransferClosed() {
+        offlineSignedTransaction = null
+        offlineSignState = OfflineSignState.Idle
+    }
+
+    private suspend fun signOffline(format: OfflineTransactionFormat) = withContext(dispatcherProvider.io) {
+        val logger = logger.getScopedUnique()
+        logger.info("offline sign click")
+        try {
+            offlineSignedTransaction = null
+            val request = sendRequest()
+            if (isMwebTransaction(request.address)) {
+                throw LocalizedException(R.string.offline_transaction_error_mweb_unsupported)
+            }
+            val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
+            val signedTransaction = signingAdapter.signOffline(
+                OfflineBitcoinSignRequest(
+                    amount = request.amount,
+                    address = request.address.hex,
+                    memo = memo,
+                    feeRate = request.feeRate,
+                    unspentOutputs = customUnspentOutputs,
+                    pluginData = pluginState.pluginData,
+                    transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
+                    rbfEnabled = !isMweb && blockchainType.rbfSupported && localStorage.rbfEnabled,
+                    changeToFirstInput = false,
+                    utxoFilters = UtxoFilters(),
+                )
+            )
+            storeSignedTransaction(
+                signedTransaction = signedTransaction,
+                amount = request.amount,
+                toAddress = request.address.hex,
+            )
+            offlineSignState = OfflineSignState.Signed(format)
+            logger.info("offline sign success")
+        } catch (e: TangemSdkError.UserCancelled) {
+            offlineSignState = OfflineSignState.Idle
+            logger.info("user cancelled")
+        } catch (e: TrezorCancelledException) {
+            offlineSignState = OfflineSignState.Idle
+            logger.info("trezor user cancelled")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            if (e is TangemSdkError) {
+                offlineSignState = OfflineSignState.Idle
+                return@withContext
+            }
+            logger.warning("offline sign failed", e)
+            offlineSignState = OfflineSignState.Failed(createCaution(e))
+        }
+    }
+
+    private suspend fun storeSignedTransaction(
+        signedTransaction: SignedOfflineBitcoinTransaction,
+        amount: BigDecimal,
+        toAddress: String,
+    ) {
+        val draft = OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = amount,
+            fee = fee,
+            toAddress = toAddress,
+            rawHex = signedTransaction.rawHex,
+            txHash = signedTransaction.txHash,
+            inputOutpoints = signedTransaction.inputOutpoints,
+        )
+        val pcashPayload = offlineTransactionPayloadEncoder.encode(draft)
+        offlineSignedTransaction = OfflineSignedTransaction(
+            rawHex = signedTransaction.rawHex,
+            pcashPayload = pcashPayload,
+            txHash = signedTransaction.txHash,
+            createdAt = draft.createdAt,
+        )
+        offlineSignedTransactionRepository.save(draft, pcashPayload)
+    }
+
     private suspend fun send() = withContext(dispatcherProvider.io) {
         val logger = logger.getScopedUnique()
         logger.info("click")
@@ -380,17 +505,20 @@ class SendBitcoinViewModel(
 
     private fun sendRequest(): SendRequest {
         val validAddress = addressState.validAddress
-            ?: throw LocalizedException(R.string.send_error_address_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_address_unavailable)
         val amount = amountState.amount
-            ?: throw LocalizedException(R.string.send_error_amount_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_amount_unavailable)
         val feeRate = feeRateState.feeRate
-            ?: throw LocalizedException(R.string.send_error_fee_rate_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_fee_rate_unavailable)
         val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
             ?.balanceData?.available ?: amountState.availableBalance
-            ?: throw LocalizedException(R.string.send_error_balance_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_balance_unavailable)
 
         return SendRequest(validAddress, amount, feeRate, sdkBalance)
     }
+
+    private fun missingSendRequestValue(@StringRes messageRes: Int): Nothing =
+        throw LocalizedException(messageRes)
 
     private fun pendingTransactionDraft(request: SendRequest): PendingTransactionDraft {
         return PendingTransactionDraft(
@@ -463,3 +591,10 @@ data class SendBitcoinUiState(
     val isPoisonAddress: Boolean = false,
     val riskAccepted: Boolean = false,
 )
+
+sealed class OfflineSignState {
+    data object Idle : OfflineSignState()
+    data object Signing : OfflineSignState()
+    data class Signed(val format: OfflineTransactionFormat) : OfflineSignState()
+    data class Failed(val caution: HSCaution) : OfflineSignState()
+}

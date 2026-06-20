@@ -59,6 +59,8 @@ sealed class TransactionInfoViewItem {
 
     class Status(val status: TransactionStatus) : TransactionInfoViewItem()
 
+    class OfflineStatus(val status: ColoredValue) : TransactionInfoViewItem()
+
     object RawTransaction : TransactionInfoViewItem()
 
     class LockState(

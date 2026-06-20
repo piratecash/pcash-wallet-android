@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.ui_compose.R
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -27,11 +28,12 @@ fun HsIconButton(
     enabled: Boolean = true,
     rippleColor: Color = ComposeAppTheme.colors.leah,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    minWidth: Dp = 48.dp,
     content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
-            .defaultMinSize(48.dp)
+            .defaultMinSize(minWidth)
             .clickable(
                 onClick = onClick,
                 enabled = enabled,

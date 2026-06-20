@@ -31,6 +31,8 @@ import cash.p.terminal.modules.qrscanner.QRScannerViewModel
 import cash.p.terminal.modules.qrscanner.QrCodeImageDecoder
 import cash.p.terminal.modules.releasenotes.ReleaseNotesViewModel
 import cash.p.terminal.modules.resettofactorysettings.ResetToFactorySettingsViewModel
+import cash.p.terminal.modules.send.offline.OfflineBroadcastViewModel
+import cash.p.terminal.modules.send.offline.OfflineSignedTransactionsViewModel
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
 import cash.p.terminal.modules.restoreaccount.restoremnemonic.RestoreMnemonicViewModel
 import cash.p.terminal.modules.calculator.autolock.CalculatorAutoLockViewModel
@@ -47,6 +49,7 @@ import cash.p.terminal.modules.settings.main.MainSettingsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
 import cash.p.terminal.modules.tonconnect.TonConnectListViewModel
+import cash.p.terminal.modules.transactions.TransactionsRateRepository
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
 import cash.p.terminal.modules.solananetwork.SolanaNetworkService
@@ -68,11 +71,14 @@ import org.koin.dsl.module
 val viewModelModule = module {
     singleOf(::DefaultDispatcherProvider) bind DispatcherProvider::class
     singleOf(::QrCodeImageDecoder)
+    factoryOf(::TransactionsRateRepository)
 
     viewModelOf(::MarketFavoritesViewModel)
     viewModelOf(::MainViewModel)
     viewModelOf(::MainActivityViewModel)
     viewModelOf(::DisplayTransactionsViewModel)
+    viewModelOf(::OfflineBroadcastViewModel)
+    viewModelOf(::OfflineSignedTransactionsViewModel)
     viewModelOf(::PrivacyViewModel)
     viewModelOf(::HardwareWalletViewModel)
     viewModelOf(::ImportWalletViewModel)

@@ -39,8 +39,10 @@ import cash.p.terminal.modules.contacts.ContactsFragment
 import cash.p.terminal.modules.contacts.Mode
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.send.offline.OfflineBroadcastFragment
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.WCManager
+import cash.p.terminal.navigation.openQrScanner
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.Translator
@@ -90,6 +92,9 @@ private fun SettingSections(
 ) {
     val uiState = viewModel.uiState
     val context = LocalContext.current
+    val rawTxScanTitle = stringResource(R.string.offline_broadcast_title)
+    val walletConnectTitle = stringResource(R.string.WalletConnect_Title)
+    val tonConnectTitle = stringResource(R.string.TonConnect_Title)
 
     if (uiState.isUpdateAvailable) {
         CellUniversalLawrenceSection(
@@ -189,7 +194,7 @@ private fun SettingSections(
                                     AccountTypeNotSupportedDialog.Input(
                                         iconResId = R.drawable.ic_wallet_connect_24,
                                         titleResId = R.string.WalletConnect_Title,
-                                        connectionLabel = context.getString(R.string.WalletConnect_Title)
+                                        connectionLabel = walletConnectTitle
                                     )
                                 )
                             )
@@ -212,7 +217,7 @@ private fun SettingSections(
                                 AccountTypeNotSupportedDialog.Input(
                                     iconResId = R.drawable.ic_ton_connect_24,
                                     titleResId = R.string.TonConnect_Title,
-                                    connectionLabel = context.getString(R.string.TonConnect_Title)
+                                    connectionLabel = tonConnectTitle
                                 )
                             )
                         )
@@ -309,6 +314,28 @@ private fun SettingSections(
             )
         })
     )
+    VSpacer(32.dp)
+    CellUniversalLawrenceSection(
+        listOf({
+            HsSettingCell(
+                title = R.string.offline_broadcast_title,
+                icon = R.drawable.ic_send_24,
+                onClick = {
+                    navController.openQrScanner(
+                        title = rawTxScanTitle,
+                        showPasteButton = true,
+                    ) { scannedText ->
+                        navController.slideFromRight(
+                            MainGraphDirections.actionGlobalToOfflineBroadcastFragment(
+                                OfflineBroadcastFragment.Input(initialInput = scannedText)
+                            )
+                        )
+                    }
+                }
+            )
+        })
+    )
+
     VSpacer(24.dp)
 
     PremiumHeader()

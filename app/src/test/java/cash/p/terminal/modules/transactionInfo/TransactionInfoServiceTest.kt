@@ -167,7 +167,8 @@ class TransactionInfoServiceTest : KoinTest {
         updateSwapProviderTransactionsStatusUseCase = updateSwapProviderTransactionsStatusUseCase,
         swapProviderTransactionsStorage = swapProviderTransactionsStorage,
         dispatcherProvider = dispatcherProvider,
-        transactionStatusUrl = null
+        transactionStatusUrl = null,
+        offlineStatus = null,
     )
 
     @Test

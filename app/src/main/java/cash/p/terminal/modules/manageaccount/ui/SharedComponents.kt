@@ -1,7 +1,5 @@
 package cash.p.terminal.modules.manageaccount.ui
 
-import android.graphics.drawable.AdaptiveIconDrawable
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,27 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
 import cash.p.terminal.R
-import io.github.alexzhirkevich.qrose.options.QrBallShape
-import io.github.alexzhirkevich.qrose.options.QrErrorCorrectionLevel
-import io.github.alexzhirkevich.qrose.options.QrFrameShape
-import io.github.alexzhirkevich.qrose.options.QrLogoPadding
-import io.github.alexzhirkevich.qrose.options.QrLogoShape
-import io.github.alexzhirkevich.qrose.options.QrPixelShape
-import io.github.alexzhirkevich.qrose.options.roundCorners
-import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseModule
+import cash.p.terminal.ui.compose.components.rememberPcashQrCodePainter
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.B2
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
@@ -314,44 +299,10 @@ fun SeedPhraseQrCard(
 
 @Composable
 private fun SeedQrCodeImage(content: String) {
-    val logoPainter: Painter = adaptiveIconPainterResource(
-        id = R.mipmap.launcher_main,
-        fallbackDrawable = R.drawable.launcher_main_preview
-    )
-    val qrcodePainter: Painter = rememberQrCodePainter(content) {
-        errorCorrectionLevel = QrErrorCorrectionLevel.MediumHigh
-        logo {
-            painter = logoPainter
-            padding = QrLogoPadding.Natural(.25f)
-            shape = QrLogoShape.roundCorners(0.8f)
-            size = 0.2f
-        }
-        shapes {
-            ball = QrBallShape.roundCorners(.25f)
-            darkPixel = QrPixelShape.roundCorners()
-            frame = QrFrameShape.roundCorners(.25f)
-        }
-    }
     Image(
-        painter = qrcodePainter,
+        painter = rememberPcashQrCodePainter(content),
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Fit,
         contentDescription = null
     )
-}
-
-@Composable
-private fun adaptiveIconPainterResource(
-    @DrawableRes id: Int,
-    @DrawableRes fallbackDrawable: Int
-): Painter {
-    val res = LocalContext.current.resources
-    val theme = LocalContext.current.theme
-
-    val adaptiveIcon = ResourcesCompat.getDrawable(res, id, theme) as? AdaptiveIconDrawable
-    return if (adaptiveIcon != null) {
-        BitmapPainter(adaptiveIcon.toBitmap().asImageBitmap())
-    } else {
-        painterResource(fallbackDrawable)
-    }
 }

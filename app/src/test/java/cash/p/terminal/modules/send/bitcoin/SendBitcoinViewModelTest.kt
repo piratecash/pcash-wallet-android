@@ -5,6 +5,8 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.entities.Address
@@ -81,6 +83,8 @@ class SendBitcoinViewModelTest {
                     }
                 }
                 single { mockk<PoisonAddressManager>(relaxed = true) }
+                single { mockk<OfflineTransactionPayloadEncoder>(relaxed = true) }
+                single { mockk<OfflineSignedTransactionRepository>(relaxed = true) }
             }
         )
     }

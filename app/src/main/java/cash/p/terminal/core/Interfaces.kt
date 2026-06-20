@@ -7,6 +7,7 @@ import cash.p.terminal.core.providers.FeeRates
 import cash.p.terminal.core.utils.AddressUriResult
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.entities.LastBlockInfo
+import cash.p.terminal.entities.OfflineTransactionOutpoint
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.entities.TransactionDataSortMode
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -191,6 +192,44 @@ interface ISendBitcoinAdapter {
 
     fun satoshiToBTC(value: Long): BigDecimal
 }
+
+interface OfflineSignRequest
+
+interface OfflineSignAdapter<out T> {
+    suspend fun signOffline(request: OfflineSignRequest): T
+}
+
+interface OfflineBroadcastAdapter {
+    suspend fun broadcastRawTransaction(rawTransactionHex: String): BroadcastRawTransactionResult
+}
+
+data class BroadcastRawTransactionResult(
+    val txHash: String,
+    val status: BroadcastRawTransactionStatus,
+)
+
+enum class BroadcastRawTransactionStatus {
+    Submitted, Queued
+}
+
+data class OfflineBitcoinSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String?,
+    val feeRate: Int,
+    val unspentOutputs: List<UnspentOutputInfo>?,
+    val pluginData: Map<Byte, IPluginData>?,
+    val transactionSorting: TransactionDataSortMode?,
+    val rbfEnabled: Boolean,
+    val changeToFirstInput: Boolean,
+    val utxoFilters: UtxoFilters,
+) : OfflineSignRequest
+
+data class SignedOfflineBitcoinTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val inputOutpoints: List<OfflineTransactionOutpoint>,
+)
 
 interface IMwebAddressValidator {
     fun isMwebAddress(address: String): Boolean

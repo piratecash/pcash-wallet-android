@@ -47,6 +47,8 @@ abstract class BaseSendViewModel<T>(
 
     var hasAdapterError by mutableStateOf(false)
         private set
+    var syncRetrying by mutableStateOf(false)
+        private set
     private var autoRetried = false
 
     open val feeToken: Token? by lazy {
@@ -163,9 +165,11 @@ abstract class BaseSendViewModel<T>(
         when (state) {
             is AdapterState.Synced -> {
                 hasAdapterError = false
+                syncRetrying = false
                 autoRetried = false
             }
             is AdapterState.NotSynced -> {
+                syncRetrying = false
                 if (!autoRetried) {
                     autoRetried = true
                     _adapterManager.refreshByWallet(wallet)
@@ -175,11 +179,13 @@ abstract class BaseSendViewModel<T>(
             }
             else -> {
                 hasAdapterError = false
+                syncRetrying = true
             }
         }
     }
 
     fun retryAdapterSync() {
+        syncRetrying = true
         _adapterManager.refreshByWallet(wallet)
     }
 
