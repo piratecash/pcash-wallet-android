@@ -3,23 +3,31 @@ package cash.p.terminal.modules.send.offline
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.BroadcastRawTransactionStatus
+import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineBroadcastAdapter
+import cash.p.terminal.core.UnsupportedException
+import cash.p.terminal.core.convertedError
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.nativeTokenQueries
 import cash.p.terminal.core.order
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.supports
+import cash.p.terminal.core.toResString
 import cash.p.terminal.entities.DecodedOfflineTransaction
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
+import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
@@ -30,6 +38,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.InterruptedIOException
+import java.net.ConnectException
+import java.net.NoRouteToHostException
+import java.net.UnknownHostException
+import java.util.concurrent.TimeoutException
 
 class OfflineBroadcastViewModel(
     private val payloadEncoder: OfflineTransactionPayloadEncoder,
@@ -90,12 +103,6 @@ class OfflineBroadcastViewModel(
         val text = value.trim()
         if (text.isEmpty()) {
             dismissWithError(R.string.offline_broadcast_invalid_input)
-            return
-        }
-        // The relaying device cannot sign or broadcast from a read-only core, so reject watch-only
-        // accounts up front instead of letting the flow fail later with CoreError.ReadOnlyCore.
-        if (accountManager.activeAccount?.isWatchAccount == true) {
-            dismissWithError(R.string.offline_broadcast_watch_only_unavailable)
             return
         }
         val decoded = payloadEncoder.decode(text)
@@ -192,10 +199,7 @@ class OfflineBroadcastViewModel(
         // A second tap while the first broadcast is still running could re-attempt the send and roll a
         // freshly broadcasted record back to pending, so ignore re-entrant taps.
         if (broadcasting) return
-        if (accountManager.activeAccount?.isWatchAccount == true) {
-            dismissWithError(R.string.offline_broadcast_watch_only_unavailable)
-            return
-        }
+        if (rejectWatchOnlyIfUnsupported(selectedBlockchain)) return
         val wallet = targetWallet
         if (wallet == null) {
             selectedBlockchain?.let { showUnsupportedBlockchainError(it.name) }
@@ -261,7 +265,7 @@ class OfflineBroadcastViewModel(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
-            val message = e.message ?: Translator.getString(R.string.Error)
+            val message = e.offlineBroadcastErrorMessage(wallet.token.coin.code)
             offlineRecordKey?.let {
                 offlineSignedTransactionRepository.markBroadcastFailed(it.accountId, it.txHash, message)
             }
@@ -277,19 +281,10 @@ class OfflineBroadcastViewModel(
         if (txHash.isBlank()) return
         val recordKey = OfflineRecordKey(wallet.account.id, txHash)
         offlineRecordKey = recordKey
-        offlineSignedTransactionRepository.saveImported(
+        offlineSignedTransactionRepository.saveRawImported(
             wallet = wallet,
-            decoded = DecodedOfflineTransaction(
-                blockchainUid = wallet.token.blockchainType.uid,
-                rawHex = rawHex,
-                txHash = txHash,
-                amountAtomic = "",
-                feeAtomic = null,
-                toAddress = "",
-                createdAt = System.currentTimeMillis(),
-                inputOutpoints = emptyList(),
-            ),
-            pcashPayload = "",
+            rawHex = rawHex,
+            txHash = txHash,
         )
         offlineSignedTransactionRepository.markBroadcastAttempt(recordKey.accountId, recordKey.txHash)
         if (!queued) {
@@ -334,9 +329,12 @@ class OfflineBroadcastViewModel(
         // Gate on broadcast capability before arming Send: a crafted payload may target a blockchain
         // whose active wallet cannot relay (e.g. an EVM chain), and proceeding would later cast a
         // non-broadcast adapter and crash. The resolver returning a token proves the chain can relay.
-        if (blockchain == null || account == null ||
-            offlineBroadcastTokenResolver.resolveTokenToEnable(blockchain.type, account) == null
-        ) {
+        if (blockchain == null || account == null) {
+            dismissWithError(R.string.offline_broadcast_no_wallet)
+            return
+        }
+        if (rejectWatchOnlyIfUnsupported(blockchain)) return
+        if (!canRelay(blockchain.type, account)) {
             dismissWithError(R.string.offline_broadcast_no_wallet)
             return
         }
@@ -416,8 +414,10 @@ class OfflineBroadcastViewModel(
             ?.getTransactionUrl(txHash)
             ?.takeIf { it.isNotBlank() }
 
-    private fun walletFor(type: BlockchainType): Wallet? =
-        walletManager.activeWallets.firstOrNull { it.token.blockchainType == type }
+    private fun walletFor(type: BlockchainType): Wallet? {
+        val wallets = walletManager.activeWallets.filter { it.token.blockchainType == type }
+        return wallets.firstOrNull { it.token.type is TokenType.Native } ?: wallets.firstOrNull()
+    }
 
     private fun supportedBlockchains(): List<Blockchain> {
         val accountType = accountManager.activeAccount?.type ?: return emptyList()
@@ -440,6 +440,18 @@ class OfflineBroadcastViewModel(
         tokenToEnable = token
         return OfflineBroadcastConfirmAction.EnableNetwork(blockchain.name)
     }
+
+    private fun rejectWatchOnlyIfUnsupported(blockchain: Blockchain?): Boolean {
+        val account = accountManager.activeAccount ?: return false
+        val type = blockchain?.type ?: return false
+        if (!account.isWatchAccount || canRelay(type, account)) return false
+
+        dismissWithError(R.string.offline_broadcast_watch_only_unavailable)
+        return true
+    }
+
+    private fun canRelay(type: BlockchainType, account: Account): Boolean =
+        offlineBroadcastTokenResolver.resolveTokenToEnable(type, account) != null
 
     private fun showUnsupportedBlockchainError(blockchainName: String) {
         val message = Translator.getString(R.string.offline_broadcast_unsupported_blockchain)
@@ -520,6 +532,99 @@ sealed interface OfflineBroadcastResult {
         val message: String,
     ) : OfflineBroadcastResult
 }
+
+internal fun Throwable.offlineBroadcastErrorMessage(feeCoinCode: String): String =
+    offlineBroadcastErrorText(feeCoinCode).toString()
+
+internal fun Throwable.offlineBroadcastErrorText(feeCoinCode: String): TranslatableString {
+    val error = convertedError
+    return error.typedOfflineBroadcastErrorText(feeCoinCode)
+        ?: error.message?.knownOfflineBroadcastErrorText(feeCoinCode)
+        ?: TranslatableString.ResString(R.string.offline_broadcast_error_send_failed)
+}
+
+private fun Throwable.typedOfflineBroadcastErrorText(feeCoinCode: String): TranslatableString? =
+    when (this) {
+        is LocalizedException -> toResString()
+        is UnknownHostException,
+        is ConnectException,
+        is NoRouteToHostException -> TranslatableString.ResString(R.string.Hud_Text_NoInternet)
+        is InterruptedIOException,
+        is TimeoutException -> TranslatableString.ResString(R.string.offline_broadcast_error_timeout)
+        is UnsupportedException,
+        is UnsupportedOperationException -> TranslatableString.ResString(R.string.offline_broadcast_unsupported_blockchain)
+        is EvmError.InsufficientBalanceWithFee -> TranslatableString.ResString(
+            R.string.EthereumTransaction_Error_InsufficientBalanceWithFee,
+            feeCoinCode
+        )
+        is EvmError.CannotEstimateSwap -> TranslatableString.ResString(
+            R.string.EthereumTransaction_Error_CannotEstimate,
+            feeCoinCode
+        )
+        is EvmError.LowerThanBaseGasLimit -> TranslatableString.ResString(
+            R.string.EthereumTransaction_Error_LowerThanBaseGasLimit
+        )
+        is EvmError.ExecutionReverted -> TranslatableString.ResString(
+            R.string.EthereumTransaction_Error_ExecutionReverted,
+            message.orEmpty()
+        )
+        is EvmError.InsufficientLiquidity -> TranslatableString.ResString(
+            R.string.EthereumTransaction_Error_InsufficientLiquidity
+        )
+        is EvmError.BlockedByProvider -> TranslatableString.ResString(R.string.source_blocked_by_provider_error)
+        is EvmError.RpcError -> message?.knownOfflineBroadcastErrorText(feeCoinCode)
+            ?: TranslatableString.ResString(R.string.offline_broadcast_error_send_failed)
+        else -> null
+    }
+
+private fun String.knownOfflineBroadcastErrorText(feeCoinCode: String): TranslatableString? {
+    val message = lowercase()
+    return when {
+        message.isBlank() || message == "error" -> TranslatableString.ResString(
+            R.string.offline_broadcast_error_send_failed
+        )
+        message.containsAny(alreadyKnownTransactionMessages) -> TranslatableString.ResString(
+            R.string.offline_broadcast_error_already_sent
+        )
+        message.contains("nonce too low") -> TranslatableString.ResString(
+            R.string.offline_broadcast_error_nonce_used
+        )
+        message.containsAny(lowFeeMessages) -> TranslatableString.ResString(
+            R.string.offline_broadcast_error_low_fee
+        )
+        message.contains("insufficient funds") -> TranslatableString.ResString(
+            R.string.EthereumTransaction_Error_InsufficientBalanceWithFee,
+            feeCoinCode
+        )
+        message.containsAny(rejectedTransactionMessages) -> TranslatableString.ResString(
+            R.string.offline_broadcast_error_rejected
+        )
+        else -> null
+    }
+}
+
+private fun String.containsAny(messages: List<String>): Boolean =
+    messages.any { contains(it) }
+
+private val alreadyKnownTransactionMessages = listOf(
+    "already known",
+    "already imported",
+    "known transaction",
+)
+
+private val lowFeeMessages = listOf(
+    "transaction underpriced",
+    "replacement transaction underpriced",
+    "fee too low",
+    "insufficient fee",
+)
+
+private val rejectedTransactionMessages = listOf(
+    "invalid sender",
+    "intrinsic gas too low",
+    "exceeds block gas limit",
+    "chain id",
+)
 
 data class OfflineBroadcastUiState(
     val step: OfflineBroadcastStep,

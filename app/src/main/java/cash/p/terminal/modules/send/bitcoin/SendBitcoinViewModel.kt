@@ -21,7 +21,6 @@ import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
-import cash.p.terminal.entities.OfflineSignedTransaction
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -30,6 +29,8 @@ import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule.rbfSupported
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
 import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -47,8 +48,6 @@ import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.hodler.LockTimeInterval
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,7 +73,7 @@ class SendBitcoinViewModel(
     private val pendingRegistrar: PendingTransactionRegistrar,
     private val adapterManager: IAdapterManager,
     private val dispatcherProvider: DispatcherProvider
-) : BaseSendViewModel<SendBitcoinUiState>(wallet, adapterManager) {
+) : BaseSendViewModel<SendBitcoinUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
     private companion object {
         val BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS = listOf(
             BlockchainType.Dogecoin,
@@ -90,13 +89,28 @@ class SendBitcoinViewModel(
         val sdkBalance: BigDecimal
     )
 
+    data class OfflineSignResult(
+        val signedTransaction: SignedOfflineBitcoinTransaction,
+        val amount: BigDecimal,
+        val toAddress: String,
+    )
+
     private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
     private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder = getKoinInstance()
     private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository = getKoinInstance()
     @Suppress("UNCHECKED_CAST")
     private val offlineSignAdapter = adapter as? OfflineSignAdapter<SignedOfflineBitcoinTransaction>
+    override val offlineSigningController = OfflineSigningController<OfflineSignResult>(
+        scope = viewModelScope,
+        dispatcherProvider = dispatcherProvider,
+        payloadEncoder = offlineTransactionPayloadEncoder,
+        repository = offlineSignedTransactionRepository,
+        cautionFactory = ::createCaution,
+        isSilentCancellation = { it is TangemSdkError || it is TrezorCancelledException },
+    )
 
-    val coinMaxAllowedDecimals = wallet.token.decimals
+    override val coinMaxAllowedDecimals = wallet.token.decimals
+    override val feeCoinMaxAllowedDecimals get() = coinMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     // MWEB transactions cannot be signed offline (the sign path rejects them), so do not advertise the
     // capability for an MWEB wallet. Sending to an MWEB address from a regular wallet is still caught at
@@ -128,13 +142,7 @@ class SendBitcoinViewModel(
 
     var sendResult by mutableStateOf<SendResult?>(null)
 
-    var offlineSignState by mutableStateOf<OfflineSignState>(OfflineSignState.Idle)
-        private set
-    var offlineSignedTransaction by mutableStateOf<OfflineSignedTransaction?>(null)
-        private set
-    private var offlineSignJob: Job? = null
-
-    var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
 
     init {
@@ -342,7 +350,7 @@ class SendBitcoinViewModel(
         emitState()
     }
 
-    fun getConfirmationData(): SendConfirmationData {
+    override fun getConfirmationData(): SendConfirmationData {
         val address = addressState.validAddress
             ?: throw LocalizedException(R.string.send_error_address_unavailable)
         val amount = amountState.amount
@@ -370,104 +378,54 @@ class SendBitcoinViewModel(
         }
     }
 
-    fun onClickSignOffline(format: OfflineTransactionFormat) {
-        // Arm the Signing state synchronously on the UI thread so rapid taps cannot launch a second
-        // signing pass (which would prompt the hardware wallet twice and store a duplicate record).
-        if (offlineSignState is OfflineSignState.Signing) return
-        offlineSignState = OfflineSignState.Signing
-        offlineSignJob = viewModelScope.launch {
-            signOffline(format)
-        }
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
     }
 
-    // Resets signing back to Idle, cancelling any in-flight pass. Called both when leaving the screen
-    // (Back/Cancel) and after the UI consumes a terminal Failed/Signed state. Cancelling matters for the
-    // leave case: a late hardware result could otherwise persist the signed transaction and flip the UI
-    // to Signed after the user already backed out. In the consume case the job has already completed, so
-    // the cancel is a no-op.
-    fun resetOfflineSignState() {
-        offlineSignJob?.cancel()
-        offlineSignJob = null
-        offlineSignState = OfflineSignState.Idle
-    }
-
-    fun onOfflineTransferClosed() {
-        offlineSignedTransaction = null
-        offlineSignState = OfflineSignState.Idle
-    }
-
-    private suspend fun signOffline(format: OfflineTransactionFormat) = withContext(dispatcherProvider.io) {
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
         val logger = logger.getScopedUnique()
         logger.info("offline sign click")
-        try {
-            offlineSignedTransaction = null
-            val request = sendRequest()
-            if (isMwebTransaction(request.address)) {
-                throw LocalizedException(R.string.offline_transaction_error_mweb_unsupported)
-            }
-            val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
-            val signedTransaction = signingAdapter.signOffline(
-                OfflineBitcoinSignRequest(
-                    amount = request.amount,
-                    address = request.address.hex,
-                    memo = memo,
-                    feeRate = request.feeRate,
-                    unspentOutputs = customUnspentOutputs,
-                    pluginData = pluginState.pluginData,
-                    transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
-                    rbfEnabled = !isMweb && blockchainType.rbfSupported && localStorage.rbfEnabled,
-                    changeToFirstInput = false,
-                    utxoFilters = UtxoFilters(),
-                )
-            )
-            storeSignedTransaction(
-                signedTransaction = signedTransaction,
-                amount = request.amount,
-                toAddress = request.address.hex,
-            )
-            offlineSignState = OfflineSignState.Signed(format)
-            logger.info("offline sign success")
-        } catch (e: TangemSdkError.UserCancelled) {
-            offlineSignState = OfflineSignState.Idle
-            logger.info("user cancelled")
-        } catch (e: TrezorCancelledException) {
-            offlineSignState = OfflineSignState.Idle
-            logger.info("trezor user cancelled")
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Throwable) {
-            if (e is TangemSdkError) {
-                offlineSignState = OfflineSignState.Idle
-                return@withContext
-            }
-            logger.warning("offline sign failed", e)
-            offlineSignState = OfflineSignState.Failed(createCaution(e))
+        val request = sendRequest()
+        if (isMwebTransaction(request.address)) {
+            throw LocalizedException(R.string.offline_transaction_error_mweb_unsupported)
         }
+        val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
+        val signedTransaction = signingAdapter.signOffline(
+            OfflineBitcoinSignRequest(
+                amount = request.amount,
+                address = request.address.hex,
+                memo = memo,
+                feeRate = request.feeRate,
+                unspentOutputs = customUnspentOutputs,
+                pluginData = pluginState.pluginData,
+                transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
+                rbfEnabled = !isMweb && blockchainType.rbfSupported && localStorage.rbfEnabled,
+                changeToFirstInput = false,
+                utxoFilters = UtxoFilters(),
+            )
+        )
+        logger.info("offline sign success")
+        return OfflineSignResult(
+            signedTransaction = signedTransaction,
+            amount = request.amount,
+            toAddress = request.address.hex,
+        )
     }
 
-    private suspend fun storeSignedTransaction(
-        signedTransaction: SignedOfflineBitcoinTransaction,
-        amount: BigDecimal,
-        toAddress: String,
-    ) {
-        val draft = OfflineSignedTransactionDraft(
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft =
+        OfflineSignedTransactionDraft(
             wallet = wallet,
-            amount = amount,
+            amount = result.amount,
             fee = fee,
-            toAddress = toAddress,
-            rawHex = signedTransaction.rawHex,
-            txHash = signedTransaction.txHash,
-            inputOutpoints = signedTransaction.inputOutpoints,
+            toAddress = result.toAddress,
+            rawHex = result.signedTransaction.rawHex,
+            txHash = result.signedTransaction.txHash,
+            inputOutpoints = result.signedTransaction.inputOutpoints,
         )
-        val pcashPayload = offlineTransactionPayloadEncoder.encode(draft)
-        offlineSignedTransaction = OfflineSignedTransaction(
-            rawHex = signedTransaction.rawHex,
-            pcashPayload = pcashPayload,
-            txHash = signedTransaction.txHash,
-            createdAt = draft.createdAt,
-        )
-        offlineSignedTransactionRepository.save(draft, pcashPayload)
-    }
 
     private suspend fun send() = withContext(dispatcherProvider.io) {
         val logger = logger.getScopedUnique()
@@ -591,10 +549,3 @@ data class SendBitcoinUiState(
     val isPoisonAddress: Boolean = false,
     val riskAccepted: Boolean = false,
 )
-
-sealed class OfflineSignState {
-    data object Idle : OfflineSignState()
-    data object Signing : OfflineSignState()
-    data class Signed(val format: OfflineTransactionFormat) : OfflineSignState()
-    data class Failed(val caution: HSCaution) : OfflineSignState()
-}

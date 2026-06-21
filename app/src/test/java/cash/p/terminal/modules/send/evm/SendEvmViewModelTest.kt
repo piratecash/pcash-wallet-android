@@ -1,31 +1,50 @@
 package cash.p.terminal.modules.send.evm
 
 import cash.p.terminal.core.ISendEthereumAdapter
+import cash.p.terminal.core.OfflineEvmSignRequest
+import cash.p.terminal.core.OfflineSignAdapter
+import cash.p.terminal.core.SignedOfflineEvmTransaction
 import cash.p.terminal.core.ServiceStateFlow
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.EvmBlockchainManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PoisonAddressManager
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionServiceState
 import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactionServiceEvm
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountOrigin
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
+import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
+import io.horizontalsystems.ethereumkit.models.Address as EvmAddress
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -51,17 +70,24 @@ import java.math.BigDecimal
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendEvmViewModelTest : KoinTest {
 
+    private interface TestSendEvmAdapter : ISendEthereumAdapter, OfflineSignAdapter<SignedOfflineEvmTransaction>
+
     private val dispatcher = UnconfinedTestDispatcher()
 
-    private val adapter = mockk<ISendEthereumAdapter>(relaxed = true)
+    private val adapter = mockk<TestSendEvmAdapter>(relaxed = true)
     private val sendTransactionService = mockk<SendTransactionServiceEvm>(relaxed = true)
     private val xRateService = mockk<XRateService>(relaxed = true)
     private val amountService = mockk<SendAmountService>(relaxed = true)
     private val addressService = mockk<SendEvmAddressService>(relaxed = true)
     private val evmBlockchainManager = mockk<EvmBlockchainManager>()
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
+    private val payloadEncoder = mockk<OfflineTransactionPayloadEncoder>()
+    private val offlineSignedTransactionRepository = mockk<OfflineSignedTransactionRepository>(relaxed = true)
     private val balanceHiddenManager = mockk<IBalanceHiddenManager>(relaxed = true)
     private val marketKit = mockk<MarketKitWrapper>(relaxed = true)
+    private val walletFactory = WalletFactory(object : HardwareWalletTokenPolicy {
+        override fun isSupported(blockchainType: BlockchainType, tokenType: TokenType) = true
+    })
 
     private lateinit var amountStateFlow: MutableStateFlow<SendAmountService.State>
     private lateinit var addressStateFlow: MutableStateFlow<SendEvmAddressService.State>
@@ -70,9 +96,17 @@ class SendEvmViewModelTest : KoinTest {
 
     private val testAddress = Address("0xafcc12e4040615e7afe9fb4330eb3d9120acac05")
     private val testAmount = BigDecimal("0.001")
-    private val testCoin = Coin(uid = "test-coin", name = "BNB", code = "BNB")
-    private val testToken = Token(
-        coin = testCoin,
+    private val testAccount = Account(
+        id = "account-id",
+        name = "Account",
+        type = AccountType.Mnemonic(List(12) { "word$it" }, ""),
+        origin = AccountOrigin.Created,
+        level = 0,
+        isBackedUp = true,
+    )
+    private val bnbCoin = Coin(uid = "binance-coin", name = "BNB", code = "BNB")
+    private val bnbToken = Token(
+        coin = bnbCoin,
         blockchain = Blockchain(
             type = BlockchainType.BinanceSmartChain,
             name = "BNB Smart Chain",
@@ -81,12 +115,11 @@ class SendEvmViewModelTest : KoinTest {
         type = TokenType.Native,
         decimals = 18
     )
-    private val testWallet = mockk<Wallet>(relaxed = true) {
-        every { token } returns testToken
-        every { coin } returns testCoin
-    }
+    private val bnbWallet = checkNotNull(walletFactory.create(bnbToken, testAccount, null))
+    private val testWallet = bnbWallet
+    private val testToken = bnbToken
     private val testTransactionData = TransactionData(
-        to = io.horizontalsystems.ethereumkit.models.Address(testAddress.hex),
+        to = EvmAddress(testAddress.hex),
         value = BigDecimal.ZERO.toBigInteger(),
         input = ByteArray(0)
     )
@@ -96,6 +129,8 @@ class SendEvmViewModelTest : KoinTest {
         modules(
             module {
                 single { evmBlockchainManager }
+                single { payloadEncoder }
+                single { offlineSignedTransactionRepository }
                 single { mockk<ContactsRepository>(relaxed = true) }
                 single<IBalanceHiddenManager> { balanceHiddenManager }
                 single<MarketKitWrapper> { marketKit }
@@ -123,9 +158,15 @@ class SendEvmViewModelTest : KoinTest {
         every { sendTransactionService.stateFlow } returns transactionStateFlow
         every { xRateService.getRate(any()) } returns null
         every { xRateService.getRateFlow(any()) } returns flowOf<CurrencyValue>()
-        every { evmBlockchainManager.getBaseToken(BlockchainType.BinanceSmartChain) } returns testToken
+        every { evmBlockchainManager.getBaseToken(BlockchainType.BinanceSmartChain) } returns bnbToken
         every { balanceHiddenManager.balanceHiddenFlow } returns MutableStateFlow(false)
         every { adapter.getTransactionData(any(), any()) } returns testTransactionData
+        coEvery { adapter.signOffline(any()) } returns SignedOfflineEvmTransaction(
+            rawHex = "raw",
+            txHash = "hash",
+        )
+        every { payloadEncoder.encode(any()) } returns "payload"
+        coEvery { offlineSignedTransactionRepository.save(any(), any()) } returns Unit
 
         every { amountService.setAmount(any()) } answers {
             val amount = firstArg<BigDecimal?>()
@@ -239,7 +280,7 @@ class SendEvmViewModelTest : KoinTest {
             verify(atLeast = 1) {
                 adapter.getTransactionData(
                     any(),
-                    eq(io.horizontalsystems.ethereumkit.models.Address(newAddress.hex))
+                    eq(EvmAddress(newAddress.hex))
                 )
             }
         }
@@ -260,18 +301,48 @@ class SendEvmViewModelTest : KoinTest {
         assertEquals(false, viewModel.uiState.canBeSend)
     }
 
-    private fun createViewModel() = SendEvmViewModel(
-        wallet = testWallet,
-        sendToken = testToken,
+    @Test
+    fun onClickSignOffline_validTransaction_savesCurrentWallet() =
+        runTest(dispatcher) {
+            val draftSlot = slot<OfflineSignedTransactionDraft>()
+            every { payloadEncoder.encode(capture(draftSlot)) } returns "payload"
+            every { sendTransactionService.offlineSignRequest() } returns offlineSignRequest(testTransactionData)
+
+            val viewModel = createViewModel()
+            viewModel.onEnterAddress(testAddress)
+            viewModel.onEnterAmount(testAmount)
+            advanceUntilIdle()
+
+            viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+            advanceUntilIdle()
+
+            val draft = draftSlot.captured
+            assertEquals(testToken, draft.wallet.token)
+            assertEquals(bnbToken, draft.feeToken)
+            assertEquals("raw", draft.rawHex)
+            assertEquals("hash", draft.txHash)
+            assertEquals(testAmount, draft.amount)
+            assertEquals(testAddress.hex, draft.toAddress)
+            assertTrue(draft.inputOutpoints.isEmpty())
+            coVerify { offlineSignedTransactionRepository.save(draft, "payload") }
+        }
+
+    private fun createViewModel(
+        wallet: Wallet = testWallet,
+        sendToken: Token = wallet.token,
+    ) = SendEvmViewModel(
+        wallet = wallet,
+        sendToken = sendToken,
         adapter = adapter,
         sendTransactionService = sendTransactionService,
         xRateService = xRateService,
         amountService = amountService,
         addressService = addressService,
-        coinMaxAllowedDecimals = 18,
+        coinMaxAllowedDecimals = sendToken.decimals,
         showAddressInput = true,
         address = null,
-        adapterManager = adapterManager
+        adapterManager = adapterManager,
+        dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
     )
 
     private fun createAmountState(
@@ -290,7 +361,7 @@ class SendEvmViewModelTest : KoinTest {
     ) = SendEvmAddressService.State(
         address = address,
         evmAddress = address?.let {
-            io.horizontalsystems.ethereumkit.models.Address(it.hex)
+            EvmAddress(it.hex)
         },
         addressError = null,
         canBeSend = canBeSend
@@ -305,5 +376,12 @@ class SendEvmViewModelTest : KoinTest {
         sendable = sendable,
         loading = false,
         fields = emptyList()
+    )
+
+    private fun offlineSignRequest(transactionData: TransactionData) = OfflineEvmSignRequest(
+        transactionData = transactionData,
+        gasPrice = GasPrice.Legacy(1),
+        gasLimit = 21_000,
+        nonce = 1,
     )
 }

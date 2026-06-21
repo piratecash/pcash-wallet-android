@@ -1,5 +1,6 @@
 package cash.p.terminal.entities
 
+import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import java.math.BigDecimal
 
@@ -19,6 +20,7 @@ data class OfflineSignedTransactionDraft(
     val txHash: String,
     val inputOutpoints: List<OfflineTransactionOutpoint>,
     val createdAt: Long = System.currentTimeMillis(),
+    val feeToken: Token? = null,
 )
 
 enum class OfflineSignedTransactionStatus(val value: String) {
@@ -31,14 +33,28 @@ enum class OfflineSignedTransactionStatus(val value: String) {
     }
 }
 
-// Result of decoding a pcash:tx:v1 payload back into its parts. Atomic amounts are kept as
-// strings because the target token's decimals are resolved by the caller, not the payload.
+data class OfflineTokenMetadata(
+    val tokenQueryId: String,
+    val coinUid: String?,
+    val coinCode: String,
+    val coinName: String?,
+    val decimals: Int,
+)
+
+data class OfflineFeeMetadata(
+    val tokenQueryId: String,
+    val atomic: String,
+    val decimals: Int,
+)
+
+// Result of decoding a pcash:tx:v1 payload back into its parts.
 data class DecodedOfflineTransaction(
     val blockchainUid: String,
     val rawHex: String,
     val txHash: String,
+    val token: OfflineTokenMetadata,
     val amountAtomic: String,
-    val feeAtomic: String?,
+    val fee: OfflineFeeMetadata?,
     val toAddress: String,
     val createdAt: Long,
     val inputOutpoints: List<OfflineTransactionOutpoint>,

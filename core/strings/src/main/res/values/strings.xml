@@ -1331,6 +1331,12 @@ Proceed only if you\'re sure.</string>
     <string name="offline_broadcast_tx_id">Transaction ID</string>
     <string name="offline_broadcast_view_in_explorer">View in Explorer</string>
     <string name="offline_broadcast_error_title">Transaction not sent</string>
+    <string name="offline_broadcast_error_send_failed">Error while sending</string>
+    <string name="offline_broadcast_error_timeout">Request timed out. Try again later.</string>
+    <string name="offline_broadcast_error_already_sent">This transaction is already known to the network.</string>
+    <string name="offline_broadcast_error_nonce_used">This transaction nonce has already been used. It may have been sent or replaced.</string>
+    <string name="offline_broadcast_error_low_fee">The network fee is too low. Create a transaction with a higher fee.</string>
+    <string name="offline_broadcast_error_rejected">The network rejected this signed transaction.</string>
     <string name="offline_broadcast_enable_network_button">Enable %1$s</string>
     <string name="offline_broadcast_preparing_network_button">Preparing %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s is not enabled in the app. Enable the network so the app can broadcast this signed transaction. This does not create a new transaction or send your funds.</string>

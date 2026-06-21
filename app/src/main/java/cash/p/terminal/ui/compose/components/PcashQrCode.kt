@@ -45,17 +45,27 @@ internal object PcashQrCodeDefaults {
     val QuietZone = 8.dp
     const val QuietZoneModules = 4f
     const val SavedBitmapSize = 1024
+
+    // QRose MediumHigh maps to QR ECC Q; keep this paired with ZXing Q for capacity checks.
+    val PainterErrorCorrectionLevel = QrErrorCorrectionLevel.MediumHigh
+    val EncoderErrorCorrectionLevel = ErrorCorrectionLevel.Q
 }
 
 @Composable
-internal fun rememberPcashQrCodePainter(content: String): Painter {
+internal fun rememberPcashQrCodePainterOrNull(content: String): Painter? {
+    if (!canEncodeAsPcashQrCode(content)) return null
+    return rememberPcashQrCodePainter(content)
+}
+
+@Composable
+private fun rememberPcashQrCodePainter(content: String): Painter {
     val logoPainter = adaptiveIconPainterResource(
         id = R.mipmap.launcher_main,
         fallbackDrawable = R.drawable.launcher_main_preview
     )
 
     return rememberQrCodePainter(content) {
-        errorCorrectionLevel = QrErrorCorrectionLevel.MediumHigh
+        errorCorrectionLevel = PcashQrCodeDefaults.PainterErrorCorrectionLevel
         logo {
             painter = logoPainter
             padding = QrLogoPadding.Natural(.25f)
@@ -99,9 +109,10 @@ internal fun PcashQrCodeImage(
     qrCodeSize: Dp = PcashQrCodeDefaults.Size,
     contentScale: ContentScale = ContentScale.FillWidth,
 ) {
+    val qrCodePainter = rememberPcashQrCodePainterOrNull(content) ?: return
     PcashQrCodeImage(
         content = content,
-        qrCodePainter = rememberPcashQrCodePainter(content),
+        qrCodePainter = qrCodePainter,
         modifier = modifier,
         qrCodeSize = qrCodeSize,
         contentScale = contentScale,
@@ -173,7 +184,10 @@ private fun calculatePcashQrQuietZonePx(content: String, density: Density): Int 
         .roundToInt()
 }
 
+internal fun canEncodeAsPcashQrCode(content: String): Boolean =
+    qrModuleCount(content) != null
+
 private fun qrModuleCount(content: String): Int? =
     tryOrNull {
-        Encoder.encode(content, ErrorCorrectionLevel.Q).matrix?.width?.takeIf { it > 0 }
+        Encoder.encode(content, PcashQrCodeDefaults.EncoderErrorCorrectionLevel).matrix?.width?.takeIf { it > 0 }
     }

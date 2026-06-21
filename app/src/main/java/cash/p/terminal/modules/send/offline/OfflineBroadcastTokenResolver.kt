@@ -2,6 +2,7 @@ package cash.p.terminal.modules.send.offline
 
 import cash.p.terminal.core.defaultTokenQuery
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.nativeTokenQueries
 import cash.p.terminal.core.supports
 import cash.p.terminal.wallet.Account
@@ -16,10 +17,12 @@ import io.horizontalsystems.core.entities.BlockchainType
  * hand-maintained matrix, so enabling offline broadcast for a new network requires no change here:
  *
  *  - [BtcBlockchainManager.blockchainTypes] is exactly the set the adapter factory builds a
- *    BitcoinBaseAdapter for, and BitcoinBaseAdapter is the only family that implements
- *    OfflineBroadcastAdapter. A new bitcoin-like adapter added there starts relaying automatically.
+ *    BitcoinBaseAdapter for. A new bitcoin-like adapter added there starts relaying automatically.
+ *  - [EvmBlockchainManager.blockchainTypes] is the EVM-family source; relay uses the base token
+ *    because broadcasting signed bytes is chain-level, not token-level.
  *  - Watch-only accounts (watch address and public HD extended key) are rejected because the
- *    bitcoin-kit core is read-only and throws CoreError.ReadOnlyCore on broadcast.
+ *    bitcoin-kit core is read-only and throws CoreError.ReadOnlyCore on broadcast. EVM watch-only
+ *    accounts may relay because eth_sendRawTransaction does not require local signing keys.
  *  - Token/account compatibility reuses [Token.supports] + [BlockchainType.supports], which already
  *    encode derivation, purpose and coin-type constraints (e.g. native Dogecoin is not relayable
  *    from an HD extended key).
@@ -32,12 +35,20 @@ import io.horizontalsystems.core.entities.BlockchainType
 class OfflineBroadcastTokenResolver(
     private val marketKit: MarketKitWrapper,
     private val btcBlockchainManager: BtcBlockchainManager,
+    private val evmBlockchainManager: EvmBlockchainManager,
     private val hardwareWalletTokenPolicy: HardwareWalletTokenPolicy,
 ) {
 
     fun resolveTokenToEnable(blockchainType: BlockchainType, account: Account): Token? {
+        return when (blockchainType) {
+            in btcBlockchainManager.blockchainTypes -> resolveBitcoinToken(blockchainType, account)
+            in EvmBlockchainManager.blockchainTypes -> resolveEvmToken(blockchainType, account)
+            else -> null
+        }
+    }
+
+    private fun resolveBitcoinToken(blockchainType: BlockchainType, account: Account): Token? {
         if (account.isWatchAccount) return null
-        if (blockchainType !in btcBlockchainManager.blockchainTypes) return null
 
         // Derivation is irrelevant for relaying signed bytes; any compatible token can host the
         // local wallet/adapter. Prefer the default query, then fall back to other native queries.
@@ -47,6 +58,9 @@ class OfflineBroadcastTokenResolver(
             marketKit.token(query)?.takeIf { canEnable(it, account) }
         }
     }
+
+    private fun resolveEvmToken(blockchainType: BlockchainType, account: Account): Token? =
+        evmBlockchainManager.getBaseToken(blockchainType)?.takeIf { canEnable(it, account) }
 
     private fun canEnable(token: Token, account: Account): Boolean =
         token.supports(account.type) &&

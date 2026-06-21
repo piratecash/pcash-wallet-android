@@ -26,16 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
-import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -54,11 +52,8 @@ import cash.p.terminal.modules.send.bitcoin.advanced.BtcTransactionInputSortInfo
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.advanced.SendBtcAdvancedSettingsScreen
 import cash.p.terminal.modules.send.bitcoin.utxoexpert.UtxoExpertModeScreen
-import cash.p.terminal.modules.send.offline.OfflineBitcoinSignCallbacks
-import cash.p.terminal.modules.send.offline.OfflineBitcoinSignScreen
-import cash.p.terminal.modules.send.offline.OfflineQrCodeSaver
-import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
-import cash.p.terminal.modules.send.offline.OfflineTransactionTransferScreen
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -78,7 +73,6 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import org.koin.compose.koinInject
 import java.math.BigDecimal
 
 
@@ -89,8 +83,6 @@ const val UtxoExpertModePage = "utxo_expert_mode_page"
 private const val DebugOfflineBitcoinSignPage = "debug_offline_bitcoin_sign"
 private const val DebugOfflineTransactionTransferPage = "debug_offline_transaction_transfer"
 private const val DebugOfflineTransactionTransferFormatArg = "format"
-private const val DebugOfflineTransactionTransferRoute =
-    "$DebugOfflineTransactionTransferPage/{$DebugOfflineTransactionTransferFormatArg}"
 
 @Composable
 fun SendBitcoinNavHost(
@@ -141,11 +133,7 @@ fun SendBitcoinNavHost(
                 }
             )
         }
-        debugOfflineBitcoinSignRoute(
-            navController = navController,
-            sendViewModel = viewModel,
-        )
-        debugOfflineTransactionTransferRoute(
+        debugOfflineBitcoinSignFlowRoutes(
             navController = navController,
             fragmentNavController = fragmentNavController,
             sendViewModel = viewModel,
@@ -153,76 +141,22 @@ fun SendBitcoinNavHost(
     }
 }
 
-private fun NavGraphBuilder.debugOfflineBitcoinSignRoute(
-    navController: NavController,
-    sendViewModel: SendBitcoinViewModel,
-) {
-    composablePage(DebugOfflineBitcoinSignPage) {
-        val confirmationData = remember(sendViewModel) {
-            tryOrNull { sendViewModel.getConfirmationData() }
-        }
-        if (confirmationData == null) {
-            LaunchedEffect(Unit) {
-                navController.popBackStackSafely()
-            }
-            return@composablePage
-        }
-
-        val onLeave: () -> Unit = {
-            sendViewModel.resetOfflineSignState()
-            navController.popBackStackSafely()
-        }
-        OfflineBitcoinSignScreen(
-            confirmationData = confirmationData,
-            blockchainName = sendViewModel.wallet.token.blockchain.name,
-            coinMaxAllowedDecimals = sendViewModel.coinMaxAllowedDecimals,
-            rate = sendViewModel.coinRate,
-            signState = sendViewModel.offlineSignState,
-            callbacks = OfflineBitcoinSignCallbacks(
-                onBackClick = onLeave,
-                onCancelClick = onLeave,
-                onSignClick = sendViewModel::onClickSignOffline,
-                onSignStateConsumed = sendViewModel::resetOfflineSignState,
-                onSigned = { format ->
-                    navController.navigate(debugOfflineTransactionTransferRoute(format))
-                },
-            ),
-        )
-    }
-}
-
-private fun NavGraphBuilder.debugOfflineTransactionTransferRoute(
-    navController: NavController,
+private fun NavGraphBuilder.debugOfflineBitcoinSignFlowRoutes(
+    navController: NavHostController,
     fragmentNavController: NavController,
     sendViewModel: SendBitcoinViewModel,
 ) {
-    composablePage(
-        route = DebugOfflineTransactionTransferRoute,
-        arguments = listOf(
-            navArgument(DebugOfflineTransactionTransferFormatArg) {
-                type = NavType.StringType
-            }
-        )
-    ) { backStackEntry ->
-        val qrCodeSaver: OfflineQrCodeSaver = koinInject()
-        val initialFormat = OfflineTransactionFormat.entries.firstOrNull {
-            it.name == backStackEntry.arguments?.getString(DebugOfflineTransactionTransferFormatArg)
-        } ?: OfflineTransactionFormat.Pcash
-        OfflineTransactionTransferScreen(
-            transaction = sendViewModel.offlineSignedTransaction,
-            selectedFormat = initialFormat,
-            qrCodeSaver = qrCodeSaver,
-            onBackClick = navController::popBackStackSafely,
-            onDoneClick = {
-                sendViewModel.onOfflineTransferClosed()
-                fragmentNavController.popBackStack(R.id.sendXFragment, true)
-            },
-        )
-    }
+    offlineSignFlowRoutes(
+        routes = OfflineSignFlowRoutes(
+            signRoute = DebugOfflineBitcoinSignPage,
+            transferRoute = DebugOfflineTransactionTransferPage,
+            transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+        ),
+        navController = navController,
+        fragmentNavController = fragmentNavController,
+        sendViewModel = sendViewModel,
+    )
 }
-
-private fun debugOfflineTransactionTransferRoute(format: OfflineTransactionFormat): String =
-    "$DebugOfflineTransactionTransferPage/${format.name}"
 
 @Composable
 private fun SendBitcoinScreen(

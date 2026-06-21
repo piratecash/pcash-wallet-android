@@ -6,11 +6,13 @@ import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSignedTransactionEntity
 import cash.p.terminal.entities.OfflineSignedTransactionStatus
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.tokenQueryId
 import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
 import timber.log.Timber
 
 class OfflineSignedTransactionRepository(
@@ -32,6 +34,16 @@ class OfflineSignedTransactionRepository(
     ) {
         executeSafely("persist imported") {
             dao.insertIfAbsent(decoded.toEntity(wallet, pcashPayload))
+        }
+    }
+
+    suspend fun saveRawImported(
+        wallet: Wallet,
+        rawHex: String,
+        txHash: String,
+    ) {
+        executeSafely("persist raw imported") {
+            dao.insertIfAbsent(rawImportEntity(wallet, rawHex, txHash))
         }
     }
 
@@ -86,23 +98,32 @@ class OfflineSignedTransactionRepository(
         }
     }
 
-    private fun OfflineSignedTransactionDraft.toEntity(pcashPayload: String) = OfflineSignedTransactionEntity(
-        accountId = wallet.account.id,
-        txHash = txHash,
-        blockchainTypeUid = wallet.token.blockchainType.uid,
-        coinCode = wallet.token.coin.code,
-        tokenDecimals = wallet.token.decimals,
-        amount = amount.toPlainString(),
-        toAddress = toAddress,
-        rawHex = rawHex,
-        pcashPayload = pcashPayload,
-        createdAt = createdAt,
-        status = OfflineSignedTransactionStatus.Pending.value,
-        broadcastAttempts = 0,
-        lastBroadcastAt = null,
-        broadcastedAt = null,
-        lastError = null,
-    )
+    private fun OfflineSignedTransactionDraft.toEntity(pcashPayload: String): OfflineSignedTransactionEntity {
+        val feeToken = feeToken ?: wallet.token
+        return OfflineSignedTransactionEntity(
+            accountId = wallet.account.id,
+            txHash = txHash,
+            blockchainTypeUid = wallet.token.blockchainType.uid,
+            tokenQueryId = wallet.tokenQueryId,
+            sourceTokenQueryId = wallet.tokenQueryId,
+            coinUid = wallet.token.coin.uid,
+            coinCode = wallet.token.coin.code,
+            coinName = wallet.token.coin.name,
+            tokenDecimals = wallet.token.decimals,
+            amount = amount.toPlainString(),
+            feeTokenQueryId = fee?.let { feeToken.tokenQuery.id },
+            feeAtomic = fee?.toAtomicString(feeToken.decimals),
+            toAddress = toAddress,
+            rawHex = rawHex,
+            pcashPayload = pcashPayload,
+            createdAt = createdAt,
+            status = OfflineSignedTransactionStatus.Pending.value,
+            broadcastAttempts = 0,
+            lastBroadcastAt = null,
+            broadcastedAt = null,
+            lastError = null,
+        )
+    }
 
     private fun DecodedOfflineTransaction.toEntity(
         wallet: Wallet,
@@ -110,13 +131,19 @@ class OfflineSignedTransactionRepository(
     ) = OfflineSignedTransactionEntity(
         accountId = wallet.account.id,
         txHash = txHash,
-        blockchainTypeUid = wallet.token.blockchainType.uid,
-        coinCode = wallet.token.coin.code,
-        tokenDecimals = wallet.token.decimals,
+        blockchainTypeUid = blockchainUid,
+        tokenQueryId = token.tokenQueryId,
+        sourceTokenQueryId = wallet.tokenQueryId,
+        coinUid = token.coinUid,
+        coinCode = token.coinCode,
+        coinName = token.coinName,
+        tokenDecimals = token.decimals,
         amount = amountAtomic.toBigDecimalOrNull()
-            ?.movePointLeft(wallet.token.decimals)
+            ?.movePointLeft(token.decimals)
             ?.toPlainString()
             .orEmpty(),
+        feeTokenQueryId = fee?.tokenQueryId,
+        feeAtomic = fee?.atomic,
         toAddress = toAddress,
         rawHex = rawHex,
         pcashPayload = pcashPayload,
@@ -127,4 +154,35 @@ class OfflineSignedTransactionRepository(
         broadcastedAt = null,
         lastError = null,
     )
+
+    private fun rawImportEntity(
+        wallet: Wallet,
+        rawHex: String,
+        txHash: String,
+    ) = OfflineSignedTransactionEntity(
+        accountId = wallet.account.id,
+        txHash = txHash,
+        blockchainTypeUid = wallet.token.blockchainType.uid,
+        tokenQueryId = "",
+        sourceTokenQueryId = wallet.tokenQueryId,
+        coinUid = wallet.token.coin.uid,
+        coinCode = wallet.token.coin.code,
+        coinName = wallet.token.coin.name,
+        tokenDecimals = wallet.token.decimals,
+        amount = "",
+        feeTokenQueryId = null,
+        feeAtomic = null,
+        toAddress = "",
+        rawHex = rawHex,
+        pcashPayload = "",
+        createdAt = System.currentTimeMillis(),
+        status = OfflineSignedTransactionStatus.Pending.value,
+        broadcastAttempts = 0,
+        lastBroadcastAt = null,
+        broadcastedAt = null,
+        lastError = null,
+    )
+
+    private fun BigDecimal.toAtomicString(decimals: Int): String =
+        movePointRight(decimals).toBigInteger().toString()
 }

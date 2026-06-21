@@ -45,7 +45,7 @@ import cash.p.terminal.entities.OfflineSignedTransaction
 import cash.p.terminal.ui.compose.components.PcashQrCodeDefaults
 import cash.p.terminal.ui.compose.components.PcashQrCodeImage
 import cash.p.terminal.ui.compose.components.createPcashQrCodeBitmap
-import cash.p.terminal.ui.compose.components.rememberPcashQrCodePainter
+import cash.p.terminal.ui.compose.components.rememberPcashQrCodePainterOrNull
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
@@ -133,7 +133,7 @@ private fun TransferContent(
     modifier: Modifier = Modifier,
 ) {
     val qrContent = selectedFormat.content(transaction)
-    val qrCodePainter = rememberPcashQrCodePainter(qrContent)
+    val qrCodePainter = rememberPcashQrCodePainterOrNull(qrContent)
 
     TransferScrollableContent(
         modifier = modifier.fillMaxSize(),
@@ -150,7 +150,7 @@ private fun TransferScrollableContent(
     transaction: OfflineSignedTransaction,
     selectedFormat: OfflineTransactionFormat,
     qrContent: String,
-    qrCodePainter: Painter,
+    qrCodePainter: Painter?,
     qrCodeSaver: OfflineQrCodeSaver,
     modifier: Modifier = Modifier,
 ) {
@@ -160,11 +160,13 @@ private fun TransferScrollableContent(
     ) {
         VSpacer(12.dp)
         TransferHeader(selectedFormat)
-        VSpacer(16.dp)
-        QrCodePanel(
-            qrContent = qrContent,
-            qrCodePainter = qrCodePainter,
-        )
+        if (qrCodePainter != null) {
+            VSpacer(16.dp)
+            QrCodePanel(
+                qrContent = qrContent,
+                qrCodePainter = qrCodePainter,
+            )
+        }
         VSpacer(20.dp)
         TransferActionButtons(
             qrContent = qrContent,
@@ -246,7 +248,7 @@ private fun QrCodeImage(
 @Composable
 private fun TransferActionButtons(
     qrContent: String,
-    qrCodePainter: Painter,
+    qrCodePainter: Painter?,
     qrCodeSaver: OfflineQrCodeSaver,
 ) {
     val context = LocalContext.current
@@ -259,12 +261,14 @@ private fun TransferActionButtons(
             .padding(horizontal = 24.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        SaveQrActionButton(
-            qrContent = qrContent,
-            qrCodePainter = qrCodePainter,
-            qrCodeSaver = qrCodeSaver,
-            modifier = Modifier.weight(1f),
-        )
+        if (qrCodePainter != null) {
+            SaveQrActionButton(
+                qrContent = qrContent,
+                qrCodePainter = qrCodePainter,
+                qrCodeSaver = qrCodeSaver,
+                modifier = Modifier.weight(1f),
+            )
+        }
         TransferActionButton(
             icon = R.drawable.ic_copy_20,
             text = stringResource(R.string.offline_transaction_copy_transaction),
@@ -370,12 +374,6 @@ private suspend fun saveQrCode(
         }
     } catch (_: Throwable) {
         false
-    }
-
-private fun OfflineTransactionFormat.content(transaction: OfflineSignedTransaction): String =
-    when (this) {
-        OfflineTransactionFormat.Pcash -> transaction.pcashPayload
-        OfflineTransactionFormat.Raw -> transaction.rawHex
     }
 
 private val OfflineTransactionFormat.transferTitleRes: Int

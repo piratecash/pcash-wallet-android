@@ -1002,6 +1002,12 @@
     <string name="offline_broadcast_tx_id">交易 ID</string>
     <string name="offline_broadcast_view_in_explorer">在区块链浏览器中查看</string>
     <string name="offline_broadcast_error_title">交易未发送</string>
+    <string name="offline_broadcast_error_send_failed">发送时出错</string>
+    <string name="offline_broadcast_error_timeout">请求超时。请稍后重试。</string>
+    <string name="offline_broadcast_error_already_sent">这笔交易已被网络知晓。</string>
+    <string name="offline_broadcast_error_nonce_used">这笔交易的 nonce 已被使用。它可能已发送或被替换。</string>
+    <string name="offline_broadcast_error_low_fee">网络手续费太低。请创建一笔手续费更高的交易。</string>
+    <string name="offline_broadcast_error_rejected">网络拒绝了这笔已签名交易。</string>
     <string name="offline_broadcast_enable_network_button">启用 %1$s</string>
     <string name="offline_broadcast_preparing_network_button">正在准备 %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s 尚未在应用中启用。请启用该网络，以便应用广播此已签名交易。这不会创建新交易，也不会发送您的资金。</string>

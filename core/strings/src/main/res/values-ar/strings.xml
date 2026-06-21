@@ -1005,6 +1005,12 @@
     <string name="offline_broadcast_tx_id">معرّف المعاملة</string>
     <string name="offline_broadcast_view_in_explorer">العرض في المستكشف</string>
     <string name="offline_broadcast_error_title">لم تُرسل المعاملة</string>
+    <string name="offline_broadcast_error_send_failed">حدث خطأ أثناء الإرسال</string>
+    <string name="offline_broadcast_error_timeout">انتهت مهلة الطلب. حاول مرة أخرى لاحقًا.</string>
+    <string name="offline_broadcast_error_already_sent">هذه المعاملة معروفة بالفعل لدى الشبكة.</string>
+    <string name="offline_broadcast_error_nonce_used">تم استخدام قيمة nonce لهذه المعاملة بالفعل. ربما تم إرسالها أو استبدالها.</string>
+    <string name="offline_broadcast_error_low_fee">رسوم الشبكة منخفضة جدًا. أنشئ معاملة برسوم أعلى.</string>
+    <string name="offline_broadcast_error_rejected">رفضت الشبكة هذه المعاملة الموقعة.</string>
     <string name="offline_broadcast_enable_network_button">تفعيل %1$s</string>
     <string name="offline_broadcast_preparing_network_button">جارٍ تحضير %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s غير مُفعَّل في التطبيق. فعِّل الشبكة حتى يتمكن التطبيق من بث هذه المعاملة الموقَّعة. لا يؤدي ذلك إلى إنشاء معاملة جديدة أو إرسال أموالك.</string>

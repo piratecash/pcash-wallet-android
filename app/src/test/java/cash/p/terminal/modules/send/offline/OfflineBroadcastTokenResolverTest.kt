@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.send.offline
 
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.policy.CompositeHardwareWalletTokenPolicy
 import cash.p.terminal.tangem.domain.policy.TangemHardwareWalletTokenPolicy
 import cash.p.terminal.trezor.domain.policy.TrezorHardwareWalletTokenPolicy
@@ -33,6 +34,7 @@ class OfflineBroadcastTokenResolverTest {
 
     private val marketKit = mockk<MarketKitWrapper>()
     private val btcBlockchainManager = mockk<BtcBlockchainManager>()
+    private val evmBlockchainManager = mockk<EvmBlockchainManager>()
     private val hardwareWalletTokenPolicy = CompositeHardwareWalletTokenPolicy(
         tangemPolicy = TangemHardwareWalletTokenPolicy(),
         trezorPolicy = TrezorHardwareWalletTokenPolicy(),
@@ -41,12 +43,16 @@ class OfflineBroadcastTokenResolverTest {
     private val resolver = OfflineBroadcastTokenResolver(
         marketKit = marketKit,
         btcBlockchainManager = btcBlockchainManager,
+        evmBlockchainManager = evmBlockchainManager,
         hardwareWalletTokenPolicy = hardwareWalletTokenPolicy,
     )
 
     @Before
     fun setUp() {
         every { btcBlockchainManager.blockchainTypes } returns BITCOIN_LIKE
+        every { evmBlockchainManager.getBaseToken(any()) } answers {
+            token(firstArg(), TokenType.Native)
+        }
         // Echo each requested query back as an existing token so capability is decided purely by the
         // supports/policy layers, not by token availability.
         every { marketKit.token(any()) } answers {
@@ -67,8 +73,19 @@ class OfflineBroadcastTokenResolverTest {
     }
 
     @Test
-    fun resolveTokenToEnable_nonBitcoinLikeBlockchain_returnsNull() {
-        assertNull(resolver.resolveTokenToEnable(BlockchainType.Ethereum, mnemonicAccount()))
+    fun resolveTokenToEnable_nonBroadcastableBlockchain_returnsNull() {
+        assertNull(resolver.resolveTokenToEnable(BlockchainType.Solana, mnemonicAccount()))
+    }
+
+    @Test
+    fun resolveTokenToEnable_watchEvmAddressOnEthereum_returnsToken() {
+        val token = resolver.resolveTokenToEnable(
+            BlockchainType.Ethereum,
+            account(AccountType.EvmAddress("0x1234567890abcdef1234567890abcdef12345678")),
+        )
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Ethereum, token?.blockchainType)
     }
 
     @Test

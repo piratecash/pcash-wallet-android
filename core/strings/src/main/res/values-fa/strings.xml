@@ -1005,6 +1005,12 @@
     <string name="offline_broadcast_tx_id">شناسهٔ تراکنش</string>
     <string name="offline_broadcast_view_in_explorer">مشاهده در اکسپلورر</string>
     <string name="offline_broadcast_error_title">تراکنش ارسال نشد</string>
+    <string name="offline_broadcast_error_send_failed">خطا هنگام ارسال</string>
+    <string name="offline_broadcast_error_timeout">زمان درخواست به پایان رسید. بعداً دوباره تلاش کنید.</string>
+    <string name="offline_broadcast_error_already_sent">این تراکنش از قبل برای شبکه شناخته شده است.</string>
+    <string name="offline_broadcast_error_nonce_used">نانس این تراکنش قبلاً استفاده شده است. ممکن است ارسال یا جایگزین شده باشد.</string>
+    <string name="offline_broadcast_error_low_fee">کارمزد شبکه خیلی کم است. تراکنشی با کارمزد بالاتر ایجاد کنید.</string>
+    <string name="offline_broadcast_error_rejected">شبکه این تراکنش امضاشده را رد کرد.</string>
     <string name="offline_broadcast_enable_network_button">فعال‌سازی %1$s</string>
     <string name="offline_broadcast_preparing_network_button">در حال آماده‌سازی %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s در برنامه فعال نیست. شبکه را فعال کنید تا برنامه بتواند این تراکنش امضاشده را ارسال کند. این کار تراکنش جدیدی ایجاد نمی‌کند و وجوه شما را ارسال نمی‌کند.</string>

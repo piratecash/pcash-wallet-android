@@ -5,7 +5,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -14,39 +13,28 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.composablePage
-import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendConfirmationScreen
-import cash.p.terminal.modules.send.offline.OfflineBitcoinSignCallbacks
-import cash.p.terminal.modules.send.offline.OfflineBitcoinSignScreen
-import cash.p.terminal.modules.send.offline.OfflineQrCodeSaver
+import cash.p.terminal.modules.send.offline.OfflineSyncRetryProgressEffect
 import cash.p.terminal.modules.send.offline.OfflineSendSyncErrorCallbacks
 import cash.p.terminal.modules.send.offline.OfflineSendSyncErrorScreen
 import cash.p.terminal.modules.send.offline.OfflineSendSyncErrorState
-import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
-import cash.p.terminal.modules.send.offline.OfflineTransactionTransferScreen
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.syncerror.SyncErrorModule
 import cash.p.terminal.modules.syncerror.SyncErrorViewModel
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
-import kotlinx.coroutines.delay
-import org.koin.compose.koinInject
 
 private const val BitcoinConfirmationPage = "bitcoin_confirmation"
 private const val OfflineBitcoinSignPage = "offline_bitcoin_sign"
 private const val OfflineTransactionTransferPage = "offline_transaction_transfer"
 private const val OfflineTransactionTransferFormatArg = "format"
-private const val OfflineTransactionTransferRoute =
-    "$OfflineTransactionTransferPage/{$OfflineTransactionTransferFormatArg}"
-private const val RetryProgressMinVisibleMillis = 1200L
 
 @Composable
 fun SendBitcoinConfirmationScreen(
@@ -64,8 +52,7 @@ fun SendBitcoinConfirmationScreen(
         startDestination = BitcoinConfirmationPage,
     ) {
         bitcoinConfirmationRoute(navState, sendViewModel)
-        offlineBitcoinSignRoute(navState, sendViewModel)
-        offlineTransactionTransferRoute(navState, sendViewModel)
+        offlineBitcoinSignFlowRoutes(navState, sendViewModel)
     }
 }
 
@@ -81,72 +68,20 @@ private fun NavGraphBuilder.bitcoinConfirmationRoute(
     }
 }
 
-private fun NavGraphBuilder.offlineBitcoinSignRoute(
+private fun NavGraphBuilder.offlineBitcoinSignFlowRoutes(
     navState: BitcoinConfirmationNavState,
     sendViewModel: SendBitcoinViewModel,
 ) {
-    composablePage(OfflineBitcoinSignPage) {
-        val confirmationData = remember(sendViewModel) {
-            tryOrNull { sendViewModel.getConfirmationData() }
-        }
-        if (confirmationData == null) {
-            LaunchedEffect(Unit) {
-                navState.composeNavController.popBackStackSafely()
-            }
-        } else {
-            // Leaving the sign screen must abort any in-flight signing so a late hardware result cannot
-            // resurrect the Signed state after the user backed out.
-            val onLeave: () -> Unit = {
-                sendViewModel.resetOfflineSignState()
-                navState.composeNavController.popBackStackSafely()
-            }
-            OfflineBitcoinSignScreen(
-                confirmationData = confirmationData,
-                blockchainName = sendViewModel.wallet.token.blockchain.name,
-                coinMaxAllowedDecimals = sendViewModel.coinMaxAllowedDecimals,
-                rate = sendViewModel.coinRate,
-                signState = sendViewModel.offlineSignState,
-                callbacks = OfflineBitcoinSignCallbacks(
-                    onBackClick = onLeave,
-                    onCancelClick = onLeave,
-                    onSignClick = sendViewModel::onClickSignOffline,
-                    onSignStateConsumed = sendViewModel::resetOfflineSignState,
-                    onSigned = { format ->
-                        navState.composeNavController.navigate(offlineTransactionTransferRoute(format))
-                    },
-                ),
-            )
-        }
-    }
-}
-
-private fun NavGraphBuilder.offlineTransactionTransferRoute(
-    navState: BitcoinConfirmationNavState,
-    sendViewModel: SendBitcoinViewModel,
-) {
-    composablePage(
-        route = OfflineTransactionTransferRoute,
-        arguments = listOf(
-            navArgument(OfflineTransactionTransferFormatArg) {
-                type = NavType.StringType
-            }
-        )
-    ) { backStackEntry ->
-        val qrCodeSaver: OfflineQrCodeSaver = koinInject()
-        val initialFormat = backStackEntry.arguments
-            ?.getString(OfflineTransactionTransferFormatArg)
-            .toOfflineTransactionFormat()
-        OfflineTransactionTransferScreen(
-            transaction = sendViewModel.offlineSignedTransaction,
-            selectedFormat = initialFormat,
-            qrCodeSaver = qrCodeSaver,
-            onBackClick = navState.composeNavController::popBackStackSafely,
-            onDoneClick = {
-                sendViewModel.onOfflineTransferClosed()
-                navState.fragmentNavController.popBackStack(R.id.sendXFragment, true)
-            },
-        )
-    }
+    offlineSignFlowRoutes(
+        routes = OfflineSignFlowRoutes(
+            signRoute = OfflineBitcoinSignPage,
+            transferRoute = OfflineTransactionTransferPage,
+            transferFormatArgument = OfflineTransactionTransferFormatArg,
+        ),
+        navController = navState.composeNavController,
+        fragmentNavController = navState.fragmentNavController,
+        sendViewModel = sendViewModel,
+    )
 }
 
 @Composable
@@ -182,7 +117,7 @@ private fun SendBitcoinConfirmationContent(
         }
     }
 
-    SyncRetryProgressEffect(
+    OfflineSyncRetryProgressEffect(
         retrying = retrying,
         isConnected = isConnected,
         isSynced = sendViewModel.isSynced,
@@ -252,28 +187,6 @@ private fun BitcoinOnlineConfirmation(
 }
 
 @Composable
-private fun SyncRetryProgressEffect(
-    retrying: Boolean,
-    isConnected: Boolean,
-    isSynced: Boolean,
-    hasAdapterError: Boolean,
-    onRetryFinish: () -> Unit,
-) {
-    val currentOnRetryFinish by rememberUpdatedState(onRetryFinish)
-    LaunchedEffect(retrying, isConnected, hasAdapterError, isSynced) {
-        if (!retrying) return@LaunchedEffect
-
-        when {
-            isConnected && isSynced && !hasAdapterError -> currentOnRetryFinish()
-            !isConnected || hasAdapterError -> {
-                delay(RetryProgressMinVisibleMillis)
-                currentOnRetryFinish()
-            }
-        }
-    }
-}
-
-@Composable
 private fun BitcoinOfflineSyncBlocker(
     navState: BitcoinConfirmationNavState,
     coinCode: String,
@@ -324,9 +237,3 @@ private fun NavController.openBitcoinSourceSettings(
 private fun NavHostController.openOfflineBitcoinSign() {
     navigate(OfflineBitcoinSignPage)
 }
-
-private fun offlineTransactionTransferRoute(format: OfflineTransactionFormat): String =
-    "$OfflineTransactionTransferPage/${format.name}"
-
-private fun String?.toOfflineTransactionFormat(): OfflineTransactionFormat =
-    OfflineTransactionFormat.entries.firstOrNull { it.name == this } ?: OfflineTransactionFormat.Pcash

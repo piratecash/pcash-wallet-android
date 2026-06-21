@@ -1002,6 +1002,12 @@
     <string name="offline_broadcast_tx_id">ID de la transaction</string>
     <string name="offline_broadcast_view_in_explorer">Voir dans l\'explorateur</string>
     <string name="offline_broadcast_error_title">Transaction non envoyée</string>
+    <string name="offline_broadcast_error_send_failed">Erreur lors de l’envoi</string>
+    <string name="offline_broadcast_error_timeout">La requête a expiré. Réessayez plus tard.</string>
+    <string name="offline_broadcast_error_already_sent">Cette transaction est déjà connue du réseau.</string>
+    <string name="offline_broadcast_error_nonce_used">Le nonce de cette transaction a déjà été utilisé. Elle a peut-être été envoyée ou remplacée.</string>
+    <string name="offline_broadcast_error_low_fee">Les frais réseau sont trop faibles. Créez une transaction avec des frais plus élevés.</string>
+    <string name="offline_broadcast_error_rejected">Le réseau a rejeté cette transaction signée.</string>
     <string name="offline_broadcast_enable_network_button">Activer %1$s</string>
     <string name="offline_broadcast_preparing_network_button">Préparation de %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s n\'est pas activé dans l\'application. Activez le réseau pour que l\'application puisse diffuser cette transaction signée. Cela ne crée pas de nouvelle transaction et n\'envoie pas vos fonds.</string>

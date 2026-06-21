@@ -1796,7 +1796,7 @@
     <ID>ReturnCount:TonConnectSendRequestViewModel.kt$TonConnectSendRequestViewModel$private suspend fun prepareEnv()</ID>
     <ID>ReturnCount:TonTransactionConverter.kt$TonTransactionConverter$private fun getActionType(action: Action): TonTransactionRecord.Action.Type</ID>
     <ID>ReturnCount:TorOperator.kt$TorOperator$@Throws(Exception::class) private fun runTorShellCmd(fileTor: File, fileTorrc: File): Boolean</ID>
-    <ID>SpreadOperator:ISendTransactionService.kt$ISendTransactionService$(error.errorTextRes, *error.formatArgs)</ID>
+    <ID>SpreadOperator:Exceptions.kt$(errorTextRes, *formatArgs)</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:ActivateSubscriptionViewModel.kt$ActivateSubscriptionViewModel$IllegalStateException()</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:ActivateTokenViewModel.kt$ActivateTokenViewModel.Factory$IllegalArgumentException()</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:BaseSolanaAdapter.kt$BaseSolanaAdapter$Exception()</ID>

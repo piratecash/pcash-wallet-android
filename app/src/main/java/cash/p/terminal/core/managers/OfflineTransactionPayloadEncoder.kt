@@ -3,8 +3,12 @@ package cash.p.terminal.core.managers
 import android.util.Base64
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.DecodedOfflineTransaction
+import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.entities.OfflineTransactionOutpoint
+import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.entities.TokenQuery
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -22,12 +26,20 @@ class OfflineTransactionPayloadEncoder {
 
     fun encode(draft: OfflineSignedTransactionDraft): String {
         val blockchainUid = draft.wallet.token.blockchainType.uid
+        val feeToken = draft.feeToken ?: draft.wallet.token
         val payload = Payload(
             blockchainUid = blockchainUid,
             rawHex = draft.rawHex.lowercase(),
             txHash = draft.txHash,
+            token = draft.wallet.token.toPayloadToken(),
             amountAtomic = draft.amount.movePointRight(draft.wallet.token.decimals).toBigInteger().toString(),
-            feeAtomic = draft.fee?.movePointRight(draft.wallet.token.decimals)?.toBigInteger()?.toString(),
+            fee = draft.fee?.let {
+                PayloadFee(
+                    tokenQueryId = feeToken.tokenQuery.id,
+                    atomic = it.movePointRight(feeToken.decimals).toBigInteger().toString(),
+                    decimals = feeToken.decimals,
+                )
+            },
             toAddress = draft.toAddress,
             createdAt = draft.createdAt,
             inputOutpoints = draft.inputOutpoints,
@@ -52,16 +64,17 @@ class OfflineTransactionPayloadEncoder {
             json.decodeFromString<Payload>(decompress(compressed).decodeToString())
         } ?: return null
 
-        if (!isAuthentic(decoded, blockchainUid)) return null
+        if (!isValidPayload(decoded, blockchainUid)) return null
 
         return DecodedOfflineTransaction(
-            // The path segment is authoritative: isAuthentic already rejected a body whose
+            // The path segment is authoritative: isValidPayload already rejected a body whose
             // blockchainUid disagrees, so the network shown/used cannot be spoofed by the body.
             blockchainUid = blockchainUid,
             rawHex = decoded.rawHex,
             txHash = decoded.txHash,
+            token = decoded.token.toMetadata(),
             amountAtomic = decoded.amountAtomic,
-            feeAtomic = decoded.feeAtomic,
+            fee = decoded.fee?.toMetadata(),
             toAddress = decoded.toAddress,
             createdAt = decoded.createdAt,
             inputOutpoints = decoded.inputOutpoints,
@@ -114,20 +127,34 @@ class OfflineTransactionPayloadEncoder {
     }
 
     // The checksum only authenticates rawHex — the bytes that are actually broadcast. Every other
-    // field is untrusted metadata, so reject anything we cannot interpret and keep rawHex as the single
-    // source of truth: an unexpected version/encoding or a non-hex body means the payload was not
-    // produced by a compatible signer. The remaining metadata still drives the displayed network,
-    // record key and history, so reject a payload whose blockchainUid contradicts the authoritative
-    // path segment or whose txHash/address/amount are not well-formed before trusting any of it.
-    private fun isAuthentic(payload: Payload, blockchainUid: String): Boolean =
+    // field is untrusted display metadata, so reject anything we cannot interpret and keep rawHex as
+    // the single source of truth for broadcast.
+    private fun isValidPayload(payload: Payload, blockchainUid: String): Boolean =
         payload.version == VERSION_INT &&
             payload.encoding == RAW_HEX_ENCODING &&
             payload.blockchainUid == blockchainUid &&
             isHex(payload.rawHex) &&
             payload.checksum == checksum(payload.rawHex) &&
             isTxHash(payload.txHash) &&
+            isValidToken(payload.token, blockchainUid) &&
+            isValidFee(payload.fee, blockchainUid) &&
             payload.toAddress.isNotBlank() &&
             isNonNegativeAtomic(payload.amountAtomic)
+
+    private fun isValidToken(token: PayloadToken, blockchainUid: String): Boolean {
+        val query = TokenQuery.fromId(token.tokenQueryId) ?: return false
+        return query.blockchainType.uid == blockchainUid &&
+            token.coinCode.isNotBlank() &&
+            token.decimals >= 0
+    }
+
+    private fun isValidFee(fee: PayloadFee?, blockchainUid: String): Boolean {
+        fee ?: return true
+        val query = TokenQuery.fromId(fee.tokenQueryId) ?: return false
+        return query.blockchainType.uid == blockchainUid &&
+            fee.decimals >= 0 &&
+            isNonNegativeAtomic(fee.atomic)
+    }
 
     // A Bitcoin-family txid is a 32-byte hash, i.e. exactly 64 hex characters; anything else means the
     // signer wrote a value the wallet would never produce, so reject it instead of keying a record by it.
@@ -143,6 +170,28 @@ class OfflineTransactionPayloadEncoder {
         return Base64.encodeToString(digest.copyOf(CHECKSUM_BYTES), Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
     }
 
+    private fun Token.toPayloadToken() = PayloadToken(
+        tokenQueryId = tokenQuery.id,
+        coinUid = coin.uid,
+        coinCode = coin.code,
+        coinName = coin.name,
+        decimals = decimals,
+    )
+
+    private fun PayloadToken.toMetadata() = OfflineTokenMetadata(
+        tokenQueryId = tokenQueryId,
+        coinUid = coinUid,
+        coinCode = coinCode,
+        coinName = coinName,
+        decimals = decimals,
+    )
+
+    private fun PayloadFee.toMetadata() = OfflineFeeMetadata(
+        tokenQueryId = tokenQueryId,
+        atomic = atomic,
+        decimals = decimals,
+    )
+
     @Serializable
     private data class Payload(
         val version: Int = 1,
@@ -150,12 +199,29 @@ class OfflineTransactionPayloadEncoder {
         val encoding: String = RAW_HEX_ENCODING,
         val rawHex: String,
         val txHash: String,
+        val token: PayloadToken,
         val amountAtomic: String,
-        val feeAtomic: String?,
+        val fee: PayloadFee?,
         val toAddress: String,
         val createdAt: Long,
         val inputOutpoints: List<OfflineTransactionOutpoint>,
         val checksum: String,
+    )
+
+    @Serializable
+    private data class PayloadToken(
+        val tokenQueryId: String,
+        val coinUid: String?,
+        val coinCode: String,
+        val coinName: String?,
+        val decimals: Int,
+    )
+
+    @Serializable
+    private data class PayloadFee(
+        val tokenQueryId: String,
+        val atomic: String,
+        val decimals: Int,
     )
 
     companion object {

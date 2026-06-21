@@ -1020,6 +1020,12 @@
     <string name="offline_broadcast_tx_id">ID транзакции</string>
     <string name="offline_broadcast_view_in_explorer">Посмотреть в Обозревателе</string>
     <string name="offline_broadcast_error_title">Транзакция не отправлена</string>
+    <string name="offline_broadcast_error_send_failed">Ошибка при отправке</string>
+    <string name="offline_broadcast_error_timeout">Время ожидания запроса истекло. Попробуйте позже.</string>
+    <string name="offline_broadcast_error_already_sent">Эта транзакция уже известна сети.</string>
+    <string name="offline_broadcast_error_nonce_used">Nonce этой транзакции уже использован. Возможно, она уже отправлена или заменена.</string>
+    <string name="offline_broadcast_error_low_fee">Комиссия сети слишком низкая. Создайте транзакцию с более высокой комиссией.</string>
+    <string name="offline_broadcast_error_rejected">Сеть отклонила эту подписанную транзакцию.</string>
     <string name="offline_broadcast_enable_network_button">Включить %1$s</string>
     <string name="offline_broadcast_preparing_network_button">Подготовка %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s не включён в приложении. Включите сеть, чтобы приложение могло передать эту подписанную транзакцию. Это не создаёт новую транзакцию и не отправляет ваши средства.</string>

@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.send.SendConfirmationData
-import cash.p.terminal.modules.send.bitcoin.OfflineSignState
 import cash.p.terminal.ui.helpers.LinkHelper
 import cash.p.terminal.ui_compose.annotatedHtmlStringResource
 import cash.p.terminal.ui_compose.components.AppBar
@@ -59,22 +58,24 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.CurrencyValue
 
 @Composable
-internal fun OfflineBitcoinSignScreen(
+internal fun OfflineSignScreen(
     confirmationData: SendConfirmationData,
     blockchainName: String,
     coinMaxAllowedDecimals: Int,
+    feeCoinMaxAllowedDecimals: Int,
     rate: CurrencyValue?,
     signState: OfflineSignState,
-    callbacks: OfflineBitcoinSignCallbacks,
+    callbacks: OfflineSignCallbacks,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
     var selectedFormat by rememberSaveable { mutableStateOf(OfflineTransactionFormat.Pcash) }
     var infoFormat by remember { mutableStateOf<OfflineTransactionFormat?>(null) }
     var currentSnackbar by remember { mutableStateOf<CustomSnackbar?>(null) }
-    val contentState = OfflineBitcoinSignContentState(
+    val contentState = OfflineSignContentState(
         summaryState = confirmationData.toOfflineSignSummaryState(
             blockchainName = blockchainName,
             coinMaxAllowedDecimals = coinMaxAllowedDecimals,
+            feeCoinMaxAllowedDecimals = feeCoinMaxAllowedDecimals,
             rate = rate,
         ),
         signState = signState,
@@ -119,7 +120,7 @@ internal fun OfflineBitcoinSignScreen(
     }
 }
 
-internal data class OfflineBitcoinSignCallbacks(
+internal data class OfflineSignCallbacks(
     val onBackClick: () -> Unit,
     val onCancelClick: () -> Unit,
     val onSignClick: (OfflineTransactionFormat) -> Unit,
@@ -127,13 +128,13 @@ internal data class OfflineBitcoinSignCallbacks(
     val onSigned: (OfflineTransactionFormat) -> Unit,
 )
 
-private data class OfflineBitcoinSignContentState(
-    val summaryState: OfflineBitcoinSignSummaryState,
+private data class OfflineSignContentState(
+    val summaryState: OfflineSignSummaryState,
     val signState: OfflineSignState,
     val selectedFormat: OfflineTransactionFormat,
 )
 
-private data class OfflineBitcoinSignSummaryState(
+private data class OfflineSignSummaryState(
     val blockchainName: String,
     val amount: String,
     val amountFiat: String,
@@ -146,7 +147,7 @@ private fun OfflineSignEffect(
     signState: OfflineSignState,
     currentSnackbar: CustomSnackbar?,
     onSnackbarChange: (CustomSnackbar?) -> Unit,
-    callbacks: OfflineBitcoinSignCallbacks,
+    callbacks: OfflineSignCallbacks,
 ) {
     val view = LocalView.current
     val currentOnSnackbarChange by rememberUpdatedState(onSnackbarChange)
@@ -191,10 +192,10 @@ private fun OfflineSignEffect(
 
 @Composable
 private fun OfflineSignLayout(
-    contentState: OfflineBitcoinSignContentState,
+    contentState: OfflineSignContentState,
     onFormatSelect: (OfflineTransactionFormat) -> Unit,
     onInfoClick: (OfflineTransactionFormat) -> Unit,
-    callbacks: OfflineBitcoinSignCallbacks,
+    callbacks: OfflineSignCallbacks,
     windowInsets: WindowInsets,
 ) {
     Scaffold(
@@ -233,7 +234,7 @@ private fun OfflineSignLayout(
 
 @Composable
 private fun OfflineSignScrollableContent(
-    contentState: OfflineBitcoinSignContentState,
+    contentState: OfflineSignContentState,
     onFormatSelect: (OfflineTransactionFormat) -> Unit,
     onInfoClick: (OfflineTransactionFormat) -> Unit,
 ) {
@@ -257,7 +258,7 @@ private fun OfflineSignScrollableContent(
 
 @Composable
 private fun OfflineSummarySection(
-    summaryState: OfflineBitcoinSignSummaryState,
+    summaryState: OfflineSignSummaryState,
 ) {
     SectionCaption(R.string.offline_transaction_what_you_sign)
     SectionUniversalLawrence {
@@ -308,7 +309,7 @@ private fun OfflineFormatSection(
 private fun OfflineSignBottomActions(
     signState: OfflineSignState,
     selectedFormat: OfflineTransactionFormat,
-    callbacks: OfflineBitcoinSignCallbacks,
+    callbacks: OfflineSignCallbacks,
     windowInsets: WindowInsets,
 ) {
     Column(
@@ -393,9 +394,10 @@ private val OfflineTransactionFormat.infoDescriptionRes: Int
 private fun SendConfirmationData.toOfflineSignSummaryState(
     blockchainName: String,
     coinMaxAllowedDecimals: Int,
+    feeCoinMaxAllowedDecimals: Int,
     rate: CurrencyValue?,
-): OfflineBitcoinSignSummaryState =
-    OfflineBitcoinSignSummaryState(
+): OfflineSignSummaryState =
+    OfflineSignSummaryState(
         blockchainName = blockchainName,
         amount = App.numberFormatter.formatCoinFull(
             amount,
@@ -408,7 +410,7 @@ private fun SendConfirmationData.toOfflineSignSummaryState(
             App.numberFormatter.formatCoinFull(
                 it,
                 feeCoin.code,
-                coinMaxAllowedDecimals,
+                feeCoinMaxAllowedDecimals,
             )
         } ?: "---",
     )
@@ -416,11 +418,11 @@ private fun SendConfirmationData.toOfflineSignSummaryState(
 @Suppress("UnusedPrivateMember")
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun OfflineBitcoinSignScreenPreview() {
+private fun OfflineSignScreenPreview() {
     ComposeAppTheme {
         OfflineSignLayout(
-            contentState = OfflineBitcoinSignContentState(
-                summaryState = OfflineBitcoinSignSummaryState(
+            contentState = OfflineSignContentState(
+                summaryState = OfflineSignSummaryState(
                     blockchainName = "Bitcoin",
                     amount = "0.001516 BTC",
                     amountFiat = "$ 1.99",
@@ -432,13 +434,13 @@ private fun OfflineBitcoinSignScreenPreview() {
             ),
             onFormatSelect = {},
             onInfoClick = {},
-            callbacks = previewOfflineBitcoinSignCallbacks,
+            callbacks = previewOfflineSignCallbacks,
             windowInsets = NavigationBarDefaults.windowInsets,
         )
     }
 }
 
-private val previewOfflineBitcoinSignCallbacks = OfflineBitcoinSignCallbacks(
+private val previewOfflineSignCallbacks = OfflineSignCallbacks(
     onBackClick = {},
     onCancelClick = {},
     onSignClick = {},

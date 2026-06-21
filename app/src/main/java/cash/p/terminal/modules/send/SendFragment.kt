@@ -41,7 +41,7 @@ import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinNavHost
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinViewModel
 import cash.p.terminal.modules.send.evm.SendEvmModule
-import cash.p.terminal.modules.send.evm.SendEvmScreen
+import cash.p.terminal.modules.send.evm.SendEvmNavHost
 import cash.p.terminal.modules.send.evm.SendEvmViewModel
 import cash.p.terminal.modules.send.monero.SendMoneroModule
 import cash.p.terminal.modules.send.monero.SendMoneroScreen
@@ -215,9 +215,9 @@ class SendFragment : BaseComposeFragment() {
                         .fillMaxSize()
                         .systemBarsPadding()
                 ) {
-                    SendEvmScreen(
+                    SendEvmNavHost(
                         title = title,
-                        navController = findNavController(),
+                        fragmentNavController = findNavController(),
                         viewModel = viewModel,
                         amountInputModeViewModel = amountInputModeViewModel,
                         wallet = wallet,

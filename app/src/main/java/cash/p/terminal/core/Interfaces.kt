@@ -23,6 +23,7 @@ import cash.p.terminal.wallet.IBalanceAdapter
 import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.ethereumkit.models.Address
+import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.Token
@@ -229,6 +230,18 @@ data class SignedOfflineBitcoinTransaction(
     val rawHex: String,
     val txHash: String,
     val inputOutpoints: List<OfflineTransactionOutpoint>,
+)
+
+data class OfflineEvmSignRequest(
+    val transactionData: TransactionData,
+    val gasPrice: GasPrice,
+    val gasLimit: Long,
+    val nonce: Long?,
+) : OfflineSignRequest
+
+data class SignedOfflineEvmTransaction(
+    val rawHex: String,
+    val txHash: String,
 )
 
 interface IMwebAddressValidator {

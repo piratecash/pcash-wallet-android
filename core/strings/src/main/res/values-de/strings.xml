@@ -998,6 +998,12 @@
     <string name="offline_broadcast_tx_id">Transaktions-ID</string>
     <string name="offline_broadcast_view_in_explorer">Im Explorer anzeigen</string>
     <string name="offline_broadcast_error_title">Transaktion nicht gesendet</string>
+    <string name="offline_broadcast_error_send_failed">Fehler beim Senden</string>
+    <string name="offline_broadcast_error_timeout">Zeitüberschreitung der Anfrage. Versuche es später erneut.</string>
+    <string name="offline_broadcast_error_already_sent">Diese Transaktion ist dem Netzwerk bereits bekannt.</string>
+    <string name="offline_broadcast_error_nonce_used">Die Nonce dieser Transaktion wurde bereits verwendet. Sie wurde möglicherweise gesendet oder ersetzt.</string>
+    <string name="offline_broadcast_error_low_fee">Die Netzwerkgebühr ist zu niedrig. Erstelle eine Transaktion mit einer höheren Gebühr.</string>
+    <string name="offline_broadcast_error_rejected">Das Netzwerk hat diese signierte Transaktion abgelehnt.</string>
     <string name="offline_broadcast_enable_network_button">%1$s aktivieren</string>
     <string name="offline_broadcast_preparing_network_button">%1$s wird vorbereitet…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s ist in der App nicht aktiviert. Aktiviere das Netzwerk, damit die App diese signierte Transaktion übertragen kann. Dabei wird keine neue Transaktion erstellt und es werden keine Gelder gesendet.</string>

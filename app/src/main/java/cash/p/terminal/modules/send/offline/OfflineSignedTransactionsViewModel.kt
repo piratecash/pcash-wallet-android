@@ -3,6 +3,7 @@ package cash.p.terminal.modules.send.offline
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.canonicalTransactionHash
 import cash.p.terminal.core.defaultTokenQuery
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.TransactionAdapterManager
@@ -26,11 +27,15 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.meta
+import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
+import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -113,11 +118,7 @@ class OfflineSignedTransactionsViewModel(
         entities
             .filter { OfflineSignedTransactionStatus.from(it.status) == OfflineSignedTransactionStatus.Pending }
             .mapNotNull { entity ->
-                val wallet = wallets.walletFor(
-                    blockchainType = BlockchainType.fromUid(entity.blockchainTypeUid),
-                    coinCode = entity.coinCode,
-                    tokenDecimals = entity.tokenDecimals,
-                )
+                val wallet = entity.sourceWallet(wallets)
                 if (wallet == null) return@mapNotNull null
                 wallet.transactionSource to entity
             }
@@ -158,10 +159,14 @@ class OfflineSignedTransactionsViewModel(
     private fun OfflineSignedAdapterRecords.findConfirmedTxHash(
         entity: OfflineSignedTransactionEntity,
     ): String? =
-        records.firstOrNull { it.transactionHash == entity.txHash }?.transactionHash
+        records.firstOrNull {
+            it.transactionHash.canonicalTransactionHash() == entity.txHash.canonicalTransactionHash()
+        }
+            ?.transactionHash
+            ?.canonicalTransactionHash()
             ?: records.firstOrNull { record ->
                 adapter.rawTransactionMatches(record.transactionHash, entity.rawHex)
-            }?.transactionHash
+            }?.transactionHash?.canonicalTransactionHash()
 
     private fun ITransactionsAdapter.rawTransactionMatches(
         transactionHash: String,
@@ -182,17 +187,13 @@ class OfflineSignedTransactionsViewModel(
             amount.toBigDecimalOrNull() ?: BigDecimal.ZERO
         }
         val status = OfflineSignedTransactionStatus.from(status)
-        val wallet = wallets.walletFor(
-            blockchainType = BlockchainType.fromUid(blockchainTypeUid),
-            coinCode = coinCode,
-            tokenDecimals = tokenDecimals,
-        )
-        val token = wallet?.token ?: resolveToken()
+        val sourceWallet = sourceWallet(wallets)
+        val token = resolveDisplayToken(wallets)
         if (token == null) return null
-        val source = wallet?.transactionSource
+        val source = sourceWallet?.transactionSource
             ?: account?.let { TransactionSource(token.blockchain, it, token.type.meta) }
         if (source == null) return null
-        val walletUid = wallet?.tokenQueryId ?: token.tokenQuery.id
+        val walletUid = sourceWallet?.tokenQueryId ?: token.tokenQuery.id
         val transactionItem = transactionItem(token, source, walletUid, amountValue, metadataUnknown, status)
         return OfflineSignedTransactionViewItem(
             uid = OFFLINE_SIGNED_UID_PREFIX + txHash,
@@ -203,6 +204,26 @@ class OfflineSignedTransactionsViewModel(
         )
     }
 
+    private fun OfflineSignedTransactionEntity.sourceWallet(wallets: List<Wallet>): Wallet? {
+        if (sourceTokenQueryId.isNotBlank()) return wallets.walletForTokenQueryId(sourceTokenQueryId)
+
+        return wallets.walletFor(
+            blockchainType = BlockchainType.fromUid(blockchainTypeUid),
+            coinCode = coinCode,
+            tokenDecimals = tokenDecimals,
+        )
+    }
+
+    private fun OfflineSignedTransactionEntity.resolveDisplayToken(wallets: List<Wallet>): Token? {
+        if (tokenQueryId.isNotBlank()) {
+            val query = TokenQuery.fromId(tokenQueryId) ?: return cachedToken(null)
+            return wallets.walletForTokenQueryId(query.id)?.token
+                ?: marketKit.token(query)
+                ?: cachedToken(query)
+        }
+        return resolveLegacyToken()
+    }
+
     private fun List<Wallet>.walletFor(
         blockchainType: BlockchainType,
         coinCode: String,
@@ -210,20 +231,45 @@ class OfflineSignedTransactionsViewModel(
     ): Wallet? =
         firstOrNull { wallet ->
             wallet.token.blockchainType == blockchainType &&
-                    wallet.token.coin.code == coinCode &&
-                    wallet.token.decimals == tokenDecimals
+                wallet.token.coin.code == coinCode &&
+                wallet.token.decimals == tokenDecimals
         }
 
-    private fun OfflineSignedTransactionEntity.resolveToken(): Token? {
+    private fun List<Wallet>.walletForTokenQueryId(tokenQueryId: String): Wallet? {
+        if (tokenQueryId.isBlank()) return null
+        return firstOrNull { it.tokenQueryId == tokenQueryId }
+    }
+
+    private fun OfflineSignedTransactionEntity.resolveLegacyToken(): Token? {
         val blockchainType = BlockchainType.fromUid(blockchainTypeUid)
         val tokenQueries = (listOf(blockchainType.defaultTokenQuery) + blockchainType.nativeTokenQueries)
             .distinct()
         return marketKit.tokens(tokenQueries)
             .firstOrNull { token ->
                 token.blockchainType == blockchainType &&
-                        token.coin.code == coinCode &&
-                        token.decimals == tokenDecimals
+                    token.coin.code == coinCode &&
+                    token.decimals == tokenDecimals
             }
+    }
+
+    private fun OfflineSignedTransactionEntity.cachedToken(query: TokenQuery?): Token? {
+        if (coinCode.isBlank()) return null
+        val blockchainType = query?.blockchainType ?: BlockchainType.fromUid(blockchainTypeUid)
+        val tokenType = query?.tokenType ?: blockchainType.defaultTokenQuery.tokenType
+        return Token(
+            coin = Coin(
+                uid = coinUid ?: coinCode,
+                name = coinName ?: coinCode,
+                code = coinCode,
+            ),
+            blockchain = Blockchain(
+                type = blockchainType,
+                name = blockchainType.title,
+                eip3091url = null,
+            ),
+            type = tokenType,
+            decimals = tokenDecimals,
+        )
     }
 
     private fun OfflineSignedTransactionEntity.transactionItem(

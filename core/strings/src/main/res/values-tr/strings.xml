@@ -1006,6 +1006,12 @@
     <string name="offline_broadcast_tx_id">İşlem kimliği</string>
     <string name="offline_broadcast_view_in_explorer">Gezginde görüntüle</string>
     <string name="offline_broadcast_error_title">İşlem gönderilmedi</string>
+    <string name="offline_broadcast_error_send_failed">Gönderme sırasında hata</string>
+    <string name="offline_broadcast_error_timeout">İstek zaman aşımına uğradı. Daha sonra tekrar deneyin.</string>
+    <string name="offline_broadcast_error_already_sent">Bu işlem ağ tarafından zaten biliniyor.</string>
+    <string name="offline_broadcast_error_nonce_used">Bu işlemin nonce değeri zaten kullanılmış. Gönderilmiş veya değiştirilmiş olabilir.</string>
+    <string name="offline_broadcast_error_low_fee">Ağ ücreti çok düşük. Daha yüksek ücretli bir işlem oluşturun.</string>
+    <string name="offline_broadcast_error_rejected">Ağ bu imzalı işlemi reddetti.</string>
     <string name="offline_broadcast_enable_network_button">%1$s ağını etkinleştir</string>
     <string name="offline_broadcast_preparing_network_button">%1$s hazırlanıyor…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s uygulamada etkin değil. Uygulamanın bu imzalı işlemi yayınlayabilmesi için ağı etkinleştirin. Bu işlem yeni bir işlem oluşturmaz ve paranızı göndermez.</string>

@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.manageaccount.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,14 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.manageaccount.recoveryphrase.RecoveryPhraseModule
-import cash.p.terminal.ui.compose.components.rememberPcashQrCodePainter
+import cash.p.terminal.ui.compose.components.PcashQrCodeImage
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.B2
 import cash.p.terminal.ui_compose.components.ButtonPrimaryRed
@@ -299,10 +297,8 @@ fun SeedPhraseQrCard(
 
 @Composable
 private fun SeedQrCodeImage(content: String) {
-    Image(
-        painter = rememberPcashQrCodePainter(content),
+    PcashQrCodeImage(
+        content = content,
         modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Fit,
-        contentDescription = null
     )
 }

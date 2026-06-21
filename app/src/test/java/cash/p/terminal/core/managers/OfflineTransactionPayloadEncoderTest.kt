@@ -20,7 +20,10 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
+import java.security.MessageDigest
+import java.util.zip.Deflater
 import java.util.Base64 as JavaBase64
 
 class OfflineTransactionPayloadEncoderTest {
@@ -56,10 +59,54 @@ class OfflineTransactionPayloadEncoderTest {
         assertEquals("bitcoin", decoded.blockchainUid)
         assertEquals("deadbeefdeadbeef", decoded.rawHex)
         assertEquals(TX_HASH, decoded.txHash)
+        assertEquals("bitcoin|native", decoded.token.tokenQueryId)
+        assertEquals("bitcoin", decoded.token.coinUid)
+        assertEquals("BTC", decoded.token.coinCode)
+        assertEquals("Bitcoin", decoded.token.coinName)
+        assertEquals(8, decoded.token.decimals)
         assertEquals("100000", decoded.amountAtomic)
-        assertEquals("1000", decoded.feeAtomic)
+        assertEquals("bitcoin|native", decoded.fee?.tokenQueryId)
+        assertEquals("1000", decoded.fee?.atomic)
+        assertEquals(8, decoded.fee?.decimals)
         assertEquals("bc1qexampleaddrxyz", decoded.toAddress)
         assertEquals(CREATED_AT, decoded.createdAt)
+    }
+
+    @Test
+    fun decode_eip20RoundTrip_usesTokenMetadataAndNativeFeeDecimals() {
+        val payload = encoder.encode(
+            draft(
+                token = token(
+                    blockchainType = BlockchainType.BinanceSmartChain,
+                    blockchainName = "BNB Smart Chain",
+                    coin = Coin(uid = "usd-coin", name = "USD Coin", code = "USDC"),
+                    tokenType = TokenType.Eip20("0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"),
+                    decimals = 6,
+                ),
+                feeToken = token(
+                    blockchainType = BlockchainType.BinanceSmartChain,
+                    blockchainName = "BNB Smart Chain",
+                    coin = Coin(uid = "binance-coin", name = "BNB", code = "BNB"),
+                    decimals = 18,
+                ),
+                amount = BigDecimal("12.345678"),
+                fee = BigDecimal("0.000000000000123456"),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("binance-smart-chain", decoded.blockchainUid)
+        assertEquals(
+            "binance-smart-chain|eip20:0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+            decoded.token.tokenQueryId,
+        )
+        assertEquals("USDC", decoded.token.coinCode)
+        assertEquals(6, decoded.token.decimals)
+        assertEquals("12345678", decoded.amountAtomic)
+        assertEquals("binance-smart-chain|native", decoded.fee?.tokenQueryId)
+        assertEquals(18, decoded.fee?.decimals)
+        assertEquals("123456", decoded.fee?.atomic)
     }
 
     @Test
@@ -137,6 +184,50 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_oldBodyWithoutToken_returnsNull() {
+        val rawHex = "deadbeefdeadbeef"
+        val oldBody = """
+            {
+              "version":1,
+              "blockchainUid":"bitcoin",
+              "encoding":"rawhex",
+              "rawHex":"$rawHex",
+              "txHash":"$TX_HASH",
+              "amountAtomic":"100000",
+              "feeAtomic":"1000",
+              "toAddress":"bc1qexampleaddrxyz",
+              "createdAt":$CREATED_AT,
+              "inputOutpoints":[],
+              "checksum":"${checksum(rawHex)}"
+            }
+        """.trimIndent()
+        val payload = "pcash:tx:v1:bitcoin:${compressedBase64(oldBody)}"
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_malformedTokenQueryId_returnsNull() {
+        val payload = payloadFromBody(validBody(tokenQueryId = "not-a-token-query"))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_tokenBlockchainMismatch_returnsNull() {
+        val payload = payloadFromBody(validBody(tokenQueryId = "ethereum|native"))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_feeBlockchainMismatch_returnsNull() {
+        val payload = payloadFromBody(validBody(feeTokenQueryId = "ethereum|native"))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -159,27 +250,103 @@ class OfflineTransactionPayloadEncoderTest {
         txHash: String = TX_HASH,
         toAddress: String = "bc1qexampleaddrxyz",
         amount: BigDecimal = BigDecimal("0.001"),
-    ): OfflineSignedTransactionDraft {
-        val bitcoin = Blockchain(BlockchainType.Bitcoin, "Bitcoin", null)
-        val token = Token(
-            coin = Coin(uid = bitcoin.type.uid, name = bitcoin.name, code = bitcoin.name),
-            blockchain = bitcoin,
-            type = TokenType.Native,
+        fee: BigDecimal = BigDecimal("0.00001"),
+        token: Token = token(
+            blockchainType = BlockchainType.Bitcoin,
+            blockchainName = "Bitcoin",
+            coin = Coin(uid = "bitcoin", name = "Bitcoin", code = "BTC"),
             decimals = 8,
-        )
+        ),
+        feeToken: Token? = null,
+    ): OfflineSignedTransactionDraft {
         val wallet = mockk<Wallet>(relaxed = true) {
             every { this@mockk.token } returns token
         }
         return OfflineSignedTransactionDraft(
             wallet = wallet,
             amount = amount,
-            fee = BigDecimal("0.00001"),
+            fee = fee,
             toAddress = toAddress,
             rawHex = rawHex,
             txHash = txHash,
             inputOutpoints = emptyList(),
             createdAt = CREATED_AT,
+            feeToken = feeToken,
         )
+    }
+
+    private fun token(
+        blockchainType: BlockchainType,
+        blockchainName: String,
+        coin: Coin,
+        tokenType: TokenType = TokenType.Native,
+        decimals: Int,
+    ) = Token(
+        coin = coin,
+        blockchain = Blockchain(blockchainType, blockchainName, null),
+        type = tokenType,
+        decimals = decimals,
+    )
+
+    private fun compressedBase64(json: String): String {
+        val deflater = Deflater(Deflater.BEST_COMPRESSION)
+        return try {
+            deflater.setInput(json.encodeToByteArray())
+            deflater.finish()
+            val output = ByteArrayOutputStream(json.length)
+            val buffer = ByteArray(512)
+            while (!deflater.finished()) {
+                output.write(buffer, 0, deflater.deflate(buffer))
+            }
+            JavaBase64.getUrlEncoder().withoutPadding().encodeToString(output.toByteArray())
+        } finally {
+            deflater.end()
+        }
+    }
+
+    private fun payloadFromBody(
+        body: String,
+        blockchainUid: String = "bitcoin",
+    ) = "pcash:tx:v1:$blockchainUid:${compressedBase64(body)}"
+
+    private fun validBody(
+        tokenQueryId: String = "bitcoin|native",
+        feeTokenQueryId: String = "bitcoin|native",
+        blockchainUid: String = "bitcoin",
+    ): String {
+        val rawHex = "deadbeefdeadbeef"
+        return """
+            {
+              "version":1,
+              "blockchainUid":"$blockchainUid",
+              "encoding":"rawhex",
+              "rawHex":"$rawHex",
+              "txHash":"$TX_HASH",
+              "token":{
+                "tokenQueryId":"$tokenQueryId",
+                "coinUid":"bitcoin",
+                "coinCode":"BTC",
+                "coinName":"Bitcoin",
+                "decimals":8
+              },
+              "amountAtomic":"100000",
+              "fee":{
+                "tokenQueryId":"$feeTokenQueryId",
+                "atomic":"1000",
+                "decimals":8
+              },
+              "toAddress":"bc1qexampleaddrxyz",
+              "createdAt":$CREATED_AT,
+              "inputOutpoints":[],
+              "checksum":"${checksum(rawHex)}"
+            }
+        """.trimIndent()
+    }
+
+    private fun checksum(rawHex: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+            .digest(rawHex.lowercase().encodeToByteArray())
+        return JavaBase64.getUrlEncoder().withoutPadding().encodeToString(digest.copyOf(8))
     }
 
     private companion object {

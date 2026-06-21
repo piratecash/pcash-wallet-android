@@ -1001,6 +1001,12 @@
     <string name="offline_broadcast_tx_id">ID de la transacción</string>
     <string name="offline_broadcast_view_in_explorer">Ver en el explorador</string>
     <string name="offline_broadcast_error_title">Transacción no enviada</string>
+    <string name="offline_broadcast_error_send_failed">Error al enviar</string>
+    <string name="offline_broadcast_error_timeout">La solicitud agotó el tiempo de espera. Inténtalo de nuevo más tarde.</string>
+    <string name="offline_broadcast_error_already_sent">Esta transacción ya es conocida por la red.</string>
+    <string name="offline_broadcast_error_nonce_used">El nonce de esta transacción ya se ha utilizado. Puede que ya se haya enviado o reemplazado.</string>
+    <string name="offline_broadcast_error_low_fee">La comisión de red es demasiado baja. Crea una transacción con una comisión más alta.</string>
+    <string name="offline_broadcast_error_rejected">La red rechazó esta transacción firmada.</string>
     <string name="offline_broadcast_enable_network_button">Activar %1$s</string>
     <string name="offline_broadcast_preparing_network_button">Preparando %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s no está activado en la aplicación. Activa la red para que la aplicación pueda transmitir esta transacción firmada. Esto no crea una nueva transacción ni envía tus fondos.</string>

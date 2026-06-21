@@ -1,11 +1,15 @@
 package cash.p.terminal.modules.send.offline
 
+import cash.p.terminal.R
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
+import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.OfflineBroadcastAdapter
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.entities.DecodedOfflineTransaction
+import cash.p.terminal.entities.OfflineTokenMetadata
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -45,6 +49,8 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.net.UnknownHostException
+import java.util.concurrent.TimeoutException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineBroadcastViewModelTest {
@@ -65,6 +71,21 @@ class OfflineBroadcastViewModelTest {
     private val bitcoinToken = token(bitcoin)
     private val account = mnemonicAccount()
     private val bitcoinWallet = wallet(bitcoinToken, account)
+    private val binanceSmartChain = Blockchain(BlockchainType.BinanceSmartChain, "BNB Smart Chain", null)
+    private val bnbToken = token(
+        blockchain = binanceSmartChain,
+        coin = Coin(uid = "binance-coin", name = "BNB", code = "BNB"),
+        tokenType = TokenType.Native,
+        decimals = 18,
+    )
+    private val usdtToken = token(
+        blockchain = binanceSmartChain,
+        coin = Coin(uid = "tether", name = "Tether", code = "USDT"),
+        tokenType = TokenType.Eip20("0x55d398326f99059ff775485246999027b3197955"),
+        decimals = 18,
+    )
+    private val bnbWallet = wallet(bnbToken, account)
+    private val usdtWallet = wallet(usdtToken, account)
 
     @Before
     fun setUp() {
@@ -103,6 +124,21 @@ class OfflineBroadcastViewModelTest {
         assertNull(confirm?.enableNetworkName)
         coVerify { repository.saveImported(bitcoinWallet, any(), any()) }
     }
+
+    @Test
+    fun prefillAndAdvance_pcashPayloadWithTokenWalletBeforeNative_savesNativeWallet() =
+        runTest(dispatcher) {
+            setActiveWallets(listOf(usdtWallet, bnbWallet))
+            every { payloadEncoder.decode(any()) } returns decoded(blockchainUid = "binance-smart-chain")
+            every { marketKit.blockchain("binance-smart-chain") } returns binanceSmartChain
+
+            val viewModel = createViewModel()
+            viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+            advanceUntilIdle()
+
+            coVerify { repository.saveImported(bnbWallet, any(), any()) }
+            coVerify(exactly = 0) { repository.saveImported(usdtWallet, any(), any()) }
+        }
 
     @Test
     fun prefillAndAdvance_pcashPayloadMissingWallet_offersEnableNetwork() = runTest(dispatcher) {
@@ -241,6 +277,10 @@ class OfflineBroadcastViewModelTest {
     fun prefillAndAdvance_watchOnlyAccount_rejectsWithoutEnabling() = runTest(dispatcher) {
         every { accountManager.activeAccount } returns watchAccount()
         every { payloadEncoder.decode(any()) } returns decoded()
+        every { marketKit.blockchain("bitcoin") } returns bitcoin
+        every {
+            tokenResolver.resolveTokenToEnable(BlockchainType.Bitcoin, match { it.isWatchAccount })
+        } returns null
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -264,6 +304,9 @@ class OfflineBroadcastViewModelTest {
 
         // Account turns watch-only before the user taps send.
         every { accountManager.activeAccount } returns watchAccount()
+        every {
+            tokenResolver.resolveTokenToEnable(BlockchainType.Bitcoin, match { it.isWatchAccount })
+        } returns null
         viewModel.onPrimaryAction()
         advanceUntilIdle()
 
@@ -334,16 +377,7 @@ class OfflineBroadcastViewModelTest {
         advanceUntilIdle()
 
         coVerifyOrder {
-            repository.saveImported(
-                bitcoinWallet,
-                match {
-                    it.rawHex == "deadbeefdeadbeefdead" &&
-                        it.txHash == "derived-hash" &&
-                        it.amountAtomic.isEmpty() &&
-                        it.toAddress.isEmpty()
-                },
-                "",
-            )
+            repository.saveRawImported(bitcoinWallet, "deadbeefdeadbeefdead", "derived-hash")
             repository.markBroadcastAttempt("account-id", "derived-hash")
             repository.markBroadcasted("account-id", "derived-hash", "derived-hash")
         }
@@ -367,16 +401,7 @@ class OfflineBroadcastViewModelTest {
         advanceUntilIdle()
 
         coVerifyOrder {
-            repository.saveImported(
-                bitcoinWallet,
-                match {
-                    it.rawHex == "deadbeefdeadbeefdead" &&
-                        it.txHash == "queued-hash" &&
-                        it.amountAtomic.isEmpty() &&
-                        it.toAddress.isEmpty()
-                },
-                "",
-            )
+            repository.saveRawImported(bitcoinWallet, "deadbeefdeadbeefdead", "queued-hash")
             repository.markBroadcastAttempt("account-id", "queued-hash")
         }
         coVerify(exactly = 0) { repository.markBroadcasted(any(), any(), any()) }
@@ -432,6 +457,62 @@ class OfflineBroadcastViewModelTest {
         advanceUntilIdle()
 
         coVerify { repository.markBroadcasted("account-id", "hash", "derived-hash") }
+    }
+
+    @Test
+    fun onBroadcast_unknownErrorMessage_usesGenericSendError() = runTest(dispatcher) {
+        setActiveWallets(listOf(bitcoinWallet))
+        every { payloadEncoder.decode(any()) } returns decoded()
+        every { marketKit.blockchain("bitcoin") } returns bitcoin
+        val adapter = mockk<OfflineBroadcastAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any()) } throws Exception("Error")
+        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        val result = viewModel.uiState.result as? OfflineBroadcastResult.Error
+        assertNotNull(result)
+        assertTrue(result?.message != "Error")
+    }
+
+    @Test
+    fun offlineBroadcastErrorText_knownErrors_returnsLocalizedResources() {
+        assertErrorTextRes(
+            error = Exception(),
+            expectedRes = R.string.offline_broadcast_error_send_failed,
+        )
+        assertErrorTextRes(
+            error = Exception("Error"),
+            expectedRes = R.string.offline_broadcast_error_send_failed,
+        )
+        assertErrorTextRes(
+            error = UnknownHostException(),
+            expectedRes = R.string.Hud_Text_NoInternet,
+        )
+        assertErrorTextRes(
+            error = TimeoutException(),
+            expectedRes = R.string.offline_broadcast_error_timeout,
+        )
+        assertErrorTextRes(
+            error = EvmError.RpcError("already known"),
+            expectedRes = R.string.offline_broadcast_error_already_sent,
+        )
+        assertErrorTextRes(
+            error = EvmError.RpcError("nonce too low"),
+            expectedRes = R.string.offline_broadcast_error_nonce_used,
+        )
+        assertErrorTextRes(
+            error = EvmError.RpcError("transaction underpriced"),
+            expectedRes = R.string.offline_broadcast_error_low_fee,
+        )
+        assertErrorTextRes(
+            error = EvmError.RpcError("invalid sender"),
+            expectedRes = R.string.offline_broadcast_error_rejected,
+        )
     }
 
     @Test
@@ -554,23 +635,40 @@ class OfflineBroadcastViewModelTest {
         blockchainUid = blockchainUid,
         rawHex = "deadbeefdeadbeefdead",
         txHash = "hash",
+        token = OfflineTokenMetadata(
+            tokenQueryId = "$blockchainUid|native",
+            coinUid = blockchainUid,
+            coinCode = blockchainUid.uppercase(),
+            coinName = blockchainUid,
+            decimals = 8,
+        ),
         amountAtomic = "1000",
-        feeAtomic = null,
+        fee = null,
         toAddress = "address",
         createdAt = 0L,
         inputOutpoints = emptyList(),
     )
 
-    private fun token(blockchain: Blockchain) = Token(
-        coin = Coin(uid = blockchain.type.uid, name = blockchain.name, code = blockchain.name),
+    private fun token(
+        blockchain: Blockchain,
+        coin: Coin = Coin(uid = blockchain.type.uid, name = blockchain.name, code = blockchain.name),
+        tokenType: TokenType = TokenType.Native,
+        decimals: Int = 8,
+    ) = Token(
+        coin = coin,
         blockchain = blockchain,
-        type = TokenType.Native,
-        decimals = 8,
+        type = tokenType,
+        decimals = decimals,
     )
 
     private fun wallet(token: Token, account: Account) = mockk<Wallet>(relaxed = true) {
         every { this@mockk.token } returns token
         every { this@mockk.account } returns account
+    }
+
+    private fun assertErrorTextRes(error: Throwable, expectedRes: Int) {
+        val message = error.offlineBroadcastErrorText("BNB") as? TranslatableString.ResString
+        assertEquals(expectedRes, message?.id)
     }
 
     private fun mnemonicAccount() = mockk<Account>(relaxed = true) {

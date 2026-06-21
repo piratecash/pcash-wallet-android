@@ -1007,6 +1007,12 @@
     <string name="offline_broadcast_tx_id">Transactie-ID</string>
     <string name="offline_broadcast_view_in_explorer">Bekijken in Explorer</string>
     <string name="offline_broadcast_error_title">Transactie niet verzonden</string>
+    <string name="offline_broadcast_error_send_failed">Fout bij verzenden</string>
+    <string name="offline_broadcast_error_timeout">Time-out van aanvraag. Probeer het later opnieuw.</string>
+    <string name="offline_broadcast_error_already_sent">Deze transactie is al bekend bij het netwerk.</string>
+    <string name="offline_broadcast_error_nonce_used">De nonce van deze transactie is al gebruikt. Mogelijk is deze al verzonden of vervangen.</string>
+    <string name="offline_broadcast_error_low_fee">De netwerkkosten zijn te laag. Maak een transactie met hogere kosten.</string>
+    <string name="offline_broadcast_error_rejected">Het netwerk heeft deze ondertekende transactie geweigerd.</string>
     <string name="offline_broadcast_enable_network_button">%1$s inschakelen</string>
     <string name="offline_broadcast_preparing_network_button">%1$s voorbereiden…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s is niet ingeschakeld in de app. Schakel het netwerk in zodat de app deze ondertekende transactie kan uitzenden. Dit maakt geen nieuwe transactie aan en verzendt geen geld.</string>

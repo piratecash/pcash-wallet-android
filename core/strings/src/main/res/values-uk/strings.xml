@@ -1008,6 +1008,12 @@
     <string name="offline_broadcast_tx_id">ID транзакції</string>
     <string name="offline_broadcast_view_in_explorer">Переглянути в Оглядачі</string>
     <string name="offline_broadcast_error_title">Транзакцію не надіслано</string>
+    <string name="offline_broadcast_error_send_failed">Помилка під час надсилання</string>
+    <string name="offline_broadcast_error_timeout">Час очікування запиту минув. Спробуйте пізніше.</string>
+    <string name="offline_broadcast_error_already_sent">Ця транзакція вже відома мережі.</string>
+    <string name="offline_broadcast_error_nonce_used">Nonce цієї транзакції вже використано. Можливо, її вже надіслано або замінено.</string>
+    <string name="offline_broadcast_error_low_fee">Комісія мережі занизька. Створіть транзакцію з вищою комісією.</string>
+    <string name="offline_broadcast_error_rejected">Мережа відхилила цю підписану транзакцію.</string>
     <string name="offline_broadcast_enable_network_button">Увімкнути %1$s</string>
     <string name="offline_broadcast_preparing_network_button">Підготовка %1$s…</string>
     <string name="offline_broadcast_enable_network_warning">%1$s не ввімкнено в застосунку. Увімкніть мережу, щоб застосунок міг передати цю підписану транзакцію. Це не створює нову транзакцію й не надсилає ваші кошти.</string>
