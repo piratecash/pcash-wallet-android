@@ -980,6 +980,7 @@
     <string name="offline_transaction_raw_title">RAW 交易</string>
     <string name="offline_transaction_transfer_to_person_description">选择如何将已签名交易发送给其他人</string>
     <string name="offline_transaction_scan_qr_hint">请对方扫描二维码</string>
+    <string name="offline_transaction_qr_too_large">交易太大，无法放入一个二维码</string>
     <string name="offline_transaction_save_qr">保存二维码</string>
     <string name="offline_transaction_copy_transaction">复制交易</string>
     <string name="offline_transaction_raw_hex">RAW 交易 (HEX)</string>

@@ -984,6 +984,7 @@
     <string name="offline_transaction_raw_title">RAW işlemi</string>
     <string name="offline_transaction_transfer_to_person_description">İmzalanmış işlemi başka bir kişiye nasıl göndereceğinizi seçin</string>
     <string name="offline_transaction_scan_qr_hint">QR kodunu taramasını isteyin</string>
+    <string name="offline_transaction_qr_too_large">İşlem bir QR koduna sığmayacak kadar büyük</string>
     <string name="offline_transaction_save_qr">QR kodunu kaydet</string>
     <string name="offline_transaction_copy_transaction">İşlemi kopyala</string>
     <string name="offline_transaction_raw_hex">RAW İŞLEM (HEX)</string>

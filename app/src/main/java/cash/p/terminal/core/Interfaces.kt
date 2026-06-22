@@ -229,6 +229,10 @@ sealed interface OfflineBroadcastMetadata {
         val senderAddress: String,
         val seqno: Int,
     ) : OfflineBroadcastMetadata
+
+    data class Tron(
+        val expiration: Long,
+    ) : OfflineBroadcastMetadata
 }
 
 data class OfflineBitcoinSignRequest(
@@ -288,6 +292,18 @@ data class SignedOfflineTonTransaction(
     val validUntil: Long,
     val senderAddress: String,
     val seqno: Int,
+)
+
+data class OfflineTronSignRequest(
+    val amount: BigDecimal,
+    val address: TronAddress,
+    val feeLimit: Long?,
+) : OfflineSignRequest
+
+data class SignedOfflineTronTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val expiration: Long,
 )
 
 interface IMwebAddressValidator {

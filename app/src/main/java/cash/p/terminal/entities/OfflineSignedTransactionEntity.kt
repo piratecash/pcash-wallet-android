@@ -41,6 +41,7 @@ data class OfflineSignedTransactionEntity(
     val tonValidUntil: Long?,
     val tonSenderAddress: String?,
     val tonSeqno: Int?,
+    val tronExpiration: Long?,
     val toAddress: String,
     val rawHex: String,
     val pcashPayload: String,

@@ -12,6 +12,7 @@ import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
+import cash.p.terminal.entities.OfflineTronRetryMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -106,6 +107,13 @@ class OfflineBroadcastViewModelTest {
         decimals = 9,
     )
     private val tonWallet = wallet(tonToken, account)
+    private val tron = Blockchain(BlockchainType.Tron, "TRON", null)
+    private val tronToken = token(
+        blockchain = tron,
+        coin = Coin(uid = "tron", name = "TRON", code = "TRX"),
+        decimals = 6,
+    )
+    private val tronWallet = wallet(tronToken, account)
 
     @Before
     fun setUp() {
@@ -429,6 +437,37 @@ class OfflineBroadcastViewModelTest {
         assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
         coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
         coVerify { repository.markBroadcasted("account-id", TON_MESSAGE_HASH, TON_MESSAGE_HASH) }
+    }
+
+    @Test
+    fun onBroadcast_tronPcashPayload_passesRetryMetadata() = runTest(dispatcher) {
+        val retryMetadata = OfflineTronRetryMetadata(expiration = 1_700_000_060_000L)
+        setActiveWallets(listOf(tronWallet))
+        every {
+            payloadEncoder.decode(any())
+        } returns decoded(
+            blockchainUid = "tron",
+            txHash = TRON_TX_HASH,
+            tronRetryMetadata = retryMetadata,
+        )
+        every { marketKit.blockchain("tron") } returns tron
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        val broadcastMetadata = OfflineBroadcastMetadata.Tron(expiration = 1_700_000_060_000L)
+        coEvery {
+            adapter.broadcastRawTransaction(any(), broadcastMetadata)
+        } returns BroadcastRawTransactionResult(TRON_TX_HASH, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
+        coVerify { repository.markBroadcasted("account-id", TRON_TX_HASH, TRON_TX_HASH) }
     }
 
     @Test
@@ -780,6 +819,7 @@ class OfflineBroadcastViewModelTest {
         txHash: String = "hash",
         solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
         tonRetryMetadata: OfflineTonRetryMetadata? = null,
+        tronRetryMetadata: OfflineTronRetryMetadata? = null,
     ) = DecodedOfflineTransaction(
         blockchainUid = blockchainUid,
         rawHex = "deadbeefdeadbeefdead",
@@ -798,6 +838,7 @@ class OfflineBroadcastViewModelTest {
         inputOutpoints = emptyList(),
         solanaRetryMetadata = solanaRetryMetadata,
         tonRetryMetadata = tonRetryMetadata,
+        tronRetryMetadata = tronRetryMetadata,
     )
 
     private fun token(
@@ -856,5 +897,6 @@ class OfflineBroadcastViewModelTest {
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        const val TRON_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
     }
 }

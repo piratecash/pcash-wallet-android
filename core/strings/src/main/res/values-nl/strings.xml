@@ -985,6 +985,7 @@
     <string name="offline_transaction_raw_title">RAW-transactie</string>
     <string name="offline_transaction_transfer_to_person_description">Kies hoe u de ondertekende transactie naar een andere persoon wilt verzenden</string>
     <string name="offline_transaction_scan_qr_hint">Vraag om de QR-code te scannen</string>
+    <string name="offline_transaction_qr_too_large">De transactie is te groot voor één QR-code</string>
     <string name="offline_transaction_save_qr">QR-code opslaan</string>
     <string name="offline_transaction_copy_transaction">Transactie kopiëren</string>
     <string name="offline_transaction_raw_hex">RAW TRANSACTIE (HEX)</string>

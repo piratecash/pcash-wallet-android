@@ -148,6 +148,7 @@ class OfflineSignedTransactionDaoTest {
         tonValidUntil = null,
         tonSenderAddress = null,
         tonSeqno = null,
+        tronExpiration = null,
         toAddress = "addr",
         rawHex = "deadbeef",
         pcashPayload = "pcash:tx:v1:bitcoin:body",

@@ -57,7 +57,7 @@ import cash.p.terminal.modules.send.ton.SendTonModule
 import cash.p.terminal.modules.send.ton.SendTonNavHost
 import cash.p.terminal.modules.send.ton.SendTonViewModel
 import cash.p.terminal.modules.send.tron.SendTronModule
-import cash.p.terminal.modules.send.tron.SendTronScreen
+import cash.p.terminal.modules.send.tron.SendTronNavHost
 import cash.p.terminal.modules.send.tron.SendTronViewModel
 import cash.p.terminal.modules.send.zcash.SendZCashModule
 import cash.p.terminal.modules.send.zcash.SendZCashScreen
@@ -309,9 +309,9 @@ class SendFragment : BaseComposeFragment() {
                         .fillMaxSize()
                         .systemBarsPadding()
                 ) {
-                    SendTronScreen(
+                    SendTronNavHost(
                         title = title,
-                        navController = findNavController(),
+                        fragmentNavController = findNavController(),
                         viewModel = sendTronViewModel,
                         amountInputModeViewModel = amountInputModeViewModel,
                         prefilledData = prefilledData,

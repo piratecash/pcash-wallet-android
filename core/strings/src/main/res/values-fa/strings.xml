@@ -983,6 +983,7 @@
     <string name="offline_transaction_raw_title">تراکنش RAW</string>
     <string name="offline_transaction_transfer_to_person_description">روش ارسال تراکنش امضاشده به شخص دیگری را انتخاب کنید</string>
     <string name="offline_transaction_scan_qr_hint">بخواهید کد QR را اسکن کند</string>
+    <string name="offline_transaction_qr_too_large">تراکنش برای قرار گرفتن در یک کد QR بیش از حد بزرگ است</string>
     <string name="offline_transaction_save_qr">ذخیره کد QR</string>
     <string name="offline_transaction_copy_transaction">کپی تراکنش</string>
     <string name="offline_transaction_raw_hex">تراکنش RAW (HEX)</string>

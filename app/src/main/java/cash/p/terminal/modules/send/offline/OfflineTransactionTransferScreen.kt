@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -160,12 +161,14 @@ private fun TransferScrollableContent(
     ) {
         VSpacer(12.dp)
         TransferHeader(selectedFormat)
+        VSpacer(16.dp)
         if (qrCodePainter != null) {
-            VSpacer(16.dp)
             QrCodePanel(
                 qrContent = qrContent,
                 qrCodePainter = qrCodePainter,
             )
+        } else {
+            QrCodeUnavailablePanel()
         }
         VSpacer(20.dp)
         TransferActionButtons(
@@ -201,9 +204,48 @@ private fun QrCodePanel(
     qrContent: String,
     qrCodePainter: Painter,
 ) {
+    QrCodePanelFrame(
+        content = {
+            QrCodeImage(
+                content = qrContent,
+                qrcodePainter = qrCodePainter,
+            )
+        },
+        footer = {
+            VSpacer(12.dp)
+            subhead2_grey(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                text = stringResource(R.string.offline_transaction_scan_qr_hint),
+                textAlign = TextAlign.Center,
+            )
+        },
+    )
+}
+
+@Composable
+private fun QrCodeUnavailablePanel() {
+    QrCodePanelFrame(
+        content = {
+            subhead2_grey(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                text = stringResource(R.string.offline_transaction_qr_too_large),
+                textAlign = TextAlign.Center,
+            )
+        },
+    )
+}
+
+@Composable
+private fun QrCodePanelFrame(
+    content: @Composable BoxScope.() -> Unit,
+    footer: (@Composable () -> Unit)? = null,
+) {
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
+            .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(ComposeAppTheme.colors.lawrence)
             .padding(vertical = 16.dp),
@@ -217,20 +259,9 @@ private fun QrCodePanel(
                 .clip(RoundedCornerShape(8.dp))
                 .background(ComposeAppTheme.colors.white),
             contentAlignment = Alignment.Center,
-        ) {
-            QrCodeImage(
-                content = qrContent,
-                qrcodePainter = qrCodePainter,
-            )
-        }
-        VSpacer(12.dp)
-        subhead2_grey(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            text = stringResource(R.string.offline_transaction_scan_qr_hint),
-            textAlign = TextAlign.Center,
+            content = content,
         )
+        footer?.invoke()
     }
 }
 
@@ -389,6 +420,21 @@ private fun OfflineTransactionTransferScreenPreview() {
     ComposeAppTheme {
         OfflineTransactionTransferScreen(
             transaction = previewOfflineSignedTransaction,
+            selectedFormat = OfflineTransactionFormat.Raw,
+            qrCodeSaver = OfflineQrCodeSaver(DefaultDispatcherProvider()),
+            onBackClick = {},
+            onDoneClick = {},
+        )
+    }
+}
+
+@Suppress("UnusedPrivateMember")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun OfflineTransactionTransferScreenQrTooLargePreview() {
+    ComposeAppTheme {
+        OfflineTransactionTransferScreen(
+            transaction = previewOfflineSignedTransaction.copy(rawHex = "ab".repeat(1_000)),
             selectedFormat = OfflineTransactionFormat.Raw,
             qrCodeSaver = OfflineQrCodeSaver(DefaultDispatcherProvider()),
             onBackClick = {},

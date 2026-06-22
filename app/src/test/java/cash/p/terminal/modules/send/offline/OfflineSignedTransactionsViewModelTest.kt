@@ -262,6 +262,7 @@ class OfflineSignedTransactionsViewModelTest {
         tonValidUntil = null,
         tonSenderAddress = null,
         tonSeqno = null,
+        tronExpiration = null,
         toAddress = "0xReceiver",
         rawHex = "deadbeef",
         pcashPayload = "pcash:tx:v1:binance-smart-chain:body",

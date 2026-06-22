@@ -983,6 +983,7 @@
     <string name="offline_transaction_raw_title">RAW 트랜잭션</string>
     <string name="offline_transaction_transfer_to_person_description">서명된 트랜잭션을 다른 사람에게 보내는 방법을 선택하세요</string>
     <string name="offline_transaction_scan_qr_hint">QR 코드를 스캔해 달라고 요청하세요</string>
+    <string name="offline_transaction_qr_too_large">트랜잭션이 너무 커서 QR 코드에 담을 수 없습니다</string>
     <string name="offline_transaction_save_qr">QR 코드 저장</string>
     <string name="offline_transaction_copy_transaction">트랜잭션 복사</string>
     <string name="offline_transaction_raw_hex">RAW 트랜잭션 (HEX)</string>

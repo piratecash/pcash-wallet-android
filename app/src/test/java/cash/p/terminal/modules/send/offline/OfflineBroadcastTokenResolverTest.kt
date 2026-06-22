@@ -74,7 +74,7 @@ class OfflineBroadcastTokenResolverTest {
 
     @Test
     fun resolveTokenToEnable_nonBroadcastableBlockchain_returnsNull() {
-        assertNull(resolver.resolveTokenToEnable(BlockchainType.Tron, mnemonicAccount()))
+        assertNull(resolver.resolveTokenToEnable(BlockchainType.Monero, mnemonicAccount()))
     }
 
     @Test
@@ -108,6 +108,17 @@ class OfflineBroadcastTokenResolverTest {
 
         assertNotNull(token)
         assertEquals(BlockchainType.Ton, token?.blockchainType)
+    }
+
+    @Test
+    fun resolveTokenToEnable_watchTronAddress_returnsToken() {
+        val token = resolver.resolveTokenToEnable(
+            BlockchainType.Tron,
+            account(AccountType.TronAddress("TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7")),
+        )
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Tron, token?.blockchainType)
     }
 
     @Test

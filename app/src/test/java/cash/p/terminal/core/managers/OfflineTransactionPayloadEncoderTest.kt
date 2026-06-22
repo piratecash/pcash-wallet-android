@@ -4,6 +4,7 @@ import android.util.Base64
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
+import cash.p.terminal.entities.OfflineTronRetryMetadata
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
@@ -360,6 +361,56 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_tronRoundTrip_returnsRetryMetadataAndHexHash() {
+        val payload = encoder.encode(
+            draft(
+                token = tronToken(),
+                feeToken = tronToken(),
+                tronRetryMetadata = tronRetryMetadata(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("tron", decoded.blockchainUid)
+        assertEquals(TX_HASH, decoded.txHash)
+        assertEquals("tron|native", decoded.token.tokenQueryId)
+        assertEquals(1_700_000_060_000L, decoded.tronRetryMetadata?.expiration)
+    }
+
+    @Test
+    fun decode_tronPayloadWithoutRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = tronToken(),
+                feeToken = tronToken(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_nonTronPayloadWithTronRetryMetadata_returnsNull() {
+        val payload = encoder.encode(draft(tronRetryMetadata = tronRetryMetadata()))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_tronInvalidRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = tronToken(),
+                feeToken = tronToken(),
+                tronRetryMetadata = tronRetryMetadata(expiration = 0),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -392,6 +443,7 @@ class OfflineTransactionPayloadEncoderTest {
         feeToken: Token? = null,
         solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
         tonRetryMetadata: OfflineTonRetryMetadata? = null,
+        tronRetryMetadata: OfflineTronRetryMetadata? = null,
     ): OfflineSignedTransactionDraft {
         val wallet = mockk<Wallet>(relaxed = true) {
             every { this@mockk.token } returns token
@@ -408,6 +460,7 @@ class OfflineTransactionPayloadEncoderTest {
             feeToken = feeToken,
             solanaRetryMetadata = solanaRetryMetadata,
             tonRetryMetadata = tonRetryMetadata,
+            tronRetryMetadata = tronRetryMetadata,
         )
     }
 
@@ -459,6 +512,19 @@ class OfflineTransactionPayloadEncoderTest {
         validUntil = validUntil,
         senderAddress = senderAddress,
         seqno = seqno,
+    )
+
+    private fun tronToken() = token(
+        blockchainType = BlockchainType.Tron,
+        blockchainName = "Tron",
+        coin = Coin(uid = "tron", name = "TRON", code = "TRX"),
+        decimals = 6,
+    )
+
+    private fun tronRetryMetadata(
+        expiration: Long = 1_700_000_060_000L,
+    ) = OfflineTronRetryMetadata(
+        expiration = expiration,
     )
 
     private fun compressedBase64(json: String): String {

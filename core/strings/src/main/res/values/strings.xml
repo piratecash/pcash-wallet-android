@@ -1309,6 +1309,7 @@ Proceed only if you\'re sure.</string>
     <string name="offline_transaction_raw_title">RAW Transaction</string>
     <string name="offline_transaction_transfer_to_person_description">Choose how to send the signed transaction to another person</string>
     <string name="offline_transaction_scan_qr_hint">Ask them to scan the QR code</string>
+    <string name="offline_transaction_qr_too_large">Transaction is too large to fit in a QR code</string>
     <string name="offline_transaction_save_qr">Save QR code</string>
     <string name="offline_transaction_copy_transaction">Copy transaction</string>
     <string name="offline_transaction_raw_hex">RAW TRANSACTION (HEX)</string>

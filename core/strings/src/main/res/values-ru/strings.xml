@@ -998,6 +998,7 @@
     <string name="offline_transaction_raw_title">RAW Транзакция</string>
     <string name="offline_transaction_transfer_to_person_description">Выберите способ отправки подписанной транзакции другому человеку</string>
     <string name="offline_transaction_scan_qr_hint">Попросите отсканировать QR-код</string>
+    <string name="offline_transaction_qr_too_large">Транзакция слишком большая, чтобы поместиться в QR-код</string>
     <string name="offline_transaction_save_qr">Сохранить QR-код</string>
     <string name="offline_transaction_copy_transaction">Скопировать транзакцию</string>
     <string name="offline_transaction_raw_hex">RAW TRANSACTION (HEX)</string>

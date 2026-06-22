@@ -983,6 +983,7 @@
     <string name="offline_transaction_raw_title">معاملة RAW</string>
     <string name="offline_transaction_transfer_to_person_description">اختر طريقة إرسال المعاملة الموقعة إلى شخص آخر</string>
     <string name="offline_transaction_scan_qr_hint">اطلب منهم مسح رمز QR</string>
+    <string name="offline_transaction_qr_too_large">المعاملة كبيرة جدًا بحيث لا يمكن وضعها في رمز QR</string>
     <string name="offline_transaction_save_qr">حفظ رمز QR</string>
     <string name="offline_transaction_copy_transaction">نسخ المعاملة</string>
     <string name="offline_transaction_raw_hex">معاملة RAW (HEX)</string>

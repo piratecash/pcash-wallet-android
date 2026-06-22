@@ -9,6 +9,7 @@ import cash.p.terminal.entities.OfflineSignedTransactionEntity
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
+import cash.p.terminal.entities.OfflineTronRetryMetadata
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -177,6 +178,30 @@ class OfflineSignedTransactionRepositoryTest {
     }
 
     @Test
+    fun save_localTronDraft_savesRetryMetadata() = runTest(dispatcher) {
+        val repository = repository()
+        val entitySlot = slot<OfflineSignedTransactionEntity>()
+        coEvery { dao.insertIfAbsent(capture(entitySlot)) } returns Unit
+
+        repository.save(
+            draft = OfflineSignedTransactionDraft(
+                wallet = wallet(tronToken()),
+                amount = BigDecimal("1.2"),
+                fee = BigDecimal("0.1"),
+                toAddress = "TReceiver",
+                rawHex = "deadbeef",
+                txHash = TX_HASH,
+                inputOutpoints = emptyList(),
+                feeToken = tronToken(),
+                tronRetryMetadata = tronRetryMetadata(),
+            ),
+            pcashPayload = "pcash:tx:v1:tron:body",
+        )
+
+        assertEquals(1_700_000_060_000L, entitySlot.captured.tronExpiration)
+    }
+
+    @Test
     fun saveImported_tonJettonPayload_savesDisplayTokenAndTonRetryMetadata() = runTest(dispatcher) {
         val repository = repository()
         val entitySlot = slot<OfflineSignedTransactionEntity>()
@@ -200,6 +225,28 @@ class OfflineSignedTransactionRepositoryTest {
         assertEquals(1_700_000_300L, entity.tonValidUntil)
         assertEquals("EQSender", entity.tonSenderAddress)
         assertEquals(7, entity.tonSeqno)
+    }
+
+    @Test
+    fun saveImported_tronPayload_savesRetryMetadata() = runTest(dispatcher) {
+        val repository = repository()
+        val entitySlot = slot<OfflineSignedTransactionEntity>()
+        coEvery { dao.insertIfAbsent(capture(entitySlot)) } returns Unit
+
+        repository.saveImported(
+            wallet = wallet(tronToken()),
+            decoded = decodedTronTransaction(),
+            pcashPayload = "pcash:tx:v1:tron:body",
+        )
+
+        val entity = entitySlot.captured
+        assertEquals("tron", entity.blockchainTypeUid)
+        assertEquals("tron|native", entity.tokenQueryId)
+        assertEquals("tron|native", entity.sourceTokenQueryId)
+        assertEquals("TRX", entity.coinCode)
+        assertEquals(6, entity.tokenDecimals)
+        assertEquals("1.200000", entity.amount)
+        assertEquals(1_700_000_060_000L, entity.tronExpiration)
     }
 
     private fun decodedUsdcTransaction() = DecodedOfflineTransaction(
@@ -245,6 +292,29 @@ class OfflineSignedTransactionRepositoryTest {
         createdAt = CREATED_AT,
         inputOutpoints = emptyList(),
         tonRetryMetadata = tonRetryMetadata(),
+    )
+
+    private fun decodedTronTransaction() = DecodedOfflineTransaction(
+        blockchainUid = "tron",
+        rawHex = "deadbeef",
+        txHash = TX_HASH,
+        token = OfflineTokenMetadata(
+            tokenQueryId = "tron|native",
+            coinUid = "tron",
+            coinCode = "TRX",
+            coinName = "TRON",
+            decimals = 6,
+        ),
+        amountAtomic = "1200000",
+        fee = OfflineFeeMetadata(
+            tokenQueryId = "tron|native",
+            atomic = "100000",
+            decimals = 6,
+        ),
+        toAddress = "TReceiver",
+        createdAt = CREATED_AT,
+        inputOutpoints = emptyList(),
+        tronRetryMetadata = tronRetryMetadata(),
     )
 
     private fun CoroutineScope.repository() = OfflineSignedTransactionRepository(
@@ -295,8 +365,20 @@ class OfflineSignedTransactionRepositoryTest {
         seqno = 7,
     )
 
+    private fun tronToken() = Token(
+        coin = Coin(uid = "tron", name = "TRON", code = "TRX"),
+        blockchain = tron,
+        type = TokenType.Native,
+        decimals = 6,
+    )
+
+    private fun tronRetryMetadata() = OfflineTronRetryMetadata(
+        expiration = 1_700_000_060_000L,
+    )
+
     private val bsc = Blockchain(BlockchainType.BinanceSmartChain, "BNB Smart Chain", null)
     private val ton = Blockchain(BlockchainType.Ton, "TON", null)
+    private val tron = Blockchain(BlockchainType.Tron, "TRON", null)
 
     private val account = Account(
         id = "account-id",
