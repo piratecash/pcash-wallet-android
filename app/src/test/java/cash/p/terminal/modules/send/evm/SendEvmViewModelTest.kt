@@ -2,7 +2,7 @@ package cash.p.terminal.modules.send.evm
 
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.OfflineEvmSignRequest
-import cash.p.terminal.core.OfflineSignAdapter
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.SignedOfflineEvmTransaction
 import cash.p.terminal.core.ServiceStateFlow
 import cash.p.terminal.core.TestDispatcherProvider
@@ -70,7 +70,7 @@ import java.math.BigDecimal
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendEvmViewModelTest : KoinTest {
 
-    private interface TestSendEvmAdapter : ISendEthereumAdapter, OfflineSignAdapter<SignedOfflineEvmTransaction>
+    private interface TestSendEvmAdapter : ISendEthereumAdapter, OfflineTransactionAdapter<SignedOfflineEvmTransaction>
 
     private val dispatcher = UnconfinedTestDispatcher()
 

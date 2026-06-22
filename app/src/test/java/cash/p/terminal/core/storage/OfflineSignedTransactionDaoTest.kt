@@ -143,6 +143,8 @@ class OfflineSignedTransactionDaoTest {
         amount = "0.001",
         feeTokenQueryId = null,
         feeAtomic = null,
+        solanaBlockHash = null,
+        solanaLastValidBlockHeight = null,
         toAddress = "addr",
         rawHex = "deadbeef",
         pcashPayload = "pcash:tx:v1:bitcoin:body",

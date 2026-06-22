@@ -4,15 +4,18 @@ import cash.p.terminal.R
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.EvmError
-import cash.p.terminal.core.OfflineBroadcastAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.entities.DecodedOfflineTransaction
+import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
@@ -55,6 +58,8 @@ import java.util.concurrent.TimeoutException
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineBroadcastViewModelTest {
 
+    private interface TestOfflineTransactionAdapter : IAdapter, OfflineTransactionAdapter<Any>
+
     private val dispatcher = UnconfinedTestDispatcher()
 
     private val payloadEncoder = mockk<OfflineTransactionPayloadEncoder>(relaxed = true)
@@ -86,6 +91,13 @@ class OfflineBroadcastViewModelTest {
     )
     private val bnbWallet = wallet(bnbToken, account)
     private val usdtWallet = wallet(usdtToken, account)
+    private val solana = Blockchain(BlockchainType.Solana, "Solana", null)
+    private val solanaToken = token(
+        blockchain = solana,
+        coin = Coin(uid = "solana", name = "Solana", code = "SOL"),
+        decimals = 9,
+    )
+    private val solanaWallet = wallet(solanaToken, account)
 
     @Before
     fun setUp() {
@@ -170,8 +182,8 @@ class OfflineBroadcastViewModelTest {
             true
         }
         coEvery {
-            adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any())
-        } returns mockk<OfflineBroadcastAdapter>()
+            adapterManager.awaitAdapterForWallet<IAdapter>(any(), any())
+        } returns mockk<TestOfflineTransactionAdapter>()
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -220,7 +232,7 @@ class OfflineBroadcastViewModelTest {
             true
         }
         coEvery {
-            adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any())
+            adapterManager.awaitAdapterForWallet<IAdapter>(any(), any())
         } returns null
 
         val viewModel = createViewModel()
@@ -295,8 +307,8 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        val adapter = mockk<OfflineBroadcastAdapter>(relaxed = true)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        val adapter = mockk<TestOfflineTransactionAdapter>(relaxed = true)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -311,7 +323,7 @@ class OfflineBroadcastViewModelTest {
         advanceUntilIdle()
 
         assertNotNull(viewModel.uiState.dismissError)
-        coVerify(exactly = 0) { adapter.broadcastRawTransaction(any()) }
+        coVerify(exactly = 0) { adapter.broadcastRawTransaction(any(), any()) }
     }
 
     @Test
@@ -319,10 +331,10 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        val adapter = mockk<OfflineBroadcastAdapter>()
-        coEvery { adapter.broadcastRawTransaction(any()) } returns
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
             BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Submitted)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -332,7 +344,44 @@ class OfflineBroadcastViewModelTest {
 
         assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
         assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
-        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead") }
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", null) }
+    }
+
+    @Test
+    fun onBroadcast_solanaPcashPayload_passesRetryMetadata() = runTest(dispatcher) {
+        val retryMetadata = OfflineSolanaRetryMetadata(
+            blockHash = "block-hash",
+            lastValidBlockHeight = 123L,
+        )
+        setActiveWallets(listOf(solanaWallet))
+        every {
+            payloadEncoder.decode(any())
+        } returns decoded(
+            blockchainUid = "solana",
+            txHash = SOLANA_SIGNATURE,
+            solanaRetryMetadata = retryMetadata,
+        )
+        every { marketKit.blockchain("solana") } returns solana
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        val broadcastMetadata = OfflineBroadcastMetadata.Solana(
+            blockHash = "block-hash",
+            lastValidBlockHeight = 123L,
+        )
+        coEvery {
+            adapter.broadcastRawTransaction(any(), broadcastMetadata)
+        } returns BroadcastRawTransactionResult(SOLANA_SIGNATURE, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
+        coVerify { repository.markBroadcasted("account-id", SOLANA_SIGNATURE, SOLANA_SIGNATURE) }
     }
 
     @Test
@@ -340,10 +389,10 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        val adapter = mockk<OfflineBroadcastAdapter>()
-        coEvery { adapter.broadcastRawTransaction(any()) } returns
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
             BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Queued)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -363,10 +412,10 @@ class OfflineBroadcastViewModelTest {
     fun onBroadcast_plainRawHexSubmitted_persistsBroadcastedRawTransaction() = runTest(dispatcher) {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns null
-        val adapter = mockk<OfflineBroadcastAdapter>()
-        coEvery { adapter.broadcastRawTransaction(any()) } returns
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
             BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.Submitted)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("deadbeefdeadbeefdead")
@@ -381,16 +430,17 @@ class OfflineBroadcastViewModelTest {
             repository.markBroadcastAttempt("account-id", "derived-hash")
             repository.markBroadcasted("account-id", "derived-hash", "derived-hash")
         }
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", null) }
     }
 
     @Test
     fun onBroadcast_plainRawHexQueued_persistsPendingRawTransaction() = runTest(dispatcher) {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns null
-        val adapter = mockk<OfflineBroadcastAdapter>()
-        coEvery { adapter.broadcastRawTransaction(any()) } returns
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
             BroadcastRawTransactionResult("queued-hash", BroadcastRawTransactionStatus.Queued)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("deadbeefdeadbeefdead")
@@ -412,10 +462,10 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        val adapter = mockk<OfflineBroadcastAdapter>()
-        coEvery { adapter.broadcastRawTransaction(any()) } returns
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
             BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.Submitted)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
         // Keep the import insert in flight while the user reaches broadcast.
         val importGate = CompletableDeferred<Unit>()
         coEvery { repository.saveImported(any(), any(), any()) } coAnswers { importGate.await() }
@@ -444,11 +494,11 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        val adapter = mockk<OfflineBroadcastAdapter>()
+        val adapter = mockk<TestOfflineTransactionAdapter>()
         // The payload claimed "hash"; the kit derives the real txid from the raw bytes.
-        coEvery { adapter.broadcastRawTransaction(any()) } returns
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
             BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.Submitted)
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -464,9 +514,9 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        val adapter = mockk<OfflineBroadcastAdapter>()
-        coEvery { adapter.broadcastRawTransaction(any()) } throws Exception("Error")
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns adapter
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } throws Exception("Error")
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -520,7 +570,7 @@ class OfflineBroadcastViewModelTest {
         setActiveWallets(listOf(bitcoinWallet))
         every { payloadEncoder.decode(any()) } returns decoded()
         every { marketKit.blockchain("bitcoin") } returns bitcoin
-        coEvery { adapterManager.awaitAdapterForWallet<OfflineBroadcastAdapter>(any(), any()) } returns null
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns null
 
         val viewModel = createViewModel()
         viewModel.prefillAndAdvance("pcash:tx:v1:payload")
@@ -631,10 +681,14 @@ class OfflineBroadcastViewModelTest {
         dispatcherProvider = dispatcherProvider,
     )
 
-    private fun decoded(blockchainUid: String = "bitcoin") = DecodedOfflineTransaction(
+    private fun decoded(
+        blockchainUid: String = "bitcoin",
+        txHash: String = "hash",
+        solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
+    ) = DecodedOfflineTransaction(
         blockchainUid = blockchainUid,
         rawHex = "deadbeefdeadbeefdead",
-        txHash = "hash",
+        txHash = txHash,
         token = OfflineTokenMetadata(
             tokenQueryId = "$blockchainUid|native",
             coinUid = blockchainUid,
@@ -647,6 +701,7 @@ class OfflineBroadcastViewModelTest {
         toAddress = "address",
         createdAt = 0L,
         inputOutpoints = emptyList(),
+        solanaRetryMetadata = solanaRetryMetadata,
     )
 
     private fun token(
@@ -702,5 +757,7 @@ class OfflineBroadcastViewModelTest {
     private companion object {
         const val WATCH_XPUB =
             "xpub6CudKadFxkN6jXWcJDJSWzt4tNt86ThhYEjtcTywfD5nsYcySEEhfGugKDLnv14ZDNnYBVbfYXbNvRp8cNNw9JAfoMTeph1BqGWYZA4DBDi"
+        const val SOLANA_SIGNATURE =
+            "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
     }
 }

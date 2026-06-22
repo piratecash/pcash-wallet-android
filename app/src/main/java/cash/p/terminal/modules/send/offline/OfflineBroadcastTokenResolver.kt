@@ -20,9 +20,11 @@ import io.horizontalsystems.core.entities.BlockchainType
  *    BitcoinBaseAdapter for. A new bitcoin-like adapter added there starts relaying automatically.
  *  - [EvmBlockchainManager.blockchainTypes] is the EVM-family source; relay uses the base token
  *    because broadcasting signed bytes is chain-level, not token-level.
+ *  - Solana relay uses the native SOL token because sendTransaction of signed bytes is chain-level.
  *  - Watch-only accounts (watch address and public HD extended key) are rejected because the
  *    bitcoin-kit core is read-only and throws CoreError.ReadOnlyCore on broadcast. EVM watch-only
- *    accounts may relay because eth_sendRawTransaction does not require local signing keys.
+ *    and Solana watch-only accounts may relay because raw broadcast does not require local signing
+ *    keys.
  *  - Token/account compatibility reuses [Token.supports] + [BlockchainType.supports], which already
  *    encode derivation, purpose and coin-type constraints (e.g. native Dogecoin is not relayable
  *    from an HD extended key).
@@ -43,6 +45,7 @@ class OfflineBroadcastTokenResolver(
         return when (blockchainType) {
             in btcBlockchainManager.blockchainTypes -> resolveBitcoinToken(blockchainType, account)
             in EvmBlockchainManager.blockchainTypes -> resolveEvmToken(blockchainType, account)
+            BlockchainType.Solana -> resolveSolanaToken(account)
             else -> null
         }
     }
@@ -61,6 +64,9 @@ class OfflineBroadcastTokenResolver(
 
     private fun resolveEvmToken(blockchainType: BlockchainType, account: Account): Token? =
         evmBlockchainManager.getBaseToken(blockchainType)?.takeIf { canEnable(it, account) }
+
+    private fun resolveSolanaToken(account: Account): Token? =
+        marketKit.token(BlockchainType.Solana.defaultTokenQuery)?.takeIf { canEnable(it, account) }
 
     private fun canEnable(token: Token, account: Account): Boolean =
         token.supports(account.type) &&

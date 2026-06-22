@@ -4,10 +4,10 @@ import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.ISendEthereumAdapter
-import cash.p.terminal.core.OfflineBroadcastAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineEvmSignRequest
-import cash.p.terminal.core.OfflineSignAdapter
 import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.SignedOfflineEvmTransaction
 import cash.p.terminal.core.canonicalTransactionHash
 import cash.p.terminal.data.repository.EvmTransactionRepository
@@ -32,8 +32,7 @@ internal abstract class BaseEvmAdapter(
     ISendEthereumAdapter,
     IBalanceAdapter,
     IReceiveAdapter,
-    OfflineSignAdapter<SignedOfflineEvmTransaction>,
-    OfflineBroadcastAdapter {
+    OfflineTransactionAdapter<SignedOfflineEvmTransaction> {
 
     override val debugInfo: String
         get() = evmTransactionRepository.debugInfo()
@@ -85,7 +84,10 @@ internal abstract class BaseEvmAdapter(
         )
     }
 
-    override suspend fun broadcastRawTransaction(rawTransactionHex: String): BroadcastRawTransactionResult {
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
         val result = evmTransactionRepository.broadcastRawTransaction(rawTransactionHex)
         return BroadcastRawTransactionResult(
             txHash = result.transactionHash.toRawHexString().canonicalTransactionHash(),

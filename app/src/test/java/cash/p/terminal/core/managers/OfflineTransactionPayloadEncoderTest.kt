@@ -2,12 +2,14 @@ package cash.p.terminal.core.managers
 
 import android.util.Base64
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Base58
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -228,6 +230,60 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_solanaRoundTrip_returnsRetryMetadataAndPreservesSignatureCase() {
+        val payload = encoder.encode(
+            draft(
+                txHash = SOLANA_SIGNATURE,
+                token = solanaToken(),
+                feeToken = solanaToken(),
+                solanaRetryMetadata = solanaRetryMetadata(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("solana", decoded.blockchainUid)
+        assertEquals(SOLANA_SIGNATURE, decoded.txHash)
+        assertEquals("solana|native", decoded.token.tokenQueryId)
+        assertEquals("block-hash", decoded.solanaRetryMetadata?.blockHash)
+        assertEquals(123L, decoded.solanaRetryMetadata?.lastValidBlockHeight)
+    }
+
+    @Test
+    fun decode_solanaPayloadWithoutRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                txHash = SOLANA_SIGNATURE,
+                token = solanaToken(),
+                feeToken = solanaToken(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_nonSolanaPayloadWithSolanaRetryMetadata_returnsNull() {
+        val payload = encoder.encode(draft(solanaRetryMetadata = solanaRetryMetadata()))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_solanaInvalidSignature_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                txHash = "0123456789abcdef",
+                token = solanaToken(),
+                feeToken = solanaToken(),
+                solanaRetryMetadata = solanaRetryMetadata(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -258,6 +314,7 @@ class OfflineTransactionPayloadEncoderTest {
             decimals = 8,
         ),
         feeToken: Token? = null,
+        solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
     ): OfflineSignedTransactionDraft {
         val wallet = mockk<Wallet>(relaxed = true) {
             every { this@mockk.token } returns token
@@ -272,6 +329,7 @@ class OfflineTransactionPayloadEncoderTest {
             inputOutpoints = emptyList(),
             createdAt = CREATED_AT,
             feeToken = feeToken,
+            solanaRetryMetadata = solanaRetryMetadata,
         )
     }
 
@@ -286,6 +344,18 @@ class OfflineTransactionPayloadEncoderTest {
         blockchain = Blockchain(blockchainType, blockchainName, null),
         type = tokenType,
         decimals = decimals,
+    )
+
+    private fun solanaToken() = token(
+        blockchainType = BlockchainType.Solana,
+        blockchainName = "Solana",
+        coin = Coin(uid = "solana", name = "Solana", code = "SOL"),
+        decimals = 9,
+    )
+
+    private fun solanaRetryMetadata() = OfflineSolanaRetryMetadata(
+        blockHash = "block-hash",
+        lastValidBlockHeight = 123L,
     )
 
     private fun compressedBase64(json: String): String {
@@ -351,6 +421,7 @@ class OfflineTransactionPayloadEncoderTest {
 
     private companion object {
         const val TX_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        val SOLANA_SIGNATURE = Base58.encode(ByteArray(64) { (it + 1).toByte() })
         const val CREATED_AT = 1_700_000_000_000L
     }
 }

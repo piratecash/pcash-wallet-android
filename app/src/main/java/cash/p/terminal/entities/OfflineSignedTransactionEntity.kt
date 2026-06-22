@@ -36,6 +36,8 @@ data class OfflineSignedTransactionEntity(
     // Stored for future fee display; the current list UI only uses amount/display token metadata.
     val feeTokenQueryId: String?,
     val feeAtomic: String?,
+    val solanaBlockHash: String?,
+    val solanaLastValidBlockHeight: Long?,
     val toAddress: String,
     val rawHex: String,
     val pcashPayload: String,

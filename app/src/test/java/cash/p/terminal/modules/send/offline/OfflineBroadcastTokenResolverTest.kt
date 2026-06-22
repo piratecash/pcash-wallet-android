@@ -74,7 +74,7 @@ class OfflineBroadcastTokenResolverTest {
 
     @Test
     fun resolveTokenToEnable_nonBroadcastableBlockchain_returnsNull() {
-        assertNull(resolver.resolveTokenToEnable(BlockchainType.Solana, mnemonicAccount()))
+        assertNull(resolver.resolveTokenToEnable(BlockchainType.Tron, mnemonicAccount()))
     }
 
     @Test
@@ -86,6 +86,17 @@ class OfflineBroadcastTokenResolverTest {
 
         assertNotNull(token)
         assertEquals(BlockchainType.Ethereum, token?.blockchainType)
+    }
+
+    @Test
+    fun resolveTokenToEnable_watchSolanaAddress_returnsToken() {
+        val token = resolver.resolveTokenToEnable(
+            BlockchainType.Solana,
+            account(AccountType.SolanaAddress("11111111111111111111111111111111")),
+        )
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Solana, token?.blockchainType)
     }
 
     @Test

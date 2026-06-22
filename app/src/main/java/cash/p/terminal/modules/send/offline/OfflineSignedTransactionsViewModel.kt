@@ -160,13 +160,14 @@ class OfflineSignedTransactionsViewModel(
         entity: OfflineSignedTransactionEntity,
     ): String? =
         records.firstOrNull {
-            it.transactionHash.canonicalTransactionHash() == entity.txHash.canonicalTransactionHash()
+            it.transactionHash.offlineComparableHash(entity.blockchainTypeUid) ==
+                entity.txHash.offlineComparableHash(entity.blockchainTypeUid)
         }
             ?.transactionHash
-            ?.canonicalTransactionHash()
+            ?.offlineComparableHash(entity.blockchainTypeUid)
             ?: records.firstOrNull { record ->
                 adapter.rawTransactionMatches(record.transactionHash, entity.rawHex)
-            }?.transactionHash?.canonicalTransactionHash()
+            }?.transactionHash?.offlineComparableHash(entity.blockchainTypeUid)
 
     private fun ITransactionsAdapter.rawTransactionMatches(
         transactionHash: String,
@@ -175,6 +176,13 @@ class OfflineSignedTransactionsViewModel(
         tryOrNull { getRawTransaction(transactionHash)?.normalizedHex() } == rawHex.normalizedHex()
 
     private fun String.normalizedHex(): String = trim().lowercase()
+
+    private fun String.offlineComparableHash(blockchainTypeUid: String): String =
+        if (blockchainTypeUid == BlockchainType.Solana.uid) {
+            trim()
+        } else {
+            canonicalTransactionHash()
+        }
 
     private fun OfflineSignedTransactionEntity.toViewItem(
         account: Account?,

@@ -6,6 +6,7 @@ import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSignedTransactionEntity
+import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -116,6 +117,36 @@ class OfflineSignedTransactionRepositoryTest {
         assertEquals("", entity.pcashPayload)
     }
 
+    @Test
+    fun save_localSolanaDraft_savesRetryMetadata() = runTest(dispatcher) {
+        val repository = repository()
+        val entitySlot = slot<OfflineSignedTransactionEntity>()
+        coEvery { dao.insertIfAbsent(capture(entitySlot)) } returns Unit
+        val retryMetadata = OfflineSolanaRetryMetadata(
+            blockHash = "block-hash",
+            lastValidBlockHeight = 123L,
+        )
+
+        repository.save(
+            draft = OfflineSignedTransactionDraft(
+                wallet = wallet(solanaToken()),
+                amount = BigDecimal("1.2"),
+                fee = BigDecimal("0.000005"),
+                toAddress = "solana-address",
+                rawHex = "deadbeef",
+                txHash = "solana-signature",
+                inputOutpoints = emptyList(),
+                feeToken = solanaToken(),
+                solanaRetryMetadata = retryMetadata,
+            ),
+            pcashPayload = "pcash:tx:v1:solana:body",
+        )
+
+        val entity = entitySlot.captured
+        assertEquals("block-hash", entity.solanaBlockHash)
+        assertEquals(123L, entity.solanaLastValidBlockHeight)
+    }
+
     private fun decodedUsdcTransaction() = DecodedOfflineTransaction(
         blockchainUid = "binance-smart-chain",
         rawHex = "deadbeef",
@@ -164,6 +195,13 @@ class OfflineSignedTransactionRepositoryTest {
         blockchain = bsc,
         type = TokenType.Eip20(USDC_CONTRACT),
         decimals = 6,
+    )
+
+    private fun solanaToken() = Token(
+        coin = Coin(uid = "solana", name = "Solana", code = "SOL"),
+        blockchain = Blockchain(BlockchainType.Solana, "Solana", null),
+        type = TokenType.Native,
+        decimals = 9,
     )
 
     private val bsc = Blockchain(BlockchainType.BinanceSmartChain, "BNB Smart Chain", null)

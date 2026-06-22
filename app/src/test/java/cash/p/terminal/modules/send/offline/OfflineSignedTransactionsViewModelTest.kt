@@ -135,6 +135,32 @@ class OfflineSignedTransactionsViewModelTest {
     }
 
     @Test
+    fun init_pendingSolanaRecordConfirmedBySourceAdapter_preservesSignatureCase() = runTest(dispatcher) {
+        val solanaWallet = wallet(solanaToken)
+        val adapter = mockk<ITransactionsAdapter>(relaxed = true) {
+            every { getTransactionRecordsFlow(null, any(), null) } returns flowOf(
+                listOf(record(transactionHash = SOLANA_SIGNATURE, token = solanaToken))
+            )
+        }
+        every { transactionAdapterManager.adaptersReadyFlow } returns MutableStateFlow(
+            mapOf(solanaWallet.transactionSource to adapter)
+        )
+        every { marketKit.token(requireNotNull(TokenQuery.fromId(SOLANA_QUERY_ID))) } returns solanaToken
+        setupState(entities = listOf(solanaEntity()), wallets = listOf(solanaWallet))
+
+        viewModel(this)
+        advanceUntilIdle()
+
+        coVerify {
+            repository.markBroadcasted(
+                accountId = account.id,
+                txHash = SOLANA_SIGNATURE,
+                confirmedTxHash = SOLANA_SIGNATURE,
+            )
+        }
+    }
+
+    @Test
     fun init_legacyEntity_resolvesNativeTokenByStoredCoinFields() = runTest(dispatcher) {
         every { marketKit.tokens(any<List<TokenQuery>>()) } returns listOf(bnbToken)
         setupState(entities = listOf(legacyBnbEntity()), wallets = emptyList())
@@ -196,6 +222,8 @@ class OfflineSignedTransactionsViewModelTest {
         amount = "1.234567",
         feeTokenQueryId = "binance-smart-chain|native",
         feeAtomic = "1000000000000000",
+        solanaBlockHash = null,
+        solanaLastValidBlockHeight = null,
         toAddress = "0xReceiver",
         rawHex = "deadbeef",
         pcashPayload = "pcash:tx:v1:binance-smart-chain:body",
@@ -224,6 +252,25 @@ class OfflineSignedTransactionsViewModelTest {
         amount = "",
         toAddress = "",
         pcashPayload = "",
+    )
+
+    private fun solanaEntity() = usdcEntity().copy(
+        txHash = SOLANA_SIGNATURE,
+        blockchainTypeUid = "solana",
+        tokenQueryId = SOLANA_QUERY_ID,
+        sourceTokenQueryId = SOLANA_QUERY_ID,
+        coinUid = "solana",
+        coinCode = "SOL",
+        coinName = "Solana",
+        tokenDecimals = 9,
+        amount = "1.5",
+        feeTokenQueryId = SOLANA_QUERY_ID,
+        feeAtomic = "5000",
+        toAddress = "solana-address",
+        rawHex = "deadbeef",
+        pcashPayload = "pcash:tx:v1:solana:body",
+        solanaBlockHash = "block-hash",
+        solanaLastValidBlockHeight = 123L,
     )
 
     private fun record(
@@ -268,6 +315,15 @@ class OfflineSignedTransactionsViewModelTest {
         decimals = 6,
     )
 
+    private val solana = Blockchain(BlockchainType.Solana, "Solana", null)
+
+    private val solanaToken = Token(
+        coin = Coin(uid = "solana", name = "Solana", code = "SOL"),
+        blockchain = solana,
+        type = TokenType.Native,
+        decimals = 9,
+    )
+
     private val account = Account(
         id = "account-id",
         name = "Account",
@@ -281,5 +337,8 @@ class OfflineSignedTransactionsViewModelTest {
         const val TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         const val USDC_CONTRACT = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
         const val USDC_QUERY_ID = "binance-smart-chain|eip20:$USDC_CONTRACT"
+        const val SOLANA_QUERY_ID = "solana|native"
+        const val SOLANA_SIGNATURE =
+            "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
     }
 }

@@ -6,9 +6,9 @@ import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.OfflineBitcoinSignRequest
-import cash.p.terminal.core.OfflineBroadcastAdapter
-import cash.p.terminal.core.OfflineSignAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.onPollingStarted
 import cash.p.terminal.core.onPollingStopped
@@ -91,7 +91,7 @@ abstract class BitcoinBaseAdapter(
     protected val decimal: Int = 8,
     protected val feeRateProvider: IFeeRateProvider? = null
 ) : IAdapter, ITransactionsAdapter, IBalanceAdapter, IReceiveAdapter, ISendBitcoinAdapter,
-    OfflineSignAdapter<SignedOfflineBitcoinTransaction>, OfflineBroadcastAdapter {
+    OfflineTransactionAdapter<SignedOfflineBitcoinTransaction> {
 
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager
             by inject(BackgroundKeepAliveManager::class.java)
@@ -454,7 +454,10 @@ abstract class BitcoinBaseAdapter(
         return sendData.header.uid
     }
 
-    override suspend fun broadcastRawTransaction(rawTransactionHex: String): BroadcastRawTransactionResult {
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
         val result = kit.broadcastRawTransaction(rawTransactionHex)
         val status = when (result.status) {
             RawTransactionBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted

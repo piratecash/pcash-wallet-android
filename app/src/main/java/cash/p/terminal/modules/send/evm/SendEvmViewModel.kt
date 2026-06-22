@@ -9,7 +9,7 @@ import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.LocalizedException
-import cash.p.terminal.core.OfflineSignAdapter
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.SignedOfflineEvmTransaction
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.EvmBlockchainManager
@@ -87,7 +87,7 @@ internal class SendEvmViewModel(
         private set
 
     @Suppress("UNCHECKED_CAST")
-    private val offlineSignAdapter = adapter as? OfflineSignAdapter<SignedOfflineEvmTransaction>
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineEvmTransaction>
     override val offlineSigningController: OfflineSigningController<OfflineSignResult> by lazy {
         OfflineSigningController(
             scope = viewModelScope,

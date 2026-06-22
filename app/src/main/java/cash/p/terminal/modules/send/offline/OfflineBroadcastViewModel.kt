@@ -6,7 +6,8 @@ import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.LocalizedException
-import cash.p.terminal.core.OfflineBroadcastAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.UnsupportedException
 import cash.p.terminal.core.convertedError
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
@@ -17,6 +18,7 @@ import cash.p.terminal.core.supported
 import cash.p.terminal.core.supports
 import cash.p.terminal.core.toResString
 import cash.p.terminal.entities.DecodedOfflineTransaction
+import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
@@ -72,6 +74,7 @@ class OfflineBroadcastViewModel(
     private var errorMessage: String? = null
     private var prefilled = false
     private var offlineRecordKey: OfflineRecordKey? = null
+    private var broadcastMetadata: OfflineBroadcastMetadata? = null
 
     override fun createState() = OfflineBroadcastUiState(
         step = step,
@@ -185,15 +188,18 @@ class OfflineBroadcastViewModel(
             }
         }
         val wallet = walletFor(type) ?: return null
-        return wallet.takeIf { awaitOfflineBroadcastAdapter(it) != null }
+        return wallet.takeIf { awaitOfflineTransactionAdapter(it) != null }
     }
 
-    // awaitAdapterForWallet's type parameter is erased, so requesting it as OfflineBroadcastAdapter
+    // awaitAdapterForWallet's type parameter is erased, so requesting it as OfflineTransactionAdapter
     // cannot actually verify the adapter type and would let a non-broadcast adapter through, crashing
     // at the call site. Await the wallet's adapter as its real base type, then perform a genuine
     // checked cast: a non-broadcast adapter yields null instead of crashing.
-    private suspend fun awaitOfflineBroadcastAdapter(wallet: Wallet): OfflineBroadcastAdapter? =
-        adapterManager.awaitAdapterForWallet<IAdapter>(wallet, ADAPTER_WAIT_TIMEOUT_MS) as? OfflineBroadcastAdapter
+    private suspend fun awaitOfflineTransactionAdapter(wallet: Wallet): OfflineTransactionAdapter<*>? =
+        adapterManager.awaitAdapterForWallet<IAdapter>(
+            wallet,
+            ADAPTER_WAIT_TIMEOUT_MS,
+        ) as? OfflineTransactionAdapter<*>
 
     private fun onBroadcast() {
         // A second tap while the first broadcast is still running could re-attempt the send and roll a
@@ -214,7 +220,7 @@ class OfflineBroadcastViewModel(
             importJob?.join()
             // The wallet may be active while its adapter is still starting, so wait instead of
             // treating a not-yet-created adapter as an unsupported blockchain.
-            val adapter = awaitOfflineBroadcastAdapter(wallet)
+            val adapter = awaitOfflineTransactionAdapter(wallet)
             if (adapter == null) {
                 broadcasting = false
                 showUnsupportedBlockchainError(wallet.token.blockchain.name)
@@ -227,14 +233,14 @@ class OfflineBroadcastViewModel(
         }
     }
 
-    private suspend fun broadcast(wallet: Wallet, adapter: OfflineBroadcastAdapter): OfflineBroadcastResult {
+    private suspend fun broadcast(wallet: Wallet, adapter: OfflineTransactionAdapter<*>): OfflineBroadcastResult {
         val networkName = wallet.token.blockchain.name
         return try {
             offlineRecordKey?.let {
                 offlineSignedTransactionRepository.markBroadcastAttempt(it.accountId, it.txHash)
             }
             val broadcastResult = withContext(dispatcherProvider.io) {
-                adapter.broadcastRawTransaction(rawHex)
+                adapter.broadcastRawTransaction(rawHex, broadcastMetadata)
             }
             val queued = broadcastResult.status == BroadcastRawTransactionStatus.Queued
             val recordKey = offlineRecordKey
@@ -339,6 +345,7 @@ class OfflineBroadcastViewModel(
             return
         }
         rawHex = decoded.rawHex
+        broadcastMetadata = decoded.solanaRetryMetadata?.toBroadcastMetadata()
         networkSelectable = false
         selectedBlockchain = blockchain
 
@@ -403,6 +410,7 @@ class OfflineBroadcastViewModel(
             return
         }
         rawHex = normalized
+        broadcastMetadata = null
         networkSelectable = true
         offlineRecordKey = null
         step = OfflineBroadcastStep.Confirm
@@ -488,6 +496,11 @@ private data class OfflineRecordKey(
 private data class PendingImport(
     val decoded: DecodedOfflineTransaction,
     val payload: String,
+)
+
+private fun OfflineSolanaRetryMetadata.toBroadcastMetadata() = OfflineBroadcastMetadata.Solana(
+    blockHash = blockHash,
+    lastValidBlockHeight = lastValidBlockHeight,
 )
 
 enum class OfflineBroadcastStep { Loading, Confirm, SelectBlockchain, Result }

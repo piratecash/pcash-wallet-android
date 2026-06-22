@@ -12,7 +12,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineBitcoinSignRequest
-import cash.p.terminal.core.OfflineSignAdapter
+import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
 import cash.p.terminal.core.getKoinInstance
@@ -99,7 +99,7 @@ class SendBitcoinViewModel(
     private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder = getKoinInstance()
     private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository = getKoinInstance()
     @Suppress("UNCHECKED_CAST")
-    private val offlineSignAdapter = adapter as? OfflineSignAdapter<SignedOfflineBitcoinTransaction>
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineBitcoinTransaction>
     override val offlineSigningController = OfflineSigningController<OfflineSignResult>(
         scope = viewModelScope,
         dispatcherProvider = dispatcherProvider,

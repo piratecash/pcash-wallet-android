@@ -5,12 +5,14 @@ import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.entities.OfflineTransactionOutpoint
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.hdwalletkit.Base58
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 import java.io.ByteArrayOutputStream
@@ -43,6 +45,7 @@ class OfflineTransactionPayloadEncoder {
             toAddress = draft.toAddress,
             createdAt = draft.createdAt,
             inputOutpoints = draft.inputOutpoints,
+            solanaRetry = draft.solanaRetryMetadata?.toPayload(),
             checksum = checksum(draft.rawHex),
         )
         return listOf(SCHEME, TYPE, VERSION, blockchainUid, compressedBase64(payload))
@@ -78,6 +81,7 @@ class OfflineTransactionPayloadEncoder {
             toAddress = decoded.toAddress,
             createdAt = decoded.createdAt,
             inputOutpoints = decoded.inputOutpoints,
+            solanaRetryMetadata = decoded.solanaRetry?.toMetadata(),
         )
     }
 
@@ -135,9 +139,10 @@ class OfflineTransactionPayloadEncoder {
             payload.blockchainUid == blockchainUid &&
             isHex(payload.rawHex) &&
             payload.checksum == checksum(payload.rawHex) &&
-            isTxHash(payload.txHash) &&
+            isTxHash(payload.txHash, blockchainUid) &&
             isValidToken(payload.token, blockchainUid) &&
             isValidFee(payload.fee, blockchainUid) &&
+            isValidSolanaRetry(payload.solanaRetry, blockchainUid) &&
             payload.toAddress.isNotBlank() &&
             isNonNegativeAtomic(payload.amountAtomic)
 
@@ -156,10 +161,30 @@ class OfflineTransactionPayloadEncoder {
             isNonNegativeAtomic(fee.atomic)
     }
 
-    // A Bitcoin-family txid is a 32-byte hash, i.e. exactly 64 hex characters; anything else means the
-    // signer wrote a value the wallet would never produce, so reject it instead of keying a record by it.
-    private fun isTxHash(value: String): Boolean =
-        value.length == TX_HASH_HEX_LENGTH && isHex(value)
+    private fun isTxHash(value: String, blockchainUid: String): Boolean =
+        if (blockchainUid == BlockchainType.Solana.uid) {
+            isSolanaSignature(value)
+        } else {
+            // A Bitcoin/EVM txid is a 32-byte hash, i.e. exactly 64 hex characters; anything else means
+            // the signer wrote a value the wallet would never produce, so reject it instead of keying a
+            // record by it.
+            value.length == TX_HASH_HEX_LENGTH && isHex(value)
+        }
+
+    private fun isSolanaSignature(value: String): Boolean =
+        tryOrNull { Base58.decode(value).size == SOLANA_SIGNATURE_BYTES } == true
+
+    private fun isValidSolanaRetry(
+        solanaRetry: PayloadSolanaRetry?,
+        blockchainUid: String,
+    ): Boolean =
+        if (blockchainUid == BlockchainType.Solana.uid) {
+            solanaRetry != null &&
+                solanaRetry.blockHash.isNotBlank() &&
+                solanaRetry.lastValidBlockHeight > 0
+        } else {
+            solanaRetry == null
+        }
 
     private fun isNonNegativeAtomic(value: String): Boolean =
         (value.toBigIntegerOrNull()?.signum() ?: -1) >= 0
@@ -192,6 +217,16 @@ class OfflineTransactionPayloadEncoder {
         decimals = decimals,
     )
 
+    private fun OfflineSolanaRetryMetadata.toPayload() = PayloadSolanaRetry(
+        blockHash = blockHash,
+        lastValidBlockHeight = lastValidBlockHeight,
+    )
+
+    private fun PayloadSolanaRetry.toMetadata() = OfflineSolanaRetryMetadata(
+        blockHash = blockHash,
+        lastValidBlockHeight = lastValidBlockHeight,
+    )
+
     @Serializable
     private data class Payload(
         val version: Int = 1,
@@ -206,6 +241,7 @@ class OfflineTransactionPayloadEncoder {
         val createdAt: Long,
         val inputOutpoints: List<OfflineTransactionOutpoint>,
         val checksum: String,
+        val solanaRetry: PayloadSolanaRetry? = null,
     )
 
     @Serializable
@@ -222,6 +258,12 @@ class OfflineTransactionPayloadEncoder {
         val tokenQueryId: String,
         val atomic: String,
         val decimals: Int,
+    )
+
+    @Serializable
+    private data class PayloadSolanaRetry(
+        val blockHash: String,
+        val lastValidBlockHeight: Long,
     )
 
     companion object {
@@ -249,6 +291,7 @@ class OfflineTransactionPayloadEncoder {
         private const val RAW_HEX_ENCODING = "rawhex"
         private const val CHECKSUM_BYTES = 8
         private const val TX_HASH_HEX_LENGTH = 64
+        private const val SOLANA_SIGNATURE_BYTES = 64
         private const val MIN_RAW_HEX_LENGTH = 20
         private const val COMPRESSION_BUFFER_SIZE = 512
         private const val INFLATE_SIZE_HINT = 4

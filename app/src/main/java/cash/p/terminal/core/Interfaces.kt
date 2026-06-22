@@ -196,12 +196,13 @@ interface ISendBitcoinAdapter {
 
 interface OfflineSignRequest
 
-interface OfflineSignAdapter<out T> {
+interface OfflineTransactionAdapter<out T> {
     suspend fun signOffline(request: OfflineSignRequest): T
-}
 
-interface OfflineBroadcastAdapter {
-    suspend fun broadcastRawTransaction(rawTransactionHex: String): BroadcastRawTransactionResult
+    suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata? = null,
+    ): BroadcastRawTransactionResult
 }
 
 data class BroadcastRawTransactionResult(
@@ -211,6 +212,13 @@ data class BroadcastRawTransactionResult(
 
 enum class BroadcastRawTransactionStatus {
     Submitted, Queued
+}
+
+sealed interface OfflineBroadcastMetadata {
+    data class Solana(
+        val blockHash: String,
+        val lastValidBlockHeight: Long,
+    ) : OfflineBroadcastMetadata
 }
 
 data class OfflineBitcoinSignRequest(
@@ -242,6 +250,19 @@ data class OfflineEvmSignRequest(
 data class SignedOfflineEvmTransaction(
     val rawHex: String,
     val txHash: String,
+)
+
+data class OfflineSolanaSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+) : OfflineSignRequest
+
+data class SignedOfflineSolanaTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+    val blockHash: String,
+    val lastValidBlockHeight: Long,
 )
 
 interface IMwebAddressValidator {
