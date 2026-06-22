@@ -6,6 +6,7 @@ import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.entities.OfflineTransactionOutpoint
 import cash.p.terminal.wallet.Token
@@ -46,6 +47,7 @@ class OfflineTransactionPayloadEncoder {
             createdAt = draft.createdAt,
             inputOutpoints = draft.inputOutpoints,
             solanaRetry = draft.solanaRetryMetadata?.toPayload(),
+            tonRetry = draft.tonRetryMetadata?.toPayload(),
             checksum = checksum(draft.rawHex),
         )
         return listOf(SCHEME, TYPE, VERSION, blockchainUid, compressedBase64(payload))
@@ -82,6 +84,7 @@ class OfflineTransactionPayloadEncoder {
             createdAt = decoded.createdAt,
             inputOutpoints = decoded.inputOutpoints,
             solanaRetryMetadata = decoded.solanaRetry?.toMetadata(),
+            tonRetryMetadata = decoded.tonRetry?.toMetadata(),
         )
     }
 
@@ -143,6 +146,7 @@ class OfflineTransactionPayloadEncoder {
             isValidToken(payload.token, blockchainUid) &&
             isValidFee(payload.fee, blockchainUid) &&
             isValidSolanaRetry(payload.solanaRetry, blockchainUid) &&
+            isValidTonRetry(payload.tonRetry, blockchainUid) &&
             payload.toAddress.isNotBlank() &&
             isNonNegativeAtomic(payload.amountAtomic)
 
@@ -186,6 +190,19 @@ class OfflineTransactionPayloadEncoder {
             solanaRetry == null
         }
 
+    private fun isValidTonRetry(
+        tonRetry: PayloadTonRetry?,
+        blockchainUid: String,
+    ): Boolean =
+        if (blockchainUid == BlockchainType.Ton.uid) {
+            tonRetry != null &&
+                tonRetry.validUntil > 0 &&
+                tonRetry.senderAddress.isNotBlank() &&
+                tonRetry.seqno >= 0
+        } else {
+            tonRetry == null
+        }
+
     private fun isNonNegativeAtomic(value: String): Boolean =
         (value.toBigIntegerOrNull()?.signum() ?: -1) >= 0
 
@@ -227,6 +244,18 @@ class OfflineTransactionPayloadEncoder {
         lastValidBlockHeight = lastValidBlockHeight,
     )
 
+    private fun OfflineTonRetryMetadata.toPayload() = PayloadTonRetry(
+        validUntil = validUntil,
+        senderAddress = senderAddress,
+        seqno = seqno,
+    )
+
+    private fun PayloadTonRetry.toMetadata() = OfflineTonRetryMetadata(
+        validUntil = validUntil,
+        senderAddress = senderAddress,
+        seqno = seqno,
+    )
+
     @Serializable
     private data class Payload(
         val version: Int = 1,
@@ -242,6 +271,7 @@ class OfflineTransactionPayloadEncoder {
         val inputOutpoints: List<OfflineTransactionOutpoint>,
         val checksum: String,
         val solanaRetry: PayloadSolanaRetry? = null,
+        val tonRetry: PayloadTonRetry? = null,
     )
 
     @Serializable
@@ -264,6 +294,13 @@ class OfflineTransactionPayloadEncoder {
     private data class PayloadSolanaRetry(
         val blockHash: String,
         val lastValidBlockHeight: Long,
+    )
+
+    @Serializable
+    private data class PayloadTonRetry(
+        val validUntil: Long,
+        val senderAddress: String,
+        val seqno: Int,
     )
 
     companion object {

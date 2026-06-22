@@ -1,12 +1,22 @@
 package cash.p.terminal.core.adapters
 
+import cash.p.terminal.core.BroadcastRawTransactionResult
+import cash.p.terminal.core.BroadcastRawTransactionStatus
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.OfflineTransactionStatusAdapter
+import cash.p.terminal.core.SignedOfflineTonTransaction
+import cash.p.terminal.core.hexToByteArray
+import cash.p.terminal.core.managers.TonKitWrapper
+import cash.p.terminal.core.managers.statusInfo
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
-import cash.p.terminal.core.managers.TonKitWrapper
-import cash.p.terminal.core.managers.statusInfo
 import com.tonapps.wallet.data.core.entity.SendRequestEntity
 import io.horizontalsystems.tonkit.models.Network
+import io.horizontalsystems.tonkit.models.RawMessageBroadcastMetadata
+import io.horizontalsystems.tonkit.models.RawMessageBroadcastStatus
 import org.json.JSONArray
 import org.json.JSONObject
 import java.math.BigInteger
@@ -14,7 +24,11 @@ import java.math.BigInteger
 abstract class BaseTonAdapter(
     protected val tonKitWrapper: TonKitWrapper,
     val decimals: Int
-) : IAdapter, IBalanceAdapter, IReceiveAdapter {
+) : IAdapter,
+    IBalanceAdapter,
+    IReceiveAdapter,
+    OfflineTransactionAdapter<SignedOfflineTonTransaction>,
+    OfflineTransactionStatusAdapter {
 
     val tonKit = tonKitWrapper.tonKit
 
@@ -49,4 +63,37 @@ abstract class BaseTonAdapter(
 
     override val isMainNet: Boolean
         get() = tonKit.network == Network.MainNet
+
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
+        val normalizedRawHex = rawTransactionHex.trim()
+        require(OfflineTransactionPayloadEncoder.isRawTransactionHex(normalizedRawHex)) {
+            "Valid raw transaction hex is required"
+        }
+        val result = tonKit.broadcastRawTransaction(
+            rawMessage = normalizedRawHex.hexToByteArray(),
+            metadata = (metadata as? OfflineBroadcastMetadata.Ton)?.toTonMetadata(),
+        )
+        return BroadcastRawTransactionResult(
+            txHash = result.messageHash,
+            status = result.status.toAppStatus(),
+        )
+    }
+
+    override suspend fun transactionExists(txHash: String): Boolean =
+        tonKit.transactionExistsByMessageHash(txHash)
 }
+
+private fun OfflineBroadcastMetadata.Ton.toTonMetadata() = RawMessageBroadcastMetadata(
+    validUntil = validUntil,
+    senderAddress = senderAddress,
+    seqno = seqno,
+)
+
+private fun RawMessageBroadcastStatus.toAppStatus(): BroadcastRawTransactionStatus =
+    when (this) {
+        RawMessageBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted
+        RawMessageBroadcastStatus.Queued -> BroadcastRawTransactionStatus.Queued
+    }

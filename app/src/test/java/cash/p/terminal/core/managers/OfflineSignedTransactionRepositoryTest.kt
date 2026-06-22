@@ -7,6 +7,7 @@ import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSignedTransactionEntity
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -147,6 +148,60 @@ class OfflineSignedTransactionRepositoryTest {
         assertEquals(123L, entity.solanaLastValidBlockHeight)
     }
 
+    @Test
+    fun save_localTonDraft_savesRetryMetadata() = runTest(dispatcher) {
+        val repository = repository()
+        val entitySlot = slot<OfflineSignedTransactionEntity>()
+        coEvery { dao.insertIfAbsent(capture(entitySlot)) } returns Unit
+        val retryMetadata = tonRetryMetadata()
+
+        repository.save(
+            draft = OfflineSignedTransactionDraft(
+                wallet = wallet(tonToken()),
+                amount = BigDecimal("1.2"),
+                fee = BigDecimal("0.01"),
+                toAddress = "EQReceiver",
+                rawHex = "deadbeef",
+                txHash = TX_HASH,
+                inputOutpoints = emptyList(),
+                feeToken = tonToken(),
+                tonRetryMetadata = retryMetadata,
+            ),
+            pcashPayload = "pcash:tx:v1:ton:body",
+        )
+
+        val entity = entitySlot.captured
+        assertEquals(1_700_000_300L, entity.tonValidUntil)
+        assertEquals("EQSender", entity.tonSenderAddress)
+        assertEquals(7, entity.tonSeqno)
+    }
+
+    @Test
+    fun saveImported_tonJettonPayload_savesDisplayTokenAndTonRetryMetadata() = runTest(dispatcher) {
+        val repository = repository()
+        val entitySlot = slot<OfflineSignedTransactionEntity>()
+        coEvery { dao.insertIfAbsent(capture(entitySlot)) } returns Unit
+
+        repository.saveImported(
+            wallet = wallet(tonToken()),
+            decoded = decodedJettonTransaction(),
+            pcashPayload = "pcash:tx:v1:ton:body",
+        )
+
+        val entity = entitySlot.captured
+        assertEquals("the-open-network", entity.blockchainTypeUid)
+        assertEquals(JETTON_QUERY_ID, entity.tokenQueryId)
+        assertEquals("the-open-network|native", entity.sourceTokenQueryId)
+        assertEquals("JET", entity.coinCode)
+        assertEquals(6, entity.tokenDecimals)
+        assertEquals("12.345678", entity.amount)
+        assertEquals("the-open-network|native", entity.feeTokenQueryId)
+        assertEquals("1", entity.feeAtomic)
+        assertEquals(1_700_000_300L, entity.tonValidUntil)
+        assertEquals("EQSender", entity.tonSenderAddress)
+        assertEquals(7, entity.tonSeqno)
+    }
+
     private fun decodedUsdcTransaction() = DecodedOfflineTransaction(
         blockchainUid = "binance-smart-chain",
         rawHex = "deadbeef",
@@ -167,6 +222,29 @@ class OfflineSignedTransactionRepositoryTest {
         toAddress = "0xReceiver",
         createdAt = CREATED_AT,
         inputOutpoints = emptyList(),
+    )
+
+    private fun decodedJettonTransaction() = DecodedOfflineTransaction(
+        blockchainUid = "the-open-network",
+        rawHex = "deadbeef",
+        txHash = TX_HASH,
+        token = OfflineTokenMetadata(
+            tokenQueryId = JETTON_QUERY_ID,
+            coinUid = "jetton",
+            coinCode = "JET",
+            coinName = "Jetton",
+            decimals = 6,
+        ),
+        amountAtomic = "12345678",
+        fee = OfflineFeeMetadata(
+            tokenQueryId = "the-open-network|native",
+            atomic = "1",
+            decimals = 9,
+        ),
+        toAddress = "EQReceiver",
+        createdAt = CREATED_AT,
+        inputOutpoints = emptyList(),
+        tonRetryMetadata = tonRetryMetadata(),
     )
 
     private fun CoroutineScope.repository() = OfflineSignedTransactionRepository(
@@ -204,7 +282,21 @@ class OfflineSignedTransactionRepositoryTest {
         decimals = 9,
     )
 
+    private fun tonToken() = Token(
+        coin = Coin(uid = "toncoin", name = "Toncoin", code = "TON"),
+        blockchain = ton,
+        type = TokenType.Native,
+        decimals = 9,
+    )
+
+    private fun tonRetryMetadata() = OfflineTonRetryMetadata(
+        validUntil = 1_700_000_300L,
+        senderAddress = "EQSender",
+        seqno = 7,
+    )
+
     private val bsc = Blockchain(BlockchainType.BinanceSmartChain, "BNB Smart Chain", null)
+    private val ton = Blockchain(BlockchainType.Ton, "TON", null)
 
     private val account = Account(
         id = "account-id",
@@ -220,5 +312,6 @@ class OfflineSignedTransactionRepositoryTest {
         const val CREATED_AT = 1_700_000_000_000L
         const val USDC_CONTRACT = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
         const val USDC_QUERY_ID = "binance-smart-chain|eip20:$USDC_CONTRACT"
+        const val JETTON_QUERY_ID = "the-open-network|the-open-network:EQJetton"
     }
 }

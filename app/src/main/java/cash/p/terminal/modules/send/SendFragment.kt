@@ -54,7 +54,7 @@ import cash.p.terminal.modules.send.stellar.SendStellarModule
 import cash.p.terminal.modules.send.stellar.SendStellarScreen
 import cash.p.terminal.modules.send.stellar.SendStellarViewModel
 import cash.p.terminal.modules.send.ton.SendTonModule
-import cash.p.terminal.modules.send.ton.SendTonScreen
+import cash.p.terminal.modules.send.ton.SendTonNavHost
 import cash.p.terminal.modules.send.ton.SendTonViewModel
 import cash.p.terminal.modules.send.tron.SendTronModule
 import cash.p.terminal.modules.send.tron.SendTronScreen
@@ -278,9 +278,9 @@ class SendFragment : BaseComposeFragment() {
                         .fillMaxSize()
                         .systemBarsPadding()
                 ) {
-                    SendTonScreen(
+                    SendTonNavHost(
                         title = title,
-                        navController = findNavController(),
+                        fragmentNavController = findNavController(),
                         viewModel = sendTonViewModel,
                         amountInputModeViewModel = amountInputModeViewModel,
                         prefilledData = prefilledData,

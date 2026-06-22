@@ -3,6 +3,7 @@ package cash.p.terminal.modules.send.offline
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.OfflineTransactionStatusAdapter
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.entities.OfflineSignedTransactionEntity
@@ -14,7 +15,9 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.ActiveAccountState
+import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
@@ -27,6 +30,7 @@ import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -51,10 +55,13 @@ import java.math.BigDecimal
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineSignedTransactionsViewModelTest {
 
+    private interface TestTonStatusAdapter : IAdapter, OfflineTransactionStatusAdapter
+
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = mockk<OfflineSignedTransactionRepository>(relaxed = true)
     private val accountManager = mockk<IAccountManager>(relaxed = true)
     private val walletManager = mockk<IWalletManager>(relaxed = true)
+    private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val transactionAdapterManager = mockk<TransactionAdapterManager>(relaxed = true)
     private val marketKit = mockk<MarketKitWrapper>(relaxed = true)
     private val rateRepository = mockk<TransactionsRateRepository>(relaxed = true)
@@ -161,6 +168,33 @@ class OfflineSignedTransactionsViewModelTest {
     }
 
     @Test
+    fun init_pendingTonRecordConfirmedByStatusAdapter_marksBroadcasted() = runTest(dispatcher) {
+        val tonWallet = wallet(tonToken)
+        val transactionsAdapter = mockk<ITransactionsAdapter>(relaxed = true) {
+            every { getTransactionRecordsFlow(null, any(), null) } returns flowOf(emptyList())
+        }
+        val statusAdapter = mockk<TestTonStatusAdapter>(relaxed = true)
+        coEvery { statusAdapter.transactionExists(TON_MESSAGE_HASH) } returns true
+        every { adapterManager.getAdapterForWalletOld(tonWallet) } returns statusAdapter
+        every { transactionAdapterManager.adaptersReadyFlow } returns MutableStateFlow(
+            mapOf(tonWallet.transactionSource to transactionsAdapter)
+        )
+        every { marketKit.token(requireNotNull(TokenQuery.fromId(TON_QUERY_ID))) } returns tonToken
+        setupState(entities = listOf(tonEntity()), wallets = listOf(tonWallet))
+
+        viewModel(this)
+        advanceUntilIdle()
+
+        coVerify {
+            repository.markBroadcasted(
+                accountId = account.id,
+                txHash = TON_MESSAGE_HASH,
+                confirmedTxHash = TON_MESSAGE_HASH,
+            )
+        }
+    }
+
+    @Test
     fun init_legacyEntity_resolvesNativeTokenByStoredCoinFields() = runTest(dispatcher) {
         every { marketKit.tokens(any<List<TokenQuery>>()) } returns listOf(bnbToken)
         setupState(entities = listOf(legacyBnbEntity()), wallets = emptyList())
@@ -192,6 +226,7 @@ class OfflineSignedTransactionsViewModelTest {
         repository = repository,
         accountManager = accountManager,
         walletManager = walletManager,
+        adapterManager = adapterManager,
         transactionAdapterManager = transactionAdapterManager,
         marketKit = marketKit,
         rateRepository = rateRepository,
@@ -224,6 +259,9 @@ class OfflineSignedTransactionsViewModelTest {
         feeAtomic = "1000000000000000",
         solanaBlockHash = null,
         solanaLastValidBlockHeight = null,
+        tonValidUntil = null,
+        tonSenderAddress = null,
+        tonSeqno = null,
         toAddress = "0xReceiver",
         rawHex = "deadbeef",
         pcashPayload = "pcash:tx:v1:binance-smart-chain:body",
@@ -271,6 +309,25 @@ class OfflineSignedTransactionsViewModelTest {
         pcashPayload = "pcash:tx:v1:solana:body",
         solanaBlockHash = "block-hash",
         solanaLastValidBlockHeight = 123L,
+    )
+
+    private fun tonEntity() = usdcEntity().copy(
+        txHash = TON_MESSAGE_HASH,
+        blockchainTypeUid = "the-open-network",
+        tokenQueryId = TON_QUERY_ID,
+        sourceTokenQueryId = TON_QUERY_ID,
+        coinUid = "toncoin",
+        coinCode = "TON",
+        coinName = "Toncoin",
+        tokenDecimals = 9,
+        amount = "1.2",
+        feeTokenQueryId = TON_QUERY_ID,
+        feeAtomic = "10000000",
+        toAddress = "EQReceiver",
+        pcashPayload = "pcash:tx:v1:ton:body",
+        tonValidUntil = 1_700_000_300L,
+        tonSenderAddress = "EQSender",
+        tonSeqno = 7,
     )
 
     private fun record(
@@ -323,6 +380,13 @@ class OfflineSignedTransactionsViewModelTest {
         type = TokenType.Native,
         decimals = 9,
     )
+    private val ton = Blockchain(BlockchainType.Ton, "TON", null)
+    private val tonToken = Token(
+        coin = Coin(uid = "toncoin", name = "Toncoin", code = "TON"),
+        blockchain = ton,
+        type = TokenType.Native,
+        decimals = 9,
+    )
 
     private val account = Account(
         id = "account-id",
@@ -338,6 +402,8 @@ class OfflineSignedTransactionsViewModelTest {
         const val USDC_CONTRACT = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
         const val USDC_QUERY_ID = "binance-smart-chain|eip20:$USDC_CONTRACT"
         const val SOLANA_QUERY_ID = "solana|native"
+        const val TON_QUERY_ID = "the-open-network|native"
+        const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
     }

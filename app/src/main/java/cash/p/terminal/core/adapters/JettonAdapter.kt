@@ -3,8 +3,12 @@ package cash.p.terminal.core.adapters
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.INativeBalanceProvider
 import cash.p.terminal.core.ISendTonAdapter
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineTonSignRequest
+import cash.p.terminal.core.SignedOfflineTonTransaction
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toAdapterState
+import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
@@ -90,10 +94,30 @@ class JettonAdapter(
 
     override suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?) {
         tonKit.send(
-            jettonBalance?.walletAddress!!,
+            requireJettonWalletAddress(),
             address,
             amount.movePointRight(decimals).toBigInteger(),
             memo
+        )
+    }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineTonTransaction {
+        val tonRequest = requireNotNull(request as? OfflineTonSignRequest) {
+            "OfflineTonSignRequest is required"
+        }
+        val signed = tonKit.signedJettonTransaction(
+            jettonWallet = requireJettonWalletAddress(),
+            recipient = tonRequest.address,
+            amount = tonRequest.amount.movePointRight(decimals).toBigInteger(),
+            comment = tonRequest.memo,
+        )
+        return SignedOfflineTonTransaction(
+            rawHex = signed.raw.toRawHexString(),
+            txHash = signed.messageHash,
+            fee = signed.fee.toBigDecimal(nativeToken.decimals).stripTrailingZeros(),
+            validUntil = signed.validUntil,
+            senderAddress = signed.senderAddress,
+            seqno = signed.seqno,
         )
     }
 
@@ -108,7 +132,7 @@ class JettonAdapter(
     ): BigDecimal {
         val baseDecimals = nativeToken.decimals
         val estimateFee = tonKit.estimateFee(
-            jettonWallet = jettonBalance?.walletAddress!!,
+            jettonWallet = requireJettonWalletAddress(),
             recipient = address,
             amount = amount.movePointRight(decimals).toBigInteger(),
             comment = memo
@@ -116,4 +140,7 @@ class JettonAdapter(
 
         return estimateFee.toBigDecimal(baseDecimals).stripTrailingZeros()
     }
+
+    private fun requireJettonWalletAddress(): Address =
+        checkNotNull(jettonBalance?.walletAddress) { "Jetton wallet is not available" }
 }

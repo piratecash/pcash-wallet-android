@@ -10,6 +10,7 @@ import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Account
@@ -98,6 +99,13 @@ class OfflineBroadcastViewModelTest {
         decimals = 9,
     )
     private val solanaWallet = wallet(solanaToken, account)
+    private val ton = Blockchain(BlockchainType.Ton, "TON", null)
+    private val tonToken = token(
+        blockchain = ton,
+        coin = Coin(uid = "toncoin", name = "Toncoin", code = "TON"),
+        decimals = 9,
+    )
+    private val tonWallet = wallet(tonToken, account)
 
     @Before
     fun setUp() {
@@ -382,6 +390,92 @@ class OfflineBroadcastViewModelTest {
         assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
         coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
         coVerify { repository.markBroadcasted("account-id", SOLANA_SIGNATURE, SOLANA_SIGNATURE) }
+    }
+
+    @Test
+    fun onBroadcast_tonPcashPayload_passesRetryMetadata() = runTest(dispatcher) {
+        val retryMetadata = OfflineTonRetryMetadata(
+            validUntil = 1_700_000_300L,
+            senderAddress = "EQSender",
+            seqno = 7,
+        )
+        setActiveWallets(listOf(tonWallet))
+        every {
+            payloadEncoder.decode(any())
+        } returns decoded(
+            blockchainUid = "the-open-network",
+            txHash = TON_MESSAGE_HASH,
+            tonRetryMetadata = retryMetadata,
+        )
+        every { marketKit.blockchain("the-open-network") } returns ton
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        val broadcastMetadata = OfflineBroadcastMetadata.Ton(
+            validUntil = 1_700_000_300L,
+            senderAddress = "EQSender",
+            seqno = 7,
+        )
+        coEvery {
+            adapter.broadcastRawTransaction(any(), broadcastMetadata)
+        } returns BroadcastRawTransactionResult(TON_MESSAGE_HASH, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
+        coVerify { repository.markBroadcasted("account-id", TON_MESSAGE_HASH, TON_MESSAGE_HASH) }
+    }
+
+    @Test
+    fun onBroadcast_tonPlainRawHex_passesNullMetadata() = runTest(dispatcher) {
+        setActiveWallets(listOf(tonWallet))
+        every { payloadEncoder.decode(any()) } returns null
+        every { marketKit.tokens(any<List<TokenQuery>>()) } returns listOf(tonToken)
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
+            BroadcastRawTransactionResult(TON_MESSAGE_HASH, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("deadbeefdeadbeefdead")
+        advanceUntilIdle()
+        viewModel.onSelectBlockchain(ton)
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", null) }
+    }
+
+    @Test
+    fun prefillAndAdvance_tonWatchAccount_allowsRelay() = runTest(dispatcher) {
+        val watchAccount = watchAccount()
+        every { accountManager.activeAccount } returns watchAccount
+        setActiveWallets(listOf(wallet(tonToken, watchAccount)))
+        every { payloadEncoder.decode(any()) } returns decoded(
+            blockchainUid = "the-open-network",
+            txHash = TON_MESSAGE_HASH,
+            tonRetryMetadata = OfflineTonRetryMetadata(
+                validUntil = 1_700_000_300L,
+                senderAddress = "EQSender",
+                seqno = 7,
+            ),
+        )
+        every { marketKit.blockchain("the-open-network") } returns ton
+        every { tokenResolver.resolveTokenToEnable(BlockchainType.Ton, watchAccount) } returns tonToken
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Confirm, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.confirm?.action is OfflineBroadcastConfirmAction.Send)
+        assertNull(viewModel.uiState.dismissError)
     }
 
     @Test
@@ -685,6 +779,7 @@ class OfflineBroadcastViewModelTest {
         blockchainUid: String = "bitcoin",
         txHash: String = "hash",
         solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
+        tonRetryMetadata: OfflineTonRetryMetadata? = null,
     ) = DecodedOfflineTransaction(
         blockchainUid = blockchainUid,
         rawHex = "deadbeefdeadbeefdead",
@@ -702,6 +797,7 @@ class OfflineBroadcastViewModelTest {
         createdAt = 0L,
         inputOutpoints = emptyList(),
         solanaRetryMetadata = solanaRetryMetadata,
+        tonRetryMetadata = tonRetryMetadata,
     )
 
     private fun token(
@@ -759,5 +855,6 @@ class OfflineBroadcastViewModelTest {
             "xpub6CudKadFxkN6jXWcJDJSWzt4tNt86ThhYEjtcTywfD5nsYcySEEhfGugKDLnv14ZDNnYBVbfYXbNvRp8cNNw9JAfoMTeph1BqGWYZA4DBDi"
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
+        const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
     }
 }

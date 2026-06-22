@@ -3,6 +3,7 @@ package cash.p.terminal.modules.send.offline
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.OfflineTransactionStatusAdapter
 import cash.p.terminal.core.canonicalTransactionHash
 import cash.p.terminal.core.defaultTokenQuery
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
@@ -23,6 +24,7 @@ import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.ActiveAccountState
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
@@ -37,6 +39,7 @@ import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +57,7 @@ class OfflineSignedTransactionsViewModel(
     private val repository: OfflineSignedTransactionRepository,
     private val accountManager: IAccountManager,
     private val walletManager: IWalletManager,
+    private val adapterManager: IAdapterManager,
     private val transactionAdapterManager: TransactionAdapterManager,
     private val marketKit: MarketKitWrapper,
     private val rateRepository: TransactionsRateRepository,
@@ -114,20 +118,20 @@ class OfflineSignedTransactionsViewModel(
         }
     }
 
-    private fun OfflineSignedTransactionsSnapshot.pendingEntitiesBySource(): Map<TransactionSource, List<OfflineSignedTransactionEntity>> =
+    private fun OfflineSignedTransactionsSnapshot.pendingEntitiesBySource(): Map<TransactionSource, List<PendingOfflineEntity>> =
         entities
             .filter { OfflineSignedTransactionStatus.from(it.status) == OfflineSignedTransactionStatus.Pending }
             .mapNotNull { entity ->
                 val wallet = entity.sourceWallet(wallets)
                 if (wallet == null) return@mapNotNull null
-                wallet.transactionSource to entity
+                wallet.transactionSource to PendingOfflineEntity(entity, wallet)
             }
             .groupBy(
                 keySelector = { it.first },
                 valueTransform = { it.second },
             )
 
-    private fun Map<TransactionSource, List<OfflineSignedTransactionEntity>>.recordFlows(
+    private fun Map<TransactionSource, List<PendingOfflineEntity>>.recordFlows(
         adapters: Map<TransactionSource, ITransactionsAdapter>,
     ): List<Flow<OfflineSignedAdapterRecords>> =
         mapNotNull { (source, pendingEntities) ->
@@ -146,14 +150,31 @@ class OfflineSignedTransactionsViewModel(
         }
 
     private suspend fun markBroadcastedRecords(adapterRecords: OfflineSignedAdapterRecords) {
-        adapterRecords.pendingEntities.forEach { entity ->
-            val confirmedTxHash = adapterRecords.findConfirmedTxHash(entity) ?: return@forEach
+        adapterRecords.pendingEntities.forEach { pending ->
+            val entity = pending.entity
+            val confirmedTxHash = adapterRecords.findConfirmedTxHash(entity)
+                ?: pending.confirmedByStatusAdapter()
+                ?: return@forEach
             repository.markBroadcasted(
                 accountId = entity.accountId,
                 txHash = entity.txHash,
                 confirmedTxHash = confirmedTxHash,
             )
         }
+    }
+
+    private suspend fun PendingOfflineEntity.confirmedByStatusAdapter(): String? {
+        if (entity.blockchainTypeUid != BlockchainType.Ton.uid) return null
+        val adapter = adapterManager.getAdapterForWalletOld(wallet) as? OfflineTransactionStatusAdapter
+            ?: return null
+        val exists = try {
+            adapter.transactionExists(entity.txHash)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Throwable) {
+            false
+        }
+        return if (exists) entity.txHash.offlineComparableHash(entity.blockchainTypeUid) else null
     }
 
     private fun OfflineSignedAdapterRecords.findConfirmedTxHash(
@@ -356,9 +377,14 @@ private data class OfflineSignedTransactionsSnapshot(
     val wallets: List<Wallet>,
 )
 
+private data class PendingOfflineEntity(
+    val entity: OfflineSignedTransactionEntity,
+    val wallet: Wallet,
+)
+
 private data class OfflineSignedAdapterRecords(
     val adapter: ITransactionsAdapter,
-    val pendingEntities: List<OfflineSignedTransactionEntity>,
+    val pendingEntities: List<PendingOfflineEntity>,
     val records: List<TransactionRecord>,
 )
 

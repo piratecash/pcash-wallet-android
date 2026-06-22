@@ -3,6 +3,7 @@ package cash.p.terminal.core.managers
 import android.util.Base64
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
@@ -284,6 +285,81 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_tonRoundTrip_returnsRetryMetadataAndHexHash() {
+        val payload = encoder.encode(
+            draft(
+                token = tonToken(),
+                feeToken = tonToken(),
+                tonRetryMetadata = tonRetryMetadata(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("the-open-network", decoded.blockchainUid)
+        assertEquals(TX_HASH, decoded.txHash)
+        assertEquals("the-open-network|native", decoded.token.tokenQueryId)
+        assertEquals(1_700_000_300L, decoded.tonRetryMetadata?.validUntil)
+        assertEquals("EQSender", decoded.tonRetryMetadata?.senderAddress)
+        assertEquals(7, decoded.tonRetryMetadata?.seqno)
+    }
+
+    @Test
+    fun decode_tonPayloadWithoutRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = tonToken(),
+                feeToken = tonToken(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_nonTonPayloadWithTonRetryMetadata_returnsNull() {
+        val payload = encoder.encode(draft(tonRetryMetadata = tonRetryMetadata()))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_tonInvalidRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = tonToken(),
+                feeToken = tonToken(),
+                tonRetryMetadata = tonRetryMetadata(validUntil = 0),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_tonJettonRoundTrip_preservesDisplayTokenAndNativeFee() {
+        val payload = encoder.encode(
+            draft(
+                token = jettonToken(),
+                feeToken = tonToken(),
+                amount = BigDecimal("12.345678"),
+                fee = BigDecimal("0.000000001"),
+                tonRetryMetadata = tonRetryMetadata(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("the-open-network|the-open-network:EQJetton", decoded.token.tokenQueryId)
+        assertEquals("JET", decoded.token.coinCode)
+        assertEquals(6, decoded.token.decimals)
+        assertEquals("12345678", decoded.amountAtomic)
+        assertEquals("the-open-network|native", decoded.fee?.tokenQueryId)
+        assertEquals(9, decoded.fee?.decimals)
+        assertEquals("1", decoded.fee?.atomic)
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -315,6 +391,7 @@ class OfflineTransactionPayloadEncoderTest {
         ),
         feeToken: Token? = null,
         solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
+        tonRetryMetadata: OfflineTonRetryMetadata? = null,
     ): OfflineSignedTransactionDraft {
         val wallet = mockk<Wallet>(relaxed = true) {
             every { this@mockk.token } returns token
@@ -330,6 +407,7 @@ class OfflineTransactionPayloadEncoderTest {
             createdAt = CREATED_AT,
             feeToken = feeToken,
             solanaRetryMetadata = solanaRetryMetadata,
+            tonRetryMetadata = tonRetryMetadata,
         )
     }
 
@@ -356,6 +434,31 @@ class OfflineTransactionPayloadEncoderTest {
     private fun solanaRetryMetadata() = OfflineSolanaRetryMetadata(
         blockHash = "block-hash",
         lastValidBlockHeight = 123L,
+    )
+
+    private fun tonToken() = token(
+        blockchainType = BlockchainType.Ton,
+        blockchainName = "TON",
+        coin = Coin(uid = "toncoin", name = "Toncoin", code = "TON"),
+        decimals = 9,
+    )
+
+    private fun jettonToken() = token(
+        blockchainType = BlockchainType.Ton,
+        blockchainName = "TON",
+        coin = Coin(uid = "jetton", name = "Jetton", code = "JET"),
+        tokenType = TokenType.Jetton("EQJetton"),
+        decimals = 6,
+    )
+
+    private fun tonRetryMetadata(
+        validUntil: Long = 1_700_000_300L,
+        senderAddress: String = "EQSender",
+        seqno: Int = 7,
+    ) = OfflineTonRetryMetadata(
+        validUntil = validUntil,
+        senderAddress = senderAddress,
+        seqno = seqno,
     )
 
     private fun compressedBase64(json: String): String {

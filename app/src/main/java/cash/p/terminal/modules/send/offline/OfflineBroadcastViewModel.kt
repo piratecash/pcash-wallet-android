@@ -19,6 +19,7 @@ import cash.p.terminal.core.supports
 import cash.p.terminal.core.toResString
 import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
@@ -345,7 +346,7 @@ class OfflineBroadcastViewModel(
             return
         }
         rawHex = decoded.rawHex
-        broadcastMetadata = decoded.solanaRetryMetadata?.toBroadcastMetadata()
+        broadcastMetadata = decoded.broadcastMetadata()
         networkSelectable = false
         selectedBlockchain = blockchain
 
@@ -502,6 +503,15 @@ private fun OfflineSolanaRetryMetadata.toBroadcastMetadata() = OfflineBroadcastM
     blockHash = blockHash,
     lastValidBlockHeight = lastValidBlockHeight,
 )
+
+private fun OfflineTonRetryMetadata.toBroadcastMetadata() = OfflineBroadcastMetadata.Ton(
+    validUntil = validUntil,
+    senderAddress = senderAddress,
+    seqno = seqno,
+)
+
+private fun DecodedOfflineTransaction.broadcastMetadata(): OfflineBroadcastMetadata? =
+    solanaRetryMetadata?.toBroadcastMetadata() ?: tonRetryMetadata?.toBroadcastMetadata()
 
 enum class OfflineBroadcastStep { Loading, Confirm, SelectBlockchain, Result }
 

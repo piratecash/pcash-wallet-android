@@ -205,6 +205,10 @@ interface OfflineTransactionAdapter<out T> {
     ): BroadcastRawTransactionResult
 }
 
+interface OfflineTransactionStatusAdapter {
+    suspend fun transactionExists(txHash: String): Boolean
+}
+
 data class BroadcastRawTransactionResult(
     val txHash: String,
     val status: BroadcastRawTransactionStatus,
@@ -218,6 +222,12 @@ sealed interface OfflineBroadcastMetadata {
     data class Solana(
         val blockHash: String,
         val lastValidBlockHeight: Long,
+    ) : OfflineBroadcastMetadata
+
+    data class Ton(
+        val validUntil: Long,
+        val senderAddress: String,
+        val seqno: Int,
     ) : OfflineBroadcastMetadata
 }
 
@@ -263,6 +273,21 @@ data class SignedOfflineSolanaTransaction(
     val fee: BigDecimal,
     val blockHash: String,
     val lastValidBlockHeight: Long,
+)
+
+data class OfflineTonSignRequest(
+    val amount: BigDecimal,
+    val address: FriendlyAddress,
+    val memo: String?,
+) : OfflineSignRequest
+
+data class SignedOfflineTonTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+    val validUntil: Long,
+    val senderAddress: String,
+    val seqno: Int,
 )
 
 interface IMwebAddressValidator {
