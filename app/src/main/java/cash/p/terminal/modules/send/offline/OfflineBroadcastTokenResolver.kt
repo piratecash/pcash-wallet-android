@@ -24,10 +24,13 @@ import io.horizontalsystems.core.entities.BlockchainType
  *  - TON relay uses the native TON token because raw BOC broadcast is chain-level.
  *  - TRON relay uses the native TRX token because signed JSON broadcast is chain-level.
  *  - Stellar relay uses the native XLM token because signed XDR broadcast is chain-level.
+ *  - Monero relay uses the native XMR token because signed transaction envelope broadcast is
+ *    chain-level and the current Monero wallet service still requires an initialized wallet.
  *  - Watch-only accounts (watch address and public HD extended key) are rejected because the
  *    bitcoin-kit core is read-only and throws CoreError.ReadOnlyCore on broadcast. EVM watch-only
  *    Solana watch-only, TON watch-only, TRON watch-only, and Stellar watch-only accounts may relay
- *    because raw broadcast does not require local signing keys.
+ *    because raw broadcast does not require local signing keys. Monero watch-only relay is not
+ *    enabled because there is no watch-only Monero adapter path in the current app.
  *  - Token/account compatibility reuses [Token.supports] + [BlockchainType.supports], which already
  *    encode derivation, purpose and coin-type constraints (e.g. native Dogecoin is not relayable
  *    from an HD extended key).
@@ -51,7 +54,8 @@ class OfflineBroadcastTokenResolver(
             BlockchainType.Solana,
             BlockchainType.Ton,
             BlockchainType.Tron,
-            BlockchainType.Stellar -> resolveDefaultToken(blockchainType, account)
+            BlockchainType.Stellar,
+            BlockchainType.Monero -> resolveDefaultToken(blockchainType, account)
             else -> null
         }
     }

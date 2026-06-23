@@ -122,6 +122,13 @@ class OfflineBroadcastViewModelTest {
         decimals = 7,
     )
     private val stellarWallet = wallet(stellarToken, account)
+    private val monero = Blockchain(BlockchainType.Monero, "Monero", null)
+    private val moneroToken = token(
+        blockchain = monero,
+        coin = Coin(uid = "monero", name = "Monero", code = "XMR"),
+        decimals = 12,
+    )
+    private val moneroWallet = wallet(moneroToken, account)
 
     @Before
     fun setUp() {
@@ -515,6 +522,34 @@ class OfflineBroadcastViewModelTest {
         assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
         coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
         coVerify { repository.markBroadcasted("account-id", STELLAR_TX_HASH, STELLAR_TX_HASH) }
+    }
+
+    @Test
+    fun onBroadcast_moneroPcashPayload_passesNullMetadata() = runTest(dispatcher) {
+        setActiveWallets(listOf(moneroWallet))
+        every {
+            payloadEncoder.decode(any())
+        } returns decoded(
+            blockchainUid = "monero",
+            txHash = MONERO_TX_HASH,
+        )
+        every { marketKit.blockchain("monero") } returns monero
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery {
+            adapter.broadcastRawTransaction(any(), null)
+        } returns BroadcastRawTransactionResult(MONERO_TX_HASH, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", null) }
+        coVerify { repository.markBroadcasted("account-id", MONERO_TX_HASH, MONERO_TX_HASH) }
     }
 
     @Test
@@ -948,5 +983,6 @@ class OfflineBroadcastViewModelTest {
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         const val TRON_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
         const val STELLAR_TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+        const val MONERO_TX_HASH = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
     }
 }

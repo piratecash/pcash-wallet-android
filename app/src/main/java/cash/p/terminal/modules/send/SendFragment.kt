@@ -44,7 +44,7 @@ import cash.p.terminal.modules.send.evm.SendEvmModule
 import cash.p.terminal.modules.send.evm.SendEvmNavHost
 import cash.p.terminal.modules.send.evm.SendEvmViewModel
 import cash.p.terminal.modules.send.monero.SendMoneroModule
-import cash.p.terminal.modules.send.monero.SendMoneroScreen
+import cash.p.terminal.modules.send.monero.SendMoneroNavHost
 import cash.p.terminal.modules.send.monero.SendMoneroViewModel
 import cash.p.terminal.modules.send.securitycheck.SecurityCheckFragment
 import cash.p.terminal.modules.send.solana.SendSolanaModule
@@ -339,9 +339,9 @@ class SendFragment : BaseComposeFragment() {
                             .fillMaxSize()
                             .systemBarsPadding()
                     ) {
-                        SendMoneroScreen(
+                        SendMoneroNavHost(
                             title = title,
-                            navController = findNavController(),
+                            fragmentNavController = findNavController(),
                             viewModel = sendMoneroViewModel,
                             amountInputModeViewModel = amountInputModeViewModel,
                             prefilledData = prefilledData,

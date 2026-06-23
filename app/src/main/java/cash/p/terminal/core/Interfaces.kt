@@ -327,6 +327,18 @@ data class SignedOfflineStellarTransaction(
     val validUntil: Long,
 )
 
+data class OfflineMoneroSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String?,
+) : OfflineSignRequest
+
+data class SignedOfflineMoneroTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+)
+
 interface IMwebAddressValidator {
     fun isMwebAddress(address: String): Boolean
 }
@@ -355,7 +367,7 @@ interface ISendSolanaAdapter: IBalanceAdapter {
     fun estimateFee(rawTransaction: ByteArray): BigDecimal
 }
 
-interface ISendMoneroAdapter : IBalanceAdapter {
+interface ISendMoneroAdapter : IBalanceAdapter, OfflineTransactionAdapter<SignedOfflineMoneroTransaction> {
     suspend fun send(amount: BigDecimal, address: String, memo: String?): String
     suspend fun estimateFee(amount: BigDecimal, address: String, memo: String?): BigDecimal
 }

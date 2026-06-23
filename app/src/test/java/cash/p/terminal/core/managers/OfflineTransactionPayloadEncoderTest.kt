@@ -464,6 +464,41 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_moneroRoundTrip_returnsNativeMetadataWithoutRetryMetadata() {
+        val payload = encoder.encode(
+            draft(
+                token = moneroToken(),
+                feeToken = moneroToken(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("monero", decoded.blockchainUid)
+        assertEquals(TX_HASH, decoded.txHash)
+        assertEquals("monero|native", decoded.token.tokenQueryId)
+        assertEquals("XMR", decoded.token.coinCode)
+        assertEquals(12, decoded.token.decimals)
+        assertNull(decoded.solanaRetryMetadata)
+        assertNull(decoded.tonRetryMetadata)
+        assertNull(decoded.tronRetryMetadata)
+        assertNull(decoded.stellarRetryMetadata)
+    }
+
+    @Test
+    fun decode_moneroPayloadWithForeignRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = moneroToken(),
+                feeToken = moneroToken(),
+                stellarRetryMetadata = stellarRetryMetadata(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -597,6 +632,13 @@ class OfflineTransactionPayloadEncoderTest {
         sourceAccountId = sourceAccountId,
         sequenceNumber = sequenceNumber,
         validUntil = validUntil,
+    )
+
+    private fun moneroToken() = token(
+        blockchainType = BlockchainType.Monero,
+        blockchainName = "Monero",
+        coin = Coin(uid = "monero", name = "Monero", code = "XMR"),
+        decimals = 12,
     )
 
     private fun compressedBase64(json: String): String {

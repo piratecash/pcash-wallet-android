@@ -74,7 +74,15 @@ class OfflineBroadcastTokenResolverTest {
 
     @Test
     fun resolveTokenToEnable_nonBroadcastableBlockchain_returnsNull() {
-        assertNull(resolver.resolveTokenToEnable(BlockchainType.Monero, mnemonicAccount()))
+        assertNull(resolver.resolveTokenToEnable(BlockchainType.Zcash, mnemonicAccount()))
+    }
+
+    @Test
+    fun resolveTokenToEnable_mnemonicOnMonero_returnsToken() {
+        val token = resolver.resolveTokenToEnable(BlockchainType.Monero, mnemonicAccount())
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Monero, token?.blockchainType)
     }
 
     @Test
