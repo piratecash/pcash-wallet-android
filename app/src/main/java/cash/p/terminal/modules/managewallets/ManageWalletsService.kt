@@ -17,8 +17,12 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.expandedZcashAddressSpecTokens
+import cash.p.terminal.wallet.isZcashAddressSpec
 import cash.p.terminal.wallet.isLitecoinMweb
+import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
+import cash.p.terminal.wallet.zcashDisableTokenQueryIds
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -84,14 +88,16 @@ class ManageWalletsService(
 
     private fun isEnabled(token: Token): Boolean {
         val contractAddress = (token.type as? TokenType.Eip20)?.address
-        return if (contractAddress != null) {
-            // For EIP20 tokens, check if any wallet with same contract exists
-            walletManager.activeWallets.any {
-                it.token.blockchainType == token.blockchainType &&
-                    (it.token.type as? TokenType.Eip20)?.address == contractAddress
+        return when {
+            token.isZcashAddressSpec -> walletManager.activeWallets.any { it.token.isZcashAddressSpec }
+            contractAddress != null -> {
+                walletManager.activeWallets.any {
+                    it.token.blockchainType == token.blockchainType &&
+                        (it.token.type as? TokenType.Eip20)?.address == contractAddress
+                }
             }
-        } else {
-            walletManager.activeWallets.any { it.token == token }
+
+            else -> walletManager.activeWallets.any { it.token == token }
         }
     }
 
@@ -129,15 +135,15 @@ class ManageWalletsService(
         return Item(
             token = token,
             enabled = enabled,
-            hasInfo = hasInfo(token, enabled)
+            hasInfo = hasInfo(token)
         )
     }
 
-    private fun hasInfo(token: Token, enabled: Boolean) = when (token.type) {
-        is TokenType.Native -> token.blockchainType is BlockchainType.Zcash && enabled
+    private fun hasInfo(token: Token) = when (token.type) {
         TokenType.Mweb,
         is TokenType.Derived,
         is TokenType.AddressTyped,
+        is TokenType.AddressSpecTyped,
         is TokenType.Eip20,
         is TokenType.Spl,
         is TokenType.Jetton -> true
@@ -165,13 +171,13 @@ class ManageWalletsService(
     }
 
     private suspend fun updateSortedItems(token: Token, enable: Boolean) {
-        val relatedTokens = getTokensWithSameContract(token)
+        val relatedTokens = getRelatedTokens(token)
         mutex.withLock {
             items = items.map { item ->
                 if (relatedTokens.any { it == item.token }) {
                     item.copy(
                         enabled = enable,
-                        hasInfo = hasInfo(item.token, enable)
+                        hasInfo = hasInfo(item.token)
                     )
                 } else {
                     item
@@ -187,15 +193,19 @@ class ManageWalletsService(
             restoreSettingsService.save(restoreSettings, account, token.blockchainType)
         }
 
-        userDeletedWalletManager.unmarkAsDeleted(account.id, token.tokenQuery.id)
+        val tokensToEnable = getTokensToEnable(token)
 
-        val hardwarePublicKey = withContext(Dispatchers.IO) {
-            getHardwarePublicKeyForWalletUseCase(account, token)
+        val wallets = withContext(Dispatchers.IO) {
+            tokensToEnable.mapNotNull {
+                walletFactory.create(
+                    token = it,
+                    account = account,
+                    hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(account, it)
+                )
+            }
         }
-
-        walletFactory.create(token, account, hardwarePublicKey)?.let {
-            walletManager.save(listOf(it))
-        }
+        userDeletedWalletManager.unmarkAsDeleted(account.id, wallets.map { it.tokenQueryId })
+        walletManager.saveSuspended(wallets)
 
         updateSortedItems(token, true)
         syncState()
@@ -216,8 +226,6 @@ class ManageWalletsService(
         val account = this.account ?: return
 
         coroutineScope.launch {
-            // Only create wallet for the clicked token (not all with same contract)
-            // Toggle sync is handled by isEnabled() checking by contract address
             if (token.restoreSettingTypes.isNotEmpty()) {
                 restoreSettingsService.approveSettings(
                     token = token,
@@ -233,39 +241,55 @@ class ManageWalletsService(
 
     fun disable(token: Token) {
         coroutineScope.launch {
-            // Find and delete wallet with same contract address
-            val contractAddress = (token.type as? TokenType.Eip20)?.address
-            val walletToDelete = if (contractAddress != null) {
-                walletManager.activeWallets.firstOrNull {
-                    it.token.blockchainType == token.blockchainType &&
-                        (it.token.type as? TokenType.Eip20)?.address == contractAddress
-                }
-            } else {
-                walletManager.activeWallets.firstOrNull { it.token == token }
-            }
+            val account = this@ManageWalletsService.account ?: return@launch
+            val tokenQueryIds = getTokenQueryIdsToDisable(token)
+            if (tokenQueryIds.isEmpty()) return@launch
 
-            walletToDelete?.let {
-                userDeletedWalletManager.markAsDeleted(it)
-                walletManager.deleteByWallet(it)
-                // Update UI state for all related tokens
-                updateSortedItems(token, false)
-                syncState()
-            }
+            userDeletedWalletManager.markAsDeleted(account.id, tokenQueryIds)
+            walletManager.deleteByTokenQueryIds(account.id, tokenQueryIds)
+            updateSortedItems(token, false)
+            syncState()
         }
     }
 
-    /**
-     * Find all tokens with the same contract address on the same blockchain.
-     * Used for syncing toggles between virtual USDT and real BSC-USD.
-     * Queries MarketKit directly to get ALL tokens with matching contract.
-     */
-    private fun getTokensWithSameContract(token: Token): List<Token> {
+    private fun getRelatedTokens(token: Token): List<Token> {
+        if (token.isZcashAddressSpec) {
+            return listOf(token).expandedZcashAddressSpecTokens(marketKit)
+                .ifEmpty { listOf(token) }
+        }
+
         val contractAddress = (token.type as? TokenType.Eip20)?.address ?: return listOf(token)
 
         // Query MarketKit for all tokens with this contract address
         return marketKit.tokens(contractAddress)
             .filter { it.blockchainType == token.blockchainType }
             .ifEmpty { listOf(token) }
+    }
+
+    private fun getTokensToEnable(token: Token): List<Token> {
+        return if (token.isZcashAddressSpec) {
+            getRelatedTokens(token)
+        } else {
+            listOf(token)
+        }
+    }
+
+    private fun getTokenQueryIdsToDisable(token: Token): Set<String> {
+        if (token.isZcashAddressSpec) {
+            return zcashDisableTokenQueryIds
+        }
+
+        val contractAddress = (token.type as? TokenType.Eip20)?.address
+        val walletToDelete = if (contractAddress != null) {
+            walletManager.activeWallets.firstOrNull {
+                it.token.blockchainType == token.blockchainType &&
+                    (it.token.type as? TokenType.Eip20)?.address == contractAddress
+            }
+        } else {
+            walletManager.activeWallets.firstOrNull { it.token == token }
+        }
+
+        return walletToDelete?.token?.tokenQuery?.id?.let(::setOf).orEmpty()
     }
 
     override fun clear() {

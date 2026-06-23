@@ -20,9 +20,11 @@ import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.WalletFactory
+import cash.p.terminal.wallet.isZcashAddressSpec
 import cash.p.terminal.wallet.isLitecoinMweb
 import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
+import cash.p.terminal.wallet.zcashDefaultTokenQuery
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.subjects.BehaviorSubject
@@ -130,8 +132,10 @@ class RestoreBlockchainsService(
             restoreSettingsMap[token] = restoreSettings
         }
 
-        if (!enabledTokens.contains(token)) {
-            enabledTokens.add(token)
+        tokensToEnable(token).forEach {
+            if (!enabledTokens.contains(it)) {
+                enabledTokens.add(it)
+            }
         }
 
         syncCanRestore()
@@ -171,7 +175,9 @@ class RestoreBlockchainsService(
         val tokens = tokens.filter { it.blockchain == blockchain }
         val token = tokens.firstOrNull() ?: return
 
-        if (tokens.size == 1) {
+        if (blockchain.type == BlockchainType.Zcash) {
+            showApproveSettings(zcashRepresentativeToken(tokens) ?: token)
+        } else if (tokens.size == 1) {
             showApproveSettings(token)
         } else {
             blockchainTokensService.approveTokens(
@@ -203,6 +209,11 @@ class RestoreBlockchainsService(
     fun configure(blockchain: Blockchain) {
         val tokens = tokens.filter { it.blockchain == blockchain }
         if (tokens.isEmpty()) return
+
+        if (blockchain.type == BlockchainType.Zcash) {
+            showApproveSettings(zcashRepresentativeToken(tokens) ?: return)
+            return
+        }
 
         val enabledTokens = enabledTokens.filter { it.blockchain == blockchain }
 
@@ -261,6 +272,19 @@ class RestoreBlockchainsService(
             birthdayHeight = birthdayHeight.toString(),
             restoreAsNew = false
         )
+    }
+
+    private fun tokensToEnable(token: Token): List<Token> {
+        return if (token.isZcashAddressSpec) {
+            tokens.filter { it.isZcashAddressSpec }
+        } else {
+            listOf(token)
+        }
+    }
+
+    private fun zcashRepresentativeToken(tokens: List<Token>): Token? {
+        return tokens.firstOrNull { it.tokenQuery == zcashDefaultTokenQuery }
+            ?: tokens.firstOrNull { it.isZcashAddressSpec }
     }
 
     data class Item(

@@ -5,6 +5,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.expandedZcashAddressSpecQueries
 import cash.p.terminal.wallet.useCases.ScanToAddUseCase
 
 class CreateRequiredTokensUseCaseImpl(
@@ -14,9 +15,8 @@ class CreateRequiredTokensUseCaseImpl(
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
 ) : CreateRequiredTokensUseCase {
     override suspend fun invoke(account: Account, tokenQueries: List<TokenQuery>) {
-        tokenQueries.forEach { tokenQuery ->
-            userDeletedWalletManager.unmarkAsDeleted(account.id, tokenQuery.id)
-        }
+        val expandedTokenQueries = tokenQueries.expandedZcashAddressSpecQueries()
+        userDeletedWalletManager.unmarkAsDeleted(account.id, expandedTokenQueries.map { it.id })
 
         if (account.isHardwareWalletAccount) {
             val hardwareId = when (val type = account.type) {
@@ -25,10 +25,10 @@ class CreateRequiredTokensUseCaseImpl(
                 else -> error("Not a hardware wallet account")
             }
             val existingKeys = hardwarePublicKeyStorage.getAllPublicKeys(account.id)
-            val missingQueries = tokenQueries.filter { query ->
+            val missingQueries = expandedTokenQueries.filter { query ->
                 existingKeys.none {
                     it.blockchainType == query.blockchainType.uid &&
-                    it.tokenType == query.tokenType
+                        it.tokenType == query.tokenType
                 }
             }
 
@@ -41,6 +41,6 @@ class CreateRequiredTokensUseCaseImpl(
             }
         }
 
-        walletActivator.activateWalletsSuspended(account, tokenQueries)
+        walletActivator.activateWalletsSuspended(account, expandedTokenQueries)
     }
 }

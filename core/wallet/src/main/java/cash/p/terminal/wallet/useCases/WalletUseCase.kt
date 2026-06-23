@@ -5,12 +5,16 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IReceiveAdapter
+import cash.p.terminal.wallet.IDeletedWalletRestorer
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.OneTimeReceiveAdapter
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.expandedZcashAddressSpecTokens
+import cash.p.terminal.wallet.tokenQueryId
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 
@@ -20,7 +24,9 @@ class WalletUseCase(
     private val adapterManager: IAdapterManager,
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase,
     private val scanToAddUseCase: ScanToAddUseCase,
-    private val walletFactory: WalletFactory
+    private val walletFactory: WalletFactory,
+    private val marketKit: MarketKitWrapper,
+    private val deletedWalletRestorer: IDeletedWalletRestorer
 ) {
     fun getWallet(token: Token): Wallet? = walletManager.activeWallets.find {
         it.token == token
@@ -33,19 +39,22 @@ class WalletUseCase(
 
     suspend fun createWallets(tokensToAdd: Set<Token>): Boolean {
         val account = accountManager.activeAccount ?: return false
+        val expandedTokensToAdd = tokensToAdd.expandedZcashAddressSpecTokens(marketKit).toSet()
         return if (account.isHardwareWalletAccount) {
             createWalletsForHardwareWallet(
                 account = account,
-                tokensToAdd = tokensToAdd
+                tokensToAdd = expandedTokensToAdd
             )
         } else {
-            walletManager.saveSuspended(tokensToAdd.mapNotNull {
+            val wallets = expandedTokensToAdd.mapNotNull {
                 walletFactory.create(
                     it,
                     account,
                     null
                 )
-            })
+            }
+            deletedWalletRestorer.unmarkAsDeleted(account.id, wallets.map { it.tokenQueryId })
+            walletManager.saveSuspended(wallets)
             true
         }
     }
@@ -65,10 +74,11 @@ class WalletUseCase(
                 }
             }
         if (tokensToAdd.size == hardwarePublicKeys.size) {
-            // We already had all hardware public keys
-            walletManager.save(hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
+            val wallets = hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
                 walletFactory.create(token, account, hardwarePublicKey)
-            })
+            }
+            deletedWalletRestorer.unmarkAsDeleted(account.id, wallets.map { it.tokenQueryId })
+            walletManager.save(wallets)
             return true
         }
         val queryList = tokensToAdd.map {
@@ -97,9 +107,11 @@ class WalletUseCase(
                     token to hardwarePublicKey
                 }
             }
-        walletManager.save(hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
+        val wallets = hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
             walletFactory.create(token, account, hardwarePublicKey)
-        })
+        }
+        deletedWalletRestorer.unmarkAsDeleted(account.id, wallets.map { it.tokenQueryId })
+        walletManager.save(wallets)
         return allKeysCreated
     }
 
@@ -107,11 +119,12 @@ class WalletUseCase(
         getWallet(token) ?: if (createWallets(setOf(token))) getWallet(token) else null
 
     suspend fun awaitWallets(tokens: Set<Token>) {
-        if (tokens.all { getWallet(it) != null }) return
+        val expandedTokens = tokens.expandedZcashAddressSpecTokens(marketKit).toSet()
+        if (expandedTokens.all { getWallet(it) != null }) return
 
         walletManager.activeWalletsFlow
             .filter { wallets ->
-                tokens.all { token ->
+                expandedTokens.all { token ->
                     wallets.any { it.token == token }
                 }
             }
