@@ -9,6 +9,7 @@ import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.entities.DecodedOfflineTransaction
+import cash.p.terminal.entities.OfflineStellarRetryMetadata
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
@@ -114,6 +115,13 @@ class OfflineBroadcastViewModelTest {
         decimals = 6,
     )
     private val tronWallet = wallet(tronToken, account)
+    private val stellar = Blockchain(BlockchainType.Stellar, "Stellar", null)
+    private val stellarToken = token(
+        blockchain = stellar,
+        coin = Coin(uid = "stellar", name = "Stellar", code = "XLM"),
+        decimals = 7,
+    )
+    private val stellarWallet = wallet(stellarToken, account)
 
     @Before
     fun setUp() {
@@ -471,6 +479,45 @@ class OfflineBroadcastViewModelTest {
     }
 
     @Test
+    fun onBroadcast_stellarPcashPayload_passesRetryMetadata() = runTest(dispatcher) {
+        val retryMetadata = OfflineStellarRetryMetadata(
+            sourceAccountId = "GSource",
+            sequenceNumber = 123_456_789L,
+            validUntil = 1_700_000_180L,
+        )
+        setActiveWallets(listOf(stellarWallet))
+        every {
+            payloadEncoder.decode(any())
+        } returns decoded(
+            blockchainUid = "stellar",
+            txHash = STELLAR_TX_HASH,
+            stellarRetryMetadata = retryMetadata,
+        )
+        every { marketKit.blockchain("stellar") } returns stellar
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        val broadcastMetadata = OfflineBroadcastMetadata.Stellar(
+            sourceAccountId = "GSource",
+            sequenceNumber = 123_456_789L,
+            validUntil = 1_700_000_180L,
+        )
+        coEvery {
+            adapter.broadcastRawTransaction(any(), broadcastMetadata)
+        } returns BroadcastRawTransactionResult(STELLAR_TX_HASH, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
+        coVerify { repository.markBroadcasted("account-id", STELLAR_TX_HASH, STELLAR_TX_HASH) }
+    }
+
+    @Test
     fun onBroadcast_tonPlainRawHex_passesNullMetadata() = runTest(dispatcher) {
         setActiveWallets(listOf(tonWallet))
         every { payloadEncoder.decode(any()) } returns null
@@ -820,6 +867,7 @@ class OfflineBroadcastViewModelTest {
         solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
         tonRetryMetadata: OfflineTonRetryMetadata? = null,
         tronRetryMetadata: OfflineTronRetryMetadata? = null,
+        stellarRetryMetadata: OfflineStellarRetryMetadata? = null,
     ) = DecodedOfflineTransaction(
         blockchainUid = blockchainUid,
         rawHex = "deadbeefdeadbeefdead",
@@ -839,6 +887,7 @@ class OfflineBroadcastViewModelTest {
         solanaRetryMetadata = solanaRetryMetadata,
         tonRetryMetadata = tonRetryMetadata,
         tronRetryMetadata = tronRetryMetadata,
+        stellarRetryMetadata = stellarRetryMetadata,
     )
 
     private fun token(
@@ -898,5 +947,6 @@ class OfflineBroadcastViewModelTest {
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         const val TRON_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+        const val STELLAR_TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
     }
 }

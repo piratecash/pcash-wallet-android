@@ -23,10 +23,11 @@ import io.horizontalsystems.core.entities.BlockchainType
  *  - Solana relay uses the native SOL token because sendTransaction of signed bytes is chain-level.
  *  - TON relay uses the native TON token because raw BOC broadcast is chain-level.
  *  - TRON relay uses the native TRX token because signed JSON broadcast is chain-level.
+ *  - Stellar relay uses the native XLM token because signed XDR broadcast is chain-level.
  *  - Watch-only accounts (watch address and public HD extended key) are rejected because the
  *    bitcoin-kit core is read-only and throws CoreError.ReadOnlyCore on broadcast. EVM watch-only
- *    Solana watch-only, TON watch-only, and TRON watch-only accounts may relay because raw broadcast does not
- *    require local signing keys.
+ *    Solana watch-only, TON watch-only, TRON watch-only, and Stellar watch-only accounts may relay
+ *    because raw broadcast does not require local signing keys.
  *  - Token/account compatibility reuses [Token.supports] + [BlockchainType.supports], which already
  *    encode derivation, purpose and coin-type constraints (e.g. native Dogecoin is not relayable
  *    from an HD extended key).
@@ -47,9 +48,10 @@ class OfflineBroadcastTokenResolver(
         return when (blockchainType) {
             in btcBlockchainManager.blockchainTypes -> resolveBitcoinToken(blockchainType, account)
             in EvmBlockchainManager.blockchainTypes -> resolveEvmToken(blockchainType, account)
-            BlockchainType.Solana -> resolveSolanaToken(account)
-            BlockchainType.Ton -> resolveTonToken(account)
-            BlockchainType.Tron -> resolveTronToken(account)
+            BlockchainType.Solana,
+            BlockchainType.Ton,
+            BlockchainType.Tron,
+            BlockchainType.Stellar -> resolveDefaultToken(blockchainType, account)
             else -> null
         }
     }
@@ -69,14 +71,8 @@ class OfflineBroadcastTokenResolver(
     private fun resolveEvmToken(blockchainType: BlockchainType, account: Account): Token? =
         evmBlockchainManager.getBaseToken(blockchainType)?.takeIf { canEnable(it, account) }
 
-    private fun resolveSolanaToken(account: Account): Token? =
-        marketKit.token(BlockchainType.Solana.defaultTokenQuery)?.takeIf { canEnable(it, account) }
-
-    private fun resolveTonToken(account: Account): Token? =
-        marketKit.token(BlockchainType.Ton.defaultTokenQuery)?.takeIf { canEnable(it, account) }
-
-    private fun resolveTronToken(account: Account): Token? =
-        marketKit.token(BlockchainType.Tron.defaultTokenQuery)?.takeIf { canEnable(it, account) }
+    private fun resolveDefaultToken(blockchainType: BlockchainType, account: Account): Token? =
+        marketKit.token(blockchainType.defaultTokenQuery)?.takeIf { canEnable(it, account) }
 
     private fun canEnable(token: Token, account: Account): Boolean =
         token.supports(account.type) &&

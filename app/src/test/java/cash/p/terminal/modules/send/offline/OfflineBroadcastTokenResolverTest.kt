@@ -122,6 +122,17 @@ class OfflineBroadcastTokenResolverTest {
     }
 
     @Test
+    fun resolveTokenToEnable_watchStellarAddress_returnsToken() {
+        val token = resolver.resolveTokenToEnable(
+            BlockchainType.Stellar,
+            account(AccountType.StellarAddress("GBZXN7PIRZGNMHGAJFGKC5K6EP6XBBQ4Y4EQ62MJAIE64LEITC4EKEPN")),
+        )
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Stellar, token?.blockchainType)
+    }
+
+    @Test
     fun resolveTokenToEnable_watchPublicXpub_returnsNull() {
         val watch = account(AccountType.HdExtendedKey(PUBLIC_XPUB))
 

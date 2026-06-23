@@ -2,6 +2,7 @@ package cash.p.terminal.core.managers
 
 import android.util.Base64
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineStellarRetryMetadata
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTronRetryMetadata
@@ -411,6 +412,58 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_stellarRoundTrip_returnsRetryMetadataAndHexHash() {
+        val payload = encoder.encode(
+            draft(
+                token = stellarToken(),
+                feeToken = stellarToken(),
+                stellarRetryMetadata = stellarRetryMetadata(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("stellar", decoded.blockchainUid)
+        assertEquals(TX_HASH, decoded.txHash)
+        assertEquals("stellar|native", decoded.token.tokenQueryId)
+        assertEquals("GSource", decoded.stellarRetryMetadata?.sourceAccountId)
+        assertEquals(123_456_789L, decoded.stellarRetryMetadata?.sequenceNumber)
+        assertEquals(1_700_000_180L, decoded.stellarRetryMetadata?.validUntil)
+    }
+
+    @Test
+    fun decode_stellarPayloadWithoutRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = stellarToken(),
+                feeToken = stellarToken(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_nonStellarPayloadWithStellarRetryMetadata_returnsNull() {
+        val payload = encoder.encode(draft(stellarRetryMetadata = stellarRetryMetadata()))
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_stellarInvalidRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = stellarToken(),
+                feeToken = stellarToken(),
+                stellarRetryMetadata = stellarRetryMetadata(validUntil = 0),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -444,6 +497,7 @@ class OfflineTransactionPayloadEncoderTest {
         solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
         tonRetryMetadata: OfflineTonRetryMetadata? = null,
         tronRetryMetadata: OfflineTronRetryMetadata? = null,
+        stellarRetryMetadata: OfflineStellarRetryMetadata? = null,
     ): OfflineSignedTransactionDraft {
         val wallet = mockk<Wallet>(relaxed = true) {
             every { this@mockk.token } returns token
@@ -461,6 +515,7 @@ class OfflineTransactionPayloadEncoderTest {
             solanaRetryMetadata = solanaRetryMetadata,
             tonRetryMetadata = tonRetryMetadata,
             tronRetryMetadata = tronRetryMetadata,
+            stellarRetryMetadata = stellarRetryMetadata,
         )
     }
 
@@ -525,6 +580,23 @@ class OfflineTransactionPayloadEncoderTest {
         expiration: Long = 1_700_000_060_000L,
     ) = OfflineTronRetryMetadata(
         expiration = expiration,
+    )
+
+    private fun stellarToken() = token(
+        blockchainType = BlockchainType.Stellar,
+        blockchainName = "Stellar",
+        coin = Coin(uid = "stellar", name = "Stellar", code = "XLM"),
+        decimals = 7,
+    )
+
+    private fun stellarRetryMetadata(
+        sourceAccountId: String = "GSource",
+        sequenceNumber: Long = 123_456_789L,
+        validUntil: Long = 1_700_000_180L,
+    ) = OfflineStellarRetryMetadata(
+        sourceAccountId = sourceAccountId,
+        sequenceNumber = sequenceNumber,
+        validUntil = validUntil,
     )
 
     private fun compressedBase64(json: String): String {

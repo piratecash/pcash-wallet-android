@@ -6,6 +6,7 @@ import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineStellarRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.entities.OfflineTronRetryMetadata
@@ -50,6 +51,7 @@ class OfflineTransactionPayloadEncoder {
             solanaRetry = draft.solanaRetryMetadata?.toPayload(),
             tonRetry = draft.tonRetryMetadata?.toPayload(),
             tronRetry = draft.tronRetryMetadata?.toPayload(),
+            stellarRetry = draft.stellarRetryMetadata?.toPayload(),
             checksum = checksum(draft.rawHex),
         )
         return listOf(SCHEME, TYPE, VERSION, blockchainUid, compressedBase64(payload))
@@ -88,6 +90,7 @@ class OfflineTransactionPayloadEncoder {
             solanaRetryMetadata = decoded.solanaRetry?.toMetadata(),
             tonRetryMetadata = decoded.tonRetry?.toMetadata(),
             tronRetryMetadata = decoded.tronRetry?.toMetadata(),
+            stellarRetryMetadata = decoded.stellarRetry?.toMetadata(),
         )
     }
 
@@ -151,6 +154,7 @@ class OfflineTransactionPayloadEncoder {
             isValidSolanaRetry(payload.solanaRetry, blockchainUid) &&
             isValidTonRetry(payload.tonRetry, blockchainUid) &&
             isValidTronRetry(payload.tronRetry, blockchainUid) &&
+            isValidStellarRetry(payload.stellarRetry, blockchainUid) &&
             payload.toAddress.isNotBlank() &&
             isNonNegativeAtomic(payload.amountAtomic)
 
@@ -217,6 +221,19 @@ class OfflineTransactionPayloadEncoder {
             tronRetry == null
         }
 
+    private fun isValidStellarRetry(
+        stellarRetry: PayloadStellarRetry?,
+        blockchainUid: String,
+    ): Boolean =
+        if (blockchainUid == BlockchainType.Stellar.uid) {
+            stellarRetry != null &&
+                stellarRetry.sourceAccountId.isNotBlank() &&
+                stellarRetry.sequenceNumber > 0 &&
+                stellarRetry.validUntil > 0
+        } else {
+            stellarRetry == null
+        }
+
     private fun isNonNegativeAtomic(value: String): Boolean =
         (value.toBigIntegerOrNull()?.signum() ?: -1) >= 0
 
@@ -278,6 +295,18 @@ class OfflineTransactionPayloadEncoder {
         expiration = expiration,
     )
 
+    private fun OfflineStellarRetryMetadata.toPayload() = PayloadStellarRetry(
+        sourceAccountId = sourceAccountId,
+        sequenceNumber = sequenceNumber,
+        validUntil = validUntil,
+    )
+
+    private fun PayloadStellarRetry.toMetadata() = OfflineStellarRetryMetadata(
+        sourceAccountId = sourceAccountId,
+        sequenceNumber = sequenceNumber,
+        validUntil = validUntil,
+    )
+
     @Serializable
     private data class Payload(
         val version: Int = 1,
@@ -295,6 +324,7 @@ class OfflineTransactionPayloadEncoder {
         val solanaRetry: PayloadSolanaRetry? = null,
         val tonRetry: PayloadTonRetry? = null,
         val tronRetry: PayloadTronRetry? = null,
+        val stellarRetry: PayloadStellarRetry? = null,
     )
 
     @Serializable
@@ -329,6 +359,13 @@ class OfflineTransactionPayloadEncoder {
     @Serializable
     private data class PayloadTronRetry(
         val expiration: Long,
+    )
+
+    @Serializable
+    private data class PayloadStellarRetry(
+        val sourceAccountId: String,
+        val sequenceNumber: Long,
+        val validUntil: Long,
     )
 
     companion object {

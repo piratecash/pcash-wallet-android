@@ -24,6 +24,7 @@ data class OfflineSignedTransactionDraft(
     val solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
     val tonRetryMetadata: OfflineTonRetryMetadata? = null,
     val tronRetryMetadata: OfflineTronRetryMetadata? = null,
+    val stellarRetryMetadata: OfflineStellarRetryMetadata? = null,
 )
 
 enum class OfflineSignedTransactionStatus(val value: String) {
@@ -65,6 +66,12 @@ data class OfflineTronRetryMetadata(
     val expiration: Long,
 )
 
+data class OfflineStellarRetryMetadata(
+    val sourceAccountId: String,
+    val sequenceNumber: Long,
+    val validUntil: Long,
+)
+
 // Result of decoding a pcash:tx:v1 payload back into its parts.
 data class DecodedOfflineTransaction(
     val blockchainUid: String,
@@ -79,4 +86,5 @@ data class DecodedOfflineTransaction(
     val solanaRetryMetadata: OfflineSolanaRetryMetadata? = null,
     val tonRetryMetadata: OfflineTonRetryMetadata? = null,
     val tronRetryMetadata: OfflineTronRetryMetadata? = null,
+    val stellarRetryMetadata: OfflineStellarRetryMetadata? = null,
 )

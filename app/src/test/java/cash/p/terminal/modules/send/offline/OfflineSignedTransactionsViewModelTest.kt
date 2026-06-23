@@ -55,7 +55,7 @@ import java.math.BigDecimal
 @OptIn(ExperimentalCoroutinesApi::class)
 class OfflineSignedTransactionsViewModelTest {
 
-    private interface TestTonStatusAdapter : IAdapter, OfflineTransactionStatusAdapter
+    private interface TestStatusAdapter : IAdapter, OfflineTransactionStatusAdapter
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = mockk<OfflineSignedTransactionRepository>(relaxed = true)
@@ -173,7 +173,7 @@ class OfflineSignedTransactionsViewModelTest {
         val transactionsAdapter = mockk<ITransactionsAdapter>(relaxed = true) {
             every { getTransactionRecordsFlow(null, any(), null) } returns flowOf(emptyList())
         }
-        val statusAdapter = mockk<TestTonStatusAdapter>(relaxed = true)
+        val statusAdapter = mockk<TestStatusAdapter>(relaxed = true)
         coEvery { statusAdapter.transactionExists(TON_MESSAGE_HASH) } returns true
         every { adapterManager.getAdapterForWalletOld(tonWallet) } returns statusAdapter
         every { transactionAdapterManager.adaptersReadyFlow } returns MutableStateFlow(
@@ -190,6 +190,33 @@ class OfflineSignedTransactionsViewModelTest {
                 accountId = account.id,
                 txHash = TON_MESSAGE_HASH,
                 confirmedTxHash = TON_MESSAGE_HASH,
+            )
+        }
+    }
+
+    @Test
+    fun init_pendingStellarRecordConfirmedByStatusAdapter_marksBroadcasted() = runTest(dispatcher) {
+        val stellarWallet = wallet(stellarToken)
+        val transactionsAdapter = mockk<ITransactionsAdapter>(relaxed = true) {
+            every { getTransactionRecordsFlow(null, any(), null) } returns flowOf(emptyList())
+        }
+        val statusAdapter = mockk<TestStatusAdapter>(relaxed = true)
+        coEvery { statusAdapter.transactionExists(STELLAR_TX_HASH) } returns true
+        every { adapterManager.getAdapterForWalletOld(stellarWallet) } returns statusAdapter
+        every { transactionAdapterManager.adaptersReadyFlow } returns MutableStateFlow(
+            mapOf(stellarWallet.transactionSource to transactionsAdapter)
+        )
+        every { marketKit.token(requireNotNull(TokenQuery.fromId(STELLAR_QUERY_ID))) } returns stellarToken
+        setupState(entities = listOf(stellarEntity()), wallets = listOf(stellarWallet))
+
+        viewModel(this)
+        advanceUntilIdle()
+
+        coVerify {
+            repository.markBroadcasted(
+                accountId = account.id,
+                txHash = STELLAR_TX_HASH,
+                confirmedTxHash = STELLAR_TX_HASH,
             )
         }
     }
@@ -263,6 +290,9 @@ class OfflineSignedTransactionsViewModelTest {
         tonSenderAddress = null,
         tonSeqno = null,
         tronExpiration = null,
+        stellarSourceAccountId = null,
+        stellarSequenceNumber = null,
+        stellarValidUntil = null,
         toAddress = "0xReceiver",
         rawHex = "deadbeef",
         pcashPayload = "pcash:tx:v1:binance-smart-chain:body",
@@ -331,6 +361,25 @@ class OfflineSignedTransactionsViewModelTest {
         tonSeqno = 7,
     )
 
+    private fun stellarEntity() = usdcEntity().copy(
+        txHash = STELLAR_TX_HASH,
+        blockchainTypeUid = "stellar",
+        tokenQueryId = STELLAR_QUERY_ID,
+        sourceTokenQueryId = STELLAR_QUERY_ID,
+        coinUid = "stellar",
+        coinCode = "XLM",
+        coinName = "Stellar",
+        tokenDecimals = 7,
+        amount = "1.2",
+        feeTokenQueryId = STELLAR_QUERY_ID,
+        feeAtomic = "100",
+        toAddress = "GReceiver",
+        pcashPayload = "pcash:tx:v1:stellar:body",
+        stellarSourceAccountId = "GSource",
+        stellarSequenceNumber = 123_456_789L,
+        stellarValidUntil = 1_700_000_180L,
+    )
+
     private fun record(
         transactionHash: String,
         token: Token,
@@ -388,6 +437,13 @@ class OfflineSignedTransactionsViewModelTest {
         type = TokenType.Native,
         decimals = 9,
     )
+    private val stellar = Blockchain(BlockchainType.Stellar, "Stellar", null)
+    private val stellarToken = Token(
+        coin = Coin(uid = "stellar", name = "Stellar", code = "XLM"),
+        blockchain = stellar,
+        type = TokenType.Native,
+        decimals = 7,
+    )
 
     private val account = Account(
         id = "account-id",
@@ -404,7 +460,9 @@ class OfflineSignedTransactionsViewModelTest {
         const val USDC_QUERY_ID = "binance-smart-chain|eip20:$USDC_CONTRACT"
         const val SOLANA_QUERY_ID = "solana|native"
         const val TON_QUERY_ID = "the-open-network|native"
+        const val STELLAR_QUERY_ID = "stellar|native"
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        const val STELLAR_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
     }

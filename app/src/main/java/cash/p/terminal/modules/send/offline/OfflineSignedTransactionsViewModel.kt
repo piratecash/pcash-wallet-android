@@ -164,7 +164,7 @@ class OfflineSignedTransactionsViewModel(
     }
 
     private suspend fun PendingOfflineEntity.confirmedByStatusAdapter(): String? {
-        if (entity.blockchainTypeUid != BlockchainType.Ton.uid) return null
+        if (entity.blockchainTypeUid !in statusAdapterBlockchainUids) return null
         val adapter = adapterManager.getAdapterForWalletOld(wallet) as? OfflineTransactionStatusAdapter
             ?: return null
         val exists = try {
@@ -402,3 +402,8 @@ data class OfflineSignedTransactionsUiState(
 
 private const val OFFLINE_SIGNED_UID_PREFIX = "offline-signed:"
 private const val MILLISECONDS_IN_SECOND = 1000L
+
+private val statusAdapterBlockchainUids = setOf(
+    BlockchainType.Ton.uid,
+    BlockchainType.Stellar.uid,
+)

@@ -10,6 +10,8 @@ import cash.p.terminal.core.storage.migrations.Migration_105_106
 import cash.p.terminal.core.storage.migrations.Migration_106_107
 import cash.p.terminal.core.storage.migrations.Migration_107_108
 import cash.p.terminal.core.storage.migrations.Migration_108_109
+import cash.p.terminal.core.storage.migrations.Migration_109_110
+import cash.p.terminal.core.storage.migrations.Migration_110_111
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -46,7 +48,7 @@ class OfflineSignedTransactionMigrationTest {
     }
 
     @Test
-    fun migrate104To109_existingRow_preservesDataAndAppliesNewColumnDefaults() {
+    fun migrate104To111_existingRow_preservesDataAndAppliesNewColumnDefaults() {
         Migration_104_105.migrate(db)
         db.execSQL(
             """
@@ -62,11 +64,14 @@ class OfflineSignedTransactionMigrationTest {
         Migration_106_107.migrate(db)
         Migration_107_108.migrate(db)
         Migration_108_109.migrate(db)
+        Migration_109_110.migrate(db)
+        Migration_110_111.migrate(db)
 
         db.query(
             "SELECT status, broadcastAttempts, lastBroadcastAt, broadcastedAt, lastError, amount, " +
                 "tokenQueryId, sourceTokenQueryId, coinUid, coinName, feeTokenQueryId, feeAtomic, " +
-                "solanaBlockHash, solanaLastValidBlockHeight, tonValidUntil, tonSenderAddress, tonSeqno " +
+                "solanaBlockHash, solanaLastValidBlockHeight, tonValidUntil, tonSenderAddress, tonSeqno, " +
+                "tronExpiration, stellarSourceAccountId, stellarSequenceNumber, stellarValidUntil " +
                 "FROM OfflineSignedTransaction"
         ).use { cursor ->
             assertTrue(cursor.moveToFirst())
@@ -87,16 +92,22 @@ class OfflineSignedTransactionMigrationTest {
             assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("tonValidUntil")))
             assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("tonSenderAddress")))
             assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("tonSeqno")))
+            assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("tronExpiration")))
+            assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("stellarSourceAccountId")))
+            assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("stellarSequenceNumber")))
+            assertTrue(cursor.isNull(cursor.getColumnIndexOrThrow("stellarValidUntil")))
         }
     }
 
     @Test
-    fun migrate104To108_createsAccountIdCreatedAtIndex() {
+    fun migrate104To111_createsAccountIdCreatedAtIndex() {
         Migration_104_105.migrate(db)
         Migration_105_106.migrate(db)
         Migration_106_107.migrate(db)
         Migration_107_108.migrate(db)
         Migration_108_109.migrate(db)
+        Migration_109_110.migrate(db)
+        Migration_110_111.migrate(db)
 
         val indexNames = mutableListOf<String>()
         db.query("PRAGMA index_list(OfflineSignedTransaction)").use { cursor ->
@@ -172,6 +183,51 @@ class OfflineSignedTransactionMigrationTest {
         assertTrue(columns.contains("tonValidUntil"))
         assertTrue(columns.contains("tonSenderAddress"))
         assertTrue(columns.contains("tonSeqno"))
+    }
+
+    @Test
+    fun migrate109To110_addsTronRetryMetadataColumn() {
+        Migration_104_105.migrate(db)
+        Migration_105_106.migrate(db)
+        Migration_106_107.migrate(db)
+        Migration_107_108.migrate(db)
+        Migration_108_109.migrate(db)
+
+        Migration_109_110.migrate(db)
+
+        val columns = mutableSetOf<String>()
+        db.query("PRAGMA table_info(OfflineSignedTransaction)").use { cursor ->
+            val nameIndex = cursor.getColumnIndexOrThrow("name")
+            while (cursor.moveToNext()) {
+                columns.add(cursor.getString(nameIndex))
+            }
+        }
+
+        assertTrue(columns.contains("tronExpiration"))
+    }
+
+    @Test
+    fun migrate110To111_addsStellarRetryMetadataColumns() {
+        Migration_104_105.migrate(db)
+        Migration_105_106.migrate(db)
+        Migration_106_107.migrate(db)
+        Migration_107_108.migrate(db)
+        Migration_108_109.migrate(db)
+        Migration_109_110.migrate(db)
+
+        Migration_110_111.migrate(db)
+
+        val columns = mutableSetOf<String>()
+        db.query("PRAGMA table_info(OfflineSignedTransaction)").use { cursor ->
+            val nameIndex = cursor.getColumnIndexOrThrow("name")
+            while (cursor.moveToNext()) {
+                columns.add(cursor.getString(nameIndex))
+            }
+        }
+
+        assertTrue(columns.contains("stellarSourceAccountId"))
+        assertTrue(columns.contains("stellarSequenceNumber"))
+        assertTrue(columns.contains("stellarValidUntil"))
     }
 
     private companion object {

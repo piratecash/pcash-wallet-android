@@ -233,6 +233,12 @@ sealed interface OfflineBroadcastMetadata {
     data class Tron(
         val expiration: Long,
     ) : OfflineBroadcastMetadata
+
+    data class Stellar(
+        val sourceAccountId: String,
+        val sequenceNumber: Long,
+        val validUntil: Long,
+    ) : OfflineBroadcastMetadata
 }
 
 data class OfflineBitcoinSignRequest(
@@ -306,6 +312,21 @@ data class SignedOfflineTronTransaction(
     val expiration: Long,
 )
 
+data class OfflineStellarSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String?,
+) : OfflineSignRequest
+
+data class SignedOfflineStellarTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+    val sourceAccountId: String,
+    val sequenceNumber: Long,
+    val validUntil: Long,
+)
+
 interface IMwebAddressValidator {
     fun isMwebAddress(address: String): Boolean
 }
@@ -346,6 +367,7 @@ interface ISendTonAdapter : IBalanceAdapter {
 }
 
 interface ISendStellarAdapter : IBalanceAdapter {
+    val sendFee: BigDecimal
     fun validate(address: String)
     suspend fun getMinimumSendAmount(address: String) : BigDecimal?
     suspend fun send(amount: BigDecimal, address: String, memo: String?): String?

@@ -19,6 +19,7 @@ import cash.p.terminal.core.supports
 import cash.p.terminal.core.toResString
 import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
+import cash.p.terminal.entities.OfflineStellarRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTronRetryMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -515,10 +516,17 @@ private fun OfflineTronRetryMetadata.toBroadcastMetadata() = OfflineBroadcastMet
     expiration = expiration,
 )
 
+private fun OfflineStellarRetryMetadata.toBroadcastMetadata() = OfflineBroadcastMetadata.Stellar(
+    sourceAccountId = sourceAccountId,
+    sequenceNumber = sequenceNumber,
+    validUntil = validUntil,
+)
+
 private fun DecodedOfflineTransaction.broadcastMetadata(): OfflineBroadcastMetadata? =
     solanaRetryMetadata?.toBroadcastMetadata()
         ?: tonRetryMetadata?.toBroadcastMetadata()
         ?: tronRetryMetadata?.toBroadcastMetadata()
+        ?: stellarRetryMetadata?.toBroadcastMetadata()
 
 enum class OfflineBroadcastStep { Loading, Confirm, SelectBlockchain, Result }
 

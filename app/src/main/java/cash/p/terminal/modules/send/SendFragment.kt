@@ -51,7 +51,7 @@ import cash.p.terminal.modules.send.solana.SendSolanaModule
 import cash.p.terminal.modules.send.solana.SendSolanaNavHost
 import cash.p.terminal.modules.send.solana.SendSolanaViewModel
 import cash.p.terminal.modules.send.stellar.SendStellarModule
-import cash.p.terminal.modules.send.stellar.SendStellarScreen
+import cash.p.terminal.modules.send.stellar.SendStellarNavHost
 import cash.p.terminal.modules.send.stellar.SendStellarViewModel
 import cash.p.terminal.modules.send.ton.SendTonModule
 import cash.p.terminal.modules.send.ton.SendTonNavHost
@@ -128,29 +128,29 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendBitcoinModule.Factory(wallet, address, hideAddress, adapter)
-                val sendBitcoinViewModel by navGraphViewModels<SendBitcoinViewModel>(R.id.sendXFragment) {
-                    factory
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    val navController = findNavController()
-                    SendBitcoinNavHost(
-                        title = title,
-                        fragmentNavController = navController,
-                        viewModel = sendBitcoinViewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        prefilledData = prefilledData,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendBitcoinModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendBitcoinViewModel by navGraphViewModels<SendBitcoinViewModel>(R.id.sendXFragment) {
+                        factory
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        val navController = findNavController()
+                        SendBitcoinNavHost(
+                            title = title,
+                            fragmentNavController = navController,
+                            viewModel = sendBitcoinViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -162,28 +162,28 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendZCashModule.Factory(wallet, address, hideAddress, adapter)
-                val sendZCashViewModel by navGraphViewModels<SendZCashViewModel>(R.id.sendXFragment) {
-                    factory
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    SendZCashScreen(
-                        title = title,
-                        navController = findNavController(),
-                        viewModel = sendZCashViewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        prefilledData = prefilledData,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendZCashModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendZCashViewModel by navGraphViewModels<SendZCashViewModel>(R.id.sendXFragment) {
+                        factory
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendZCashScreen(
+                            title = title,
+                            navController = findNavController(),
+                            viewModel = sendZCashViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -204,29 +204,29 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendEvmModule.Factory(wallet, address, hideAddress, adapter)
-                val viewModel by navGraphViewModels<SendEvmViewModel>(R.id.sendXFragment) {
-                    factory
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    SendEvmNavHost(
-                        title = title,
-                        fragmentNavController = findNavController(),
-                        viewModel = viewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        wallet = wallet,
-                        amount = amount,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendEvmModule.Factory(wallet, address, hideAddress, adapter)
+                    val viewModel by navGraphViewModels<SendEvmViewModel>(R.id.sendXFragment) {
+                        factory
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendEvmNavHost(
+                            title = title,
+                            fragmentNavController = findNavController(),
+                            viewModel = viewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            wallet = wallet,
+                            amount = amount,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -238,26 +238,26 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendSolanaModule.Factory(wallet, address, hideAddress, adapter)
-                val sendSolanaViewModel by navGraphViewModels<SendSolanaViewModel>(R.id.sendXFragment) { factory }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    SendSolanaNavHost(
-                        title = title,
-                        fragmentNavController = findNavController(),
-                        viewModel = sendSolanaViewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        prefilledData = prefilledData,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendSolanaModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendSolanaViewModel by navGraphViewModels<SendSolanaViewModel>(R.id.sendXFragment) { factory }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendSolanaNavHost(
+                            title = title,
+                            fragmentNavController = findNavController(),
+                            viewModel = sendSolanaViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -269,26 +269,26 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendTonModule.Factory(wallet, address, hideAddress, adapter)
-                val sendTonViewModel by navGraphViewModels<SendTonViewModel>(R.id.sendXFragment) { factory }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    SendTonNavHost(
-                        title = title,
-                        fragmentNavController = findNavController(),
-                        viewModel = sendTonViewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        prefilledData = prefilledData,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendTonModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendTonViewModel by navGraphViewModels<SendTonViewModel>(R.id.sendXFragment) { factory }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendTonNavHost(
+                            title = title,
+                            fragmentNavController = findNavController(),
+                            viewModel = sendTonViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -300,26 +300,26 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendTronModule.Factory(wallet, address, hideAddress, adapter)
-                val sendTronViewModel by navGraphViewModels<SendTronViewModel>(R.id.sendXFragment) { factory }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    SendTronNavHost(
-                        title = title,
-                        fragmentNavController = findNavController(),
-                        viewModel = sendTronViewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        prefilledData = prefilledData,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendTronModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendTronViewModel by navGraphViewModels<SendTronViewModel>(R.id.sendXFragment) { factory }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendTronNavHost(
+                            title = title,
+                            fragmentNavController = findNavController(),
+                            viewModel = sendTronViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -331,26 +331,26 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendMoneroModule.Factory(wallet, address, hideAddress, adapter)
-                val sendMoneroViewModel by navGraphViewModels<SendMoneroViewModel>(R.id.sendXFragment) { factory }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .systemBarsPadding()
-                ) {
-                    SendMoneroScreen(
-                        title = title,
-                        navController = findNavController(),
-                        viewModel = sendMoneroViewModel,
-                        amountInputModeViewModel = amountInputModeViewModel,
-                        prefilledData = prefilledData,
-                        addressCheckerControl = addressCheckerControl,
-                        onNextClick = {
-                            navController.handleProceedAction(it, keyboardController)
-                        }
-                    )
+                } else {
+                    val factory = SendMoneroModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendMoneroViewModel by navGraphViewModels<SendMoneroViewModel>(R.id.sendXFragment) { factory }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendMoneroScreen(
+                            title = title,
+                            navController = findNavController(),
+                            viewModel = sendMoneroViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
+                    }
                 }
             }
 
@@ -362,21 +362,27 @@ class SendFragment : BaseComposeFragment() {
                         coinUid = wallet.coin.uid,
                         coinCode = wallet.coin.code,
                     )
-                    return
-                }
-                val factory = SendStellarModule.Factory(wallet, address, hideAddress, adapter)
-                val sendStellarViewModel by navGraphViewModels<SendStellarViewModel>(R.id.sendXFragment) { factory }
-                SendStellarScreen(
-                    title = title,
-                    navController = findNavController(),
-                    viewModel = sendStellarViewModel,
-                    amountInputModeViewModel = amountInputModeViewModel,
-                    amount = amount,
-                    addressCheckerControl = addressCheckerControl,
-                    onNextClick = {
-                        navController.handleProceedAction(it, keyboardController)
+                } else {
+                    val factory = SendStellarModule.Factory(wallet, address, hideAddress, adapter)
+                    val sendStellarViewModel by navGraphViewModels<SendStellarViewModel>(R.id.sendXFragment) { factory }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .systemBarsPadding()
+                    ) {
+                        SendStellarNavHost(
+                            title = title,
+                            fragmentNavController = findNavController(),
+                            viewModel = sendStellarViewModel,
+                            amountInputModeViewModel = amountInputModeViewModel,
+                            prefilledData = prefilledData,
+                            addressCheckerControl = addressCheckerControl,
+                            onNextClick = {
+                                navController.handleProceedAction(it, keyboardController)
+                            }
+                        )
                     }
-                )
+                }
             }
 
             else -> {
