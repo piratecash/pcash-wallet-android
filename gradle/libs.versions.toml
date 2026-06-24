@@ -85,7 +85,7 @@ android-core-ktx = "1.18.0"
 twitterText = "3.1.0"
 workRuntimeKtx = "2.11.2"
 workRxjava2 = "2.11.2"
-zcashAndroidSdk = "2.5.2"
+zcashAndroidSdk = "v2.5.2-pcash.13"
 junitJupiter = "6.0.3"
 google-play-core = "2.1.0"
 bitcoinj = "0.17"
@@ -231,7 +231,7 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "j
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android" }
 twitter-text = { module = "com.twitter.twittertext:twitter-text", version.ref = "twitterText" }
 web3j-core = { module = "org.web3j:core", version.ref = "coreVersion" }
-zcash-android-sdk = { module = "cash.z.ecc.android:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
+zcash-android-sdk = { module = "com.github.piratecash.zcash-android-wallet-sdk:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junitJupiter" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
