@@ -141,7 +141,7 @@ android {
             minifyEnabled false
             applicationIdSuffix ".dev"
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://cash.p.cash/api/\""
-            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "true"
+            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "false"
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
             resValue "string", "is_release", "false"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
