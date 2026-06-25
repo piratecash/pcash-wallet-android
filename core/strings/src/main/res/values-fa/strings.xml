@@ -1020,6 +1020,7 @@
     <string name="offline_signed_title">امضاشده آفلاین</string>
     <string name="offline_signed_empty">هیچ تراکنش آفلاین‌امضاشده‌ای وجود ندارد</string>
     <string name="offline_signed_status_pending">در انتظار ارسال</string>
+    <string name="offline_signed_status_unknown">وضعیت نامشخص</string>
     <string name="offline_signed_status_broadcasted">به شبکه ارسال شد</string>
     <string name="offline_send_no_connection_description">در حال حاضر امکان ارسال تراکنش وجود ندارد. می‌توانید آن را آفلاین امضا کنید تا شخص دیگری بعداً آن را منتشر کند.</string>
     <string name="offline_send_sync_error_description">دریافت داده از منبع فعلی ناموفق بود.\n\nمی‌توانید:\n• بعداً دوباره تلاش کنید\n• VPN را فعال کنید و همگام‌سازی را دوباره انجام دهید\n• تراکنش را آفلاین امضا کنید و HEX را برای انتشار دستی به اشتراک بگذارید\n\nاگر خطای 403 دریافت کردید، ممکن است نشانی IP شما مسدود شده باشد. استفاده از VPN معمولاً این مشکل را برطرف می‌کند.\nمی‌توانید یک تراکنش امضاشده ایجاد کنید و آن را برای پخش در شبکه به دستگاه یا شخص دیگری بفرستید.</string>

@@ -1023,6 +1023,7 @@
     <string name="offline_signed_title">Підписані офлайн</string>
     <string name="offline_signed_empty">Немає офлайн-підписаних транзакцій</string>
     <string name="offline_signed_status_pending">Очікує надсилання</string>
+    <string name="offline_signed_status_unknown">Статус невідомий</string>
     <string name="offline_signed_status_broadcasted">Надіслано в мережу</string>
     <string name="offline_send_no_connection_description">Неможливо надіслати транзакцію зараз. Ви можете підписати її офлайн, щоб інша людина надіслала її пізніше.</string>
     <string name="offline_send_sync_error_description">Не вдалося отримати дані з поточного джерела.\n\nВи можете:\n• повторити спробу пізніше\n• увімкнути VPN і повторити синхронізацію\n• підписати транзакцію офлайн і передати HEX для ручного надсилання\n\nЯкщо отримано помилку 403, вашу IP-адресу може бути заблоковано. Використання VPN зазвичай вирішує цю проблему.\nВи можете створити підписану транзакцію та надіслати її на інший пристрій або іншій людині для трансляції в мережу.</string>

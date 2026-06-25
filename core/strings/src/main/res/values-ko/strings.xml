@@ -1020,6 +1020,7 @@
     <string name="offline_signed_title">오프라인 서명됨</string>
     <string name="offline_signed_empty">오프라인으로 서명된 트랜잭션이 없습니다</string>
     <string name="offline_signed_status_pending">전송 대기 중</string>
+    <string name="offline_signed_status_unknown">상태 알 수 없음</string>
     <string name="offline_signed_status_broadcasted">네트워크로 전송됨</string>
     <string name="offline_send_no_connection_description">지금은 트랜잭션을 보낼 수 없습니다. 오프라인으로 서명하면 다른 사람이 나중에 브로드캐스트할 수 있습니다.</string>
     <string name="offline_send_sync_error_description">현재 소스에서 데이터를 가져오지 못했습니다.\n\n다음을 시도할 수 있습니다:\n• 나중에 다시 시도\n• VPN을 켜고 동기화 재시도\n• 트랜잭션을 오프라인으로 서명하고 수동 브로드캐스트를 위해 HEX 공유\n\n403 오류가 발생했다면 IP 주소가 차단되었을 수 있습니다. VPN을 사용하면 보통 이 문제가 해결됩니다.\n서명된 트랜잭션을 생성하여 다른 기기나 사람에게 보내 네트워크에 브로드캐스트할 수 있습니다.</string>

@@ -31,6 +31,7 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.isLitecoinMweb
 import cash.p.terminal.wallet.meta
 import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.tokenQueryId
@@ -221,6 +222,7 @@ class OfflineSignedTransactionsViewModel(
         val metadataUnknown = hasUnknownRawMetadata
         val amountValue = displayAmount(metadataUnknown)
         val status = OfflineSignedTransactionStatus.from(status)
+        val displayStatus = displayStatus(status)
         val sourceWallet = sourceWallet(wallets)
         val token = resolveDisplayToken(wallets)
         if (token == null) return null
@@ -228,12 +230,12 @@ class OfflineSignedTransactionsViewModel(
             ?: account?.let { TransactionSource(token.blockchain, it, token.type.meta) }
         if (source == null) return null
         val walletUid = sourceWallet?.tokenQueryId ?: token.tokenQuery.id
-        val transactionItem = transactionItem(token, source, walletUid, amountValue, metadataUnknown, status)
+        val transactionItem = transactionItem(token, source, walletUid, amountValue, metadataUnknown, displayStatus)
         return OfflineSignedTransactionViewItem(
             uid = OFFLINE_SIGNED_UID_PREFIX + txHash,
             txHash = txHash,
             transactionItem = transactionItem,
-            statusValue = status.toColoredValue(),
+            statusValue = displayStatus.toColoredValue(),
             metadataUnknown = metadataUnknown,
         )
     }
@@ -327,7 +329,7 @@ class OfflineSignedTransactionsViewModel(
         walletUid: String,
         amount: BigDecimal,
         metadataUnknown: Boolean,
-        status: OfflineSignedTransactionStatus,
+        status: OfflineSignedTransactionDisplayStatus,
     ): TransactionItem {
         val record = PendingTransactionRecord(
             uid = OFFLINE_SIGNED_UID_PREFIX + txHash,
@@ -354,27 +356,62 @@ class OfflineSignedTransactionsViewModel(
     private val OfflineSignedTransactionEntity.hasUnknownRawMetadata: Boolean
         get() = pcashPayload.isBlank() && toAddress.isBlank()
 
-    private fun OfflineSignedTransactionStatus.toColoredValue(): ColoredValue =
+    private fun OfflineSignedTransactionEntity.displayStatus(
+        status: OfflineSignedTransactionStatus,
+    ): OfflineSignedTransactionDisplayStatus {
+        return if (isUntrackablePendingMweb(status)) {
+            OfflineSignedTransactionDisplayStatus.Unknown
+        } else {
+            status.toDisplayStatus()
+        }
+    }
+
+    private fun OfflineSignedTransactionEntity.isUntrackablePendingMweb(
+        status: OfflineSignedTransactionStatus,
+    ): Boolean {
+        if (status != OfflineSignedTransactionStatus.Pending) return false
+        if (BlockchainType.fromUid(blockchainTypeUid) != BlockchainType.Litecoin) return false
+
+        return TokenQuery.fromId(sourceTokenQueryId)?.isLitecoinMweb == true
+    }
+
+    private fun OfflineSignedTransactionStatus.toDisplayStatus(): OfflineSignedTransactionDisplayStatus =
         when (this) {
-            OfflineSignedTransactionStatus.Pending -> ColoredValue(
+            OfflineSignedTransactionStatus.Pending -> OfflineSignedTransactionDisplayStatus.Pending
+            OfflineSignedTransactionStatus.Broadcasted -> OfflineSignedTransactionDisplayStatus.Broadcasted
+        }
+
+    private fun OfflineSignedTransactionDisplayStatus.toColoredValue(): ColoredValue =
+        when (this) {
+            OfflineSignedTransactionDisplayStatus.Pending -> ColoredValue(
                 Translator.getString(R.string.offline_signed_status_pending),
                 ColorName.Jacob,
             )
 
-            OfflineSignedTransactionStatus.Broadcasted -> ColoredValue(
+            OfflineSignedTransactionDisplayStatus.Unknown -> ColoredValue(
+                Translator.getString(R.string.offline_signed_status_unknown),
+                ColorName.Grey,
+            )
+
+            OfflineSignedTransactionDisplayStatus.Broadcasted -> ColoredValue(
                 Translator.getString(R.string.offline_signed_status_broadcasted),
                 ColorName.Remus,
             )
         }
 
-    private fun OfflineSignedTransactionStatus.toInfoColoredValue(): ColoredValue =
+    private fun OfflineSignedTransactionDisplayStatus.toInfoColoredValue(): ColoredValue =
         when (this) {
-            OfflineSignedTransactionStatus.Pending -> ColoredValue(
+            OfflineSignedTransactionDisplayStatus.Pending -> ColoredValue(
                 Translator.getString(R.string.offline_signed_status_pending),
                 ColorName.Jacob,
             )
 
-            OfflineSignedTransactionStatus.Broadcasted -> ColoredValue(
+            OfflineSignedTransactionDisplayStatus.Unknown -> ColoredValue(
+                Translator.getString(R.string.offline_signed_status_unknown),
+                ColorName.Grey,
+            )
+
+            OfflineSignedTransactionDisplayStatus.Broadcasted -> ColoredValue(
                 Translator.getString(R.string.TransactionInfo_Sent),
                 ColorName.Remus,
             )
@@ -407,6 +444,12 @@ private data class OfflineSignedAdapterRecords(
     val pendingEntities: List<PendingOfflineEntity>,
     val records: List<TransactionRecord>,
 )
+
+private enum class OfflineSignedTransactionDisplayStatus {
+    Pending,
+    Unknown,
+    Broadcasted,
+}
 
 data class OfflineSignedTransactionViewItem(
     val uid: String,

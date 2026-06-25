@@ -1017,6 +1017,7 @@
     <string name="offline_signed_title">Signées hors ligne</string>
     <string name="offline_signed_empty">Aucune transaction signée hors ligne</string>
     <string name="offline_signed_status_pending">En attente d’envoi</string>
+    <string name="offline_signed_status_unknown">Statut inconnu</string>
     <string name="offline_signed_status_broadcasted">Envoyée au réseau</string>
     <string name="offline_send_no_connection_description">La transaction ne peut pas être envoyée pour le moment. Vous pouvez la signer hors ligne afin qu’une autre personne la diffuse plus tard.</string>
     <string name="offline_send_sync_error_description">Impossible de récupérer les données depuis la source actuelle.\n\nVous pouvez:\n• réessayer plus tard\n• activer un VPN et relancer la synchronisation\n• signer la transaction hors ligne et partager le HEX pour une diffusion manuelle\n\nSi vous avez reçu une erreur 403, votre adresse IP est peut-être bloquée. L’utilisation d’un VPN résout généralement ce problème.\nVous pouvez créer une transaction signée et l’envoyer à un autre appareil ou à une autre personne pour la diffuser sur le réseau.</string>

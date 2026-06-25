@@ -1020,6 +1020,7 @@
     <string name="offline_signed_title">موقَّعة دون اتصال</string>
     <string name="offline_signed_empty">لا توجد معاملات موقَّعة دون اتصال</string>
     <string name="offline_signed_status_pending">بانتظار الإرسال</string>
+    <string name="offline_signed_status_unknown">الحالة غير معروفة</string>
     <string name="offline_signed_status_broadcasted">أُرسلت إلى الشبكة</string>
     <string name="offline_send_no_connection_description">لا يمكن إرسال المعاملة الآن. يمكنك توقيعها دون اتصال ليبثها شخص آخر لاحقًا.</string>
     <string name="offline_send_sync_error_description">فشل جلب البيانات من المصدر الحالي.\n\nيمكنك:\n• المحاولة مرة أخرى لاحقًا\n• تفعيل VPN وإعادة المزامنة\n• توقيع المعاملة دون اتصال ومشاركة HEX للبث اليدوي\n\nإذا تلقيت خطأ 403، فقد يكون عنوان IP الخاص بك محظورًا. استخدام VPN يحل هذه المشكلة عادةً.\nيمكنك إنشاء معاملة موقّعة وإرسالها إلى جهاز آخر أو شخص آخر لبثها إلى الشبكة.</string>

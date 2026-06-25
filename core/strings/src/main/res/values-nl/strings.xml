@@ -1022,6 +1022,7 @@
     <string name="offline_signed_title">Offline ondertekend</string>
     <string name="offline_signed_empty">Geen offline ondertekende transacties</string>
     <string name="offline_signed_status_pending">Wacht op verzenden</string>
+    <string name="offline_signed_status_unknown">Status onbekend</string>
     <string name="offline_signed_status_broadcasted">Naar netwerk verzonden</string>
     <string name="offline_send_no_connection_description">De transactie kan nu niet worden verzonden. U kunt deze offline ondertekenen zodat iemand anders deze later kan uitzenden.</string>
     <string name="offline_send_sync_error_description">Kon geen gegevens ophalen uit de huidige bron.\n\nU kunt:\n• het later opnieuw proberen\n• VPN inschakelen en opnieuw synchroniseren\n• de transactie offline ondertekenen en de HEX delen voor handmatige uitzending\n\nAls u een 403-fout hebt ontvangen, is uw IP-adres mogelijk geblokkeerd. Een VPN lost dit probleem meestal op.\nU kunt een ondertekende transactie maken en deze naar een ander apparaat of persoon sturen om deze naar het netwerk uit te zenden.</string>

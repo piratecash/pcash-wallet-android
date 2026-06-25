@@ -1346,6 +1346,7 @@ Proceed only if you\'re sure.</string>
     <string name="offline_signed_title">Signed offline</string>
     <string name="offline_signed_empty">No offline-signed transactions</string>
     <string name="offline_signed_status_pending">Waiting to send</string>
+    <string name="offline_signed_status_unknown">Status unknown</string>
     <string name="offline_signed_status_broadcasted">Sent to network</string>
     <string name="offline_send_no_connection_description">The transaction cannot be sent right now. You can sign it offline so another person can broadcast it later.</string>
     <string name="offline_send_sync_error_description">Failed to fetch data from current source.\n\nYou can:\n• Try again later\n• Enable VPN and retry sync\n• Sign the transaction offline and share HEX for manual broadcast\n\nIf you received a 403 error, your IP address may be blocked. Using a VPN usually resolves this issue.\nYou can create a signed transaction and send it to another device or person to broadcast it to the network.</string>

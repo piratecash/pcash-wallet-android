@@ -1021,6 +1021,7 @@
     <string name="offline_signed_title">Çevrimdışı imzalanan</string>
     <string name="offline_signed_empty">Çevrimdışı imzalanmış işlem yok</string>
     <string name="offline_signed_status_pending">Gönderilmeyi bekliyor</string>
+    <string name="offline_signed_status_unknown">Durum bilinmiyor</string>
     <string name="offline_signed_status_broadcasted">Ağa gönderildi</string>
     <string name="offline_send_no_connection_description">İşlem şu anda gönderilemiyor. İşlemi çevrim dışı imzalayabilir, daha sonra başka bir kişinin yayınlamasını sağlayabilirsiniz.</string>
     <string name="offline_send_sync_error_description">Geçerli kaynaktan veri alınamadı.\n\nŞunları yapabilirsiniz:\n• daha sonra tekrar deneyin\n• VPN’i etkinleştirip senkronizasyonu yeniden deneyin\n• işlemi çevrim dışı imzalayıp manuel yayın için HEX’i paylaşın\n\n403 hatası aldıysanız IP adresiniz engellenmiş olabilir. VPN kullanmak genellikle bu sorunu çözer.\nİmzalı bir işlem oluşturup ağa yayınlanması için başka bir cihaza veya kişiye gönderebilirsiniz.</string>

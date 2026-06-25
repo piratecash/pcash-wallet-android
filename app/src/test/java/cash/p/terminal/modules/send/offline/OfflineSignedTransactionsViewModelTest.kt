@@ -11,6 +11,7 @@ import cash.p.terminal.entities.OfflineSignedTransactionStatus
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.transactions.TransactionsRateRepository
+import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -126,6 +127,70 @@ class OfflineSignedTransactionsViewModelTest {
             .transactionItem.record.mainValue?.decimalValue?.abs()
 
         assertEquals("1.5", displayAmount?.stripTrailingZeros()?.toPlainString())
+    }
+
+    @Test
+    fun init_pendingLitecoinMwebSourceRecord_showsUnknownStatus() = runTest(dispatcher) {
+        val litecoinMwebWallet = wallet(litecoinMwebToken)
+        setupState(entities = listOf(litecoinMwebEntity()), wallets = listOf(litecoinMwebWallet))
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        assertStatusColor(viewModel.uiState.items.single(), ColorName.Grey)
+    }
+
+    @Test
+    fun init_pendingLitecoinMwebSourceUnknownRawMetadata_showsUnknownStatusAndUnknownMetadata() = runTest(dispatcher) {
+        val litecoinMwebWallet = wallet(litecoinMwebToken)
+        setupState(
+            entities = listOf(litecoinMwebEntity().copy(pcashPayload = "", toAddress = "")),
+            wallets = listOf(litecoinMwebWallet),
+        )
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        val item = viewModel.uiState.items.single()
+        assertStatusColor(item, ColorName.Grey)
+        assertEquals(true, item.metadataUnknown)
+        assertEquals(BigDecimal.ZERO, item.transactionItem.record.mainValue?.decimalValue?.abs())
+    }
+
+    @Test
+    fun init_pendingLitecoinPublicSourceMwebDestination_showsWaitingToSend() = runTest(dispatcher) {
+        val litecoinWallet = wallet(litecoinToken)
+        setupState(entities = listOf(litecoinPublicToMwebEntity()), wallets = listOf(litecoinWallet))
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        assertStatusColor(viewModel.uiState.items.single(), ColorName.Jacob)
+    }
+
+    @Test
+    fun init_broadcastedLitecoinMwebSourceRecord_showsSentToNetwork() = runTest(dispatcher) {
+        val litecoinMwebWallet = wallet(litecoinMwebToken)
+        setupState(
+            entities = listOf(litecoinMwebEntity(status = OfflineSignedTransactionStatus.Broadcasted)),
+            wallets = listOf(litecoinMwebWallet),
+        )
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        assertStatusColor(viewModel.uiState.items.single(), ColorName.Remus)
+    }
+
+    @Test
+    fun init_pendingNonLitecoinRecord_showsWaitingToSend() = runTest(dispatcher) {
+        val bnbWallet = wallet(bnbToken)
+        setupState(entities = listOf(nativeBnbEntity()), wallets = listOf(bnbWallet))
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        assertStatusColor(viewModel.uiState.items.single(), ColorName.Jacob)
     }
 
     @Test
@@ -310,6 +375,11 @@ class OfflineSignedTransactionsViewModelTest {
         every { repository.observe(account.id) } returns flowOf(entities)
     }
 
+    private fun assertStatusColor(item: OfflineSignedTransactionViewItem, color: ColorName) {
+        assertEquals(color, item.statusValue.color)
+        assertEquals(color, item.transactionItem.offlineStatus?.color)
+    }
+
     private fun usdcEntity() = OfflineSignedTransactionEntity(
         accountId = account.id,
         txHash = TX_HASH,
@@ -447,6 +517,30 @@ class OfflineSignedTransactionsViewModelTest {
         pcashPayload = "pcash:tx:v1:zcash:body",
     )
 
+    private fun litecoinMwebEntity(
+        status: OfflineSignedTransactionStatus = OfflineSignedTransactionStatus.Pending,
+    ) = usdcEntity().copy(
+        txHash = LITECOIN_MWEB_TX_HASH,
+        blockchainTypeUid = "litecoin",
+        tokenQueryId = LITECOIN_MWEB_QUERY_ID,
+        sourceTokenQueryId = LITECOIN_MWEB_QUERY_ID,
+        coinUid = "litecoin",
+        coinCode = "LTC",
+        coinName = "Litecoin",
+        tokenDecimals = 8,
+        amount = "0.01196459",
+        feeTokenQueryId = LITECOIN_MWEB_QUERY_ID,
+        feeAtomic = "3900",
+        toAddress = "ltcmweb1receiver",
+        pcashPayload = "pcash:tx:v1:litecoin:body",
+        status = status.value,
+    )
+
+    private fun litecoinPublicToMwebEntity() = litecoinMwebEntity().copy(
+        tokenQueryId = LITECOIN_QUERY_ID,
+        sourceTokenQueryId = LITECOIN_QUERY_ID,
+    )
+
     private fun record(
         transactionHash: String,
         token: Token,
@@ -518,6 +612,19 @@ class OfflineSignedTransactionsViewModelTest {
         type = TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified),
         decimals = 8,
     )
+    private val litecoin = Blockchain(BlockchainType.Litecoin, "Litecoin", null)
+    private val litecoinToken = Token(
+        coin = Coin(uid = "litecoin", name = "Litecoin", code = "LTC"),
+        blockchain = litecoin,
+        type = TokenType.Native,
+        decimals = 8,
+    )
+    private val litecoinMwebToken = Token(
+        coin = Coin(uid = "litecoin", name = "Litecoin", code = "LTC"),
+        blockchain = litecoin,
+        type = TokenType.Mweb,
+        decimals = 8,
+    )
 
     private val account = Account(
         id = "account-id",
@@ -537,9 +644,12 @@ class OfflineSignedTransactionsViewModelTest {
         const val TON_QUERY_ID = "the-open-network|native"
         const val STELLAR_QUERY_ID = "stellar|native"
         const val ZCASH_QUERY_ID = "zcash|address_spec_type:unified"
+        const val LITECOIN_QUERY_ID = "litecoin|native"
+        const val LITECOIN_MWEB_QUERY_ID = "litecoin|mweb"
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         const val STELLAR_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
         const val ZCASH_TX_HASH = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        const val LITECOIN_MWEB_TX_HASH = "d2a822a43ba8b8309bfd7ca10aa28228f5d7a881df0e253d1c406ee4cbb08248"
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
     }

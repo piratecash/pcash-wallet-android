@@ -1019,6 +1019,7 @@
     <string name="offline_signed_title">Assinadas offline</string>
     <string name="offline_signed_empty">Nenhuma transação assinada offline</string>
     <string name="offline_signed_status_pending">Aguardando envio</string>
+    <string name="offline_signed_status_unknown">Status desconhecido</string>
     <string name="offline_signed_status_broadcasted">Enviada para a rede</string>
     <string name="offline_send_no_connection_description">A transação não pode ser enviada agora. Você pode assiná-la offline para que outra pessoa a transmita mais tarde.</string>
     <string name="offline_send_sync_error_description">Não foi possível obter dados da fonte atual.\n\nVocê pode:\n• tentar novamente mais tarde\n• ativar a VPN e tentar sincronizar novamente\n• assinar a transação offline e compartilhar o HEX para transmissão manual\n\nSe você recebeu um erro 403, seu endereço IP pode estar bloqueado. Usar uma VPN normalmente resolve esse problema.\nVocê pode criar uma transação assinada e enviá-la para outro dispositivo ou pessoa para transmiti-la à rede.</string>
