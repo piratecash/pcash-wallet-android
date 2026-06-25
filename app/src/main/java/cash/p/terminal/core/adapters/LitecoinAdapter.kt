@@ -2,13 +2,20 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.BroadcastRawTransactionResult
+import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.IMwebAddressValidator
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineBitcoinSignRequest
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.TransactionExplorerData
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.derivation
+import cash.p.terminal.core.hexToByteArray
 import cash.p.terminal.core.managers.LITECOIN_MWEB_PEG_IN_MATCH_TIMESTAMP_TOLERANCE_SECONDS
 import cash.p.terminal.core.managers.LitecoinMwebRestoreHeight
 import cash.p.terminal.core.managers.RestoreSettings
@@ -58,6 +65,7 @@ import io.horizontalsystems.litecoinkit.mweb.MwebNetworkPolicy
 import io.horizontalsystems.litecoinkit.mweb.MwebPublicSendConfig
 import io.horizontalsystems.litecoinkit.mweb.MwebRestorePoint
 import io.horizontalsystems.litecoinkit.mweb.MwebSendResult
+import io.horizontalsystems.litecoinkit.mweb.MwebSignedRawTransaction
 import io.horizontalsystems.litecoinkit.mweb.MwebSyncState
 import io.horizontalsystems.litecoinkit.mweb.MwebTransaction
 import io.horizontalsystems.litecoinkit.mweb.MwebTransactionKind
@@ -924,6 +932,50 @@ class LitecoinAdapter(
     override fun isMwebAddress(address: String): Boolean {
         return kit.isMwebAddress(address)
     }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineBitcoinTransaction {
+        val bitcoinRequest = requireNotNull(request as? OfflineBitcoinSignRequest) {
+            "Unsupported offline sign request"
+        }
+        val mwebSource = mwebSendSource(bitcoinRequest.address) ?: return super.signOffline(request)
+
+        val value = atomicAmount(bitcoinRequest.amount)
+            ?: throw LocalizedException(R.string.litecoin_mweb_invalid_amount)
+        val signedTransaction = kit.createSignedMwebTransaction(
+            address = bitcoinRequest.address,
+            value = value,
+            source = mwebSource,
+            feeRate = bitcoinRequest.feeRate,
+            rbfEnabled = bitcoinRequest.rbfEnabled && mwebSource == LitecoinSendSource.Public,
+            changeToFirstInput = bitcoinRequest.changeToFirstInput && mwebSource == LitecoinSendSource.Public,
+            filters = bitcoinRequest.utxoFilters,
+            unspentOutputs = bitcoinRequest.unspentOutputs.takeIf { mwebSource == LitecoinSendSource.Public },
+        )
+
+        return signedTransaction.toSignedOfflineBitcoinTransaction()
+    }
+
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
+        val rawTransaction = tryOrNull { rawTransactionHex.hexToByteArray() }
+        if (rawTransaction == null || !kit.isMwebRawTransaction(rawTransaction)) {
+            return super.broadcastRawTransaction(rawTransactionHex, metadata)
+        }
+
+        return BroadcastRawTransactionResult(
+            txHash = kit.broadcastMwebRawTransaction(rawTransaction),
+            status = BroadcastRawTransactionStatus.Submitted,
+        )
+    }
+
+    private fun MwebSignedRawTransaction.toSignedOfflineBitcoinTransaction(): SignedOfflineBitcoinTransaction =
+        SignedOfflineBitcoinTransaction(
+            rawHex = rawTransaction.toRawHexString(),
+            txHash = transactionHash,
+            inputOutpoints = emptyList(),
+        )
 
     override suspend fun send(
         amount: BigDecimal,

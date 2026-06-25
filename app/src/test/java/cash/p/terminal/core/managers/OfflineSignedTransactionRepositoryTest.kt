@@ -1,11 +1,13 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.TestDispatcherProvider
+import cash.p.terminal.core.storage.OfflineBroadcastedRawMatch
 import cash.p.terminal.core.storage.OfflineSignedTransactionDao
 import cash.p.terminal.entities.DecodedOfflineTransaction
 import cash.p.terminal.entities.OfflineFeeMetadata
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.OfflineSignedTransactionEntity
+import cash.p.terminal.entities.OfflineSignedTransactionStatus
 import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
@@ -117,6 +119,72 @@ class OfflineSignedTransactionRepositoryTest {
         assertEquals("", entity.amount)
         assertEquals("", entity.toAddress)
         assertEquals("", entity.pcashPayload)
+    }
+
+    @Test
+    fun markBroadcastedByRawHex_matchingPendingRows_reconcilesEveryAccount() = runTest(dispatcher) {
+        val repository = repository()
+        val signingEntity = pendingEntity(accountId = "signing-account", txHash = "local-hash")
+        val relayEntity = pendingEntity(accountId = "relay-account", txHash = "imported-hash")
+        coEvery {
+            dao.pendingByRawHex("deadbeef", OfflineSignedTransactionStatus.Pending.value)
+        } returns listOf(signingEntity, relayEntity)
+        coEvery {
+            dao.reconcileBroadcasted(any(), any(), any(), any(), any())
+        } returns Unit
+
+        repository.markBroadcastedByRawHex("deadbeef", "network-hash")
+
+        coVerify {
+            dao.pendingByRawHex("deadbeef", OfflineSignedTransactionStatus.Pending.value)
+            dao.reconcileBroadcasted(
+                accountId = "signing-account",
+                txHash = "local-hash",
+                confirmedTxHash = "network-hash",
+                status = OfflineSignedTransactionStatus.Broadcasted.value,
+                timestamp = any(),
+            )
+            dao.reconcileBroadcasted(
+                accountId = "relay-account",
+                txHash = "imported-hash",
+                confirmedTxHash = "network-hash",
+                status = OfflineSignedTransactionStatus.Broadcasted.value,
+                timestamp = any(),
+            )
+        }
+    }
+
+    @Test
+    fun markBroadcastedRawDuplicates_existingBroadcastedRaw_reconcilesAccountPendingRows() = runTest(dispatcher) {
+        val repository = repository()
+        coEvery {
+            dao.broadcastedRawMatches(
+                accountId = "signing-account",
+                pendingStatus = OfflineSignedTransactionStatus.Pending.value,
+                broadcastedStatus = OfflineSignedTransactionStatus.Broadcasted.value,
+            )
+        } returns listOf(
+            OfflineBroadcastedRawMatch(
+                accountId = "signing-account",
+                txHash = "local-hash",
+                confirmedTxHash = "network-hash",
+            )
+        )
+        coEvery {
+            dao.reconcileBroadcasted(any(), any(), any(), any(), any())
+        } returns Unit
+
+        repository.markBroadcastedRawDuplicates("signing-account")
+
+        coVerify {
+            dao.reconcileBroadcasted(
+                accountId = "signing-account",
+                txHash = "local-hash",
+                confirmedTxHash = "network-hash",
+                status = OfflineSignedTransactionStatus.Broadcasted.value,
+                timestamp = any(),
+            )
+        }
     }
 
     @Test
@@ -315,6 +383,39 @@ class OfflineSignedTransactionRepositoryTest {
         createdAt = CREATED_AT,
         inputOutpoints = emptyList(),
         tronRetryMetadata = tronRetryMetadata(),
+    )
+
+    private fun pendingEntity(accountId: String, txHash: String) = OfflineSignedTransactionEntity(
+        accountId = accountId,
+        txHash = txHash,
+        blockchainTypeUid = "litecoin",
+        tokenQueryId = "litecoin|mweb",
+        sourceTokenQueryId = "litecoin|mweb",
+        coinUid = "litecoin",
+        coinCode = "LTC",
+        coinName = "Litecoin",
+        tokenDecimals = 8,
+        amount = "0.01",
+        feeTokenQueryId = "litecoin|mweb",
+        feeAtomic = "100",
+        solanaBlockHash = null,
+        solanaLastValidBlockHeight = null,
+        tonValidUntil = null,
+        tonSenderAddress = null,
+        tonSeqno = null,
+        tronExpiration = null,
+        stellarSourceAccountId = null,
+        stellarSequenceNumber = null,
+        stellarValidUntil = null,
+        toAddress = "ltcmweb1receiver",
+        rawHex = "deadbeef",
+        pcashPayload = "pcash:tx:v1:litecoin:body",
+        createdAt = CREATED_AT,
+        status = OfflineSignedTransactionStatus.Pending.value,
+        broadcastAttempts = 0,
+        lastBroadcastAt = null,
+        broadcastedAt = null,
+        lastError = null,
     )
 
     private fun CoroutineScope.repository() = OfflineSignedTransactionRepository(

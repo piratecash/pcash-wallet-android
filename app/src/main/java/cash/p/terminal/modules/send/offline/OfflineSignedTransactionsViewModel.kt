@@ -103,10 +103,15 @@ class OfflineSignedTransactionsViewModel(
 
     private fun reconcileBroadcastedStatuses(snapshot: OfflineSignedTransactionsSnapshot) {
         statusReconciliationJob?.cancel()
-        val pendingBySource = snapshot.pendingEntitiesBySource()
-        if (pendingBySource.isEmpty()) return
+        val accountId = snapshot.account?.id ?: return
+        val pendingEntities = snapshot.pendingEntities()
+        if (pendingEntities.isEmpty()) return
+        val pendingBySource = snapshot.pendingEntitiesBySource(pendingEntities)
 
         statusReconciliationJob = viewModelScope.launch(dispatcherProvider.io) {
+            repository.markBroadcastedRawDuplicates(accountId)
+            if (pendingBySource.isEmpty()) return@launch
+
             transactionAdapterManager.adaptersReadyFlow.collectLatest { adapters ->
                 val recordFlows = pendingBySource.recordFlows(adapters)
                 if (recordFlows.isEmpty()) return@collectLatest
@@ -118,9 +123,13 @@ class OfflineSignedTransactionsViewModel(
         }
     }
 
-    private fun OfflineSignedTransactionsSnapshot.pendingEntitiesBySource(): Map<TransactionSource, List<PendingOfflineEntity>> =
-        entities
-            .filter { OfflineSignedTransactionStatus.from(it.status) == OfflineSignedTransactionStatus.Pending }
+    private fun OfflineSignedTransactionsSnapshot.pendingEntities(): List<OfflineSignedTransactionEntity> =
+        entities.filter { OfflineSignedTransactionStatus.from(it.status) == OfflineSignedTransactionStatus.Pending }
+
+    private fun OfflineSignedTransactionsSnapshot.pendingEntitiesBySource(
+        pendingEntities: List<OfflineSignedTransactionEntity>,
+    ): Map<TransactionSource, List<PendingOfflineEntity>> =
+        pendingEntities
             .mapNotNull { entity ->
                 val wallet = entity.sourceWallet(wallets)
                 if (wallet == null) return@mapNotNull null

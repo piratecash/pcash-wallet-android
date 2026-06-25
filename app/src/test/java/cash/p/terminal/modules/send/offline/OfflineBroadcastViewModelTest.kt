@@ -683,6 +683,7 @@ class OfflineBroadcastViewModelTest {
         // and only the attempt is recorded — never a false "Sent".
         coVerify { repository.markBroadcastAttempt("account-id", "hash") }
         coVerify(exactly = 0) { repository.markBroadcasted(any(), any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcastedByRawHex(any(), any()) }
     }
 
     @Test
@@ -706,6 +707,7 @@ class OfflineBroadcastViewModelTest {
             repository.saveRawImported(bitcoinWallet, "deadbeefdeadbeefdead", "derived-hash")
             repository.markBroadcastAttempt("account-id", "derived-hash")
             repository.markBroadcasted("account-id", "derived-hash", "derived-hash")
+            repository.markBroadcastedByRawHex("deadbeefdeadbeefdead", "derived-hash")
         }
         coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", null) }
     }
@@ -732,6 +734,7 @@ class OfflineBroadcastViewModelTest {
             repository.markBroadcastAttempt("account-id", "queued-hash")
         }
         coVerify(exactly = 0) { repository.markBroadcasted(any(), any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcastedByRawHex(any(), any()) }
     }
 
     @Test
@@ -763,6 +766,7 @@ class OfflineBroadcastViewModelTest {
             repository.saveImported(bitcoinWallet, any(), any())
             repository.markBroadcastAttempt("account-id", "hash")
             repository.markBroadcasted("account-id", "hash", "hash")
+            repository.markBroadcastedByRawHex("deadbeefdeadbeefdead", "hash")
         }
     }
 
@@ -784,6 +788,7 @@ class OfflineBroadcastViewModelTest {
         advanceUntilIdle()
 
         coVerify { repository.markBroadcasted("account-id", "hash", "derived-hash") }
+        coVerify { repository.markBroadcastedByRawHex("deadbeefdeadbeefdead", "derived-hash") }
     }
 
     @Test

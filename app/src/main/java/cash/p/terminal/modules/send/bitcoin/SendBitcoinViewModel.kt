@@ -112,10 +112,7 @@ class SendBitcoinViewModel(
     override val coinMaxAllowedDecimals = wallet.token.decimals
     override val feeCoinMaxAllowedDecimals get() = coinMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
-    // MWEB transactions cannot be signed offline (the sign path rejects them), so do not advertise the
-    // capability for an MWEB wallet. Sending to an MWEB address from a regular wallet is still caught at
-    // sign time, since that can only be known once the destination address is entered.
-    val offlineSignSupported = offlineSignAdapter != null && !wallet.token.isLitecoinMweb
+    val offlineSignSupported = offlineSignAdapter != null
 
     val blockchainType by adapter::blockchainType
     val feeRateChangeable by feeRateService::feeRateChangeable
@@ -390,9 +387,6 @@ class SendBitcoinViewModel(
         val logger = logger.getScopedUnique()
         logger.info("offline sign click")
         val request = sendRequest()
-        if (isMwebTransaction(request.address)) {
-            throw LocalizedException(R.string.offline_transaction_error_mweb_unsupported)
-        }
         val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
         val signedTransaction = signingAdapter.signOffline(
             OfflineBitcoinSignRequest(

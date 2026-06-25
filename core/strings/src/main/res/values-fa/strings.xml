@@ -990,7 +990,6 @@
     <string name="offline_transaction_qr_saved">کد QR ذخیره شد</string>
     <string name="offline_transaction_qr_save_failed">ذخیره کد QR ناموفق بود</string>
     <string name="offline_transaction_signed_transaction_unavailable">تراکنش امضاشده دیگر در دسترس نیست. دوباره آن را امضا کنید.</string>
-    <string name="offline_transaction_error_mweb_unsupported">امضای آفلاین برای تراکنش‌های MWEB پشتیبانی نمی‌شود.</string>
     <string name="offline_broadcast_title">ارسال RAW TX</string>
     <string name="offline_broadcast_invalid_input">تراکنش شناسایی نشد. قالب را بررسی کنید و دوباره تلاش کنید.</string>
     <string name="offline_broadcast_check_title">بررسی تراکنش</string>

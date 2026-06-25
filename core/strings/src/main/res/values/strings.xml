@@ -1316,7 +1316,6 @@ Proceed only if you\'re sure.</string>
     <string name="offline_transaction_qr_saved">QR code saved</string>
     <string name="offline_transaction_qr_save_failed">Failed to save QR code</string>
     <string name="offline_transaction_signed_transaction_unavailable">Signed transaction is no longer available. Sign it again.</string>
-    <string name="offline_transaction_error_mweb_unsupported">Offline signing is not supported for MWEB transactions.</string>
     <string name="offline_broadcast_title">Send RAW TX</string>
     <string name="offline_broadcast_invalid_input">Couldn\'t recognize the transaction. Check the format and try again.</string>
     <string name="offline_broadcast_check_title">Check transaction</string>

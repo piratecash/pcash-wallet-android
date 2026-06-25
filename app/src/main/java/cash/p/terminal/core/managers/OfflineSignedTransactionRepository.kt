@@ -61,13 +61,30 @@ class OfflineSignedTransactionRepository(
 
     suspend fun markBroadcasted(accountId: String, txHash: String, confirmedTxHash: String) {
         executeSafely("mark broadcasted") {
-            dao.reconcileBroadcasted(
+            reconcileBroadcasted(accountId, txHash, confirmedTxHash, System.currentTimeMillis())
+        }
+    }
+
+    suspend fun markBroadcastedByRawHex(rawHex: String, confirmedTxHash: String) {
+        executeSafely("mark broadcasted by raw hex") {
+            val timestamp = System.currentTimeMillis()
+            dao.pendingByRawHex(rawHex, OfflineSignedTransactionStatus.Pending.value)
+                .forEach { entity ->
+                    reconcileBroadcasted(entity.accountId, entity.txHash, confirmedTxHash, timestamp)
+                }
+        }
+    }
+
+    suspend fun markBroadcastedRawDuplicates(accountId: String) {
+        executeSafely("mark broadcasted raw duplicates") {
+            val timestamp = System.currentTimeMillis()
+            dao.broadcastedRawMatches(
                 accountId = accountId,
-                txHash = txHash,
-                confirmedTxHash = confirmedTxHash,
-                status = OfflineSignedTransactionStatus.Broadcasted.value,
-                timestamp = System.currentTimeMillis(),
-            )
+                pendingStatus = OfflineSignedTransactionStatus.Pending.value,
+                broadcastedStatus = OfflineSignedTransactionStatus.Broadcasted.value,
+            ).forEach { match ->
+                reconcileBroadcasted(match.accountId, match.txHash, match.confirmedTxHash, timestamp)
+            }
         }
     }
 
@@ -85,6 +102,21 @@ class OfflineSignedTransactionRepository(
 
     fun observe(accountId: String): Flow<List<OfflineSignedTransactionEntity>> =
         dao.observe(accountId)
+
+    private suspend fun reconcileBroadcasted(
+        accountId: String,
+        txHash: String,
+        confirmedTxHash: String,
+        timestamp: Long,
+    ) {
+        dao.reconcileBroadcasted(
+            accountId = accountId,
+            txHash = txHash,
+            confirmedTxHash = confirmedTxHash,
+            status = OfflineSignedTransactionStatus.Broadcasted.value,
+            timestamp = timestamp,
+        )
+    }
 
     private suspend fun executeSafely(action: String, block: suspend () -> Unit) {
         try {

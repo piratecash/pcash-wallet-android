@@ -991,7 +991,6 @@
     <string name="offline_transaction_qr_saved">QR kodu kaydedildi</string>
     <string name="offline_transaction_qr_save_failed">QR kodu kaydedilemedi</string>
     <string name="offline_transaction_signed_transaction_unavailable">İmzalanmış işlem artık kullanılamıyor. Tekrar imzalayın.</string>
-    <string name="offline_transaction_error_mweb_unsupported">Çevrimdışı imzalama MWEB işlemleri için desteklenmez.</string>
     <string name="offline_broadcast_title">RAW TX gönder</string>
     <string name="offline_broadcast_invalid_input">İşlem tanınamadı. Biçimi kontrol edip tekrar deneyin.</string>
     <string name="offline_broadcast_check_title">İşlemi kontrol et</string>

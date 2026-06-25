@@ -986,7 +986,6 @@
     <string name="offline_transaction_qr_saved">Código QR guardado</string>
     <string name="offline_transaction_qr_save_failed">No se pudo guardar el código QR</string>
     <string name="offline_transaction_signed_transaction_unavailable">La transacción firmada ya no está disponible. Fírmala de nuevo.</string>
-    <string name="offline_transaction_error_mweb_unsupported">La firma sin conexión no es compatible con transacciones MWEB.</string>
     <string name="offline_broadcast_title">Enviar RAW TX</string>
     <string name="offline_broadcast_invalid_input">No se pudo reconocer la transacción. Comprueba el formato e inténtalo de nuevo.</string>
     <string name="offline_broadcast_check_title">Verificar transacción</string>

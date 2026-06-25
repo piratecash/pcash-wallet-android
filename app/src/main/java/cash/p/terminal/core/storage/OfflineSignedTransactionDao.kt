@@ -83,6 +83,41 @@ interface OfflineSignedTransactionDao {
     )
     suspend fun exists(accountId: String, txHash: String): Boolean
 
+    @Query(
+        """
+        SELECT * FROM OfflineSignedTransaction
+        WHERE rawHex = :rawHex AND status = :pendingStatus
+        """
+    )
+    suspend fun pendingByRawHex(rawHex: String, pendingStatus: String): List<OfflineSignedTransactionEntity>
+
+    @Query(
+        """
+        SELECT pending.accountId AS accountId,
+               pending.txHash AS txHash,
+               (
+                   SELECT sent.txHash
+                   FROM OfflineSignedTransaction AS sent
+                   WHERE sent.rawHex = pending.rawHex AND sent.status = :broadcastedStatus
+                   ORDER BY sent.broadcastedAt DESC, sent.createdAt DESC
+                   LIMIT 1
+               ) AS confirmedTxHash
+        FROM OfflineSignedTransaction AS pending
+        WHERE pending.accountId = :accountId
+          AND pending.status = :pendingStatus
+          AND EXISTS (
+              SELECT 1
+              FROM OfflineSignedTransaction AS sent
+              WHERE sent.rawHex = pending.rawHex AND sent.status = :broadcastedStatus
+          )
+        """
+    )
+    suspend fun broadcastedRawMatches(
+        accountId: String,
+        pendingStatus: String,
+        broadcastedStatus: String,
+    ): List<OfflineBroadcastedRawMatch>
+
     @Query("DELETE FROM OfflineSignedTransaction WHERE accountId = :accountId AND txHash = :txHash")
     suspend fun delete(accountId: String, txHash: String)
 
@@ -102,3 +137,9 @@ interface OfflineSignedTransactionDao {
         broadcastedStatus: String,
     )
 }
+
+data class OfflineBroadcastedRawMatch(
+    val accountId: String,
+    val txHash: String,
+    val confirmedTxHash: String,
+)

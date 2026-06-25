@@ -170,6 +170,17 @@ class OfflineSignedTransactionsViewModelTest {
     }
 
     @Test
+    fun init_pendingRecord_reconcilesExistingBroadcastedRawDuplicates() = runTest(dispatcher) {
+        val bnbWallet = wallet(bnbToken)
+        setupState(entities = listOf(nativeBnbEntity()), wallets = listOf(bnbWallet))
+
+        viewModel(this)
+        advanceUntilIdle()
+
+        coVerify { repository.markBroadcastedRawDuplicates(account.id) }
+    }
+
+    @Test
     fun init_pendingSolanaRecordConfirmedBySourceAdapter_preservesSignatureCase() = runTest(dispatcher) {
         val solanaWallet = wallet(solanaToken)
         val adapter = mockk<ITransactionsAdapter>(relaxed = true) {

@@ -266,6 +266,12 @@ class OfflineBroadcastViewModel(
                     )
                 }
             }
+            if (!queued) {
+                val confirmedTxHash = broadcastResult.txHash.ifBlank { recordKey?.txHash.orEmpty() }
+                if (confirmedTxHash.isNotBlank()) {
+                    offlineSignedTransactionRepository.markBroadcastedByRawHex(rawHex, confirmedTxHash)
+                }
+            }
             OfflineBroadcastResult.Success(
                 networkName = networkName,
                 txHash = broadcastResult.txHash,

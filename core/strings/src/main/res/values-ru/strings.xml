@@ -1005,7 +1005,6 @@
     <string name="offline_transaction_qr_saved">QR-код сохранён</string>
     <string name="offline_transaction_qr_save_failed">Не удалось сохранить QR-код</string>
     <string name="offline_transaction_signed_transaction_unavailable">Подписанная транзакция больше недоступна. Подпишите её ещё раз.</string>
-    <string name="offline_transaction_error_mweb_unsupported">Офлайн-подпись не поддерживается для MWEB-транзакций.</string>
     <string name="offline_broadcast_title">Отправка RAW TX</string>
     <string name="offline_broadcast_invalid_input">Не удалось распознать транзакцию. Проверьте формат и попробуйте снова.</string>
     <string name="offline_broadcast_check_title">Проверка транзакции</string>
