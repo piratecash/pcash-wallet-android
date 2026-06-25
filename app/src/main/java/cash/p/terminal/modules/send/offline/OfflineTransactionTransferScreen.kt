@@ -72,11 +72,17 @@ internal fun OfflineTransactionTransferScreen(
 ) {
     val view = LocalView.current
     val currentOnBackClick by rememberUpdatedState(onBackClick)
+    var closingByDone by remember { mutableStateOf(false) }
 
-    LaunchedEffect(transaction) {
+    LaunchedEffect(transaction, closingByDone) {
         if (transaction == null) {
-            HudHelper.showErrorMessage(view, R.string.Error)
-            currentOnBackClick()
+            if (!closingByDone) {
+                HudHelper.showErrorMessage(
+                    view,
+                    R.string.offline_transaction_signed_transaction_unavailable
+                )
+                currentOnBackClick()
+            }
         }
     }
 
@@ -94,7 +100,10 @@ internal fun OfflineTransactionTransferScreen(
         bottomBar = {
             if (transaction != null) {
                 TransferDoneButton(
-                    onDoneClick = onDoneClick,
+                    onDoneClick = {
+                        closingByDone = true
+                        onDoneClick()
+                    },
                     windowInsets = windowInsets,
                 )
             }

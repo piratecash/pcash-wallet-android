@@ -33,7 +33,7 @@ data class OfflineSignedTransactionEntity(
     val coinName: String?,
     val tokenDecimals: Int,
     val amount: String,
-    // Stored for future fee display; the current list UI only uses amount/display token metadata.
+    // Stored as the signed transaction fee snapshot; Zcash list rows use it to match SDK balance-delta history.
     val feeTokenQueryId: String?,
     val feeAtomic: String?,
     val solanaBlockHash: String?,

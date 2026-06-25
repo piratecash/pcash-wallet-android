@@ -60,7 +60,7 @@ import cash.p.terminal.modules.send.tron.SendTronModule
 import cash.p.terminal.modules.send.tron.SendTronNavHost
 import cash.p.terminal.modules.send.tron.SendTronViewModel
 import cash.p.terminal.modules.send.zcash.SendZCashModule
-import cash.p.terminal.modules.send.zcash.SendZCashScreen
+import cash.p.terminal.modules.send.zcash.SendZCashNavHost
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.navigateUpSafely
@@ -172,9 +172,9 @@ class SendFragment : BaseComposeFragment() {
                             .fillMaxSize()
                             .systemBarsPadding()
                     ) {
-                        SendZCashScreen(
+                        SendZCashNavHost(
                             title = title,
-                            navController = findNavController(),
+                            fragmentNavController = findNavController(),
                             viewModel = sendZCashViewModel,
                             amountInputModeViewModel = amountInputModeViewModel,
                             prefilledData = prefilledData,

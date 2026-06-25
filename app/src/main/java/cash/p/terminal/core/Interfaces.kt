@@ -239,6 +239,10 @@ sealed interface OfflineBroadcastMetadata {
         val sequenceNumber: Long,
         val validUntil: Long,
     ) : OfflineBroadcastMetadata
+
+    data class Zcash(
+        val txHash: String,
+    ) : OfflineBroadcastMetadata
 }
 
 data class OfflineBitcoinSignRequest(
@@ -339,6 +343,18 @@ data class SignedOfflineMoneroTransaction(
     val fee: BigDecimal,
 )
 
+data class OfflineZcashSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String,
+) : OfflineSignRequest
+
+data class SignedOfflineZcashTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+)
+
 interface IMwebAddressValidator {
     fun isMwebAddress(address: String): Boolean
 }
@@ -349,7 +365,7 @@ internal interface ISendEthereumAdapter : IBalanceAdapter {
     fun getTransactionData(amount: BigDecimal, address: Address): TransactionData
 }
 
-interface ISendZcashAdapter : IBalanceAdapter {
+interface ISendZcashAdapter : IBalanceAdapter, OfflineTransactionAdapter<SignedOfflineZcashTransaction> {
     // Start syncing the adapter
     fun start()
 

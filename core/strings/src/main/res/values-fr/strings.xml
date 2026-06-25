@@ -986,6 +986,7 @@
     <string name="offline_transaction_raw_hex">TRANSACTION RAW (HEX)</string>
     <string name="offline_transaction_qr_saved">Code QR enregistré</string>
     <string name="offline_transaction_qr_save_failed">Impossible d\'enregistrer le code QR</string>
+    <string name="offline_transaction_signed_transaction_unavailable">La transaction signée n’est plus disponible. Signez-la à nouveau.</string>
     <string name="offline_transaction_error_mweb_unsupported">La signature hors ligne n\'est pas prise en charge pour les transactions MWEB.</string>
     <string name="offline_broadcast_title">Envoyer une TX RAW</string>
     <string name="offline_broadcast_invalid_input">Impossible de reconnaître la transaction. Vérifiez le format et réessayez.</string>

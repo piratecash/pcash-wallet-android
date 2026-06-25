@@ -992,6 +992,7 @@
     <string name="offline_transaction_raw_hex">RAW TRANSACTION (HEX)</string>
     <string name="offline_transaction_qr_saved">QR-код збережено</string>
     <string name="offline_transaction_qr_save_failed">Не вдалося зберегти QR-код</string>
+    <string name="offline_transaction_signed_transaction_unavailable">Підписана транзакція більше недоступна. Підпишіть її ще раз.</string>
     <string name="offline_transaction_error_mweb_unsupported">Офлайн-підпис не підтримується для MWEB-транзакцій.</string>
     <string name="offline_broadcast_title">Надсилання RAW TX</string>
     <string name="offline_broadcast_invalid_input">Не вдалося розпізнати транзакцію. Перевірте формат і спробуйте ще раз.</string>

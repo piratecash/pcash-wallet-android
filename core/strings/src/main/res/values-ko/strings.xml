@@ -989,6 +989,7 @@
     <string name="offline_transaction_raw_hex">RAW 트랜잭션 (HEX)</string>
     <string name="offline_transaction_qr_saved">QR 코드 저장됨</string>
     <string name="offline_transaction_qr_save_failed">QR 코드를 저장하지 못했습니다</string>
+    <string name="offline_transaction_signed_transaction_unavailable">서명된 트랜잭션을 더 이상 사용할 수 없습니다. 다시 서명하세요.</string>
     <string name="offline_transaction_error_mweb_unsupported">오프라인 서명은 MWEB 트랜잭션을 지원하지 않습니다.</string>
     <string name="offline_broadcast_title">RAW TX 보내기</string>
     <string name="offline_broadcast_invalid_input">트랜잭션을 인식할 수 없습니다. 형식을 확인하고 다시 시도하세요.</string>

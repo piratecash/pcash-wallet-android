@@ -101,6 +101,34 @@ class OfflineSignedTransactionsViewModelTest {
     }
 
     @Test
+    fun init_zcashSignedRecord_displaysAmountWithFee() = runTest(dispatcher) {
+        val zcashWallet = wallet(zcashToken)
+        setupState(entities = listOf(zcashEntity()), wallets = listOf(zcashWallet))
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        val displayAmount = viewModel.uiState.items.single()
+            .transactionItem.record.mainValue?.decimalValue?.abs()
+
+        assertEquals("0.001311", displayAmount?.stripTrailingZeros()?.toPlainString())
+    }
+
+    @Test
+    fun init_nonZcashNativeSignedRecordWithSameFeeToken_displaysAmountWithoutFee() = runTest(dispatcher) {
+        val bnbWallet = wallet(bnbToken)
+        setupState(entities = listOf(nativeBnbEntity()), wallets = listOf(bnbWallet))
+
+        val viewModel = viewModel(this)
+        advanceUntilIdle()
+
+        val displayAmount = viewModel.uiState.items.single()
+            .transactionItem.record.mainValue?.decimalValue?.abs()
+
+        assertEquals("1.5", displayAmount?.stripTrailingZeros()?.toPlainString())
+    }
+
+    @Test
     fun init_displayTokenResolvedWithNativeSource_rendersDisplayTokenAndUsesSourceWallet() = runTest(dispatcher) {
         val bnbWallet = wallet(bnbToken)
         every { marketKit.token(requireNotNull(TokenQuery.fromId(USDC_QUERY_ID))) } returns usdcToken
@@ -316,6 +344,18 @@ class OfflineSignedTransactionsViewModelTest {
         feeAtomic = null,
     )
 
+    private fun nativeBnbEntity() = usdcEntity().copy(
+        tokenQueryId = BNB_QUERY_ID,
+        sourceTokenQueryId = BNB_QUERY_ID,
+        coinUid = "binance-coin",
+        coinCode = "BNB",
+        coinName = "BNB",
+        tokenDecimals = 18,
+        amount = "1.5",
+        feeTokenQueryId = BNB_QUERY_ID,
+        feeAtomic = "1000000000000000",
+    )
+
     private fun rawBnbEntity() = legacyBnbEntity().copy(
         sourceTokenQueryId = "binance-smart-chain|native",
         amount = "",
@@ -378,6 +418,22 @@ class OfflineSignedTransactionsViewModelTest {
         stellarSourceAccountId = "GSource",
         stellarSequenceNumber = 123_456_789L,
         stellarValidUntil = 1_700_000_180L,
+    )
+
+    private fun zcashEntity() = usdcEntity().copy(
+        txHash = ZCASH_TX_HASH,
+        blockchainTypeUid = "zcash",
+        tokenQueryId = ZCASH_QUERY_ID,
+        sourceTokenQueryId = ZCASH_QUERY_ID,
+        coinUid = "zcash",
+        coinCode = "ZEC",
+        coinName = "Zcash",
+        tokenDecimals = 8,
+        amount = "0.001211",
+        feeTokenQueryId = ZCASH_QUERY_ID,
+        feeAtomic = "10000",
+        toAddress = "u1recipient",
+        pcashPayload = "pcash:tx:v1:zcash:body",
     )
 
     private fun record(
@@ -444,6 +500,13 @@ class OfflineSignedTransactionsViewModelTest {
         type = TokenType.Native,
         decimals = 7,
     )
+    private val zcash = Blockchain(BlockchainType.Zcash, "Zcash", null)
+    private val zcashToken = Token(
+        coin = Coin(uid = "zcash", name = "Zcash", code = "ZEC"),
+        blockchain = zcash,
+        type = TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified),
+        decimals = 8,
+    )
 
     private val account = Account(
         id = "account-id",
@@ -457,12 +520,15 @@ class OfflineSignedTransactionsViewModelTest {
     private companion object {
         const val TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         const val USDC_CONTRACT = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+        const val BNB_QUERY_ID = "binance-smart-chain|native"
         const val USDC_QUERY_ID = "binance-smart-chain|eip20:$USDC_CONTRACT"
         const val SOLANA_QUERY_ID = "solana|native"
         const val TON_QUERY_ID = "the-open-network|native"
         const val STELLAR_QUERY_ID = "stellar|native"
+        const val ZCASH_QUERY_ID = "zcash|address_spec_type:unified"
         const val TON_MESSAGE_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         const val STELLAR_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+        const val ZCASH_TX_HASH = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
         const val SOLANA_SIGNATURE =
             "7jMAQMhBNsY4eqqGVRYP9ddHbR1vrMvF5qWZbGzMbfyqGzHGmhrxXfQnk74T9JbX8FD9Fyi7Jw1pB8HgZCkP1KKL"
     }

@@ -26,11 +26,14 @@ import io.horizontalsystems.core.entities.BlockchainType
  *  - Stellar relay uses the native XLM token because signed XDR broadcast is chain-level.
  *  - Monero relay uses the native XMR token because signed transaction envelope broadcast is
  *    chain-level and the current Monero wallet service still requires an initialized wallet.
+ *  - Zcash relay uses one of the AddressSpecTyped native ZEC tokens because raw transaction
+ *    broadcast is chain-level, while Zcash has no TokenType.Native entry in this app.
  *  - Watch-only accounts (watch address and public HD extended key) are rejected because the
  *    bitcoin-kit core is read-only and throws CoreError.ReadOnlyCore on broadcast. EVM watch-only
- *    Solana watch-only, TON watch-only, TRON watch-only, and Stellar watch-only accounts may relay
- *    because raw broadcast does not require local signing keys. Monero watch-only relay is not
- *    enabled because there is no watch-only Monero adapter path in the current app.
+ *    Solana watch-only, TON watch-only, TRON watch-only, Stellar watch-only, and Zcash UFVK
+ *    accounts may relay because raw broadcast does not require local signing keys. Monero
+ *    watch-only relay is not enabled because there is no watch-only Monero adapter path in the
+ *    current app.
  *  - Token/account compatibility reuses [Token.supports] + [BlockchainType.supports], which already
  *    encode derivation, purpose and coin-type constraints (e.g. native Dogecoin is not relayable
  *    from an HD extended key).
@@ -56,6 +59,7 @@ class OfflineBroadcastTokenResolver(
             BlockchainType.Tron,
             BlockchainType.Stellar,
             BlockchainType.Monero -> resolveDefaultToken(blockchainType, account)
+            BlockchainType.Zcash -> resolveNativeToken(blockchainType, account)
             else -> null
         }
     }
@@ -77,6 +81,11 @@ class OfflineBroadcastTokenResolver(
 
     private fun resolveDefaultToken(blockchainType: BlockchainType, account: Account): Token? =
         marketKit.token(blockchainType.defaultTokenQuery)?.takeIf { canEnable(it, account) }
+
+    private fun resolveNativeToken(blockchainType: BlockchainType, account: Account): Token? =
+        blockchainType.nativeTokenQueries.firstNotNullOfOrNull { query ->
+            marketKit.token(query)?.takeIf { canEnable(it, account) }
+        }
 
     private fun canEnable(token: Token, account: Account): Boolean =
         token.supports(account.type) &&

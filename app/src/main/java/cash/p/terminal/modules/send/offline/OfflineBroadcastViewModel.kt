@@ -10,6 +10,7 @@ import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.UnsupportedException
 import cash.p.terminal.core.convertedError
+import cash.p.terminal.core.isZcashAlreadyCommittedToBestChainError
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.nativeTokenQueries
@@ -527,6 +528,7 @@ private fun DecodedOfflineTransaction.broadcastMetadata(): OfflineBroadcastMetad
         ?: tonRetryMetadata?.toBroadcastMetadata()
         ?: tronRetryMetadata?.toBroadcastMetadata()
         ?: stellarRetryMetadata?.toBroadcastMetadata()
+        ?: txHash.takeIf { blockchainUid == BlockchainType.Zcash.uid }?.let(OfflineBroadcastMetadata::Zcash)
 
 enum class OfflineBroadcastStep { Loading, Confirm, SelectBlockchain, Result }
 
@@ -621,7 +623,8 @@ private fun String.knownOfflineBroadcastErrorText(feeCoinCode: String): Translat
         message.isBlank() || message == "error" -> TranslatableString.ResString(
             R.string.offline_broadcast_error_send_failed
         )
-        message.containsAny(alreadyKnownTransactionMessages) -> TranslatableString.ResString(
+        message.containsAny(alreadyKnownTransactionMessages) ||
+                message.isZcashAlreadyCommittedToBestChainError() -> TranslatableString.ResString(
             R.string.offline_broadcast_error_already_sent
         )
         message.contains("nonce too low") -> TranslatableString.ResString(

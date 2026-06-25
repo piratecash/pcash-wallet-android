@@ -3,16 +3,28 @@ package cash.p.terminal.core.adapters.zcash
 import android.content.Context
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import cash.p.terminal.core.App
+import cash.p.terminal.core.BroadcastRawTransactionResult
+import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineZcashSignRequest
+import cash.p.terminal.core.SignedOfflineZcashTransaction
 import cash.p.terminal.core.UnsupportedAccountException
+import cash.p.terminal.core.UnsupportedException
+import cash.p.terminal.core.canonicalTransactionHash
+import cash.p.terminal.core.hexToByteArray
+import cash.p.terminal.core.isZcashAlreadyCommittedToBestChainError
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.onPollingStarted
 import cash.p.terminal.core.onPollingStopped
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.TransactionValue
@@ -40,7 +52,6 @@ import cash.z.ecc.android.sdk.exception.TransactionEncoderException
 import cash.z.ecc.android.sdk.ext.ZcashSdk
 import cash.z.ecc.android.sdk.ext.convertZatoshiToZec
 import cash.z.ecc.android.sdk.ext.convertZecToZatoshi
-import cash.z.ecc.android.sdk.ext.fromHex
 import cash.z.ecc.android.sdk.model.Account
 import cash.z.ecc.android.sdk.model.AccountBalance
 import cash.z.ecc.android.sdk.model.AccountCreateSetup
@@ -50,7 +61,11 @@ import cash.z.ecc.android.sdk.model.AccountUuid
 import cash.z.ecc.android.sdk.model.BlockHeight
 import cash.z.ecc.android.sdk.model.FirstClassByteArray
 import cash.z.ecc.android.sdk.model.PercentDecimal
+import cash.z.ecc.android.sdk.model.Proposal
+import cash.z.ecc.android.sdk.model.SignedRawZcashTransaction
+import cash.z.ecc.android.sdk.model.TransactionSubmitResult
 import cash.z.ecc.android.sdk.model.UnifiedFullViewingKey
+import cash.z.ecc.android.sdk.model.UnifiedSpendingKey
 import cash.z.ecc.android.sdk.model.WalletBalance
 import cash.z.ecc.android.sdk.model.Zatoshi
 import cash.z.ecc.android.sdk.model.ZcashNetwork
@@ -553,7 +568,7 @@ class ZcashAdapter(
         address: String?,
     ): List<TransactionRecord> {
         val fromParams = from?.let {
-            val transactionHash = it.transactionHash.fromHex().reversedArray()
+            val transactionHash = it.transactionHash.hexToByteArray().reversedArray()
             Triple(transactionHash, it.timestamp, it.transactionIndex)
         }
         return transactionsProvider.getTransactions(
@@ -606,7 +621,7 @@ class ZcashAdapter(
                 return@withContext
             }
             val calculatedFee = synchronizer.proposeTransfer(
-                account = zcashAccount!!,
+                account = getFirstAccount(),
                 recipient = AppConfigProvider.donateAddresses[BlockchainType.Zcash]
                     .orEmpty(),
                 amount = balance
@@ -615,8 +630,12 @@ class ZcashAdapter(
         } catch (ex: Exception) {
             if (ex is TransactionEncoderException.ProposalFromParametersException && tryCounter > 0) {
                 // Not enough money to send with commission
-                runCatching { // Prevent problems with negative Zatoshi
+                // Prevent problems with negative Zatoshi
+                try {
                     calculateFee(balance - MINERS_FEE.convertZecToZatoshi(), tryCounter - 1)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Throwable) {
                 }
             }
         }
@@ -639,20 +658,76 @@ class ZcashAdapter(
         memo: String,
         logger: AppLogger?
     ): FirstClassByteArray {
-        val spendingKey =
-            DerivationTool.getInstance()
-                .deriveUnifiedSpendingKey(seed, network, zcashAccount?.hdAccountIndex!!)
         logger?.info("call synchronizer.sendToAddress")
-        val proposal = synchronizer.proposeTransfer(
-            account = zcashAccount!!,
-            recipient = address,
-            amount = amount.convertZecToZatoshi(),
-            memo = memo
-        )
+        val account = getFirstAccount()
+        val proposal = transferProposal(account, amount, address, memo)
         return synchronizer.createProposedTransactions(
             proposal = proposal,
-            usk = spendingKey
+            usk = spendingKey(account)
         ).first().txId
+    }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineZcashTransaction {
+        require(request is OfflineZcashSignRequest) { "OfflineZcashSignRequest is required" }
+        val account = getFirstAccount()
+        val proposal = transferProposal(
+            account = account,
+            amount = request.amount,
+            address = request.address,
+            memo = request.memo,
+        )
+        val signedTransactions = synchronizer.createSignedTransactions(
+            proposal = proposal,
+            usk = spendingKey(account),
+        )
+        val signed = signedTransactions.singleOrNull()
+            ?: throw UnsupportedException("Zcash offline signing supports exactly one transaction")
+
+        return SignedOfflineZcashTransaction(
+            rawHex = signed.raw.byteArray.toRawHexString(),
+            txHash = signed.txIdString().canonicalTransactionHash(),
+            fee = proposal.totalFeeRequired().convertZatoshiToZec(DECIMAL_COUNT),
+        )
+    }
+
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
+        val zcashMetadata = metadata as? OfflineBroadcastMetadata.Zcash
+            ?: throw UnsupportedException("Zcash raw broadcast requires P.CASH payload metadata")
+        val normalizedRawHex = rawTransactionHex.trim()
+        require(OfflineTransactionPayloadEncoder.isRawTransactionHex(normalizedRawHex)) {
+            "Valid raw transaction hex is required"
+        }
+        val signedRawTransaction = SignedRawZcashTransaction(
+            raw = FirstClassByteArray(normalizedRawHex.hexToByteArray()),
+            txId = FirstClassByteArray(zcashMetadata.txHash.hexToByteArray().reversedArray()),
+            expiryHeight = null,
+        )
+        return synchronizer.submitRawTransaction(signedRawTransaction).toZcashRawBroadcastResult()
+    }
+
+    private suspend fun transferProposal(
+        account: Account,
+        amount: BigDecimal,
+        address: String,
+        memo: String,
+    ): Proposal =
+        synchronizer.proposeTransfer(
+            account = account,
+            recipient = address,
+            amount = amount.convertZecToZatoshi(),
+            memo = memo,
+        )
+
+    private suspend fun spendingKey(account: Account): UnifiedSpendingKey {
+        val mnemonic = wallet.account.type as? AccountType.Mnemonic
+            ?: throw UnsupportedException("Zcash offline signing requires a mnemonic account")
+        val accountIndex = account.hdAccountIndex
+            ?: throw UnsupportedException("Zcash account index is unavailable")
+        return DerivationTool.getInstance()
+            .deriveUnifiedSpendingKey(mnemonic.seed, network, accountIndex)
     }
 
     override suspend fun getOwnAddresses(): List<String> {
@@ -664,11 +739,9 @@ class ZcashAdapter(
     }
 
     suspend fun proposeShielding(): FirstClassByteArray = withContext(dispatcherProvider.io) {
-        val spendingKey =
-            DerivationTool.getInstance()
-                .deriveUnifiedSpendingKey(seed, network, zcashAccount?.hdAccountIndex!!)
+        val account = getFirstAccount()
         val proposal = synchronizer.proposeShielding(
-            account = zcashAccount!!,
+            account = account,
             shieldingThreshold = Zatoshi(100000L),
             // Using empty string for memo to clear the default memo prefix value defined in
             // the SDK
@@ -682,7 +755,7 @@ class ZcashAdapter(
         }
         synchronizer.createProposedTransactions(
             proposal = proposal,
-            usk = spendingKey
+            usk = spendingKey(account)
         ).first().txId
     }
 
@@ -876,12 +949,14 @@ class ZcashAdapter(
         val sdk = synchronizer as? SdkSynchronizer ?: return@withContext
 
         addresses.forEach { address ->
-            runCatching {
+            try {
                 val balance = sdk.getTransparentBalance(address)
                 if (balance.value > 0) {
                     singleUseAddressManager.updateAddressBalance(address, true)
                 }
-            }.onFailure { error ->
+            } catch (e: CancellationException) {
+                throw e
+            } catch (error: Throwable) {
                 Timber.w(error, "Failed to check balance for t-address: $address")
             }
         }
@@ -950,6 +1025,25 @@ class ZcashAdapter(
         object SendToSelfNotAllowed : ZcashError()
     }
 }
+
+internal fun TransactionSubmitResult.toZcashRawBroadcastResult(): BroadcastRawTransactionResult =
+    when (this) {
+        is TransactionSubmitResult.Success -> toSubmittedBroadcastResult()
+        is TransactionSubmitResult.Failure -> {
+            if (description.isZcashAlreadyCommittedToBestChainError()) {
+                toSubmittedBroadcastResult()
+            } else {
+                throw Exception(description ?: "Zcash raw transaction broadcast failed: $code")
+            }
+        }
+        is TransactionSubmitResult.NotAttempted -> throw Exception("Zcash raw transaction broadcast was not attempted")
+    }
+
+private fun TransactionSubmitResult.toSubmittedBroadcastResult() =
+    BroadcastRawTransactionResult(
+        txHash = txIdString().canonicalTransactionHash(),
+        status = BroadcastRawTransactionStatus.Submitted,
+    )
 
 internal fun WalletBalance.toBalanceData(decimalCount: Int) = BalanceData(
     available = available.convertZatoshiToZec(decimalCount),

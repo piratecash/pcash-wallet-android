@@ -129,6 +129,14 @@ class OfflineBroadcastViewModelTest {
         decimals = 12,
     )
     private val moneroWallet = wallet(moneroToken, account)
+    private val zcash = Blockchain(BlockchainType.Zcash, "Zcash", null)
+    private val zcashToken = token(
+        blockchain = zcash,
+        coin = Coin(uid = "zcash", name = "Zcash", code = "ZEC"),
+        tokenType = TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded),
+        decimals = 8,
+    )
+    private val zcashWallet = wallet(zcashToken, account)
 
     @Before
     fun setUp() {
@@ -553,6 +561,60 @@ class OfflineBroadcastViewModelTest {
     }
 
     @Test
+    fun onBroadcast_zcashPcashPayload_passesTxHashMetadata() = runTest(dispatcher) {
+        setActiveWallets(listOf(zcashWallet))
+        every {
+            payloadEncoder.decode(any())
+        } returns decoded(
+            blockchainUid = "zcash",
+            txHash = ZCASH_TX_HASH,
+        )
+        every { marketKit.blockchain("zcash") } returns zcash
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        val broadcastMetadata = OfflineBroadcastMetadata.Zcash(txHash = ZCASH_TX_HASH)
+        coEvery {
+            adapter.broadcastRawTransaction(any(), broadcastMetadata)
+        } returns BroadcastRawTransactionResult(ZCASH_TX_HASH, BroadcastRawTransactionStatus.Submitted)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Success)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", broadcastMetadata) }
+        coVerify { repository.markBroadcasted("account-id", ZCASH_TX_HASH, ZCASH_TX_HASH) }
+    }
+
+    @Test
+    fun onBroadcast_zcashPlainRawHex_passesNullMetadataAndShowsError() = runTest(dispatcher) {
+        setActiveWallets(listOf(zcashWallet))
+        every { payloadEncoder.decode(any()) } returns null
+        every { marketKit.tokens(any<List<TokenQuery>>()) } returns listOf(zcashToken)
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery {
+            adapter.broadcastRawTransaction(any(), null)
+        } throws UnsupportedOperationException()
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("deadbeefdeadbeefdead")
+        advanceUntilIdle()
+        viewModel.onSelectBlockchain(zcash)
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertEquals(OfflineBroadcastStep.Result, viewModel.uiState.step)
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Error)
+        coVerify { adapter.broadcastRawTransaction("deadbeefdeadbeefdead", null) }
+        coVerify(exactly = 0) { repository.saveRawImported(any(), any(), any()) }
+    }
+
+    @Test
     fun onBroadcast_tonPlainRawHex_passesNullMetadata() = runTest(dispatcher) {
         setActiveWallets(listOf(tonWallet))
         every { payloadEncoder.decode(any()) } returns null
@@ -764,6 +826,10 @@ class OfflineBroadcastViewModelTest {
         )
         assertErrorTextRes(
             error = EvmError.RpcError("already known"),
+            expectedRes = R.string.offline_broadcast_error_already_sent,
+        )
+        assertErrorTextRes(
+            error = Exception("transaction was committed to the best chain"),
             expectedRes = R.string.offline_broadcast_error_already_sent,
         )
         assertErrorTextRes(
@@ -984,5 +1050,6 @@ class OfflineBroadcastViewModelTest {
         const val TRON_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
         const val STELLAR_TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         const val MONERO_TX_HASH = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        const val ZCASH_TX_HASH = "456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123"
     }
 }

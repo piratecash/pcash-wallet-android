@@ -499,6 +499,54 @@ class OfflineTransactionPayloadEncoderTest {
     }
 
     @Test
+    fun decode_zcashRoundTrip_returnsAddressSpecMetadataWithoutRetryMetadata() {
+        val payload = encoder.encode(
+            draft(
+                token = zcashToken(),
+                feeToken = zcashToken(),
+            )
+        )
+
+        val decoded = requireNotNull(encoder.decode(payload))
+
+        assertEquals("zcash", decoded.blockchainUid)
+        assertEquals(TX_HASH, decoded.txHash)
+        assertEquals("zcash|address_spec_type:shielded", decoded.token.tokenQueryId)
+        assertEquals("ZEC", decoded.token.coinCode)
+        assertEquals(8, decoded.token.decimals)
+        assertNull(decoded.solanaRetryMetadata)
+        assertNull(decoded.tonRetryMetadata)
+        assertNull(decoded.tronRetryMetadata)
+        assertNull(decoded.stellarRetryMetadata)
+    }
+
+    @Test
+    fun decode_zcashPayloadWithForeignRetryMetadata_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = zcashToken(),
+                feeToken = zcashToken(),
+                stellarRetryMetadata = stellarRetryMetadata(),
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
+    fun decode_zcashPayloadWithInvalidTxHash_returnsNull() {
+        val payload = encoder.encode(
+            draft(
+                token = zcashToken(),
+                feeToken = zcashToken(),
+                txHash = "not-a-valid-hash",
+            )
+        )
+
+        assertNull(encoder.decode(payload))
+    }
+
+    @Test
     fun isOfflineTransactionPayload_matchesOnlyPcashPrefix() {
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("pcash:tx:v1:bitcoin:body"))
         assertTrue(OfflineTransactionPayloadEncoder.isOfflineTransactionPayload("  pcash:tx:anything"))
@@ -639,6 +687,14 @@ class OfflineTransactionPayloadEncoderTest {
         blockchainName = "Monero",
         coin = Coin(uid = "monero", name = "Monero", code = "XMR"),
         decimals = 12,
+    )
+
+    private fun zcashToken() = token(
+        blockchainType = BlockchainType.Zcash,
+        blockchainName = "Zcash",
+        coin = Coin(uid = "zcash", name = "Zcash", code = "ZEC"),
+        tokenType = TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded),
+        decimals = 8,
     )
 
     private fun compressedBase64(json: String): String {

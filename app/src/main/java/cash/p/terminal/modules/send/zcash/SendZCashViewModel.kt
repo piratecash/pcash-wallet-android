@@ -8,29 +8,40 @@ import cash.p.terminal.R
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.OfflineZcashSignRequest
+import cash.p.terminal.core.SignedOfflineZcashTransaction
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.grpc.StatusRuntimeException
 import cash.p.terminal.modules.send.BaseSendViewModel
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.toHexReversed
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.net.UnknownHostException
 
+@Suppress("LongParameterList")
 class SendZCashViewModel(
     private val adapter: ISendZcashAdapter,
     wallet: Wallet,
@@ -42,12 +53,34 @@ class SendZCashViewModel(
     private val address: Address?,
     private val showAddressInput: Boolean,
     private val pendingRegistrar: PendingTransactionRegistrar,
-    private val adapterManager: IAdapterManager
-) : BaseSendViewModel<SendZCashUiState>(wallet, adapterManager) {
+    private val adapterManager: IAdapterManager,
+    private val dispatcherProvider: DispatcherProvider,
+    private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder,
+    private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository,
+) : BaseSendViewModel<SendZCashUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
+    data class OfflineSignResult(
+        val signedTransaction: SignedOfflineZcashTransaction,
+        val confirmationData: SendConfirmationData,
+    )
+
     val blockchainType = wallet.token.blockchainType
-    val coinMaxAllowedDecimals = wallet.token.decimals
+    override val coinMaxAllowedDecimals = wallet.token.decimals
+    override val feeCoinMaxAllowedDecimals = wallet.token.decimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val memoMaxLength by memoService::memoMaxLength
+
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineZcashTransaction>
+    override val offlineSigningController: OfflineSigningController<OfflineSignResult> by lazy {
+        OfflineSigningController(
+            scope = viewModelScope,
+            dispatcherProvider = dispatcherProvider,
+            payloadEncoder = offlineTransactionPayloadEncoder,
+            repository = offlineSignedTransactionRepository,
+            cautionFactory = ::createCaution,
+            isSilentCancellation = { false },
+        )
+    }
 
     private val fee = adapter.fee
     private var amountState = amountService.stateFlow.value
@@ -55,12 +88,21 @@ class SendZCashViewModel(
     private var memoState = memoService.stateFlow.value
     private var pendingTxId: String? = null
 
-    var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     private val logger = AppLogger("Send-${wallet.coin.code}")
+
+    private val decimalAmount: BigDecimal
+        get() = amountState.amount ?: throw LocalizedException(R.string.send_error_amount_unavailable)
+
+    private val destinationAddress: Address
+        get() = addressState.address ?: throw LocalizedException(R.string.send_error_address_unavailable)
+
+    val offlineSignSupported =
+        offlineSignAdapter != null && wallet.account.type is AccountType.Mnemonic
 
     init {
         xRateService.getRateFlow(wallet.coin.uid).collectWith(viewModelScope) {
@@ -151,14 +193,14 @@ class SendZCashViewModel(
         emitState()
     }
 
-    fun getConfirmationData(): SendConfirmationData {
-        val address = addressState.address!!
+    override fun getConfirmationData(): SendConfirmationData {
+        val address = destinationAddress
         val contact = contactsRepo.getContactsFiltered(
             blockchainType,
             addressQuery = address.hex
         ).firstOrNull()
         return SendConfirmationData(
-            amount = amountState.amount!!,
+            amount = decimalAmount,
             fee = fee.value,
             address = address,
             contact = contact,
@@ -174,7 +216,46 @@ class SendZCashViewModel(
         }
     }
 
-    private suspend fun send() = withContext(Dispatchers.IO) {
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        val confirmationData = getConfirmationData()
+        val signingAdapter = offlineSignAdapter
+            ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
+        return OfflineSignResult(
+            signedTransaction = signingAdapter.signOffline(
+                OfflineZcashSignRequest(
+                    amount = confirmationData.amount,
+                    address = confirmationData.address.hex,
+                    memo = confirmationData.memo.orEmpty(),
+                )
+            ),
+            confirmationData = confirmationData,
+        )
+    }
+
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
+        val confirmationData = result.confirmationData
+        val signed = result.signedTransaction
+        return OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = confirmationData.amount,
+            fee = signed.fee,
+            toAddress = confirmationData.address.hex,
+            rawHex = signed.rawHex,
+            txHash = signed.txHash,
+            inputOutpoints = emptyList(),
+            feeToken = wallet.token,
+        )
+    }
+
+    private suspend fun send() = withContext(dispatcherProvider.io) {
         val logger = logger.getScopedUnique()
         logger.info("click send button")
 
@@ -182,14 +263,16 @@ class SendZCashViewModel(
             sendResult = SendResult.Sending
             // 1. Create pending transaction draft BEFORE sending
             val sdkBalance = adapterManager.getZcashSdkBalance(wallet, amountState.availableBalance)
+            val amount = decimalAmount
+            val address = destinationAddress
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = wallet.token,
-                amount = amountState.amount!!,
+                amount = amount,
                 fee = fee.value,
                 sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // ZCash doesn't require from address
-                toAddress = addressState.address!!.hex,
+                toAddress = address.hex,
                 memo = memoState.memo,
                 txHash = null  // ZCash doesn't return hash immediately
             )
@@ -199,8 +282,8 @@ class SendZCashViewModel(
 
             // 3. Broadcast transaction
             val txId = adapter.send(
-                amountState.amount!!,
-                addressState.address!!.hex,
+                amount,
+                address.hex,
                 memoState.memo,
                 logger
             )
@@ -208,7 +291,7 @@ class SendZCashViewModel(
                 pendingRegistrar.updateTxId(it, txId.byteArray.toHexReversed())
             }
 
-            onSendSuccess(addressState.address?.hex)
+            onSendSuccess(address.hex)
             sendResult = SendResult.Sent(txId.byteArray.toHexReversed())
             logger.info("success")
         } catch (e: StatusRuntimeException) {

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendZcashAdapter
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
@@ -11,6 +13,7 @@ import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
+import io.horizontalsystems.core.DispatcherProvider
 import org.koin.java.KoinJavaComponent.inject
 
 object SendZCashModule {
@@ -23,6 +26,13 @@ object SendZCashModule {
     ) : ViewModelProvider.Factory {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
         private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
+        private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder by inject(
+            OfflineTransactionPayloadEncoder::class.java
+        )
+        private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository by inject(
+            OfflineSignedTransactionRepository::class.java
+        )
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -47,7 +57,10 @@ object SendZCashModule {
                 showAddressInput = !hideAddress,
                 address = address,
                 pendingRegistrar = pendingRegistrar,
-                adapterManager = adapterManager
+                adapterManager = adapterManager,
+                dispatcherProvider = dispatcherProvider,
+                offlineTransactionPayloadEncoder = offlineTransactionPayloadEncoder,
+                offlineSignedTransactionRepository = offlineSignedTransactionRepository,
             ) as T
         }
     }

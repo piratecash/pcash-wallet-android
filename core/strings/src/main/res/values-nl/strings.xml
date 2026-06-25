@@ -991,6 +991,7 @@
     <string name="offline_transaction_raw_hex">RAW TRANSACTIE (HEX)</string>
     <string name="offline_transaction_qr_saved">QR-code opgeslagen</string>
     <string name="offline_transaction_qr_save_failed">QR-code opslaan mislukt</string>
+    <string name="offline_transaction_signed_transaction_unavailable">De ondertekende transactie is niet meer beschikbaar. Onderteken deze opnieuw.</string>
     <string name="offline_transaction_error_mweb_unsupported">Offline ondertekening wordt niet ondersteund voor MWEB-transacties.</string>
     <string name="offline_broadcast_title">RAW TX verzenden</string>
     <string name="offline_broadcast_invalid_input">Kan de transactie niet herkennen. Controleer het formaat en probeer het opnieuw.</string>

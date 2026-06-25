@@ -16,6 +16,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -32,6 +36,8 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
@@ -44,7 +50,52 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import java.math.BigDecimal
 
 @Composable
-fun SendZCashScreen(
+fun SendZCashNavHost(
+    title: String,
+    fragmentNavController: NavController,
+    viewModel: SendZCashViewModel,
+    amountInputModeViewModel: AmountInputModeViewModel,
+    prefilledData: PrefilledData?,
+    addressCheckerControl: AddressCheckerControl,
+    onNextClick: (ProceedActionData) -> Unit,
+) {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = SendZCashPage,
+    ) {
+        composable(SendZCashPage) {
+            SendZCashScreen(
+                title = title,
+                navController = fragmentNavController,
+                viewModel = viewModel,
+                amountInputModeViewModel = amountInputModeViewModel,
+                prefilledData = prefilledData,
+                addressCheckerControl = addressCheckerControl,
+                onNextClick = onNextClick,
+                onDebugOfflineSignClick = { navController.navigate(DebugOfflineZcashSignPage) },
+            )
+        }
+        offlineSignFlowRoutes(
+            routes = OfflineSignFlowRoutes(
+                signRoute = DebugOfflineZcashSignPage,
+                transferRoute = DebugOfflineZcashTransactionTransferPage,
+                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+            ),
+            navController = navController,
+            fragmentNavController = fragmentNavController,
+            sendViewModel = viewModel,
+        )
+    }
+}
+
+private const val SendZCashPage = "send_zcash"
+private const val DebugOfflineZcashSignPage = "debug_offline_zcash_sign"
+private const val DebugOfflineZcashTransactionTransferPage = "debug_offline_zcash_transaction_transfer"
+private const val DebugOfflineTransactionTransferFormatArg = "format"
+
+@Composable
+private fun SendZCashScreen(
     title: String,
     navController: NavController,
     viewModel: SendZCashViewModel,
@@ -52,6 +103,7 @@ fun SendZCashScreen(
     prefilledData: PrefilledData?,
     addressCheckerControl: AddressCheckerControl,
     onNextClick: (ProceedActionData) -> Unit,
+    onDebugOfflineSignClick: () -> Unit,
 ) {
     val wallet = viewModel.wallet
     val uiState = viewModel.uiState
@@ -199,6 +251,17 @@ fun SendZCashScreen(
                 },
                 enabled = proceedEnabled
             )
+
+            if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON && viewModel.offlineSignSupported) {
+                ButtonPrimaryYellow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    title = stringResource(R.string.offline_transaction_sign_title),
+                    onClick = onDebugOfflineSignClick,
+                    enabled = proceedEnabled,
+                )
+            }
         }
     }
 }

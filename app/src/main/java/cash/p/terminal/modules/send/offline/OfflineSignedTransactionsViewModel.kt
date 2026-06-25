@@ -210,11 +210,7 @@ class OfflineSignedTransactionsViewModel(
         wallets: List<Wallet>,
     ): OfflineSignedTransactionViewItem? {
         val metadataUnknown = hasUnknownRawMetadata
-        val amountValue = if (metadataUnknown) {
-            BigDecimal.ZERO
-        } else {
-            amount.toBigDecimalOrNull() ?: BigDecimal.ZERO
-        }
+        val amountValue = displayAmount(metadataUnknown)
         val status = OfflineSignedTransactionStatus.from(status)
         val sourceWallet = sourceWallet(wallets)
         val token = resolveDisplayToken(wallets)
@@ -299,6 +295,21 @@ class OfflineSignedTransactionsViewModel(
             type = tokenType,
             decimals = tokenDecimals,
         )
+    }
+
+    private fun OfflineSignedTransactionEntity.displayAmount(metadataUnknown: Boolean): BigDecimal {
+        if (metadataUnknown) return BigDecimal.ZERO
+
+        val amountValue = amount.toBigDecimalOrNull() ?: BigDecimal.ZERO
+        if (BlockchainType.fromUid(blockchainTypeUid) != BlockchainType.Zcash) return amountValue
+        if (feeTokenQueryId != tokenQueryId) return amountValue
+
+        val feeValue = feeAtomic
+            ?.toBigDecimalOrNull()
+            ?.movePointLeft(tokenDecimals)
+            ?: return amountValue
+
+        return amountValue + feeValue
     }
 
     private fun OfflineSignedTransactionEntity.transactionItem(

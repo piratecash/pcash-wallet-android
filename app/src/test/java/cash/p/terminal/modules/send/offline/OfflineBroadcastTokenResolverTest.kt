@@ -74,7 +74,7 @@ class OfflineBroadcastTokenResolverTest {
 
     @Test
     fun resolveTokenToEnable_nonBroadcastableBlockchain_returnsNull() {
-        assertNull(resolver.resolveTokenToEnable(BlockchainType.Zcash, mnemonicAccount()))
+        assertNull(resolver.resolveTokenToEnable(BlockchainType.Unsupported("unsupported"), mnemonicAccount()))
     }
 
     @Test
@@ -83,6 +83,27 @@ class OfflineBroadcastTokenResolverTest {
 
         assertNotNull(token)
         assertEquals(BlockchainType.Monero, token?.blockchainType)
+    }
+
+    @Test
+    fun resolveTokenToEnable_mnemonicOnZcash_returnsAddressSpecToken() {
+        val token = resolver.resolveTokenToEnable(BlockchainType.Zcash, mnemonicAccount())
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Zcash, token?.blockchainType)
+        assertEquals(TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded), token?.type)
+    }
+
+    @Test
+    fun resolveTokenToEnable_ufvkOnZcash_returnsAddressSpecToken() {
+        val token = resolver.resolveTokenToEnable(
+            BlockchainType.Zcash,
+            account(AccountType.ZCashUfvKey("ufvk")),
+        )
+
+        assertNotNull(token)
+        assertEquals(BlockchainType.Zcash, token?.blockchainType)
+        assertEquals(TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded), token?.type)
     }
 
     @Test
@@ -176,6 +197,11 @@ class OfflineBroadcastTokenResolverTest {
     @Test
     fun resolveTokenToEnable_trezorOnSupportedNetwork_returnsToken() {
         assertNotNull(resolver.resolveTokenToEnable(BlockchainType.Bitcoin, trezorAccount()))
+    }
+
+    @Test
+    fun resolveTokenToEnable_trezorOnZcash_returnsNull() {
+        assertNull(resolver.resolveTokenToEnable(BlockchainType.Zcash, trezorAccount()))
     }
 
     @Test
