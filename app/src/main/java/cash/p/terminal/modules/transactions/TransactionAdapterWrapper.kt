@@ -95,6 +95,16 @@ class TransactionAdapterWrapper(
         val records: List<TransactionRecord>,
         val exhausted: Boolean,
         val scannedCount: Int,
+        // Timestamp of the oldest scanned record; lets the caller decide whether deeper
+        // scanning of this source could still surface a newer match. Null when nothing scanned.
+        val frontierTimestamp: Long?,
+    )
+
+    private val emptySearchPage = SearchPage(
+        records = emptyList(),
+        exhausted = true,
+        scannedCount = 0,
+        frontierTimestamp = null,
     )
 
     fun reload() {
@@ -217,11 +227,7 @@ class TransactionAdapterWrapper(
         matcher: TransactionRecordSearchMatcher,
     ): SearchPage = getMutex.withLock {
         if (transactionType != requestedFilterType || contact != requestedContact) {
-            return@withLock SearchPage(
-                records = emptyList(),
-                exhausted = true,
-                scannedCount = 0,
-            )
+            return@withLock emptySearchPage
         }
 
         val requestedAddress = requestedContact
@@ -230,11 +236,7 @@ class TransactionAdapterWrapper(
             ?.address
 
         if (requestedContact != null && requestedAddress == null) {
-            return@withLock SearchPage(
-                records = emptyList(),
-                exhausted = true,
-                scannedCount = 0,
-            )
+            return@withLock emptySearchPage
         }
 
         var currentRecords = _transactionRecords.value
@@ -255,11 +257,7 @@ class TransactionAdapterWrapper(
             )
 
             if (transactionType != requestedFilterType || contact != requestedContact) {
-                return@withLock SearchPage(
-                    records = emptyList(),
-                    exhausted = true,
-                    scannedCount = 0,
-                )
+                return@withLock emptySearchPage
             }
 
             _allLoaded.value = receivedRecords.size < numberOfRecordsToRequest
@@ -273,6 +271,7 @@ class TransactionAdapterWrapper(
             records = matchedRecords.take(limit),
             exhausted = _allLoaded.value && currentRecords.size <= scanLimit,
             scannedCount = scannedCount,
+            frontierTimestamp = currentRecords.getOrNull(scannedCount - 1)?.timestamp,
         )
     }
 

@@ -47,7 +47,7 @@ class TransactionRecordRepository(
     private var selectedBlockchain: Blockchain? = null
     private var contact: Contact? = null
     private var selectedSearchQuery: String? = null
-    private val searchMatcher = TransactionRecordSearchMatcher()
+    private val searchScanner = TransactionSearchScanner(::isMatchingSwapProviderTransaction)
 
     private val _itemsFlow = MutableSharedFlow<RecordsBatch>(extraBufferCapacity = 4)
     override val itemsFlow: SharedFlow<RecordsBatch> = _itemsFlow.asSharedFlow()
@@ -423,7 +423,7 @@ class TransactionRecordRepository(
         query: String,
         adapters: List<TransactionAdapterWrapper>,
     ) {
-        val result = loadSearchItems(
+        val result = searchScanner.loadSearchItems(
             expectedItemsCount = itemsCount,
             requestContext = requestContext,
             query = query,
@@ -491,180 +491,6 @@ class TransactionRecordRepository(
 
     private fun FilterContext.isStale(): Boolean {
         return this != getCurrentFilterContext()
-    }
-
-    private suspend fun loadSearchItems(
-        expectedItemsCount: Int,
-        requestContext: FilterContext,
-        query: String,
-        normalAdapters: List<TransactionAdapterWrapper>,
-        extraAdapters: List<TransactionAdapterWrapper>,
-    ): SearchLoadResult {
-        val normalSources = normalAdapters.map { SearchSourceState(it, requestContext.transactionType) }
-        val extraSources = extraAdapters.map { SearchSourceState(it, FilterTransactionType.Outgoing) }
-        val allSources = normalSources + extraSources
-        val totalScannedCount = scanSearchSources(
-            sources = allSources,
-            normalSources = normalSources,
-            extraSources = extraSources,
-            expectedItemsCount = expectedItemsCount,
-            requestContext = requestContext,
-            query = query,
-        )
-
-        return SearchLoadResult(
-            records = mergedSearchRecords(normalSources, extraSources, expectedItemsCount),
-            normalLoaded = searchSourcesLoaded(normalSources, totalScannedCount),
-            extraLoaded = extraSources.isEmpty() || searchSourcesLoaded(extraSources, totalScannedCount),
-        )
-    }
-
-    private suspend fun scanSearchSources(
-        sources: List<SearchSourceState>,
-        normalSources: List<SearchSourceState>,
-        extraSources: List<SearchSourceState>,
-        expectedItemsCount: Int,
-        requestContext: FilterContext,
-        query: String,
-    ): Int {
-        var totalScannedCount = 0
-
-        while (
-            totalScannedCount < maxTotalScannedRecords &&
-            sources.any { !it.finished }
-        ) {
-            val round = scanSearchRound(
-                sources = sources,
-                totalScannedCount = totalScannedCount,
-                expectedItemsCount = expectedItemsCount,
-                requestContext = requestContext,
-                query = query,
-            )
-            totalScannedCount = round.totalScannedCount
-
-            val mergedRecords = mergedSearchRecords(normalSources, extraSources, expectedItemsCount)
-            if (mergedRecords.size >= expectedItemsCount || !round.progressed) {
-                break
-            }
-        }
-
-        return totalScannedCount
-    }
-
-    private suspend fun scanSearchRound(
-        sources: List<SearchSourceState>,
-        totalScannedCount: Int,
-        expectedItemsCount: Int,
-        requestContext: FilterContext,
-        query: String,
-    ): SearchRoundResult {
-        var updatedTotalScannedCount = totalScannedCount
-        var progressed = false
-
-        sources.forEach { source ->
-            val previousScannedCount = source.scannedCount
-            scanSearchSource(
-                source = source,
-                totalScannedCount = updatedTotalScannedCount,
-                expectedItemsCount = expectedItemsCount,
-                requestContext = requestContext,
-                query = query,
-            )
-            updatedTotalScannedCount += (source.scannedCount - previousScannedCount).coerceAtLeast(0)
-            progressed = progressed || source.scannedCount > previousScannedCount
-        }
-
-        return SearchRoundResult(updatedTotalScannedCount, progressed)
-    }
-
-    private suspend fun scanSearchSource(
-        source: SearchSourceState,
-        totalScannedCount: Int,
-        expectedItemsCount: Int,
-        requestContext: FilterContext,
-        query: String,
-    ) {
-        if (source.finished || totalScannedCount >= maxTotalScannedRecords) {
-            return
-        }
-
-        val scanLimit = nextSourceScanLimit(source.scannedCount, totalScannedCount)
-        if (scanLimit <= source.scannedCount) {
-            source.finished = true
-            return
-        }
-
-        // A failing source is treated like a timeout: mark it finished and keep scanning the
-        // rest, so the search still reaches its terminal emission instead of stranding the UI
-        // in a permanent "scanning" state.
-        val page = try {
-            withTimeoutOrNull(adapterCallTimeoutMs) {
-                source.wrapper.search(
-                    limit = expectedItemsCount,
-                    scanLimit = scanLimit,
-                    requestedFilterType = source.transactionType,
-                    requestedContact = requestContext.contact,
-                    query = query,
-                    matcher = searchMatcher,
-                )
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Throwable) {
-            null
-        }
-
-        if (page == null) {
-            source.finished = true
-            return
-        }
-
-        source.scannedCount = page.scannedCount
-        source.records = searchSourceRecords(page.records, source, requestContext)
-        source.finished = page.exhausted || source.scannedCount >= maxScannedRecordsPerSource
-    }
-
-    private fun nextSourceScanLimit(
-        sourceScannedCount: Int,
-        totalScannedCount: Int,
-    ): Int {
-        val remainingTotal = maxTotalScannedRecords - totalScannedCount
-        return minOf(
-            sourceScannedCount + searchBatchSize,
-            maxScannedRecordsPerSource,
-            sourceScannedCount + remainingTotal,
-        )
-    }
-
-    private fun searchSourceRecords(
-        records: List<TransactionRecord>,
-        source: SearchSourceState,
-        requestContext: FilterContext,
-    ): List<TransactionRecord> {
-        return if (source.transactionType == FilterTransactionType.Outgoing &&
-            requestContext.transactionType == FilterTransactionType.Swap
-        ) {
-            records.filter(::isMatchingSwapProviderTransaction)
-        } else {
-            records
-        }
-    }
-
-    private fun searchSourcesLoaded(
-        sources: List<SearchSourceState>,
-        totalScannedCount: Int,
-    ): Boolean {
-        return sources.all { it.finished } || totalScannedCount >= maxTotalScannedRecords
-    }
-
-    private fun mergedSearchRecords(
-        normalSources: List<SearchSourceState>,
-        extraSources: List<SearchSourceState>,
-        expectedItemsCount: Int,
-    ): List<TransactionRecord> {
-        return (normalSources.flatMap { it.records } + extraSources.flatMap { it.records })
-            .sortedDescending()
-            .take(expectedItemsCount)
     }
 
     private fun emitRecords(
@@ -737,12 +563,244 @@ class TransactionRecordRepository(
 
     companion object {
         const val itemsPerPage = 20
+    }
+
+}
+
+/**
+ * Scans adapter pages newest-first across all active sources to satisfy an in-app search query,
+ * sharing a bounded scan budget so deeply buried matches are not starved by long-history sources.
+ */
+private class TransactionSearchScanner(
+    private val isSwapProviderMatch: (TransactionRecord) -> Boolean,
+) {
+    private val searchMatcher = TransactionRecordSearchMatcher()
+
+    suspend fun loadSearchItems(
+        expectedItemsCount: Int,
+        requestContext: FilterContext,
+        query: String,
+        normalAdapters: List<TransactionAdapterWrapper>,
+        extraAdapters: List<TransactionAdapterWrapper>,
+    ): SearchLoadResult {
+        val normalSources = normalAdapters.map { SearchSourceState(it, requestContext.transactionType) }
+        val extraSources = extraAdapters.map { SearchSourceState(it, FilterTransactionType.Outgoing) }
+        val allSources = normalSources + extraSources
+        val totalScannedCount = scanSearchSources(
+            sources = allSources,
+            normalSources = normalSources,
+            extraSources = extraSources,
+            expectedItemsCount = expectedItemsCount,
+            requestContext = requestContext,
+            query = query,
+        )
+
+        return SearchLoadResult(
+            records = mergedSearchRecords(normalSources, extraSources, expectedItemsCount),
+            normalLoaded = searchSourcesLoaded(normalSources, totalScannedCount),
+            extraLoaded = extraSources.isEmpty() || searchSourcesLoaded(extraSources, totalScannedCount),
+        )
+    }
+
+    private suspend fun scanSearchSources(
+        sources: List<SearchSourceState>,
+        normalSources: List<SearchSourceState>,
+        extraSources: List<SearchSourceState>,
+        expectedItemsCount: Int,
+        requestContext: FilterContext,
+        query: String,
+    ): Int {
+        var totalScannedCount = 0
+        // Cutoff from the previous round; null until the page is full. The cutoff only grows as
+        // newer matches are found, so reusing the previous value to skip settled sources is
+        // conservative — a source settled against an older cutoff is settled against the newer one.
+        var cutoffTimestamp: Long? = null
+
+        while (
+            totalScannedCount < maxTotalScannedRecords &&
+            sources.any { !it.finished }
+        ) {
+            val round = scanSearchRound(
+                sources = sources,
+                totalScannedCount = totalScannedCount,
+                cutoffTimestamp = cutoffTimestamp,
+                expectedItemsCount = expectedItemsCount,
+                requestContext = requestContext,
+                query = query,
+            )
+            totalScannedCount = round.totalScannedCount
+
+            cutoffTimestamp = searchCutoff(normalSources, extraSources, expectedItemsCount)
+            if (!round.progressed || searchPageSettled(sources, cutoffTimestamp)) {
+                break
+            }
+        }
+
+        return totalScannedCount
+    }
+
+    /**
+     * Timestamp of the last record on the current top page, or null while the page is not yet full.
+     * A source scanned newest-first can no longer affect the page once its frontier (oldest scanned
+     * record) drops below this cutoff.
+     */
+    private fun searchCutoff(
+        normalSources: List<SearchSourceState>,
+        extraSources: List<SearchSourceState>,
+        expectedItemsCount: Int,
+    ): Long? {
+        val mergedRecords = mergedSearchRecords(normalSources, extraSources, expectedItemsCount)
+        return if (mergedRecords.size < expectedItemsCount) null else mergedRecords.last().timestamp
+    }
+
+    /**
+     * A settled source cannot surface a record newer than the current page cutoff: it is scanned
+     * newest-first, so once its frontier is older than the cutoff every deeper record is older too.
+     * Settled sources are skipped in later rounds so they stop draining the shared scan budget and
+     * starving the one source that may still hold a newer match behind a long run of non-matches.
+     */
+    private fun SearchSourceState.isSettled(cutoffTimestamp: Long?): Boolean {
+        if (finished) return true
+        if (cutoffTimestamp == null) return false
+        return (frontierTimestamp ?: Long.MAX_VALUE) < cutoffTimestamp
+    }
+
+    private fun searchPageSettled(
+        sources: List<SearchSourceState>,
+        cutoffTimestamp: Long?,
+    ): Boolean {
+        if (cutoffTimestamp == null) {
+            return false
+        }
+        return sources.all { it.isSettled(cutoffTimestamp) }
+    }
+
+    private suspend fun scanSearchRound(
+        sources: List<SearchSourceState>,
+        totalScannedCount: Int,
+        cutoffTimestamp: Long?,
+        expectedItemsCount: Int,
+        requestContext: FilterContext,
+        query: String,
+    ): SearchRoundResult {
+        var updatedTotalScannedCount = totalScannedCount
+        var progressed = false
+
+        sources.forEach { source ->
+            val previousScannedCount = source.scannedCount
+            scanSearchSource(
+                source = source,
+                totalScannedCount = updatedTotalScannedCount,
+                cutoffTimestamp = cutoffTimestamp,
+                expectedItemsCount = expectedItemsCount,
+                requestContext = requestContext,
+                query = query,
+            )
+            updatedTotalScannedCount += (source.scannedCount - previousScannedCount).coerceAtLeast(0)
+            progressed = progressed || source.scannedCount > previousScannedCount
+        }
+
+        return SearchRoundResult(updatedTotalScannedCount, progressed)
+    }
+
+    private suspend fun scanSearchSource(
+        source: SearchSourceState,
+        totalScannedCount: Int,
+        cutoffTimestamp: Long?,
+        expectedItemsCount: Int,
+        requestContext: FilterContext,
+        query: String,
+    ) {
+        if (source.isSettled(cutoffTimestamp) || totalScannedCount >= maxTotalScannedRecords) {
+            return
+        }
+
+        val scanLimit = nextSourceScanLimit(source.scannedCount, totalScannedCount)
+        if (scanLimit <= source.scannedCount) {
+            source.finished = true
+            return
+        }
+
+        // A failing source is treated like a timeout: mark it finished and keep scanning the
+        // rest, so the search still reaches its terminal emission instead of stranding the UI
+        // in a permanent "scanning" state.
+        val page = try {
+            withTimeoutOrNull(adapterCallTimeoutMs) {
+                source.wrapper.search(
+                    limit = expectedItemsCount,
+                    scanLimit = scanLimit,
+                    requestedFilterType = source.transactionType,
+                    requestedContact = requestContext.contact,
+                    query = query,
+                    matcher = searchMatcher,
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            null
+        }
+
+        if (page == null) {
+            source.finished = true
+            return
+        }
+
+        source.scannedCount = page.scannedCount
+        source.records = searchSourceRecords(page.records, source, requestContext)
+        source.frontierTimestamp = page.frontierTimestamp
+        source.finished = page.exhausted || source.scannedCount >= maxScannedRecordsPerSource
+    }
+
+    private fun nextSourceScanLimit(
+        sourceScannedCount: Int,
+        totalScannedCount: Int,
+    ): Int {
+        val remainingTotal = maxTotalScannedRecords - totalScannedCount
+        return minOf(
+            sourceScannedCount + searchBatchSize,
+            maxScannedRecordsPerSource,
+            sourceScannedCount + remainingTotal,
+        )
+    }
+
+    private fun searchSourceRecords(
+        records: List<TransactionRecord>,
+        source: SearchSourceState,
+        requestContext: FilterContext,
+    ): List<TransactionRecord> {
+        return if (source.transactionType == FilterTransactionType.Outgoing &&
+            requestContext.transactionType == FilterTransactionType.Swap
+        ) {
+            records.filter(isSwapProviderMatch)
+        } else {
+            records
+        }
+    }
+
+    private fun searchSourcesLoaded(
+        sources: List<SearchSourceState>,
+        totalScannedCount: Int,
+    ): Boolean {
+        return sources.all { it.finished } || totalScannedCount >= maxTotalScannedRecords
+    }
+
+    private fun mergedSearchRecords(
+        normalSources: List<SearchSourceState>,
+        extraSources: List<SearchSourceState>,
+        expectedItemsCount: Int,
+    ): List<TransactionRecord> {
+        return (normalSources.flatMap { it.records } + extraSources.flatMap { it.records })
+            .sortedDescending()
+            .take(expectedItemsCount)
+    }
+
+    companion object {
         private const val searchBatchSize = 100
         private const val maxScannedRecordsPerSource = 1000
         private const val maxTotalScannedRecords = 5000
         private const val adapterCallTimeoutMs = 3000L
     }
-
 }
 
 /**
@@ -781,4 +839,8 @@ private class SearchSourceState(
     var records: List<TransactionRecord> = emptyList()
     var scannedCount: Int = 0
     var finished: Boolean = false
+    // Timestamp of the oldest record scanned so far. Since a source is scanned newest-first,
+    // deeper records are all older than this, so once it drops below the page cutoff the
+    // source can no longer contribute to the top results.
+    var frontierTimestamp: Long? = null
 }

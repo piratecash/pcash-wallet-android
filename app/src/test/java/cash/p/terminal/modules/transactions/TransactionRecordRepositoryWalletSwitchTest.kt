@@ -562,6 +562,111 @@ class TransactionRecordRepositoryWalletSwitchTest {
     }
 
     @Test
+    fun searchQuery_newerMatchBuriedInOtherSource_isNotDroppedByEarlyStop() = runTest {
+        val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+        startKoinForTests()
+
+        val token = createToken()
+        val sourceWithOldMatches = createSource("account-old", token.blockchain)
+        val sourceWithBuriedMatch = createSource("account-buried", token.blockchain)
+        val walletOld = TransactionWallet(token = token, source = sourceWithOldMatches, badge = null)
+        val walletBuried = TransactionWallet(token = token, source = sourceWithBuriedMatch, badge = null)
+
+        // Source A: a full page (20) of matches, all older than the buried one.
+        val oldMatches = (0 until 20).map { i ->
+            searchRecord(token, sourceWithOldMatches, "old-$i", 1_000L - i, "needle-address")
+        }
+
+        val adapterManager = mockk<TransactionAdapterManager>(relaxed = true) {
+            every { getAdapter(sourceWithOldMatches) } returns simpleAdapter(oldMatches)
+            every { getAdapter(sourceWithBuriedMatch) } returns buriedMatchAdapter(token, sourceWithBuriedMatch)
+        }
+
+        val repository = createRepository(adapterManager, testDispatcher, this)
+
+        val emissions = mutableListOf<RecordsBatch>()
+        val collectorJob = launch(testDispatcher) {
+            repository.itemsFlow.collect { emissions.add(it) }
+        }
+
+        repository.setAndReload(
+            transactionWallets = listOf(walletOld, walletBuried),
+            wallet = null,
+            transactionType = FilterTransactionType.All,
+            blockchain = null,
+            contact = null,
+            searchQuery = "needle",
+        )
+        advanceUntilIdle()
+
+        val batch = requireNotNull(emissions.lastOrNull { it.searchCompleted }) {
+            "expected a terminal search batch, got: " +
+                emissions.map { it.records.map { r -> r.uid } to it.searchCompleted }
+        }
+        val uids = batch.records.map { it.uid }
+        assertTrue("buried newer match must be present in the page: $uids", uids.contains("buried-match"))
+        assertEquals("buried newer match must sort to the top of the page", "buried-match", uids.first())
+
+        collectorJob.cancel()
+        repository.clear()
+    }
+
+    @Test
+    fun searchQuery_manySettledSources_doNotStarveBudgetForBuriedMatch() = runTest {
+        val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+        startKoinForTests()
+
+        val token = createToken()
+        val pageSource = createSource("account-page", token.blockchain)
+        val buriedSource = createSource("account-deep", token.blockchain)
+        val noiseSources = (0 until 9).map { createSource("account-noise-$it", token.blockchain) }
+
+        // Source establishing the full page cutoff: 20 matches, all older than the buried one.
+        val pageMatches = (0 until 20).map { i ->
+            searchRecord(token, pageSource, "page-$i", 1_000L - i, "needle-address")
+        }
+
+        val adapterManager = mockk<TransactionAdapterManager>(relaxed = true) {
+            every { getAdapter(pageSource) } returns simpleAdapter(pageMatches)
+            every { getAdapter(buriedSource) } returns deepBuriedMatchAdapter(token, buriedSource)
+            noiseSources.forEach { source ->
+                every { getAdapter(source) } returns longNoiseAdapter(token, source)
+            }
+        }
+
+        val repository = createRepository(adapterManager, testDispatcher, this)
+
+        val emissions = mutableListOf<RecordsBatch>()
+        val collectorJob = launch(testDispatcher) {
+            repository.itemsFlow.collect { emissions.add(it) }
+        }
+
+        // Noise sources are listed before the buried source so they drain the shared scan budget first.
+        val wallets = listOf(walletFor(token, pageSource)) +
+            noiseSources.map { walletFor(token, it) } +
+            walletFor(token, buriedSource)
+        repository.setAndReload(
+            transactionWallets = wallets,
+            wallet = null,
+            transactionType = FilterTransactionType.All,
+            blockchain = null,
+            contact = null,
+            searchQuery = "needle",
+        )
+        advanceUntilIdle()
+
+        val batch = requireNotNull(emissions.lastOrNull { it.searchCompleted }) {
+            "expected a terminal search batch"
+        }
+        val uids = batch.records.map { it.uid }
+        assertTrue("deeply buried newer match must survive budget sharing: $uids", uids.contains("buried-deep-match"))
+        assertEquals("buried newer match must sort to the top of the page", "buried-deep-match", uids.first())
+
+        collectorJob.cancel()
+        repository.clear()
+    }
+
+    @Test
     fun reload_invokesAdapterGetTransactionsAgainForEachAdapter() = runTest {
         val testDispatcher = UnconfinedTestDispatcher(testScheduler)
         startKoinForTests()
@@ -926,6 +1031,9 @@ class TransactionRecordRepositoryWalletSwitchTest {
         )
     }
 
+    private fun walletFor(token: Token, source: TransactionSource) =
+        TransactionWallet(token = token, source = source, badge = null)
+
     private fun createSource(accountId: String, blockchain: Blockchain): TransactionSource {
         val account = Account(
             id = accountId,
@@ -942,6 +1050,53 @@ class TransactionRecordRepositoryWalletSwitchTest {
         name = uid,
         addresses = listOf(ContactAddress(blockchain = blockchain, address = address))
     )
+
+    // Source B for the buried-match scenario: 100 newer non-matching records hide a single match
+    // (still newer than source A's matches) behind them, so this source's first scan batch
+    // (searchBatchSize = 100) returns no matches and must not be finalized before it is reached.
+    private fun buriedMatchAdapter(token: Token, source: TransactionSource): ITransactionsAdapter {
+        val noise = (0 until 100).map { i ->
+            searchRecord(token, source, "noise-$i", 2_000L - i, "plain-address")
+        }
+        val match = searchRecord(token, source, "buried-match", 1_900L, "needle-address")
+        return pagedAdapter(noise + match)
+    }
+
+    private fun searchRecord(
+        token: Token,
+        source: TransactionSource,
+        uid: String,
+        timestamp: Long,
+        toAddress: String,
+    ) = createBitcoinOutgoingRecord(
+        token = token,
+        source = source,
+        uid = uid,
+        timestamp = timestamp,
+        amount = BigDecimal("-0.00000563"),
+        toAddress = toAddress,
+    )
+
+    // A long-history source whose records are all older than the page cutoff: it settles after the
+    // first scan round (frontier below the cutoff) yet never finishes, so under the buggy code it
+    // keeps consuming the shared scan budget every round and starves the source below.
+    private fun longNoiseAdapter(token: Token, source: TransactionSource): ITransactionsAdapter {
+        val records = (0 until 700).map { i ->
+            searchRecord(token, source, "noise-${source.account.id}-$i", 900L - i, "plain-address")
+        }
+        return pagedAdapter(records)
+    }
+
+    // The only source with a real match, hidden at scan depth 650 behind records that are all newer
+    // than the cutoff (so this source never settles). It can only be reached if settled sources stop
+    // draining the shared budget; the match is also newer than the page records, so it must sort first.
+    private fun deepBuriedMatchAdapter(token: Token, source: TransactionSource): ITransactionsAdapter {
+        val noise = (0 until 649).map { i ->
+            searchRecord(token, source, "deep-noise-$i", 3_000L - i, "plain-address")
+        }
+        val match = searchRecord(token, source, "buried-deep-match", 1_500L, "needle-address")
+        return pagedAdapter(noise + match)
+    }
 
     private fun createBitcoinOutgoingRecord(
         token: Token,
