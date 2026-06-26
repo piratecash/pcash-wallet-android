@@ -269,6 +269,7 @@
 
     <!--Market Search-->
     <string name="EmptyResults">No results found</string>
+    <string name="transactions_empty_search_results">No transactions found</string>
     <string name="Market_Filters">Filters</string>
     <string name="Market_AdvancedSearch_Results">Results</string>
     <string name="Market_Search_Hint">Search</string>

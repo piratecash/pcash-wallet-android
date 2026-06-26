@@ -229,6 +229,7 @@
     <string name="MarketEtf_TotalNetAssets">Total Net Assets</string>
     <!--Market Search-->
     <string name="EmptyResults">Sonuç bulunamadı</string>
+    <string name="transactions_empty_search_results">İşlem bulunamadı</string>
     <string name="Market_Filters">Filtreler</string>
     <string name="Market_AdvancedSearch_Results">Sonuçlar</string>
     <string name="Market_Search_Hint">Ara</string>

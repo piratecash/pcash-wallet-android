@@ -228,6 +228,7 @@
     <string name="MarketEtf_TotalNetAssets">Gesamte Netto-Assets</string>
     <!--Market Search-->
     <string name="EmptyResults">Keine Ergebnisse gefunden</string>
+    <string name="transactions_empty_search_results">Keine Transaktionen gefunden</string>
     <string name="Market_Filters">Filter</string>
     <string name="Market_AdvancedSearch_Results">Ergebnisse</string>
     <string name="Market_Search_Hint">Suchen</string>

@@ -229,6 +229,7 @@
     <string name="MarketEtf_TotalNetAssets">총 순자산</string>
     <!--Market Search-->
     <string name="EmptyResults">검색 결과가 없습니다</string>
+    <string name="transactions_empty_search_results">거래를 찾을 수 없습니다</string>
     <string name="Market_Filters">필터</string>
     <string name="Market_AdvancedSearch_Results">결과</string>
     <string name="Market_Search_Hint">검색</string>

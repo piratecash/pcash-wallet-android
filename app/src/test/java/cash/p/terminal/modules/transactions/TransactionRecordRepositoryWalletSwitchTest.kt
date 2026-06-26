@@ -148,28 +148,30 @@ class TransactionRecordRepositoryWalletSwitchTest {
 
         val emissions = mutableListOf<List<TransactionRecord>>()
         val collectorJob = launch(testDispatcher) {
-            repository.itemsFlow.collect { records ->
-                emissions.add(records)
+            repository.itemsFlow.collect { batch ->
+                emissions.add(batch.records)
             }
         }
 
         // Step 1: Set account A -> getTransactions() suspends on gate
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(walletA),
             wallet = null,
             transactionType = FilterTransactionType.All,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
         // Step 2: While A is still suspended, switch to B (same filters)
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(walletB),
             wallet = null,
             transactionType = FilterTransactionType.All,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
@@ -266,26 +268,28 @@ class TransactionRecordRepositoryWalletSwitchTest {
 
         val emissions = mutableListOf<List<String>>()
         val collectorJob = launch(testDispatcher) {
-            repository.itemsFlow.collect { records ->
-                emissions.add(records.map { it.uid })
+            repository.itemsFlow.collect { batch ->
+                emissions.add(batch.records.map { it.uid })
             }
         }
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet),
             wallet = null,
             transactionType = FilterTransactionType.Swap,
             blockchain = null,
-            contact = contactA
+            contact = contactA,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet),
             wallet = null,
             transactionType = FilterTransactionType.Swap,
             blockchain = null,
-            contact = contactB
+            contact = contactB,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
@@ -381,6 +385,183 @@ class TransactionRecordRepositoryWalletSwitchTest {
     }
 
     @Test
+    fun searchQuery_matchAfterFirstUiPage_emitsOlderMatch() = runTest {
+        val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+        startKoinForTests()
+
+        val token = createToken()
+        val source = createSource(accountId = "account-1", blockchain = token.blockchain)
+        val wallet = TransactionWallet(token = token, source = source, badge = null)
+        val records = (0 until 25).map { index ->
+            createBitcoinOutgoingRecord(
+                token = token,
+                source = source,
+                uid = "record-$index",
+                timestamp = 1_715_000_000L - index,
+                amount = BigDecimal("-0.00000563"),
+                toAddress = if (index == 24) "needle-address" else "other-address-$index",
+            )
+        }
+        val repository = createRepository(
+            adapterManager = adapterManager(source, simpleAdapter(records)),
+            dispatcher = testDispatcher,
+            scope = this,
+        )
+
+        val (emissions, collectorJob) = collectRecordUids(repository, testDispatcher)
+
+        repository.setAndReload(
+            transactionWallets = listOf(wallet),
+            wallet = null,
+            transactionType = FilterTransactionType.All,
+            blockchain = null,
+            contact = null,
+            searchQuery = "needle",
+        )
+        advanceUntilIdle()
+
+        assertEquals(listOf("record-24"), emissions.last())
+
+        collectorJob.cancel()
+        repository.clear()
+    }
+
+    @Test
+    fun searchQuery_matchAfterFirstSearchBatch_emitsOlderMatch() = runTest {
+        val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+        startKoinForTests()
+
+        val token = createToken()
+        val source = createSource(accountId = "account-1", blockchain = token.blockchain)
+        val wallet = TransactionWallet(token = token, source = source, badge = null)
+        val records = (0 until 150).map { index ->
+            createBitcoinOutgoingRecord(
+                token = token,
+                source = source,
+                uid = "record-$index",
+                timestamp = 1_715_000_000L - index,
+                amount = BigDecimal("-0.00000563"),
+                toAddress = if (index == 149) "needle-address" else "other-address-$index",
+            )
+        }
+        val repository = createRepository(
+            adapterManager = adapterManager(source, pagedAdapter(records)),
+            dispatcher = testDispatcher,
+            scope = this,
+        )
+
+        val (emissions, collectorJob) = collectRecordUids(repository, testDispatcher)
+
+        repository.setAndReload(
+            transactionWallets = listOf(wallet),
+            wallet = null,
+            transactionType = FilterTransactionType.All,
+            blockchain = null,
+            contact = null,
+            searchQuery = "needle",
+        )
+        advanceUntilIdle()
+
+        assertEquals(listOf("record-149"), emissions.last())
+
+        collectorJob.cancel()
+        repository.clear()
+    }
+
+    @Test
+    fun searchQuery_swapFilter_includesExtraSwapAdapters() = runTest {
+        val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+        startKoinForTests()
+
+        val fixture = createSwapFilterFixture("swap-search-record")
+        val adapter = swapFilterAdapter(fixture.token, { listOf(fixture.record) })
+        val swapProviderTransactionsStorage = mockk<SwapProviderTransactionsStorage>(relaxed = true) {
+            every { getByOutgoingRecordUid(fixture.record.uid) } returns mockk(relaxed = true)
+            every { observeAll() } returns emptyFlow()
+        }
+        val repository = createRepository(
+            adapterManager = adapterManager(fixture.source, adapter),
+            dispatcher = testDispatcher,
+            scope = this,
+            swapProviderTransactionsStorage = swapProviderTransactionsStorage,
+        )
+
+        val (emissions, collectorJob) = collectRecordUids(repository, testDispatcher)
+
+        repository.setAndReload(
+            transactionWallets = listOf(fixture.wallet),
+            wallet = null,
+            transactionType = FilterTransactionType.Swap,
+            blockchain = null,
+            contact = null,
+            searchQuery = "provider",
+        )
+        advanceUntilIdle()
+
+        assertEquals(listOf(fixture.record.uid), emissions.last())
+
+        collectorJob.cancel()
+        repository.clear()
+    }
+
+    @Test
+    fun searchQuery_oneSourceThrows_stillEmitsTerminalBatchWithOtherSourceMatch() = runTest {
+        val testDispatcher = UnconfinedTestDispatcher(testScheduler)
+        startKoinForTests()
+
+        val token = createToken()
+        // The throwing source is scanned first; without the failure being absorbed the
+        // sequential scan would abort here and the healthy source would never be reached,
+        // leaving the search without its terminal emission.
+        val throwingSource = createSource("account-1", Blockchain(BlockchainType.Ethereum, "Ethereum", null))
+        val matchingSource = createSource("account-1", token.blockchain)
+        val throwingWallet = TransactionWallet(token = null, source = throwingSource, badge = null)
+        val matchingWallet = TransactionWallet(token = token, source = matchingSource, badge = null)
+
+        val match = createBitcoinOutgoingRecord(
+            token = token,
+            source = matchingSource,
+            uid = "record-match",
+            timestamp = 1_715_000_000L,
+            amount = BigDecimal("-0.00000563"),
+            toAddress = "needle-address",
+        )
+
+        val adapterManager = mockk<TransactionAdapterManager>(relaxed = true) {
+            every { getAdapter(throwingSource) } returns throwingAdapter()
+            every { getAdapter(matchingSource) } returns simpleAdapter(listOf(match))
+        }
+
+        val repository = createRepository(adapterManager, testDispatcher, this)
+
+        val emissions = mutableListOf<RecordsBatch>()
+        val collectorJob = launch(testDispatcher) {
+            repository.itemsFlow.collect { emissions.add(it) }
+        }
+
+        repository.setAndReload(
+            transactionWallets = listOf(throwingWallet, matchingWallet),
+            wallet = null,
+            transactionType = FilterTransactionType.All,
+            blockchain = null,
+            contact = null,
+            searchQuery = "needle",
+        )
+        advanceUntilIdle()
+
+        val terminalBatch = emissions.lastOrNull { it.searchCompleted }
+        assertTrue(
+            "a failing source must not strand the scan: a terminal search batch is expected, " +
+                "but got: ${emissions.map { it.records.map { r -> r.uid } to it.searchCompleted }}",
+            terminalBatch != null
+        )
+        assertEquals(listOf("record-match"), terminalBatch?.records?.map { it.uid })
+
+        collectorJob.cancel()
+        repository.clear()
+    }
+
+    @Test
     fun reload_invokesAdapterGetTransactionsAgainForEachAdapter() = runTest {
         val testDispatcher = UnconfinedTestDispatcher(testScheduler)
         startKoinForTests()
@@ -400,12 +581,13 @@ class TransactionRecordRepositoryWalletSwitchTest {
 
         val repository = createRepository(adapterManager, testDispatcher, this)
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet1, wallet2),
             wallet = null,
             transactionType = FilterTransactionType.All,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
@@ -438,21 +620,23 @@ class TransactionRecordRepositoryWalletSwitchTest {
 
         val repository = createRepository(adapterManager, testDispatcher, this)
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet1),
             wallet = null,
             transactionType = FilterTransactionType.All,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet1, wallet2),
             wallet = null,
             transactionType = FilterTransactionType.All,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
@@ -481,21 +665,23 @@ class TransactionRecordRepositoryWalletSwitchTest {
 
         val repository = createRepository(adapterManager, testDispatcher, this)
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet),
             wallet = null,
             transactionType = FilterTransactionType.All,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
-        repository.set(
+        repository.setAndReload(
             transactionWallets = listOf(wallet),
             wallet = null,
             transactionType = FilterTransactionType.Incoming,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = null,
         )
         advanceUntilIdle()
 
@@ -549,12 +735,13 @@ class TransactionRecordRepositoryWalletSwitchTest {
                 repeat(iterations) { i ->
                     try {
                         val subset = wallets.shuffled().take((i % wallets.size) + 1)
-                        repository.set(
+                        repository.setAndReload(
                             transactionWallets = subset,
                             wallet = null,
                             transactionType = FilterTransactionType.All,
                             blockchain = null,
-                            contact = null
+                            contact = null,
+                            searchQuery = null,
                         )
                     } catch (e: ConcurrentModificationException) {
                         failure.compareAndSet(null, e)
@@ -592,6 +779,29 @@ class TransactionRecordRepositoryWalletSwitchTest {
     private fun simpleAdapter(records: List<TransactionRecord>) =
         mockk<ITransactionsAdapter>(relaxed = true) {
             coEvery { getTransactions(any(), any(), any(), any(), any()) } returns records
+            every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
+            every { getTransactionUrl(any()) } returns ""
+        }
+
+    private fun throwingAdapter() =
+        mockk<ITransactionsAdapter>(relaxed = true) {
+            coEvery {
+                getTransactions(any(), any(), any(), any(), any())
+            } throws RuntimeException("adapter failure")
+            every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
+            every { getTransactionUrl(any()) } returns ""
+        }
+
+    private fun pagedAdapter(records: List<TransactionRecord>) =
+        mockk<ITransactionsAdapter>(relaxed = true) {
+            coEvery { getTransactions(any(), any(), any(), any(), any()) } coAnswers {
+                val from = invocation.args[0] as? TransactionRecord
+                val limit = invocation.args[2] as Int
+                val startIndex = from
+                    ?.let { fromRecord -> records.indexOfFirst { it.uid == fromRecord.uid } + 1 }
+                    ?: 0
+                records.drop(startIndex.coerceAtLeast(0)).take(limit)
+            }
             every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
             every { getTransactionUrl(any()) } returns ""
         }
@@ -684,20 +894,35 @@ class TransactionRecordRepositoryWalletSwitchTest {
     ): Pair<MutableList<List<String>>, Job> {
         val emissions = mutableListOf<List<String>>()
         val collectorJob = launch(dispatcher) {
-            repository.itemsFlow.collect { records ->
-                emissions.add(records.map { it.uid })
+            repository.itemsFlow.collect { batch ->
+                emissions.add(batch.records.map { it.uid })
             }
         }
         return emissions to collectorJob
     }
 
+    // Mirrors the production contract: TransactionsService calls set() and only reloads
+    // when it reports a change. set() no longer triggers the reload itself.
+    private fun TransactionRecordRepository.setAndReload(
+        transactionWallets: List<TransactionWallet>,
+        wallet: TransactionWallet?,
+        transactionType: FilterTransactionType,
+        blockchain: Blockchain?,
+        contact: Contact?,
+        searchQuery: String?,
+    ) {
+        val changed = set(transactionWallets, wallet, transactionType, blockchain, contact, searchQuery)
+        if (changed) reloadItems()
+    }
+
     private fun TransactionRecordRepository.setSwapWallet(wallet: TransactionWallet) {
-        set(
+        setAndReload(
             transactionWallets = listOf(wallet),
             wallet = null,
             transactionType = FilterTransactionType.Swap,
             blockchain = null,
             contact = null,
+            searchQuery = null,
         )
     }
 

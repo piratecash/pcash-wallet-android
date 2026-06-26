@@ -229,6 +229,7 @@
     <string name="MarketEtf_TotalNetAssets">Total des actifs nets</string>
     <!--Market Search-->
     <string name="EmptyResults">Aucun résultat</string>
+    <string name="transactions_empty_search_results">Aucune transaction trouvée</string>
     <string name="Market_Filters">Filtres</string>
     <string name="Market_AdvancedSearch_Results">Résultat</string>
     <string name="Market_Search_Hint">Chercher</string>

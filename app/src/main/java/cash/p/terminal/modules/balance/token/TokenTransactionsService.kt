@@ -50,11 +50,12 @@ class TokenTransactionsService(
     val syncingFlow: StateFlow<Boolean> = transactionSyncStateRepository.syncingFlow
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private var lastHiddenOnlyLoadKey: String? = null
 
     fun start() {
         coroutineScope.launch {
             transactionRecordRepository.itemsFlow.collect {
-                handleUpdatedRecords(it)
+                handleUpdatedRecords(it.records)
             }
         }
         coroutineScope.launch {
@@ -94,14 +95,16 @@ class TokenTransactionsService(
             TransactionWallet(wallet.token, wallet.transactionSource, wallet.badge)
 
         _recordsLoadedFlow.value = false
+        lastHiddenOnlyLoadKey = null
         transactionSyncStateRepository.setTransactionWallets(listOf(transactionWallet))
-        transactionRecordRepository.set(
+        val willReload = transactionRecordRepository.set(
             transactionWallets = listOf(transactionWallet),
             wallet = transactionWallet,
             transactionType = FilterTransactionType.All,
             blockchain = null,
             contact = null
         )
+        if (willReload) transactionRecordRepository.reloadItems()
     }
 
     private fun handle(assetBriefMetadataMap: Map<NftUid, NftAssetBriefMetadata>) {
@@ -199,9 +202,15 @@ class TokenTransactionsService(
         }
 
         if (newRecords.isNotEmpty() && newRecords.all { spamManager.shouldHide(it) }) {
-            loadNext()
+            val hiddenOnlyLoadKey = newRecords.joinToString(separator = "|") { it.uid }
+            if (lastHiddenOnlyLoadKey != hiddenOnlyLoadKey) {
+                lastHiddenOnlyLoadKey = hiddenOnlyLoadKey
+                loadNext()
+            }
             return
         }
+
+        lastHiddenOnlyLoadKey = null
 
         _transactionItems.update { latestItems ->
             transactionRecords.mapNotNull { record ->

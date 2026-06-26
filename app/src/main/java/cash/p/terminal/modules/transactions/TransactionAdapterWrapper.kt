@@ -91,6 +91,12 @@ class TransactionAdapterWrapper(
         subscribeForUpdates()
     }
 
+    data class SearchPage(
+        val records: List<TransactionRecord>,
+        val exhausted: Boolean,
+        val scannedCount: Int,
+    )
+
     fun reload() {
         resetCacheAndResubscribe()
     }
@@ -200,6 +206,82 @@ class TransactionAdapterWrapper(
                 mergedRecords.take(limit)
             }
         }
+    }
+
+    suspend fun search(
+        limit: Int,
+        scanLimit: Int,
+        requestedFilterType: FilterTransactionType,
+        requestedContact: Contact?,
+        query: String,
+        matcher: TransactionRecordSearchMatcher,
+    ): SearchPage = getMutex.withLock {
+        if (transactionType != requestedFilterType || contact != requestedContact) {
+            return@withLock SearchPage(
+                records = emptyList(),
+                exhausted = true,
+                scannedCount = 0,
+            )
+        }
+
+        val requestedAddress = requestedContact
+            ?.addresses
+            ?.find { it.blockchain == transactionWallet.source.blockchain }
+            ?.address
+
+        if (requestedContact != null && requestedAddress == null) {
+            return@withLock SearchPage(
+                records = emptyList(),
+                exhausted = true,
+                scannedCount = 0,
+            )
+        }
+
+        var currentRecords = _transactionRecords.value
+        var matchedRecords = currentRecords.matchingRecords(scanLimit, query, matcher)
+
+        while (
+            matchedRecords.size < limit &&
+            currentRecords.size < scanLimit &&
+            !_allLoaded.value
+        ) {
+            val numberOfRecordsToRequest = scanLimit - currentRecords.size
+            val receivedRecords = transactionsAdapter.getTransactions(
+                from = currentRecords.lastOrNull(),
+                token = transactionWallet.token,
+                limit = numberOfRecordsToRequest,
+                transactionType = requestedFilterType,
+                address = requestedAddress
+            )
+
+            if (transactionType != requestedFilterType || contact != requestedContact) {
+                return@withLock SearchPage(
+                    records = emptyList(),
+                    exhausted = true,
+                    scannedCount = 0,
+                )
+            }
+
+            _allLoaded.value = receivedRecords.size < numberOfRecordsToRequest
+            currentRecords = mergePendingAndReal(currentRecords + receivedRecords)
+            _transactionRecords.value = currentRecords
+            matchedRecords = currentRecords.matchingRecords(scanLimit, query, matcher)
+        }
+
+        val scannedCount = minOf(currentRecords.size, scanLimit)
+        SearchPage(
+            records = matchedRecords.take(limit),
+            exhausted = _allLoaded.value && currentRecords.size <= scanLimit,
+            scannedCount = scannedCount,
+        )
+    }
+
+    private fun List<TransactionRecord>.matchingRecords(
+        scanLimit: Int,
+        query: String,
+        matcher: TransactionRecordSearchMatcher,
+    ): List<TransactionRecord> {
+        return take(scanLimit).filter { matcher.matches(it, query) }
     }
 
     private fun getPending(pendingEntities: List<PendingTransactionEntity>): List<TransactionRecord> {
