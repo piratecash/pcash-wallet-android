@@ -1826,6 +1826,7 @@
     <string name="display_options_period_1y">1年</string>
     <string name="display_options_period_all">全部</string>
     <string name="sum_rounding">金额取整</string>
+    <string name="transaction_filter">交易筛选</string>
 
     <plurals name="options_count">
         <item quantity="other">%1$d 个选项</item>

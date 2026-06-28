@@ -29,6 +29,7 @@ import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HsSettingCell
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 
@@ -43,6 +44,8 @@ fun AssetSettingsScreen(
     onDisplayDiffOptionTypeChange: (DisplayDiffOptionType) -> Unit,
     onRoundingAmountChange: (Boolean) -> Unit,
     onAddressPoisoningViewClick: () -> Unit,
+    transactionFiltersEnabled: Boolean,
+    onTransactionFiltersChange: (Boolean) -> Unit,
     navController: NavController,
     onBack: () -> Unit,
 ) {
@@ -94,7 +97,17 @@ fun AssetSettingsScreen(
                 },
                 onRoundingAmountToggled = onRoundingAmountChange,
             )
-            VSpacer(32.dp)
+            VSpacer(24.dp)
+            CellUniversalLawrenceSection(
+                listOf {
+                    SwitchWithText(
+                        text = stringResource(R.string.transaction_filter),
+                        checked = transactionFiltersEnabled,
+                        onCheckedChange = onTransactionFiltersChange
+                    )
+                }
+            )
+            VSpacer(24.dp)
             CellUniversalLawrenceSection(
                 listOf {
                     HsSettingCell(
@@ -145,6 +158,8 @@ private fun AssetSettingsScreenPreview() {
             onDisplayDiffOptionTypeChange = {},
             onRoundingAmountChange = {},
             onAddressPoisoningViewClick = {},
+            transactionFiltersEnabled = false,
+            onTransactionFiltersChange = {},
             navController = rememberNavController(),
             onBack = {},
         )

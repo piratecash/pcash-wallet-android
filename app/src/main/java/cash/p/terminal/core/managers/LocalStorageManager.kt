@@ -701,6 +701,11 @@ class LocalStorageManager(
         default = true
     )
 
+    override var transactionFiltersEnabled by preferences.delegate(
+        key = "transaction_filter_enabled",
+        default = false
+    )
+
     override var shareCrashDataEnabled: Boolean
         get() = preferences.getBoolean(SHARE_CRASH_DATA_ENABLED, true)
         set(value) {

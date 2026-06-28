@@ -1085,6 +1085,7 @@ Proceed only if you\'re sure.</string>
     <string name="display_options_period_1y">1 Year</string>
     <string name="display_options_period_all">All</string>
     <string name="sum_rounding">Sum Rounding</string>
+    <string name="transaction_filter">Transaction filter</string>
 
     <!--Settings-->
     <string name="Settings_Title">Settings</string>
