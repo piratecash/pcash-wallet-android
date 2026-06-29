@@ -17,7 +17,6 @@ import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
 import cash.p.terminal.modules.multiswap.settings.ISwapSetting
 import cash.p.terminal.modules.multiswap.ui.DataField
 import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
-import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
 import cash.p.terminal.modules.paycore.PayCoreSecureStorage.VerificationStatus
 import cash.p.terminal.modules.paycore.selectbank.PayCoreBankNotSelectedException
 import cash.p.terminal.modules.paycore.selectbank.PayCoreBankSwapSetting
@@ -52,7 +51,7 @@ class PayCoreProvider(
 
     private var swapProviderTransaction: SwapProviderTransaction? = null
 
-    override val id = "paycore"
+    override val id = ID
     override val title = "PayCore"
     override val icon = R.drawable.ic_paycore
     override val mevProtectionAvailable = false
@@ -237,7 +236,10 @@ class PayCoreProvider(
         return false
     }
 
-    private fun buildQuoteFields(networkType: PayCoreTicker, serviceFee: BigDecimal): List<DataField> {
+    private fun buildQuoteFields(
+        networkType: PayCoreTicker,
+        serviceFee: BigDecimal
+    ): List<DataField> {
         return buildList {
             if (serviceFee > BigDecimal.ZERO) {
                 add(PayCoreDataFieldServiceFee(fee = serviceFee))
@@ -420,5 +422,9 @@ class PayCoreProvider(
     private fun isAccountCapable(): Boolean {
         val accountType = accountManager.activeAccount?.type ?: return false
         return accountType is AccountType.Mnemonic || accountType is AccountType.EvmPrivateKey
+    }
+
+    companion object {
+        const val ID = "paycore"
     }
 }
