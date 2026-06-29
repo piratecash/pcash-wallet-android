@@ -5,6 +5,7 @@ import cash.p.terminal.modules.paycore.PayCoreProvider
 class SwapProvidersRegistry(
     changeNowProvider: ChangeNowProvider,
     quickexProvider: QuickexProvider,
+    exolixProvider: ExolixProvider,
     stonFiProvider: StonFiProvider,
     payCoreProvider: PayCoreProvider,
 ) {
@@ -17,6 +18,7 @@ class SwapProvidersRegistry(
         UniswapV3Provider,
         changeNowProvider,
         quickexProvider,
+        exolixProvider,
         ThorChainProvider,
         MayaProvider,
         AllBridgeProvider,

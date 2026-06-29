@@ -17,10 +17,9 @@ import cash.p.terminal.modules.multiswap.SwapQuoteService
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.core.ServiceStateFlow
 import cash.p.terminal.modules.multiswap.TokenBalanceService
-import cash.p.terminal.modules.multiswap.providers.ChangeNowProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
-import cash.p.terminal.modules.multiswap.providers.QuickexProvider
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
+import cash.p.terminal.modules.multiswap.providers.isOffChain
 import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.paycore.PayCoreAssets
 import cash.p.terminal.wallet.IAccountManager
@@ -331,7 +330,7 @@ class MultiSwapExchangeViewModel(
 
     private fun needUseTimer(): Boolean {
         val provider = selectedLeg2Quote?.provider ?: return false
-        return provider !is ChangeNowProvider && provider !is QuickexProvider
+        return !provider.isOffChain
     }
 
     private fun startTimerIfNeeded() {

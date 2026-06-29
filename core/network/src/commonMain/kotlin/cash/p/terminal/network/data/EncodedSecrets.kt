@@ -59,4 +59,7 @@ object EncodedSecrets : KoinComponent {
     val NEWS_API_KEY = decoder.decode(listOf(
         "RAVVSlkdQUIEDVlVT0hTRxAWDUsBWVwIXhRSTEhHGF8VAxZSAhUJSUEWA1VZUUhJWUIQElZCUAMPX1xCVBJMQA=="
     ))
+    val EXOLIX_API_KEY = decoder.decode(listOf(
+        "HSAjJytsBTgMBCFRdDkJFToUORwOCVYeNToxMFk2Ty05DkUJFAsjfiI7CRwwEF0eETcATiEXEwRZPCcRKiJaOg=="
+    ))
 }
