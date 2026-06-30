@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
-import androidx.compose.material.ModalBottomSheetLayout
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
@@ -140,9 +140,8 @@ private fun ImportWalletScreen(
         }
     }
 
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = bottomSheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmationBottomSheet(
                 title = stringResource(R.string.ImportWallet_WarningInvalidJson),

@@ -72,6 +72,7 @@ fun TransparentModalBottomSheet(
         dragHandle = null,
         sheetState = sheetState,
         containerColor = ComposeAppTheme.colors.transparent,
+        scrimColor = ComposeAppTheme.colors.modalOverlay,
         contentWindowInsets = { WindowInsets(0) },
         content = content,
     )

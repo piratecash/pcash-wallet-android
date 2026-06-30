@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material.ModalBottomSheetLayout
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
@@ -92,9 +92,8 @@ fun BalanceForAccount(
     }
 
     BackupAlert(navController)
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = invalidUrlBottomSheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmationBottomSheet(
                 title = stringResource(R.string.WalletConnect_Title),

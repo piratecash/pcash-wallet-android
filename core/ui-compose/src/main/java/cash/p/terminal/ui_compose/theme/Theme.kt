@@ -29,7 +29,8 @@ val lightPalette = Colors(
     raina = White50,
     andy = Steel,
     blade = Light,
-    midnight = Dark
+    midnight = Dark,
+    modalOverlay = Grey70
 )
 
 val darkPalette = Colors(
@@ -47,7 +48,8 @@ val darkPalette = Colors(
     raina = Steel10,
     andy = Smoke,
     blade = Carbon,
-    midnight = DarkGray
+    midnight = DarkGray,
+    modalOverlay = Black50
 )
 
 @Composable

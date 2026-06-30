@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.ModalBottomSheetLayout
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
@@ -46,9 +46,8 @@ fun SecretKeyScreen(
         initialValue = ModalBottomSheetValue.Hidden,
     )
 
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = sheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmCopyBottomSheet(
                 onConfirm = {

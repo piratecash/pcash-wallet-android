@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material.ModalBottomSheetLayout
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.NavigationBarDefaults
@@ -69,9 +69,8 @@ fun TonConnectMainScreen(
 
     val scannerTitle = stringResource(R.string.TonConnect_Title)
 
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = invalidUrlBottomSheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmationBottomSheet(
                 title = stringResource(R.string.TonConnect_Title),
