@@ -17,7 +17,7 @@ class ZcashRawBroadcastResultTest {
     }
 
     @Test
-    fun toZcashRawBroadcastResult_alreadyCommittedFailure_returnsSubmitted() {
+    fun toZcashRawBroadcastResult_alreadyCommittedFailure_returnsAlreadyKnown() {
         val result = TransactionSubmitResult.Failure(
             txId = txId,
             grpcError = false,
@@ -27,7 +27,7 @@ class ZcashRawBroadcastResultTest {
         ).toZcashRawBroadcastResult()
 
         assertEquals(expectedTxHash, result.txHash)
-        assertEquals(BroadcastRawTransactionStatus.Submitted, result.status)
+        assertEquals(BroadcastRawTransactionStatus.AlreadyKnown, result.status)
     }
 
     private companion object {
