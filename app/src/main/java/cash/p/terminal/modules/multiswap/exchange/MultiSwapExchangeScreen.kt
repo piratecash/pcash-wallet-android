@@ -594,6 +594,63 @@ internal fun CancelSwapBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun PayCoreDeleteRestrictedBottomSheet(
+    requiresBankSelection: Boolean,
+    onSelectBank: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val dismiss = { scope.launch { sheetState.hide() }.invokeOnCompletion { onDismiss() } }
+
+    TransparentModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        BottomSheetHeader(
+            iconPainter = painterResource(R.drawable.ic_attention_24),
+            iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
+            title = stringResource(R.string.Alert_TitleWarning),
+            onCloseClick = { dismiss() },
+        ) {
+            VSpacer(12.dp)
+            val warningText = if (requiresBankSelection) {
+                stringResource(R.string.paycore_delete_restricted_warning) + " " +
+                    stringResource(R.string.paycore_delete_to_complete_select_bank)
+            } else {
+                stringResource(R.string.paycore_delete_restricted_warning)
+            }
+            TextImportantWarning(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = warningText,
+            )
+            VSpacer(32.dp)
+            if (requiresBankSelection) {
+                ButtonPrimaryYellow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    title = stringResource(R.string.paycore_select_bank),
+                    onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion { onSelectBank() }
+                    },
+                )
+            } else {
+                ButtonPrimaryYellow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    title = stringResource(R.string.Button_Close),
+                    onClick = { dismiss() },
+                )
+            }
+            VSpacer(32.dp)
+        }
+    }
+}
+
 @Composable
 private fun statusDotColor(status: LegStatus) = when (status) {
     LegStatus.Pending -> ComposeAppTheme.colors.grey

@@ -6,6 +6,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 /**
  * Keeps hashless pending rows available for transaction matching after balance-side confirmation.
  */
+@Suppress("ClassName")
 object Migration_102_103 : Migration(102, 103) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE PendingTransaction ADD COLUMN balanceConfirmedAt INTEGER")

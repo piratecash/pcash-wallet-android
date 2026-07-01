@@ -56,6 +56,9 @@ interface SwapProviderTransactionsDao {
     @Query("SELECT * FROM SwapProviderTransaction WHERE transactionId = :transactionId")
     suspend fun getTransaction(transactionId: String): SwapProviderTransaction?
 
+    @Query("SELECT * FROM SwapProviderTransaction WHERE date = :date")
+    suspend fun getByDate(date: Long): SwapProviderTransaction?
+
     @Query("SELECT * FROM SwapProviderTransaction ORDER BY date DESC LIMIT 100")
     fun observeAll(): Flow<List<SwapProviderTransaction>>
 
@@ -136,14 +139,26 @@ interface SwapProviderTransactionsDao {
         dateTo: Long
     ): SwapProviderTransaction?
 
+    @Query("SELECT * FROM SwapProviderTransaction WHERE date = :date")
+    fun observeByDate(date: Long): Flow<SwapProviderTransaction?>
+
     @Query("UPDATE SwapProviderTransaction SET incomingRecordUid = :incomingRecordUid, amountOutReal = :amountOutReal WHERE date = :date")
     fun setIncomingRecordUid(date: Long, incomingRecordUid: String, amountOutReal: BigDecimal)
 
     @Query("UPDATE SwapProviderTransaction SET outgoingRecordUid = :outgoingRecordUid WHERE date = :date")
     fun setOutgoingRecordUid(date: Long, outgoingRecordUid: String)
 
-    @Query("UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = :finishedAt WHERE transactionId = :transactionId")
-    fun updateStatusFields(transactionId: String, status: String, amountOutReal: BigDecimal?, finishedAt: Long?)
+    @Query("UPDATE SwapProviderTransaction SET status = :status, amountOutReal = :amountOutReal, finishedAt = :finishedAt WHERE date = :date")
+    fun updateStatusFields(date: Long, status: String, amountOutReal: BigDecimal?, finishedAt: Long?)
+
+    @Query("UPDATE SwapProviderTransaction SET transactionId = :newTransactionId WHERE date = :date")
+    fun updateTransactionId(date: Long, newTransactionId: String)
+
+    @Query("DELETE FROM SwapProviderTransaction WHERE date = :date")
+    fun deleteByDate(date: Long)
+
+    @Query("DELETE FROM SwapProviderTransaction WHERE transactionId = :transactionId")
+    fun deleteByTransactionId(transactionId: String)
 
     @Query(
         """
@@ -176,6 +191,7 @@ interface SwapProviderTransactionsDao {
         WHERE provider = :provider
         AND coinUidOut = :coinUidOut
         AND blockchainTypeOut = :blockchainTypeOut
+        AND accountId IN ('', :accountId)
         AND addressOut = :addressOut
         AND CAST(amountOut AS REAL) != 0
         AND ABS(CAST(amountOut AS REAL) - :expectedAmount) / CAST(amountOut AS REAL) < :tolerance
@@ -188,6 +204,7 @@ interface SwapProviderTransactionsDao {
         provider: String,
         coinUidOut: String,
         blockchainTypeOut: String,
+        accountId: String,
         addressOut: String,
         expectedAmount: Double,
         tolerance: Double,

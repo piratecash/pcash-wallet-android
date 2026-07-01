@@ -216,6 +216,7 @@ private fun ContactsSettingsContent(
     }
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
 private fun ContactsSettingsScreenPreview() {

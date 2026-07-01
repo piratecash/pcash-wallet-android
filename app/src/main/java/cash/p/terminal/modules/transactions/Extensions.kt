@@ -6,7 +6,8 @@ import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 fun TransactionStatusEnum?.toUniversalStatus() = when (this) {
     null,
     TransactionStatusEnum.NEW,
-    TransactionStatusEnum.WAITING -> TransactionStatus.Pending
+    TransactionStatusEnum.WAITING,
+    TransactionStatusEnum.CREATED_OR_WAIT_USER -> TransactionStatus.Pending
 
     TransactionStatusEnum.CONFIRMING,
     TransactionStatusEnum.EXCHANGING,

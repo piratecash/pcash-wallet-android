@@ -624,7 +624,7 @@
     <string name="zec_transparent_used">При создании обмена используется временный t-адрес: %s. Он передаётся обменному провайдеру и нужен для возврата средств, если обмен не будет завершён. Использование t-адреса может привести к частичной деанонимизации транзакции.</string>
     <!-- Swap Settings -->
     <string name="Fee_LiquidityFee">Комиссия за ликвидность</string>
-    <string name="SwapSettings_Title">Настройки обмена</string>
+    <string name="SwapSettings_Title">Настройки свапа</string>
     <string name="SwapSettings_SlippageTitle">Допустимость отклонений</string>
     <string name="SwapSettings_SlippageDescription">Ваша транзакция будет отменена, если цена изменится в неблагоприятную сторону более чем на этот процент</string>
     <string name="SwapSettings_DeadlineTitle">Срок транзакции</string>
@@ -645,6 +645,7 @@
     <string name="swap_providers_title">Провайдеры обмена</string>
     <string name="swap_providers_mandatory_toast">Этот провайдер нельзя отключить</string>
     <string name="swap_no_enabled_providers">Нет включённых провайдеров</string>
+    <string name="swap_no_providers_for_this_amount">Нет провайдеров для этой суммы</string>
 
     <!-- Swap Confirmation -->
     <string name="Activate_InsufficientBalance_Description">У вас недостаточно баланса XLM для активации этого токена.</string>
@@ -689,6 +690,7 @@
     <string name="transaction_swap_status_refunded">Средства возвращены</string>
     <string name="transaction_swap_status_verifying">Верификация пользователя</string>
     <string name="transaction_swap_status_unknown">Неизвестный статус</string>
+    <string name="transaction_swap_status_created_or_wait_user">Ожидание выбора банка</string>
     <string name="Transactions_Failed">Не удалось</string>
     <string name="Transactions_ContractCall">Вызов контракта</string>
     <string name="Transactions_ExternalContractCall">Внешний вызов</string>
@@ -728,6 +730,7 @@
     <string name="TransactionInfo_Date">Дата</string>
     <string name="transaction_info_sync_source">Источник синхронизации</string>
     <string name="TransactionInfo_Id">ID Транзакции</string>
+    <string name="TransactionInfo_Service">Сервис</string>
     <string name="TransactionInfo_RawTransaction">Неподтвержденная транзакция</string>
     <string name="TransactionInfo_ContactName">Имя контакта</string>
     <string name="TransactionInfo_To">Кому</string>
@@ -2174,4 +2177,36 @@
     <string name="multi_swap_continue">Продолжить обмен</string>
     <string name="multi_swap_unfinished">Незавершенный обмен</string>
     <string name="multi_swap_unfinished_plural">Незавершенные обмены (%d)</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Подтвердить телефон</string>
+    <string name="paycore_verifying">Проверка…</string>
+    <string name="paycore_service_fee">Комиссия за услугу</string>
+    <string name="paycore_network">Сеть</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Продолжить</string>
+    <string name="paycore_verification_processing">В обработке…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Поддержка</string>
+    <string name="settings_contact_us_paycore_support">Paycore Поддержка</string>
+    <string name="paycore_verification_not_verified">Номер не верифицирован</string>
+    <string name="paycore_verification_pass_kyc">Пройти KYC</string>
+    <string name="paycore_verification_verified_title">Ваша верификация пройдена</string>
+    <string name="paycore_verification_warning_title">ВНИМАНИЕ</string>
+    <string name="paycore_verification_warning_text">РАЗРЕШЁН ПЕРЕВОД ДЕНЕЖНЫХ СРЕДСТВ ИСКЛЮЧИТЕЛЬНО СО СЧЁТА, ПРИНАДЛЕЖАЩЕГО ВАМ, С ВЕРИФИЦИРОВАННЫМ НОМЕРОМ ТЕЛЕФОНА И ЛИЧНОСТЬЮ.</string>
+    <string name="paycore_verification_warning_detail">Переводы с иных счетов не зачислятся, отправленные средства будут утеряны!</string>
+    <string name="paycore_verification_back">Назад</string>
+    <string name="paycore_verification_error">Не удалось завершить вход. Попробуйте позже.</string>
+    <string name="paycore_verification_retry">Повторить</string>
+    <string name="paycore_verification_phone_label">Номер телефона:</string>
+    <string name="paycore_verification_contact_support">Автоматическое восстановление не удалось. Обратитесь в поддержку.</string>
+    <string name="paycore_verification_support_line"><![CDATA[Техническая поддержка 24/7: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Сервис</string>
+    <string name="paycore_support">Поддержка PayCore</string>
+    <string name="paycore_section_currency">Валюта</string>
+    <string name="paycore_section_crypto">Криптовалюты</string>
+    <string name="paycore_select_bank">Выберите банк</string>
+    <string name="paycore_select_bank_error">Не удалось открыть выбор банка. Попробуйте позже.</string>
+    <string name="paycore_banks_unavailable">Банки временно недоступны. Попробуйте позже.</string>
+    <string name="paycore_delete_restricted_warning">Данную транзакцию удалить нельзя так как она совершается на стороннем сервисе.</string>
+    <string name="paycore_delete_to_complete_select_bank">Для завершения обмена выберите банк.</string>
 </resources>

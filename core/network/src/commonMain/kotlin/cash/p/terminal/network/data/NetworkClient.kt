@@ -34,7 +34,9 @@ internal fun buildNetworkClient() = HttpClient(OkHttp) {
             logger = object : Logger {
                 private val logTag = "KtorHttpLogger: "
                 override fun log(message: String) {
-                    println(logTag + message)
+                    message.lineSequence().forEach { line ->
+                        println(logTag + line)
+                    }
                 }
             }
         }

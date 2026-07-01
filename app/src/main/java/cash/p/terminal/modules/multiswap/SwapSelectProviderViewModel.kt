@@ -4,24 +4,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class SwapSelectProviderViewModel(private val quotes: List<SwapProviderQuote>) :
     ViewModelUiState<SwapSelectProviderUiState>() {
     private val currencyManager = App.currencyManager
-    private val marketKit = App.marketKit
+    private val assetFiatRateService: AssetFiatRateService = getKoinInstance()
 
     private val currency = currencyManager.baseCurrency
     private var token: Token = quotes.first().tokenOut
-    private var rate: BigDecimal? = marketKit.coinPrice(token.coin.uid, currency.code)?.value
+    private var rate: BigDecimal? = null
 
     // To show straight or reversed rate in provider list item
     private var isRegularRateDirection = true
@@ -30,10 +30,9 @@ class SwapSelectProviderViewModel(private val quotes: List<SwapProviderQuote>) :
 
     init {
         viewModelScope.launch {
-            marketKit.coinPriceObservable("swap-providers", token.coin.uid, currency.code)
-                .asFlow()
+            assetFiatRateService.rateFlow("swap-providers", token, currency)
                 .collect {
-                    rate = it.value
+                    rate = it
                     quoteViewItems = getViewItems(quotes)
                     emitState()
                 }

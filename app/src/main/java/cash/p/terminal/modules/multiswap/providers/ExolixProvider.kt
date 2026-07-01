@@ -155,7 +155,7 @@ class ExolixProvider(
                 throw SwapDepositTooSmall(rate.minAmount)
             }
 
-            val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut)
+            val actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut))
 
             SwapQuoteOffChain(
                 amountOut = rate.toAmount,
@@ -170,14 +170,13 @@ class ExolixProvider(
         }
     }
 
-    override fun getCreateTokenActionRequired(
-        tokenIn: Token,
-        tokenOut: Token
-    ): ActionCreate? = providerSupport.getCreateTokenActionRequired(
-        tokenIn = tokenIn,
-        tokenOut = tokenOut,
-        useTransparentZcashRefundAddress = useTransparentZcashRefundAddress(tokenIn),
-    )
+    override fun getCreateTokenActionRequired(tokens: List<Token>): ActionCreate? =
+        providerSupport.getCreateTokenActionRequired(
+            tokens = tokens,
+            useTransparentZcashRefundAddress = tokens.firstOrNull()
+                ?.let(::useTransparentZcashRefundAddress)
+                ?: true,
+        )
 
     override suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? =
         withContext(dispatcherProvider.io) {

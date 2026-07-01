@@ -632,6 +632,7 @@
     <string name="swap_providers_title">Tausch-Anbieter</string>
     <string name="swap_providers_mandatory_toast">Dieser Anbieter kann nicht deaktiviert werden</string>
     <string name="swap_no_enabled_providers">Keine aktiven Anbieter</string>
+    <string name="swap_no_providers_for_this_amount">Keine Anbieter für diesen Betrag</string>
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Sie können %s tauschen, oder Sie müssen den neuen Betrag widerrufen und genehmigen</string>
     <string name="Approve_Spender">Spender</string>
@@ -672,6 +673,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Warten auf Bankauswahl</string>
     <string name="Transactions_Failed">Fehlgeschlagen</string>
     <string name="Transactions_ContractCall">Vertragsaufruf</string>
     <string name="Transactions_ExternalContractCall">Externe Anrufe</string>
@@ -709,6 +711,7 @@
     <string name="TransactionInfo_Date">Datum</string>
     <string name="transaction_info_sync_source">Sync-Quelle</string>
     <string name="TransactionInfo_Id">Transaktion ID</string>
+    <string name="TransactionInfo_Service">Dienst</string>
     <string name="TransactionInfo_RawTransaction">Rohdaten der Transaktion</string>
     <string name="TransactionInfo_ContactName">Kontaktname</string>
     <string name="TransactionInfo_To">An</string>
@@ -1487,11 +1490,6 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="SubscriptionInfo_HavePremium">Ich habe bereits Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Über Premium</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[Benutzervereinbarung zur Einrichtung eines PIN-Codes zum Löschen des Adressbuchs für Krypto-Adressen<br/><br/>Durch das Festlegen eines PIN-Codes bestätigen Sie, dass Sie seinen Zweck als Mechanismus zum Schutz Ihrer Privatsphäre verstehen.<br/><b>1. Schutzfunktion des PIN-Codes</b><br/>Dieser PIN-Code ist für die Notfall-Löschung des Adressbuchs mit Krypto-Adressen von diesem Gerät bestimmt, um eine mögliche Kompromittierung Ihrer finanziellen Verbindungen und gespeicherten Adressen durch Dritte zu verhindern.<br/><b>2. Funktionsweise</b><br/>Die Eingabe des eingerichteten PIN-Codes führt zur sofortigen Löschung Ihres auf diesem Gerät gespeicherten Adressbuchs mit Krypto-Adressen.<br/><b>3. Unumkehrbarkeit der Löschung</b><br/>Das Löschen des Adressbuchs nach Eingabe des PIN-Codes ist endgültig und unumkehrbar.<br/><b>4. Keine Wiederherstellung</b><br/>Wenn das Adressbuch gelöscht wurde, können die Daten nicht wiederhergestellt werden, sofern nicht zuvor eine Sicherungskopie erstellt wurde.<br/><b>5. Lokale Speicherung</b><br/>Das Adressbuch wird ausschließlich lokal auf Ihrem Gerät gespeichert und nicht an Entwickler oder externe Server übertragen.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>Ich verstehe, dass der PIN-Code zur sofortigen Löschung des Adressbuchs mit Krypto-Adressen verwendet wird.</item>
-        <item>Ich verstehe, dass das Adressbuch nach Eingabe des PIN-Codes ohne die Möglichkeit einer Wiederherstellung ohne Sicherungskopie gelöscht wird.</item>
-    </string-array>
     <string name="premium_settings">Premium-Einstellungen</string>
     <string name="advanced_security">Erweiterte Sicherheit</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Versteckte Wallet erstellen</string>
@@ -1527,6 +1525,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
         <item>Wenn Sie keine Sicherungskopien der privaten Schlüssel für alle Wallets erstellt haben, verlieren Sie den Zugriff auf alle Ihre Gelder.</item>
         <item>Der Benutzer ist sich der Risiken bewusst und versteht, dass diese Aktion unumkehrbar ist.</item>
         <item>Nach dem Zurücksetzen wird Ihre Haupt-PIN zu Ihrer Rücksetz-PIN, und die Rücksetz-PIN wird deaktiviert.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[Benutzervereinbarung zur Einrichtung eines PIN-Codes zum Löschen des Adressbuchs für Krypto-Adressen<br/><br/>Durch das Festlegen eines PIN-Codes bestätigen Sie, dass Sie seinen Zweck als Mechanismus zum Schutz Ihrer Privatsphäre verstehen.<br/><b>1. Schutzfunktion des PIN-Codes</b><br/>Dieser PIN-Code ist für die Notfall-Löschung des Adressbuchs mit Krypto-Adressen von diesem Gerät bestimmt, um eine mögliche Kompromittierung Ihrer finanziellen Verbindungen und gespeicherten Adressen durch Dritte zu verhindern.<br/><b>2. Funktionsweise</b><br/>Die Eingabe des eingerichteten PIN-Codes führt zur sofortigen Löschung Ihres auf diesem Gerät gespeicherten Adressbuchs mit Krypto-Adressen.<br/><b>3. Unumkehrbarkeit der Löschung</b><br/>Das Löschen des Adressbuchs nach Eingabe des PIN-Codes ist endgültig und unumkehrbar.<br/><b>4. Keine Wiederherstellung</b><br/>Wenn das Adressbuch gelöscht wurde, können die Daten nicht wiederhergestellt werden, sofern nicht zuvor eine Sicherungskopie erstellt wurde.<br/><b>5. Lokale Speicherung</b><br/>Das Adressbuch wird ausschließlich lokal auf Ihrem Gerät gespeichert und nicht an Entwickler oder externe Server übertragen.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>Ich verstehe, dass der PIN-Code zur sofortigen Löschung des Adressbuchs mit Krypto-Adressen verwendet wird.</item>
+        <item>Ich verstehe, dass das Adressbuch nach Eingabe des PIN-Codes ohne die Möglichkeit einer Wiederherstellung ohne Sicherungskopie gelöscht wird.</item>
     </string-array>
 
     <!--Premium Screens-->
@@ -1978,6 +1981,38 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="multi_swap_cancel_swap">Tausch abbrechen</string>
     <string name="multi_swap_cancel_swap_warning">Der erste Tausch wurde bereits abgeschlossen. Die Zwischenmünzen befinden sich in Ihrer Wallet und bleiben Ihnen erhalten. Nur der zweite Tauschschritt wird abgebrochen.</string>
     <string name="swap_leg_title">Tausch %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Telefon verifizieren</string>
+    <string name="paycore_verifying">Wird verifiziert…</string>
+    <string name="paycore_service_fee">Servicegebühr</string>
+    <string name="paycore_network">Netzwerk</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Weiter</string>
+    <string name="paycore_verification_processing">In Bearbeitung…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Support</string>
+    <string name="settings_contact_us_paycore_support">Paycore Support</string>
+    <string name="paycore_verification_not_verified">Nummer nicht verifiziert</string>
+    <string name="paycore_verification_pass_kyc">KYC durchführen</string>
+    <string name="paycore_verification_verified_title">Ihre Verifizierung ist abgeschlossen</string>
+    <string name="paycore_verification_warning_title">ACHTUNG</string>
+    <string name="paycore_verification_warning_text">GELDÜBERWEISUNGEN SIND AUSSCHLIESSLICH VOM KONTO GESTATTET, DAS IHNEN GEHÖRT, MIT VERIFIZIERTER TELEFONNUMMER UND IDENTITÄT.</string>
+    <string name="paycore_verification_warning_detail">Überweisungen von anderen Konten werden nicht gutgeschrieben, gesendete Gelder gehen verloren!</string>
+    <string name="paycore_verification_back">Zurück</string>
+    <string name="paycore_verification_error">Anmeldung fehlgeschlagen. Bitte versuchen Sie es später.</string>
+    <string name="paycore_verification_retry">Wiederholen</string>
+    <string name="paycore_verification_phone_label">Telefonnummer:</string>
+    <string name="paycore_verification_contact_support">Automatische Wiederherstellung fehlgeschlagen. Bitte kontaktieren Sie den Support.</string>
+    <string name="paycore_verification_support_line"><![CDATA[Technischer Support rund um die Uhr: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Service</string>
+    <string name="paycore_support">PayCore-Support</string>
+    <string name="paycore_section_currency">Währung</string>
+    <string name="paycore_section_crypto">Kryptowährungen</string>
+    <string name="paycore_select_bank">Bank auswählen</string>
+    <string name="paycore_select_bank_error">Bankauswahl konnte nicht geöffnet werden. Versuche es später erneut.</string>
+    <string name="paycore_banks_unavailable">Banken sind vorübergehend nicht verfügbar. Versuche es später erneut.</string>
+    <string name="paycore_delete_restricted_warning">Diese Transaktion kann nicht gelöscht werden, da sie von einem Drittanbieter abgewickelt wird.</string>
+    <string name="paycore_delete_to_complete_select_bank">Wähle eine Bank aus, um den Swap abzuschließen.</string>
     <string name="scan">Scannen</string>
     <string name="adding_tokens">Token werden hinzugefügt</string>
     <string name="scan_to_add_message">Sie müssen die Karte scannen, um Token hinzuzufügen</string>

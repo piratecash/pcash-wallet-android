@@ -94,6 +94,7 @@ import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.entities.Currency
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -101,6 +102,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import cash.p.terminal.core.App
 import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsScreen
 import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsViewModel
@@ -119,9 +121,21 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import kotlinx.serialization.Serializable
 import cash.p.terminal.modules.multiswap.settings.SwapSettingsScreen
+import cash.p.terminal.modules.paycore.PayCoreAssets
+import cash.p.terminal.modules.paycore.PayCoreQuote
+import cash.p.terminal.modules.paycore.PayCoreSelectBankAction
+import cash.p.terminal.modules.paycore.PayCoreVerificationAction
+import cash.p.terminal.modules.paycore.payment.PayCorePaymentDisplayParams
+import cash.p.terminal.modules.paycore.payment.PayCorePaymentParams
+import cash.p.terminal.modules.paycore.payment.PayCorePaymentScreen
+import cash.p.terminal.modules.paycore.payment.PayCorePaymentViewModel
+import cash.p.terminal.modules.paycore.verification.PayCoreVerificationScreen
 import android.os.Parcelable
+import cash.p.terminal.modules.paycore.PayCoreNetworkMapper.toTicker
+import cash.p.terminal.modules.paycore.PayCoreTicker
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Parcelize
 data class SwapDeeplinkInput(val tokenOut: Token?) : Parcelable
@@ -162,6 +176,24 @@ private object SwapProvidersSettingsPage
 private data class SwapSelectLegProviderPage(val legIndex: Int)
 
 @Serializable
+private data class PayCoreVerificationPage(
+    val networkType: PayCoreTicker,
+    val walletAddress: String,
+)
+
+@Serializable
+private data class PayCorePaymentPage(
+    val amountIn: String,
+    val amountOut: String,
+    val serviceFee: String,
+    val networkType: PayCoreTicker,
+    val tokenInUid: String,
+    val tokenOutUid: String,
+    val blockchainTypeIn: String,
+    val blockchainTypeOut: String,
+)
+
+@Serializable
 private enum class SwapCoinDirection { From, To }
 
 @Composable
@@ -185,9 +217,9 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
         composablePopup<SwapSelectCoinPage> { backStackEntry ->
             val args = backStackEntry.toRoute<SwapSelectCoinPage>()
             val direction = args.direction
-            val initialToken = when (direction) {
-                SwapCoinDirection.From -> viewModel.uiState.tokenIn
-                SwapCoinDirection.To -> viewModel.uiState.tokenOut
+            val otherToken = when (direction) {
+                SwapCoinDirection.From -> viewModel.uiState.tokenOut
+                SwapCoinDirection.To -> viewModel.uiState.tokenIn
             }
             val titleResId = when (direction) {
                 SwapCoinDirection.From -> R.string.Swap_YouPay
@@ -196,7 +228,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
 
             SwapSelectCoinScreen(
                 navController = swapNavController,
-                token = initialToken,
+                token = otherToken,
                 title = stringResource(id = titleResId)
             ) { token ->
                 when (direction) {
@@ -312,10 +344,97 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             SwapProvidersSettingsScreen(
                 uiState = providersSettingsViewModel.uiState,
                 onToggle = providersSettingsViewModel::setProviderEnabled,
-                onClose = swapNavController::navigateUp,
+                onClose = swapNavController::navigateUpSafely,
+            )
+        }
+        composablePage<PayCoreVerificationPage> { backStackEntry ->
+            val args = backStackEntry.toRoute<PayCoreVerificationPage>()
+            PayCoreVerificationScreen(
+                networkType = args.networkType,
+                walletAddress = args.walletAddress,
+                onClose = swapNavController::navigateUpSafely,
+                onComplete = {
+                    viewModel.onActionCompleted()
+                    swapNavController.navigateUpSafely()
+                }
+            )
+        }
+        composablePage<PayCorePaymentPage> { backStackEntry ->
+            val args = backStackEntry.toRoute<PayCorePaymentPage>()
+            val tokenIn = viewModel.uiState.tokenIn ?: run {
+                LaunchedEffect(Unit) { swapNavController.navigateUp() }
+                return@composablePage
+            }
+            val tokenOut = viewModel.uiState.tokenOut ?: run {
+                LaunchedEffect(Unit) { swapNavController.navigateUp() }
+                return@composablePage
+            }
+            val paymentParams = remember(args, tokenOut) {
+                PayCorePaymentParams(
+                    amountIn = args.amountIn.toBigDecimal(),
+                    amountOut = args.amountOut.toBigDecimal(),
+                    networkType = args.networkType,
+                    tokenInUid = args.tokenInUid,
+                    tokenOutUid = args.tokenOutUid,
+                    blockchainTypeIn = args.blockchainTypeIn,
+                    blockchainTypeOut = args.blockchainTypeOut,
+                    addressOut = tryOrNull { getKoinInstance<WalletUseCase>().getReceiveAddress(tokenOut) }.orEmpty(),
+                )
+            }
+            val paymentViewModel = koinViewModel<PayCorePaymentViewModel>(
+                key = args.amountIn + args.networkType
+            ) { parametersOf(paymentParams) }
+            PayCorePaymentScreen(
+                uiState = paymentViewModel.uiState,
+                displayParams = PayCorePaymentDisplayParams(
+                    amountIn = paymentViewModel.amountIn,
+                    amountOut = paymentViewModel.amountOut,
+                    serviceFee = args.serviceFee.toBigDecimal(),
+                    networkType = paymentViewModel.networkType,
+                    tokenIn = tokenIn,
+                    tokenOut = tokenOut,
+                    currency = viewModel.uiState.currency,
+                ),
+                onConfirm = paymentViewModel::onConfirm,
+                onOpenWebView = paymentViewModel::onWebViewOpened,
+                onCompleteWebView = paymentViewModel::onWebViewCompleted,
+                onCloseWebView = paymentViewModel::onWebViewClosed,
+                onClose = swapNavController::navigateUpSafely
             )
         }
     }
+}
+
+private fun buildNextPage(viewModel: SwapViewModel): Any {
+    return buildPayCorePaymentPage(viewModel.uiState) ?: SwapConfirmPage
+}
+
+private fun buildPayCorePaymentPage(uiState: SwapUiState): PayCorePaymentPage? {
+    val quote = uiState.quote
+    val tokenIn = uiState.tokenIn
+    if (quote == null || tokenIn == null) return null
+    val tokenOut = uiState.tokenOut
+    val amountIn = uiState.amountIn
+    if (tokenOut == null || amountIn == null) return null
+
+    val isPayCoreRubPayment = quote.provider.id == "paycore" && PayCoreAssets.isRub(tokenIn)
+    if (!isPayCoreRubPayment) return null
+
+    val networkType = tokenOut.toTicker() ?: return null
+    return PayCorePaymentPage(
+        amountIn = amountIn.toPlainString(),
+        amountOut = quote.amountOut.toPlainString(),
+        serviceFee = payCoreQuoteServiceFee(quote).toPlainString(),
+        networkType = networkType,
+        tokenInUid = tokenIn.coin.uid,
+        tokenOutUid = tokenOut.coin.uid,
+        blockchainTypeIn = tokenIn.blockchainType.uid,
+        blockchainTypeOut = tokenOut.blockchainType.uid
+    )
+}
+
+private fun payCoreQuoteServiceFee(quote: SwapProviderQuote): BigDecimal {
+    return (quote.swapQuote as? PayCoreQuote)?.serviceFee ?: BigDecimal.ZERO
 }
 
 private fun buildMultiSwapLeg1Info(viewModel: SwapViewModel): MultiSwapLegInfo? {
@@ -389,7 +508,8 @@ private fun SwapMainScreen(
         },
         onTimeout = viewModel::reQuote,
         onClickNext = {
-            swapNavController.navigate(SwapConfirmPage)
+            val nextPage = buildNextPage(viewModel)
+            swapNavController.navigate(nextPage)
         },
         onCreateMissingTokens = { tokens ->
             tokens.forEach { token ->
@@ -408,8 +528,17 @@ private fun SwapMainScreen(
         },
         navController = fragmentNavController,
         onBalanceClicked = viewModel::toggleHideBalance,
-        onClickLegProvider = { legIndex ->
-            swapNavController.navigate(SwapSelectLegProviderPage(legIndex))
+        onOpenVerification = {
+            val tokenIn = viewModel.uiState.tokenIn
+            val tokenOut = viewModel.uiState.tokenOut
+            val usdtToken = if (tokenIn != null && PayCoreAssets.isRub(tokenIn)) tokenOut else tokenIn
+            val networkType = usdtToken?.toTicker()
+            val walletAddress = usdtToken?.let { token ->
+                tryOrNull { getKoinInstance<WalletUseCase>().getReceiveAddress(token) }
+            }
+            if (networkType != null && !walletAddress.isNullOrBlank()) {
+                swapNavController.navigate(PayCoreVerificationPage(networkType, walletAddress))
+            }
         },
     )
 }
@@ -435,7 +564,7 @@ private fun SwapScreenInner(
     onActionCompleted: () -> Unit,
     onBalanceClicked: () -> Unit,
     navController: NavController,
-    onClickLegProvider: (Int) -> Unit = {},
+    onOpenVerification: () -> Unit
 ) {
     LifecycleResumeEffect(uiState.timeout) {
         if (uiState.timeout) {
@@ -550,6 +679,7 @@ private fun SwapScreenInner(
                                 id = R.string.swap_out_of_min_amount,
                                 error.minValue.toPlainString()
                             )
+                            is SwapAmountOutOfRange -> stringResource(id = R.string.swap_no_providers_for_this_amount)
 
                             is PriceImpactTooHigh -> stringResource(id = R.string.Swap_ErrorHighPriceImpact)
                             is UnknownHostException -> stringResource(id = R.string.Hud_Text_NoInternet)
@@ -584,10 +714,11 @@ private fun SwapScreenInner(
                             enabled = !action.inProgress,
                             onClick = {
                                 onActionStarted.invoke()
-                                if (action is ActionCreate) {
-                                    onCreateMissingTokens(action.tokensToAdd)
-                                } else {
-                                    action.execute(navController, onActionCompleted)
+                                when (action) {
+                                    is ActionCreate -> onCreateMissingTokens(action.tokensToAdd)
+                                    is PayCoreSelectBankAction -> onClickProviderSettings()
+                                    is PayCoreVerificationAction -> onOpenVerification()
+                                    else -> action.execute(navController, onActionCompleted)
                                 }
                             }
                         )
@@ -631,7 +762,12 @@ private fun SwapScreenInner(
                 VSpacer(height = 12.dp)
                 if (quote != null) {
                     CardsSwapInfo {
-                        ProviderField(quote.provider, onClickProvider, onClickProviderSettings)
+                        ProviderField(
+                            swapProvider = quote.provider,
+                            showSettings = quote.hasSettings,
+                            onClickProvider = onClickProvider,
+                            onClickProviderSettings = onClickProviderSettings,
+                        )
                         val finalTokenOut = uiState.tokenOut ?: quote.tokenOut
                         val finalAmountOut = uiState.multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quote.amountOut
                         PriceField(quote.tokenIn, finalTokenOut, quote.amountIn, finalAmountOut)
@@ -640,7 +776,7 @@ private fun SwapScreenInner(
                             uiState.priceImpactLevel,
                         )
                         quote.fields.forEach {
-                            it.GetContent(navController, false)
+                            it.GetContent(navController, true)
                         }
                     }
                 }
@@ -757,6 +893,7 @@ fun PriceImpactField(
 @Composable
 private fun ProviderField(
     swapProvider: IMultiSwapProvider,
+    showSettings: Boolean,
     onClickProvider: () -> Unit,
     onClickProviderSettings: () -> Unit,
 ) {
@@ -781,14 +918,16 @@ private fun ProviderField(
             onClickSelect = onClickProvider
         )
         HFillSpacer(minWidth = 16.dp)
-        Icon(
-            modifier = Modifier.clickable(
-                onClick = onClickProviderSettings
-            ),
-            painter = painterResource(R.drawable.ic_manage_2),
-            contentDescription = "",
-            tint = ComposeAppTheme.colors.grey
-        )
+        if (showSettings) {
+            Icon(
+                modifier = Modifier.clickable(
+                    onClick = onClickProviderSettings
+                ),
+                painter = painterResource(R.drawable.ic_manage_2),
+                contentDescription = "",
+                tint = ComposeAppTheme.colors.grey
+            )
+        }
     }
 }
 
@@ -1178,7 +1317,12 @@ private fun MultiSwapLegCard(
             },
             value = {}
         )
-        ProviderField(quote.provider, onClickProvider, onClickProviderSettings)
+        ProviderField(
+            swapProvider = quote.provider,
+            showSettings = quote.hasSettings,
+            onClickProvider = onClickProvider,
+            onClickProviderSettings = onClickProviderSettings,
+        )
         LegAmountRow(
             label = stringResource(R.string.swap_you_send),
             amount = quote.amountIn,
@@ -1193,7 +1337,7 @@ private fun MultiSwapLegCard(
         )
         PriceField(quote.tokenIn, quote.tokenOut, quote.amountIn, quote.amountOut)
         quote.fields.forEach {
-            it.GetContent(navController, false)
+            it.GetContent(navController, true)
         }
     }
 }

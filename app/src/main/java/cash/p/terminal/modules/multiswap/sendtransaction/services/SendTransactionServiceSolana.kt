@@ -8,6 +8,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.core.App
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.ISendSolanaAdapter
+import cash.p.terminal.core.getFeeTokenBalance
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.isNative
@@ -80,6 +81,26 @@ class SendTransactionServiceSolana(
         private set
     private val decimalAmount: BigDecimal
         get() = amountState.amount!!
+    private val tokenSdkBalance: BigDecimal
+        get() = adapterManager.getBalanceAdapterForWallet(wallet)
+            ?.balanceData?.available ?: adjustedAvailableBalance
+
+    private fun resolveNativeFeeBalance(tokenBalance: BigDecimal): BigDecimal {
+        return if (token.type == TokenType.Native) {
+            tokenBalance
+        } else {
+            adapterManager.getFeeTokenBalance(feeToken, token) ?: BigDecimal.ZERO
+        }
+    }
+
+    private fun nativeFeeReserve(): BigDecimal {
+        return if (token.type == TokenType.Native) {
+            SolanaKit.accountRentAmount
+        } else {
+            // SPL transfers spend native SOL only as the fee payer balance.
+            BigDecimal.ZERO
+        }
+    }
 
     private var cautions: List<CautionViewItem> = listOf()
     private var sendable = false
@@ -179,12 +200,21 @@ class SendTransactionServiceSolana(
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
         var pendingTxId: String? = null
         try {
-            val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
-                ?.balanceData?.available ?: adjustedAvailableBalance
+            val sdkBalance = tokenSdkBalance
+            val nativeFeeBalance = resolveNativeFeeBalance(sdkBalance)
             val fromAddress = adapterManager.getReceiveAdapterForWallet(wallet)?.receiveAddress ?: ""
 
             val tmpRawTransaction = rawTransaction
             val transaction = if (tmpRawTransaction != null) {
+                validateNativeFeeBalance(
+                    nativeFeeBalance = nativeFeeBalance,
+                    nativeAmount = if (token.type == TokenType.Native) {
+                        rawTransactionAmount ?: BigDecimal.ZERO
+                    } else {
+                        BigDecimal.ZERO
+                    }
+                )
+
                 val draft = PendingTransactionDraft(
                     wallet = wallet,
                     token = wallet.token,
@@ -199,12 +229,10 @@ class SendTransactionServiceSolana(
 
                 adapter.send(tmpRawTransaction)
             } else {
-                val totalSolAmount =
-                    (if (token.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
-                val liveSolBalance = sdkBalance - SolanaKit.accountRentAmount
-
-                if (totalSolAmount > liveSolBalance)
-                    throw EvmError.InsufficientBalanceWithFee
+                validateNativeFeeBalance(
+                    nativeFeeBalance = nativeFeeBalance,
+                    nativeAmount = if (token.type == TokenType.Native) decimalAmount else BigDecimal.ZERO
+                )
 
                 val draft = PendingTransactionDraft(
                     wallet = wallet,
@@ -232,6 +260,17 @@ class SendTransactionServiceSolana(
             cautions = listOf(createCaution(e))
             emitState()
             throw e
+        }
+    }
+
+    private fun validateNativeFeeBalance(
+        nativeFeeBalance: BigDecimal,
+        nativeAmount: BigDecimal = BigDecimal.ZERO,
+    ) {
+        val required = nativeAmount + fee
+        val available = nativeFeeBalance - nativeFeeReserve()
+        if (required > available) {
+            throw EvmError.InsufficientBalanceWithFee
         }
     }
 }

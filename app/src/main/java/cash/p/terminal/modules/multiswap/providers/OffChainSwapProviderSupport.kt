@@ -39,31 +39,29 @@ class OffChainSwapProviderSupport(
     private val zcashAddressMutex = Mutex()
 
     fun getCreateTokenActionRequired(
-        tokenIn: Token,
-        tokenOut: Token,
+        tokens: List<Token>,
         useTransparentZcashRefundAddress: Boolean = true,
     ): ActionCreate? {
-        val tokenInWalletCreated = walletUseCase.getWallet(tokenIn) != null
-        val tokenOutWalletCreated = walletUseCase.getWallet(tokenOut) != null
-        val tokenZCashToCreate = if (useTransparentZcashRefundAddress && requiresTransparentRefundAddress(tokenIn)) {
+        val tokenIn = tokens.firstOrNull()
+        val tokenZCashToCreate = if (
+            tokenIn != null &&
+            useTransparentZcashRefundAddress &&
+            requiresTransparentRefundAddress(tokenIn)
+        ) {
             getZCashTransparentToken()
         } else {
             null
         }
         val needCreateTransparentWallet =
             tokenZCashToCreate != null && walletUseCase.getWallet(tokenZCashToCreate) == null
+        val tokensToAdd = tokens.filterTo(mutableSetOf()) { token ->
+            walletUseCase.getWallet(token) == null
+        }
+        if (needCreateTransparentWallet) {
+            tokensToAdd.add(tokenZCashToCreate)
+        }
 
-        return if (!tokenInWalletCreated || !tokenOutWalletCreated || needCreateTransparentWallet) {
-            val tokensToAdd = mutableSetOf<Token>()
-            if (!tokenInWalletCreated) {
-                tokensToAdd.add(tokenIn)
-            }
-            if (!tokenOutWalletCreated) {
-                tokensToAdd.add(tokenOut)
-            }
-            if (needCreateTransparentWallet) {
-                tokensToAdd.add(tokenZCashToCreate)
-            }
+        return if (tokensToAdd.isNotEmpty()) {
             ActionCreate(
                 inProgress = false,
                 descriptionResId = if (!needCreateTransparentWallet) {
@@ -76,6 +74,17 @@ class OffChainSwapProviderSupport(
         } else {
             null
         }
+    }
+
+    fun getCreateTokenActionRequired(
+        tokenIn: Token,
+        tokenOut: Token,
+        useTransparentZcashRefundAddress: Boolean = true,
+    ): ActionCreate? {
+        return getCreateTokenActionRequired(
+            tokens = listOf(tokenIn, tokenOut),
+            useTransparentZcashRefundAddress = useTransparentZcashRefundAddress,
+        )
     }
 
     suspend fun getWarningMessage(

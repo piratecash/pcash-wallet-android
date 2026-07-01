@@ -4,6 +4,7 @@ import cash.p.terminal.core.ISendZcashAdapter
 import cash.p.terminal.core.ServiceState
 import cash.p.terminal.core.getFeeTokenBalance
 import cash.p.terminal.core.isNative
+import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.modules.send.zcash.calculateZcashAvailableToSend
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapterManager
@@ -125,12 +126,11 @@ class TokenBalanceService(
             val currentFee = fee ?: return
             val currentToken = token ?: return
 
-            insufficientFeeBalance = if (currentToken.type.isNative) {
-                false // fee is already accounted for in the native available-to-spend balance
-            } else {
-                val currentFeeCoinBalance = feeCoinBalance ?: BigDecimal.ZERO
-                currentFee > currentFeeCoinBalance
-            }
+            insufficientFeeBalance = hasInsufficientFeeTokenBalance(
+                token = currentToken,
+                fee = currentFee,
+                feeTokenBalance = feeCoinBalance,
+            )
         }
     }
 

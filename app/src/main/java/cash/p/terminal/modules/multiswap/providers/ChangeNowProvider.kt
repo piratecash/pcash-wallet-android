@@ -172,7 +172,7 @@ class ChangeNowProvider(
             val amountOut = getExchangeAmountOrThrow(tickerFrom, tickerTo, amountIn)
                 ?: throw IllegalStateException("ChangeNowProvider: amount is not found")
 
-            val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut)
+            val actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut))
 
             SwapQuoteOffChain(
                 amountOut = amountOut,
@@ -187,10 +187,9 @@ class ChangeNowProvider(
         }
     }
 
-    override fun getCreateTokenActionRequired(
-        tokenIn: Token,
-        tokenOut: Token
-    ): ActionCreate? = providerSupport.getCreateTokenActionRequired(tokenIn, tokenOut)
+    override fun getCreateTokenActionRequired(tokens: List<Token>): ActionCreate? {
+        return providerSupport.getCreateTokenActionRequired(tokens)
+    }
 
     override suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? =
         withContext(Dispatchers.IO) {

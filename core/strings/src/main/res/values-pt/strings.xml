@@ -619,7 +619,7 @@
     <string name="unsupported_token">Token não suportado</string>
     <string name="zec_transparent_used">Ao criar a troca, é utilizado um endereço t temporário: %s. Ele é fornecido ao provedor de troca e é necessário para o reembolso caso a troca não seja concluída. O uso de um endereço t pode levar à desanonimização parcial da transação.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Configurações de troca</string>
+    <string name="SwapSettings_Title">Configurações de swap</string>
     <string name="SwapSettings_SlippageTitle">Tolerância de Slippage</string>
     <string name="SwapSettings_SlippageDescription">Sua transação será revertida se o preço mudar desfavoravelmente em mais do que esta porcentagem</string>
     <string name="SwapSettings_DeadlineTitle">Data-limite da operação</string>
@@ -638,6 +638,7 @@
     <string name="swap_providers_title">Provedores de swap</string>
     <string name="swap_providers_mandatory_toast">Este provedor não pode ser desativado</string>
     <string name="swap_no_enabled_providers">Nenhum provedor ativo</string>
+    <string name="swap_no_providers_for_this_amount">Sem fornecedores para este valor</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Você pode trocar %s, ou você precisa revogar e aprovar o novo valor</string>
@@ -679,6 +680,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Aguardando seleção do banco</string>
     <string name="Transactions_Failed">Falhou</string>
     <string name="Transactions_ContractCall">Chamada de Contrato</string>
     <string name="Transactions_ExternalContractCall">Ligação Externa</string>
@@ -716,6 +718,7 @@
     <string name="TransactionInfo_Date">Data</string>
     <string name="transaction_info_sync_source">Fonte de sincronização</string>
     <string name="TransactionInfo_Id">ID</string>
+    <string name="TransactionInfo_Service">Serviço</string>
     <string name="TransactionInfo_RawTransaction">Transação bruta</string>
     <string name="TransactionInfo_ContactName">Nome do Contato</string>
     <string name="TransactionInfo_To">Para</string>
@@ -1496,11 +1499,6 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Sobre o Premium</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[Acordo do utilizador para definir um código PIN para eliminar o livro de endereços cripto<br/><br/>Ao definir um código PIN, confirma que compreende a sua finalidade como mecanismo de proteção da sua privacidade.<br/><b>1. Função de proteção do código PIN</b><br/>Este código PIN destina-se à eliminação de emergência do livro de endereços cripto do dispositivo, com o objetivo de evitar uma possível exposição das suas ligações financeiras e endereços guardados a terceiros.<br/><b>2. Mecanismo de funcionamento</b><br/>A introdução do código PIN configurado levará à eliminação imediata do seu livro de endereços cripto armazenado neste dispositivo.<br/><b>3. Irreversibilidade da eliminação</b><br/>A eliminação do livro de endereços após a introdução do código PIN é definitiva e irreversível.<br/><b>4. Ausência de recuperação</b><br/>Se o livro de endereços for eliminado, os dados não poderão ser restaurados, a menos que tenha sido criada previamente uma cópia de segurança.<br/><b>5. Armazenamento local</b><br/>O livro de endereços é armazenado exclusivamente de forma local no seu dispositivo e não é transferido para os programadores nem para servidores externos.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>Compreendo que o código PIN é utilizado para eliminar imediatamente o livro de endereços cripto.</item>
-        <item>Compreendo que, após a introdução do código PIN, o livro de endereços será eliminado sem possibilidade de recuperação sem uma cópia de segurança.</item>
-    </string-array>
     <string name="premium_settings">Definições Premium</string>
     <string name="advanced_security">Segurança avançada</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
@@ -1536,6 +1534,11 @@
         <item>Se você não fez cópias de backup das chaves privadas de todas as carteiras, perderá o acesso a todos os seus fundos.</item>
         <item>O usuário está ciente dos riscos e entende que esta ação será irreversível.</item>
         <item>Após a redefinição, seu PIN principal se tornará seu PIN de redefinição, e o PIN de redefinição será desativado.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[Acordo do utilizador para definir um código PIN para eliminar o livro de endereços cripto<br/><br/>Ao definir um código PIN, confirma que compreende a sua finalidade como mecanismo de proteção da sua privacidade.<br/><b>1. Função de proteção do código PIN</b><br/>Este código PIN destina-se à eliminação de emergência do livro de endereços cripto do dispositivo, com o objetivo de evitar uma possível exposição das suas ligações financeiras e endereços guardados a terceiros.<br/><b>2. Mecanismo de funcionamento</b><br/>A introdução do código PIN configurado levará à eliminação imediata do seu livro de endereços cripto armazenado neste dispositivo.<br/><b>3. Irreversibilidade da eliminação</b><br/>A eliminação do livro de endereços após a introdução do código PIN é definitiva e irreversível.<br/><b>4. Ausência de recuperação</b><br/>Se o livro de endereços for eliminado, os dados não poderão ser restaurados, a menos que tenha sido criada previamente uma cópia de segurança.<br/><b>5. Armazenamento local</b><br/>O livro de endereços é armazenado exclusivamente de forma local no seu dispositivo e não é transferido para os programadores nem para servidores externos.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>Compreendo que o código PIN é utilizado para eliminar imediatamente o livro de endereços cripto.</item>
+        <item>Compreendo que, após a introdução do código PIN, o livro de endereços será eliminado sem possibilidade de recuperação sem uma cópia de segurança.</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1986,6 +1989,38 @@
     <string name="multi_swap_cancel_swap">Cancelar troca</string>
     <string name="multi_swap_cancel_swap_warning">A primeira troca já foi concluída. As moedas intermediárias estão na sua carteira e continuarão suas. Apenas o segundo passo da troca será cancelado.</string>
     <string name="swap_leg_title">Troca %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Verificar telefone</string>
+    <string name="paycore_verifying">A verificar…</string>
+    <string name="paycore_service_fee">Taxa de serviço</string>
+    <string name="paycore_network">Rede</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Continuar</string>
+    <string name="paycore_verification_processing">Em processamento…</string>
+    <string name="settings_contact_us_pcash_support">Suporte P.Cash</string>
+    <string name="settings_contact_us_paycore_support">Suporte Paycore</string>
+    <string name="paycore_verification_not_verified">Número não verificado</string>
+    <string name="paycore_verification_pass_kyc">Concluir KYC</string>
+    <string name="paycore_verification_verified_title">A sua verificação está concluída</string>
+    <string name="paycore_verification_warning_title">ATENÇÃO</string>
+    <string name="paycore_verification_warning_text">A TRANSFERÊNCIA DE FUNDOS É PERMITIDA EXCLUSIVAMENTE DA CONTA QUE LHE PERTENCE, COM NÚMERO DE TELEFONE E IDENTIDADE VERIFICADOS.</string>
+    <string name="paycore_verification_warning_detail">Transferências de outras contas não serão creditadas, os fundos enviados serão perdidos!</string>
+    <string name="paycore_verification_back">Voltar</string>
+    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Tente mais tarde.</string>
+    <string name="paycore_verification_retry">Tentar novamente</string>
+    <string name="paycore_verification_phone_label">Número de telefone:</string>
+    <string name="paycore_verification_contact_support">A recuperação automática falhou. Por favor, contacte o suporte.</string>
+    <string name="paycore_verification_support_line"><![CDATA[Suporte técnico 24/7: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Serviço</string>
+    <string name="paycore_support">Suporte PayCore</string>
+    <string name="paycore_section_currency">Moeda</string>
+    <string name="paycore_section_crypto">Criptomoedas</string>
+    <string name="paycore_select_bank">Selecionar banco</string>
+    <string name="paycore_select_bank_error">Não foi possível abrir a seleção de banco. Tente novamente mais tarde.</string>
+    <string name="paycore_banks_unavailable">Os bancos estão temporariamente indisponíveis. Tente novamente mais tarde.</string>
+    <string name="paycore_delete_restricted_warning">Esta transação não pode ser eliminada porque é processada por um serviço externo.</string>
+    <string name="paycore_delete_to_complete_select_bank">Selecione um banco para concluir o swap.</string>
     <string name="scan">Digitalizar</string>
     <string name="adding_tokens">A adicionar tokens</string>
     <string name="scan_to_add_message">Você precisa digitalizar o cartão para adicionar tokens</string>

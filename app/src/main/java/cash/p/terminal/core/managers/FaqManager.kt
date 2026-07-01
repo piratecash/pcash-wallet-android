@@ -21,7 +21,8 @@ import cash.p.terminal.modules.markdown.MarkdownFragment
 import cash.p.terminal.modules.markdown.localreader.MarkdownLocalFragment
 import cash.p.terminal.navigation.slideFromBottom
 import io.horizontalsystems.core.BackgroundManager
-import io.reactivex.Single
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import timber.log.Timber
 import java.lang.reflect.Type
@@ -75,19 +76,14 @@ object FaqManager {
         return navHost?.navController
     }
 
-    fun getFaqList(): Single<List<FaqMap>> {
-        return Single.fromCallable {
-            val request = Request.Builder()
-                .url(faqListUrl)
-                .build()
+    suspend fun getFaqList(): List<FaqMap> = withContext(Dispatchers.IO) {
+        val request = Request.Builder()
+            .url(faqListUrl)
+            .build()
 
-            val response = APIClient.okHttpClient.newCall(request).execute()
-
-            val listType = object : TypeToken<List<FaqMap>>() {}.type
-            val list: List<FaqMap> = gson.fromJson(response.body?.charStream(), listType)
-            response.close()
-
-            list
+        val listType = object : TypeToken<List<FaqMap>>() {}.type
+        APIClient.okHttpClient.newCall(request).execute().use { response ->
+            gson.fromJson(response.body?.charStream(), listType)
         }
     }
 

@@ -638,6 +638,7 @@
     <string name="swap_providers_title">스왑 제공자</string>
     <string name="swap_providers_mandatory_toast">이 제공자는 비활성화할 수 없습니다</string>
     <string name="swap_no_enabled_providers">활성화된 제공자 없음</string>
+    <string name="swap_no_providers_for_this_amount">이 금액에 대한 제공자가 없습니다</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">%s을(를) 교환하거나 새 금액을 취소하고 승인해야 합니다.</string>
@@ -679,6 +680,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">은행 선택 대기 중</string>
     <string name="Transactions_Failed">실패</string>
     <string name="Transactions_ContractCall">계약 콜</string>
     <string name="Transactions_ExternalContractCall">외부 콜</string>
@@ -716,6 +718,7 @@
     <string name="TransactionInfo_Date">날짜</string>
     <string name="transaction_info_sync_source">동기화 소스</string>
     <string name="TransactionInfo_Id">거래 ID</string>
+    <string name="TransactionInfo_Service">서비스</string>
     <string name="TransactionInfo_RawTransaction">로우 트랜잭션</string>
     <string name="TransactionInfo_ContactName">담당자 이름</string>
     <string name="TransactionInfo_To">에게</string>
@@ -1496,11 +1499,6 @@
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">프리미엄</string>
     <string name="about_premium">프리미엄 소개</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[암호화폐 주소록 삭제용 PIN 코드 설정에 관한 사용자 동의서<br/><br/>PIN 코드를 설정하면, 귀하는 그 목적이 개인정보 보호를 위한 메커니즘임을 이해하고 있음을 확인하게 됩니다.<br/><b>1. PIN 코드의 보호 기능</b><br/>이 PIN 코드는 제3자에 의한 금융 연관 정보 및 저장된 주소의 노출 가능성을 방지하기 위해 기기에서 암호화폐 주소록을 긴급 삭제하도록 설계되었습니다.<br/><b>2. 작동 방식</b><br/>설정된 PIN 코드를 입력하면 이 기기에 저장된 암호화폐 주소록이 즉시 삭제됩니다.<br/><b>3. 삭제의 불가역성</b><br/>PIN 코드를 입력한 후 주소록 삭제는 최종적이며 되돌릴 수 없습니다.<br/><b>4. 복구 불가</b><br/>주소록이 삭제되면, 사전에 백업을 만들어 두지 않았다면 데이터를 복구할 수 없습니다.<br/><b>5. 로컬 저장</b><br/>주소록은 오직 기기 내에 로컬로 저장되며 개발자나 외부 서버로 전송되지 않습니다.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>PIN 코드가 암호화폐 주소록을 즉시 삭제하는 데 사용된다는 것을 이해합니다.</item>
-        <item>PIN 코드를 입력하면 백업이 없는 경우 복구할 수 없이 주소록이 삭제된다는 것을 이해합니다.</item>
-    </string-array>
     <string name="premium_settings">프리미엄 설정</string>
     <string name="advanced_security">고급 보안</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
@@ -1536,6 +1534,11 @@
         <item>모든 지갑의 개인 키를 백업하지 않은 경우 모든 자금에 대한 액세스 권한을 잃게 됩니다.</item>
         <item>사용자는 위험을 인식하고 이 작업이 되돌릴 수 없음을 이해합니다.</item>
         <item>재설정 후 주 PIN이 재설정 PIN이 되고 재설정 PIN이 꺼집니다.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[암호화폐 주소록 삭제용 PIN 코드 설정에 관한 사용자 동의서<br/><br/>PIN 코드를 설정하면, 귀하는 그 목적이 개인정보 보호를 위한 메커니즘임을 이해하고 있음을 확인하게 됩니다.<br/><b>1. PIN 코드의 보호 기능</b><br/>이 PIN 코드는 제3자에 의한 금융 연관 정보 및 저장된 주소의 노출 가능성을 방지하기 위해 기기에서 암호화폐 주소록을 긴급 삭제하도록 설계되었습니다.<br/><b>2. 작동 방식</b><br/>설정된 PIN 코드를 입력하면 이 기기에 저장된 암호화폐 주소록이 즉시 삭제됩니다.<br/><b>3. 삭제의 불가역성</b><br/>PIN 코드를 입력한 후 주소록 삭제는 최종적이며 되돌릴 수 없습니다.<br/><b>4. 복구 불가</b><br/>주소록이 삭제되면, 사전에 백업을 만들어 두지 않았다면 데이터를 복구할 수 없습니다.<br/><b>5. 로컬 저장</b><br/>주소록은 오직 기기 내에 로컬로 저장되며 개발자나 외부 서버로 전송되지 않습니다.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>PIN 코드가 암호화폐 주소록을 즉시 삭제하는 데 사용된다는 것을 이해합니다.</item>
+        <item>PIN 코드를 입력하면 백업이 없는 경우 복구할 수 없이 주소록이 삭제된다는 것을 이해합니다.</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1980,6 +1983,38 @@
     <string name="multi_swap_cancel_swap">스왑 취소</string>
     <string name="multi_swap_cancel_swap_warning">첫 번째 스왑은 이미 완료되었습니다. 중간 코인은 지갑에 있으며 계속 보유됩니다. 두 번째 스왑 단계만 취소됩니다.</string>
     <string name="swap_leg_title">스왑 %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">전화 인증</string>
+    <string name="paycore_verifying">인증 중…</string>
+    <string name="paycore_service_fee">서비스 수수료</string>
+    <string name="paycore_network">네트워크</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">계속</string>
+    <string name="paycore_verification_processing">처리 중…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash 지원</string>
+    <string name="settings_contact_us_paycore_support">Paycore 지원</string>
+    <string name="paycore_verification_not_verified">번호 미인증</string>
+    <string name="paycore_verification_pass_kyc">KYC 완료하기</string>
+    <string name="paycore_verification_verified_title">인증이 완료되었습니다</string>
+    <string name="paycore_verification_warning_title">주의</string>
+    <string name="paycore_verification_warning_text">인증된 전화번호와 신원이 확인된 본인 명의의 계좌에서만 송금이 허용됩니다.</string>
+    <string name="paycore_verification_warning_detail">다른 계좌에서의 송금은 입금되지 않으며, 보낸 자금은 손실됩니다!</string>
+    <string name="paycore_verification_back">뒤로</string>
+    <string name="paycore_verification_error">로그인을 완료할 수 없습니다. 나중에 다시 시도하세요.</string>
+    <string name="paycore_verification_retry">재시도</string>
+    <string name="paycore_verification_phone_label">전화번호:</string>
+    <string name="paycore_verification_contact_support">자동 복구에 실패했습니다. 지원팀에 문의하세요.</string>
+    <string name="paycore_verification_support_line"><![CDATA[24/7 기술 지원: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">서비스</string>
+    <string name="paycore_support">PayCore 지원</string>
+    <string name="paycore_section_currency">통화</string>
+    <string name="paycore_section_crypto">암호화폐</string>
+    <string name="paycore_select_bank">은행 선택</string>
+    <string name="paycore_select_bank_error">은행 선택을 열지 못했습니다. 나중에 다시 시도하세요.</string>
+    <string name="paycore_banks_unavailable">은행을 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.</string>
+    <string name="paycore_delete_restricted_warning">이 거래는 외부 서비스에서 처리되므로 삭제할 수 없습니다.</string>
+    <string name="paycore_delete_to_complete_select_bank">스왑을 완료하려면 은행을 선택하세요.</string>
     <string name="scan">스캔</string>
     <string name="adding_tokens">토큰 추가 중</string>
     <string name="scan_to_add_message">토큰을 추가하려면 카드를 스캔해야 합니다</string>

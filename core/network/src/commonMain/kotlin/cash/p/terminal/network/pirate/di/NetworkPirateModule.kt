@@ -8,6 +8,7 @@ import cash.p.terminal.network.pirate.data.mapper.PiratePlaceMapper
 import cash.p.terminal.network.pirate.data.repository.MasterNodesRepositoryImpl
 import cash.p.terminal.network.pirate.data.repository.PiratePlaceRepositoryImpl
 import cash.p.terminal.network.pirate.domain.repository.MasterNodesRepository
+import cash.p.terminal.network.pirate.domain.useCase.FiatCurrencyRateService
 import cash.p.terminal.network.pirate.domain.useCase.GetChangeNowAssociatedCoinTickerUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.qualifier.named
@@ -30,4 +31,5 @@ val networkPirateModule = module {
     factoryOf(::MasterNodesMapper)
     factoryOf(::PiratePlaceMapper)
     factoryOf(::GetChangeNowAssociatedCoinTickerUseCase)
+    single { FiatCurrencyRateService(piratePlaceRepository = get()) }
 }

@@ -620,7 +620,7 @@
     <string name="unsupported_token">Niet-ondersteunde token</string>
     <string name="zec_transparent_used">Bij het aanmaken van de wissel wordt een tijdelijk t-adres gebruikt: %s. Dit wordt doorgegeven aan de wisselprovider en is nodig voor een terugbetaling als de wissel niet wordt voltooid. Het gebruik van een t-adres kan leiden tot gedeeltelijke deanonimisering van de transactie.</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">Swap Settings</string>
+    <string name="SwapSettings_Title">Swap-instellingen</string>
     <string name="SwapSettings_SlippageTitle">Slippage Tolerance</string>
     <string name="SwapSettings_SlippageDescription">Your transaction will revert if the price changes unfavorably by more than this percentage</string>
     <string name="SwapSettings_DeadlineTitle">Transaction Deadline</string>
@@ -639,6 +639,7 @@
     <string name="swap_providers_title">Swap-aanbieders</string>
     <string name="swap_providers_mandatory_toast">Deze aanbieder kan niet worden uitgeschakeld</string>
     <string name="swap_no_enabled_providers">Geen actieve aanbieders</string>
+    <string name="swap_no_providers_for_this_amount">Geen aanbieders voor dit bedrag</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">You can exchange %s, or you need to revoke and approve the new amount</string>
@@ -680,6 +681,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Wachten op bankkeuze</string>
     <string name="Transactions_Failed">Failed</string>
     <string name="Transactions_ContractCall">Contract Call</string>
     <string name="Transactions_ExternalContractCall">External Call</string>
@@ -717,6 +719,7 @@
     <string name="TransactionInfo_Date">Date</string>
     <string name="transaction_info_sync_source">Synchronisatiebron</string>
     <string name="TransactionInfo_Id">ID</string>
+    <string name="TransactionInfo_Service">Service</string>
     <string name="TransactionInfo_RawTransaction">Raw Transaction</string>
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">To</string>
@@ -1503,11 +1506,6 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Over Premium</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[Gebruikersovereenkomst voor het instellen van een pincode om het adresboek met crypto-adressen te verwijderen<br/><br/>Door een pincode in te stellen bevestigt u dat u het doel ervan begrijpt als mechanisme ter bescherming van uw privacy.<br/><b>1. Beschermende functie van de pincode</b><br/>Deze pincode is bedoeld voor het noodwissen van het adresboek met crypto-adressen van het apparaat om mogelijke compromittering van uw financiële relaties en opgeslagen adressen door derden te voorkomen.<br/><b>2. Werking</b><br/>Het invoeren van de ingestelde pincode leidt tot onmiddellijke verwijdering van uw adresboek met crypto-adressen dat op dit apparaat is opgeslagen.<br/><b>3. Onomkeerbaarheid van verwijdering</b><br/>Het verwijderen van het adresboek na invoer van de pincode is definitief en onomkeerbaar.<br/><b>4. Geen herstel</b><br/>Als het adresboek is verwijderd, kunnen de gegevens niet worden hersteld tenzij vooraf een back-up is gemaakt.<br/><b>5. Lokale opslag</b><br/>Het adresboek wordt uitsluitend lokaal op uw apparaat opgeslagen en niet doorgegeven aan ontwikkelaars of externe servers.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>Ik begrijp dat de pincode wordt gebruikt om het adresboek met crypto-adressen onmiddellijk te verwijderen.</item>
-        <item>Ik begrijp dat na het invoeren van de pincode het adresboek wordt verwijderd zonder mogelijkheid tot herstel zonder back-up.</item>
-    </string-array>
     <string name="premium_settings">Premium-instellingen</string>
     <string name="advanced_security">Geavanceerde beveiliging</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
@@ -1543,6 +1541,11 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
         <item>Als u geen back-ups hebt gemaakt van de privésleutels voor alle wallets, verliest u de toegang tot al uw fondsen.</item>
         <item>De gebruiker is zich bewust van de risico\'s en begrijpt dat deze actie onomkeerbaar is.</item>
         <item>Na het resetten wordt uw hoofd-PIN uw reset-PIN en wordt de reset-PIN uitgeschakeld.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[Gebruikersovereenkomst voor het instellen van een pincode om het adresboek met crypto-adressen te verwijderen<br/><br/>Door een pincode in te stellen bevestigt u dat u het doel ervan begrijpt als mechanisme ter bescherming van uw privacy.<br/><b>1. Beschermende functie van de pincode</b><br/>Deze pincode is bedoeld voor het noodwissen van het adresboek met crypto-adressen van het apparaat om mogelijke compromittering van uw financiële relaties en opgeslagen adressen door derden te voorkomen.<br/><b>2. Werking</b><br/>Het invoeren van de ingestelde pincode leidt tot onmiddellijke verwijdering van uw adresboek met crypto-adressen dat op dit apparaat is opgeslagen.<br/><b>3. Onomkeerbaarheid van verwijdering</b><br/>Het verwijderen van het adresboek na invoer van de pincode is definitief en onomkeerbaar.<br/><b>4. Geen herstel</b><br/>Als het adresboek is verwijderd, kunnen de gegevens niet worden hersteld tenzij vooraf een back-up is gemaakt.<br/><b>5. Lokale opslag</b><br/>Het adresboek wordt uitsluitend lokaal op uw apparaat opgeslagen en niet doorgegeven aan ontwikkelaars of externe servers.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>Ik begrijp dat de pincode wordt gebruikt om het adresboek met crypto-adressen onmiddellijk te verwijderen.</item>
+        <item>Ik begrijp dat na het invoeren van de pincode het adresboek wordt verwijderd zonder mogelijkheid tot herstel zonder back-up.</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1993,6 +1996,38 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="multi_swap_cancel_swap">Ruil annuleren</string>
     <string name="multi_swap_cancel_swap_warning">De eerste ruil is al voltooid. De tussenliggende munten staan in uw portemonnee en blijven van u. Alleen de tweede ruilstap wordt geannuleerd.</string>
     <string name="swap_leg_title">Ruil %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Telefoon verifiëren</string>
+    <string name="paycore_verifying">Bezig met verifiëren…</string>
+    <string name="paycore_service_fee">Servicekosten</string>
+    <string name="paycore_network">Netwerk</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Doorgaan</string>
+    <string name="paycore_verification_processing">Wordt verwerkt…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Ondersteuning</string>
+    <string name="settings_contact_us_paycore_support">Paycore Ondersteuning</string>
+    <string name="paycore_verification_not_verified">Nummer niet geverifieerd</string>
+    <string name="paycore_verification_pass_kyc">KYC voltooien</string>
+    <string name="paycore_verification_verified_title">Uw verificatie is voltooid</string>
+    <string name="paycore_verification_warning_title">LET OP</string>
+    <string name="paycore_verification_warning_text">GELDOVERBOEKINGEN ZIJN UITSLUITEND TOEGESTAAN VANAF DE REKENING DIE AAN U TOEBEHOORT, MET GEVERIFIEERD TELEFOONNUMMER EN IDENTITEIT.</string>
+    <string name="paycore_verification_warning_detail">Overboekingen van andere rekeningen worden niet bijgeschreven, verzonden gelden gaan verloren!</string>
+    <string name="paycore_verification_back">Terug</string>
+    <string name="paycore_verification_error">Inloggen mislukt. Probeer het later opnieuw.</string>
+    <string name="paycore_verification_retry">Opnieuw proberen</string>
+    <string name="paycore_verification_phone_label">Telefoonnummer:</string>
+    <string name="paycore_verification_contact_support">Automatisch herstel is mislukt. Neem contact op met de ondersteuning.</string>
+    <string name="paycore_verification_support_line"><![CDATA[24/7 technische ondersteuning: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Service</string>
+    <string name="paycore_support">PayCore-ondersteuning</string>
+    <string name="paycore_section_currency">Valuta</string>
+    <string name="paycore_section_crypto">Cryptovaluta\'s</string>
+    <string name="paycore_select_bank">Bank selecteren</string>
+    <string name="paycore_select_bank_error">Bankselectie kon niet worden geopend. Probeer het later opnieuw.</string>
+    <string name="paycore_banks_unavailable">Banken zijn tijdelijk niet beschikbaar. Probeer het later opnieuw.</string>
+    <string name="paycore_delete_restricted_warning">Deze transactie kan niet worden verwijderd omdat deze door een externe dienst wordt verwerkt.</string>
+    <string name="paycore_delete_to_complete_select_bank">Selecteer een bank om de swap te voltooien.</string>
     <string name="scan">Scannen</string>
     <string name="adding_tokens">Tokens toevoegen</string>
     <string name="scan_to_add_message">U moet de kaart scannen om tokens toe te voegen</string>

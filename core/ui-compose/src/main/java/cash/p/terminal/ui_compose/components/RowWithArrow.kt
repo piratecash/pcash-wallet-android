@@ -18,13 +18,14 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 @Composable
 fun RowWithArrow(
     text: String,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     showAlert: Boolean = false,
-    onClick: (() -> Unit)
+    showSpinner: Boolean = false,
 ) {
     RowUniversal(
         modifier = modifier.padding(horizontal = 16.dp),
-        onClick = onClick
+        onClick = if (showSpinner) null else onClick
     ) {
         body_leah(
             text = text,
@@ -39,11 +40,15 @@ fun RowWithArrow(
                 contentDescription = null,
             )
         }
-        Image(
-            modifier = Modifier.size(20.dp),
-            painter = painterResource(id = R.drawable.ic_arrow_right),
-            contentDescription = null,
-        )
+        if (showSpinner) {
+            HSCircularProgressIndicator(progress = 0.15f, size = 20.dp)
+        } else {
+            Image(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(id = R.drawable.ic_arrow_right),
+                contentDescription = null,
+            )
+        }
     }
 }
 

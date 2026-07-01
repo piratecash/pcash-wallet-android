@@ -638,6 +638,7 @@
     <string name="swap_providers_title">Takas sağlayıcıları</string>
     <string name="swap_providers_mandatory_toast">Bu sağlayıcı devre dışı bırakılamaz</string>
     <string name="swap_no_enabled_providers">Etkin sağlayıcı yok</string>
+    <string name="swap_no_providers_for_this_amount">Bu miktar için sağlayıcı yok</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">%s alışverişi yapabilir veya yeni tutarı iptal edip onaylamanız gerekir</string>
@@ -679,6 +680,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Banka seçimi bekleniyor</string>
     <string name="Transactions_Failed">Başarısız</string>
     <string name="Transactions_ContractCall">Sözleşme Çağrısı</string>
     <string name="Transactions_ExternalContractCall">Harici Çağrı</string>
@@ -716,6 +718,7 @@
     <string name="TransactionInfo_Date">Tarih</string>
     <string name="transaction_info_sync_source">Senkronizasyon kaynağı</string>
     <string name="TransactionInfo_Id">Kimlik</string>
+    <string name="TransactionInfo_Service">Hizmet</string>
     <string name="TransactionInfo_RawTransaction">Ham işlem</string>
     <string name="TransactionInfo_ContactName">Kişi Adı</string>
     <string name="TransactionInfo_To">Alan</string>
@@ -1498,11 +1501,6 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="SubscriptionInfo_HavePremium">I already have Premium</string>
     <string name="premium_title">Premium</string>
     <string name="about_premium">Premium Hakkında</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[Kripto adres defterini silmek için PIN kodu oluşturulmasına ilişkin kullanıcı sözleşmesi<br/><br/>Bir PIN kodu oluşturarak, onun amacını gizliliğinizi koruyan bir mekanizma olarak anladığınızı onaylarsınız.<br/><b>1. PIN kodunun koruyucu işlevi</b><br/>Bu PIN kodu, mali bağlantılarınızın ve kayıtlı adreslerinizin üçüncü taraflarca olası şekilde ele geçirilmesini önlemek amacıyla cihazdaki kripto adres defterinin acil olarak silinmesi için tasarlanmıştır.<br/><b>2. Çalışma mekanizması</b><br/>Ayarlanan PIN kodunun girilmesi, bu cihazda saklanan kripto adres defterinizin derhal silinmesine yol açar.<br/><b>3. Silmenin geri döndürülemezliği</b><br/>PIN kodu girildikten sonra adres defterinin silinmesi kesin ve geri döndürülemez bir işlemdir.<br/><b>4. Geri yükleme yok</b><br/>Adres defteri silinirse, önceden bir yedek oluşturulmadıysa veriler geri yüklenemez.<br/><b>5. Yerel saklama</b><br/>Adres defteri yalnızca cihazınızda yerel olarak saklanır ve geliştiricilere veya harici sunuculara aktarılmaz.]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>PIN kodunun kripto adres defterini hemen silmek için kullanıldığını anlıyorum.</item>
-        <item>PIN kodunu girdikten sonra adres defterinin, yedek olmadan geri yükleme imkânı olmaksızın silineceğini anlıyorum.</item>
-    </string-array>
     <string name="premium_settings">Premium ayarları</string>
     <string name="advanced_security">Gelişmiş Güvenlik</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">Create Hidden Wallet</string>
@@ -1538,6 +1536,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
         <item>Tüm cüzdanlar için özel anahtarların yedek kopyalarını yapmadıysanız, tüm fonlarınıza erişiminizi kaybedersiniz.</item>
         <item>Kullanıcı risklerin farkındadır ve bu eylemin geri alınamaz olacağını anlar.</item>
         <item>Sıfırlama sonrasında ana PIN\'iniz sıfırlama PIN\'iniz olacak ve sıfırlama PIN\'i kapatılacaktır.</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[Kripto adres defterini silmek için PIN kodu oluşturulmasına ilişkin kullanıcı sözleşmesi<br/><br/>Bir PIN kodu oluşturarak, onun amacını gizliliğinizi koruyan bir mekanizma olarak anladığınızı onaylarsınız.<br/><b>1. PIN kodunun koruyucu işlevi</b><br/>Bu PIN kodu, mali bağlantılarınızın ve kayıtlı adreslerinizin üçüncü taraflarca olası şekilde ele geçirilmesini önlemek amacıyla cihazdaki kripto adres defterinin acil olarak silinmesi için tasarlanmıştır.<br/><b>2. Çalışma mekanizması</b><br/>Ayarlanan PIN kodunun girilmesi, bu cihazda saklanan kripto adres defterinizin derhal silinmesine yol açar.<br/><b>3. Silmenin geri döndürülemezliği</b><br/>PIN kodu girildikten sonra adres defterinin silinmesi kesin ve geri döndürülemez bir işlemdir.<br/><b>4. Geri yükleme yok</b><br/>Adres defteri silinirse, önceden bir yedek oluşturulmadıysa veriler geri yüklenemez.<br/><b>5. Yerel saklama</b><br/>Adres defteri yalnızca cihazınızda yerel olarak saklanır ve geliştiricilere veya harici sunuculara aktarılmaz.]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>PIN kodunun kripto adres defterini hemen silmek için kullanıldığını anlıyorum.</item>
+        <item>PIN kodunu girdikten sonra adres defterinin, yedek olmadan geri yükleme imkânı olmaksızın silineceğini anlıyorum.</item>
     </string-array>
     <!--Premium Screens-->
     <string name="premium_demo_activation_error_backup">Premium\'i etkinleştirmek için cüzdanınızı yedeklemeniz gerekir</string>
@@ -1987,6 +1990,38 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="multi_swap_cancel_swap">Takası iptal et</string>
     <string name="multi_swap_cancel_swap_warning">İlk takas zaten tamamlandı. Ara paralar cüzdanınızda ve size ait kalmaya devam edecek. Yalnızca takasın ikinci adımı iptal edilecek.</string>
     <string name="swap_leg_title">Takas %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Telefonu doğrula</string>
+    <string name="paycore_verifying">Doğrulanıyor…</string>
+    <string name="paycore_service_fee">Hizmet ücreti</string>
+    <string name="paycore_network">Ağ</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Devam et</string>
+    <string name="paycore_verification_processing">İşleniyor…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Destek</string>
+    <string name="settings_contact_us_paycore_support">Paycore Destek</string>
+    <string name="paycore_verification_not_verified">Numara doğrulanmadı</string>
+    <string name="paycore_verification_pass_kyc">KYC tamamla</string>
+    <string name="paycore_verification_verified_title">Doğrulamanız tamamlandı</string>
+    <string name="paycore_verification_warning_title">DİKKAT</string>
+    <string name="paycore_verification_warning_text">PARA TRANSFERİ YALNIZCA DOĞRULANMIŞ TELEFON NUMARASI VE KİMLİĞİ OLAN SİZE AİT HESAPTAN İZİN VERİLMEKTEDİR.</string>
+    <string name="paycore_verification_warning_detail">Diğer hesaplardan yapılan transferler alınmayacak, gönderilen fonlar kaybolacaktır!</string>
+    <string name="paycore_verification_back">Geri</string>
+    <string name="paycore_verification_error">Giriş tamamlanamadı. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="paycore_verification_retry">Yeniden dene</string>
+    <string name="paycore_verification_phone_label">Telefon numarası:</string>
+    <string name="paycore_verification_contact_support">Otomatik kurtarma başarısız oldu. Lütfen destek ile iletişime geçin.</string>
+    <string name="paycore_verification_support_line"><![CDATA[7/24 teknik destek: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Hizmet</string>
+    <string name="paycore_support">PayCore desteği</string>
+    <string name="paycore_section_currency">Para Birimi</string>
+    <string name="paycore_section_crypto">Kripto Paralar</string>
+    <string name="paycore_select_bank">Banka seç</string>
+    <string name="paycore_select_bank_error">Banka seçimi açılamadı. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="paycore_banks_unavailable">Bankalar geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="paycore_delete_restricted_warning">Bu işlem üçüncü taraf bir hizmet tarafından gerçekleştirildiği için silinemez.</string>
+    <string name="paycore_delete_to_complete_select_bank">Swap’i tamamlamak için bir banka seçin.</string>
     <string name="scan">Tara</string>
     <string name="adding_tokens">Tokenler ekleniyor</string>
     <string name="scan_to_add_message">Token eklemek için kartı taramanız gerekir</string>

@@ -324,6 +324,7 @@ class TransactionViewItemFactoryCacheTest {
         blockchainTypeOut = BlockchainType.BinanceSmartChain.uid,
         amountOut = BigDecimal("0.01"),
         addressOut = "0xRecipient",
+        accountId = "test-account",
     )
 
     private fun stubOutgoingFallback(swap: SwapProviderTransaction) {

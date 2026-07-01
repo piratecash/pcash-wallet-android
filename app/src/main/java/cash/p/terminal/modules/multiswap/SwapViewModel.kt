@@ -92,7 +92,7 @@ class SwapViewModel(
         }
         viewModelScope.launch {
             fiatServiceIn.stateFlow.collect {
-                fiatAmountInputEnabled = it.coinPrice != null
+                fiatAmountInputEnabled = it.rate != null
                 fiatAmountIn = it.fiatAmount
                 quoteService.setAmount(it.amount)
                 priceImpactService.setFiatAmountIn(fiatAmountIn)
@@ -316,6 +316,7 @@ class SwapViewModel(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val swapQuoteService: SwapQuoteService by inject(SwapQuoteService::class.java)
             val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
+            val assetFiatRateService: AssetFiatRateService by inject(AssetFiatRateService::class.java)
             val tokenBalanceService = TokenBalanceService(App.adapterManager, marketKit)
             val priceImpactService = PriceImpactService()
 
@@ -324,8 +325,8 @@ class SwapViewModel(
                 balanceService = tokenBalanceService,
                 priceImpactService = priceImpactService,
                 currencyManager = App.currencyManager,
-                fiatServiceIn = FiatService(marketKit),
-                fiatServiceOut = FiatService(marketKit),
+                fiatServiceIn = FiatService(assetFiatRateService),
+                fiatServiceOut = FiatService(assetFiatRateService),
                 timerService = TimerService(),
                 networkAvailabilityService = NetworkAvailabilityService(App.connectivityManager),
                 marketKit = marketKit,

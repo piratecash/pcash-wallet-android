@@ -31,6 +31,7 @@ import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
@@ -91,6 +92,15 @@ fun SwapConfirmScreen(
     val uiState = viewModel.uiState
     val sendResult = viewModel.sendResult
     var currentSnackbar by remember { mutableStateOf<CustomSnackbar?>(null) }
+    val hasInsufficientFeeBalance = hasInsufficientFeeTokenBalance(
+        token = uiState.tokenIn,
+        fee = uiState.networkFee?.primary?.value,
+        feeTokenBalance = feeCoinBalance,
+    ) || viewModel.isInsufficientFeeBalance(uiState.networkFee?.primary?.value)
+    val hasFeeProblem = hasSwapConfirmFeeProblem(
+        hasInsufficientFeeBalance = hasInsufficientFeeBalance,
+        hasFeeCaution = uiState.feeCaution != null,
+    )
 
     // Handle send result UI - must be in Composable context for getString()
     currentSnackbar = when (sendResult) {
@@ -212,9 +222,13 @@ fun SwapConfirmScreen(
                 ButtonPrimaryYellow(
                     modifier = Modifier.fillMaxWidth(),
                     title = stringResource(R.string.Swap),
-                    enabled = viewModel.isSynced && !swapInProgress && uiState.amountOut != null &&
-                            uiState.networkFee != null && uiState.feeCaution == null &&
-                            uiState.cautions.none { it.type == CautionViewItem.Type.Error },
+                    enabled = isSwapConfirmButtonEnabled(
+                        isSynced = viewModel.isSynced,
+                        swapInProgress = swapInProgress,
+                        hasRequiredQuoteData = uiState.amountOut != null && uiState.networkFee != null,
+                        hasBlockingFeeState = hasFeeProblem,
+                        hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error },
+                    ),
                     onClick = viewModel::onClickSendWithWarningCheck,
                 )
                 if (uiState.expiresIn != null) {
@@ -291,7 +305,6 @@ fun SwapConfirmScreen(
         }
 
         VSpacer(height = 16.dp)
-        val hasFeeError = uiState.feeCaution != null
         FeeInfoSection(
             tokenIn = uiState.tokenIn,
             displayBalance = displayBalance,
@@ -300,7 +313,7 @@ fun SwapConfirmScreen(
             feeCoinBalance = feeCoinBalance,
             feePrimary = uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
             feeSecondary = uiState.networkFee?.secondary?.getFormattedPlain() ?: "---",
-            insufficientFeeBalance = hasFeeError,
+            insufficientFeeBalance = hasFeeProblem,
             onBalanceClicked = onToggleHideBalance,
             feeWarningData = viewModel.inlineFeeWarningData,
         )
@@ -339,6 +352,27 @@ fun SwapConfirmScreen(
         onConfirm = viewModel::onFeeWarningConfirmed,
         onCancel = viewModel::onFeeWarningCancelled,
     )
+}
+
+internal fun hasSwapConfirmFeeProblem(
+    hasInsufficientFeeBalance: Boolean,
+    hasFeeCaution: Boolean,
+): Boolean {
+    return hasInsufficientFeeBalance || hasFeeCaution
+}
+
+internal fun isSwapConfirmButtonEnabled(
+    isSynced: Boolean,
+    swapInProgress: Boolean,
+    hasRequiredQuoteData: Boolean,
+    hasBlockingFeeState: Boolean,
+    hasErrorCaution: Boolean,
+): Boolean {
+    return isSynced &&
+        !swapInProgress &&
+        hasRequiredQuoteData &&
+        !hasBlockingFeeState &&
+        !hasErrorCaution
 }
 
 @Composable

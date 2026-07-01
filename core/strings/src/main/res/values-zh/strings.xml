@@ -431,7 +431,7 @@
     <!-- Fee Settings -->
     <string name="FeeSettings_NetworkFee">网络费</string>
     <string name="FeeSettings_NetworkFee_Info">在网络上发送给定交易的估计费用。</string>
-    <string name="FeeSettings_GasLimit_Info">交易复杂度以被称为"gas"（燃料）的单位度量。它将根据被执行的智能合同而变化。Gas Limit（燃料限制）是执行它所需要的估计最大燃料。使用的实际燃料通常会较低。</string>
+    <string name="FeeSettings_GasLimit_Info">交易复杂度以被称为“gas”（燃料）的单位度量。它将根据被执行的智能合同而变化。Gas Limit（燃料限制）是执行它所需要的估计最大燃料。使用的实际燃料通常会较低。</string>
     <string name="FeeSettings_GasPrice_Info">网上交易费用将按燃料单位计量。燃料价格是用户愿意按单位消费的金额。 当网络忙碌时，燃料价格就高，空闲时价格就低。 燃料价格不足常常是交易被长期搁置的一个原因。</string>
     <string name="FeeSettings_BaseFee">基础费用</string>
     <string name="FeeSettings_BaseFee_Info">网络协议将决定每一个区块的每一燃料（gas）的基础价格，称为基础费率。它根据不同区块的网络利用水平而变化。它可能会在下一个区块中增加或减少不多于12.5%，使得费用更具有可预测性。这里显示的值为当前区块的基础费率。</string>
@@ -615,7 +615,7 @@
     <string name="unsupported_token">不支持的代币</string>
     <string name="zec_transparent_used">在创建兑换时会使用临时 t 地址：%s。该地址会提供给兑换服务提供商，如果兑换未完成，则需要用于退款。使用 t 地址可能会导致交易部分去匿名化。</string>
     <!-- Swap Settings -->
-    <string name="SwapSettings_Title">掉期设置</string>
+    <string name="SwapSettings_Title">Swap 设置</string>
     <string name="SwapSettings_SlippageTitle">无效滑点</string>
     <string name="SwapSettings_SlippageDescription">如果价格的不利变化超出此百分比，您的交易将退回。</string>
     <string name="SwapSettings_DeadlineTitle">交易截止日期</string>
@@ -634,6 +634,7 @@
     <string name="swap_providers_title">兑换服务商</string>
     <string name="swap_providers_mandatory_toast">此服务商无法禁用</string>
     <string name="swap_no_enabled_providers">没有已启用的服务商</string>
+    <string name="swap_no_providers_for_this_amount">没有适用于此金额的服务商</string>
 
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">您可以交换 %s，或者您需要撤销并批准新的金额</string>
@@ -675,6 +676,7 @@
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">等待选择银行</string>
     <string name="Transactions_Failed">失败</string>
     <string name="Transactions_ContractCall">合约调用</string>
     <string name="Transactions_ExternalContractCall">外部呼叫</string>
@@ -712,6 +714,7 @@
     <string name="TransactionInfo_Date">日期</string>
     <string name="transaction_info_sync_source">同步来源</string>
     <string name="TransactionInfo_Id">交易ID</string>
+    <string name="TransactionInfo_Service">服务</string>
     <string name="TransactionInfo_RawTransaction">原始交易</string>
     <string name="TransactionInfo_ContactName">联系人姓名</string>
     <string name="TransactionInfo_To">接收人</string>
@@ -1487,11 +1490,6 @@
     <string name="SubscriptionInfo_HavePremium">我已经有高级版</string>
     <string name="premium_title">高级版</string>
     <string name="about_premium">关于高级版</string>
-    <string name="delete_all_contacts_terms_agreement"><![CDATA[关于设置用于删除加密地址簿的 PIN 码的用户协议<br/><br/>设置 PIN 码即表示您确认理解其用途，即作为保护您隐私的机制。<br/><b>1. PIN 码的保护功能</b><br/>该 PIN 码用于在紧急情况下从设备中删除加密地址簿，以防止第三方可能获取您的金融关联信息和已保存地址。<br/><b>2. 作用机制</b><br/>输入已设置的 PIN 码后，保存在本设备中的加密地址簿将被立即删除。<br/><b>3. 删除不可逆</b><br/>输入 PIN 码后删除地址簿是最终且不可逆的操作。<br/><b>4. 无法恢复</b><br/>如果地址簿被删除，除非事先创建了备份，否则数据无法恢复。<br/><b>5. 本地存储</b><br/>地址簿仅保存在您的设备本地，不会传输给开发者或外部服务器。]]></string>
-    <string-array name="delete_all_contacts_terms_checkboxes">
-        <item>我理解该 PIN 码用于立即删除加密地址簿。</item>
-        <item>我理解输入 PIN 码后，地址簿将在没有备份副本的情况下被删除且无法恢复。</item>
-    </string-array>
     <string name="premium_settings">高级设置</string>
     <string name="advanced_security">高级安全</string>
     <string name="AdvancedSecurity_CreateHiddenWallet">创建隐藏钱包</string>
@@ -1527,6 +1525,11 @@
         <item>如果您没有备份所有钱包的私钥，您将失去对所有资金的访问权限。</item>
         <item>用户了解风险并理解此操作将不可逆转。</item>
         <item>重置后，您的主PIN将成为您的重置PIN，重置PIN将被关闭。</item>
+    </string-array>
+    <string name="delete_all_contacts_terms_agreement"><![CDATA[关于设置用于删除加密地址簿的 PIN 码的用户协议<br/><br/>设置 PIN 码即表示您确认理解其用途，即作为保护您隐私的机制。<br/><b>1. PIN 码的保护功能</b><br/>该 PIN 码用于在紧急情况下从设备中删除加密地址簿，以防止第三方可能获取您的金融关联信息和已保存地址。<br/><b>2. 作用机制</b><br/>输入已设置的 PIN 码后，保存在本设备中的加密地址簿将被立即删除。<br/><b>3. 删除不可逆</b><br/>输入 PIN 码后删除地址簿是最终且不可逆的操作。<br/><b>4. 无法恢复</b><br/>如果地址簿被删除，除非事先创建了备份，否则数据无法恢复。<br/><b>5. 本地存储</b><br/>地址簿仅保存在您的设备本地，不会传输给开发者或外部服务器。]]></string>
+    <string-array name="delete_all_contacts_terms_checkboxes">
+        <item>我理解该 PIN 码用于立即删除加密地址簿。</item>
+        <item>我理解输入 PIN 码后，地址簿将在没有备份副本的情况下被删除且无法恢复。</item>
     </string-array>
     
     <!--Premium Screens-->
@@ -1692,7 +1695,7 @@
     <string name="alert_keys_invalidated_title">Android密钥库错误</string>
     <string name="alert_keys_invalidated_description">您的钱包加密密钥已被Android安全系统作废。这可能在指纹或锁屏设置更改时发生。\n\n要恢复访问权限，请使用您的备份短语重新导入钱包。\n\n如果此问题频繁发生，请尝试在设备设置中禁用Google Smart Lock并重启手机。</string>
     <string name="Alert_TitleWarning">警告</string>
-    <string name="Alert_CustomKeyboardIsUsed">您的设备似乎使用了非默认键盘。P.CASH建议选择设备上的默认键盘，因为第三方键盘可能会收集和暴露用户输入的数据。\n\n如果您要继续使用您的首选键盘，请单击"跳过"（Skip）按钮。</string>
+    <string name="Alert_CustomKeyboardIsUsed">您的设备似乎使用了非默认键盘。P.CASH建议选择设备上的默认键盘，因为第三方键盘可能会收集和暴露用户输入的数据。\n\n如果您要继续使用您的首选键盘，请单击“跳过”（Skip）按钮。</string>
     <string name="Alert_DeviceIsRootedWarning">P.CASH团队建议仅在未获取根权限（未越狱）的手机上使用应用。\n\n请注意，使用已获取根权限的设备，应用将难以保证您的加密货币免受来自恶意软件的安全威胁。</string>
     <!--OS Pin-->
     <string name="OSPin_Confirm_Title">电话PIN码</string>
@@ -1713,7 +1716,7 @@
     <!--Set Pin-->
     <string name="PinSet_Title">设置密码</string>
     <string name="PinSet_Info">您的密码将用于解锁钱包和发送资金</string>
-    <string name="PinSet_Transactions_Hide">Set Passcode for \"Transactions Auto Hide\" mode</string>
+    <string name="PinSet_Transactions_Hide">Set Passcode for \“Transactions Auto Hide\” mode</string>
     <string name="PinSet_ConfirmInfo">确认</string>
     <string name="PinSet_ErrorPinsDontMatch">密码不匹配。请重试。</string>
     <string name="PinSet_ErrorFailedToSavePin">保存密码时出错。请重试。</string>
@@ -1971,6 +1974,38 @@
     <string name="multi_swap_cancel_swap">取消兑换</string>
     <string name="multi_swap_cancel_swap_warning">第一步兑换已完成。中间代币在您的钱包中，将继续归您所有。仅第二步兑换会被取消。</string>
     <string name="swap_leg_title">兑换 %d</string>
+    <!--PayCore-->
+    <string name="paycore_verify_phone">验证手机</string>
+    <string name="paycore_verifying">验证中…</string>
+    <string name="paycore_service_fee">服务费</string>
+    <string name="paycore_network">网络</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">继续</string>
+    <string name="paycore_verification_processing">处理中…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash 支持</string>
+    <string name="settings_contact_us_paycore_support">Paycore 支持</string>
+    <string name="paycore_verification_not_verified">号码未验证</string>
+    <string name="paycore_verification_pass_kyc">完成KYC</string>
+    <string name="paycore_verification_verified_title">您的验证已完成</string>
+    <string name="paycore_verification_warning_title">注意</string>
+    <string name="paycore_verification_warning_text">仅允许从您本人名下、经过手机号码和身份验证的账户进行资金转账。</string>
+    <string name="paycore_verification_warning_detail">从其他账户的转账将不会入账，已发送的资金将会丢失！</string>
+    <string name="paycore_verification_back">返回</string>
+    <string name="paycore_verification_error">无法完成登录，请稍后重试。</string>
+    <string name="paycore_verification_retry">重试</string>
+    <string name="paycore_verification_phone_label">电话号码：</string>
+    <string name="paycore_verification_contact_support">自动恢复失败，请联系客服。</string>
+    <string name="paycore_verification_support_line"><![CDATA[24/7 技术支持：<a href="mailto:support@paycore.pw">support@paycore.pw</a>，<a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">服务</string>
+    <string name="paycore_support">PayCore 支持</string>
+    <string name="paycore_section_currency">货币</string>
+    <string name="paycore_section_crypto">加密货币</string>
+    <string name="paycore_select_bank">选择银行</string>
+    <string name="paycore_select_bank_error">无法打开银行选择。请稍后再试。</string>
+    <string name="paycore_banks_unavailable">银行暂时不可用。请稍后再试。</string>
+    <string name="paycore_delete_restricted_warning">此交易由第三方服务处理，无法删除。</string>
+    <string name="paycore_delete_to_complete_select_bank">请选择银行以完成兑换。</string>
     <string name="scan">扫描</string>
     <string name="adding_tokens">正在添加代币</string>
     <string name="scan_to_add_message">您需要扫描卡片以添加代币</string>

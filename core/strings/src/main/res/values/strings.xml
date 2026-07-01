@@ -844,6 +844,7 @@ Proceed only if you\'re sure.</string>
     <string name="swap_providers_title">Swap Providers</string>
     <string name="swap_providers_mandatory_toast">This provider cannot be disabled</string>
     <string name="swap_no_enabled_providers">No enabled providers</string>
+    <string name="swap_no_providers_for_this_amount">No providers for this amount</string>
 
     <!-- Swap Confirmation -->
     <string name="ActivationRequired_DialogTitle">Activate Token</string>
@@ -902,6 +903,7 @@ Proceed only if you\'re sure.</string>
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Awaiting bank selection</string>
     <string name="Transactions_Failed">Failed</string>
     <string name="Transactions_ContractCall">Contract Call</string>
     <string name="Transactions_ExternalContractCall">External Call</string>
@@ -944,6 +946,7 @@ Proceed only if you\'re sure.</string>
     <string name="TransactionInfo_Date">Date</string>
     <string name="transaction_info_sync_source">Sync Source</string>
     <string name="TransactionInfo_Id">ID</string>
+    <string name="TransactionInfo_Service">Service</string>
     <string name="TransactionInfo_RawTransaction">Raw Transaction</string>
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">To</string>
@@ -2429,4 +2432,38 @@ Proceed only if you\'re sure.</string>
     <string name="multi_swap_continue">Continue swap</string>
     <string name="multi_swap_unfinished">Unfinished swap</string>
     <string name="multi_swap_unfinished_plural">Unfinished swaps (%d)</string>
+
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Verify Phone</string>
+    <string name="paycore_verifying">Verifying…</string>
+    <string name="paycore_service_fee">Service Fee</string>
+    <string name="paycore_network">Network</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Continue</string>
+    <string name="paycore_verification_processing">Processing…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Support</string>
+    <string name="settings_contact_us_paycore_support">Paycore Support</string>
+    <string name="paycore_verification_not_verified">Number not verified</string>
+    <string name="paycore_verification_pass_kyc">Complete KYC</string>
+    <string name="paycore_kyc_title" translatable="false">KYC</string>
+    <string name="paycore_verification_verified_title">Your verification is complete</string>
+    <string name="paycore_verification_warning_title">WARNING</string>
+    <string name="paycore_verification_warning_text">FUND TRANSFERS ARE PERMITTED EXCLUSIVELY FROM THE ACCOUNT BELONGING TO YOU, WITH A VERIFIED PHONE NUMBER AND IDENTITY.</string>
+    <string name="paycore_verification_warning_detail">Transfers from other accounts will not be credited, sent funds will be lost!</string>
+    <string name="paycore_verification_back">Back</string>
+    <string name="paycore_verification_error">Failed to complete login. Try again later.</string>
+    <string name="paycore_verification_retry">Retry</string>
+    <string name="paycore_verification_phone_label">Phone number:</string>
+    <string name="paycore_verification_contact_support">Automatic recovery failed. Please contact support.</string>
+    <string name="paycore_verification_support_line"><![CDATA[24/7 technical support: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Service</string>
+    <string name="paycore_support">PayCore Support</string>
+    <string name="paycore_section_currency">Currency</string>
+    <string name="paycore_section_crypto">Cryptocurrencies</string>
+    <string name="paycore_select_bank">Select bank</string>
+    <string name="paycore_select_bank_error">Failed to open bank selection. Try again later.</string>
+    <string name="paycore_banks_unavailable">Banks are temporarily unavailable. Try again later.</string>
+    <string name="paycore_delete_restricted_warning">This transaction cannot be deleted because it is processed by a third-party service.</string>
+    <string name="paycore_delete_to_complete_select_bank">Select a bank to complete the swap.</string>
 </resources>
