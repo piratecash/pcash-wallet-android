@@ -90,6 +90,7 @@ class TransactionsViewModel(
     var filterHideSuspiciousTx = MutableLiveData<Boolean>()
 
     private var transactionListId: String? = null
+    private var transactionListBaseId: String? = null
     private var transactions: Map<String, List<TransactionViewItem>>? = null
     private var viewState: ViewState = ViewState.Loading
     private var syncing = service.syncingFlow.value
@@ -103,6 +104,15 @@ class TransactionsViewModel(
     @Volatile
     private var awaitingAdaptersAfterSwitch = false
     private var currentFilterType: FilterTransactionType = FilterTransactionType.All
+    private var currentTransactionWallets: List<TransactionWallet> = emptyList()
+    private var currentTransactionWallet: TransactionWallet? = null
+    private var currentBlockchain: Blockchain? = null
+    private var currentContact: Contact? = null
+    private var searchActive = false
+    private var searchQuery = ""
+    private var appliedSearchQuery = ""
+    private var searchScanning = false
+    private var searchDebounceJob: Job? = null
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
 
     // Maps transaction record UID to SwapProviderTransaction for reactive updates
@@ -166,6 +176,8 @@ class TransactionsViewModel(
                         cachedConvertedItems = emptyList()
                         viewState = ViewState.Loading
                         transactions = null
+                        searchScanning = false
+                        transactionListBaseId = null
                         awaitingAdaptersAfterSwitch = true
                         service.cancelPendingLoads()
                         emitState()
@@ -188,30 +200,28 @@ class TransactionsViewModel(
                 val selectedTransactionWallet = state.selectedToken?.let {
                     TransactionWallet(it.token, it.source, it.token.badge)
                 }
+                currentTransactionWallets = transactionWallets.filterNotNull()
+                currentTransactionWallet = selectedTransactionWallet
+                currentFilterType = state.selectedTransactionType
+                currentBlockchain = state.selectedBlockchain
+                currentContact = state.contact
 
                 val accountId = walletManager.activeWallets.firstOrNull()?.account?.id.orEmpty()
-                val newTransactionListId = accountId +
+                val newTransactionListBaseId = accountId +
                         (selectedTransactionWallet?.hashCode() ?: 0).toString() +
                         state.selectedTransactionType.name +
                         state.selectedBlockchain?.uid
 
-                // If filter changed, reset state to show loading and increment version
-                if (transactionListId != newTransactionListId) {
-                    transactionListId = newTransactionListId
-                    filterVersion++
-                    cachedConvertedItems = emptyList()
-                    viewState = ViewState.Loading
-                    transactions = null
-                    emitState()
-                }
+                resetTransactionListIfNeeded(newTransactionListBaseId)
 
                 withContext(dispatcherProvider.io) {
                     service.set(
-                        transactionWallets.filterNotNull(),
+                        currentTransactionWallets,
                         selectedTransactionWallet,
                         state.selectedTransactionType,
                         state.selectedBlockchain,
                         state.contact,
+                        appliedSearchQuery.ifBlank { null },
                     )
                 }
 
@@ -219,7 +229,6 @@ class TransactionsViewModel(
 
                 val types = state.transactionTypes
                 val selectedType = state.selectedTransactionType
-                currentFilterType = selectedType
                 val filterTypes = types.map { Filter(it, it == selectedType) }
                 filterTypesLiveData.postValue(filterTypes)
 
@@ -256,11 +265,12 @@ class TransactionsViewModel(
             combine(
                 service.transactionItemsFlow,
                 swapStatusMap,
-                reprocessTrigger.onStart { emit(Unit) }
-            ) { items, _, _ -> items }
-                .collect { items ->
+                reprocessTrigger.onStart { emit(Unit) },
+                service.searchScanStateFlow,
+            ) { items, _, _, scanState -> items to scanState }
+                .collect { (items, scanState) ->
                     val distinct = items.distinctBy { it.record.uid }
-                    handleUpdatedItems(distinct)
+                    handleUpdatedItems(distinct, scanState)
                 }
         }
 
@@ -323,20 +333,72 @@ class TransactionsViewModel(
         }
     }
 
+    private fun resetTransactionListIfNeeded(baseId: String?) {
+        val newTransactionListId = transactionListId(baseId, appliedSearchQuery)
+        if (transactionListBaseId == baseId && transactionListId == newTransactionListId) {
+            return
+        }
+
+        transactionListBaseId = baseId
+        transactionListId = newTransactionListId
+        filterVersion++
+        cachedConvertedItems = emptyList()
+        searchScanning = appliedSearchQuery.isNotEmpty()
+        viewState = if (appliedSearchQuery.isEmpty()) ViewState.Loading else ViewState.Success
+        transactions = if (appliedSearchQuery.isEmpty()) null else emptyMap()
+        emitState()
+    }
+
+    private fun transactionListId(baseId: String?, query: String): String? {
+        return baseId?.let { "$it|search=$query" }
+    }
+
+    private suspend fun applySearchQuery(query: String) {
+        if (appliedSearchQuery == query) return
+
+        appliedSearchQuery = query
+        resetTransactionListIfNeeded(transactionListBaseId)
+        withContext(dispatcherProvider.io) {
+            service.set(
+                transactionWallets = currentTransactionWallets,
+                transactionWallet = currentTransactionWallet,
+                filterTransactionType = currentFilterType,
+                blockchain = currentBlockchain,
+                contact = currentContact,
+                searchQuery = appliedSearchQuery.ifBlank { null },
+            )
+        }
+    }
+
     fun showAllTransactions(show: Boolean) = transactionHiddenManager.showAllTransactions(show)
 
-    private fun handleUpdatedItems(items: List<TransactionItem>) {
+    private fun handleUpdatedItems(items: List<TransactionItem>, scanState: SearchScanState) {
         // During account switch, skip empty emissions to prevent Loading → Success(empty) flash.
         // Both cancelPendingLoads and service.set() (triggered by each adapter batch) clear
         // service items, producing empty emissions. The flag stays true until either:
         // - first non-empty data arrives (below), or
         // - initializationFlow signals all adapters ready (fallback for empty accounts)
+        // This guard precedes the scan short-circuit: it handles non-search account switches
+        // (empty emissions at scanState=Idle, where the short-circuit doesn't apply).
         if (items.isEmpty() && awaitingAdaptersAfterSwitch) {
             return
         }
         if (items.isNotEmpty() && awaitingAdaptersAfterSwitch) {
             awaitingAdaptersAfterSwitch = false
         }
+
+        // While a search scan runs, show only the spinner — never stale/intermediate items.
+        // Search has a single terminal emission (Finished); there is nothing to show before it.
+        if (appliedSearchQuery.isNotEmpty() && scanState == SearchScanState.Scanning) {
+            refreshViewItemsJob?.cancel()
+            cachedConvertedItems = emptyList()
+            transactions = emptyMap()
+            searchScanning = true
+            viewState = ViewState.Success
+            emitState()
+            return
+        }
+
         refreshViewItemsJob?.cancel()
         refreshViewItemsJob = viewModelScope.launch(dispatcherProvider.default) {
             val capturedVersion = accountVersion
@@ -356,12 +418,12 @@ class TransactionsViewModel(
             // Discard if account or filter changed during async conversion
             if (capturedVersion == accountVersion && capturedFilterVersion == filterVersion) {
                 cachedConvertedItems = allViewItems
-                applyHiddenFilter()
+                applyHiddenFilter(scanState)
             }
         }
     }
 
-    private fun applyHiddenFilter() {
+    private fun applyHiddenFilter(scanState: SearchScanState? = null) {
         val allViewItems = cachedConvertedItems
         val hiddenState = transactionHiddenManager.transactionHiddenFlow.value
         val filtered = if (hiddenState.transactionHidden) {
@@ -376,6 +438,9 @@ class TransactionsViewModel(
         }
 
         transactions = filtered.groupBy { it.formattedDate }
+        if (scanState != null) {
+            searchScanning = appliedSearchQuery.isNotEmpty() && scanState == SearchScanState.Scanning
+        }
         viewState = ViewState.Success
         emitState()
     }
@@ -423,7 +488,10 @@ class TransactionsViewModel(
         hasHiddenTransactions = hasHiddenTransactions,
         showAmlPromo = shouldShowAmlPromo(),
         amlCheckEnabled = amlStatusManager.isEnabled,
-        balanceHidden = balanceHiddenManager.balanceHidden
+        balanceHidden = balanceHiddenManager.balanceHidden,
+        searchActive = searchActive,
+        searchQuery = searchQuery,
+        searchScanning = searchScanning,
     )
 
     private fun handleUpdatedWallets(wallets: List<Wallet>) {
@@ -448,6 +516,34 @@ class TransactionsViewModel(
 
     fun resetFilters() {
         transactionFilterService.reset()
+    }
+
+    fun onSearchClick() {
+        searchActive = true
+        emitState()
+    }
+
+    fun onSearchQueryChange(query: String) {
+        if (searchQuery == query) return
+
+        searchQuery = query
+        emitState()
+
+        searchDebounceJob?.cancel()
+        searchDebounceJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MILLIS)
+            applySearchQuery(searchQuery.trim())
+        }
+    }
+
+    fun onSearchClose() {
+        searchDebounceJob?.cancel()
+        searchActive = false
+        searchQuery = ""
+        emitState()
+        searchDebounceJob = viewModelScope.launch {
+            applySearchQuery("")
+        }
     }
 
     fun onBottomReached() {
@@ -560,6 +656,10 @@ class TransactionsViewModel(
         premiumSettings.setAmlCheckShowAlert(false)
         amlPromoAlertEnabled = false
         emitState()
+    }
+
+    private companion object {
+        const val SEARCH_DEBOUNCE_MILLIS = 300L
     }
 
 }

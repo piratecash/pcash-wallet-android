@@ -228,7 +228,8 @@
     <string name="MarketEtf_Outflow">Outflow</string>
     <string name="MarketEtf_TotalNetAssets">Total Net Assets</string>
     <!--Market Search-->
-    <string name="EmptyResults">No results found</string>
+    <string name="EmptyResults">نتیجه‌ای پیدا نشد</string>
+    <string name="transactions_empty_search_results">تراکنشی پیدا نشد</string>
     <string name="Market_Filters">Filters</string>
     <string name="Market_AdvancedSearch_Results">Results</string>
     <string name="Market_Search_Hint">Search</string>

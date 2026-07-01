@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
+enum class SearchScanState { Idle, Scanning, Finished }
+
 class TransactionsService(
     private val rateRepository: TransactionsRateRepository,
     private val transactionSyncStateRepository: TransactionSyncStateRepository,
@@ -36,10 +38,14 @@ class TransactionsService(
     private val _transactionItems = MutableStateFlow<List<TransactionItem>>(emptyList())
     val transactionItemsFlow: StateFlow<List<TransactionItem>> = _transactionItems.asStateFlow()
 
+    private val _searchScanStateFlow = MutableStateFlow(SearchScanState.Idle)
+    val searchScanStateFlow: StateFlow<SearchScanState> = _searchScanStateFlow.asStateFlow()
+
     val syncingFlow: StateFlow<Boolean> get() = transactionSyncStateRepository.syncingFlow
 
     @Volatile
     private var serviceVersion = 0
+    private var lastHiddenOnlyLoadKey: String? = null
 
     private val job = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
@@ -47,7 +53,7 @@ class TransactionsService(
     fun start() {
         coroutineScope.launch {
             transactionRecordRepository.itemsFlow.collect {
-                handleUpdatedRecords(it)
+                handleUpdatedRecords(it.records, it.searchCompleted, it.searchExhausted)
             }
         }
         coroutineScope.launch {
@@ -78,18 +84,29 @@ class TransactionsService(
         transactionWallet: TransactionWallet?,
         filterTransactionType: FilterTransactionType,
         blockchain: Blockchain?,
-        contact: Contact?
+        contact: Contact?,
+        searchQuery: String? = null,
     ) {
-        serviceVersion++
-        _transactionItems.value = emptyList()
-
-        transactionRecordRepository.set(
+        // Phase 1: apply state, learn whether a reload is needed — no emission, no load yet.
+        val willReload = transactionRecordRepository.set(
             transactionWallets,
             transactionWallet,
             filterTransactionType,
             blockchain,
-            contact
+            contact,
+            searchQuery,
         )
+
+        if (willReload) {
+            // Bump version, publish "scanning" and clear items BEFORE the scan emits anything,
+            // so no stale "not found" frame can slip in ahead of the Scanning state.
+            serviceVersion++
+            lastHiddenOnlyLoadKey = null
+            _searchScanStateFlow.value =
+                if (searchQuery != null) SearchScanState.Scanning else SearchScanState.Idle
+            _transactionItems.value = emptyList()
+            transactionRecordRepository.reloadItems()
+        }
 
         transactionSyncStateRepository.setTransactionWallets(
             transactionWallets.filterBySelection(transactionWallet, blockchain)
@@ -173,7 +190,11 @@ class TransactionsService(
         }
     }
 
-    private suspend fun handleUpdatedRecords(transactionRecords: List<TransactionRecord>) {
+    private suspend fun handleUpdatedRecords(
+        transactionRecords: List<TransactionRecord>,
+        searchCompleted: Boolean = false,
+        searchExhausted: Boolean = false,
+    ) {
         val capturedVersion = serviceVersion
         val nftUids = transactionRecords.nftUids
         val nftMetadata = nftMetadataService.assetsBriefMetadata(nftUids)
@@ -196,9 +217,25 @@ class TransactionsService(
         }
 
         if (newRecords.isNotEmpty() && newRecords.all { spamManager.shouldHide(it) }) {
-            loadNext()
+            // The scan stops after collecting expectedItemsCount RAW matches; spam is filtered
+            // here, not in the scan. So an all-spam batch does NOT mean "nothing left to find":
+            // a visible match may lie beyond the scanned window. Keep paging while the source
+            // is not exhausted. Regular (non-search) batches always page — loadNext is a no-op
+            // once exhausted. Only an exhausted all-spam search batch finalizes to Finished.
+            val canPageDeeper = !searchCompleted || !searchExhausted
+            if (canPageDeeper) {
+                val hiddenOnlyLoadKey = newRecords.joinToString(separator = "|") { it.uid }
+                if (lastHiddenOnlyLoadKey != hiddenOnlyLoadKey) {
+                    lastHiddenOnlyLoadKey = hiddenOnlyLoadKey
+                    loadNext()
+                }
+            } else {
+                _searchScanStateFlow.value = SearchScanState.Finished
+            }
             return
         }
+
+        lastHiddenOnlyLoadKey = null
 
         _transactionItems.update { latestItems ->
             // Re-check version inside CAS loop — if set() or cancelPendingLoads()
@@ -220,6 +257,10 @@ class TransactionsService(
                     existingItem.withUpdatedListData(record = record)
                 }
             }
+        }
+
+        if (searchCompleted && capturedVersion == serviceVersion) {
+            _searchScanStateFlow.value = SearchScanState.Finished
         }
     }
 
@@ -243,6 +284,7 @@ class TransactionsService(
         // Clear items to prevent always-on collectors (rates, metadata, block info)
         // from updating stale items after account switch.
         // The VM guards against the resulting Loading → Success(empty) flash.
+        _searchScanStateFlow.value = SearchScanState.Idle
         _transactionItems.value = emptyList()
         transactionRecordRepository.cancelPendingLoads()
     }

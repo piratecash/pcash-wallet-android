@@ -103,6 +103,7 @@ class TransactionsViewModelGetTransactionItemTest : KoinTest {
     fun setup() {
         Dispatchers.setMain(dispatcher)
         every { service.transactionItemsFlow } returns MutableStateFlow(emptyList())
+        every { service.searchScanStateFlow } returns MutableStateFlow(SearchScanState.Idle)
         every { service.syncingFlow } returns MutableStateFlow(false)
         every { transactionFilterService.stateFlow } returns MutableStateFlow(mockk(relaxed = true))
         every { transactionHiddenManager.transactionHiddenFlow } returns MutableStateFlow(

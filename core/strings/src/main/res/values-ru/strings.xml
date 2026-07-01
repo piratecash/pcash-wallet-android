@@ -230,6 +230,7 @@
     <string name="MarketEtf_TotalNetAssets">Общий чистый актив</string>
     <!--Market Search-->
     <string name="EmptyResults">Ничего не найдено</string>
+    <string name="transactions_empty_search_results">Транзакций не найдено</string>
     <string name="Market_Filters">Фильтры</string>
     <string name="Market_AdvancedSearch_Results">Результат</string>
     <string name="Market_Search_Hint">Поиск</string>

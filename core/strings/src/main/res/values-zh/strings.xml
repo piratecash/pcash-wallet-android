@@ -229,6 +229,7 @@
     <string name="MarketEtf_TotalNetAssets">净资产总额</string>
     <!--Market Search-->
     <string name="EmptyResults">未发现结果</string>
+    <string name="transactions_empty_search_results">未找到交易</string>
     <string name="Market_Filters">高级搜索</string>
     <string name="Market_AdvancedSearch_Results">搜索结果</string>
     <string name="Market_Search_Hint">搜索</string>

@@ -10,5 +10,8 @@ data class TransactionsUiState(
     val hasHiddenTransactions: Boolean,
     val showAmlPromo: Boolean = false,
     val amlCheckEnabled: Boolean = false,
-    val balanceHidden: Boolean = false
+    val balanceHidden: Boolean = false,
+    val searchActive: Boolean = false,
+    val searchQuery: String = "",
+    val searchScanning: Boolean = false,
 )

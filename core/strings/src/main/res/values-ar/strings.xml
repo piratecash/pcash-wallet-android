@@ -228,7 +228,8 @@
     <string name="MarketEtf_Outflow">Outflow</string>
     <string name="MarketEtf_TotalNetAssets">Total Net Assets</string>
     <!--Market Search-->
-    <string name="EmptyResults">No results found</string>
+    <string name="EmptyResults">لم يتم العثور على نتائج</string>
+    <string name="transactions_empty_search_results">لم يتم العثور على معاملات</string>
     <string name="Market_Filters">Filters</string>
     <string name="Market_AdvancedSearch_Results">Results</string>
     <string name="Market_Search_Hint">بحث</string>
@@ -314,7 +315,7 @@
     <string name="Balance_RatePerCoin">%1$s per %2$s</string>
     <string name="Balance_SyncedUntil">until %s</string>
     <string name="Balance_Syncing">Syncing…</string>
-    <string name="Balance_SearchingTransactions">Searching transactions…</string>
+    <string name="Balance_SearchingTransactions">جارٍ البحث عن المعاملات…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Syncing… %s%%</string>
     <string name="balance_connecting">جارٍ الاتصال…</string>

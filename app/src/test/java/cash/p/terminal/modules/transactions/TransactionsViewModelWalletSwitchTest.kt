@@ -145,6 +145,7 @@ class TransactionsViewModelWalletSwitchTest : KoinTest {
         every { transactionAdapterManager.adaptersReadyFlow } returns adaptersReadyFlow
         every { transactionAdapterManager.initializationFlow } returns initializationFlow
         every { service.transactionItemsFlow } returns transactionItemsFlow
+        every { service.searchScanStateFlow } returns MutableStateFlow(SearchScanState.Idle)
         every { service.syncingFlow } returns syncingFlow
         every { transactionFilterService.stateFlow } returns filterStateFlow
         every { transactionHiddenManager.transactionHiddenFlow } returns transactionHiddenFlow
