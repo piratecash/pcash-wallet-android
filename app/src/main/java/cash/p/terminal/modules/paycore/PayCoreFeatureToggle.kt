@@ -1,16 +1,21 @@
 package cash.p.terminal.modules.paycore
 
 import cash.p.terminal.BuildConfig
+import cash.p.terminal.core.managers.SystemLanguageProvider
 import io.horizontalsystems.core.ILanguageManager
-import java.util.Locale
 
 class PayCoreFeatureToggle(
-    private val languageManager: ILanguageManager
+    private val languageManager: ILanguageManager,
+    private val systemLanguageProvider: SystemLanguageProvider,
 ) {
     fun isEnabled(): Boolean {
         if (!BuildConfig.PAYCORE_ENABLED) return false
         val appLanguage = languageManager.currentLanguage
-        val systemLanguage = Locale.getDefault().language
-        return appLanguage != "uk" && systemLanguage != "uk"
+        val systemLanguage = systemLanguageProvider.language
+        return appLanguage != UKRAINIAN && systemLanguage != UKRAINIAN
+    }
+
+    private companion object {
+        const val UKRAINIAN = "uk"
     }
 }

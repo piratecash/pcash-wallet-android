@@ -46,6 +46,8 @@ import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
 import cash.p.terminal.core.managers.GuidesManager
 import cash.p.terminal.core.managers.KeyStoreCleaner
 import cash.p.terminal.core.managers.LanguageManager
+import cash.p.terminal.core.managers.SystemLanguageProvider
+import cash.p.terminal.core.managers.SystemLanguageProviderImpl
 import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.MoneroKitManager
@@ -162,6 +164,7 @@ val managerModule = module {
     singleOf(::SystemInfoManager) bind ISystemInfoManager::class
     singleOf(::BackupManager) bind IBackupManager::class
     singleOf(::LanguageManager) bind ILanguageManager::class
+    singleOf(::SystemLanguageProviderImpl) bind SystemLanguageProvider::class
     singleOf(::AppHeadersProviderImpl) bind AppHeadersProvider::class
     singleOf(::DefaultCurrencyManager) bind CurrencyManager::class
     singleOf(::SolanaRpcSourceManager)

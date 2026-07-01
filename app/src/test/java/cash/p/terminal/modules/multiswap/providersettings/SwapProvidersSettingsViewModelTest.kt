@@ -3,8 +3,10 @@ package cash.p.terminal.modules.multiswap.providersettings
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRegistry
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
+import cash.p.terminal.core.managers.SystemLanguageProvider
 import cash.p.terminal.modules.paycore.PayCoreFeatureToggle
 import cash.p.terminal.modules.paycore.PayCoreProvider
+import io.horizontalsystems.core.ILanguageManager
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -67,6 +69,18 @@ class SwapProvidersSettingsViewModelTest {
         val viewModel = SwapProvidersSettingsViewModel(registry, repository, payCoreFeatureToggle)
 
         assertTrue(viewModel.uiState.items.any { it.id == PayCoreProvider.ID })
+        assertTrue(viewModel.uiState.items.any { it.id == "quickex" })
+    }
+
+    @Test
+    fun createState_appEnglishSystemUkrainian_excludesPayCore() {
+        val languageManager = mockk<ILanguageManager> { every { currentLanguage } returns "en" }
+        val systemLanguageProvider = mockk<SystemLanguageProvider> { every { language } returns "uk" }
+        val realToggle = PayCoreFeatureToggle(languageManager, systemLanguageProvider)
+
+        val viewModel = SwapProvidersSettingsViewModel(registry, repository, realToggle)
+
+        assertFalse(viewModel.uiState.items.any { it.id == PayCoreProvider.ID })
         assertTrue(viewModel.uiState.items.any { it.id == "quickex" })
     }
 

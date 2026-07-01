@@ -166,7 +166,9 @@ val viewModelModule = module {
     viewModel { (otherSelectedToken: Token?, activeAccount: Account) ->
         SwapSelectCoinViewModel(
             otherSelectedToken = otherSelectedToken,
-            activeAccount = activeAccount
+            activeAccount = activeAccount,
+            payCoreFeatureToggle = get(),
+            dispatcherProvider = get()
         )
     }
     viewModel { (wallet: Wallet) ->

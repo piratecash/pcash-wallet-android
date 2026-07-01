@@ -21,19 +21,19 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.entities.TokenQuery
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
 class SwapSelectCoinViewModel(
     private val otherSelectedToken: Token?,
-    private val activeAccount: Account
+    private val activeAccount: Account,
+    private val payCoreFeatureToggle: PayCoreFeatureToggle,
+    private val dispatcherProvider: DispatcherProvider,
 ) : ViewModel() {
-    private val payCoreFeatureToggle: PayCoreFeatureToggle by inject(PayCoreFeatureToggle::class.java)
     private val coinsProvider = FullCoinsProvider(App.marketKit, activeAccount)
     private val adapterManager = App.adapterManager
     private val currencyManager = App.currencyManager
@@ -83,7 +83,7 @@ class SwapSelectCoinViewModel(
     private val isOtherUsdtSupported: Boolean
         get() = otherSelectedToken?.let { PayCoreNetworkMapper.isUsdtOnSupportedNetwork(it) } == true
 
-    private suspend fun reloadItems() = withContext(Dispatchers.IO) {
+    private suspend fun reloadItems() = withContext(dispatcherProvider.io) {
         val activeWallets = App.walletManager.activeWallets
         val resultTokens = mutableListOf<CoinBalanceItem>()
 
