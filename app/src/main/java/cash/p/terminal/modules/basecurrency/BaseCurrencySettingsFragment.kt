@@ -12,13 +12,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +31,7 @@ import cash.p.terminal.R
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.BottomSheetHeader
+import cash.p.terminal.ui_compose.TransparentModalBottomSheet
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -63,124 +62,112 @@ private fun BaseCurrencyScreen(
         factory = BaseCurrencySettingsModule.Factory()
     )
 ) {
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(
-        ModalBottomSheetValue.Hidden,
-        confirmValueChange = {
-            if (it == ModalBottomSheetValue.Hidden) {
-                viewModel.closeDisclaimer()
-            }
-            true
-        }
-    )
-
     if (viewModel.closeScreen) {
         navController.popBackStack()
     }
 
-    if (viewModel.showDisclaimer) {
-        LaunchedEffect(Unit) {
-            sheetState.show()
-        }
-    }
-
-    ModalBottomSheetLayout(
-        sheetState = sheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
-        sheetContent = {
-            WarningBottomSheet(
-                text = stringResource(
-                    R.string.SettingsCurrency_DisclaimerText,
-                    viewModel.disclaimerCurrencies
-                ),
-                onCloseClick = {
-                    viewModel.closeDisclaimer()
-                    scope.launch { sheetState.hide() }
-                },
-                onOkClick = {
-                    viewModel.onAcceptDisclaimer()
-                    scope.launch { sheetState.hide() }
+    Scaffold(
+        containerColor = ComposeAppTheme.colors.tyler,
+        topBar = {
+            AppBar(
+                title = stringResource(R.string.SettingsCurrency_Title),
+                navigationIcon = {
+                    HsBackButton(onClick = { navController.popBackStackSafely() })
                 }
             )
         }
-    ) {
-        Scaffold(
-            containerColor = ComposeAppTheme.colors.tyler,
-            topBar = {
-                AppBar(
-                    title = stringResource(R.string.SettingsCurrency_Title),
-                    navigationIcon = {
-                        HsBackButton(onClick = { navController.popBackStackSafely() })
-                    }
-                )
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.padding(paddingValues)) {
-                Column(
-                    Modifier
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    VSpacer(12.dp)
-                    CellUniversalLawrenceSection(viewModel.popularItems) { item ->
-                        CurrencyCell(
-                            item.currency.code,
-                            item.currency.symbol,
-                            item.currency.flag,
-                            item.selected
-                        ) { viewModel.onSelectBaseCurrency(item.currency) }
-                    }
-                    VSpacer(24.dp)
-                    HeaderText(
-                        stringResource(R.string.SettingsCurrency_Other)
-                    )
-                    CellUniversalLawrenceSection(viewModel.otherItems) { item ->
-                        CurrencyCell(
-                            item.currency.code,
-                            item.currency.symbol,
-                            item.currency.flag,
-                            item.selected
-                        ) { viewModel.onSelectBaseCurrency(item.currency) }
-                    }
-                    VSpacer(24.dp)
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            Column(
+                Modifier
+                    .verticalScroll(rememberScrollState())
+            ) {
+                VSpacer(12.dp)
+                CellUniversalLawrenceSection(viewModel.popularItems) { item ->
+                    CurrencyCell(
+                        item.currency.code,
+                        item.currency.symbol,
+                        item.currency.flag,
+                        item.selected
+                    ) { viewModel.onSelectBaseCurrency(item.currency) }
                 }
+                VSpacer(24.dp)
+                HeaderText(
+                    stringResource(R.string.SettingsCurrency_Other)
+                )
+                CellUniversalLawrenceSection(viewModel.otherItems) { item ->
+                    CurrencyCell(
+                        item.currency.code,
+                        item.currency.symbol,
+                        item.currency.flag,
+                        item.selected
+                    ) { viewModel.onSelectBaseCurrency(item.currency) }
+                }
+                VSpacer(24.dp)
             }
         }
     }
+
+    if (viewModel.showDisclaimer) {
+        WarningBottomSheet(
+            text = stringResource(
+                R.string.SettingsCurrency_DisclaimerText,
+                viewModel.disclaimerCurrencies
+            ),
+            onCloseClick = viewModel::closeDisclaimer,
+            onOkClick = viewModel::onAcceptDisclaimer
+        )
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WarningBottomSheet(
     text: String,
     onCloseClick: () -> Unit,
     onOkClick: () -> Unit
 ) {
-    BottomSheetHeader(
-        iconPainter = painterResource(R.drawable.ic_attention_24),
-        title = stringResource(R.string.SettingsCurrency_DisclaimerTitle),
-        iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
-        onCloseClick = onCloseClick
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    TransparentModalBottomSheet(
+        onDismissRequest = onCloseClick,
+        sheetState = sheetState,
     ) {
-        TextImportantWarning(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            text = text
-        )
+        BottomSheetHeader(
+            iconPainter = painterResource(R.drawable.ic_attention_24),
+            title = stringResource(R.string.SettingsCurrency_DisclaimerTitle),
+            iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
+            onCloseClick = {
+                scope.launch { sheetState.hide() }.invokeOnCompletion { onCloseClick() }
+            }
+        ) {
+            TextImportantWarning(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                text = text
+            )
 
-        ButtonPrimaryYellow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp, top = 20.dp),
-            title = stringResource(id = R.string.Button_Change),
-            onClick = onOkClick
-        )
+            ButtonPrimaryYellow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, top = 20.dp),
+                title = stringResource(id = R.string.Button_Change),
+                onClick = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { onOkClick() }
+                }
+            )
 
-        ButtonPrimaryTransparent(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            title = stringResource(id = R.string.Button_Cancel),
-            onClick = onCloseClick
-        )
-        Spacer(modifier = Modifier.height(20.dp))
+            ButtonPrimaryTransparent(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                title = stringResource(id = R.string.Button_Cancel),
+                onClick = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion { onCloseClick() }
+                }
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+        }
     }
 }
 
