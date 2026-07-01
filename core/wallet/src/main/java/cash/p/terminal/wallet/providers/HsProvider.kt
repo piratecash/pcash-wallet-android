@@ -240,7 +240,10 @@ class HsProvider(baseUrl: String, apiKey: String) {
                 language = language
             ).await()
         } catch (e: Exception) {
-            piratePlaceRepository.getCoinInfo(coinGeckoUid).let(pirateCoinInfoMapper::mapCoinInfo)
+            pirateCoinInfoMapper.mapCoinInfo(
+                piratePlaceRepository.getCoinInfo(coinGeckoUid),
+                currencyCode = currencyCode,
+            )
         }
     }
 

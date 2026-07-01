@@ -15,11 +15,11 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
-import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.isZcashAddressSpec
 import io.horizontalsystems.core.entities.BlockchainType
-import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
+import cash.p.terminal.wallet.useCases.WalletUseCase
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
@@ -35,10 +35,7 @@ class ReceiveTokenSelectViewModel(
             fullCoins = fullCoins,
         )
     )
-    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
-        GetHardwarePublicKeyForWalletUseCase::class.java
-    )
-    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
+    private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
 
     init {
         fullCoinsProvider.setActiveWallets(walletManager.activeWallets)
@@ -90,6 +87,10 @@ class ReceiveTokenSelectViewModel(
                 receiveType(fullCoin, eligibleTokens, CoinForReceiveType.MultipleAddressTypes)
             }
 
+            eligibleTokens.all { it.isZcashAddressSpec } -> {
+                receiveType(fullCoin, eligibleTokens, CoinForReceiveType.MultipleAddressTypes)
+            }
+
             else -> CoinForReceiveType.MultipleBlockchains
         }
     }
@@ -125,20 +126,12 @@ class ReceiveTokenSelectViewModel(
     }
 
     private suspend fun getOrCreateWallet(token: Token): Wallet? {
-        return walletManager
-            .activeWallets
-            .find { it.token == token }
+        return walletUseCase.getWallet(token)
             ?: createWallet(token)
     }
 
     private suspend fun createWallet(token: Token): Wallet? {
-        val wallet = walletFactory.create(
-            token = token,
-            account = activeAccount,
-            hardwarePublicKey = getHardwarePublicKeyForWalletUseCase(activeAccount, token)
-        ) ?: return null
-
-        walletManager.save(listOf(wallet))
+        val wallet = walletUseCase.createWalletIfNotExists(token) ?: return null
 
         Utils.waitUntil(1000L, 100L) {
             App.adapterManager.getReceiveAdapterForWallet(wallet) != null

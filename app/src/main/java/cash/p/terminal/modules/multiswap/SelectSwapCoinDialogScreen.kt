@@ -129,7 +129,7 @@ private fun CoinBalanceRow(
             Spacer(modifier = Modifier.size(16.dp))
             MultitextM1(
                 title = {
-                    Row {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         val text = if (isFiat) {
                             coinItem.token.coin.name
                         } else {
@@ -138,7 +138,10 @@ private fun CoinBalanceRow(
                         B2(text = text)
                         if (!isFiat) {
                             coinItem.token.badge?.let {
-                                Badge(text = it)
+                                Badge(
+                                    modifier = Modifier.padding(start = 6.dp),
+                                    text = it
+                                )
                             }
                         }
                     }
