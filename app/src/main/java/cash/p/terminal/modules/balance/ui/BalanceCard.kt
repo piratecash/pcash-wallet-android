@@ -180,7 +180,7 @@ fun BalanceCardInner(
                             )
                             if (!viewItem.badge.isNullOrBlank()) {
                                 Badge(
-                                    modifier = Modifier.padding(start = 8.dp),
+                                    modifier = Modifier.padding(start = 6.dp),
                                     text = viewItem.badge,
                                 )
                             }
