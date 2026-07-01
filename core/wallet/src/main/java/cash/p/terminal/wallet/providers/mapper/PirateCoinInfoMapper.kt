@@ -9,8 +9,9 @@ import java.util.Locale
 
 internal class PirateCoinInfoMapper {
 
-    fun mapCoinInfo(piratePlaceCoin: PiratePlaceCoin) =
-        MarketInfoOverviewRaw(
+    fun mapCoinInfo(piratePlaceCoin: PiratePlaceCoin, currencyCode: String): MarketInfoOverviewRaw {
+        val currencyKey = currencyCode.lowercase()
+        return MarketInfoOverviewRaw(
             performance = mapOf(
                 mapPerformance("usd", piratePlaceCoin.changes),
                 mapPerformance("btc", piratePlaceCoin.changes),
@@ -22,15 +23,16 @@ internal class PirateCoinInfoMapper {
                 ?: piratePlaceCoin.description["en"],
             links = mapLinks(piratePlaceCoin.links),
             marketData = MarketInfoOverviewRaw.MarketData(
-                marketCap = piratePlaceCoin.marketCap["usd"],
+                marketCap = piratePlaceCoin.marketCap[currencyKey],
                 marketCapRank = piratePlaceCoin.rank,
                 totalSupply = piratePlaceCoin.totalSupply,
                 circulatingSupply = piratePlaceCoin.circulatingSupply,
                 volume24h = null,
-                dilutedMarketCap = piratePlaceCoin.fullyDilutedValuation["usd"],
+                dilutedMarketCap = piratePlaceCoin.fullyDilutedValuation[currencyKey],
                 tvl = null,
             )
         )
+    }
 
     private fun mapPerformance(
         currency: String,

@@ -23,6 +23,8 @@ import cash.p.terminal.wallet.models.HsPointTimePeriod
 import cash.p.terminal.wallet.models.TopPlatform
 import cash.p.terminal.wallet.protocolType
 import cash.p.terminal.wallet.zCashCoinType
+import cash.p.terminal.wallet.zcashAddressSpecTokenQueries
+import cash.p.terminal.wallet.zcashDefaultTokenQuery
 import io.horizontalsystems.bitcoincash.MainNetBitcoinCash
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -537,11 +539,7 @@ val BlockchainType.nativeTokenQueries: List<TokenQuery>
             }
         }
 
-        BlockchainType.Zcash -> {
-            TokenType.AddressSpecType.entries.map {
-                TokenQuery(this, TokenType.AddressSpecTyped(it))
-            }
-        }
+        BlockchainType.Zcash -> zcashAddressSpecTokenQueries
 
         else -> {
             listOf(TokenQuery(this, TokenType.Native))
@@ -558,6 +556,8 @@ val BlockchainType.defaultTokenQuery: TokenQuery
         BlockchainType.BitcoinCash -> {
             TokenQuery(this, TokenType.AddressTyped(TokenType.AddressType.Type145))
         }
+
+        BlockchainType.Zcash -> zcashDefaultTokenQuery
 
         else -> {
             TokenQuery(this, TokenType.Native)
@@ -586,6 +586,7 @@ val TokenType.isDefault
     get() = when (this) {
         is TokenType.Derived -> derivation.accountTypeDerivation == Derivation.default
         is TokenType.AddressTyped -> type.bitcoinCashCoinType == BitcoinCashCoinType.default
+        is TokenType.AddressSpecTyped -> type == TokenType.AddressSpecType.Unified
         else -> false
     }
 

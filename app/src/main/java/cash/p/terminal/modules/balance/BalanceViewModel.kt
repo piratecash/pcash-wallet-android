@@ -34,21 +34,16 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet
-import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.canSwap
 import cash.p.terminal.wallet.isBackedUpOrNotRequired
-import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
-import cash.p.terminal.wallet.isOldZCash
 import cash.p.terminal.wallet.isStakingWallet
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.tokenQueryId
-import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import com.reown.walletkit.client.Wallet.Params.Pair
 import com.reown.walletkit.client.WalletKit
@@ -63,7 +58,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
@@ -89,8 +83,6 @@ class BalanceViewModel(
     private var errorMessage: String? = null
     private var balanceTabButtonsEnabled = localStorage.balanceTabButtonsEnabled
 
-    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
-    private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val coinManager: ICoinManager by inject(ICoinManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
@@ -99,10 +91,6 @@ class BalanceViewModel(
 
     private var pendingSwapCount = 0
     private var singlePendingSwapId: String? = null
-
-    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
-        GetHardwarePublicKeyForWalletUseCase::class.java
-    )
 
     private val sortTypes =
         listOf(BalanceSortType.Value, BalanceSortType.Name, BalanceSortType.PercentGrowth)
@@ -270,7 +258,6 @@ class BalanceViewModel(
                         displayDiffOptionType = displayDiffOptionType
                     )
                 }
-                replaceOldZCashWithNew()
             } else {
                 viewState = null
                 balanceViewItems = listOf()
@@ -278,30 +265,6 @@ class BalanceViewModel(
 
             ensureActive()
             emitState()
-        }
-    }
-
-    /***
-     * We migrated to new address scheme, so we need to replace old ZCash with new one
-     */
-    private fun replaceOldZCashWithNew() {
-        ArrayList(balanceViewItems).find { it.wallet.isOldZCash() }?.let { oldZCashViewItem ->
-            val account = accountManager.activeAccount ?: return
-            val tokenQuery = TokenQuery(
-                BlockchainType.Zcash, TokenType.AddressSpecTyped(
-                    AddressSpecType.Shielded
-                )
-            )
-            marketKit.token(tokenQuery)?.let { token ->
-                viewModelScope.launch {
-                    Log.d("BalanceViewModel", "Replacing old ZCash with new one")
-                    service.disable(oldZCashViewItem.wallet)
-                    Log.d("BalanceViewModel", "Activating new ZCash")
-                    val hardwarePublicKey =
-                        runBlocking { getHardwarePublicKeyForWalletUseCase(account, token) }
-                    walletFactory.create(token, account, hardwarePublicKey)?.let(service::enable)
-                }
-            }
         }
     }
 

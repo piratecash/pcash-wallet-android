@@ -7,6 +7,7 @@ import cash.p.terminal.modules.receive.ui.AddressFormatItem
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.bitcoinCashCoinType
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.zCashCoinType
 
 class BchAddressTypeSelectViewModel(coinUid: String, walletManager: IWalletManager) : ViewModel() {
     val items = walletManager.activeWallets
@@ -14,15 +15,27 @@ class BchAddressTypeSelectViewModel(coinUid: String, walletManager: IWalletManag
             it.coin.uid == coinUid
         }
         .mapNotNull { wallet ->
-            val addressType =
-                (wallet.token.type as? TokenType.AddressTyped)?.type ?: return@mapNotNull null
-            val bitcoinCashCoinType = addressType.bitcoinCashCoinType
+            when (val tokenType = wallet.token.type) {
+                is TokenType.AddressTyped -> {
+                    val bitcoinCashCoinType = tokenType.type.bitcoinCashCoinType
+                    AddressFormatItem(
+                        title = bitcoinCashCoinType.title,
+                        subtitle = bitcoinCashCoinType.value.uppercase(),
+                        wallet = wallet
+                    )
+                }
 
-            AddressFormatItem(
-                title = bitcoinCashCoinType.title,
-                subtitle = bitcoinCashCoinType.value.uppercase(),
-                wallet = wallet
-            )
+                is TokenType.AddressSpecTyped -> {
+                    val zCashCoinType = tokenType.type.zCashCoinType
+                    AddressFormatItem(
+                        title = zCashCoinType.title,
+                        subtitle = zCashCoinType.value.uppercase(),
+                        wallet = wallet
+                    )
+                }
+
+                else -> null
+            }
         }
 
     class Factory(private val coinUid: String) : ViewModelProvider.Factory {
@@ -32,4 +45,3 @@ class BchAddressTypeSelectViewModel(coinUid: String, walletManager: IWalletManag
         }
     }
 }
-

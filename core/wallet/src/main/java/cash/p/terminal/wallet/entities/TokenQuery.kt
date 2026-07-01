@@ -40,11 +40,16 @@ data class TokenQuery(
 
         val PirateJetton = TokenQuery(BlockchainType.Ton, TokenType.Jetton(BuildConfig.PIRATE_JETTON_ADDRESS))
 
+        val ZcashUnified = TokenQuery(
+            BlockchainType.Zcash,
+            TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified)
+        )
+
         val defaultTokenQueries by lazy {
             listOfNotNull(
                 TokenQuery(BlockchainType.Bitcoin, TokenType.Derived(TokenType.Derivation.Bip84)),
                 TokenQuery(BlockchainType.Monero, TokenType.Native),
-                TokenQuery(BlockchainType.Zcash, TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified)),
+                ZcashUnified,
                 TokenQuery(BlockchainType.Ethereum, TokenType.Native),
                 TokenQuery(BlockchainType.BinanceSmartChain, TokenType.Native),
                 PirateCashBnb,

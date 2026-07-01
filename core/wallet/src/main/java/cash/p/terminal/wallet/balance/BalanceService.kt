@@ -19,6 +19,5 @@ interface BalanceService : AutoCloseable {
     suspend fun refresh()
 
     suspend fun disable(wallet: Wallet)
-    fun enable(wallet: Wallet)
     val balanceItemsFlow: StateFlow<List<BalanceItem>?>
 }
