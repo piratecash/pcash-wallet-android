@@ -1298,10 +1298,10 @@ Proceed only if you\'re sure.</string>
     <string name="offline_transaction_fee">Fee</string>
     <string name="offline_transaction_format">Transaction format</string>
     <string name="offline_transaction_pcash_format">Format for P.CASH</string>
-    <string name="offline_transaction_raw_format">Raw transaction</string>
+    <string name="offline_transaction_raw_format" translatable="false">RAW TX</string>
     <string name="offline_transaction_pcash_info_title">Format for P.CASH</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[This mode lets you broadcast the transaction using the <a href="https://p.cash">p.cash</a> app.]]></string>
-    <string name="offline_transaction_raw_info_title">Raw transaction</string>
+    <string name="offline_transaction_raw_info_title" translatable="false">RAW TX</string>
     <string name="offline_transaction_raw_info_description">This mode lets you send the transaction using the official app for this network or specialized software.</string>
     <string name="offline_transaction_button_sign">Sign</string>
     <string name="offline_transaction_transfer_title">Transfer transaction</string>

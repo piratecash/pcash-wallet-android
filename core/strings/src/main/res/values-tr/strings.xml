@@ -973,10 +973,8 @@
     <string name="offline_transaction_fee">Ücret</string>
     <string name="offline_transaction_format">İşlem formatı</string>
     <string name="offline_transaction_pcash_format">P.CASH formatı</string>
-    <string name="offline_transaction_raw_format">Raw işlem</string>
     <string name="offline_transaction_pcash_info_title">P.CASH formatı</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[Bu mod, işlemi <a href="https://p.cash">p.cash</a> uygulamasıyla yayınlamanızı sağlar.]]></string>
-    <string name="offline_transaction_raw_info_title">Raw işlem</string>
     <string name="offline_transaction_raw_info_description">Bu mod, işlemi bu ağın resmi uygulaması veya özel yazılımla göndermenizi sağlar.</string>
     <string name="offline_transaction_button_sign">İmzala</string>
     <string name="offline_transaction_transfer_title">İşlemi aktar</string>

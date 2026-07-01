@@ -969,10 +969,8 @@
     <string name="offline_transaction_fee">手续费</string>
     <string name="offline_transaction_format">交易格式</string>
     <string name="offline_transaction_pcash_format">P.CASH 格式</string>
-    <string name="offline_transaction_raw_format">Raw 交易</string>
     <string name="offline_transaction_pcash_info_title">P.CASH 格式</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[此模式可使用 <a href="https://p.cash">p.cash</a> 应用广播交易。]]></string>
-    <string name="offline_transaction_raw_info_title">Raw 交易</string>
     <string name="offline_transaction_raw_info_description">此模式可使用该网络的官方应用或专业软件发送交易。</string>
     <string name="offline_transaction_button_sign">签名</string>
     <string name="offline_transaction_transfer_title">传输交易</string>

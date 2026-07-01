@@ -974,10 +974,8 @@
     <string name="offline_transaction_fee">Kosten</string>
     <string name="offline_transaction_format">Transactieformaat</string>
     <string name="offline_transaction_pcash_format">Formaat voor P.CASH</string>
-    <string name="offline_transaction_raw_format">Raw transactie</string>
     <string name="offline_transaction_pcash_info_title">Formaat voor P.CASH</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[Met deze modus kunt u de transactie uitzenden via de <a href="https://p.cash">p.cash</a>-app.]]></string>
-    <string name="offline_transaction_raw_info_title">Raw transactie</string>
     <string name="offline_transaction_raw_info_description">Met deze modus kunt u de transactie verzenden via de officiële app voor dit netwerk of gespecialiseerde software.</string>
     <string name="offline_transaction_button_sign">Ondertekenen</string>
     <string name="offline_transaction_transfer_title">Transactie overdragen</string>

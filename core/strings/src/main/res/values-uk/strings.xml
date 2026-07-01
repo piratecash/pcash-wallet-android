@@ -975,10 +975,8 @@
     <string name="offline_transaction_fee">Комісія</string>
     <string name="offline_transaction_format">Формат транзакції</string>
     <string name="offline_transaction_pcash_format">Формат для P.CASH</string>
-    <string name="offline_transaction_raw_format">Сира транзакція</string>
     <string name="offline_transaction_pcash_info_title">Формат для P.CASH</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[Цей режим дає змогу транслювати транзакцію за допомогою застосунку <a href="https://p.cash">p.cash</a>.]]></string>
-    <string name="offline_transaction_raw_info_title">Сира транзакція</string>
     <string name="offline_transaction_raw_info_description">Цей режим дає змогу надіслати транзакцію за допомогою офіційного застосунку для цієї мережі або спеціалізованого програмного забезпечення.</string>
     <string name="offline_transaction_button_sign">Підписати</string>
     <string name="offline_transaction_transfer_title">Передати транзакцію</string>

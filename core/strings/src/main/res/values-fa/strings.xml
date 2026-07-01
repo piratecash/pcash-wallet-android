@@ -972,10 +972,8 @@
     <string name="offline_transaction_fee">کارمزد</string>
     <string name="offline_transaction_format">فرمت تراکنش</string>
     <string name="offline_transaction_pcash_format">فرمت P.CASH</string>
-    <string name="offline_transaction_raw_format">تراکنش Raw</string>
     <string name="offline_transaction_pcash_info_title">فرمت P.CASH</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[این حالت امکان پخش تراکنش با برنامه <a href="https://p.cash">p.cash</a> را فراهم می‌کند.]]></string>
-    <string name="offline_transaction_raw_info_title">تراکنش Raw</string>
     <string name="offline_transaction_raw_info_description">این حالت امکان ارسال تراکنش با برنامه رسمی این شبکه یا نرم‌افزار تخصصی را فراهم می‌کند.</string>
     <string name="offline_transaction_button_sign">امضا</string>
     <string name="offline_transaction_transfer_title">انتقال تراکنش</string>

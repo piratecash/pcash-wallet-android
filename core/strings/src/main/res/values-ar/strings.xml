@@ -972,10 +972,8 @@
     <string name="offline_transaction_fee">الرسوم</string>
     <string name="offline_transaction_format">تنسيق المعاملة</string>
     <string name="offline_transaction_pcash_format">تنسيق P.CASH</string>
-    <string name="offline_transaction_raw_format">معاملة Raw</string>
     <string name="offline_transaction_pcash_info_title">تنسيق P.CASH</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[يتيح هذا الوضع بث المعاملة باستخدام تطبيق <a href="https://p.cash">p.cash</a>.]]></string>
-    <string name="offline_transaction_raw_info_title">معاملة Raw</string>
     <string name="offline_transaction_raw_info_description">يتيح هذا الوضع إرسال المعاملة باستخدام التطبيق الرسمي لهذه الشبكة أو برنامج متخصص.</string>
     <string name="offline_transaction_button_sign">توقيع</string>
     <string name="offline_transaction_transfer_title">نقل المعاملة</string>

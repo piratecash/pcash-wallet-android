@@ -972,10 +972,8 @@
     <string name="offline_transaction_fee">수수료</string>
     <string name="offline_transaction_format">트랜잭션 형식</string>
     <string name="offline_transaction_pcash_format">P.CASH 형식</string>
-    <string name="offline_transaction_raw_format">Raw 트랜잭션</string>
     <string name="offline_transaction_pcash_info_title">P.CASH 형식</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[이 모드는 <a href="https://p.cash">p.cash</a> 앱으로 트랜잭션을 브로드캐스트할 수 있게 합니다.]]></string>
-    <string name="offline_transaction_raw_info_title">Raw 트랜잭션</string>
     <string name="offline_transaction_raw_info_description">이 모드는 해당 네트워크의 공식 앱 또는 전문 소프트웨어로 트랜잭션을 보낼 수 있게 합니다.</string>
     <string name="offline_transaction_button_sign">서명</string>
     <string name="offline_transaction_transfer_title">트랜잭션 전달</string>

@@ -968,10 +968,8 @@
     <string name="offline_transaction_fee">Comisión</string>
     <string name="offline_transaction_format">Formato de transacción</string>
     <string name="offline_transaction_pcash_format">Formato para P.CASH</string>
-    <string name="offline_transaction_raw_format">Transacción raw</string>
     <string name="offline_transaction_pcash_info_title">Formato para P.CASH</string>
     <string name="offline_transaction_pcash_info_description"><![CDATA[Este modo permite transmitir la transacción usando la app <a href="https://p.cash">p.cash</a>.]]></string>
-    <string name="offline_transaction_raw_info_title">Transacción raw</string>
     <string name="offline_transaction_raw_info_description">Este modo permite enviar la transacción usando la app oficial de esta red o software especializado.</string>
     <string name="offline_transaction_button_sign">Firmar</string>
     <string name="offline_transaction_transfer_title">Transferir transacción</string>
