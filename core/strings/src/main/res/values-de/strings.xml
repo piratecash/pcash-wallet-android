@@ -1831,6 +1831,7 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="display_options_period_1y">1 Jahr</string>
     <string name="display_options_period_all">Alle</string>
     <string name="sum_rounding">Summenrundung</string>
+    <string name="transaction_filter">Transaktionsfilter</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d Option</item>

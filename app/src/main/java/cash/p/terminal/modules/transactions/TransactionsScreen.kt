@@ -358,13 +358,17 @@ fun LazyListScope.transactionList(
     isItemBalanceHidden: (TransactionViewItem) -> Boolean,
     onSensitiveValueClick: (TransactionViewItem) -> Unit,
     onClick: (TransactionViewItem) -> Unit,
-    onBottomReached: () -> Unit
+    onBottomReached: () -> Unit,
+    stickyDateHeaders: Boolean = true
 ) {
     val bottomReachedUid = getBottomReachedUid(transactionsMap)
 
     transactionsMap.forEach { (dateHeader, transactions) ->
-        stickyHeader {
-            HeaderStick(text = dateHeader)
+        val dateHeaderContent: @Composable () -> Unit = { HeaderStick(text = dateHeader) }
+        if (stickyDateHeaders) {
+            stickyHeader { dateHeaderContent() }
+        } else {
+            item { dateHeaderContent() }
         }
 
         val itemsCount = transactions.size
@@ -874,7 +878,7 @@ private fun FailedSwapTransactionCellPreview() {
 }
 
 @Composable
-private fun FilterTypeTabs(
+internal fun FilterTypeTabs(
     filterTypes: List<Filter<FilterTransactionType>>,
     onTransactionTypeClick: (FilterTransactionType) -> Unit
 ) {

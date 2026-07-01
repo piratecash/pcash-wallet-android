@@ -687,7 +687,7 @@
     <string name="Transactions_From">from %s</string>
     <string name="Transaction_Unlimited_CoinCode">unlimited %s</string>
     <string name="Transaction_Unlimited">unlimited</string>
-    <string name="Transactions_All">All</string>
+    <string name="Transactions_All">الكل</string>
     <string name="Transactions_Filter_Blockchain">Blockchain</string>
     <string name="Transactions_Filter_Coin">Coin</string>
     <string name="Transactions_Filter_Contacts">Contacts</string>
@@ -696,10 +696,10 @@
     <string name="Transactions_Filter_AllContacts">All Contacts</string>
     <string name="Transactions_Filter_ChooseCoin">Choose Coin</string>
     <string name="Transactions_Filter_ChooseBlockchain">Choose Blockchain</string>
-    <string name="Transactions_Incoming">Received</string>
-    <string name="Transactions_Outgoing">Sent</string>
+    <string name="Transactions_Incoming">المستلمة</string>
+    <string name="Transactions_Outgoing">المرسلة</string>
     <string name="Transactions_Swaps">التبادلات</string>
-    <string name="Transactions_Approvals">Approvals</string>
+    <string name="Transactions_Approvals">الموافقات</string>
     <string name="Transactions_Unknown">Unknown Transaction</string>
     <string name="Transactions_TonTransaction">Ton Transaction</string>
     <string name="Transactions_Unknown_Description">Transaction can not be parsed</string>
@@ -1854,6 +1854,7 @@
     <string name="display_options_period_1y">1 سنة</string>
     <string name="display_options_period_all">الكل</string>
     <string name="sum_rounding">تقريب المبالغ</string>
+    <string name="transaction_filter">تصفية المعاملات</string>
 
     <plurals name="options_count">
         <item quantity="zero">لا توجد خيارات</item>

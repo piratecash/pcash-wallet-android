@@ -116,6 +116,7 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var priceChangeInterval: PriceChangeInterval
     val priceChangeIntervalFlow: StateFlow<PriceChangeInterval>
     var isRoundingAmountMainPage: Boolean
+    var transactionFiltersEnabled: Boolean
 
     // Display Options
     var displayDiffPricePeriod: DisplayPricePeriod

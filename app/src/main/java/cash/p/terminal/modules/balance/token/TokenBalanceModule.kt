@@ -20,6 +20,8 @@ import cash.p.terminal.modules.balance.TotalBalance
 import cash.p.terminal.modules.balance.TotalService
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
+import cash.p.terminal.modules.transactions.Filter
+import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.modules.transactions.TransactionViewItem
@@ -135,6 +137,8 @@ class TokenBalanceModule {
         val isRoundingAmount: Boolean = false,
         val isShowShieldFunds: Boolean = false,
         val networkFeeWarning: NetworkFeeWarningBannerData? = null,
-        val syncing: Boolean = true
+        val syncing: Boolean = true,
+        val transactionFiltersEnabled: Boolean = false,
+        val transactionFilterTypes: List<Filter<FilterTransactionType>> = emptyList()
     )
 }

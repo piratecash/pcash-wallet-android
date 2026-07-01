@@ -40,6 +40,8 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.fee.getWarningThreshold
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.transactions.AmlStatus
+import cash.p.terminal.modules.transactions.Filter
+import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
@@ -151,6 +153,8 @@ class TokenBalanceViewModel(
     private var displayDiffPricePeriod = localStorage.displayDiffPricePeriod
     private var displayDiffOptionType = localStorage.displayDiffOptionType
     private var isRoundingAmount = localStorage.isRoundingAmountMainPage
+    private var transactionFiltersEnabled = localStorage.transactionFiltersEnabled
+    private var selectedTransactionType = FilterTransactionType.All
     private var hasReachedSynced = false
     private var networkFeeWarning: TokenBalanceModule.NetworkFeeWarningBannerData? = null
     private var networkFeeWarningDismissed =
@@ -419,7 +423,11 @@ class TokenBalanceViewModel(
         isRoundingAmount = isRoundingAmount,
         isShowShieldFunds = isShowShieldFunds(),
         networkFeeWarning = networkFeeWarning,
-        syncing = syncing
+        syncing = syncing,
+        transactionFiltersEnabled = transactionFiltersEnabled,
+        transactionFilterTypes = if (transactionFiltersEnabled) {
+            FilterTransactionType.entries.map { Filter(it, it == selectedTransactionType) }
+        } else emptyList()
     )
 
     private fun calculateHoursUntilNextAccrual(): Int? {
@@ -704,6 +712,30 @@ class TokenBalanceViewModel(
     fun setRoundingAmount(enabled: Boolean) {
         localStorage.isRoundingAmountMainPage = enabled
         isRoundingAmount = enabled
+        emitState()
+    }
+
+    fun setTransactionFiltersEnabled(enabled: Boolean) {
+        localStorage.transactionFiltersEnabled = enabled
+        transactionFiltersEnabled = enabled
+        // Reset to All when turning off so the user isn't stuck on a filtered list with no tabs.
+        if (!enabled && selectedTransactionType != FilterTransactionType.All) {
+            setTransactionType(FilterTransactionType.All)
+        } else {
+            emitState()
+        }
+    }
+
+    fun setTransactionType(type: FilterTransactionType) {
+        if (type == selectedTransactionType) return
+        selectedTransactionType = type
+        // Open a loading window for the switch: keep transactions null and syncing true so the
+        // screen shows "please wait" instead of flashing "no transactions". The updateTransactions
+        // guard relies on syncing, and the syncing-finished hook relies on transactions == null,
+        // until the new filter's first batch arrives.
+        transactions = null
+        syncing = true
+        transactionsService.setTransactionType(type)
         emitState()
     }
 

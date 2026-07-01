@@ -51,6 +51,22 @@ class TokenTransactionsService(
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
+    @Volatile
+    private var serviceVersion = 0
+
+    @Volatile
+    private var initialClearPending = true
+
+    @Volatile
+    private var selectedTransactionType: FilterTransactionType = FilterTransactionType.All
+
+    @Volatile
+    private var initialized = false
+
+    private val transactionWallet by lazy {
+        TransactionWallet(wallet.token, wallet.transactionSource, wallet.badge)
+    }
+
     fun start() {
         coroutineScope.launch {
             transactionRecordRepository.itemsFlow.collect {
@@ -90,18 +106,44 @@ class TokenTransactionsService(
     }
 
     private fun handleInitialization() {
-        val transactionWallet =
-            TransactionWallet(wallet.token, wallet.transactionSource, wallet.badge)
-
         _recordsLoadedFlow.value = false
         transactionSyncStateRepository.setTransactionWallets(listOf(transactionWallet))
+        val loadedType = selectedTransactionType
+        loadTransactions()
+        initialized = true
+        // A setTransactionType() that raced during the initial load saw initialized == false and
+        // skipped its own reload; apply the latest selection if it changed meanwhile.
+        if (selectedTransactionType != loadedType) {
+            loadTransactions()
+        }
+    }
+
+    private fun loadTransactions() {
         transactionRecordRepository.set(
             transactionWallets = listOf(transactionWallet),
             wallet = transactionWallet,
-            transactionType = FilterTransactionType.All,
+            transactionType = selectedTransactionType,
             blockchain = null,
             contact = null
         )
+    }
+
+    fun setTransactionType(transactionType: FilterTransactionType) {
+        // Bump version so an in-flight handleUpdatedRecords() of the previous filter is
+        // discarded, then drop to loading and clear the previous-filter list before reload.
+        // The repository's type-change branch does not emit emptyList(), so without this the
+        // stale list of the old type stays visible until the first filtered page arrives.
+        selectedTransactionType = transactionType
+        serviceVersion++
+        _recordsLoadedFlow.value = false
+        _transactionItems.value = emptyList()
+        // Before initialization the repository has no adapters yet, so set() would load against an
+        // empty adapter map and emit a premature empty result that flips recordsLoaded to true,
+        // flashing "no transactions". handleInitialization() issues the first set() with the saved
+        // type once adapters are ready.
+        if (initialized) {
+            loadTransactions()
+        }
     }
 
     private fun handle(assetBriefMetadataMap: Map<NftUid, NftAssetBriefMetadata>) {
@@ -182,7 +224,17 @@ class TokenTransactionsService(
     }
 
     private suspend fun handleUpdatedRecords(transactionRecords: List<TransactionRecord>) {
-        _recordsLoadedFlow.value = true
+        // The repository emits a synthetic empty list once, when wallets are first set, to clear the
+        // UI before the initial page loads. That clear is not a completed load: marking records as
+        // loaded on it would let an already-synced wallet briefly show "no transactions" before its
+        // first page arrives. Drop it once; a genuinely empty wallet still reports loaded through the
+        // real (also empty) result that follows.
+        if (initialClearPending) {
+            initialClearPending = false
+            if (transactionRecords.isEmpty()) return
+        }
+
+        val capturedVersion = serviceVersion
         val nftUids = transactionRecords.nftUids
         val nftMetadata = nftMetadataService.assetsBriefMetadata(nftUids)
 
@@ -193,17 +245,25 @@ class TokenTransactionsService(
             }
         }
 
+        // Discard a stale batch if setTransactionType() ran concurrently while loading metadata.
+        if (capturedVersion != serviceVersion) return
+
         val currentItems = _transactionItems.value
         val newRecords = transactionRecords.filter { record ->
             currentItems.none { it.record == record }
         }
 
         if (newRecords.isNotEmpty() && newRecords.all { spamManager.shouldHide(it) }) {
+            _recordsLoadedFlow.value = true
             loadNext()
             return
         }
 
         _transactionItems.update { latestItems ->
+            // Re-check inside the CAS loop: setTransactionType() may have run between the
+            // outer check and here.
+            if (capturedVersion != serviceVersion) return@update latestItems
+
             transactionRecords.mapNotNull { record ->
                 val existingItem = latestItems.find { it.record == record }
 
@@ -220,6 +280,10 @@ class TokenTransactionsService(
                 }
             }
         }
+
+        // Mark loaded only after the items are published, so a consumer that observes
+        // syncing flip to false always sees the new list — never an empty intermediate state.
+        _recordsLoadedFlow.value = true
     }
 
     private fun getCurrencyValue(record: TransactionRecord): CurrencyValue? {

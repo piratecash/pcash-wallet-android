@@ -168,6 +168,8 @@ private fun TokenBalanceNavHost(
                 onAddressPoisoningViewClick = {
                     navController.navigate(TokenBalanceRoute.AddressPoisoningView)
                 },
+                transactionFiltersEnabled = viewModel.uiState.transactionFiltersEnabled,
+                onTransactionFiltersChange = viewModel::setTransactionFiltersEnabled,
                 navController = fragmentNavController,
                 onBack = navController::popBackStackSafely,
             )
