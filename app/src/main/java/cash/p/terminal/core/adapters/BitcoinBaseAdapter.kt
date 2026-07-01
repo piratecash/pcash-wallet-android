@@ -462,6 +462,7 @@ abstract class BitcoinBaseAdapter(
         val status = when (result.status) {
             RawTransactionBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted
             RawTransactionBroadcastStatus.Queued -> BroadcastRawTransactionStatus.Queued
+            RawTransactionBroadcastStatus.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
         }
         return BroadcastRawTransactionResult(
             txHash = result.transaction.header.hash.toReversedHex(),

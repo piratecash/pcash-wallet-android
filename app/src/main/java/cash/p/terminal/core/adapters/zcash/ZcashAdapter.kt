@@ -1031,7 +1031,7 @@ internal fun TransactionSubmitResult.toZcashRawBroadcastResult(): BroadcastRawTr
         is TransactionSubmitResult.Success -> toSubmittedBroadcastResult()
         is TransactionSubmitResult.Failure -> {
             if (description.isZcashAlreadyCommittedToBestChainError()) {
-                toSubmittedBroadcastResult()
+                toAlreadyKnownBroadcastResult()
             } else {
                 throw Exception(description ?: "Zcash raw transaction broadcast failed: $code")
             }
@@ -1043,6 +1043,12 @@ private fun TransactionSubmitResult.toSubmittedBroadcastResult() =
     BroadcastRawTransactionResult(
         txHash = txIdString().canonicalTransactionHash(),
         status = BroadcastRawTransactionStatus.Submitted,
+    )
+
+private fun TransactionSubmitResult.toAlreadyKnownBroadcastResult() =
+    BroadcastRawTransactionResult(
+        txHash = txIdString().canonicalTransactionHash(),
+        status = BroadcastRawTransactionStatus.AlreadyKnown,
     )
 
 internal fun WalletBalance.toBalanceData(decimalCount: Int) = BalanceData(

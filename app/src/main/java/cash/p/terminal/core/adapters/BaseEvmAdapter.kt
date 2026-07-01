@@ -104,4 +104,5 @@ private fun RawTransactionBroadcastStatus.toAppStatus(): BroadcastRawTransaction
     when (this) {
         RawTransactionBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted
         RawTransactionBroadcastStatus.Queued -> BroadcastRawTransactionStatus.Queued
+        RawTransactionBroadcastStatus.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
     }

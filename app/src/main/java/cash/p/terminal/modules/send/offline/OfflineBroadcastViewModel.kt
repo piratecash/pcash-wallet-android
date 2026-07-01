@@ -239,57 +239,73 @@ class OfflineBroadcastViewModel(
 
     private suspend fun broadcast(wallet: Wallet, adapter: OfflineTransactionAdapter<*>): OfflineBroadcastResult {
         val networkName = wallet.token.blockchain.name
-        return try {
-            offlineRecordKey?.let {
-                offlineSignedTransactionRepository.markBroadcastAttempt(it.accountId, it.txHash)
-            }
-            val broadcastResult = withContext(dispatcherProvider.io) {
+
+        val broadcastResult = try {
+            withContext(dispatcherProvider.io) {
                 adapter.broadcastRawTransaction(rawHex, broadcastMetadata)
             }
-            val queued = broadcastResult.status == BroadcastRawTransactionStatus.Queued
-            val recordKey = offlineRecordKey
-            // Only an actually submitted transaction is "broadcasted". A queued result means the P2P
-            // send did not go through and the kit only accepted it for later retry, so the record stays
-            // Pending ("awaiting send") instead of falsely reporting "Sent". Once the queued transaction
-            // reaches the network it surfaces in wallet history and the reconciliation in
-            // OfflineSignedTransactionsViewModel promotes it to Broadcasted.
-            if (recordKey == null) {
-                persistRawBroadcast(wallet, broadcastResult.txHash, queued)
-            } else if (!queued) {
-                recordKey.let {
-                    // The adapter derives the real txid from the raw bytes, so reconcile the record to
-                    // it and drop the imported payload's claimed hash.
-                    offlineSignedTransactionRepository.markBroadcasted(
-                        it.accountId,
-                        it.txHash,
-                        broadcastResult.txHash.ifBlank { it.txHash },
-                    )
-                }
-            }
-            if (!queued) {
-                val confirmedTxHash = broadcastResult.txHash.ifBlank { recordKey?.txHash.orEmpty() }
-                if (confirmedTxHash.isNotBlank()) {
-                    offlineSignedTransactionRepository.markBroadcastedByRawHex(rawHex, confirmedTxHash)
-                }
-            }
-            OfflineBroadcastResult.Success(
-                networkName = networkName,
-                txHash = broadcastResult.txHash,
-                queued = queued,
-                explorerUrl = transactionUrl(wallet, broadcastResult.txHash),
-            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {
+            recordBroadcastAttempt()
             val message = e.offlineBroadcastErrorMessage(wallet.token.coin.code)
             offlineRecordKey?.let {
                 offlineSignedTransactionRepository.markBroadcastFailed(it.accountId, it.txHash, message)
             }
-            OfflineBroadcastResult.Error(
+            return OfflineBroadcastResult.Error(networkName, rawHex, message)
+        }
+
+        // The network already has this transaction; we did not send it. Report it as such and do
+        // NOT mutate the local record: it may be an imported (someone else's) transaction, and the
+        // record's terminal status is owned by the Signed-offline reconciliation, not by this call.
+        if (broadcastResult.status == BroadcastRawTransactionStatus.AlreadyKnown) {
+            return OfflineBroadcastResult.Error(
                 networkName = networkName,
                 rawHex = rawHex,
-                message = message,
+                message = Translator.getString(R.string.offline_broadcast_error_already_sent),
             )
+        }
+
+        recordBroadcastAttempt()
+
+        val queued = broadcastResult.status == BroadcastRawTransactionStatus.Queued
+        val recordKey = offlineRecordKey
+        // Only an actually submitted transaction is "broadcasted". A queued result means the P2P
+        // send did not go through and the kit only accepted it for later retry, so the record stays
+        // Pending ("awaiting send") instead of falsely reporting "Sent". Once the queued transaction
+        // reaches the network it surfaces in wallet history and the reconciliation in
+        // OfflineSignedTransactionsViewModel promotes it to Broadcasted.
+        if (recordKey == null) {
+            persistRawBroadcast(wallet, broadcastResult.txHash, queued)
+        } else if (!queued) {
+            // The adapter derives the real txid from the raw bytes, so reconcile the record to
+            // it and drop the imported payload's claimed hash.
+            offlineSignedTransactionRepository.markBroadcasted(
+                recordKey.accountId,
+                recordKey.txHash,
+                broadcastResult.txHash.ifBlank { recordKey.txHash },
+            )
+        }
+        if (!queued) {
+            val confirmedTxHash = broadcastResult.txHash.ifBlank { recordKey?.txHash.orEmpty() }
+            if (confirmedTxHash.isNotBlank()) {
+                offlineSignedTransactionRepository.markBroadcastedByRawHex(rawHex, confirmedTxHash)
+            }
+        }
+        return OfflineBroadcastResult.Success(
+            networkName = networkName,
+            txHash = broadcastResult.txHash,
+            queued = queued,
+            explorerUrl = transactionUrl(wallet, broadcastResult.txHash),
+        )
+    }
+
+    // Records a broadcast attempt on the local record when one exists. Called only for real send
+    // outcomes (Submitted/Queued and failures) and never for AlreadyKnown, so an already-in-network
+    // transaction leaves the local record untouched.
+    private suspend fun recordBroadcastAttempt() {
+        offlineRecordKey?.let {
+            offlineSignedTransactionRepository.markBroadcastAttempt(it.accountId, it.txHash)
         }
     }
 

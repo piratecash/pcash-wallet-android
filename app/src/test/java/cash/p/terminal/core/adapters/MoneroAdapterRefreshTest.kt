@@ -90,7 +90,7 @@ class MoneroAdapterRefreshTest {
         val raw = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
         val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true)
         val adapter = MoneroAdapter(moneroKitWrapper)
-        coEvery { moneroKitWrapper.submitSignedRawTransaction(any()) } returns RawMoneroBroadcastResult(TX_HASH)
+        coEvery { moneroKitWrapper.submitSignedRawTransaction(any()) } returns RawMoneroBroadcastResult.Submitted(TX_HASH)
 
         val result = adapter.broadcastRawTransaction("00010203040506070809")
 

@@ -215,7 +215,7 @@ data class BroadcastRawTransactionResult(
 )
 
 enum class BroadcastRawTransactionStatus {
-    Submitted, Queued
+    Submitted, Queued, AlreadyKnown
 }
 
 sealed interface OfflineBroadcastMetadata {

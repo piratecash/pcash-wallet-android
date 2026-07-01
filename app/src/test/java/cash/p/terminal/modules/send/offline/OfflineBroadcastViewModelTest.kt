@@ -15,6 +15,7 @@ import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.OfflineTokenMetadata
 import cash.p.terminal.entities.OfflineTronRetryMetadata
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -789,6 +790,77 @@ class OfflineBroadcastViewModelTest {
 
         coVerify { repository.markBroadcasted("account-id", "hash", "derived-hash") }
         coVerify { repository.markBroadcastedByRawHex("deadbeefdeadbeefdead", "derived-hash") }
+    }
+
+    @Test
+    fun onBroadcast_adapterReturnsAlreadyKnown_showsAlreadyInNetworkWithoutMutatingRecord() = runTest(dispatcher) {
+        setActiveWallets(listOf(bitcoinWallet))
+        every { payloadEncoder.decode(any()) } returns decoded()
+        every { marketKit.blockchain("bitcoin") } returns bitcoin
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
+            BroadcastRawTransactionResult("hash", BroadcastRawTransactionStatus.AlreadyKnown)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        val result = viewModel.uiState.result as? OfflineBroadcastResult.Error
+        assertNotNull(result)
+        assertEquals(Translator.getString(R.string.offline_broadcast_error_already_sent), result?.message)
+        coVerify(exactly = 0) { repository.markBroadcastAttempt(any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcasted(any(), any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcastedByRawHex(any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcastFailed(any(), any(), any()) }
+    }
+
+    @Test
+    fun onBroadcast_plainRawHexAlreadyKnown_showsAlreadyInNetworkWithoutPersistingRecord() = runTest(dispatcher) {
+        setActiveWallets(listOf(bitcoinWallet))
+        every { payloadEncoder.decode(any()) } returns null
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } returns
+            BroadcastRawTransactionResult("derived-hash", BroadcastRawTransactionStatus.AlreadyKnown)
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("deadbeefdeadbeefdead")
+        advanceUntilIdle()
+        viewModel.onSelectBlockchain(bitcoin)
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        val result = viewModel.uiState.result as? OfflineBroadcastResult.Error
+        assertNotNull(result)
+        assertEquals(Translator.getString(R.string.offline_broadcast_error_already_sent), result?.message)
+        coVerify(exactly = 0) { repository.saveRawImported(any(), any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcastAttempt(any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcasted(any(), any(), any()) }
+        coVerify(exactly = 0) { repository.markBroadcastedByRawHex(any(), any()) }
+    }
+
+    @Test
+    fun onBroadcast_adapterThrows_stillRecordsBroadcastAttempt() = runTest(dispatcher) {
+        setActiveWallets(listOf(bitcoinWallet))
+        every { payloadEncoder.decode(any()) } returns decoded()
+        every { marketKit.blockchain("bitcoin") } returns bitcoin
+        val adapter = mockk<TestOfflineTransactionAdapter>()
+        coEvery { adapter.broadcastRawTransaction(any(), null) } throws Exception("boom")
+        coEvery { adapterManager.awaitAdapterForWallet<IAdapter>(any(), any()) } returns adapter
+
+        val viewModel = createViewModel()
+        viewModel.prefillAndAdvance("pcash:tx:v1:payload")
+        advanceUntilIdle()
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.result is OfflineBroadcastResult.Error)
+        coVerify { repository.markBroadcastAttempt("account-id", "hash") }
+        coVerify { repository.markBroadcastFailed("account-id", "hash", any()) }
     }
 
     @Test

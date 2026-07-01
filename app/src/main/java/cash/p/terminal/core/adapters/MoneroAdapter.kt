@@ -20,6 +20,7 @@ import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.entities.BalanceData
+import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -150,9 +151,13 @@ class MoneroAdapter(
             "Valid raw transaction hex is required"
         }
         val result = moneroKitWrapper.submitSignedRawTransaction(normalizedRawHex.hexToByteArray())
+        val status = when (result) {
+            is RawMoneroBroadcastResult.Submitted -> BroadcastRawTransactionStatus.Submitted
+            is RawMoneroBroadcastResult.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
+        }
         return BroadcastRawTransactionResult(
             txHash = result.txId.canonicalTransactionHash(),
-            status = BroadcastRawTransactionStatus.Submitted,
+            status = status,
         )
     }
 
