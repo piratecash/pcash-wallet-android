@@ -1,9 +1,13 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ISendTonAdapter
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineTonSignRequest
+import cash.p.terminal.core.SignedOfflineTonTransaction
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.toAdapterState
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.tonkit.FriendlyAddress
@@ -118,6 +122,25 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
 
     override suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?) {
         tonKit.send(address, getSendAmount(amount), memo)
+    }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineTonTransaction {
+        val tonRequest = requireNotNull(request as? OfflineTonSignRequest) {
+            "OfflineTonSignRequest is required"
+        }
+        val signed = tonKit.signedTonTransaction(
+            recipient = tonRequest.address,
+            amount = getSendAmount(tonRequest.amount),
+            comment = tonRequest.memo,
+        )
+        return SignedOfflineTonTransaction(
+            rawHex = signed.raw.toRawHexString(),
+            txHash = signed.messageHash,
+            fee = signed.fee.toBigDecimal(decimals).stripTrailingZeros(),
+            validUntil = signed.validUntil,
+            senderAddress = signed.senderAddress,
+            seqno = signed.seqno,
+        )
     }
 
     override suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String) {

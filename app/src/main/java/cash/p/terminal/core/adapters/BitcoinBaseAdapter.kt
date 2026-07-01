@@ -3,6 +3,13 @@ package cash.p.terminal.core.adapters
 import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.BroadcastRawTransactionResult
+import cash.p.terminal.core.BroadcastRawTransactionStatus
+import cash.p.terminal.core.OfflineBitcoinSignRequest
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.onPollingStarted
 import cash.p.terminal.core.onPollingStopped
 import cash.p.terminal.core.UnsupportedFilterException
@@ -10,6 +17,7 @@ import cash.p.terminal.core.hexToByteArray
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.LastBlockInfo
+import cash.p.terminal.entities.OfflineTransactionOutpoint
 import cash.p.terminal.entities.TransactionDataSortMode
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -34,6 +42,7 @@ import io.horizontalsystems.bitcoincore.AbstractKit
 import io.horizontalsystems.bitcoincore.BitcoinCore
 import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.models.Address
+import io.horizontalsystems.bitcoincore.models.RawTransactionBroadcastStatus
 import io.horizontalsystems.bitcoincore.models.TransactionDataSortType
 import io.horizontalsystems.bitcoincore.models.TransactionFilterType
 import io.horizontalsystems.bitcoincore.models.TransactionInfo
@@ -50,6 +59,7 @@ import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.hodler.HodlerOutputData
 import io.horizontalsystems.hodler.HodlerPlugin
+import io.horizontalsystems.core.toRawHexString
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Observable
@@ -80,7 +90,8 @@ abstract class BitcoinBaseAdapter(
     private val displayConfirmationsThreshold: Int,
     protected val decimal: Int = 8,
     protected val feeRateProvider: IFeeRateProvider? = null
-) : IAdapter, ITransactionsAdapter, IBalanceAdapter, IReceiveAdapter, ISendBitcoinAdapter {
+) : IAdapter, ITransactionsAdapter, IBalanceAdapter, IReceiveAdapter, ISendBitcoinAdapter,
+    OfflineTransactionAdapter<SignedOfflineBitcoinTransaction> {
 
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager
             by inject(BackgroundKeepAliveManager::class.java)
@@ -442,6 +453,58 @@ abstract class BitcoinBaseAdapter(
         )
         return sendData.header.uid
     }
+
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
+        val result = kit.broadcastRawTransaction(rawTransactionHex)
+        val status = when (result.status) {
+            RawTransactionBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted
+            RawTransactionBroadcastStatus.Queued -> BroadcastRawTransactionStatus.Queued
+            RawTransactionBroadcastStatus.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
+        }
+        return BroadcastRawTransactionResult(
+            txHash = result.transaction.header.hash.toReversedHex(),
+            status = status,
+        )
+    }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineBitcoinTransaction {
+        val bitcoinRequest = requireNotNull(request as? OfflineBitcoinSignRequest) {
+            "Unsupported offline sign request"
+        }
+        val transaction = kit.createSignedTransaction(
+            address = bitcoinRequest.address,
+            memo = bitcoinRequest.memo,
+            value = bitcoinRequest.amount.movePointRight(decimal).toLong(),
+            senderPay = true,
+            feeRate = bitcoinRequest.feeRate,
+            sortType = getTransactionSortingType(bitcoinRequest.transactionSorting),
+            unspentOutputs = bitcoinRequest.unspentOutputs,
+            pluginData = bitcoinRequest.pluginData ?: mapOf(),
+            rbfEnabled = bitcoinRequest.rbfEnabled,
+            changeToFirstInput = bitcoinRequest.changeToFirstInput,
+            filters = bitcoinRequest.utxoFilters,
+        )
+        return SignedOfflineBitcoinTransaction(
+            rawHex = serializeTransaction(transaction).toRawHexString(),
+            txHash = transaction.header.hash.toReversedHex(),
+            inputOutpoints = transaction.inputs.map { input ->
+                OfflineTransactionOutpoint(
+                    transactionHash = input.previousOutputTxHash.toReversedHex(),
+                    outputIndex = input.previousOutputIndex,
+                )
+            }
+        )
+    }
+
+    private fun serializeTransaction(transaction: FullTransaction): ByteArray {
+        return kit.serializeTransaction(transaction)
+    }
+
+    private fun ByteArray.toReversedHex(): String =
+        reversedArray().toRawHexString()
 
     override fun availableBalance(
         feeRate: Int,

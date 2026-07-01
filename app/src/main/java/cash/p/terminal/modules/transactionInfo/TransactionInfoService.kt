@@ -27,6 +27,7 @@ import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.toUniversalStatus
 import cash.p.terminal.network.changenow.domain.entity.toStatus
+import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.CurrencyManager
@@ -45,16 +46,17 @@ import java.math.BigDecimal
 
 class TransactionInfoService(
     initialTransactionRecord: TransactionRecord,
-    private val userSwapTransactionId: String?,
     val walletUid: String?,
-    private val adapter: ITransactionsAdapter,
+    private val adapter: ITransactionsAdapter?,
     private val marketKit: MarketKitWrapper,
     private val currencyManager: CurrencyManager,
     private val nftMetadataService: NftMetadataService,
     private val updateSwapProviderTransactionsStatusUseCase: UpdateSwapProviderTransactionsStatusUseCase,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val dispatcherProvider: DispatcherProvider,
-    transactionStatusUrl: Pair<String, String>?
+    private val userSwapTransactionId: String? = null,
+    transactionStatusUrl: Pair<String, String>? = null,
+    offlineStatus: ColoredValue? = null,
 ) {
     private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
     private val pendingTransactionMatcher: PendingTransactionMatcher by inject(
@@ -81,8 +83,8 @@ class TransactionInfoService(
     var transactionInfoItem = TransactionInfoItem(
         record = transactionRecord,
         externalStatus = null,
-        lastBlockInfo = adapter.lastBlockInfo,
-        explorerData = adapter.getTransactionExplorerData(transactionRecord).map { it.toExplorerData() },
+        lastBlockInfo = adapter?.lastBlockInfo,
+        explorerData = adapter?.getTransactionExplorerData(transactionRecord)?.map { it.toExplorerData() } ?: emptyList(),
         rates = mapOf(),
         nftMetadata = mapOf(),
         hideAmount = balanceHiddenManager.isTransactionInfoHidden(transactionRecord.uid, walletUid),
@@ -92,7 +94,8 @@ class TransactionInfoService(
         swapAmountIn = null,
         swapCoinCodeOut = null,
         swapCoinCodeIn = null,
-        poisonStatus = PoisonStatus.BLOCKCHAIN
+        poisonStatus = PoisonStatus.BLOCKCHAIN,
+        offlineStatus = offlineStatus,
     )
         private set(value) {
             field = value
@@ -311,39 +314,41 @@ class TransactionInfoService(
         handleLastBlockUpdate(getUserSwapTransactionStatus())
         _transactionInfoItemFlow.update { transactionInfoItem }
 
-        launch {
-            adapter.getTransactionRecordsFlow(null, FilterTransactionType.All, null)
-                .collect { transactionRecords ->
-                    val record = transactionRecords.find { it == transactionRecord }
+        adapter?.let { adapter ->
+            launch {
+                adapter.getTransactionRecordsFlow(null, FilterTransactionType.All, null)
+                    .collect { transactionRecords ->
+                        val record = transactionRecords.find { it == transactionRecord }
 
-                    if (record != null) {
-                        handleRecordUpdate(record)
-                    }
+                        if (record != null) {
+                            handleRecordUpdate(record)
+                        }
 
-                    if (_transactionRecord is PendingTransactionRecord) {
-                        val matchedReal = findMatchingRealTransaction(
-                            pending = _transactionRecord as PendingTransactionRecord,
-                            allRecords = transactionRecords
-                        )
+                        if (_transactionRecord is PendingTransactionRecord) {
+                            val matchedReal = findMatchingRealTransaction(
+                                pending = _transactionRecord as PendingTransactionRecord,
+                                allRecords = transactionRecords
+                            )
 
-                        if (matchedReal != null) {
-                            updateRecord(matchedReal)
+                            if (matchedReal != null) {
+                                updateRecord(matchedReal)
+                            }
                         }
                     }
-                }
-        }
+            }
 
-        launch {
-            adapter.lastBlockUpdatedFlowable.asFlow()
-                .collect {
-                    val currentStatus = transactionInfoItem.externalStatus
-                    val swapStatus = if (currentStatus is TransactionStatus.Completed) {
-                        currentStatus
-                    } else {
-                        getUserSwapTransactionStatus()
+            launch {
+                adapter.lastBlockUpdatedFlowable.asFlow()
+                    .collect {
+                        val currentStatus = transactionInfoItem.externalStatus
+                        val swapStatus = if (currentStatus is TransactionStatus.Completed) {
+                            currentStatus
+                        } else {
+                            getUserSwapTransactionStatus()
+                        }
+                        handleLastBlockUpdate(swapStatus)
                     }
-                    handleLastBlockUpdate(swapStatus)
-                }
+            }
         }
 
         launch {
@@ -427,7 +432,7 @@ class TransactionInfoService(
     private suspend fun handleLastBlockUpdate(externalStatus: TransactionStatus?) {
         mutex.withLock {
             transactionInfoItem = transactionInfoItem.copy(
-                lastBlockInfo = adapter.lastBlockInfo,
+                lastBlockInfo = adapter?.lastBlockInfo,
                 externalStatus = externalStatus
             )
         }
@@ -456,7 +461,7 @@ class TransactionInfoService(
     }
 
     fun getRawTransaction(): String? {
-        return adapter.getRawTransaction(transactionRecord.transactionHash)
+        return adapter?.getRawTransaction(transactionRecord.transactionHash)
     }
 
     private fun fetchAmlStatus() {

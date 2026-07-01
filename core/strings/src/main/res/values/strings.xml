@@ -1288,6 +1288,68 @@ Proceed only if you\'re sure.</string>
     <string name="btc_blockchain_settings_restore_source_change_warning">After changing source the wallet will have to resync itself.</string>
     <string name="send_confirmation_syncing_warning">Wallet is still syncing. Please wait for sync to complete before sending.</string>
     <string name="send_confirmation_sync_error_warning">Wallet sync failed. Tap Retry to reconnect.</string>
+    <string name="offline_transaction_sign_offline">Sign offline</string>
+    <string name="offline_transaction_sign_title">Offline signing</string>
+    <string name="offline_transaction_signing">Signing</string>
+    <string name="offline_transaction_what_you_sign">What you are signing</string>
+    <string name="offline_transaction_network">Network</string>
+    <string name="offline_transaction_amount">Amount</string>
+    <string name="offline_transaction_recipient">Recipient</string>
+    <string name="offline_transaction_fee">Fee</string>
+    <string name="offline_transaction_format">Transaction format</string>
+    <string name="offline_transaction_pcash_format">Format for P.CASH</string>
+    <string name="offline_transaction_raw_format" translatable="false">RAW TX</string>
+    <string name="offline_transaction_pcash_info_title">Format for P.CASH</string>
+    <string name="offline_transaction_pcash_info_description"><![CDATA[This mode lets you broadcast the transaction using the <a href="https://p.cash">p.cash</a> app.]]></string>
+    <string name="offline_transaction_raw_info_title" translatable="false">RAW TX</string>
+    <string name="offline_transaction_raw_info_description">This mode lets you send the transaction using the official app for this network or specialized software.</string>
+    <string name="offline_transaction_button_sign">Sign</string>
+    <string name="offline_transaction_transfer_title">Transfer transaction</string>
+    <string name="offline_transaction_pcash_title">P.cash Transaction</string>
+    <string name="offline_transaction_raw_title">RAW Transaction</string>
+    <string name="offline_transaction_transfer_to_person_description">Choose how to send the signed transaction to another person</string>
+    <string name="offline_transaction_scan_qr_hint">Ask them to scan the QR code</string>
+    <string name="offline_transaction_qr_too_large">Transaction is too large to fit in a QR code</string>
+    <string name="offline_transaction_save_qr">Save QR code</string>
+    <string name="offline_transaction_copy_transaction">Copy transaction</string>
+    <string name="offline_transaction_raw_hex">RAW TRANSACTION (HEX)</string>
+    <string name="offline_transaction_qr_saved">QR code saved</string>
+    <string name="offline_transaction_qr_save_failed">Failed to save QR code</string>
+    <string name="offline_transaction_signed_transaction_unavailable">Signed transaction is no longer available. Sign it again.</string>
+    <string name="offline_broadcast_title">Send RAW TX</string>
+    <string name="offline_broadcast_invalid_input">Couldn\'t recognize the transaction. Check the format and try again.</string>
+    <string name="offline_broadcast_check_title">Check transaction</string>
+    <string name="offline_broadcast_blockchain">Blockchain</string>
+    <string name="offline_broadcast_select_network">Select</string>
+    <string name="offline_broadcast_no_wallet">No active wallet supports broadcasting this transaction.</string>
+    <string name="offline_broadcast_unsupported_blockchain">RAW transaction broadcasting is unavailable for this blockchain.</string>
+    <string name="offline_broadcast_details">Transaction details</string>
+    <string name="offline_broadcast_disclaimer">You are not sending your own funds. You are only delivering someone else\'s signed transaction to the network.</string>
+    <string name="offline_broadcast_send_button">Send to network</string>
+    <string name="offline_broadcast_sending">Sending…</string>
+    <string name="offline_broadcast_success_title">Transaction sent</string>
+    <string name="offline_broadcast_success_description">You have successfully delivered the transaction to the blockchain network</string>
+    <string name="offline_broadcast_tx_id">Transaction ID</string>
+    <string name="offline_broadcast_view_in_explorer">View in Explorer</string>
+    <string name="offline_broadcast_error_title">Transaction not sent</string>
+    <string name="offline_broadcast_error_send_failed">Error while sending</string>
+    <string name="offline_broadcast_error_timeout">Request timed out. Try again later.</string>
+    <string name="offline_broadcast_error_already_sent">This transaction is already known to the network.</string>
+    <string name="offline_broadcast_error_nonce_used">This transaction nonce has already been used. It may have been sent or replaced.</string>
+    <string name="offline_broadcast_error_low_fee">The network fee is too low. Create a transaction with a higher fee.</string>
+    <string name="offline_broadcast_error_rejected">The network rejected this signed transaction.</string>
+    <string name="offline_broadcast_enable_network_button">Enable %1$s</string>
+    <string name="offline_broadcast_preparing_network_button">Preparing %1$s…</string>
+    <string name="offline_broadcast_enable_network_warning">%1$s is not enabled in the app. Enable the network so the app can broadcast this signed transaction. This does not create a new transaction or send your funds.</string>
+    <string name="offline_broadcast_enable_network_failed">Couldn\'t enable %1$s. Please try again.</string>
+    <string name="offline_broadcast_watch_only_unavailable">Offline broadcast is not available for watch-only wallets.</string>
+    <string name="offline_signed_title">Signed offline</string>
+    <string name="offline_signed_empty">No offline-signed transactions</string>
+    <string name="offline_signed_status_pending">Waiting to send</string>
+    <string name="offline_signed_status_unknown">Status unknown</string>
+    <string name="offline_signed_status_broadcasted">Sent to network</string>
+    <string name="offline_send_no_connection_description">The transaction cannot be sent right now. You can sign it offline so another person can broadcast it later.</string>
+    <string name="offline_send_sync_error_description">Failed to fetch data from current source.\n\nYou can:\n• Try again later\n• Enable VPN and retry sync\n• Sign the transaction offline and share HEX for manual broadcast\n\nIf you received a 403 error, your IP address may be blocked. Using a VPN usually resolves this issue.\nYou can create a signed transaction and send it to another device or person to broadcast it to the network.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
     <string name="BtcBlockchainSettings_TransactionSettings">Transaction Settings</string>
@@ -2420,7 +2482,7 @@ Proceed only if you\'re sure.</string>
     <string name="connect_mini_app_connection_successful">The connection was successful.</string>
     <string name="connect_mini_app_connection_failed">The connection was failure.</string>
     <string name="connect_mini_app_close">Close</string>
-    <string name="connect_mini_app_try_again">Try again</string>
+    <string name="try_again">Try again</string>
 
     <!--Multi-Swap-->
     <string name="multi_swap_completed">Swap completed</string>

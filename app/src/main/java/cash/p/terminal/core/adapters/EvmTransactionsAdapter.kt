@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ITransactionsAdapter
+import cash.p.terminal.core.evmExplorerTransactionHash
 import cash.p.terminal.core.managers.EvmKitWrapper
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.data.repository.EvmTransactionRepository
@@ -46,7 +47,7 @@ internal class EvmTransactionsAdapter(
         get() = evmTransactionSource.name
 
     override fun getTransactionUrl(transactionHash: String): String =
-        evmTransactionSource.transactionUrl(transactionHash)
+        evmTransactionSource.transactionUrl(transactionHash.evmExplorerTransactionHash())
 
     override val lastBlockInfo: LastBlockInfo?
         get() = evmTransactionRepository.lastBlockHeight?.toInt()?.let { LastBlockInfo(it) }

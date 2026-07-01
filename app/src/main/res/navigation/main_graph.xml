@@ -41,6 +41,14 @@
         app:destination="@id/backupRecoveryPhraseDialog" />
 
     <action
+        android:id="@+id/actionGlobalToOfflineBroadcastFragment"
+        app:destination="@id/offlineBroadcastFragment"
+        app:enterAnim="@anim/slide_from_right"
+        app:exitAnim="@android:anim/fade_out"
+        app:popEnterAnim="@android:anim/fade_in"
+        app:popExitAnim="@anim/slide_to_right" />
+
+    <action
         android:id="@+id/action_to_tokenBalance"
         app:destination="@id/tokenBalanceFragment"
         app:enterAnim="@anim/slide_from_right"
@@ -587,6 +595,15 @@
             android:defaultValue="@null"
             app:nullable="true"
             app:argType="cash.p.terminal.modules.settings.addresschecker.AddressCheckFragment$Input" />
+    </fragment>
+    <fragment
+        android:id="@+id/offlineBroadcastFragment"
+        android:name="cash.p.terminal.modules.send.offline.OfflineBroadcastFragment">
+        <argument
+            android:name="input"
+            android:defaultValue="@null"
+            app:nullable="true"
+            app:argType="cash.p.terminal.modules.send.offline.OfflineBroadcastFragment$Input" />
     </fragment>
     <fragment
         android:id="@+id/safetyRulesFragment"

@@ -20,6 +20,7 @@ import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.modules.send.offline.OfflineBroadcastTokenResolver
 import android.content.Context
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.notifications.NotificationDeduplicator
@@ -47,7 +48,9 @@ import cash.p.terminal.core.managers.KeyStoreCleaner
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
 import cash.p.terminal.core.managers.PoisonAddressManager
@@ -107,6 +110,7 @@ import cash.p.terminal.modules.calculator.domain.CalculatorExpressionEvaluator
 import cash.p.terminal.modules.calculator.domain.CalculatorModeService
 import cash.p.terminal.modules.calculator.domain.CalculatorPinAttemptThrottle
 import cash.p.terminal.modules.pin.unlock.AttemptPinUnlockUseCase
+import cash.p.terminal.modules.send.offline.OfflineQrCodeSaver
 import cash.p.terminal.modules.settings.appearance.AppIconService
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.transactions.CheckAmlIncomingTransactionUseCase
@@ -216,6 +220,7 @@ val managerModule = module {
     singleOf(::TokenAutoEnableManager)
     singleOf(::EvmBlockchainManager)
     singleOf(::BtcBlockchainManager)
+    singleOf(::OfflineBroadcastTokenResolver)
     singleOf(::SolanaKitManager)
     singleOf(::StellarKitManager)
     singleOf(::TonKitManager)
@@ -330,6 +335,9 @@ val managerModule = module {
 
     // Pending transactions
     singleOf(::LocallyCreatedTransactionRepository)
+    singleOf(::OfflineSignedTransactionRepository)
+    singleOf(::OfflineTransactionPayloadEncoder)
+    singleOf(::OfflineQrCodeSaver)
     singleOf(::PendingTransactionRepository)
     singleOf(::PendingBalanceCalculator)
     singleOf(::PendingTransactionRegistrarImpl) bind PendingTransactionRegistrar::class

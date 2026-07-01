@@ -7,6 +7,7 @@ import cash.p.terminal.core.providers.FeeRates
 import cash.p.terminal.core.utils.AddressUriResult
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.entities.LastBlockInfo
+import cash.p.terminal.entities.OfflineTransactionOutpoint
 import cash.p.terminal.entities.RestoreSettingRecord
 import cash.p.terminal.entities.TransactionDataSortMode
 import cash.p.terminal.entities.transactionrecords.TransactionRecord
@@ -22,6 +23,7 @@ import cash.p.terminal.wallet.IBalanceAdapter
 import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.ethereumkit.models.Address
+import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.Token
@@ -192,6 +194,167 @@ interface ISendBitcoinAdapter {
     fun satoshiToBTC(value: Long): BigDecimal
 }
 
+interface OfflineSignRequest
+
+interface OfflineTransactionAdapter<out T> {
+    suspend fun signOffline(request: OfflineSignRequest): T
+
+    suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata? = null,
+    ): BroadcastRawTransactionResult
+}
+
+interface OfflineTransactionStatusAdapter {
+    suspend fun transactionExists(txHash: String): Boolean
+}
+
+data class BroadcastRawTransactionResult(
+    val txHash: String,
+    val status: BroadcastRawTransactionStatus,
+)
+
+enum class BroadcastRawTransactionStatus {
+    Submitted, Queued, AlreadyKnown
+}
+
+sealed interface OfflineBroadcastMetadata {
+    data class Solana(
+        val blockHash: String,
+        val lastValidBlockHeight: Long,
+    ) : OfflineBroadcastMetadata
+
+    data class Ton(
+        val validUntil: Long,
+        val senderAddress: String,
+        val seqno: Int,
+    ) : OfflineBroadcastMetadata
+
+    data class Tron(
+        val expiration: Long,
+    ) : OfflineBroadcastMetadata
+
+    data class Stellar(
+        val sourceAccountId: String,
+        val sequenceNumber: Long,
+        val validUntil: Long,
+    ) : OfflineBroadcastMetadata
+
+    data class Zcash(
+        val txHash: String,
+    ) : OfflineBroadcastMetadata
+}
+
+data class OfflineBitcoinSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String?,
+    val feeRate: Int,
+    val unspentOutputs: List<UnspentOutputInfo>?,
+    val pluginData: Map<Byte, IPluginData>?,
+    val transactionSorting: TransactionDataSortMode?,
+    val rbfEnabled: Boolean,
+    val changeToFirstInput: Boolean,
+    val utxoFilters: UtxoFilters,
+) : OfflineSignRequest
+
+data class SignedOfflineBitcoinTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val inputOutpoints: List<OfflineTransactionOutpoint>,
+)
+
+data class OfflineEvmSignRequest(
+    val transactionData: TransactionData,
+    val gasPrice: GasPrice,
+    val gasLimit: Long,
+    val nonce: Long?,
+) : OfflineSignRequest
+
+data class SignedOfflineEvmTransaction(
+    val rawHex: String,
+    val txHash: String,
+)
+
+data class OfflineSolanaSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+) : OfflineSignRequest
+
+data class SignedOfflineSolanaTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+    val blockHash: String,
+    val lastValidBlockHeight: Long,
+)
+
+data class OfflineTonSignRequest(
+    val amount: BigDecimal,
+    val address: FriendlyAddress,
+    val memo: String?,
+) : OfflineSignRequest
+
+data class SignedOfflineTonTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+    val validUntil: Long,
+    val senderAddress: String,
+    val seqno: Int,
+)
+
+data class OfflineTronSignRequest(
+    val amount: BigDecimal,
+    val address: TronAddress,
+    val feeLimit: Long?,
+) : OfflineSignRequest
+
+data class SignedOfflineTronTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val expiration: Long,
+)
+
+data class OfflineStellarSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String?,
+) : OfflineSignRequest
+
+data class SignedOfflineStellarTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+    val sourceAccountId: String,
+    val sequenceNumber: Long,
+    val validUntil: Long,
+)
+
+data class OfflineMoneroSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String?,
+) : OfflineSignRequest
+
+data class SignedOfflineMoneroTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+)
+
+data class OfflineZcashSignRequest(
+    val amount: BigDecimal,
+    val address: String,
+    val memo: String,
+) : OfflineSignRequest
+
+data class SignedOfflineZcashTransaction(
+    val rawHex: String,
+    val txHash: String,
+    val fee: BigDecimal,
+)
+
 interface IMwebAddressValidator {
     fun isMwebAddress(address: String): Boolean
 }
@@ -202,7 +365,7 @@ internal interface ISendEthereumAdapter : IBalanceAdapter {
     fun getTransactionData(amount: BigDecimal, address: Address): TransactionData
 }
 
-interface ISendZcashAdapter : IBalanceAdapter {
+interface ISendZcashAdapter : IBalanceAdapter, OfflineTransactionAdapter<SignedOfflineZcashTransaction> {
     // Start syncing the adapter
     fun start()
 
@@ -220,7 +383,7 @@ interface ISendSolanaAdapter: IBalanceAdapter {
     fun estimateFee(rawTransaction: ByteArray): BigDecimal
 }
 
-interface ISendMoneroAdapter : IBalanceAdapter {
+interface ISendMoneroAdapter : IBalanceAdapter, OfflineTransactionAdapter<SignedOfflineMoneroTransaction> {
     suspend fun send(amount: BigDecimal, address: String, memo: String?): String
     suspend fun estimateFee(amount: BigDecimal, address: String, memo: String?): BigDecimal
 }
@@ -232,6 +395,7 @@ interface ISendTonAdapter : IBalanceAdapter {
 }
 
 interface ISendStellarAdapter : IBalanceAdapter {
+    val sendFee: BigDecimal
     fun validate(address: String)
     suspend fun getMinimumSendAmount(address: String) : BigDecimal?
     suspend fun send(amount: BigDecimal, address: String, memo: String?): String?

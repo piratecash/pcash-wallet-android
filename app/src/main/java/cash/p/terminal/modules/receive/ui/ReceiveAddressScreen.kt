@@ -2,8 +2,6 @@ package cash.p.terminal.modules.receive.ui
 
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.drawable.AdaptiveIconDrawable
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,10 +42,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -57,11 +51,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.toBitmap
 import cash.p.terminal.R
 import cash.p.terminal.modules.coin.overview.ui.Loading
 import cash.p.terminal.modules.receive.ReceiveModule
@@ -71,6 +62,8 @@ import cash.p.terminal.modules.receive.viewmodels.AddressBadge
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.HsTextButton
 import cash.p.terminal.ui.compose.components.ListErrorView
+import cash.p.terminal.ui.compose.components.PcashQrCodeDefaults
+import cash.p.terminal.ui.compose.components.PcashQrCodeImage
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
@@ -102,16 +95,6 @@ import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.entities.UsedAddress
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import com.google.zxing.qrcode.encoder.Encoder
-import io.github.alexzhirkevich.qrose.options.QrBallShape
-import io.github.alexzhirkevich.qrose.options.QrErrorCorrectionLevel
-import io.github.alexzhirkevich.qrose.options.QrFrameShape
-import io.github.alexzhirkevich.qrose.options.QrLogoPadding
-import io.github.alexzhirkevich.qrose.options.QrLogoShape
-import io.github.alexzhirkevich.qrose.options.QrPixelShape
-import io.github.alexzhirkevich.qrose.options.roundCorners
-import io.github.alexzhirkevich.qrose.rememberQrCodePainter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -232,7 +215,7 @@ fun ReceiveAddressScreen(
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .background(ComposeAppTheme.colors.white)
-                                                .size(QR_CODE_SIZE),
+                                                .size(PcashQrCodeDefaults.Size),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             QrCodeImage(uiState.uri)
@@ -338,52 +321,8 @@ fun ReceiveAddressScreen(
 
 @Composable
 private fun QrCodeImage(address: String) {
-    val quietZone = remember(address) { calculateQuietZone(address) }
-    val logoPainter: Painter =
-        adaptiveIconPainterResource(
-            id = R.mipmap.launcher_main,
-            fallbackDrawable = R.drawable.launcher_main_preview
-        )
-    val qrcodePainter: Painter =
-        rememberQrCodePainter(address) {
-            errorCorrectionLevel = QrErrorCorrectionLevel.MediumHigh
-            logo {
-                painter = logoPainter
-                padding = QrLogoPadding.Natural(.25f)
-                shape = QrLogoShape.roundCorners(0.8f)
-                size = 0.2f
-            }
-
-            shapes {
-                ball = QrBallShape.roundCorners(.25f)
-                darkPixel = QrPixelShape.roundCorners()
-                frame = QrFrameShape.roundCorners(.25f)
-            }
-        }
-    Image(
-        painter = qrcodePainter,
-        modifier = Modifier
-            .padding(quietZone)
-            .fillMaxSize(),
-        contentScale = ContentScale.FillWidth,
-        contentDescription = null
-    )
+    PcashQrCodeImage(content = address)
 }
-
-private val QR_CODE_SIZE = 300.dp
-private val DEFAULT_QUIET_ZONE = 8.dp
-
-private fun calculateQuietZone(content: String): Dp {
-    return runCatching {
-        val modules = Encoder.encode(content, ErrorCorrectionLevel.Q).matrix?.width
-            ?.takeIf { it > 0 } ?: return DEFAULT_QUIET_ZONE
-        val moduleSize = QR_CODE_SIZE.value / modules
-        (moduleSize * QUIET_ZONE_MODULES).dp
-    }.getOrElse { DEFAULT_QUIET_ZONE }
-        .coerceAtLeast(DEFAULT_QUIET_ZONE)
-}
-
-private const val QUIET_ZONE_MODULES = 4f
 
 @Composable
 private fun WarningTextView(
@@ -784,17 +723,4 @@ private fun ReceiveAddressScreenPreview() {
             closeModule = {},
         )
     }
-}
-
-@Composable
-fun adaptiveIconPainterResource(@DrawableRes id: Int, @DrawableRes fallbackDrawable: Int): Painter {
-    val context = LocalContext.current
-    return remember(id, fallbackDrawable) {
-        val adaptiveIcon = ResourcesCompat.getDrawable(context.resources, id, context.theme) as? AdaptiveIconDrawable
-        if (adaptiveIcon != null) {
-            BitmapPainter(adaptiveIcon.toBitmap().asImageBitmap())
-        } else {
-            null
-        }
-    } ?: painterResource(fallbackDrawable)
 }

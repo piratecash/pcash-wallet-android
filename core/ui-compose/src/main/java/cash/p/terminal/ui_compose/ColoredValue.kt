@@ -6,7 +6,7 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 data class ColoredValue(val value: String, val color: ColorName)
 
 enum class ColorName {
-    Remus, Lucian, Grey, Leah;
+    Remus, Lucian, Grey, Leah, Jacob;
 
     @Composable
     fun compose() = when (this) {
@@ -14,5 +14,6 @@ enum class ColorName {
         Lucian -> ComposeAppTheme.colors.lucian
         Leah -> ComposeAppTheme.colors.leah
         Grey -> ComposeAppTheme.colors.grey
+        Jacob -> ComposeAppTheme.colors.jacob
     }
 }

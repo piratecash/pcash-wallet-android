@@ -141,6 +141,7 @@ android {
             minifyEnabled false
             applicationIdSuffix ".dev"
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://cash.p.cash/api/\""
+            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "false"
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
             resValue "string", "is_release", "false"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
@@ -168,6 +169,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://p.cash/api/\""
+            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "false"
             firebaseCrashlytics {
                 nativeSymbolUploadEnabled true
             }
@@ -480,6 +482,8 @@ dependencies {
     testImplementation libs.junit
     testImplementation libs.androidx.core.testing
     testImplementation libs.mockk
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.test.core
     testImplementation libs.kotlinx.coroutines.test
     testImplementation libs.powermock.api.mockito2
     testImplementation libs.powermock.module.junit4

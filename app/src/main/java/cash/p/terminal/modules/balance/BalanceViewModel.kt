@@ -11,6 +11,7 @@ import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.core.factories.uriScheme
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.toSeedQrErrorStringRes
@@ -80,6 +81,7 @@ class BalanceViewModel(
     private var showStackingForWatchAccount = false
     private var openSendTokenSelect: OpenSendTokenSelect? = null
     private var openRestoreFromQr: OpenRestoreFromQr? = null
+    private var openOfflineBroadcast: String? = null
     private var errorMessage: String? = null
     private var balanceTabButtonsEnabled = localStorage.balanceTabButtonsEnabled
 
@@ -202,6 +204,7 @@ class BalanceViewModel(
         errorMessage = errorMessage,
         openSend = openSendTokenSelect,
         openRestoreFromQr = openRestoreFromQr,
+        openOfflineBroadcast = openOfflineBroadcast,
         balanceTabButtonsEnabled = balanceTabButtonsEnabled,
         sortType = sortType,
         sortTypes = sortTypes,
@@ -381,9 +384,19 @@ class BalanceViewModel(
             }
         } else if (scannedText.startsWith(SeedPhraseQrCrypto.QR_PREFIX)) {
             handleEncryptedSeedQr(scannedText)
+        } else if (OfflineTransactionPayloadEncoder.isOfflineTransactionPayload(scannedText) ||
+            OfflineTransactionPayloadEncoder.isRawTransactionHex(scannedText)
+        ) {
+            openOfflineBroadcast = scannedText.trim()
+            emitState()
         } else {
             handleAddressData(scannedText)
         }
+    }
+
+    fun onOfflineBroadcastOpened() {
+        openOfflineBroadcast = null
+        emitState()
     }
 
     private fun handleEncryptedSeedQr(content: String) {
@@ -480,7 +493,7 @@ class BalanceViewModel(
             val types = chain.supportedAddressHandlers(text)
             if (types.isEmpty()) {
                 errorMessage =
-                    cash.p.terminal.strings.helpers.Translator.getString(R.string.Balance_Error_InvalidQrCode)
+                    Translator.getString(R.string.Balance_Error_InvalidQrCode)
                 emitState()
                 return
             }
@@ -542,6 +555,7 @@ data class BalanceUiState(
     val errorMessage: String?,
     val openSend: OpenSendTokenSelect? = null,
     val openRestoreFromQr: OpenRestoreFromQr? = null,
+    val openOfflineBroadcast: String? = null,
     val balanceTabButtonsEnabled: Boolean,
     val showStackingForWatchAccount: Boolean,
     val sortType: BalanceSortType,

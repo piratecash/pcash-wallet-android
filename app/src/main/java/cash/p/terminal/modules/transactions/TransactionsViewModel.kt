@@ -502,6 +502,12 @@ class TransactionsViewModel(
             changeNowTransactionId = viewItem.changeNowTransactionId
         )
 
+    suspend fun convertToViewItem(transactionItem: TransactionItem): TransactionViewItem =
+        transactionViewItem2Factory.convertToViewItemCached(
+            transactionItem = transactionItem,
+            walletUid = transactionItem.walletUid,
+        )
+
     suspend fun awaitTransactionItem(recordUid: String, timeoutMs: Long = 5_000): TransactionItem? {
         getTransactionItem(recordUid)?.let { return it }
 
@@ -572,6 +578,7 @@ data class TransactionItem(
     val changeNowTransactionId: String? = null,
     val transactionStatusUrl: Pair<String, String>? = null,
     val walletUid: String? = null,
+    val offlineStatus: ColoredValue? = null,
     val cacheVersion: Long = nextVersion(),
 ) {
     fun withUpdatedListData(
@@ -614,7 +621,8 @@ data class TransactionViewItem(
     val transactionStatusUrl: Pair<String, String>? = null,
     val amlStatus: AmlStatus? = null,
     val poisonStatus: PoisonStatus = PoisonStatus.BLOCKCHAIN,
-    val addressPoisoningViewMode: AddressPoisoningViewMode = AddressPoisoningViewMode.COMPACT
+    val addressPoisoningViewMode: AddressPoisoningViewMode = AddressPoisoningViewMode.COMPACT,
+    val statusValue: ColoredValue? = null,
 ) {
 
     sealed class Icon {

@@ -1,8 +1,17 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ICoinManager
+import cash.p.terminal.core.BroadcastRawTransactionResult
+import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.ISendEthereumAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineEvmSignRequest
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineEvmTransaction
+import cash.p.terminal.core.canonicalTransactionHash
 import cash.p.terminal.data.repository.EvmTransactionRepository
+import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -13,12 +22,17 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.reactive.asFlow
 import java.math.BigDecimal
 import java.math.BigInteger
+import io.horizontalsystems.ethereumkit.models.RawTransactionBroadcastStatus
 
 internal abstract class BaseEvmAdapter(
     final override val evmTransactionRepository: EvmTransactionRepository,
     val decimal: Int,
     val coinManager: ICoinManager
-) : IAdapter, ISendEthereumAdapter, IBalanceAdapter, IReceiveAdapter {
+) : IAdapter,
+    ISendEthereumAdapter,
+    IBalanceAdapter,
+    IReceiveAdapter,
+    OfflineTransactionAdapter<SignedOfflineEvmTransaction> {
 
     override val debugInfo: String
         get() = evmTransactionRepository.debugInfo()
@@ -54,7 +68,41 @@ internal abstract class BaseEvmAdapter(
             evmTransactionRepository.forwardSyncState.map { },
         )
 
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineEvmTransaction {
+        val evmRequest = requireNotNull(request as? OfflineEvmSignRequest) {
+            "OfflineEvmSignRequest is required"
+        }
+        val signed = evmTransactionRepository.signedRawTransaction(
+            transactionData = evmRequest.transactionData,
+            gasPrice = evmRequest.gasPrice,
+            gasLimit = evmRequest.gasLimit,
+            nonce = evmRequest.nonce,
+        )
+        return SignedOfflineEvmTransaction(
+            rawHex = signed.raw.toRawHexString(),
+            txHash = signed.hash.toRawHexString().canonicalTransactionHash(),
+        )
+    }
+
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
+        val result = evmTransactionRepository.broadcastRawTransaction(rawTransactionHex)
+        return BroadcastRawTransactionResult(
+            txHash = result.transactionHash.toRawHexString().canonicalTransactionHash(),
+            status = result.status.toAppStatus(),
+        )
+    }
+
     companion object {
         const val confirmationsThreshold: Int = 12
     }
 }
+
+private fun RawTransactionBroadcastStatus.toAppStatus(): BroadcastRawTransactionStatus =
+    when (this) {
+        RawTransactionBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted
+        RawTransactionBroadcastStatus.Queued -> BroadcastRawTransactionStatus.Queued
+        RawTransactionBroadcastStatus.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
+    }

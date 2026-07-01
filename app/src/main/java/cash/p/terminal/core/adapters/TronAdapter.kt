@@ -3,13 +3,12 @@ package cash.p.terminal.core.adapters
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.core.App
 import cash.p.terminal.wallet.entities.BalanceData
-import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.managers.TronKitWrapper
 import cash.p.terminal.core.tryOrNull
 import io.horizontalsystems.tronkit.TronKit
 import io.horizontalsystems.tronkit.models.Address
+import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.network.Network
-import io.horizontalsystems.tronkit.transaction.Fee
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -19,10 +18,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
-class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, decimal), ISendTronAdapter {
+class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, decimal) {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val _fee = MutableStateFlow(BigDecimal.ZERO)
@@ -63,24 +61,11 @@ class TronAdapter(kitWrapper: TronKitWrapper) : BaseTronAdapter(kitWrapper, deci
     override val balanceUpdatedFlow: Flow<Unit>
         get() = tronKit.trxBalanceFlow.map {}
 
-    // ISendTronAdapter
-
     override val trxBalanceData: BalanceData
         get() = balanceData
 
-    override suspend fun estimateFee(amount: BigDecimal, to: Address): List<Fee> = withContext(Dispatchers.IO) {
-        val amountBigInt = amount.movePointRight(decimal).toBigInteger()
-        val contract = tronKit.transferContract(amountBigInt, to)
-         tronKit.estimateFee(contract)
-    }
-
-    override suspend fun send(amount: BigDecimal, to: Address, feeLimit: Long?): String {
-        if (signer == null) throw Exception()
-        val amountBigInt = amount.movePointRight(decimal).toBigInteger()
-        val contract = tronKit.transferContract(amountBigInt, to)
-
-        return tronKit.send(contract, signer, feeLimit)
-    }
+    override fun transferContract(amount: BigDecimal, to: Address): Contract =
+        tronKit.transferContract(scaleUp(amount), to)
 
     private suspend fun estimateFeeForMax() {
         tryOrNull {

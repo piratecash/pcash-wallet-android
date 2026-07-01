@@ -7,6 +7,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ServiceState
+import cash.p.terminal.core.toResString
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.entities.CoinValue
@@ -120,7 +121,7 @@ abstract class ISendTransactionService<T>(protected val token: Token) :
         )
 
         is LocalizedException -> CautionViewItem(
-            TranslatableString.ResString(error.errorTextRes, *error.formatArgs).toString(),
+            error.toResString().toString(),
             "",
             type
         )

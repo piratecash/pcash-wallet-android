@@ -4,18 +4,31 @@ import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.AdapterState
+import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountOrigin
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.MarketKitWrapper
+import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
+import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
+import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
+import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
@@ -81,6 +94,8 @@ class SendBitcoinViewModelTest {
                     }
                 }
                 single { mockk<PoisonAddressManager>(relaxed = true) }
+                single { mockk<OfflineTransactionPayloadEncoder>(relaxed = true) }
+                single { mockk<OfflineSignedTransactionRepository>(relaxed = true) }
             }
         )
     }
@@ -190,7 +205,26 @@ class SendBitcoinViewModelTest {
         assertEquals(R.string.send_error_amount_unavailable, error.errorTextRes)
     }
 
-    private fun createViewModel() = SendBitcoinViewModel(
+    @Test
+    fun offlineSignSupported_litecoinMwebWallet_returnsTrue() = runTest(mainDispatcher) {
+        val offlineAdapter = mockk<SendBalanceOfflineAdapter>(relaxed = true)
+        val mwebWallet = litecoinMwebWallet()
+        every { offlineAdapter.balanceUpdatedFlow } returns balanceUpdatedFlow
+        every { offlineAdapter.balanceState } returns AdapterState.Synced
+        every { offlineAdapter.balanceStateUpdatedFlow } returns emptyFlow()
+        every { offlineAdapter.blockchainType } returns BlockchainType.Litecoin
+        every { adapterManager.getBalanceAdapterForWallet(mwebWallet) } returns null
+
+        val viewModel = createViewModel(adapter = offlineAdapter, wallet = mwebWallet)
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.offlineSignSupported)
+    }
+
+    private fun createViewModel(
+        adapter: ISendBitcoinAdapter = this.adapter,
+        wallet: Wallet = this.wallet,
+    ) = SendBitcoinViewModel(
         adapter = adapter,
         wallet = wallet,
         feeRateService = feeRateService,
@@ -210,6 +244,32 @@ class SendBitcoinViewModelTest {
     )
 
     private interface SendBalanceAdapter : ISendBitcoinAdapter, IBalanceAdapter
+
+    private interface SendBalanceOfflineAdapter :
+        ISendBitcoinAdapter,
+        IBalanceAdapter,
+        OfflineTransactionAdapter<SignedOfflineBitcoinTransaction>
+
+    private fun litecoinMwebWallet(): Wallet {
+        return requireNotNull(
+            WalletFactory(mockk<HardwareWalletTokenPolicy>(relaxed = true)).create(
+                token = Token(
+                    coin = Coin("litecoin", "Litecoin", "LTC"),
+                    blockchain = Blockchain(BlockchainType.Litecoin, "Litecoin", null),
+                    type = TokenType.Mweb,
+                    decimals = 8,
+                ),
+                account = Account(
+                    id = "litecoin-account-id",
+                    name = "Litecoin",
+                    type = AccountType.Mnemonic(List(12) { "word$it" }, ""),
+                    origin = AccountOrigin.Created,
+                    level = 0,
+                ),
+                hardwarePublicKey = null,
+            )
+        )
+    }
 
     private class SplitDispatcherProvider(
         override val main: CoroutineDispatcher,

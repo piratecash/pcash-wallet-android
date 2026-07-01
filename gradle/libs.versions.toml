@@ -62,16 +62,16 @@ swiperefreshlayout = "1.2.0"
 timber = "5.0.1"
 
 tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
-piratecash-ton = "v1.0.0-pcash.2"
-piratecash-bitcoin = "v0.1.0-pcash.13"
-stellar-kit = "1258d25"
-piratecash-ethereum = "633b922"
+piratecash-ton = "v1.0.0-pcash.4"
+piratecash-bitcoin = "v0.1.0-pcash.20"
+stellar-kit = "v1.0.0-pcash.2"
+piratecash-ethereum = "v0.1.0-pcash.3"
 horizontalsystems-blockchain-fee = "393cc14"
-piratecash-solana = "v1.0.0-pcash.1"
-monero-kit-android = "v0.18.3.4-pcash.3"
+piratecash-solana = "v1.0.0-pcash.8"
+monero-kit-android = "v0.18.3.4-pcash.6"
 netcipher = "2.1.0"
 solanakt = "5d5a0cb"
-piratecash-tron = "cdae838"
+piratecash-tron = "v1.0.0-pcash.2"
 tangem-sdk = "3.9.2-pcash.1"
 gson = "2.13.2"
 retrofit = "3.0.0"
@@ -85,7 +85,7 @@ android-core-ktx = "1.18.0"
 twitterText = "3.1.0"
 workRuntimeKtx = "2.11.2"
 workRxjava2 = "2.11.2"
-zcashAndroidSdk = "2.5.2"
+zcashAndroidSdk = "v2.5.2-pcash.15"
 junitJupiter = "6.0.3"
 google-play-core = "2.1.0"
 bitcoinj = "0.17"
@@ -231,7 +231,7 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "j
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android" }
 twitter-text = { module = "com.twitter.twittertext:twitter-text", version.ref = "twitterText" }
 web3j-core = { module = "org.web3j:core", version.ref = "coreVersion" }
-zcash-android-sdk = { module = "cash.z.ecc.android:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
+zcash-android-sdk = { module = "com.github.piratecash.zcash-android-wallet-sdk:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junitJupiter" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }

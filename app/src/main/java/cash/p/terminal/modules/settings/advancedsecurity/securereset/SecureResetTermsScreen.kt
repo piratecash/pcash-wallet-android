@@ -3,7 +3,7 @@ package cash.p.terminal.modules.settings.advancedsecurity.securereset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,7 +49,7 @@ internal fun SecureResetTermsScreen(
 @Preview(showBackground = true)
 @Composable
 private fun SecureResetTermsScreenPreview() {
-    val termTitles = LocalContext.current.resources.getStringArray(R.array.SecureReset_Terms_Checkboxes)
+    val termTitles = stringArrayResource(R.array.SecureReset_Terms_Checkboxes)
     val terms = termTitles.mapIndexed { index, title ->
         TermItem(
             id = index,

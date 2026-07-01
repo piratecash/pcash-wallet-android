@@ -46,6 +46,7 @@ import cash.p.terminal.ui.compose.components.TransactionInfoBtcLockCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui.compose.components.TransactionInfoDoubleSpendCell
 import cash.p.terminal.ui.compose.components.TransactionInfoExplorerCell
+import cash.p.terminal.ui.compose.components.TransactionInfoOfflineStatusCell
 import cash.p.terminal.ui.compose.components.TransactionInfoRawTransaction
 import cash.p.terminal.ui.compose.components.TransactionInfoAmlCheckCell
 import cash.p.terminal.ui.compose.components.TransactionInfoSentToSelfCell
@@ -385,6 +386,15 @@ fun TransactionInfoSection(
                         }
                     }
 
+                    is TransactionInfoViewItem.OfflineStatus -> {
+                        add {
+                            TransactionInfoOfflineStatusCell(
+                                status = viewItem.status,
+                                navController = navController,
+                            )
+                        }
+                    }
+
                     is TransactionInfoViewItem.SpeedUpCancel -> {
                         add {
                             TransactionInfoSpeedUpCell(
@@ -476,4 +486,3 @@ fun TransactionInfoSection(
         }
     )
 }
-
