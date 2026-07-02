@@ -26,7 +26,7 @@ class SendTransactionResultTest {
     }
 
     @Test
-    fun getCanonicalTxHash_evmResult_equalsRecordUid() {
+    fun getCanonicalTxHash_evmResult_stripsZeroXPrefix() {
         val mockedTransaction = mockk<Transaction>(relaxed = true) {
             every { hashString } returns "0xabc"
         }
@@ -35,7 +35,9 @@ class SendTransactionResultTest {
         }
         val result = SendTransactionResult.Evm(fullTransaction)
 
-        assertEquals(result.getRecordUid(), result.getCanonicalTxHash())
-        assertEquals("0xabc", result.getCanonicalTxHash())
+        // record uid keeps the 0x-prefixed hash (history matching); canonical hash is bare (Thornode status)
+        assertEquals("0xabc", result.getRecordUid())
+        assertEquals("abc", result.getCanonicalTxHash())
+        assertNotEquals(result.getRecordUid(), result.getCanonicalTxHash())
     }
 }

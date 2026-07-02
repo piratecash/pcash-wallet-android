@@ -270,6 +270,7 @@ abstract class BaseThorChainProvider(
         }
 
         // Canonical tx hash is only known after send; finalized in SwapConfirmViewModel.onTransactionCompleted.
+        // A custom recipient must be stored as addressOut so status polling matches the real outbound.
         val swapProviderTransaction = swapProviderTransactionFactory.build(
             provider = swapProvider,
             transactionId = "",
@@ -277,6 +278,7 @@ abstract class BaseThorChainProvider(
             tokenOut = tokenOut,
             amountIn = amountIn,
             amountOut = amountOut,
+            recipientAddressOut = settingRecipient.value?.hex,
         )
 
         return SwapFinalQuoteThorChain(

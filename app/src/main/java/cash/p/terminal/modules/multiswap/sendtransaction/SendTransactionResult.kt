@@ -57,9 +57,11 @@ sealed class SendTransactionResult {
         }
     }
 
-    // For EVM/Stellar the record uid already IS the canonical hash; only UTXO needs a separate field.
+    // For Stellar the record uid already IS the canonical hash; UTXO carries its own field.
+    // The EVM record uid is the 0x-prefixed hash, but Thornode/Mayanode tx ids are the bare hex hash.
     fun getCanonicalTxHash(): String? = when (this) {
         is Btc -> canonicalHashReversedHex
+        is Evm -> fullTransaction.transaction.hashString.removePrefix("0x")
         else -> getRecordUid()
     }
 }

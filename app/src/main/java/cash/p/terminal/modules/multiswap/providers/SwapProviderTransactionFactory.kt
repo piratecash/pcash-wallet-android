@@ -12,6 +12,11 @@ class SwapProviderTransactionFactory(
     private val walletUseCase: WalletUseCase,
     private val accountManager: IAccountManager,
 ) {
+    /**
+     * @param recipientAddressOut the actual destination the funds are sent to. When a custom
+     * recipient is set it must be stored so status polling selects the correct outbound;
+     * defaults to the wallet's own receive address for [tokenOut].
+     */
     fun build(
         provider: SwapProvider,
         transactionId: String,
@@ -19,6 +24,7 @@ class SwapProviderTransactionFactory(
         tokenOut: Token,
         amountIn: BigDecimal,
         amountOut: BigDecimal,
+        recipientAddressOut: String? = null,
     ) = SwapProviderTransaction(
         date = System.currentTimeMillis(),
         outgoingRecordUid = null,
@@ -32,7 +38,7 @@ class SwapProviderTransactionFactory(
         coinUidOut = tokenOut.coin.uid,
         blockchainTypeOut = tokenOut.blockchainType.uid,
         amountOut = amountOut,
-        addressOut = walletUseCase.getReceiveAddress(tokenOut),
+        addressOut = recipientAddressOut ?: walletUseCase.getReceiveAddress(tokenOut),
         accountId = accountManager.activeAccount?.id.orEmpty(),
     )
 }
