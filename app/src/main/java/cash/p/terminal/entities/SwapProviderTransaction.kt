@@ -41,6 +41,8 @@ data class SwapProviderTransaction(
         SwapProvider.CHANGENOW -> ChangeNowHelper.CHANGE_NOW_URL to ChangeNowHelper.getViewTransactionUrl(transactionId)
         SwapProvider.QUICKEX -> QuickexHelper.QUICKEX_URL to QuickexHelper.getViewTransactionUrl(transactionId, addressOut)
         SwapProvider.EXOLIX -> ExolixHelper.EXOLIX_URL to ExolixHelper.getViewTransactionUrl(transactionId)
+        SwapProvider.THORCHAIN,
+        SwapProvider.MAYA -> null
     }
 
     companion object {

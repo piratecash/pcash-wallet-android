@@ -51,6 +51,8 @@ data class PendingMultiSwap(
             "changenow" -> SwapProvider.CHANGENOW
             "quickex" -> SwapProvider.QUICKEX
             "exolix" -> SwapProvider.EXOLIX
+            "thorchain" -> SwapProvider.THORCHAIN
+            "mayachain" -> SwapProvider.MAYA
             else -> null
         }
     }

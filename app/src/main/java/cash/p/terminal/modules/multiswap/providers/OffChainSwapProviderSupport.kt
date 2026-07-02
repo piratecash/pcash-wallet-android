@@ -11,7 +11,6 @@ import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.action.ActionCreate
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
-import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAccountManager
@@ -34,6 +33,7 @@ class OffChainSwapProviderSupport(
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val marketKit: MarketKitWrapper,
     private val adapterManager: IAdapterManager,
+    private val swapProviderTransactionFactory: SwapProviderTransactionFactory,
 ) {
     private var zcashTransparentAddress: String? by accountManager.accountScoped()
     private val zcashAddressMutex = Mutex()
@@ -108,22 +108,7 @@ class OffChainSwapProviderSupport(
         tokenOut: Token,
         amountIn: BigDecimal,
         amountOut: BigDecimal,
-    ) = SwapProviderTransaction(
-        date = System.currentTimeMillis(),
-        outgoingRecordUid = null,
-        transactionId = transactionId,
-        status = TransactionStatusEnum.NEW.name.lowercase(),
-        provider = provider,
-        coinUidIn = tokenIn.coin.uid,
-        blockchainTypeIn = tokenIn.blockchainType.uid,
-        amountIn = amountIn,
-        addressIn = walletUseCase.getReceiveAddress(tokenIn),
-        coinUidOut = tokenOut.coin.uid,
-        blockchainTypeOut = tokenOut.blockchainType.uid,
-        amountOut = amountOut,
-        addressOut = walletUseCase.getReceiveAddress(tokenOut),
-        accountId = accountManager.activeAccount?.id.orEmpty(),
-    )
+    ) = swapProviderTransactionFactory.build(provider, transactionId, tokenIn, tokenOut, amountIn, amountOut)
 
     fun buildTransactionData(
         tokenIn: Token,

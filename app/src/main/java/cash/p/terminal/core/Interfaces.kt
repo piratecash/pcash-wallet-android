@@ -187,10 +187,26 @@ interface ISendBitcoinAdapter {
         utxoFilters: UtxoFilters
     ): String
 
+    // Used for swap sends: returns both the record uid (history matching) and the canonical tx hash (status polling).
+    suspend fun sendForSwap(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        feeRate: Int,
+        unspentOutputs: List<UnspentOutputInfo>?,
+        pluginData: Map<Byte, IPluginData>?,
+        transactionSorting: TransactionDataSortMode?,
+        rbfEnabled: Boolean,
+        changeToFirstInput: Boolean,
+        utxoFilters: UtxoFilters
+    ): BitcoinSwapSendResult
+
     fun isTransactionInSendQueue(txHash: String): Boolean
 
     fun satoshiToBTC(value: Long): BigDecimal
 }
+
+data class BitcoinSwapSendResult(val uid: String, val canonicalHashReversedHex: String)
 
 interface IMwebAddressValidator {
     fun isMwebAddress(address: String): Boolean
