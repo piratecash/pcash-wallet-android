@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters
 
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.BitcoinSwapSendResult
 import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.IMwebAddressValidator
 import cash.p.terminal.core.ISendBitcoinAdapter
@@ -33,6 +34,7 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.entities.UsedAddress
 import io.horizontalsystems.bitcoincore.BitcoinCore
 import io.horizontalsystems.bitcoincore.core.IPluginData
+import io.horizontalsystems.bitcoincore.extensions.toReversedHex
 import io.horizontalsystems.bitcoincore.models.BalanceInfo
 import io.horizontalsystems.bitcoincore.models.BlockInfo
 import io.horizontalsystems.bitcoincore.models.TransactionInfo
@@ -938,8 +940,7 @@ class LitecoinAdapter(
         utxoFilters: UtxoFilters
     ): String {
         val mwebSource = mwebSendSource(address)
-        if (mwebSource == null) {
-            return super.send(
+            ?: return super.send(
                 amount,
                 address,
                 memo,
@@ -951,8 +952,76 @@ class LitecoinAdapter(
                 changeToFirstInput,
                 utxoFilters
             )
-        }
 
+        return sendViaMweb(
+            mwebSource,
+            amount,
+            address,
+            memo,
+            feeRate,
+            unspentOutputs,
+            pluginData,
+            transactionSorting,
+            rbfEnabled,
+            changeToFirstInput,
+            utxoFilters
+        ).uid
+    }
+
+    override suspend fun sendForSwap(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        feeRate: Int,
+        unspentOutputs: List<UnspentOutputInfo>?,
+        pluginData: Map<Byte, IPluginData>?,
+        transactionSorting: TransactionDataSortMode?,
+        rbfEnabled: Boolean,
+        changeToFirstInput: Boolean,
+        utxoFilters: UtxoFilters
+    ): BitcoinSwapSendResult {
+        val mwebSource = mwebSendSource(address)
+            ?: return super.sendForSwap(
+                amount,
+                address,
+                memo,
+                feeRate,
+                unspentOutputs,
+                pluginData,
+                transactionSorting,
+                rbfEnabled,
+                changeToFirstInput,
+                utxoFilters
+            )
+
+        return sendViaMweb(
+            mwebSource,
+            amount,
+            address,
+            memo,
+            feeRate,
+            unspentOutputs,
+            pluginData,
+            transactionSorting,
+            rbfEnabled,
+            changeToFirstInput,
+            utxoFilters
+        )
+    }
+
+    private suspend fun sendViaMweb(
+        mwebSource: LitecoinSendSource,
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        feeRate: Int,
+        unspentOutputs: List<UnspentOutputInfo>?,
+        pluginData: Map<Byte, IPluginData>?,
+        transactionSorting: TransactionDataSortMode?,
+        rbfEnabled: Boolean,
+        changeToFirstInput: Boolean,
+        utxoFilters: UtxoFilters
+    ): BitcoinSwapSendResult {
         val value = atomicAmount(amount) ?: throw LocalizedException(R.string.litecoin_mweb_invalid_amount)
         val sentAt = System.currentTimeMillis() / 1000
         val result = kit.send(
@@ -970,9 +1039,17 @@ class LitecoinAdapter(
         )
 
         return when (result) {
-            is LitecoinSendResult.Public -> result.transaction.header.uid
+            is LitecoinSendResult.Public -> BitcoinSwapSendResult(
+                uid = result.transaction.header.uid,
+                canonicalHashReversedHex = result.transaction.header.hash.toReversedHex()
+            )
             is LitecoinSendResult.Mweb -> {
-                mwebSendTransactionId(result.transaction, address, value, sentAt)
+                // MWEB transactions have no separate canonical hash concept exposed by the kit;
+                // mwebSendTransactionId already resolves the best available id (canonical hash,
+                // output id, or local fallback), so reuse it for both the record uid and the
+                // canonical hash used for swap status polling.
+                val id = mwebSendTransactionId(result.transaction, address, value, sentAt)
+                BitcoinSwapSendResult(uid = id, canonicalHashReversedHex = id)
             }
         }
     }

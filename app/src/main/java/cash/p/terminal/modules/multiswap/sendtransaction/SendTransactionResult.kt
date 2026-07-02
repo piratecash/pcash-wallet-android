@@ -6,7 +6,11 @@ import org.stellar.sdk.responses.TransactionResponse
 
 sealed class SendTransactionResult {
     data class Evm(val fullTransaction: FullTransaction) : SendTransactionResult()
-    data class Btc(val uid: String, val isQueued: Boolean = false) : SendTransactionResult()
+    data class Btc(
+        val uid: String,
+        val canonicalHashReversedHex: String,
+        val isQueued: Boolean = false
+    ) : SendTransactionResult()
     data class Ton(val result: SendResult) : SendTransactionResult()
     data class Tron(val result: SendResult) : SendTransactionResult()
     data class Stellar(val transactionResponse: TransactionResponse) : SendTransactionResult()
@@ -51,5 +55,11 @@ sealed class SendTransactionResult {
                 SendResult.Sending -> null
             }
         }
+    }
+
+    // For EVM/Stellar the record uid already IS the canonical hash; only UTXO needs a separate field.
+    fun getCanonicalTxHash(): String? = when (this) {
+        is Btc -> canonicalHashReversedHex
+        else -> getRecordUid()
     }
 }

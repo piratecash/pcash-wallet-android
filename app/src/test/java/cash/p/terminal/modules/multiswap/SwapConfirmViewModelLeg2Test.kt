@@ -2,6 +2,7 @@ package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ServiceStateFlow
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
@@ -14,12 +15,14 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -99,6 +102,7 @@ class SwapConfirmViewModelLeg2Test {
                         every { balanceHiddenFlow } returns MutableStateFlow(false)
                     }
                 }
+                single<DispatcherProvider> { TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)) }
             })
         }
     }

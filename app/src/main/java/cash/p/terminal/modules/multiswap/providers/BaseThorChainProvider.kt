@@ -21,11 +21,13 @@ import cash.p.terminal.modules.multiswap.ui.DataFieldAllowance
 import cash.p.terminal.modules.multiswap.ui.DataFieldRecipient
 import cash.p.terminal.modules.multiswap.ui.DataFieldRecipientExtended
 import cash.p.terminal.modules.multiswap.ui.DataFieldSlippage
+import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
+import com.google.gson.annotations.SerializedName
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.bitcoincore.transactions.scripts.ScriptType
 import io.horizontalsystems.core.entities.BlockchainType
@@ -34,6 +36,7 @@ import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import org.koin.java.KoinJavaComponent.inject
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -47,7 +50,7 @@ abstract class BaseThorChainProvider(
     private val affiliateBps: Int?,
 ) : IMultiSwapProvider {
 
-    private val thornodeAPI =
+    val thornodeAPI =
         APIClient.retrofit(baseUrl, 60).create(ThornodeAPI::class.java)
 
     private val blockchainTypes = mapOf(
@@ -66,6 +69,10 @@ abstract class BaseThorChainProvider(
     private var assets = listOf<Asset>()
     override val mevProtectionAvailable: Boolean = false
     override val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
+    private val swapProviderTransactionFactory: SwapProviderTransactionFactory by inject(SwapProviderTransactionFactory::class.java)
+
+    private val swapProvider: SwapProvider
+        get() = if (id == "mayachain") SwapProvider.MAYA else SwapProvider.THORCHAIN
 
     override suspend fun start() {
         val assets = mutableListOf<Asset>()
@@ -262,6 +269,16 @@ abstract class BaseThorChainProvider(
             }
         }
 
+        // Canonical tx hash is only known after send; finalized in SwapConfirmViewModel.onTransactionCompleted.
+        val swapProviderTransaction = swapProviderTransactionFactory.build(
+            provider = swapProvider,
+            transactionId = "",
+            tokenIn = tokenIn,
+            tokenOut = tokenOut,
+            amountIn = amountIn,
+            amountOut = amountOut,
+        )
+
         return SwapFinalQuoteThorChain(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
@@ -277,6 +294,7 @@ abstract class BaseThorChainProvider(
             priceImpact = null,
             fields = fields,
             cautions = cautions,
+            swapProviderTransaction = swapProviderTransaction,
         )
     }
 
@@ -396,6 +414,9 @@ interface ThornodeAPI {
 
         ): Response.QuoteSwap
 
+    @GET("tx/status/{hash}")
+    suspend fun txStatus(@Path("hash") hash: String): Response.TxStatus
+
     object Response {
         data class QuoteSwap(
             val inbound_address: String,
@@ -464,6 +485,38 @@ interface ThornodeAPI {
 // "loan_cr": "123456",
 // "derived_depth_bps": "123456"
         )
+
+        data class TxStatus(
+            val stages: Stages?,
+            @SerializedName("out_txs") val outTxs: List<OutTx>?,
+            @SerializedName("planned_out_txs") val plannedOutTxs: List<PlannedOutTx>?,
+        ) {
+            data class Stages(
+                @SerializedName("inbound_observed") val inboundObserved: StageObserved?,
+                @SerializedName("inbound_confirmation_counted") val inboundConfirmationCounted: StageCompleted?,
+                @SerializedName("inbound_finalised") val inboundFinalised: StageCompleted?,
+                @SerializedName("swap_status") val swapStatus: SwapStatus?,
+                @SerializedName("swap_finalised") val swapFinalised: StageCompleted?,
+                @SerializedName("outbound_signed") val outboundSigned: StageCompleted?,
+            )
+
+            data class StageObserved(val completed: Boolean?)
+            data class StageCompleted(val completed: Boolean?)
+            data class SwapStatus(val pending: Boolean?)
+            data class OutTx(
+                val chain: String?,
+                @SerializedName("to_address") val toAddress: String?,
+                val coins: List<Coin>?,
+            )
+            data class PlannedOutTx(
+                val refund: Boolean?,
+                val chain: String?,
+                @SerializedName("to_address") val toAddress: String?,
+                val coin: Coin?,
+            )
+
+            data class Coin(val asset: String?, val amount: BigDecimal?)
+        }
     }
 }
 
