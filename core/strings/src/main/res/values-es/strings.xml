@@ -1831,6 +1831,7 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="display_options_period_1y">1 Año</string>
     <string name="display_options_period_all">Todos</string>
     <string name="sum_rounding">Redondeo de importes</string>
+    <string name="transaction_filter">Filtro de transacciones</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d opción</item>

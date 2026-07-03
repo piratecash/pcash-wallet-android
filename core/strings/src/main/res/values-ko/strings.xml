@@ -1835,6 +1835,7 @@
     <string name="display_options_period_1y">1 년</string>
     <string name="display_options_period_all">모든</string>
     <string name="sum_rounding">금액 반올림</string>
+    <string name="transaction_filter">거래 필터</string>
 
     <plurals name="options_count">
         <item quantity="other">%1$d 옵션</item>

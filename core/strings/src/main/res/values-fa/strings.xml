@@ -1842,6 +1842,7 @@
     <string name="display_options_period_1y">1 سال</string>
     <string name="display_options_period_all">همه</string>
     <string name="sum_rounding">گرد کردن مبالغ</string>
+    <string name="transaction_filter">فیلتر تراکنش‌ها</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d گزینه</item>

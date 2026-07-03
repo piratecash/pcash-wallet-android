@@ -1839,6 +1839,7 @@
     <string name="display_options_period_1y">1 Ano</string>
     <string name="display_options_period_all">Todos</string>
     <string name="sum_rounding">Arredondamento de valores</string>
+    <string name="transaction_filter">Filtro de transações</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d opção</item>

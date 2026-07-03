@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package cash.p.terminal.modules.balance.token
 
 import androidx.compose.animation.AnimatedVisibility
@@ -5,18 +7,22 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -28,7 +34,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,7 +45,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -46,6 +56,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
@@ -64,6 +75,7 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.syncerror.showSyncErrorDialog
 import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
 import cash.p.terminal.modules.transactions.AmlCheckPromoBanner
+import cash.p.terminal.modules.transactions.FilterTypeTabs
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.transactions.transactionList
@@ -84,8 +96,10 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui_compose.components.HSpacer
+import cash.p.terminal.ui_compose.components.HeaderStick
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HudHelper
@@ -102,6 +116,8 @@ import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isStakingWallet
+
+private const val FILTER_TABS_CONTENT_TYPE = "filter_tabs"
 
 @Composable
 fun TokenBalanceScreen(
@@ -187,6 +203,11 @@ fun TokenBalanceScreen(
         }
     ) { paddingValues ->
         val transactionItems = uiState.transactions
+        // Tabs follow the user's filter setting only, never the transient load state. During a tab
+        // switch transactions briefly goes null (loading window); coupling tab visibility to it
+        // would make the tabs vanish mid-switch.
+        val showFilterTabs = uiState.transactionFiltersEnabled
+        val listState = rememberLazyListState()
         when (sendResult) {
             SendResult.Sending -> {
                 HudHelper.showInProcessMessage(
@@ -221,55 +242,65 @@ fun TokenBalanceScreen(
 
             null -> Unit
         }
-        if (transactionItems == null || (transactionItems.isEmpty() && !uiState.hasHiddenTransactions)) {
-            HSSwipeRefresh(
-                refreshing = refreshing,
-                modifier = Modifier.padding(paddingValues),
-                onRefresh = onRefresh
+        if (uiState.balanceViewItem == null) {
+            // Render the list only after the balance header has a real height. A zero-height
+            // header item would make LazyColumn anchor on the item below it; when the header
+            // later loads and grows, the list would open pre-scrolled with the tabs pinned and
+            // the balance pushed off-screen.
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                Column {
-                    uiState.balanceViewItem?.let {
-                        TokenBalanceHeader(
-                            balanceViewItem = it,
-                            navController = navController,
-                            viewModel = viewModel,
-                            uiState = uiState,
-                            onStackingClicked = onStackingClicked,
-                            onClickSubtitle = onClickSubtitle,
-                            isShowShieldFunds = uiState.isShowShieldFunds
-                        )
-                    }
-                    if (transactionItems == null || uiState.syncing) {
-                        ListEmptyView(
-                            text = stringResource(R.string.Transactions_WaitForSync),
-                            icon = R.drawable.ic_clock
-                        )
-                    } else {
-                        ListEmptyView(
-                            text = stringResource(R.string.Transactions_EmptyList),
-                            icon = R.drawable.ic_outgoingraw
-                        )
-                    }
+                HSCircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+        // A single LazyColumn renders every state (loading / empty / content) so the scroll
+        // container is never recreated. Swapping to a separate Column when the list briefly
+        // empties on a tab switch would reset the scroll position and make the pinned tabs jump.
+        // The empty/loading placeholder is an item filling the viewport (fillParentMaxSize), which
+        // keeps the scroll extent so the tabs stay pinned while the next filter loads.
+        //
+        // The tabs are the only sticky header (they scroll up with the balance, then pin). A
+        // LazyColumn pins just one sticky header at a time, so the date can't be sticky too.
+        // Instead the date group headers stay inline in the list and an opaque overlay, positioned
+        // right below the pinned tabs, shows the current group's date.
+        val uidToDate = remember(transactionItems) {
+            buildMap<Any, String> {
+                transactionItems?.forEach { (date, txs) ->
+                    txs.forEach { put(it.uid, date) }
                 }
             }
-        } else {
-            HSSwipeRefresh(
-                refreshing = refreshing,
-                modifier = Modifier.padding(paddingValues),
-                onRefresh = onRefresh
-            ) {
-                LazyColumn(state = rememberLazyListState()) {
+        }
+        val currentStickyDate by remember(listState, uidToDate) {
+            derivedStateOf { stickyTransactionDate(listState, uidToDate) }
+        }
+        var tabsHeightPx by remember { mutableIntStateOf(0) }
+        var balanceHeaderHeightPx by remember { mutableIntStateOf(0) }
+        HSSwipeRefresh(
+            refreshing = refreshing,
+            modifier = Modifier.padding(paddingValues),
+            onRefresh = onRefresh
+        ) {
+            Box {
+                // Overscroll is disabled: the stretch effect moves the pinned tabs (inside the
+                // list) but not the date overlay (drawn outside it), opening a gap between them.
+                LazyColumn(state = listState, overscrollEffect = null) {
                     item {
-                        uiState.balanceViewItem?.let {
-                            TokenBalanceHeader(
-                                balanceViewItem = it,
-                                navController = navController,
-                                viewModel = viewModel,
-                                uiState = uiState,
-                                onStackingClicked = onStackingClicked,
-                                onClickSubtitle = onClickSubtitle,
-                                isShowShieldFunds = uiState.isShowShieldFunds
-                            )
+                        Box(modifier = Modifier.onSizeChanged { balanceHeaderHeightPx = it.height }) {
+                            uiState.balanceViewItem?.let {
+                                TokenBalanceHeader(
+                                    balanceViewItem = it,
+                                    navController = navController,
+                                    viewModel = viewModel,
+                                    uiState = uiState,
+                                    onStackingClicked = onStackingClicked,
+                                    onClickSubtitle = onClickSubtitle,
+                                    isShowShieldFunds = uiState.isShowShieldFunds
+                                )
+                            }
                         }
                     }
 
@@ -300,30 +331,79 @@ fun TokenBalanceScreen(
                         }
                     }
 
-                    transactionList(
-                        transactionsMap = transactionItems,
-                        willShow = { viewModel.willShow(it) },
-                        onClick = {
-                            onTransactionClick(
-                                it,
-                                viewModel,
-                                transactionsViewModel,
-                                navController
-                            )
-                        },
-                        isItemBalanceHidden = { !it.showAmount },
-                        onSensitiveValueClick = {
-                            HudHelper.vibrate(App.instance)
-                            transactionsViewModel.toggleTransactionInfoHidden(it.uid)
-                        },
-                        onBottomReached = viewModel::onBottomReached
-                    )
-                    if (uiState.hasHiddenTransactions) {
-                        transactionsHiddenBlock(
-                            shortBlock = transactionItems.isNotEmpty(),
-                            onShowAllTransactionsClicked = onShowAllTransactionsClicked
-                        )
+                    if (showFilterTabs) {
+                        stickyHeader(contentType = FILTER_TABS_CONTENT_TYPE) {
+                            Box(modifier = Modifier.onSizeChanged { tabsHeightPx = it.height }) {
+                                FilterTypeTabs(
+                                    uiState.transactionFilterTypes,
+                                    viewModel::setTransactionType
+                                )
+                            }
+                        }
                     }
+
+                    if (transactionItems == null ||
+                        (transactionItems.isEmpty() && !uiState.hasHiddenTransactions)
+                    ) {
+                        // Placeholder fills the viewport so switching to an empty filter keeps the
+                        // tabs pinned at the same scroll position instead of snapping the list.
+                        item {
+                            Box(modifier = Modifier.fillParentMaxSize()) {
+                                // The placeholder fills the viewport (to keep the scroll extent),
+                                // so its vertically centered content would otherwise land below the
+                                // fold, hidden under the balance header and tabs. Shrinking the
+                                // centering region by their combined height re-centers the content
+                                // in the visible gap below the tabs.
+                                val paddingValues = PaddingValues(
+                                    bottom = with(LocalDensity.current) {
+                                        (balanceHeaderHeightPx + tabsHeightPx).toDp()
+                                    }
+                                )
+                                if (transactionItems == null || uiState.syncing) {
+                                    ListEmptyView(
+                                        text = stringResource(R.string.Transactions_WaitForSync),
+                                        icon = R.drawable.ic_clock,
+                                        paddingValues = paddingValues
+                                    )
+                                } else {
+                                    ListEmptyView(
+                                        text = stringResource(R.string.Transactions_EmptyList),
+                                        icon = R.drawable.ic_outgoingraw,
+                                        paddingValues = paddingValues
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        transactionList(
+                            transactionsMap = transactionItems,
+                            willShow = { viewModel.willShow(it) },
+                            onClick = {
+                                onTransactionClick(
+                                    it,
+                                    viewModel,
+                                    transactionsViewModel,
+                                    navController
+                                )
+                            },
+                            isItemBalanceHidden = { !it.showAmount },
+                            onSensitiveValueClick = {
+                                HudHelper.vibrate(App.instance)
+                                transactionsViewModel.toggleTransactionInfoHidden(it.uid)
+                            },
+                            onBottomReached = viewModel::onBottomReached,
+                            stickyDateHeaders = !showFilterTabs
+                        )
+                        if (uiState.hasHiddenTransactions) {
+                            transactionsHiddenBlock(
+                                shortBlock = transactionItems.isNotEmpty(),
+                                onShowAllTransactionsClicked = onShowAllTransactionsClicked
+                            )
+                        }
+                    }
+                }
+                if (showFilterTabs) {
+                    PinnedDateOverlay(offsetY = { tabsHeightPx }, date = { currentStickyDate })
                 }
             }
         }
@@ -343,6 +423,34 @@ fun TokenBalanceScreen(
     }
 }
 
+
+// Date for the overlay pinned below the tabs: the day-group of the first transaction whose
+// bottom edge is still below the tabs' bottom edge. Returns null until the tabs are actually
+// pinned (header.offset == 0), so the overlay stays hidden while the balance is on screen and
+// the inline date headers carry the date. Reading layout offsets makes the date flip exactly
+// when a group meets the overlay's edge, not when it reaches the very top of the list.
+private fun stickyTransactionDate(
+    listState: LazyListState,
+    uidToDate: Map<Any, String>
+): String? {
+    val visibleItems = listState.layoutInfo.visibleItemsInfo
+    val header = visibleItems.firstOrNull { it.contentType == FILTER_TABS_CONTENT_TYPE }
+        ?: return null
+    if (header.offset > 0) return null
+    val headerBottom = header.offset + header.size
+    val anchor = visibleItems.firstOrNull {
+        it.key in uidToDate && it.offset + it.size > headerBottom
+    } ?: return null
+    return uidToDate[anchor.key]
+}
+
+@Composable
+private fun PinnedDateOverlay(offsetY: () -> Int, date: () -> String?) {
+    val text = date() ?: return
+    Box(modifier = Modifier.offset { IntOffset(0, offsetY()) }) {
+        HeaderStick(text = text)
+    }
+}
 
 private fun onTransactionClick(
     transactionViewItem: TransactionViewItem,

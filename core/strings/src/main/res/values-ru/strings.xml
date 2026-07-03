@@ -2069,6 +2069,7 @@
     <string name="display_options_period_1y">1 год</string>
     <string name="display_options_period_all">Все</string>
     <string name="sum_rounding">Округление сумм</string>
+    <string name="transaction_filter">Фильтр транзакций</string>
 
     <plurals name="options_count">
         <item quantity="one">%1$d опция</item>
