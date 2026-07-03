@@ -2,7 +2,6 @@ import org.gradle.kotlin.dsl.implementation
 
 plugins {
     id(libs.plugins.android.library.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
     kotlin("plugin.serialization")
     id(libs.plugins.devtools.ksp.get().pluginId)
 }

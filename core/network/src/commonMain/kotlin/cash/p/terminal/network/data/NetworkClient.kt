@@ -1,6 +1,5 @@
 package cash.p.terminal.network.data
 
-import cash.p.terminal.network.BuildConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -15,7 +14,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-internal fun buildNetworkClient() = HttpClient(OkHttp) {
+internal fun buildNetworkClient(debug: Boolean) = HttpClient(OkHttp) {
     install(HttpTimeout) {
         connectTimeoutMillis = 5_000
         requestTimeoutMillis = 60_000
@@ -29,7 +28,7 @@ internal fun buildNetworkClient() = HttpClient(OkHttp) {
         })
     }
 
-    if (BuildConfig.DEBUG) {
+    if (debug) {
         install(Logging) {
             logger = object : Logger {
                 private val logTag = "KtorHttpLogger: "

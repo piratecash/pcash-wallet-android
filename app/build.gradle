@@ -8,10 +8,9 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id 'com.android.application'
-    id 'kotlin-android'
     id 'kotlin-parcelize'
     id 'com.google.devtools.ksp'
-    id 'org.jetbrains.kotlin.plugin.compose' version('2.3.20')
+    alias(libs.plugins.compose.compiler)
     id 'com.google.firebase.crashlytics'
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
@@ -266,16 +265,14 @@ android {
         }
     }
 
-    applicationVariants.all { variant ->
-        if (variant.buildType.name == "release") {
-            variant.outputs.all { output ->
-                def versionName = variant.versionName
-                def newApkName = "p.cash-${versionName}.apk"
-                output.outputFileName = newApkName
-            }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("p.cash-${output.versionName.get()}.apk")
         }
     }
-
 }
 
 kotlin {
