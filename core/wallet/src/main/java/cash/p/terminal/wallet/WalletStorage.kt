@@ -26,23 +26,32 @@ class WalletStorage(
 
         map.clear()
 
-        val queries = enabledWallets.mapNotNull {
-            TokenQuery.fromId(it.tokenQueryId)?.let {
-                if (it.blockchainType is BlockchainType.Unsupported) {
+        val enabledWalletsByQuery = enabledWallets.mapNotNull { enabledWallet ->
+            TokenQuery.fromId(enabledWallet.tokenQueryId)?.let { tokenQuery ->
+                if (tokenQuery.blockchainType is BlockchainType.Unsupported) {
                     return@mapNotNull null
                 } else {
-                    it
+                    tokenQuery to enabledWallet
                 }
             }
         }
+
+        val queries = enabledWalletsByQuery
+            .map { (tokenQuery, _) -> tokenQuery }
+            .normalizedZcashWalletQueriesForLoad()
+
+        val enabledWalletsByQueryId = enabledWalletsByQuery.associate { (tokenQuery, enabledWallet) ->
+            tokenQuery.id to enabledWallet
+        }
+
         val tokens = marketKit.tokens(queries)
 
         val blockchainUids = queries.map { it.blockchainType.uid }
         val blockchains = marketKit.blockchains(blockchainUids)
 
         return buildList {
-            for (enabledWallet in enabledWallets) {
-                val tokenQuery = TokenQuery.fromId(enabledWallet.tokenQueryId) ?: continue
+            for (tokenQuery in queries) {
+                val enabledWallet = enabledWalletsByQueryId[tokenQuery.id]
 
                 val existingToken = tokens.find { it.tokenQuery == tokenQuery }
                 if (existingToken != null) {
@@ -56,11 +65,13 @@ class WalletStorage(
                         account = account,
                         hardwarePublicKey = hardwarePublicKey
                     )?.let { wallet ->
-                        map[wallet] = enabledWallet.id
+                        enabledWallet?.let { map[wallet] = it.id }
                         add(wallet)
                     }
                     continue
                 }
+
+                enabledWallet ?: continue
 
                 if (enabledWallet.coinName != null && enabledWallet.coinCode != null && enabledWallet.coinDecimals != null) {
                     val coinUid = tokenQuery.customCoinUid

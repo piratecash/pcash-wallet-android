@@ -148,9 +148,6 @@ val TokenType.meta: String?
         else -> null
     }
 
-fun Wallet.isOldZCash() = token.type == TokenType.Native &&
-        token.blockchainType == BlockchainType.Zcash
-
 fun Wallet.isPirateCash() = (token.type == TokenType.Eip20(BuildConfig.PIRATE_CONTRACT) ||
         token.type == TokenType.Eip20(BuildConfig.PIRATE_CONTRACT.lowercase())) &&
         token.blockchainType == BlockchainType.BinanceSmartChain

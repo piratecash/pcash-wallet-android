@@ -199,6 +199,89 @@ class WalletStorageTest {
         assertTrue(wallets.isEmpty())
     }
 
+    @Test
+    fun wallets_partialZcashAddressSpec_expandsFullGroupInMemory() = runTest {
+        val enabledWalletStorage = InMemoryEnabledWalletStorage()
+        val zcashTokens = zcashTokens()
+        val marketKit = zcashMarketKit(zcashTokens)
+        val walletStorage = walletStorage(enabledWalletStorage, marketKit)
+        val unifiedQuery = zcashDefaultTokenQuery
+
+        enabledWalletStorage.save(listOf(enabledWallet(unifiedQuery)))
+
+        val wallets = walletStorage.wallets(account)
+
+        assertEquals(
+            zcashAddressSpecTokenQueries.map { it.id }.toSet(),
+            wallets.map { it.token.tokenQuery.id }.toSet()
+        )
+        assertEquals(listOf(unifiedQuery.id), enabledWalletStorage.enabledWallets(account.id).map { it.tokenQueryId })
+    }
+
+    @Test
+    fun wallets_legacyZcashNative_expandsFullGroupInMemoryWithoutWritingRows() = runTest {
+        val enabledWalletStorage = InMemoryEnabledWalletStorage()
+        val zcashTokens = zcashTokens()
+        val marketKit = zcashMarketKit(zcashTokens)
+        val walletStorage = walletStorage(enabledWalletStorage, marketKit)
+
+        enabledWalletStorage.save(listOf(enabledWallet(zcashLegacyNativeTokenQuery)))
+
+        val wallets = walletStorage.wallets(account)
+
+        assertEquals(
+            zcashAddressSpecTokenQueries.map { it.id }.toSet(),
+            wallets.map { it.token.tokenQuery.id }.toSet()
+        )
+        assertEquals(
+            listOf(zcashLegacyNativeTokenQuery.id),
+            enabledWalletStorage.enabledWallets(account.id).map { it.tokenQueryId }
+        )
+    }
+
+    @Test
+    fun wallets_fullyDeletedZcash_doesNotRecreateGroup() = runTest {
+        val enabledWalletStorage = InMemoryEnabledWalletStorage()
+        val zcashTokens = zcashTokens()
+        val marketKit = zcashMarketKit(zcashTokens)
+        val walletStorage = walletStorage(
+            storage = enabledWalletStorage,
+            marketKit = marketKit,
+            deletedTokenQueryIds = zcashDisableTokenQueryIds
+        )
+
+        enabledWalletStorage.save(zcashAddressSpecTokenQueries.map(::enabledWallet))
+
+        val wallets = walletStorage.wallets(account)
+
+        assertTrue(wallets.isEmpty())
+    }
+
+    @Test
+    fun wallets_activeZcashWithStaleDeletedFlag_returnsFullGroupInMemory() = runTest {
+        val enabledWalletStorage = InMemoryEnabledWalletStorage()
+        val zcashTokens = zcashTokens()
+        val marketKit = zcashMarketKit(zcashTokens)
+        val shieldedQuery = zcashAddressSpecTokenQueries.first {
+            it.tokenType == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Shielded)
+        }
+        val unifiedQuery = zcashDefaultTokenQuery
+        val walletStorage = walletStorage(
+            storage = enabledWalletStorage,
+            marketKit = marketKit,
+            deletedTokenQueryIds = setOf(shieldedQuery.id)
+        )
+
+        enabledWalletStorage.save(listOf(enabledWallet(shieldedQuery), enabledWallet(unifiedQuery)))
+
+        val wallets = walletStorage.wallets(account)
+
+        assertEquals(
+            zcashAddressSpecTokenQueries.map { it.id }.toSet(),
+            wallets.map { it.token.tokenQuery.id }.toSet()
+        )
+    }
+
     private fun assertSingleWalletStored(
         storage: InMemoryEnabledWalletStorage,
         wallet: Wallet
@@ -208,6 +291,58 @@ class WalletStorageTest {
         assertEquals(
             expected = wallet.token.tokenQuery.id,
             actual = storedWallets.single().tokenQueryId
+        )
+    }
+
+    private fun walletStorage(
+        storage: InMemoryEnabledWalletStorage,
+        marketKit: MarketKitWrapper,
+        deletedTokenQueryIds: Set<String> = emptySet()
+    ): WalletStorage {
+        val deletedWalletChecker = object : IDeletedWalletChecker {
+            override suspend fun getDeletedTokenQueryIds(accountId: String) = deletedTokenQueryIds
+        }
+
+        return WalletStorage(
+            marketKit = marketKit,
+            storage = storage,
+            getHardwarePublicKeyForWalletUseCase = GetHardwarePublicKeyForWalletUseCase(hardwareStorage),
+            walletFactory = walletFactory,
+            deletedWalletChecker = deletedWalletChecker
+        )
+    }
+
+    private fun zcashMarketKit(zcashTokens: List<Token>) = mockk<MarketKitWrapper> {
+        every { tokens(any<List<TokenQuery>>()) } answers {
+            zcashTokens.filter { it.tokenQuery in firstArg<List<TokenQuery>>() }
+        }
+        every { blockchains(any<List<String>>()) } returns listOf(
+            Blockchain(BlockchainType.Zcash, "Zcash", null)
+        )
+    }
+
+    private fun zcashTokens(): List<Token> {
+        val coin = Coin(uid = "zcash", name = "Zcash", code = "ZEC")
+        val blockchain = Blockchain(BlockchainType.Zcash, "Zcash", null)
+
+        return TokenType.AddressSpecType.entries.map {
+            Token(
+                coin = coin,
+                blockchain = blockchain,
+                type = TokenType.AddressSpecTyped(it),
+                decimals = 8
+            )
+        }
+    }
+
+    private fun enabledWallet(tokenQuery: TokenQuery): EnabledWallet {
+        return EnabledWallet(
+            tokenQueryId = tokenQuery.id,
+            accountId = account.id,
+            coinName = "Zcash",
+            coinCode = "ZEC",
+            coinDecimals = 8,
+            coinImage = null
         )
     }
 

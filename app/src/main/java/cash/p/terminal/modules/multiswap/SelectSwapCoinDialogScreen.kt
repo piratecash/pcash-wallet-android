@@ -87,10 +87,13 @@ fun SelectSwapCoinDialogScreen(
                         Spacer(modifier = Modifier.size(16.dp))
                         MultitextM1(
                             title = {
-                                Row {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     B2(text = coinItem.token.coin.code)
                                     coinItem.token.badge?.let {
-                                        Badge(text = it)
+                                        Badge(
+                                            modifier = Modifier.padding(start = 6.dp),
+                                            text = it
+                                        )
                                     }
                                 }
                             },

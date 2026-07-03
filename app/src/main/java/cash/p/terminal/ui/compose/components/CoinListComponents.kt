@@ -201,10 +201,10 @@ fun ListErrorView(
 
 @Composable
 fun ListEmptyView(
-    paddingValues: PaddingValues = PaddingValues(),
     text: String,
     @DrawableRes icon: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(),
 ) {
     ScreenMessageWithAction(
         paddingValues = paddingValues,
@@ -218,8 +218,8 @@ fun ListEmptyView(
 fun ScreenMessageWithAction(
     text: String,
     @DrawableRes icon: Int,
-    paddingValues: PaddingValues = PaddingValues(),
     modifier: Modifier = Modifier,
+    paddingValues: PaddingValues = PaddingValues(),
     actionsComposable: (@Composable () -> Unit)? = null
 ) {
     Column(

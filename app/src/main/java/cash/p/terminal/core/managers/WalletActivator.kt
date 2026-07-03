@@ -6,6 +6,8 @@ import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
+import cash.p.terminal.wallet.expandedZcashAddressSpecQueries
+import cash.p.terminal.wallet.expandedZcashAddressSpecTokens
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import cash.p.terminal.wallet.WalletFactory
 import kotlinx.coroutines.runBlocking
@@ -18,7 +20,7 @@ class WalletActivator(
 ) {
     @Deprecated("Use activateWalletsSuspended instead")
     fun activateWallets(account: Account, tokenQueries: List<TokenQuery>) {
-        val wallets = tokenQueries.mapNotNull { tokenQuery ->
+        val wallets = tokenQueries.expandedZcashAddressSpecQueries().mapNotNull { tokenQuery ->
             marketKit.token(tokenQuery)?.let { token ->
                 val hardwarePublicKey =
                     runBlocking { getHardwarePublicKeyForWalletUseCase(account, tokenQuery) }
@@ -30,7 +32,7 @@ class WalletActivator(
     }
 
     suspend fun activateWalletsSuspended(account: Account, tokenQueries: List<TokenQuery>) {
-        val wallets = tokenQueries.mapNotNull { tokenQuery ->
+        val wallets = tokenQueries.expandedZcashAddressSpecQueries().mapNotNull { tokenQuery ->
             marketKit.token(tokenQuery)?.let { token ->
                 walletFactory.create(
                     token,
@@ -46,7 +48,7 @@ class WalletActivator(
     fun activateTokens(account: Account, tokens: List<Token>) {
         val wallets = mutableListOf<Wallet>()
 
-        for (token in tokens) {
+        for (token in tokens.expandedZcashAddressSpecTokens(marketKit)) {
             val hardwarePublicKey =
                 runBlocking { getHardwarePublicKeyForWalletUseCase(account, token) }
             walletFactory.create(token, account, hardwarePublicKey)?.let(wallets::add)

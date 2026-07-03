@@ -254,10 +254,6 @@ class DefaultBalanceService private constructor(
         }
     }
 
-    override fun enable(wallet: Wallet) {
-        activeWalletRepository.enable(wallet)
-    }
-
     override fun close() {
         coroutineScope.cancel()
         xRateRepository.clear()

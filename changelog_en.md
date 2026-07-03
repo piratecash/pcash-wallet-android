@@ -1,3 +1,14 @@
+## 🚀 Version 0.57.2 Update
+_Release date: July 3, 2026_
+
+### ✨ Improvements
+
+- **When Zcash is selected, Unified addresses are now added automatically**
+
+### 🐛 Fixes
+
+- **Fixed market capitalization display when the selected currency is not USD**
+
 ## 🚀 Version 0.57.1 Update
 _Release date: June 22, 2026_
 
