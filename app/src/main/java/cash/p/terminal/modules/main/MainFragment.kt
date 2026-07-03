@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +68,7 @@ import cash.p.terminal.ui.compose.components.HsBottomNavigation
 import cash.p.terminal.ui.compose.components.HsBottomNavigationItem
 import cash.p.terminal.ui.extensions.WalletSwitchBottomSheet
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.ModalOverlayTracker
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.navigation.slideFromBottom
@@ -281,8 +281,14 @@ private fun MainScreen(
                 }
             }
         }
-        val isInRecentApps by rememberUpdatedState(!windowInfo.isWindowFocused)
-        HideContentBox(uiState.contentHidden || isInRecentApps)
+        // Losing activity-window focus happens both when a modal opens (foreground) and when the
+        // app enters the recent-apps switcher. A foreground modal reports its own window focus via
+        // hasForegroundModal, which stays true only while the modal is genuinely up front; on
+        // entering recents the modal window loses focus too. So hide the content whenever the
+        // activity window is unfocused and no modal holds focus — covering plain and modal cases.
+        val hideForRecents =
+            !windowInfo.isWindowFocused && !ModalOverlayTracker.hasForegroundModal
+        HideContentBox(uiState.contentHidden || hideForRecents)
 
     // Wallet Selection Bottom Sheet
     if (showWalletSheet) {

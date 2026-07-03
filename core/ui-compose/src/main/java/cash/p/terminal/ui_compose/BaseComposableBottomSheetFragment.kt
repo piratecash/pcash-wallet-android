@@ -79,8 +79,12 @@ fun TransparentModalBottomSheet(
         containerColor = ComposeAppTheme.colors.transparent,
         scrimColor = ComposeAppTheme.colors.modalOverlay,
         contentWindowInsets = { WindowInsets(0) },
-        content = content,
-    )
+    ) {
+        // Runs in the modal's own window: report its focus so the main screen keeps the content
+        // behind it visible while foreground, yet hides it once the window loses focus for recents.
+        ModalOverlayTracker.TrackForeground()
+        content()
+    }
 }
 
 @Composable
