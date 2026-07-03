@@ -85,7 +85,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.test.junit)
 }
 
 android {

@@ -123,6 +123,7 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 circleindicator = { module = "me.relex:circleindicator", version.ref = "circleindicator" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinReflect" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 portmapper = { module = "com.offbynull.portmapper:portmapper", version.ref = "portmapper" }
 qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
