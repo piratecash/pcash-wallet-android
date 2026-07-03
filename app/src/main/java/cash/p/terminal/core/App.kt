@@ -307,8 +307,10 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
 
         startTasks()
 
+        // Never report from the disposable baseline-profile sandbox: it reuses the
+        // production Firebase app_id, so its generation crashes/ANRs must not reach prod.
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled =
-            localStorage.shareCrashDataEnabled
+            !BuildConfig.BASELINE_PROFILE_MODE && localStorage.shareCrashDataEnabled
     }
 
     /**

@@ -38,6 +38,8 @@ buildscript {
 plugins {
     id 'com.google.devtools.ksp' version '2.3.2' apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    alias(libs.plugins.androidx.baselineprofile) apply false
+    alias(libs.plugins.android.test) apply false
     id 'io.gitlab.arturbosch.detekt' version '1.23.8'
 }
 

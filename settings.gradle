@@ -1,4 +1,9 @@
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
     buildscript {
         repositories {
             gradlePluginPortal()
@@ -9,6 +14,7 @@ pluginManagement {
 }
 
 include ':app'
+include ':baselineprofile'
 
 include ':core:core'
 include ':core:strings'
