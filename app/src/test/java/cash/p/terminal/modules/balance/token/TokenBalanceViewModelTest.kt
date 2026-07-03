@@ -24,6 +24,8 @@ import cash.p.terminal.modules.balance.BalanceViewItemFactory
 import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.balance.TotalBalance
 import cash.p.terminal.modules.balance.TotalService
+import cash.p.terminal.modules.transactions.Filter
+import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
@@ -989,6 +991,104 @@ class TokenBalanceViewModelTest : KoinTest {
 
         verify(exactly = 1) { transactionViewItemFactory.updateCache() }
         assertEquals(2, viewModel.uiState.transactions?.values?.flatten()?.size)
+    }
+
+    // endregion
+
+    // region Transaction Filter Tests
+
+    @Test
+    fun setTransactionFiltersEnabled_true_emitsAllTypesWithAllSelected() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.setTransactionFiltersEnabled(true)
+
+        assertEquals(true, viewModel.uiState.transactionFiltersEnabled)
+        assertEquals(
+            FilterTransactionType.entries.size,
+            viewModel.uiState.transactionFilterTypes.size
+        )
+        val selected = viewModel.uiState.transactionFilterTypes.single { it.selected }
+        assertEquals(FilterTransactionType.All, selected.item)
+        verify { localStorage.transactionFiltersEnabled = true }
+    }
+
+    @Test
+    fun setTransactionFiltersEnabled_false_emitsEmptyTypes() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.setTransactionFiltersEnabled(false)
+
+        assertEquals(false, viewModel.uiState.transactionFiltersEnabled)
+        assertEquals(
+            emptyList<Filter<FilterTransactionType>>(),
+            viewModel.uiState.transactionFilterTypes
+        )
+    }
+
+    @Test
+    fun setTransactionType_newType_callsServiceAndSelectsType() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.setTransactionFiltersEnabled(true)
+
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+
+        verify(exactly = 1) { transactionsService.setTransactionType(FilterTransactionType.Incoming) }
+        val selected = viewModel.uiState.transactionFilterTypes.single { it.selected }
+        assertEquals(FilterTransactionType.Incoming, selected.item)
+    }
+
+    @Test
+    fun setTransactionType_sameTypeAsCurrent_doesNotCallService() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        // Default selected type is All
+        viewModel.setTransactionType(FilterTransactionType.All)
+
+        verify(exactly = 0) { transactionsService.setTransactionType(any()) }
+    }
+
+    @Test
+    fun setTransactionType_newType_resetsTransactionsToLoadingState() = runTest(dispatcher) {
+        // Steady state: filter All loaded with one transaction, not syncing.
+        recordsLoadedFlow.value = true
+        syncingFlow.value = false
+        transactionItemsFlow.value = listOf(createTransactionItem("a1"))
+
+        val viewModel = createViewModel()
+        viewModel.setTransactionFiltersEnabled(true)
+        advanceUntilIdle()
+
+        // Sanity: the previous filter's list is shown and we are not syncing.
+        assertEquals(1, viewModel.uiState.transactions?.values?.flatten()?.size)
+        assertEquals(false, viewModel.uiState.syncing)
+
+        // Switching filter opens a loading window: the new filter's data is not ready yet.
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+
+        // It must show "please wait" (transactions == null, syncing == true), never flash
+        // "you don't have" (emptyMap + !syncing) before the new list arrives.
+        assertEquals(null, viewModel.uiState.transactions)
+        assertEquals(true, viewModel.uiState.syncing)
+    }
+
+    @Test
+    fun setTransactionFiltersEnabled_falseAfterFilterSelected_resetsToAll() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.setTransactionFiltersEnabled(true)
+        viewModel.setTransactionType(FilterTransactionType.Outgoing)
+        clearMocks(transactionsService, answers = false)
+
+        viewModel.setTransactionFiltersEnabled(false)
+
+        // Disabling resets the active filter back to All through the service
+        verify(exactly = 1) { transactionsService.setTransactionType(FilterTransactionType.All) }
+        assertEquals(false, viewModel.uiState.transactionFiltersEnabled)
     }
 
     // endregion

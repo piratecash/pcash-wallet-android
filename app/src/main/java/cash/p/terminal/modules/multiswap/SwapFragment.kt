@@ -4,13 +4,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -73,7 +74,6 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui.compose.components.SwapDirectionIndicator
-import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.MenuItemTimeoutIndicator
@@ -261,50 +261,14 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 currentQuote = viewModel.uiState.quote,
                 mandatoryProviderIds = SwapProvidersRepository.MANDATORY_IDS,
                 disabledProviderIds = disabledIds,
+                sortType = selectProviderViewModel.uiState.sortType,
+                onSortTypeChange = selectProviderViewModel::setSortType,
                 onToggleProvider = swapProvidersRepository::setDisabled,
                 swapRates = {
                     HudHelper.vibrate(App.instance)
                     selectProviderViewModel.swapRates()
                 },
                 onSelectQuote = viewModel::onSelectQuote
-            )
-        }
-        composablePopup<SwapSelectLegProviderPage> { backStackEntry ->
-            val args = backStackEntry.toRoute<SwapSelectLegProviderPage>()
-            val route = viewModel.uiState.multiSwapRoute
-            if (route == null) {
-                LaunchedEffect(Unit) { swapNavController.navigateUp() }
-                return@composablePopup
-            }
-            val quotes = if (args.legIndex == 1) route.leg1Quotes else route.leg2Quotes
-            val currentQuote =
-                if (args.legIndex == 1) route.selectedLeg1Quote else route.selectedLeg2Quote
-            val onSelect: (SwapProviderQuote) -> Unit = if (args.legIndex == 1) {
-                viewModel::onSelectLeg1Quote
-            } else {
-                viewModel::onSelectLeg2Quote
-            }
-            val selectProviderViewModel = viewModel<SwapSelectProviderViewModel>(
-                viewModelStoreOwner = backStackEntry,
-                factory = SwapSelectProviderViewModel.Factory(quotes)
-            )
-            val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
-            val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
-            SwapSelectProviderScreen(
-                onClickClose = swapNavController::popBackStackSafely,
-                onClickSettings = {
-                    swapNavController.navigate(SwapProvidersSettingsPage)
-                },
-                quotes = selectProviderViewModel.uiState.quoteViewItems,
-                currentQuote = currentQuote,
-                mandatoryProviderIds = SwapProvidersRepository.MANDATORY_IDS,
-                disabledProviderIds = disabledIds,
-                onToggleProvider = swapProvidersRepository::setDisabled,
-                swapRates = {
-                    HudHelper.vibrate(App.instance)
-                    selectProviderViewModel.swapRates()
-                },
-                onSelectQuote = onSelect
             )
         }
         composablePage<SwapConfirmPage> {
@@ -487,9 +451,6 @@ private fun SwapMainScreen(
         uiState = uiState,
         timeRemainingProgress = { viewModel.timeRemainingProgress },
         onClickClose = fragmentNavController::navigateUpSafely,
-        onClickProvidersSettings = {
-            swapNavController.navigate(SwapProvidersSettingsPage)
-        },
         onClickCoinFrom = {
             swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From))
         },
@@ -548,7 +509,6 @@ private fun SwapScreenInner(
     uiState: SwapUiState,
     timeRemainingProgress: () -> Float?,
     onClickClose: () -> Unit,
-    onClickProvidersSettings: () -> Unit,
     onClickCoinFrom: () -> Unit,
     onClickCoinTo: () -> Unit,
     onSwitchPairs: () -> Unit,
@@ -587,13 +547,15 @@ private fun SwapScreenInner(
                     timeRemainingProgress()?.let { progress ->
                         add(MenuItemTimeoutIndicator(progress))
                     }
-                    add(
-                        MenuItem(
-                            title = TranslatableString.ResString(R.string.swap_providers_title),
-                            icon = R.drawable.ic_manage_2_24,
-                            onClick = onClickProvidersSettings,
+                    if (quote?.swapQuote?.settings?.isNotEmpty() == true) {
+                        add(
+                            MenuItem(
+                                title = TranslatableString.ResString(R.string.SwapSettings_Title),
+                                icon = R.drawable.ic_manage_2_24,
+                                onClick = onClickProviderSettings,
+                            )
                         )
-                    )
+                    }
                 }
             )
         },
@@ -764,6 +726,7 @@ private fun SwapScreenInner(
                     CardsSwapInfo {
                         ProviderField(
                             swapProvider = quote.provider,
+                            estimationTime = quote.estimationTime,
                             showSettings = quote.hasSettings,
                             onClickProvider = onClickProvider,
                             onClickProviderSettings = onClickProviderSettings,
@@ -893,31 +856,43 @@ fun PriceImpactField(
 @Composable
 private fun ProviderField(
     swapProvider: IMultiSwapProvider,
+    estimationTime: Long?,
     showSettings: Boolean,
     onClickProvider: () -> Unit,
     onClickProviderSettings: () -> Unit,
 ) {
     HSRow(
         modifier = Modifier
-            .height(40.dp)
-            .padding(horizontal = 16.dp),
+            .heightIn(min = 48.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClickProvider,
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         borderBottom = true,
     ) {
-        Selector(
-            icon = {
-                Image(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(swapProvider.icon),
-                    contentDescription = null
-                )
-            },
-            text = {
-                subhead1_leah(text = swapProvider.title)
-            },
-            onClickSelect = onClickProvider
+        Image(
+            modifier = Modifier.size(32.dp),
+            painter = painterResource(swapProvider.icon),
+            contentDescription = null
         )
-        HFillSpacer(minWidth = 16.dp)
+        HSpacer(width = 8.dp)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            subhead1_leah(text = swapProvider.title)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                estimationTime?.let { EstimationTimeBadge(seconds = it) }
+                ProviderRiskBadge(riskType = swapProvider.riskType)
+            }
+        }
+        HSpacer(width = 8.dp)
         if (showSettings) {
             Icon(
                 modifier = Modifier.clickable(
@@ -927,7 +902,13 @@ private fun ProviderField(
                 contentDescription = "",
                 tint = ComposeAppTheme.colors.grey
             )
+            HSpacer(width = 8.dp)
         }
+        Icon(
+            painter = painterResource(R.drawable.ic_arrow_right),
+            contentDescription = null,
+            tint = ComposeAppTheme.colors.grey
+        )
     }
 }
 
@@ -1319,6 +1300,7 @@ private fun MultiSwapLegCard(
         )
         ProviderField(
             swapProvider = quote.provider,
+            estimationTime = quote.estimationTime,
             showSettings = quote.hasSettings,
             onClickProvider = onClickProvider,
             onClickProviderSettings = onClickProviderSettings,
