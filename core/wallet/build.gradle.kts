@@ -1,6 +1,5 @@
 plugins {
     id(libs.plugins.android.library.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
 
     id(libs.plugins.kotlin.parcelize.get().pluginId)
     id(libs.plugins.devtools.ksp.get().pluginId)
@@ -86,7 +85,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.test.junit)
 }
 
 android {

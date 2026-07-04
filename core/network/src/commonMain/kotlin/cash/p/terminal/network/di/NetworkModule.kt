@@ -1,6 +1,7 @@
 package cash.p.terminal.network.di
 
 import SolanaRpcApiImpl
+import android.content.Context
 import cash.p.terminal.network.binance.api.BinanceApi
 import cash.p.terminal.network.binance.api.BinanceApiImpl
 import cash.p.terminal.network.binance.api.EthereumRpcApi
@@ -13,6 +14,7 @@ import cash.p.terminal.network.binance.api.TronRpcApiImpl
 import cash.p.terminal.network.changenow.data.repository.ChangeNowRepositoryImpl
 import cash.p.terminal.network.changenow.di.networkChangeNowModule
 import cash.p.terminal.network.data.buildNetworkClient
+import cash.p.terminal.network.data.isAppDebuggable
 import cash.p.terminal.network.exolix.data.repository.ExolixRepositoryImpl
 import cash.p.terminal.network.exolix.di.networkExolixModule
 import cash.p.terminal.network.pirate.di.networkPirateModule
@@ -29,7 +31,7 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val networkModule = module {
-    single { buildNetworkClient() }
+    single { buildNetworkClient(get<Context>().isAppDebuggable()) }
 
     // API
     factoryOf(::EthereumRpcApiImpl) bind EthereumRpcApi::class
