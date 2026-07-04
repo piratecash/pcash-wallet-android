@@ -17,6 +17,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
@@ -78,6 +79,8 @@ class SwapConfirmViewModel(
     private val accountId: String = wallet.account.id
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(SwapProviderTransactionsStorage::class.java)
+    private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
@@ -425,7 +428,7 @@ class SwapConfirmViewModel(
             expectedAmountOut = legInfo.expectedAmountOut,
         )
         pendingMultiSwapStorage.insert(record)
-        swapProviderTransaction?.transactionId?.let { providerTxId ->
+        swapProviderTransaction?.transactionId?.takeIf { it.isNotBlank() }?.let { providerTxId ->
             pendingMultiSwapStorage.setLeg1ProviderTransactionId(id, providerTxId)
         }
         completedMultiSwapId = id
@@ -441,7 +444,20 @@ class SwapConfirmViewModel(
     fun onTransactionCompleted(result: SendTransactionResult) {
         swapProvider.onTransactionCompleted(result)
         val transaction = swapProviderTransaction ?: return
-        (swapProvider as? OffChainSwapProvider)?.onTransactionCompleted(transaction, result)
+        val offChainProvider = swapProvider as? OffChainSwapProvider
+        if (offChainProvider != null) {
+            offChainProvider.onTransactionCompleted(transaction, result)
+        } else {
+            // On-chain provider (Thorchain/Maya) has no completion hook: finalize the record here.
+            // outgoingRecordUid matches the outgoing history record; transactionId = canonical hash for status polling.
+            swapProviderTransactionsStorage.save(
+                transaction.copy(
+                    outgoingRecordUid = result.getRecordUid(),
+                    transactionId = result.getCanonicalTxHash() ?: transaction.transactionId,
+                    date = System.currentTimeMillis(),
+                )
+            )
+        }
     }
 
     companion object {

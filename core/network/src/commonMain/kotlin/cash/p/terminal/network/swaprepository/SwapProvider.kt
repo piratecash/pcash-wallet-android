@@ -5,4 +5,6 @@ enum class SwapProvider(val title: String) {
     QUICKEX("Quickex"),
     PAYCORE("PayCore"),
     EXOLIX("Exolix"),
+    THORCHAIN("THORChain"),
+    MAYA("Maya Protocol"),
 }

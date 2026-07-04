@@ -15,6 +15,7 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -107,6 +108,7 @@ class SwapConfirmViewModelLeg2Test {
                         every { balanceHiddenFlow } returns MutableStateFlow(false)
                     }
                 }
+                single<DispatcherProvider> { TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)) }
             })
         }
     }

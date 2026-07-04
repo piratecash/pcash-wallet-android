@@ -45,6 +45,8 @@ data class SwapProviderTransaction(
         SwapProvider.QUICKEX -> QuickexHelper.QUICKEX_URL to QuickexHelper.getViewTransactionUrl(transactionId, addressOut)
         SwapProvider.PAYCORE -> Translator.getString(R.string.paycore_support) to AppConfigProvider.payCoreSupportUrl
         SwapProvider.EXOLIX -> ExolixHelper.EXOLIX_URL to ExolixHelper.getViewTransactionUrl(transactionId)
+        SwapProvider.THORCHAIN,
+        SwapProvider.MAYA -> null
     }
 
     companion object {

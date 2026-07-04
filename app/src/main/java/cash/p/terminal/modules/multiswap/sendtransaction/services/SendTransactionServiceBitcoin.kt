@@ -267,7 +267,7 @@ class SendTransactionServiceBitcoin(
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult.Btc =
         withContext(Dispatchers.IO) {
             try {
-                val transactionRecord = adapter.send(
+                val sendResult = adapter.sendForSwap(
                     amount = amountState.amount!!,
                     address = addressState.validAddress?.hex!!,
                     memo = memo,
@@ -279,9 +279,13 @@ class SendTransactionServiceBitcoin(
                     changeToFirstInput = changeToFirstInput,
                     utxoFilters = utxoFilters
                 )
-                val isQueued = adapter.isTransactionInSendQueue(transactionRecord)
-                markTransactionCreated(transactionRecord)
-                SendTransactionResult.Btc(transactionRecord, isQueued)
+                val isQueued = adapter.isTransactionInSendQueue(sendResult.uid)
+                markTransactionCreated(sendResult.uid)
+                SendTransactionResult.Btc(
+                    uid = sendResult.uid,
+                    canonicalHashReversedHex = sendResult.canonicalHashReversedHex,
+                    isQueued = isQueued
+                )
             } catch (e: Throwable) {
                 cautions = listOf(createCaution(e))
                 emitState()

@@ -42,5 +42,6 @@ data class SwapFinalQuoteThorChain(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
-    override val cautions: MutableList<HSCaution>
+    override val cautions: MutableList<HSCaution>,
+    override val swapProviderTransaction: SwapProviderTransaction? = null,
 ) : ISwapFinalQuote
