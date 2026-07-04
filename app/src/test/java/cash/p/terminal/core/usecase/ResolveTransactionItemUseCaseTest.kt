@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -127,8 +128,12 @@ class ResolveTransactionItemUseCaseTest {
         every { storage.getByOutgoingRecordUid(any()) } returns null
         every { storage.getByIncomingRecordUid(any()) } returns null
 
+        // Start resolving while the record is not yet findable: the use case must
+        // suspend on adaptersReadyFlow and resume once the adapter carrying the
+        // record arrives, exercising the async wait path (not the immediate lookup).
+        val deferred = async { useCase("delayed-uid", timeoutMs = 1_000) }
         flow.value = mapOf(source to adapterWithRecord("delayed-uid"))
-        val result = useCase("delayed-uid", timeoutMs = 1_000)
+        val result = deferred.await()
 
         assertEquals("delayed-uid", result?.record?.uid)
     }
