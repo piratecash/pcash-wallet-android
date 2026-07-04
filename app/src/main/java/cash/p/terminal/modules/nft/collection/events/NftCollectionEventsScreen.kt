@@ -31,6 +31,7 @@ import cash.p.terminal.ui.compose.OnBottomReached
 import cash.p.terminal.ui_compose.SelectOptional
 import cash.p.terminal.ui.compose.components.*
 import cash.p.terminal.ui_compose.BottomSheetHeader
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import cash.p.terminal.ui_compose.components.ButtonSecondaryWithIcon
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HeaderSorting
@@ -185,9 +186,8 @@ fun NftEvents(
     val modalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
     val coroutineScope = rememberCoroutineScope()
 
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = modalBottomSheetState,
-        sheetBackgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.transparent,
         sheetContent = {
             ContractBottomSheet(
                 contractSelect = viewModel.contractSelect,

@@ -2,7 +2,6 @@ package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.Coin
 import io.horizontalsystems.core.CurrencyManager
@@ -12,9 +11,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
-import io.reactivex.Observable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -38,9 +37,8 @@ class SwapSelectProviderViewModelTest {
         every { decimals } returns 8
     }
 
-    private val marketKit = mockk<MarketKitWrapper>(relaxed = true) {
-        every { coinPrice(any(), any()) } returns null
-        every { coinPriceObservable(any(), any(), any()) } returns Observable.never()
+    private val assetFiatRateService = mockk<AssetFiatRateService> {
+        every { rateFlow(any(), any(), any()) } returns emptyFlow()
     }
     private val numberFormatter = mockk<IAppNumberFormatter>(relaxed = true) {
         every { formatCoinFull(any(), any(), any()) } returns "0"
@@ -54,7 +52,6 @@ class SwapSelectProviderViewModelTest {
         Dispatchers.setMain(dispatcher)
         mockkObject(App)
         every { App.currencyManager } returns currencyManager
-        every { App.marketKit } returns marketKit
         every { App.numberFormatter } returns numberFormatter
     }
 
@@ -71,7 +68,8 @@ class SwapSelectProviderViewModelTest {
                 quote(providerId = "slow", amount = "100", eta = 600L),
                 quote(providerId = "null", amount = "100", eta = null),
                 quote(providerId = "fast", amount = "100", eta = 120L),
-            )
+            ),
+            assetFiatRateService
         )
 
         viewModel.setSortType(ProviderSortType.BestTime)
@@ -86,7 +84,8 @@ class SwapSelectProviderViewModelTest {
                 quote(providerId = "slowSameAmount", amount = "100", eta = 600L),
                 quote(providerId = "fastSameAmount", amount = "100", eta = 120L),
                 quote(providerId = "bestAmount", amount = "200", eta = null),
-            )
+            ),
+            assetFiatRateService
         )
 
         // BestPrice is the default sort type — highest amountOut first, estimationTime as tie-breaker.
@@ -103,7 +102,8 @@ class SwapSelectProviderViewModelTest {
                 quote(providerId = "slow", amount = "100", eta = 600L),
                 quote(providerId = "null", amount = "100", eta = null),
                 quote(providerId = "fast", amount = "100", eta = 120L),
-            )
+            ),
+            assetFiatRateService
         )
         viewModel.setSortType(ProviderSortType.BestTime)
         val orderBeforeToggle = viewModel.providerIds()

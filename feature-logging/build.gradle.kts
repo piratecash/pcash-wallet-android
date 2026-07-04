@@ -1,6 +1,5 @@
 plugins {
     id(libs.plugins.android.library.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
 
     alias(libs.plugins.compose.compiler)
     id(libs.plugins.devtools.ksp.get().pluginId)
@@ -82,5 +81,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.test.junit)
 }

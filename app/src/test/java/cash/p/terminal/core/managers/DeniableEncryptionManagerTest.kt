@@ -1,5 +1,9 @@
 package cash.p.terminal.core.managers
 
+import io.mockk.every
+import io.mockk.mockkObject
+import io.mockk.unmockkObject
+import io.mockk.verify
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -153,14 +157,12 @@ class DeniableEncryptionManagerTest {
     fun `extractMessageFromBytes returns correct data for each password in dual container`() {
         val message1 = "First message".toByteArray()
         val message2 = "Second hidden message".toByteArray()
-        val salt = DeniableEncryptionManager.generateSalt()
 
         val container = DeniableEncryptionManager.createContainerBytes(
             message1 = message1,
             password1 = "password1",
             message2 = message2,
-            password2 = "password2",
-            salt = salt
+            password2 = "password2"
         )
 
         val extracted1 = DeniableEncryptionManager.extractMessageFromBytes(container, "password1")
@@ -678,17 +680,50 @@ class DeniableEncryptionManagerTest {
             }
         }
 
-        // Should have succeeded within maxRetries
-        assertNotNull("Retry mechanism should succeed within $maxRetries attempts", successfulContainer)
+        val container = successfulContainer
+            ?: throw AssertionError("Retry mechanism should succeed within $maxRetries attempts")
 
         // Verify both messages can be extracted
-        val extracted1 = DeniableEncryptionManager.extractMessageFromBytes(successfulContainer!!, password1)
-        val extracted2 = DeniableEncryptionManager.extractMessageFromBytes(successfulContainer!!, password2)
+        val extracted1 = DeniableEncryptionManager.extractMessageFromBytes(container, password1)
+        val extracted2 = DeniableEncryptionManager.extractMessageFromBytes(container, password2)
 
         assertNotNull(extracted1)
         assertNotNull(extracted2)
         assertArrayEquals(payload1, extracted1)
         assertArrayEquals(payload2, extracted2)
+    }
+
+    @Test
+    fun createContainerBytes_passwordCollisionOnFirstSalt_retriesWithNewSalt() {
+        val payload1 = ByteArray(40_000) { 'A'.code.toByte() }
+        val payload2 = ByteArray(40_000) { 'B'.code.toByte() }
+        val password1 = "mainPassword"
+        val password2 = "duressPassword"
+        val (collisionSalt, successSalt) = findCollisionAndSuccessSalts(
+            payload1 = payload1,
+            password1 = password1,
+            payload2 = payload2,
+            password2 = password2
+        )
+
+        mockkObject(DeniableEncryptionManager)
+        try {
+            every { DeniableEncryptionManager.generateSalt() } returnsMany listOf(collisionSalt, successSalt)
+
+            val container = DeniableEncryptionManager.createContainerBytes(
+                message1 = payload1,
+                password1 = password1,
+                message2 = payload2,
+                password2 = password2,
+                maxRetries = 2
+            )
+
+            verify(exactly = 2) { DeniableEncryptionManager.generateSalt() }
+            assertArrayEquals(payload1, DeniableEncryptionManager.extractMessageFromBytes(container, password1))
+            assertArrayEquals(payload2, DeniableEncryptionManager.extractMessageFromBytes(container, password2))
+        } finally {
+            unmockkObject(DeniableEncryptionManager)
+        }
     }
 
     @Test
@@ -775,6 +810,62 @@ class DeniableEncryptionManagerTest {
         }
         sb.append("\"}")
         return sb.toString().toByteArray(Charsets.UTF_8)
+    }
+
+    private fun findCollisionAndSuccessSalts(
+        payload1: ByteArray,
+        password1: String,
+        payload2: ByteArray,
+        password2: String
+    ): Pair<ByteArray, ByteArray> {
+        var collisionSalt: ByteArray? = null
+        var successSalt: ByteArray? = null
+
+        repeat(100) {
+            val salt = deterministicSalt(it)
+            val hasCollision = hasPasswordCollision(payload1, password1, payload2, password2, salt)
+
+            if (hasCollision) {
+                collisionSalt = collisionSalt ?: salt
+            } else {
+                successSalt = successSalt ?: salt
+            }
+
+            val collision = collisionSalt
+            val success = successSalt
+            if (collision != null && success != null) {
+                return collision to success
+            }
+        }
+
+        error("Expected to find both colliding and non-colliding salts")
+    }
+
+    private fun deterministicSalt(seed: Int): ByteArray {
+        return ByteArray(32) { index ->
+            ((seed * 37 + index * 17) and 0xFF).toByte()
+        }
+    }
+
+    private fun hasPasswordCollision(
+        payload1: ByteArray,
+        password1: String,
+        payload2: ByteArray,
+        password2: String,
+        salt: ByteArray
+    ): Boolean {
+        return try {
+            DeniableEncryptionManager.createContainerBytes(
+                message1 = payload1,
+                password1 = password1,
+                message2 = payload2,
+                password2 = password2,
+                salt = salt
+            )
+            false
+        } catch (e: DeniableEncryptionManager.PasswordCollisionException) {
+            true
+        }
     }
 
     // endregion

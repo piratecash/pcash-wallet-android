@@ -45,6 +45,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -117,6 +118,7 @@ class TransactionInfoServiceTest : KoinTest {
             adapter.getTransactionRecordsFlow(any(), any(), any())
         } returns MutableStateFlow(emptyList())
         every { nftMetadataService.assetsBriefMetadataFlow } returns MutableStateFlow(emptyMap())
+        every { swapProviderTransactionsStorage.observeByDate(any()) } returns emptyFlow()
         val hiddenFlow = MutableStateFlow(false)
         every { balanceHiddenManager.transactionInfoHiddenFlow(any()) } returns hiddenFlow
         every { balanceHiddenManager.transactionInfoHiddenFlow(any(), any()) } returns hiddenFlow
@@ -150,7 +152,8 @@ class TransactionInfoServiceTest : KoinTest {
             coinUidOut = "ethereum",
             blockchainTypeOut = "ethereum",
             amountOut = BigDecimal("1.5"),
-            addressOut = "addr-out"
+            addressOut = "addr-out",
+            accountId = "test-account",
         )
 
     private fun createService(
@@ -213,7 +216,7 @@ class TransactionInfoServiceTest : KoinTest {
         val swap = createFinishedSwapTransaction()
         coEvery { swapProviderTransactionsStorage.getTransaction("cn-tx-1") } returns swap
         coEvery {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         } returns TransactionStatusEnum.FINISHED
 
         val service = createService(userSwapTransactionId = "cn-tx-1")
@@ -229,7 +232,7 @@ class TransactionInfoServiceTest : KoinTest {
         val swap = createFinishedSwapTransaction()
         coEvery { swapProviderTransactionsStorage.getTransaction("cn-tx-1") } returns swap
         coEvery {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         } returns TransactionStatusEnum.FINISHED
 
         val service = createService(userSwapTransactionId = "cn-tx-1")
@@ -248,7 +251,7 @@ class TransactionInfoServiceTest : KoinTest {
         val swap = createFinishedSwapTransaction()
         coEvery { swapProviderTransactionsStorage.getTransaction("cn-tx-1") } returns swap
         coEvery {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         } returns TransactionStatusEnum.FINISHED
 
         val service = createService(userSwapTransactionId = "cn-tx-1")
@@ -258,7 +261,7 @@ class TransactionInfoServiceTest : KoinTest {
         service.transactionInfoItemFlow.first()
 
         coVerify(exactly = 1) {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         }
 
         // Simulate block updates
@@ -269,7 +272,7 @@ class TransactionInfoServiceTest : KoinTest {
 
         // Should still be exactly 1 call — block updates did not trigger re-fetch
         coVerify(exactly = 1) {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         }
 
         assertEquals(TransactionStatus.Completed, service.transactionInfoItem.externalStatus)
@@ -282,7 +285,7 @@ class TransactionInfoServiceTest : KoinTest {
         )
         coEvery { swapProviderTransactionsStorage.getTransaction("cn-tx-1") } returns swap
         coEvery {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         } returns TransactionStatusEnum.EXCHANGING
 
         val service = createService(userSwapTransactionId = "cn-tx-1")
@@ -292,14 +295,14 @@ class TransactionInfoServiceTest : KoinTest {
         service.transactionInfoItemFlow.first()
 
         coVerify(exactly = 1) {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         }
 
         lastBlockSubject.onNext(Unit)
         advanceUntilIdle()
 
         coVerify(exactly = 2) {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         }
     }
 
@@ -310,7 +313,7 @@ class TransactionInfoServiceTest : KoinTest {
         )
         coEvery { swapProviderTransactionsStorage.getTransaction("cn-tx-1") } returns swap
         coEvery {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         } returns TransactionStatusEnum.UNKNOWN
 
         val service = createService(userSwapTransactionId = "cn-tx-1")
@@ -320,14 +323,14 @@ class TransactionInfoServiceTest : KoinTest {
         service.transactionInfoItemFlow.first()
 
         coVerify(exactly = 1) {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         }
 
         lastBlockSubject.onNext(Unit)
         advanceUntilIdle()
 
         coVerify(exactly = 2) {
-            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatus("cn-tx-1")
+            updateSwapProviderTransactionsStatusUseCase.updateTransactionStatusByDate(1000L)
         }
     }
 

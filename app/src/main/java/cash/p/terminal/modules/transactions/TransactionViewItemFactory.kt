@@ -25,6 +25,7 @@ import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.paycore.PayCoreAssetResolver
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.entity.toStatus
 import cash.p.terminal.strings.helpers.Translator
@@ -1541,6 +1542,7 @@ class TransactionViewItemFactory(
             TransactionStatusEnum.FAILED -> R.string.Transactions_Failed
             TransactionStatusEnum.REFUNDED -> R.string.transaction_swap_status_refunded
             TransactionStatusEnum.VERIFYING -> R.string.transaction_swap_status_verifying
+            TransactionStatusEnum.CREATED_OR_WAIT_USER -> R.string.transaction_swap_status_created_or_wait_user
             TransactionStatusEnum.UNKNOWN -> R.string.transaction_swap_status_unknown
         }
         val transactionStatusUrl = transaction.toStatusUrl()
@@ -1572,7 +1574,9 @@ class TransactionViewItemFactory(
         negative: Boolean
     ): String {
         val sign = if (negative) "-" else "+"
-        val coinCode = marketKit.coin(coinUid)?.code ?: coinUid.uppercase()
+        val coinCode = PayCoreAssetResolver.coinCode(coinUid)
+            ?: marketKit.coin(coinUid)?.code
+            ?: coinUid.uppercase()
 
         val numberFormatted = numberFormatter.formatCoinShort(
             amount,

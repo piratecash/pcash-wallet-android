@@ -1,18 +1,23 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 
 plugins {
     kotlin("multiplatform")
     kotlin("plugin.serialization")
-    id("com.android.library")
+    id("com.android.kotlin.multiplatform.library")
     id(libs.plugins.devtools.ksp.get().pluginId)
 }
 
 kotlin {
-    androidTarget {
+    androidLibrary {
+        namespace = "cash.p.terminal.network"
+        compileSdk = rootProject.ext.get("compile_sdk_version") as Int
+        minSdk = rootProject.ext.get("min_sdk_version") as Int
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+
+        withHostTest { }
     }
 
     sourceSets {
@@ -26,7 +31,6 @@ kotlin {
 
                 implementation(project.dependencies.platform(libs.koin.bom))
                 implementation(libs.koin.core)
-                implementation(libs.koin.android)
 
                 implementation(libs.room.runtime)
                 implementation(libs.room.ktx)
@@ -35,9 +39,10 @@ kotlin {
         androidMain {
             dependencies {
                 implementation(libs.timber)
+                implementation(libs.koin.android)
             }
         }
-        commonTest {
+        getByName("androidHostTest") {
             dependencies {
                 implementation(libs.junit)
                 implementation(libs.mockk)
@@ -45,31 +50,6 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-    }
-}
-
-android {
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    val minSdkVersion: Int = rootProject.ext.get("min_sdk_version") as Int
-    val targetSdkVersion: Int = rootProject.ext.get("compile_sdk_version") as Int
-
-    namespace = "cash.p.terminal.network"
-    compileSdk = targetSdkVersion
-    defaultConfig {
-        minSdk = minSdkVersion
-    }
-    buildFeatures {
-        buildConfig = true
-    }
-}
-
-tasks.withType<KotlinJvmCompile>().configureEach {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_11)
     }
 }
 

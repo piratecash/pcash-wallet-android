@@ -1,5 +1,6 @@
 package cash.p.terminal.core.adapters
 
+import cash.p.terminal.core.BitcoinSwapSendResult
 import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.ITransactionsAdapter
@@ -33,6 +34,7 @@ import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.bitcoincore.AbstractKit
 import io.horizontalsystems.bitcoincore.BitcoinCore
 import io.horizontalsystems.bitcoincore.core.IPluginData
+import io.horizontalsystems.bitcoincore.extensions.toReversedHex
 import io.horizontalsystems.bitcoincore.models.Address
 import io.horizontalsystems.bitcoincore.models.TransactionDataSortType
 import io.horizontalsystems.bitcoincore.models.TransactionFilterType
@@ -424,10 +426,63 @@ abstract class BitcoinBaseAdapter(
         rbfEnabled: Boolean,
         changeToFirstInput: Boolean,
         utxoFilters: UtxoFilters
-    ): String {
+    ): String = executeSend(
+        amount = amount,
+        address = address,
+        memo = memo,
+        feeRate = feeRate,
+        unspentOutputs = unspentOutputs,
+        pluginData = pluginData,
+        transactionSorting = transactionSorting,
+        rbfEnabled = rbfEnabled,
+        changeToFirstInput = changeToFirstInput,
+        utxoFilters = utxoFilters
+    ).header.uid
+
+    override suspend fun sendForSwap(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        feeRate: Int,
+        unspentOutputs: List<UnspentOutputInfo>?,
+        pluginData: Map<Byte, IPluginData>?,
+        transactionSorting: TransactionDataSortMode?,
+        rbfEnabled: Boolean,
+        changeToFirstInput: Boolean,
+        utxoFilters: UtxoFilters
+    ): BitcoinSwapSendResult = executeSend(
+        amount = amount,
+        address = address,
+        memo = memo,
+        feeRate = feeRate,
+        unspentOutputs = unspentOutputs,
+        pluginData = pluginData,
+        transactionSorting = transactionSorting,
+        rbfEnabled = rbfEnabled,
+        changeToFirstInput = changeToFirstInput,
+        utxoFilters = utxoFilters
+    ).let {
+        BitcoinSwapSendResult(
+            uid = it.header.uid,
+            canonicalHashReversedHex = it.header.hash.toReversedHex()
+        )
+    }
+
+    private suspend fun executeSend(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+        feeRate: Int,
+        unspentOutputs: List<UnspentOutputInfo>?,
+        pluginData: Map<Byte, IPluginData>?,
+        transactionSorting: TransactionDataSortMode?,
+        rbfEnabled: Boolean,
+        changeToFirstInput: Boolean,
+        utxoFilters: UtxoFilters
+    ): FullTransaction {
         val sortingType = getTransactionSortingType(transactionSorting)
 
-        val sendData = kit.send(
+        return kit.send(
             address = address,
             memo = memo,
             value = amount.movePointRight(decimal).toLong(),
@@ -440,7 +495,6 @@ abstract class BitcoinBaseAdapter(
             changeToFirstInput = changeToFirstInput,
             filters = utxoFilters,
         )
-        return sendData.header.uid
     }
 
     override fun availableBalance(

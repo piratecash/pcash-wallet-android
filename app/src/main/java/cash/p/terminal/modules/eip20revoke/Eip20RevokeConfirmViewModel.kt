@@ -5,18 +5,20 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ethereum.CautionViewItem
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.eip20allowance.Eip20AllowanceSendTransactionFactory
 import cash.p.terminal.modules.eip20allowance.collectSendTransactionServiceState
+import cash.p.terminal.modules.multiswap.AssetFiatRateService
 import cash.p.terminal.modules.multiswap.FiatService
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.send.SendModule
-import io.horizontalsystems.core.DispatcherProvider
-import io.horizontalsystems.core.ViewModelUiState
-import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
+import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.DispatcherProvider
+import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -147,7 +149,7 @@ internal class Eip20RevokeConfirmViewModel(
                 spenderAddress = spenderAddress,
                 adapterManager = App.adapterManager,
                 currencyManager = App.currencyManager,
-                fiatService = FiatService(App.marketKit),
+                fiatService = FiatService(getKoinInstance<AssetFiatRateService>()),
                 contactsRepository = App.contactsRepository,
                 dispatcherProvider = dispatcherProvider
             ) as T

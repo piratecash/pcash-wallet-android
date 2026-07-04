@@ -79,6 +79,7 @@ internal fun ChecklistTermsScreen(
     }
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
 private fun ChecklistTermsScreenPreview() {

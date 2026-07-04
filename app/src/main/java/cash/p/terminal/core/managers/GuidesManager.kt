@@ -4,8 +4,6 @@ import com.google.gson.*
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Guide
 import cash.p.terminal.entities.GuideCategoryMultiLang
-import io.reactivex.Single
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.lang.reflect.Type
 import java.net.URL
@@ -20,17 +18,13 @@ object GuidesManager {
             .registerTypeAdapter(Guide::class.java, GuideDeserializer(guidesUrl))
             .create()
 
-    fun getGuideCategories(): Single<Array<GuideCategoryMultiLang>> {
-        return Single.fromCallable {
-            val request = Request.Builder()
-                    .url(guidesUrl)
-                    .build()
+    fun getGuideCategories(): Array<GuideCategoryMultiLang> {
+        val request = Request.Builder()
+            .url(guidesUrl)
+            .build()
 
-            val response = APIClient.okHttpClient.newCall(request).execute()
-            val categories = gson.fromJson(response.body?.charStream(), Array<GuideCategoryMultiLang>::class.java)
-            response.close()
-
-            categories
+        return APIClient.okHttpClient.newCall(request).execute().use { response ->
+            gson.fromJson(response.body?.charStream(), Array<GuideCategoryMultiLang>::class.java)
         }
     }
 

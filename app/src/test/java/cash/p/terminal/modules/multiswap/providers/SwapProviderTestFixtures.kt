@@ -43,6 +43,7 @@ internal fun buildSwapProviderTransaction(
     blockchainTypeOut = "bitcoin",
     amountOut = BigDecimal.TEN,
     addressOut = "addr-out",
+    accountId = "test-account",
 )
 
 internal fun TranslatableString?.formatArgFirst(): String? =
@@ -72,6 +73,7 @@ internal fun buildOffChainSwapProviderSupport(
     swapProviderTransactionsStorage = storage,
     marketKit = marketKit,
     adapterManager = mockk(relaxed = true),
+    swapProviderTransactionFactory = SwapProviderTransactionFactory(walletUseCase, accountManager),
 )
 
 internal fun MarketKitWrapper.stubZcashTransparentToken(token: Token) {

@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.navigation.popBackStackSafely
@@ -36,6 +35,7 @@ import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.CellUniversal
 import cash.p.terminal.ui_compose.components.headline2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import org.koin.compose.viewmodel.koinViewModel
 import java.net.UnknownHostException
 
 class GuidesFragment : BaseComposeFragment() {
@@ -49,7 +49,7 @@ class GuidesFragment : BaseComposeFragment() {
 
 @Composable
 fun GuidesScreen(navController: NavController) {
-    val viewModel = viewModel<GuidesViewModel>(factory = GuidesModule.Factory())
+    val viewModel = koinViewModel<GuidesViewModel>()
 
     val uiState = viewModel.uiState
 

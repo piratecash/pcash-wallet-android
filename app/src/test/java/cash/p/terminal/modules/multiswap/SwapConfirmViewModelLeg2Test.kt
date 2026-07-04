@@ -2,6 +2,7 @@ package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ServiceStateFlow
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
@@ -14,18 +15,21 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Currency
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -44,8 +48,12 @@ import java.math.BigDecimal
 class SwapConfirmViewModelLeg2Test {
 
     private val dispatcher = UnconfinedTestDispatcher()
+    private val dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher))
     private val pendingMultiSwapStorage = mockk<PendingMultiSwapStorage>(relaxed = true)
     private val localStorage = mockk<ILocalStorage>(relaxed = true)
+    private val assetFiatRateService = mockk<AssetFiatRateService> {
+        every { rateFlow(any(), any(), any()) } returns flowOf(null)
+    }
     private val sendResult = mockk<SendTransactionResult>(relaxed = true)
 
     private val previewWallet = WalletFactory.previewWallet()
@@ -94,11 +102,13 @@ class SwapConfirmViewModelLeg2Test {
                 single<ILocalStorage> { localStorage }
                 single<PendingMultiSwapStorage> { pendingMultiSwapStorage }
                 single<MarketKitWrapper> { mockk(relaxed = true) }
+                single<AssetFiatRateService> { assetFiatRateService }
                 single<IBalanceHiddenManager> {
                     mockk(relaxed = true) {
                         every { balanceHiddenFlow } returns MutableStateFlow(false)
                     }
                 }
+                single<DispatcherProvider> { TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)) }
             })
         }
     }
@@ -133,7 +143,6 @@ class SwapConfirmViewModelLeg2Test {
 
     private fun createViewModel(legInfo: MultiSwapLegInfo): SwapConfirmViewModel {
         val adapterManager = mockk<IAdapterManager>(relaxed = true)
-        val marketKit = mockk<MarketKitWrapper>(relaxed = true)
         val currencyManager = mockk<CurrencyManager> {
             every { baseCurrency } returns Currency("USD", "$", 2, 0)
         }
@@ -142,14 +151,15 @@ class SwapConfirmViewModelLeg2Test {
             swapQuote = swapQuote,
             swapSettings = emptyMap(),
             currencyManager = currencyManager,
-            fiatServiceIn = FiatService(marketKit),
-            fiatServiceOut = FiatService(marketKit),
-            fiatServiceOutMin = FiatService(marketKit),
+            fiatServiceIn = FiatService(assetFiatRateService),
+            fiatServiceOut = FiatService(assetFiatRateService),
+            fiatServiceOutMin = FiatService(assetFiatRateService),
             sendTransactionService = sendTransactionService,
             timerService = TimerService(),
             priceImpactService = PriceImpactService(),
             wallet = previewWallet,
             adapterManager = adapterManager,
+            dispatcherProvider = dispatcherProvider,
             multiSwapLegInfo = legInfo,
         )
         viewModelStore.put("test-vm", vm)
