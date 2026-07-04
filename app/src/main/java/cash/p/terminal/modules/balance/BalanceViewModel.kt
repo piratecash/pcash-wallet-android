@@ -16,7 +16,11 @@ import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.toSeedQrErrorStringRes
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.supported
+import cash.p.terminal.core.usecase.PayCoreNavigationTarget
+import cash.p.terminal.core.usecase.ResolvePayCoreNavigationUseCase
+import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.core.utils.AddressUriResult
 import cash.p.terminal.core.utils.ToncoinUriParser
@@ -35,21 +39,16 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Wallet
-import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceViewType
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.canSwap
 import cash.p.terminal.wallet.isBackedUpOrNotRequired
-import cash.p.terminal.wallet.entities.TokenType.AddressSpecType
-import cash.p.terminal.wallet.isOldZCash
 import cash.p.terminal.wallet.isStakingWallet
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.tokenQueryId
-import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import com.reown.walletkit.client.Wallet.Params.Pair
 import com.reown.walletkit.client.WalletKit
@@ -59,12 +58,16 @@ import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
@@ -91,20 +94,26 @@ class BalanceViewModel(
     private var errorMessage: String? = null
     private var balanceTabButtonsEnabled = localStorage.balanceTabButtonsEnabled
 
-    private val walletFactory: WalletFactory by inject(WalletFactory::class.java)
-    private val marketKit: MarketKitWrapper by inject(MarketKitWrapper::class.java)
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
     private val coinManager: ICoinManager by inject(ICoinManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     private val seedPhraseQrCrypto: SeedPhraseQrCrypto by inject(SeedPhraseQrCrypto::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(SwapProviderTransactionsStorage::class.java)
+    private val resolvePayCoreNavigation: ResolvePayCoreNavigationUseCase by inject(ResolvePayCoreNavigationUseCase::class.java)
 
     private var pendingSwapCount = 0
     private var singlePendingSwapId: String? = null
+    private var singlePayCoreSwapDate: Long? = null
+    private var singlePayCoreSwapRecordUid: String? = null
+    private var payCoreNavigationInFlight = false
 
-    private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
-        GetHardwarePublicKeyForWalletUseCase::class.java
+    private val _payCoreNavigationEvents = Channel<PayCoreNavigationTarget>(
+        capacity = Channel.BUFFERED,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
+    val payCoreNavigationEvents: Flow<PayCoreNavigationTarget> =
+        _payCoreNavigationEvents.receiveAsFlow()
 
     private val sortTypes =
         listOf(BalanceSortType.Value, BalanceSortType.Name, BalanceSortType.PercentGrowth)
@@ -187,13 +196,28 @@ class BalanceViewModel(
         }
 
         viewModelScope.launch {
-            pendingMultiSwapStorage
-                .observeForActiveAccount(accountManager.activeAccountStateFlow)
-                .collect { swaps ->
-                    pendingSwapCount = swaps.size
-                    singlePendingSwapId = swaps.singleOrNull()?.id
-                    emitState()
-                }
+            combine(
+                pendingMultiSwapStorage.observeForActiveAccount(accountManager.activeAccountStateFlow),
+                swapProviderTransactionsStorage.observeForActiveAccount(accountManager.activeAccountStateFlow)
+            ) { swaps, providerTxs ->
+                val payCoreUnfinished =
+                    providerTxs.filter { it.provider == SwapProvider.PAYCORE && !it.isFinished() }
+                val singlePayCore = payCoreUnfinished.singleOrNull()
+                PendingSwapsSnapshot(
+                    totalCount = swaps.size + payCoreUnfinished.size,
+                    singleMultiSwapId = swaps.singleOrNull()?.id,
+                    singlePayCoreDate = singlePayCore?.date,
+                    singlePayCoreRecordUid = singlePayCore?.let {
+                        it.outgoingRecordUid ?: it.incomingRecordUid
+                    },
+                )
+            }.collect { snapshot ->
+                pendingSwapCount = snapshot.totalCount
+                singlePendingSwapId = snapshot.singleMultiSwapId
+                singlePayCoreSwapDate = snapshot.singlePayCoreDate
+                singlePayCoreSwapRecordUid = snapshot.singlePayCoreRecordUid
+                emitState()
+            }
         }
 
         service.start()
@@ -224,7 +248,9 @@ class BalanceViewModel(
         displayDiffOptionType = displayDiffOptionType,
         displayPricePeriod = displayDiffPricePeriod,
         pendingSwapCount = pendingSwapCount,
-        singlePendingSwapId = singlePendingSwapId
+        singlePendingSwapId = singlePendingSwapId,
+        singlePayCoreSwapDate = singlePayCoreSwapDate,
+        singlePayCoreSwapLoading = payCoreNavigationInFlight,
     )
 
     private fun handleUpdatedBalanceViewType(balanceViewType: BalanceViewType) {
@@ -246,6 +272,22 @@ class BalanceViewModel(
     fun onBalanceClick(item: BalanceViewItem2) {
         HudHelper.vibrate(App.instance)
         balanceHiddenManager.toggleWalletBalanceHidden(item.wallet.tokenQueryId)
+    }
+
+    fun onSinglePayCoreSwapClick() {
+        val date = singlePayCoreSwapDate ?: return
+        if (payCoreNavigationInFlight) return
+        payCoreNavigationInFlight = true
+        emitState()
+        viewModelScope.launch {
+            try {
+                val target = resolvePayCoreNavigation(date, singlePayCoreSwapRecordUid)
+                _payCoreNavigationEvents.trySend(target)
+            } finally {
+                payCoreNavigationInFlight = false
+                emitState()
+            }
+        }
     }
 
     override fun toggleBalanceVisibility() {
@@ -273,7 +315,6 @@ class BalanceViewModel(
                         displayDiffOptionType = displayDiffOptionType
                     )
                 }
-                replaceOldZCashWithNew()
             } else {
                 viewState = null
                 balanceViewItems = listOf()
@@ -281,30 +322,6 @@ class BalanceViewModel(
 
             ensureActive()
             emitState()
-        }
-    }
-
-    /***
-     * We migrated to new address scheme, so we need to replace old ZCash with new one
-     */
-    private fun replaceOldZCashWithNew() {
-        ArrayList(balanceViewItems).find { it.wallet.isOldZCash() }?.let { oldZCashViewItem ->
-            val account = accountManager.activeAccount ?: return
-            val tokenQuery = TokenQuery(
-                BlockchainType.Zcash, TokenType.AddressSpecTyped(
-                    AddressSpecType.Shielded
-                )
-            )
-            marketKit.token(tokenQuery)?.let { token ->
-                viewModelScope.launch {
-                    Log.d("BalanceViewModel", "Replacing old ZCash with new one")
-                    service.disable(oldZCashViewItem.wallet)
-                    Log.d("BalanceViewModel", "Activating new ZCash")
-                    val hardwarePublicKey =
-                        runBlocking { getHardwarePublicKeyForWalletUseCase(account, token) }
-                    walletFactory.create(token, account, hardwarePublicKey)?.let(service::enable)
-                }
-            }
         }
     }
 
@@ -584,6 +601,13 @@ sealed class ReceiveAllowedState {
 
 class BackupRequiredError(val account: Account, val coinTitle: String) : Error("Backup Required")
 
+private data class PendingSwapsSnapshot(
+    val totalCount: Int,
+    val singleMultiSwapId: String?,
+    val singlePayCoreDate: Long?,
+    val singlePayCoreRecordUid: String?,
+)
+
 data class BalanceUiState(
     val balanceViewItems: List<BalanceViewItem2>,
     val viewState: ViewState?,
@@ -600,7 +624,9 @@ data class BalanceUiState(
     val displayDiffOptionType: DisplayDiffOptionType,
     val displayPricePeriod: DisplayPricePeriod,
     val pendingSwapCount: Int = 0,
-    val singlePendingSwapId: String? = null
+    val singlePendingSwapId: String? = null,
+    val singlePayCoreSwapDate: Long? = null,
+    val singlePayCoreSwapLoading: Boolean = false,
 )
 
 data class OpenSendTokenSelect(

@@ -12,6 +12,7 @@ interface IWalletManager {
     suspend fun saveEnabledWallets(enabledWallets: List<EnabledWallet>)
     fun delete(wallets: List<Wallet>)
     suspend fun deleteByWallet(wallet: Wallet)
+    suspend fun deleteByTokenQueryIds(accountId: String, tokenQueryIds: Collection<String>)
     fun clear()
     fun handle(newWallets: List<Wallet>, deletedWallets: List<Wallet>)
     suspend fun getWallets(account: Account): List<Wallet>

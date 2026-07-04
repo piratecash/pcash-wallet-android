@@ -469,13 +469,17 @@ fun LazyListScope.transactionList(
     isItemBalanceHidden: (TransactionViewItem) -> Boolean,
     onSensitiveValueClick: (TransactionViewItem) -> Unit,
     onClick: (TransactionViewItem) -> Unit,
-    onBottomReached: () -> Unit
+    onBottomReached: () -> Unit,
+    stickyDateHeaders: Boolean = true
 ) {
     val bottomReachedUid = getBottomReachedUid(transactionsMap)
 
     transactionsMap.forEach { (dateHeader, transactions) ->
-        stickyHeader {
-            HeaderStick(text = dateHeader)
+        val dateHeaderContent: @Composable () -> Unit = { HeaderStick(text = dateHeader) }
+        if (stickyDateHeaders) {
+            stickyHeader { dateHeaderContent() }
+        } else {
+            item { dateHeaderContent() }
         }
 
         val itemsCount = transactions.size
@@ -974,6 +978,7 @@ private fun TransactionCellPreviewContent(item: TransactionViewItem) {
     }
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
 private fun TransactionCellPreview() {
@@ -996,6 +1001,7 @@ private fun TransactionCellPreview() {
     )
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(name = "Failed Swap Cropped", widthDp = 300, showBackground = true)
 @Composable
 private fun FailedSwapTransactionCellPreview() {
@@ -1016,11 +1022,11 @@ private fun FailedSwapTransactionCellPreview() {
 }
 
 @Composable
-private fun FilterTypeTabs(
+internal fun FilterTypeTabs(
     filterTypes: List<Filter<FilterTransactionType>>,
     offlineSignedSelected: Boolean,
     onTransactionTypeClick: (FilterTransactionType) -> Unit,
-    onOfflineSignedClick: () -> Unit,
+    onOfflineSignedClick: (() -> Unit)? = null,
 ) {
     val tabItems = buildList<TabItem<TransactionsTab>> {
         filterTypes.forEach {
@@ -1032,19 +1038,21 @@ private fun FilterTypeTabs(
                 )
             )
         }
-        add(
-            TabItem(
-                title = stringResource(R.string.offline_signed_title),
-                selected = offlineSignedSelected,
-                item = TransactionsTab.OfflineSigned,
+        if (onOfflineSignedClick != null) {
+            add(
+                TabItem(
+                    title = stringResource(R.string.offline_signed_title),
+                    selected = offlineSignedSelected,
+                    item = TransactionsTab.OfflineSigned,
+                )
             )
-        )
+        }
     }
 
     ScrollableTabs(tabItems) { tab ->
         when (tab) {
             is TransactionsTab.Regular -> onTransactionTypeClick(tab.type)
-            TransactionsTab.OfflineSigned -> onOfflineSignedClick()
+            TransactionsTab.OfflineSigned -> onOfflineSignedClick?.invoke()
         }
     }
 }

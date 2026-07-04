@@ -58,12 +58,15 @@ import org.koin.core.parameter.ParametersDefinition
 import org.koin.java.KoinJavaComponent.inject
 import java.io.File
 import java.math.BigDecimal
-import java.net.URI
+import java.net.NoRouteToHostException
+import java.net.UnknownHostException
+import java.nio.channels.UnresolvedAddressException
 import java.util.Locale
 import java.util.Optional
 
 import androidx.compose.ui.focus.FocusManager
 import kotlinx.coroutines.CoroutineScope
+import java.net.URI
 
 /**
  * Clears focus (dismissing keyboard) and launches [action] after a brief delay.
@@ -79,6 +82,16 @@ fun CoroutineScope.launchAfterClearingFocus(
         delay(100)
         action()
     }
+}
+
+fun Throwable.isNoInternetException(): Boolean {
+    return generateSequence(this) { it.cause }
+        .any { throwable ->
+            throwable is UnknownHostException ||
+                throwable is NoRouteToHostException ||
+                throwable is UnresolvedAddressException ||
+                throwable.message.equals("No internet connection", ignoreCase = true)
+        }
 }
 
 fun String.orHide(hidden: Boolean, hideValue: String = "*****"): String =

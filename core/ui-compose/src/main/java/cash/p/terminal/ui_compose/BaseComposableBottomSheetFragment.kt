@@ -38,6 +38,11 @@ open class BaseComposableBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Replace the platform black window dim with the unified themed overlay (grey in light, black in dark).
+        dialog?.window?.apply {
+            setDimAmount(0f)
+            setBackgroundDrawableResource(R.color.modal_overlay)
+        }
         dialog?.setOnShowListener { dialog ->
             val d = dialog as BottomSheetDialog
             val bottomSheet = d.findViewById<View>(R.id.design_bottom_sheet) as FrameLayout
@@ -72,9 +77,14 @@ fun TransparentModalBottomSheet(
         dragHandle = null,
         sheetState = sheetState,
         containerColor = ComposeAppTheme.colors.transparent,
+        scrimColor = ComposeAppTheme.colors.modalOverlay,
         contentWindowInsets = { WindowInsets(0) },
-        content = content,
-    )
+    ) {
+        // Runs in the modal's own window: report its focus so the main screen keeps the content
+        // behind it visible while foreground, yet hides it once the window loses focus for recents.
+        ModalOverlayTracker.TrackForeground()
+        content()
+    }
 }
 
 @Composable

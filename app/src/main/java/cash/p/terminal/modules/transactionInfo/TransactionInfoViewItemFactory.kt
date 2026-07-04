@@ -3,6 +3,7 @@ package cash.p.terminal.modules.transactionInfo
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.TonHelper
 import cash.p.terminal.ui_compose.ColoredValue
+import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
@@ -713,6 +714,7 @@ class TransactionInfoViewItemFactory(
             hideSensitiveInfo = transactionItem.hideAmount,
         )
         itemSections.add(statusItems.withOfflineStatus(transactionItem.offlineStatus))
+
         if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected && status == TransactionStatus.Pending && resendEnabled) {
             itemSections.add(
                 listOf(
@@ -764,7 +766,13 @@ class TransactionInfoViewItemFactory(
                 TransactionViewItemFactoryHelper.getExplorerSectionItems(
                     TransactionInfoModule.ExplorerData(
                         title = it.first,
-                        url = it.second
+                        url = it.second,
+                        useDirectTitle = it.second == AppConfigProvider.payCoreSupportUrl,
+                        iconResId = if (it.second == AppConfigProvider.payCoreSupportUrl) {
+                            R.drawable.ic_support_24
+                        } else {
+                            R.drawable.ic_language
+                        },
                     )
                 )
             )

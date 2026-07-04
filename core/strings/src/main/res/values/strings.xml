@@ -799,6 +799,18 @@ Proceed only if you\'re sure.</string>
     <string name="multi_swap_cancel_swap">Cancel Swap</string>
     <string name="multi_swap_cancel_swap_warning">The first swap has already been completed. The intermediate coins are in your wallet and will remain yours. Only the second swap step will be canceled.</string>
     <string name="swap_leg_title">Swap %d</string>
+    <string name="swap_provider_type_auto" translatable="false">Auto</string>
+    <string name="swap_provider_type_flexible" translatable="false">Flexible</string>
+    <string name="swap_provider_type_controlled" translatable="false">Controlled</string>
+    <string name="swap_provider_type_precheck" translatable="false">PreCheck</string>
+    <string name="swap_provider_type_info_title">Swap Provider Types</string>
+    <string name="swap_provider_type_info_description">The labels below explain how different types of swap providers operate. They help you understand how the swap will be executed and what additional checks or conditions may apply.</string>
+    <string name="swap_provider_type_auto_description">Automatic swap execution. If the swap cannot be completed, funds are usually refunded automatically without any action required from the user.</string>
+    <string name="swap_provider_type_flexible_description">The provider uses its own liquidity to execute the swap. In rare cases, the final rate may differ slightly from the initial one due to market changes.</string>
+    <string name="swap_provider_type_controlled_description">The provider may use third-party liquidity and apply additional AML/KYC checks. In some cases, the swap may be temporarily suspended or require an additional check before the operation is completed.</string>
+    <string name="swap_provider_type_precheck_description">Before starting the swap, the provider performs additional checks on the address and transaction parameters. This helps reduce the chance of errors and improves the swap success rate.</string>
+    <string name="swap_sort_best_rate">Best Rate</string>
+    <string name="swap_sort_best_time">Fastest</string>
     <string name="Swap_SwapProvider_Title">Swap Provider</string>
     <string name="Swap_AmountMin">(min)</string>
     <string name="Swap_AmountMax">(max)</string>
@@ -844,6 +856,7 @@ Proceed only if you\'re sure.</string>
     <string name="swap_providers_title">Swap Providers</string>
     <string name="swap_providers_mandatory_toast">This provider cannot be disabled</string>
     <string name="swap_no_enabled_providers">No enabled providers</string>
+    <string name="swap_no_providers_for_this_amount">No providers for this amount</string>
 
     <!-- Swap Confirmation -->
     <string name="ActivationRequired_DialogTitle">Activate Token</string>
@@ -902,6 +915,7 @@ Proceed only if you\'re sure.</string>
     <string name="transaction_swap_status_refunded">Refunded</string>
     <string name="transaction_swap_status_verifying">Verifying</string>
     <string name="transaction_swap_status_unknown">Unknown</string>
+    <string name="transaction_swap_status_created_or_wait_user">Awaiting bank selection</string>
     <string name="Transactions_Failed">Failed</string>
     <string name="Transactions_ContractCall">Contract Call</string>
     <string name="Transactions_ExternalContractCall">External Call</string>
@@ -944,6 +958,7 @@ Proceed only if you\'re sure.</string>
     <string name="TransactionInfo_Date">Date</string>
     <string name="transaction_info_sync_source">Sync Source</string>
     <string name="TransactionInfo_Id">ID</string>
+    <string name="TransactionInfo_Service">Service</string>
     <string name="TransactionInfo_RawTransaction">Raw Transaction</string>
     <string name="TransactionInfo_ContactName">Contact Name</string>
     <string name="TransactionInfo_To">To</string>
@@ -1085,6 +1100,7 @@ Proceed only if you\'re sure.</string>
     <string name="display_options_period_1y">1 Year</string>
     <string name="display_options_period_all">All</string>
     <string name="sum_rounding">Sum Rounding</string>
+    <string name="transaction_filter">Transaction filter</string>
 
     <!--Settings-->
     <string name="Settings_Title">Settings</string>
@@ -2486,9 +2502,48 @@ Proceed only if you\'re sure.</string>
 
     <!--Multi-Swap-->
     <string name="multi_swap_completed">Swap completed</string>
+    <string name="multi_swap_via">Swap via %s</string>
+    <string name="multi_swap_completed_via">Completed via %s</string>
     <string name="multi_swap_no_providers">No providers available</string>
     <string name="multi_swap_finding_best_provider">Finding best provider…</string>
     <string name="multi_swap_continue">Continue swap</string>
     <string name="multi_swap_unfinished">Unfinished swap</string>
     <string name="multi_swap_unfinished_plural">Unfinished swaps (%d)</string>
+
+    <!--PayCore-->
+    <string name="paycore_verify_phone">Verify Phone</string>
+    <string name="paycore_verifying">Verifying…</string>
+    <string name="paycore_service_fee">Service Fee</string>
+    <string name="paycore_network">Network</string>
+    <string name="paycore_verification_title">PayCore</string>
+    <string name="paycore_verification_phone_placeholder">(___)___-__-__</string>
+    <string name="paycore_verification_continue">Continue</string>
+    <string name="paycore_verification_processing">Processing…</string>
+    <string name="settings_contact_us_pcash_support">P.Cash Support</string>
+    <string name="settings_contact_us_paycore_support">Paycore Support</string>
+    <string name="paycore_verification_not_verified">Number not verified</string>
+    <string name="paycore_verification_pass_kyc">Complete KYC</string>
+    <string name="paycore_kyc_title" translatable="false">KYC</string>
+    <string name="paycore_verification_verified_title">Your verification is complete</string>
+    <string name="paycore_verification_warning_title">WARNING</string>
+    <string name="paycore_verification_warning_text">FUND TRANSFERS ARE PERMITTED EXCLUSIVELY FROM THE ACCOUNT BELONGING TO YOU, WITH A VERIFIED PHONE NUMBER AND IDENTITY.</string>
+    <string name="paycore_verification_warning_detail">Transfers from other accounts will not be credited, sent funds will be lost!</string>
+    <string name="paycore_verification_back">Back</string>
+    <string name="paycore_verification_error">Failed to complete login. Try again later.</string>
+    <string name="paycore_verification_retry">Retry</string>
+    <string name="paycore_verification_phone_label">Phone number:</string>
+    <string name="paycore_verification_contact_support">Automatic recovery failed. Please contact support.</string>
+    <string name="paycore_verification_support_line"><![CDATA[24/7 technical support: <a href="mailto:support@paycore.pw">support@paycore.pw</a>, <a href="https://t.me/paycore_supp">@paycore_supp</a>]]></string>
+    <string name="paycore_service">Service</string>
+    <string name="paycore_support">PayCore Support</string>
+    <string name="paycore_section_currency">Currency</string>
+    <string name="paycore_section_crypto">Cryptocurrencies</string>
+    <string name="paycore_select_bank">Select bank</string>
+    <string name="paycore_select_bank_error">Failed to open bank selection. Try again later.</string>
+    <string name="paycore_banks_unavailable">Banks are temporarily unavailable. Try again later.</string>
+    <string name="paycore_delete_restricted_warning">This transaction cannot be deleted because it is processed by a third-party service.</string>
+    <string name="paycore_delete_to_complete_select_bank">Select a bank to complete the swap.</string>
+    <string name="duration_short_hours">%1$dh</string>
+    <string name="duration_short_minutes">%1$dm</string>
+    <string name="duration_short_seconds">%1$ds</string>
 </resources>

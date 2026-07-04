@@ -5,8 +5,10 @@ import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IAdapterManager
+import cash.p.terminal.wallet.IDeletedWalletRestorer
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
@@ -15,6 +17,7 @@ import cash.p.terminal.wallet.entities.HardwarePublicKey
 import cash.p.terminal.wallet.entities.HardwarePublicKeyType
 import cash.p.terminal.wallet.entities.SecretString
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.wallet.zcashAddressSpecTokenQueries
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.MockKAnnotations
@@ -46,6 +49,8 @@ class WalletUseCaseTest {
     private val getHardwarePublicKeyForWalletUseCase = mockk<GetHardwarePublicKeyForWalletUseCase>()
     private val scanToAddUseCase = mockk<ScanToAddUseCase>()
     private val walletFactory = mockk<WalletFactory>()
+    private val marketKit = mockk<MarketKitWrapper>()
+    private val deletedWalletRestorer = mockk<IDeletedWalletRestorer>(relaxed = true)
 
     private lateinit var useCase: WalletUseCase
 
@@ -80,7 +85,9 @@ class WalletUseCaseTest {
             adapterManager,
             getHardwarePublicKeyForWalletUseCase,
             scanToAddUseCase,
-            walletFactory
+            walletFactory,
+            marketKit,
+            deletedWalletRestorer
         )
     }
 
@@ -116,6 +123,49 @@ class WalletUseCaseTest {
 
         assertTrue(result)
         coVerify { walletManager.saveSuspended(match { it.single() == wallet }) }
+    }
+
+    @Test
+    fun createWallets_zcashAddressSpec_savesFullGroup() = runTest {
+        val account = softwareAccount()
+        every { accountManager.activeAccount } returns account
+
+        val zcashTokens = zcashTokens()
+        val unifiedToken = zcashTokens.first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
+        val zcashWallets = zcashTokens.map { wallet(it, account) }
+
+        every { marketKit.tokens(zcashAddressSpecTokenQueries) } returns zcashTokens
+        zcashTokens.forEachIndexed { index, token ->
+            every { walletFactory.create(token, account, null) } returns zcashWallets[index]
+        }
+
+        val result = useCase.createWallets(setOf(unifiedToken))
+
+        assertTrue(result)
+        coVerify {
+            walletManager.saveSuspended(match { wallets ->
+                wallets.map { it.token.tokenQuery.id }.toSet() ==
+                    zcashTokens.map { it.tokenQuery.id }.toSet()
+            })
+        }
+    }
+
+    @Test
+    fun createWallets_zcashAddressSpec_marketKitMissingGroup_preservesRequestedToken() = runTest {
+        val account = softwareAccount()
+        every { accountManager.activeAccount } returns account
+
+        val unifiedToken = zcashTokens()
+            .first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
+        val unifiedWallet = wallet(unifiedToken, account)
+
+        every { marketKit.tokens(zcashAddressSpecTokenQueries) } returns emptyList()
+        every { walletFactory.create(unifiedToken, account, null) } returns unifiedWallet
+
+        val result = useCase.createWallets(setOf(unifiedToken))
+
+        assertTrue(result)
+        coVerify { walletManager.saveSuspended(match { it.single() == unifiedWallet }) }
     }
 
     @Test
@@ -243,6 +293,36 @@ class WalletUseCaseTest {
     }
 
     @Test
+    fun createWalletIfNotExists_zcashAddressSpec_returnsRequestedWalletAndSavesGroup() = runTest {
+        val account = softwareAccount()
+        every { accountManager.activeAccount } returns account
+
+        val zcashTokens = zcashTokens()
+        val transparentToken = zcashTokens.first {
+            it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Transparent)
+        }
+        val zcashWallets = zcashTokens.associateWith { wallet(it, account) }
+
+        activeWallets = emptyList()
+        activeWalletsFlow.value = activeWallets
+
+        every { marketKit.tokens(zcashAddressSpecTokenQueries) } returns zcashTokens
+        zcashWallets.forEach { (token, wallet) ->
+            every { walletFactory.create(token, account, null) } returns wallet
+        }
+
+        val result = useCase.createWalletIfNotExists(transparentToken)
+
+        assertSame(zcashWallets.getValue(transparentToken), result)
+        coVerify {
+            walletManager.saveSuspended(match { wallets ->
+                wallets.map { it.token.tokenQuery.id }.toSet() ==
+                    zcashTokens.map { it.tokenQuery.id }.toSet()
+            })
+        }
+    }
+
+    @Test
     fun `awaitWallets returns immediately when wallets exist`() = runTest {
         val account = softwareAccount()
         val token = token("ETH", BlockchainType.Ethereum)
@@ -269,6 +349,36 @@ class WalletUseCaseTest {
         assertFalse(deferred.isCompleted)
 
         activeWallets = listOf(wallet)
+        activeWalletsFlow.value = activeWallets
+
+        advanceUntilIdle()
+        deferred.await()
+    }
+
+    @Test
+    fun awaitWallets_zcashAddressSpec_waitsForFullGroup() = runTest {
+        val account = softwareAccount()
+        val zcashTokens = zcashTokens()
+        val unifiedToken = zcashTokens.first { it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified) }
+        val zcashWallets = zcashTokens.map { wallet(it, account) }
+
+        every { marketKit.tokens(zcashAddressSpecTokenQueries) } returns zcashTokens
+
+        activeWallets = emptyList()
+        activeWalletsFlow.value = activeWallets
+
+        val deferred = async { useCase.awaitWallets(setOf(unifiedToken)) }
+
+        advanceUntilIdle()
+        assertFalse(deferred.isCompleted)
+
+        activeWallets = listOf(zcashWallets.first { it.token == unifiedToken })
+        activeWalletsFlow.value = activeWallets
+
+        advanceUntilIdle()
+        assertFalse(deferred.isCompleted)
+
+        activeWallets = zcashWallets
         activeWalletsFlow.value = activeWallets
 
         advanceUntilIdle()
@@ -343,4 +453,22 @@ class WalletUseCaseTest {
         Wallet(token, account, hardwareKey)
 
     private fun accountCard(account: Account) = account.type as AccountType.HardwareCard
+
+    private fun zcashTokens(): List<Token> {
+        val blockchain = Blockchain(BlockchainType.Zcash, "Zcash", null)
+        val coin = Coin(
+            uid = "zcash",
+            name = "Zcash",
+            code = "ZEC"
+        )
+
+        return TokenType.AddressSpecType.entries.map {
+            Token(
+                coin = coin,
+                blockchain = blockchain,
+                type = TokenType.AddressSpecTyped(it),
+                decimals = 8
+            )
+        }
+    }
 }

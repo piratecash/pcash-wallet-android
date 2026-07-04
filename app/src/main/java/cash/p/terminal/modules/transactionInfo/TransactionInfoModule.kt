@@ -15,6 +15,7 @@ import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.modules.transactions.NftMetadataService
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.ui_compose.ColoredValue
 import io.horizontalsystems.core.entities.BlockchainType
@@ -59,7 +60,12 @@ object TransactionInfoModule {
 
     }
 
-    data class ExplorerData(val title: String, val url: String?)
+    data class ExplorerData(
+        val title: String,
+        val url: String?,
+        val useDirectTitle: Boolean = false,
+        val iconResId: Int = R.drawable.ic_language,
+    )
 }
 
 sealed class TransactionStatusViewItem(val name: Int) {
@@ -91,6 +97,8 @@ data class TransactionInfoItem(
     // AML status
     val amlStatus: AmlStatus? = null,
     val swapProvider: SwapProvider? = null,
+    val swapTransactionId: String? = null,
+    val swapTransactionStatus: TransactionStatusEnum? = null,
     val poisonStatus: PoisonStatus = PoisonStatus.BLOCKCHAIN,
     val offlineStatus: ColoredValue? = null,
 )

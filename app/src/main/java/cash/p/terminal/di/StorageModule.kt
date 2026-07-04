@@ -41,6 +41,7 @@ import cash.p.terminal.core.utils.SwapTransactionMatcher
 import cash.p.terminal.wallet.IAccountCleaner
 import cash.p.terminal.wallet.IAccountsStorage
 import cash.p.terminal.wallet.IEnabledWalletStorage
+import cash.p.terminal.wallet.IDeletedWalletRestorer
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.balance.BalanceService
 import cash.p.terminal.wallet.balance.BalanceXRateRepository
@@ -94,7 +95,7 @@ val storageModule = module {
     single { get<AppDatabase>().recentAddressDao() }
     single { get<AppDatabase>().tokenAutoEnabledBlockchainDao() }
     single { get<AppDatabase>().userDeletedWalletDao() }
-    singleOf(::UserDeletedWalletManager)
+    singleOf(::UserDeletedWalletManager) bind IDeletedWalletRestorer::class
     singleOf(::DeletedWalletChecker) bind IDeletedWalletChecker::class
     single { get<AppDatabase>().moneroFileDao() }
     single { get<AppDatabase>().zcashSingleUseAddressDao() }

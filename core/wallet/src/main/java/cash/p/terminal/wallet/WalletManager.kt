@@ -98,12 +98,22 @@ class WalletManager(
     }
 
     override suspend fun deleteByWallet(wallet: Wallet) {
+        deleteByTokenQueryIds(wallet.account.id, listOf(wallet.token.tokenQuery.id))
+    }
+
+    override suspend fun deleteByTokenQueryIds(accountId: String, tokenQueryIds: Collection<String>) {
+        if (tokenQueryIds.isEmpty()) return
+
         mutex.withLock {
-            // Delete by tokenQueryId to ensure ALL duplicates are removed
+            val tokenQueryIdSet = tokenQueryIds.toSet()
             withContext(Dispatchers.IO) {
-                storage.deleteByTokenQueryId(wallet.account.id, wallet.token.tokenQuery.id)
+                tokenQueryIdSet.forEach { tokenQueryId ->
+                    storage.deleteByTokenQueryId(accountId, tokenQueryId)
+                }
             }
-            walletsSet.removeAll { it.token.tokenQuery.id == wallet.token.tokenQuery.id }
+            walletsSet.removeAll {
+                it.account.id == accountId && it.token.tokenQuery.id in tokenQueryIdSet
+            }
             notifyActiveWalletsLocked()
         }
     }

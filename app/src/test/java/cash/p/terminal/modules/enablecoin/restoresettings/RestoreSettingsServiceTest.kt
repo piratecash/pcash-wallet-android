@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.enablecoin.restoresettings
 
 import cash.p.terminal.core.managers.LitecoinBirthdayProvider
+import cash.p.terminal.core.managers.RestoreSettingType
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
@@ -125,6 +126,43 @@ class RestoreSettingsServiceTest : KoinTest {
         assertEquals(account.id, requestObserver.values().single().accountId)
     }
 
+    @Test
+    fun approveSettings_zcashRestoredWithoutHeight_requestsBirthdayHeight() {
+        val account = account()
+        every { manager.settings(account, BlockchainType.Zcash) } returns RestoreSettings()
+        val service = service()
+        val approveObserver = service.approveSettingsObservable.test()
+        val requestObserver = service.requestObservable.test()
+
+        service.approveSettings(zcashToken(), account)
+
+        assertEquals(0, approveObserver.valueCount())
+        with(requestObserver.values().single()) {
+            assertEquals(zcashToken(), token)
+            assertEquals(account.id, accountId)
+            assertEquals(RestoreSettingsService.RequestType.BirthdayHeight, requestType)
+        }
+    }
+
+    @Test
+    fun approveSettings_zcashCreatedAccount_usesLatestCheckpoint() {
+        val account = account(origin = AccountOrigin.Created)
+        every {
+            manager.getSettingValueForCreatedAccount(
+                RestoreSettingType.BirthdayHeight,
+                BlockchainType.Zcash
+            )
+        } returns ZCASH_CHECKPOINT.toString()
+        val service = service()
+        val approveObserver = service.approveSettingsObservable.test()
+        val requestObserver = service.requestObservable.test()
+
+        service.approveSettings(zcashToken(), account)
+
+        assertEquals(ZCASH_CHECKPOINT, approveObserver.values().single().settings.birthdayHeight)
+        assertEquals(0, requestObserver.valueCount())
+    }
+
     private fun service() = RestoreSettingsService(
         manager = manager,
         zcashBirthdayProvider = zcashBirthdayProvider,
@@ -138,15 +176,23 @@ class RestoreSettingsServiceTest : KoinTest {
         decimals = 8
     )
 
-    private fun account() = Account(
+    private fun zcashToken() = Token(
+        coin = Coin("zcash", "Zcash", "ZEC"),
+        blockchain = Blockchain(BlockchainType.Zcash, "Zcash", null),
+        type = TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified),
+        decimals = 8
+    )
+
+    private fun account(origin: AccountOrigin = AccountOrigin.Restored) = Account(
         id = "account-id",
         name = "Account",
         type = AccountType.Mnemonic(List(12) { "word" }, ""),
-        origin = AccountOrigin.Restored,
+        origin = origin,
         level = 0
     )
 
     private companion object {
         const val LITECOIN_CHECKPOINT = 3_000_000L
+        const val ZCASH_CHECKPOINT = 2_000_000L
     }
 }

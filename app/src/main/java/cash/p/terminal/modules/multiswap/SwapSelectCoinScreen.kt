@@ -29,8 +29,9 @@ fun SwapSelectCoinScreen(
         coinBalanceItems = uiState.coinBalanceItems,
         loading = uiState.loading,
         onSearchTextChanged = viewModel::setQuery,
-        onClose = navController::popBackStackSafely
-    ) {
-        onSelect(it.token)
-    }
+        onClose = navController::popBackStackSafely,
+        onClickItem = { onSelect(it.token) },
+        fiatItems = uiState.fiatItems,
+        hasFiatSection = uiState.hasFiatSection,
+    )
 }

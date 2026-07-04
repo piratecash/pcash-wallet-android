@@ -428,7 +428,11 @@ private fun SettingSections(
                 R.string.SettingsContact_Title,
                 R.drawable.ic_mail_24,
                 onClick = {
-                    navController.slideFromBottom(R.id.contactOptionsDialog)
+                    if (uiState.isPayCoreEnabled) {
+                        navController.slideFromRight(R.id.contactUsFragment)
+                    } else {
+                        navController.slideFromBottom(R.id.contactOptionsDialog)
+                    }
                 },
             )
         })

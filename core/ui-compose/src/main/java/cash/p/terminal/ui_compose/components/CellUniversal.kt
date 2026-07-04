@@ -93,10 +93,12 @@ fun CellUniversalFixedHeight(
 
 @Composable
 fun SectionPremiumUniversalLawrence(
+    modifier: Modifier = Modifier,
     content: @Composable() (ColumnScope.() -> Unit),
 ) {
     SectionPremiumUniversal(
         backgroundColor = ComposeAppTheme.colors.lawrence,
+        modifier = modifier,
         content = content
     )
 }
@@ -104,6 +106,7 @@ fun SectionPremiumUniversalLawrence(
 @Composable
 private fun SectionPremiumUniversal(
     backgroundColor: Color,
+    modifier: Modifier = Modifier,
     content: @Composable() (ColumnScope.() -> Unit),
 ) {
     val brush = Brush.horizontalGradient(
@@ -112,7 +115,7 @@ private fun SectionPremiumUniversal(
     )
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(horizontal = 16.dp)
             .clip(RoundedCornerShape(12.dp))
             .border(0.5.dp, brush, RoundedCornerShape(12.dp))

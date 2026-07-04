@@ -99,7 +99,6 @@ import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.ICoreApp
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLog
-import io.horizontalsystems.core.security.EncryptionManager
 import io.horizontalsystems.core.security.KeyStoreManager
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.reactivex.plugins.RxJavaPlugins
@@ -287,7 +286,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             keyProvider = this
         }
 
-        encryptionManager = EncryptionManager(keyProvider)
+        encryptionManager = get()
 
         systemInfoManager = get()
 

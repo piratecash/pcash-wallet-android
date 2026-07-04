@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,8 +38,8 @@ import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.managers.RateAppManager
-import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.notifications.TransactionNotificationManager
+import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
 import cash.p.terminal.core.restartMain
 import cash.p.terminal.navigation.popBackStackOrExecute
 import cash.p.terminal.modules.balance.ui.BalanceScreen
@@ -69,11 +68,11 @@ import cash.p.terminal.ui.compose.components.HsBottomNavigation
 import cash.p.terminal.ui.compose.components.HsBottomNavigationItem
 import cash.p.terminal.ui.extensions.WalletSwitchBottomSheet
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.ModalOverlayTracker
 import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.navigation.slideFromBottom
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import java.lang.ref.WeakReference
@@ -169,9 +168,9 @@ private fun MainScreen(
     fragmentNavController: NavController,
     intentLiveData: Intent?,
     intentHandled: () -> Unit,
-    viewModel: MainViewModel = koinViewModel(),
-    transactionAdapterManager: TransactionAdapterManager = koinInject()
+    viewModel: MainViewModel = koinViewModel()
 ) {
+    val resolveTransactionItem = koinInject<ResolveTransactionItemUseCase>()
     val windowInfo = LocalWindowInfo.current
     val uiState = viewModel.uiState
     val selectedPage = uiState.selectedTabIndex
@@ -183,8 +182,7 @@ private fun MainScreen(
             val recordUid = intentLiveData?.getStringExtra(TransactionNotificationManager.EXTRA_RECORD_UID)
             if (recordUid != null) {
                 viewModel.onSelect(MainNavigation.Transactions)
-                transactionAdapterManager.initializationFlow.first { it }
-                val item = transactionsViewModel.awaitTransactionItem(recordUid)
+                val item = resolveTransactionItem(recordUid)
                 intentHandled()
                 if (item != null) {
                     transactionsViewModel.tmpItemToShow = item
@@ -253,8 +251,12 @@ private fun MainScreen(
                     when (uiState.mainNavItems[page].mainNavItem) {
                         MainNavigation.Market -> MarketScreen(fragmentNavController, paddingValues)
                         MainNavigation.Balance -> BalanceScreen(
-                            fragmentNavController,
-                            paddingValues
+                            navController = fragmentNavController,
+                            paddingValues = paddingValues,
+                            onOpenTransactionInfo = { item ->
+                                transactionsViewModel.tmpItemToShow = item
+                                fragmentNavController.slideFromBottom(R.id.transactionInfoFragment)
+                            },
                         )
 
                         MainNavigation.Transactions -> TransactionsScreen(
@@ -281,8 +283,14 @@ private fun MainScreen(
                 }
             }
         }
-        val isInRecentApps by rememberUpdatedState(!windowInfo.isWindowFocused)
-        HideContentBox(uiState.contentHidden || isInRecentApps)
+        // Losing activity-window focus happens both when a modal opens (foreground) and when the
+        // app enters the recent-apps switcher. A foreground modal reports its own window focus via
+        // hasForegroundModal, which stays true only while the modal is genuinely up front; on
+        // entering recents the modal window loses focus too. So hide the content whenever the
+        // activity window is unfocused and no modal holds focus — covering plain and modal cases.
+        val hideForRecents =
+            !windowInfo.isWindowFocused && !ModalOverlayTracker.hasForegroundModal
+        HideContentBox(uiState.contentHidden || hideForRecents)
 
     // Wallet Selection Bottom Sheet
     if (showWalletSheet) {

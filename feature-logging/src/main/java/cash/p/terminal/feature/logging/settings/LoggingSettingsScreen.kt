@@ -150,7 +150,6 @@ fun LoggingSettingsScreen(
                         text = stringResource(R.string.login_logging_log_successful),
                         checked = uiState.logSuccessfulLoginsEnabled,
                         onCheckedChange = { enabled ->
-                            if (enabled && !uiState.isPremiumActive) return@SwitchWithText
                             onLogSuccessfulLoginsToggle(enabled)
                         }
                     )
@@ -193,7 +192,6 @@ fun LoggingSettingsScreen(
                         text = stringResource(R.string.login_logging_log_unsuccessful),
                         checked = uiState.logUnsuccessfulLoginsEnabled,
                         onCheckedChange = { enabled ->
-                            if (enabled && !uiState.isPremiumActive) return@SwitchWithText
                             onLogUnsuccessfulLoginsToggle(enabled)
                         }
                     )
@@ -238,7 +236,6 @@ fun LoggingSettingsScreen(
                         text = stringResource(R.string.login_logging_log_into_duress),
                         checked = uiState.logIntoDuressModeEnabled,
                         onCheckedChange = { enabled ->
-                            if (enabled && !uiState.isPremiumActive) return@SwitchWithText
                             onLogIntoDuressModeToggle(enabled)
                         }
                     )

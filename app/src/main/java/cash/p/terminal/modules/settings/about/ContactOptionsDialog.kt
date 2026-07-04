@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,45 +20,60 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.fragment.navArgs
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui.helpers.LinkHelper
+import cash.p.terminal.ui.helpers.TextHelper
+import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
+import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.VSpacer
-import cash.p.terminal.ui_compose.BaseComposableBottomSheetFragment
-import cash.p.terminal.ui_compose.BottomSheetHeader
-import cash.p.terminal.ui.helpers.LinkHelper
-import cash.p.terminal.ui.helpers.TextHelper
-import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import kotlinx.parcelize.Parcelize
 
 class ContactOptionsDialog : BaseComposableBottomSheetFragment() {
+
+    private val args: ContactOptionsDialogArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        val input = args.input ?: defaultInput()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(
                 ViewCompositionStrategy.DisposeOnLifecycleDestroyed(viewLifecycleOwner)
             )
             setContent {
                 ContactOptionsScreen(
-                    findNavController(),
-                    AppConfigProvider.reportEmail
-                ) { close() }
+                    input = input,
+                    onCloseClick = { close() }
+                )
             }
         }
     }
+
+    private fun defaultInput() = Input(
+        titleRes = R.string.SettingsContact_Title,
+        email = AppConfigProvider.reportEmail,
+        telegramUrl = Translator.getString(R.string.telegram_link)
+    )
+
+    @Parcelize
+    data class Input(
+        val titleRes: Int,
+        val email: String,
+        val telegramUrl: String
+    ) : Parcelable
 }
 
 @Composable
 private fun ContactOptionsScreen(
-    navController: NavController,
-    reportEmail: String,
+    input: ContactOptionsDialog.Input,
     onCloseClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -65,7 +81,7 @@ private fun ContactOptionsScreen(
         BottomSheetHeader(
             iconPainter = painterResource(R.drawable.ic_mail_24),
             iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
-            title = stringResource(R.string.SettingsContact_Title),
+            title = stringResource(input.titleRes),
             onCloseClick = onCloseClick
         ) {
             VSpacer(24.dp)
@@ -75,7 +91,7 @@ private fun ContactOptionsScreen(
                     .padding(horizontal = 24.dp),
                 title = stringResource(R.string.Settings_Contact_ViaEmail),
                 onClick = {
-                    sendEmail(reportEmail, context)
+                    sendEmail(input.email, context)
                 }
             )
             VSpacer(12.dp)
@@ -85,7 +101,7 @@ private fun ContactOptionsScreen(
                     .padding(horizontal = 24.dp),
                 title = stringResource(R.string.Settings_Contact_ViaTelegram),
                 onClick = {
-                    LinkHelper.openLinkInAppBrowser(context, App.instance.getString(R.string.telegram_link))
+                    LinkHelper.openLinkInAppBrowser(context, input.telegramUrl)
                 }
             )
             VSpacer(24.dp)

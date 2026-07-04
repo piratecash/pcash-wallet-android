@@ -7,26 +7,25 @@ import cash.p.terminal.core.retryWhen
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.entities.FaqMap
 import cash.p.terminal.entities.FaqSection
+import io.horizontalsystems.core.DispatcherProvider
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
 
 class FaqRepository(
     private val faqManager: FaqManager,
     private val connectivityManager: ConnectivityManager,
-    private val languageManager: LanguageManager
+    private val languageManager: LanguageManager,
+    dispatcherProvider: DispatcherProvider,
 ) {
 
     val faqList: Observable<DataState<List<FaqSection>>>
         get() = faqListSubject
 
     private val faqListSubject = BehaviorSubject.create<DataState<List<FaqSection>>>()
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(dispatcherProvider.io)
     private val retryLimit = 3
 
     fun start() {
@@ -54,7 +53,7 @@ class FaqRepository(
                     times = retryLimit,
                     predicate = { it is AssertionError }
                 ) {
-                    faqManager.getFaqList().await()
+                    faqManager.getFaqList()
                 }
 
                 val faqSections = getByLocalLanguage(
