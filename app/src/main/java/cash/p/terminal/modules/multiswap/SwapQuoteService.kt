@@ -30,7 +30,6 @@ class SwapQuoteService(
     private val swapProvidersRegistry: SwapProvidersRegistry,
     private val dispatcherProvider: DispatcherProvider,
 ) {
-
     private companion object {
         const val DEBOUNCE_INPUT_MSEC: Long = 300
     }
@@ -170,13 +169,19 @@ class SwapQuoteService(
                         amountIn = amountIn,
                         settings = settings,
                         onProviderError = { _, e ->
-                            if (e is SwapDepositTooSmall) {
-                                val current = error as? SwapDepositTooSmall
-                                if (current == null || current.minValue > e.minValue) {
-                                    error = e
+                            when (e) {
+                                is SwapDepositTooSmall -> {
+                                    val current = error as? SwapDepositTooSmall
+                                    if (current == null || current.minValue > e.minValue) {
+                                        error = e
+                                    }
                                 }
-                            } else {
-                                Timber.d(e, "fetchQuoteError")
+                                is SwapAmountOutOfRange -> {
+                                    if (error !is SwapDepositTooSmall) {
+                                        error = e
+                                    }
+                                }
+                                else -> Timber.d(e, "fetchQuoteError")
                             }
                         },
                     )
@@ -235,9 +240,12 @@ class SwapQuoteService(
             error = null
         } else {
             multiSwapRoute = null
-            error = resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
+            error = preservedAmountError() ?: resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
         }
     }
+
+    private fun preservedAmountError(): Throwable? =
+        error?.takeIf { it is SwapDepositTooSmall || it is SwapAmountOutOfRange }
 
     private suspend fun resolveEmptyResultError(
         tokenIn: Token,
@@ -338,46 +346,6 @@ class SwapQuoteService(
 
     fun onActionCompleted() {
         reQuote()
-    }
-
-    fun selectLeg1Quote(quote: SwapProviderQuote) {
-        val route = multiSwapRoute ?: return
-        val leg2Amount = quote.amountOut - route.commissionReserve
-        if (leg2Amount <= BigDecimal.ZERO) return
-
-        multiSwapRoute = route.copy(selectedLeg1Quote = quote)
-        emitState()
-
-        reQuoteLeg2(leg2Amount)
-    }
-
-    fun selectLeg2Quote(quote: SwapProviderQuote) {
-        val route = multiSwapRoute ?: return
-        multiSwapRoute = route.copy(selectedLeg2Quote = quote)
-        emitState()
-    }
-
-    private fun reQuoteLeg2(leg2Amount: BigDecimal) {
-        val route = multiSwapRoute ?: return
-        val tokenOut = tokenOut ?: return
-
-        coroutineScope.launch {
-            val leg2Providers = route.leg2Quotes.map { it.provider }
-            val newLeg2Quotes = fetchSwapQuotesUseCase(
-                providers = leg2Providers,
-                tokenIn = route.intermediateCoin,
-                tokenOut = tokenOut,
-                amountIn = leg2Amount,
-                settings = settings,
-            )
-            if (newLeg2Quotes.isEmpty()) return@launch
-
-            multiSwapRoute = multiSwapRoute?.copy(
-                leg2Quotes = newLeg2Quotes,
-                selectedLeg2Quote = newLeg2Quotes.first(),
-            )
-            emitState()
-        }
     }
 
     fun getSwapSettings() = settings

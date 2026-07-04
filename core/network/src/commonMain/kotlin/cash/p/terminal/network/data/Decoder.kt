@@ -2,13 +2,12 @@ package cash.p.terminal.network.data
 
 import android.content.Context
 import android.util.Base64
-import cash.p.terminal.network.BuildConfig
 import kotlin.experimental.xor
 
 internal class Decoder(private val context: Context) {
     @Suppress("UNUSED_VARIABLE", "NAME_SHADOWING", "LocalVariableName", "UNUSED_PARAMETER")
     fun decode(releaseAndDebugKeys: List<String>): String {
-        return if (BuildConfig.DEBUG || releaseAndDebugKeys.size < 2)  {
+        return if (context.isAppDebuggable() || releaseAndDebugKeys.size < 2)  {
             decode(releaseAndDebugKeys.firstOrNull().orEmpty())
         } else {
             decode(releaseAndDebugKeys[1])

@@ -146,6 +146,7 @@ class SyncPendingMultiSwapUseCaseTest {
         amountOut = BigDecimal("1.5"),
         addressOut = "UQ123",
         amountOutReal = amountOutReal,
+        accountId = "test-account",
     )
 
     @Test
@@ -872,6 +873,7 @@ class SyncPendingMultiSwapUseCaseTest {
                 provider = SwapProvider.CHANGENOW,
                 coinUidOut = "the-open-network",
                 blockchainTypeOut = "the-open-network",
+                accountId = "test-account",
                 addressOut = "UQ-fallback-addr",
                 expectedAmount = BigDecimal("1.5"),
                 legStartTime = any(),

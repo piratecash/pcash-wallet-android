@@ -26,6 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
+import cash.p.terminal.core.usecase.PayCoreNavigationTarget
 import cash.p.terminal.modules.balance.AccountViewItem
 import cash.p.terminal.modules.balance.BalanceUiState
 import cash.p.terminal.modules.balance.BalanceViewItem2
@@ -61,6 +63,7 @@ import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
 import cash.p.terminal.modules.rateapp.RateAppModule
 import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
+import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.AlertGroup
@@ -188,13 +191,28 @@ fun BalanceItems(
     accountViewItem: AccountViewItem,
     navController: NavController,
     uiState: BalanceUiState,
-    totalState: TotalUIState
+    totalState: TotalUIState,
+    onOpenTransactionInfo: (TransactionItem) -> Unit,
 ) {
     val rateAppViewModel = viewModel<RateAppViewModel>(factory = RateAppModule.Factory())
     DisposableEffect(true) {
         rateAppViewModel.onBalancePageActive()
         onDispose {
             rateAppViewModel.onBalancePageInactive()
+        }
+    }
+
+    LaunchedEffect(viewModel) {
+        viewModel.payCoreNavigationEvents.collect { event ->
+            when (event) {
+                is PayCoreNavigationTarget.OpenTransactionInfo ->
+                    onOpenTransactionInfo(event.transactionItem)
+                is PayCoreNavigationTarget.OpenPayCoreDetail ->
+                    navController.slideFromRight(
+                        R.id.multiSwapExchanges,
+                        MultiSwapExchangesFragment.ARG_PAYCORE_DATE to event.date,
+                    )
+            }
         }
     }
 
@@ -419,13 +437,18 @@ fun BalanceItems(
                     PendingSwapBanner(
                         count = uiState.pendingSwapCount,
                         modifier = Modifier.padding(vertical = 22.dp, horizontal = 16.dp),
+                        showSpinner = uiState.singlePayCoreSwapLoading,
                         onClick = {
                             if (uiState.pendingSwapCount == 1) {
-                                uiState.singlePendingSwapId?.let { id ->
-                                    navController.slideFromRight(
+                                val payCoreDate = uiState.singlePayCoreSwapDate
+                                val swapId = uiState.singlePendingSwapId
+                                when {
+                                    payCoreDate != null -> viewModel.onSinglePayCoreSwapClick()
+                                    swapId != null -> navController.slideFromRight(
                                         R.id.multiSwapExchanges,
-                                        MultiSwapExchangesFragment.ARG_PENDING_MULTI_SWAP_ID to id,
+                                        MultiSwapExchangesFragment.ARG_PENDING_MULTI_SWAP_ID to swapId,
                                     )
+                                    else -> navController.slideFromRight(R.id.multiSwapExchanges)
                                 }
                             } else {
                                 navController.slideFromRight(R.id.multiSwapExchanges)
@@ -626,7 +649,12 @@ fun TotalBalanceRow(
 }
 
 @Composable
-private fun PendingSwapBanner(count: Int, modifier: Modifier, onClick: () -> Unit) {
+private fun PendingSwapBanner(
+    count: Int,
+    modifier: Modifier,
+    showSpinner: Boolean,
+    onClick: () -> Unit,
+) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier = modifier
@@ -640,6 +668,7 @@ private fun PendingSwapBanner(count: Int, modifier: Modifier, onClick: () -> Uni
             } else {
                 stringResource(R.string.multi_swap_unfinished_plural, count)
             },
+            showSpinner = showSpinner,
             onClick = onClick
         )
     }

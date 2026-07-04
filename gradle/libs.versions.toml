@@ -125,6 +125,7 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 circleindicator = { module = "me.relex:circleindicator", version.ref = "circleindicator" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlinReflect" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 portmapper = { module = "com.offbynull.portmapper:portmapper", version.ref = "portmapper" }
 qrose = { module = "io.github.alexzhirkevich:qrose", version.ref = "qrose" }
 relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
@@ -271,7 +272,6 @@ lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.re
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-parcelize = { id = "kotlin-parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

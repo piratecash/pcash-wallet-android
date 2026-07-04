@@ -22,7 +22,8 @@ class Colors(
     raina: Color,
     andy: Color,
     blade: Color,
-    midnight: Color
+    midnight: Color,
+    modalOverlay: Color
 ) {
 
     //base colors
@@ -85,6 +86,8 @@ class Colors(
         private set
     var midnight by mutableStateOf(midnight)
         private set
+    var modalOverlay by mutableStateOf(modalOverlay)
+        private set
 
     fun update(other: Colors) {
         jacob = other.jacob
@@ -102,6 +105,7 @@ class Colors(
         andy = other.andy
         blade = other.blade
         midnight = other.midnight
+        modalOverlay = other.modalOverlay
     }
 
     fun copy(): Colors = Colors(
@@ -119,6 +123,7 @@ class Colors(
         raina = raina,
         andy = andy,
         blade = blade,
-        midnight = midnight
+        midnight = midnight,
+        modalOverlay = modalOverlay
     )
 }

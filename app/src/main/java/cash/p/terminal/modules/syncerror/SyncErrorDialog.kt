@@ -194,6 +194,7 @@ private fun SyncErrorContent(
     }
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
 private fun SyncError403Preview() {

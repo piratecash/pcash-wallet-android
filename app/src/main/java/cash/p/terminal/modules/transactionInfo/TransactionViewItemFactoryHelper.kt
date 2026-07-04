@@ -743,11 +743,16 @@ object TransactionViewItemFactoryHelper {
     private fun getExplorerSectionItem(explorerData: TransactionInfoModule.ExplorerData): TransactionInfoViewItem? {
         val url = explorerData.url ?: return null
         return TransactionInfoViewItem.Explorer(
-            Translator.getString(
-                R.string.TransactionInfo_ButtonViewOnExplorerName,
+            title = if (explorerData.useDirectTitle) {
                 explorerData.title
-            ),
-            url
+            } else {
+                Translator.getString(
+                    R.string.TransactionInfo_ButtonViewOnExplorerName,
+                    explorerData.title
+                )
+            },
+            url = url,
+            iconResId = explorerData.iconResId,
         )
     }
 

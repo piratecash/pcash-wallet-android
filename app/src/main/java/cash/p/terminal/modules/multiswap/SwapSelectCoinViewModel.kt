@@ -12,22 +12,27 @@ import cash.p.terminal.core.nativeTokenQueries
 import cash.p.terminal.core.order
 import cash.p.terminal.core.supported
 import cash.p.terminal.core.supports
-import io.horizontalsystems.core.entities.CurrencyValue
+import cash.p.terminal.modules.paycore.PayCoreAssets
+import cash.p.terminal.modules.paycore.PayCoreFeatureToggle
+import cash.p.terminal.modules.paycore.PayCoreNetworkMapper
 import cash.p.terminal.modules.receive.FullCoinsProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Token
-import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.entities.TokenQuery
-import kotlinx.coroutines.Dispatchers
+import io.horizontalsystems.core.DispatcherProvider
+import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
 class SwapSelectCoinViewModel(
     private val otherSelectedToken: Token?,
-    private val activeAccount: Account
+    private val activeAccount: Account,
+    private val payCoreFeatureToggle: PayCoreFeatureToggle,
+    private val dispatcherProvider: DispatcherProvider,
 ) : ViewModel() {
     private val coinsProvider = FullCoinsProvider(App.marketKit, activeAccount)
     private val adapterManager = App.adapterManager
@@ -36,10 +41,13 @@ class SwapSelectCoinViewModel(
     private var query = ""
 
     private var coinBalanceItems = listOf<CoinBalanceItem>()
+    private var fiatItems = listOf<CoinBalanceItem>()
 
     var uiState by mutableStateOf(
         SwapSelectCoinUiState(
             coinBalanceItems = coinBalanceItems,
+            fiatItems = fiatItems,
+            hasFiatSection = false,
             loading = true
         )
     )
@@ -61,9 +69,32 @@ class SwapSelectCoinViewModel(
         }
     }
 
-    private suspend fun reloadItems() = withContext(Dispatchers.IO) {
+    private fun isPayCoreCapableAccount(): Boolean {
+        val accountType = activeAccount.type
+        return accountType is AccountType.Mnemonic || accountType is AccountType.EvmPrivateKey
+    }
+
+    private val isPayCoreActive: Boolean
+        get() = payCoreFeatureToggle.isEnabled() && isPayCoreCapableAccount()
+
+    private val isOtherRub: Boolean
+        get() = otherSelectedToken?.let { PayCoreAssets.isRub(it) } == true
+
+    private val isOtherUsdtSupported: Boolean
+        get() = otherSelectedToken?.let { PayCoreNetworkMapper.isUsdtOnSupportedNetwork(it) } == true
+
+    private suspend fun reloadItems() = withContext(dispatcherProvider.io) {
         val activeWallets = App.walletManager.activeWallets
         val resultTokens = mutableListOf<CoinBalanceItem>()
+
+        val showFiatSection = isPayCoreActive && isOtherUsdtSupported
+        val filterUsdtOnly = isPayCoreActive && isOtherRub
+
+        fiatItems = if (showFiatSection) {
+            listOf(CoinBalanceItem(PayCoreAssets.rubToken, null, null))
+        } else {
+            emptyList()
+        }
 
         if (query.isEmpty()) {
             //Enabled Tokens
@@ -88,26 +119,28 @@ class SwapSelectCoinViewModel(
 
             // Suggested Tokens
             otherSelectedToken?.let { otherToken ->
-                val topFullCoins = marketKit.fullCoins("", limit = 100)
-                val tokens =
-                    topFullCoins.map { fullCoin ->
-                        fullCoin.tokens.filter { it.blockchainType == otherToken.blockchainType }
+                if (!PayCoreAssets.isRub(otherToken)) {
+                    val topFullCoins = marketKit.fullCoins("", limit = 100)
+                    val tokens =
+                        topFullCoins.map { fullCoin ->
+                            fullCoin.tokens.filter { it.blockchainType == otherToken.blockchainType }
+                        }
+                            .flatten()
+                    val suggestedTokens = tokens.filter { tokenToFilter ->
+                        tokenToFilter.blockchainType.supports(activeAccount.type) && resultTokens.none { tokenToFilter == it.token }
                     }
-                        .flatten()
-                val suggestedTokens = tokens.filter { tokenToFilter ->
-                    tokenToFilter.blockchainType.supports(activeAccount.type) && resultTokens.none { tokenToFilter == it.token }
-                }
 
-                suggestedTokens
-                    .sortedWith(
-                        compareBy<Token> { it.coin.marketCapRank }
-                            .thenBy { it.blockchainType.order }
-                            .thenBy { it.badge }
-                    )
-                    .map { CoinBalanceItem(it, null, null) }
-                    .let {
-                        resultTokens.addAll(it)
-                    }
+                    suggestedTokens
+                        .sortedWith(
+                            compareBy<Token> { it.coin.marketCapRank }
+                                .thenBy { it.blockchainType.order }
+                                .thenBy { it.badge }
+                        )
+                        .map { CoinBalanceItem(it, null, null) }
+                        .let {
+                            resultTokens.addAll(it)
+                        }
+                }
             }
 
             // Featured Tokens
@@ -134,31 +167,43 @@ class SwapSelectCoinViewModel(
                     resultTokens.addAll(it)
                 }
 
-            coinBalanceItems = resultTokens
+            coinBalanceItems = if (filterUsdtOnly) {
+                resultTokens.filter { PayCoreNetworkMapper.isUsdtOnSupportedNetwork(it.token) }
+            } else {
+                resultTokens
+            }
             return@withContext
         }
 
-        coinBalanceItems = coinsProvider.getItems()
-            .map { it.eligibleTokens(activeAccount.type) }
-            .flatten()
-            .map {
-                val balance: BigDecimal? =
-                    activeWallets.firstOrNull { wallet ->
-                        wallet.coin.uid == it.coin.uid &&
-                                wallet.token.blockchainType == it.blockchainType &&
-                                wallet.token.type == it.type
-                    }
-                        ?.let { wallet ->
-                            adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.total
+        val searchResults =
+            coinsProvider.getItems()
+                .flatMap { it.eligibleTokens(activeAccount.type) }
+                .map {
+                    val balance: BigDecimal? =
+                        activeWallets.firstOrNull { wallet ->
+                            wallet.coin.uid == it.coin.uid &&
+                                    wallet.token.blockchainType == it.blockchainType &&
+                                    wallet.token.type == it.type
                         }
-                CoinBalanceItem(it, balance, getFiatValue(it, balance))
-            }
-            .sortedWith(compareByDescending { it.balance })
+                            ?.let { wallet ->
+                                adapterManager.getBalanceAdapterForWallet(wallet)?.balanceData?.total
+                            }
+                    CoinBalanceItem(it, balance, getFiatValue(it, balance))
+                }
+                .sortedWith(compareByDescending { it.balance })
+
+        coinBalanceItems = if (filterUsdtOnly) {
+            searchResults.filter { PayCoreNetworkMapper.isUsdtOnSupportedNetwork(it.token) }
+        } else {
+            searchResults
+        }
     }
 
     private fun emitState(loading: Boolean = false) {
         uiState = SwapSelectCoinUiState(
             coinBalanceItems = coinBalanceItems,
+            fiatItems = fiatItems,
+            hasFiatSection = fiatItems.isNotEmpty(),
             loading = loading
         )
     }
@@ -180,5 +225,7 @@ class SwapSelectCoinViewModel(
 
 data class SwapSelectCoinUiState(
     val coinBalanceItems: List<CoinBalanceItem>,
+    val fiatItems: List<CoinBalanceItem> = emptyList(),
+    val hasFiatSection: Boolean = false,
     val loading: Boolean = true
 )

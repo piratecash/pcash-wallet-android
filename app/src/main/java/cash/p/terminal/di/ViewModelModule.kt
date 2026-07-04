@@ -43,6 +43,7 @@ import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTerms
 import cash.p.terminal.modules.settings.appcache.AppCacheViewModel
 import cash.p.terminal.modules.settings.appstatus.AppStatusViewModel
 import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsViewModel
+import cash.p.terminal.modules.settings.guides.GuidesViewModel
 import cash.p.terminal.modules.settings.main.MainSettingsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
@@ -73,6 +74,7 @@ val viewModelModule = module {
     viewModelOf(::MainViewModel)
     viewModelOf(::MainActivityViewModel)
     viewModelOf(::DisplayTransactionsViewModel)
+    viewModelOf(::GuidesViewModel)
     viewModelOf(::PrivacyViewModel)
     viewModelOf(::HardwareWalletViewModel)
     viewModelOf(::ImportWalletViewModel)
@@ -152,6 +154,7 @@ val viewModelModule = module {
             fetchSwapQuotesUseCase = get(),
             timerService = TimerService(),
             syncPendingMultiSwapUseCase = get(),
+            assetFiatRateService = get(),
             currencyManager = get(),
             adapterManager = get(),
             balanceHiddenManager = get(),
@@ -163,7 +166,9 @@ val viewModelModule = module {
     viewModel { (otherSelectedToken: Token?, activeAccount: Account) ->
         SwapSelectCoinViewModel(
             otherSelectedToken = otherSelectedToken,
-            activeAccount = activeAccount
+            activeAccount = activeAccount,
+            payCoreFeatureToggle = get(),
+            dispatcherProvider = get()
         )
     }
     viewModel { (wallet: Wallet) ->

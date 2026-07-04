@@ -8,25 +8,24 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.entities.GuideCategory
 import cash.p.terminal.entities.GuideCategoryMultiLang
 import cash.p.terminal.entities.GuideSection
+import io.horizontalsystems.core.DispatcherProvider
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
-import kotlinx.coroutines.rx2.await
 
 class GuidesRepository(
-        private val guidesManager: GuidesManager,
-        private val connectivityManager: ConnectivityManager,
-        private val languageManager: LanguageManager
-        ) {
+    private val guidesManager: GuidesManager,
+    private val connectivityManager: ConnectivityManager,
+    private val languageManager: LanguageManager,
+    dispatcherProvider: DispatcherProvider,
+) {
 
     val guideCategories: Observable<DataState<List<GuideCategory>>>
         get() = guideCategoriesSubject
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private val coroutineScope = CoroutineScope(dispatcherProvider.io)
     private val guideCategoriesSubject = BehaviorSubject.create<DataState<List<GuideCategory>>>()
     private val retryLimit = 3
 
@@ -55,7 +54,7 @@ class GuidesRepository(
                     times = retryLimit,
                     predicate = { it is AssertionError }
                 ) {
-                    guidesManager.getGuideCategories().await()
+                    guidesManager.getGuideCategories()
                 }
 
                 val categories = getCategoriesByLocalLanguage(guideCategories, languageManager.currentLocale.language, languageManager.fallbackLocale.language)

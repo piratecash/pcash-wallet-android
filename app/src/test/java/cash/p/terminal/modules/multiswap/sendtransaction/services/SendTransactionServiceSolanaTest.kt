@@ -1,6 +1,8 @@
 package cash.p.terminal.modules.multiswap.sendtransaction.services
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.EvmError
+import cash.p.terminal.core.INativeBalanceProvider
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.SolanaKitManager
@@ -33,6 +35,7 @@ import io.mockk.mockkObject
 import io.mockk.slot
 import io.mockk.unmockkAll
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -41,6 +44,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -201,6 +205,38 @@ class SendTransactionServiceSolanaTest : KoinTest {
     }
 
     @Test
+    fun sendTransaction_rawNativeAmountExceedsFeeAdjustedBalance_throwsBeforeBroadcast() = runTest(dispatcher) {
+        val rawTransactionStr = "48656c6c6f"
+        val estimatedFee = BigDecimal("0.0005")
+        val feeAdjustedBalance = SolanaKit.accountRentAmount + estimatedFee
+
+        every { adapter.estimateFee(any()) } returns estimatedFee
+        every { balanceAdapter.balanceData } returns BalanceData(feeAdjustedBalance)
+
+        val service = createService()
+        service.setSendTransactionData(
+            SendTransactionData.Solana.WithRawTransaction(
+                rawTransactionStr = rawTransactionStr,
+                rawTransactionAddress = "raw-tx-to-address",
+                rawTransactionAmount = BigDecimal.ONE
+            )
+        )
+        advanceUntilIdle()
+
+        var thrown: Throwable? = null
+        try {
+            service.sendTransaction()
+            advanceUntilIdle()
+        } catch (e: Throwable) {
+            thrown = e
+        }
+
+        assertTrue(thrown is EvmError.InsufficientBalanceWithFee)
+        coVerify(exactly = 0) { pendingRegistrar.register(any()) }
+        coVerify(exactly = 0) { adapter.send(any<ByteArray>()) }
+    }
+
+    @Test
     fun sendTransaction_simpleTransaction_registersPendingDraftWithCorrectData() = runTest(dispatcher) {
         // Given
         // Use a valid Solana address format (base58 encoded public key)
@@ -216,7 +252,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         val service = createService()
 
         // Start the service to begin collecting flows
-        val testScope = kotlinx.coroutines.CoroutineScope(dispatcher)
+        val testScope = CoroutineScope(dispatcher)
         service.start(testScope)
         advanceUntilIdle()
 
@@ -245,6 +281,105 @@ class SendTransactionServiceSolanaTest : KoinTest {
         assertEquals(testToken, capturedDraft.token)
         // Verify toAddress is set (the PublicKey.toString() of the SolanaAddress)
         assertEquals(address, capturedDraft.toAddress)
+    }
+
+    @Test
+    fun sendTransaction_splWithoutNativeFeeBalance_throwsBeforeBroadcast() = runTest(dispatcher) {
+        val solToken = testToken
+        val splToken = switchToSplWallet()
+
+        every { marketKit.token(any()) } returns solToken
+        every { adapterManager.getAdjustedBalanceDataForToken(solToken) } returns BalanceData(BigDecimal.ZERO)
+
+        val service = createService()
+        service.start(CoroutineScope(dispatcher))
+        advanceUntilIdle()
+
+        service.setSendTransactionData(
+            SendTransactionData.Solana.Regular(
+                address = "11111111111111111111111111111111",
+                amount = BigDecimal("0.1")
+            )
+        )
+        advanceUntilIdle()
+
+        var thrown: Throwable? = null
+        try {
+            service.sendTransaction()
+            advanceUntilIdle()
+        } catch (e: Throwable) {
+            thrown = e
+        }
+
+        assertTrue(thrown is EvmError.InsufficientBalanceWithFee)
+        coVerify(exactly = 0) { pendingRegistrar.register(any()) }
+        coVerify(exactly = 0) { adapter.send(any<BigDecimal>(), any()) }
+    }
+
+    @Test
+    fun sendTransaction_splWithFeeBalance_broadcastsWithoutRentReserve() = runTest(dispatcher) {
+        val solToken = testToken
+        val splToken = switchToSplWallet()
+
+        every { marketKit.token(any()) } returns solToken
+        every { adapterManager.getAdjustedBalanceDataForToken(solToken) } returns BalanceData(SolanaKit.fee)
+        coEvery { pendingRegistrar.register(any()) } returns "pending-tx-id"
+
+        val fullTransaction = createMockFullTransaction(testTransactionHash)
+        coEvery { adapter.send(any<BigDecimal>(), any()) } returns fullTransaction
+
+        val service = createService()
+        service.start(CoroutineScope(dispatcher))
+        advanceUntilIdle()
+
+        service.setSendTransactionData(
+            SendTransactionData.Solana.Regular(
+                address = "11111111111111111111111111111111",
+                amount = BigDecimal("0.1")
+            )
+        )
+        advanceUntilIdle()
+
+        service.sendTransaction()
+        advanceUntilIdle()
+
+        coVerify { pendingRegistrar.register(any()) }
+        coVerify { adapter.send(BigDecimal("0.1"), any()) }
+    }
+
+    @Test
+    fun sendTransaction_splWithoutSolWalletUsesSplNativeBalance_broadcasts() = runTest(dispatcher) {
+        val solToken = testToken
+        val splToken = switchToSplWallet()
+        val splAdapter = solanaAdapterWithNativeBalance(SolanaKit.fee)
+
+        every { marketKit.token(any()) } returns solToken
+        every { adapterManager.getAdjustedBalanceDataForToken(solToken) } returns null
+        every { adapterManager.getAdapterForToken<IBalanceAdapter>(splToken) } returns splAdapter
+        every { splAdapter.maxSpendableBalance } returns testBalance
+        coEvery { adapterManager.awaitAdapterForWallet<ISendSolanaAdapter>(any(), any()) } returns splAdapter
+        coEvery { pendingRegistrar.register(any()) } returns "pending-tx-id"
+
+        val fullTransaction = createMockFullTransaction(testTransactionHash)
+        coEvery { splAdapter.send(any<BigDecimal>(), any()) } returns fullTransaction
+
+        val service = createService()
+        service.start(CoroutineScope(dispatcher))
+        advanceUntilIdle()
+
+        service.setSendTransactionData(
+            SendTransactionData.Solana.Regular(
+                address = "11111111111111111111111111111111",
+                amount = BigDecimal("0.1")
+            )
+        )
+        advanceUntilIdle()
+
+        service.sendTransaction()
+        advanceUntilIdle()
+
+        coVerify { pendingRegistrar.register(any()) }
+        coVerify { splAdapter.send(BigDecimal("0.1"), any()) }
     }
 
     @Test
@@ -296,7 +431,7 @@ class SendTransactionServiceSolanaTest : KoinTest {
         val service = createService()
 
         // Start the service to begin collecting flows
-        val testScope = kotlinx.coroutines.CoroutineScope(dispatcher)
+        val testScope = CoroutineScope(dispatcher)
         service.start(testScope)
         advanceUntilIdle()
 
@@ -324,21 +459,49 @@ class SendTransactionServiceSolanaTest : KoinTest {
 
     private fun setupTestData() {
         val testCoin = Coin(uid = "solana", name = "Solana", code = "SOL")
-        testToken = Token(
-            coin = testCoin,
-            blockchain = Blockchain(
-                type = BlockchainType.Solana,
-                name = "Solana",
-                eip3091url = null
-            ),
-            type = TokenType.Native,
-            decimals = 9
-        )
+        testToken = solanaToken(testCoin, TokenType.Native, decimals = 9)
+        testWallet = testWallet(testToken, testCoin)
+    }
 
-        testWallet = mockk(relaxed = true) {
-            every { token } returns testToken
-            every { coin } returns testCoin
+    private fun solanaToken(coin: Coin, type: TokenType, decimals: Int) = Token(
+        coin = coin,
+        blockchain = Blockchain(
+            type = BlockchainType.Solana,
+            name = "Solana",
+            eip3091url = null
+        ),
+        type = type,
+        decimals = decimals
+    )
+
+    private fun testWallet(walletToken: Token, walletCoin: Coin): Wallet {
+        return mockk(relaxed = true) {
+            every { token } returns walletToken
+            every { coin } returns walletCoin
         }
+    }
+
+    private fun switchToSplWallet(): Token {
+        val usdtCoin = Coin(uid = "tether", name = "Tether", code = "USDT")
+        val splToken = solanaToken(
+            coin = usdtCoin,
+            type = TokenType.Spl("Es9vMFrzaCERmJfrF4H2FYD4KCoNkYwGX7Ryq5MjY5Y"),
+            decimals = 6,
+        )
+        testToken = splToken
+        testWallet = testWallet(splToken, usdtCoin)
+        coEvery { walletUseCase.createWalletIfNotExists(splToken) } returns testWallet
+        return splToken
+    }
+
+    private fun solanaAdapterWithNativeBalance(nativeBalance: BigDecimal): ISendSolanaAdapter {
+        val adapterWithNativeBalance = mockk<ISendSolanaAdapter>(
+            relaxed = true,
+            moreInterfaces = arrayOf(INativeBalanceProvider::class)
+        )
+        every { (adapterWithNativeBalance as INativeBalanceProvider).nativeBalanceData } returns
+            BalanceData(nativeBalance)
+        return adapterWithNativeBalance
     }
 
     private fun setupMocks() {

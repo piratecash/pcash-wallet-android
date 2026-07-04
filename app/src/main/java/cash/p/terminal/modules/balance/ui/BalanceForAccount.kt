@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material.ModalBottomSheetLayout
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Scaffold
@@ -42,6 +42,7 @@ import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -60,7 +61,8 @@ import kotlinx.coroutines.launch
 fun BalanceForAccount(
     navController: NavController,
     accountViewItem: AccountViewItem,
-    paddingValuesParent: PaddingValues
+    paddingValuesParent: PaddingValues,
+    onOpenTransactionInfo: (TransactionItem) -> Unit,
 ) {
     val viewModel = viewModel<BalanceViewModel>(factory = BalanceModule.Factory())
 
@@ -93,9 +95,8 @@ fun BalanceForAccount(
     }
 
     BackupAlert(navController)
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = invalidUrlBottomSheetState,
-        sheetBackgroundColor = ComposeAppTheme.colors.transparent,
         sheetContent = {
             ConfirmationBottomSheet(
                 title = stringResource(R.string.WalletConnect_Title),
@@ -190,6 +191,7 @@ fun BalanceForAccount(
                             navController = navController,
                             uiState = uiState,
                             totalState = viewModel.totalUiState,
+                            onOpenTransactionInfo = onOpenTransactionInfo,
                         )
                     }
 

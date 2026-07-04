@@ -2,7 +2,6 @@ import org.gradle.kotlin.dsl.implementation
 
 plugins {
     id(libs.plugins.android.library.get().pluginId)
-    id(libs.plugins.kotlin.android.get().pluginId)
     kotlin("plugin.serialization")
     id(libs.plugins.devtools.ksp.get().pluginId)
 }
@@ -82,5 +81,5 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.test.junit)
 }

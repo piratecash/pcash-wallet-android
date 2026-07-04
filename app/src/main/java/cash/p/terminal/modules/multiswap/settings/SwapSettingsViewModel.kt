@@ -10,6 +10,7 @@ class SwapSettingsViewModel(settings: Map<String, Any?>) : ViewModelUiState<Swap
 
     override fun createState() = SwapSettingsUiState(
         applyEnabled = errors.isEmpty(),
+        settings = settings.toMap(),
     )
 
     fun onSettingError(id: String, error: Throwable?) {
@@ -24,6 +25,7 @@ class SwapSettingsViewModel(settings: Map<String, Any?>) : ViewModelUiState<Swap
 
     fun onSettingEnter(id: String, value: Any?) {
         settings[id] = value
+        emitState()
     }
 
     fun getSettings() = settings
@@ -36,4 +38,7 @@ class SwapSettingsViewModel(settings: Map<String, Any?>) : ViewModelUiState<Swap
     }
 }
 
-data class SwapSettingsUiState(val applyEnabled: Boolean)
+data class SwapSettingsUiState(
+    val applyEnabled: Boolean,
+    val settings: Map<String, Any?>
+)

@@ -17,6 +17,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
+import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
@@ -38,16 +39,15 @@ import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.wallet.IAdapterManager
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import com.tangem.common.core.TangemSdkError
 import io.horizontalsystems.bitcoincore.managers.SendValueErrors
 import io.horizontalsystems.core.CurrencyManager
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Currency
 import io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc.ResponseError
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -73,11 +73,14 @@ class SwapConfirmViewModel(
     private val priceImpactService: PriceImpactService,
     wallet: Wallet,
     adapterManager: IAdapterManager,
+    private val dispatcherProvider: DispatcherProvider,
     private val multiSwapLegInfo: MultiSwapLegInfo? = null,
 ) : BaseSendViewModel<SwapConfirmUiState>(wallet, adapterManager) {
     private val accountId: String = wallet.account.id
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
+    private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(SwapProviderTransactionsStorage::class.java)
+    private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
@@ -273,7 +276,7 @@ class SwapConfirmViewModel(
 
     private fun fetchFinalQuote() {
         fetchJob?.cancel()
-        fetchJob = viewModelScope.launch(Dispatchers.IO) {
+        fetchJob = viewModelScope.launch(dispatcherProvider.io) {
             try {
                 val finalQuote = swapProvider.fetchFinalQuote(
                     tokenIn = tokenIn,
@@ -284,12 +287,14 @@ class SwapConfirmViewModel(
                     swapQuote = swapQuote
                 )
 
+                amountIn = finalQuote.amountIn
                 amountOut = finalQuote.amountOut
                 amountOutMin = finalQuote.amountOutMin
                 quoteFields = finalQuote.fields
                 criticalError = null
                 swapProviderTransaction = finalQuote.swapProviderTransaction
 
+                fiatServiceIn.setAmount(amountIn)
                 fiatServiceOut.setAmount(amountOut)
                 fiatServiceOutMin.setAmount(amountOutMin)
                 sendTransactionService.setSendTransactionData(finalQuote.sendTransactionData)
@@ -339,7 +344,7 @@ class SwapConfirmViewModel(
         emitState()
     }
 
-    suspend fun swap() = withContext(Dispatchers.Default) {
+    suspend fun swap() = withContext(dispatcherProvider.default) {
         sendTransactionService.sendTransaction(uiState.mevProtectionEnabled)
     }
 
@@ -372,11 +377,12 @@ class SwapConfirmViewModel(
             } catch (e: TangemSdkError) {
                 // Other Tangem errors - reset state
                 sendResult = null
+            } catch (e: ResponseError.RpcError) {
+                val caution = HSCaution(TranslatableString.PlainString(e.error.message))
+                sendResult = SendResult.Failed(caution)
             } catch (t: Throwable) {
                 val caution = if (t.cause is SendValueErrors.InsufficientUnspentOutputs) {
                     HSCaution(TranslatableString.ResString(R.string.EthereumTransaction_Error_InsufficientBalance_Title))
-                } else if (t is ResponseError.RpcError) {
-                    HSCaution(TranslatableString.PlainString(t.error.message))
                 } else {
                     HSCaution(TranslatableString.PlainString(t.javaClass.simpleName))
                 }
@@ -422,7 +428,7 @@ class SwapConfirmViewModel(
             expectedAmountOut = legInfo.expectedAmountOut,
         )
         pendingMultiSwapStorage.insert(record)
-        swapProviderTransaction?.transactionId?.let { providerTxId ->
+        swapProviderTransaction?.transactionId?.takeIf { it.isNotBlank() }?.let { providerTxId ->
             pendingMultiSwapStorage.setLeg1ProviderTransactionId(id, providerTxId)
         }
         completedMultiSwapId = id
@@ -436,8 +442,22 @@ class SwapConfirmViewModel(
     }
 
     fun onTransactionCompleted(result: SendTransactionResult) {
+        swapProvider.onTransactionCompleted(result)
         val transaction = swapProviderTransaction ?: return
-        (swapProvider as? OffChainSwapProvider)?.onTransactionCompleted(transaction, result)
+        val offChainProvider = swapProvider as? OffChainSwapProvider
+        if (offChainProvider != null) {
+            offChainProvider.onTransactionCompleted(transaction, result)
+        } else {
+            // On-chain provider (Thorchain/Maya) has no completion hook: finalize the record here.
+            // outgoingRecordUid matches the outgoing history record; transactionId = canonical hash for status polling.
+            swapProviderTransactionsStorage.save(
+                transaction.copy(
+                    outgoingRecordUid = result.getRecordUid(),
+                    transactionId = result.getCanonicalTxHash() ?: transaction.transactionId,
+                    date = System.currentTimeMillis(),
+                )
+            )
+        }
     }
 
     companion object {
@@ -498,20 +518,22 @@ class SwapConfirmViewModel(
 
                 // When wallet is null the dummy service above (sendable=false)
                 // prevents any swap execution while the screen navigates back.
-                val marketKit: MarketKitWrapper = getKoinInstance()
+                val assetFiatRateService: AssetFiatRateService = getKoinInstance()
+                val dispatcherProvider: DispatcherProvider = getKoinInstance()
                 return SwapConfirmViewModel(
                     swapProvider = quote.provider,
                     swapQuote = quote.swapQuote,
                     swapSettings = settings,
                     currencyManager = App.currencyManager,
-                    fiatServiceIn = FiatService(marketKit),
-                    fiatServiceOut = FiatService(marketKit),
-                    fiatServiceOutMin = FiatService(marketKit),
+                    fiatServiceIn = FiatService(assetFiatRateService),
+                    fiatServiceOut = FiatService(assetFiatRateService),
+                    fiatServiceOutMin = FiatService(assetFiatRateService),
                     sendTransactionService = sendTransactionService,
                     timerService = TimerService(),
                     priceImpactService = PriceImpactService(),
                     wallet = wallet ?: App.walletManager.activeWallets.first(),
                     adapterManager = App.adapterManager,
+                    dispatcherProvider = dispatcherProvider,
                     multiSwapLegInfo = multiSwapLegInfo,
                 ) as T
             }

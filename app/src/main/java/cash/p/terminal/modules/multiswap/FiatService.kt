@@ -2,53 +2,49 @@ package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.ServiceState
 import cash.p.terminal.wallet.Clearable
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.Currency
-import cash.p.terminal.wallet.models.CoinPrice
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.rx2.asFlow
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatService.State>(),
-    AutoCloseable {
+class FiatService(
+    private val assetFiatRateService: AssetFiatRateService,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : ServiceState<FiatService.State>(), AutoCloseable {
     private var currency: Currency? = null
     private var token: Token? = null
     private var amount: BigDecimal? = null
-    private var coinPrice: CoinPrice? = null
+    private var rate: BigDecimal? = null
 
     private var fiatAmount: BigDecimal? = null
-    private var coinPriceUpdatesJob: Job? = null
+    private var rateUpdatesJob: Job? = null
 
     private val job = SupervisorJob()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + job)
+    private val coroutineScope = CoroutineScope(dispatcher + job)
 
     override fun createState() = State(
-        coinPrice = coinPrice,
+        rate = rate,
         amount = amount,
         fiatAmount = fiatAmount
     )
 
-    private fun refreshCoinPrice() {
-        coinPrice = token?.let { token ->
-            currency?.code?.let { currency ->
-                marketKit.coinPrice(token.coin.uid, currency)
-            }
-        }
-        resubscribeForCoinPrice()
+    private fun refreshRate() {
+        rate = null
+        resubscribeForRate()
     }
 
     private fun refreshFiatAmount() {
         fiatAmount = amount?.let { amount ->
-            coinPrice?.let { coinPrice ->
+            rate?.let { rate ->
                 currency?.let { currency ->
-                    (amount * coinPrice.value).setScale(currency.decimal, RoundingMode.DOWN).stripTrailingZeros()
+                    (amount * rate).setScale(currency.decimal, RoundingMode.DOWN).stripTrailingZeros()
                 }
             }
         }
@@ -56,25 +52,23 @@ class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatSe
 
     private fun refreshAmount() {
         amount = fiatAmount?.let { fiatAmount ->
-            coinPrice?.let { coinPrice ->
+            rate?.takeIf { it > BigDecimal.ZERO }?.let { rate ->
                 token?.let { token ->
-                    fiatAmount.divide(coinPrice.value, token.decimals, RoundingMode.DOWN).stripTrailingZeros()
+                    fiatAmount.divide(rate, token.decimals, RoundingMode.DOWN).stripTrailingZeros()
                 }
             }
         }
     }
 
-    private fun resubscribeForCoinPrice() {
-        coinPriceUpdatesJob?.cancel()
+    private fun resubscribeForRate() {
+        rateUpdatesJob?.cancel()
         val currency = currency ?: return
 
-        token?.let { platformCoin ->
-            coinPriceUpdatesJob = coroutineScope.launch {
-                marketKit.coinPriceObservable("swap", platformCoin.coin.uid, currency.code)
-                    .asFlow()
+        token?.let { token ->
+            rateUpdatesJob = coroutineScope.launch {
+                assetFiatRateService.rateFlow("swap", token, currency)
                     .collect {
-                        coinPrice = it
-
+                        rate = it
                         refreshFiatAmount()
                         emitState()
                     }
@@ -87,7 +81,7 @@ class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatSe
 
         this.currency = currency
 
-        refreshCoinPrice()
+        refreshRate()
         refreshFiatAmount()
 
         emitState()
@@ -98,7 +92,7 @@ class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatSe
 
         this.token = token
 
-        refreshCoinPrice()
+        refreshRate()
         refreshFiatAmount()
 
         emitState()
@@ -129,6 +123,6 @@ class FiatService(private val marketKit: MarketKitWrapper) : ServiceState<FiatSe
     data class State(
         val amount: BigDecimal?,
         val fiatAmount: BigDecimal?,
-        val coinPrice: CoinPrice?
+        val rate: BigDecimal?
     )
 }

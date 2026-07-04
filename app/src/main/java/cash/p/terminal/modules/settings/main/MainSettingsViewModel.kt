@@ -9,6 +9,7 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
+import cash.p.terminal.modules.paycore.PayCoreFeatureToggle
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
@@ -40,6 +41,7 @@ class MainSettingsViewModel(
     private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase,
     private val localStorage: ILocalStorage,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
+    private val payCoreFeatureToggle: PayCoreFeatureToggle,
 ) : ViewModelUiState<MainSettingUiState>() {
 
     val appVersion: String get() = systemInfoManager.appVersionDisplay
@@ -155,7 +157,8 @@ class MainSettingsViewModel(
             securityCenterShowAlert = !isPinSet || !localStorage.isSystemPinRequired,
             aboutAppShowAlert = !termsManager.allTermsAccepted,
             wcCounterType = wcCounterType,
-            premiumSettingsShowAlert = premiumSettingsShowAlert
+            premiumSettingsShowAlert = premiumSettingsShowAlert,
+            isPayCoreEnabled = payCoreFeatureToggle.isEnabled()
         )
     }
 
@@ -184,5 +187,6 @@ data class MainSettingUiState(
     val securityCenterShowAlert: Boolean,
     val aboutAppShowAlert: Boolean,
     val wcCounterType: CounterType?,
-    val premiumSettingsShowAlert: Boolean
+    val premiumSettingsShowAlert: Boolean,
+    val isPayCoreEnabled: Boolean
 )

@@ -9,6 +9,8 @@ import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
 import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
+import cash.p.terminal.core.usecase.ResolvePayCoreNavigationUseCase
+import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
 import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
@@ -35,6 +37,8 @@ val useCaseModule = module {
     singleOf(::UpdateSwapProviderTransactionsStatusUseCase)
     singleOf(::SyncPendingMultiSwapUseCase)
     factoryOf(::FetchSwapQuotesUseCase)
+    factoryOf(::ResolveTransactionItemUseCase)
+    factoryOf(::ResolvePayCoreNavigationUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
     factoryOf(::ValidateMoneroHeightUseCase)
     factoryOf(::GetLocalizedAssetUseCase)

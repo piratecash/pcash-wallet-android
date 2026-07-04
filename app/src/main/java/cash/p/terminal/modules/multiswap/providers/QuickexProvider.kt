@@ -47,6 +47,7 @@ class QuickexProvider(
     override val id = "quickex"
     override val title = "Quickex"
     override val icon = R.drawable.ic_quickex
+    override val riskType = ProviderRiskType.PreCheck
 
     override val mevProtectionAvailable: Boolean = false
     private val currencies = mutableListOf<QuickexInstrument>()
@@ -252,7 +253,7 @@ class QuickexProvider(
                 throw IllegalStateException("QuickexProvider: amount is not found")
             }
 
-            val actionRequired = getCreateTokenActionRequired(tokenIn, tokenOut)
+            val actionRequired = getCreateTokenActionRequired(listOf(tokenIn, tokenOut))
 
             SwapQuoteOffChain(
                 amountOut = amountOut,
@@ -267,10 +268,9 @@ class QuickexProvider(
         }
     }
 
-    override fun getCreateTokenActionRequired(
-        tokenIn: Token,
-        tokenOut: Token
-    ): ActionCreate? = providerSupport.getCreateTokenActionRequired(tokenIn, tokenOut)
+    override fun getCreateTokenActionRequired(tokens: List<Token>): ActionCreate? {
+        return providerSupport.getCreateTokenActionRequired(tokens)
+    }
 
     override suspend fun getWarningMessage(tokenIn: Token, tokenOut: Token): TranslatableString? =
         withContext(Dispatchers.IO) {
