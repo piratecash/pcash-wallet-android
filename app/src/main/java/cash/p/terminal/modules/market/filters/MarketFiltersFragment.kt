@@ -15,7 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
-import androidx.compose.material.ModalBottomSheetLayout
+import cash.p.terminal.ui_compose.components.AppModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material3.Scaffold
 import androidx.compose.material.rememberModalBottomSheetState
@@ -107,9 +107,8 @@ private fun AdvancedSearchScreen(
     var bottomSheetType by remember { mutableStateOf(CoinSet) }
     val modalBottomSheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Hidden)
 
-    ModalBottomSheetLayout(
+    AppModalBottomSheetLayout(
         sheetState = modalBottomSheetState,
-        sheetBackgroundColor = cash.p.terminal.ui_compose.theme.ComposeAppTheme.colors.transparent,
         sheetContent = {
             BottomSheetContent(
                 bottomSheetType = bottomSheetType,
