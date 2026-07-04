@@ -165,7 +165,7 @@ class SwapConfirmViewModelSaveTest {
             every { sendTransactionSettingsFlow } returns MutableStateFlow(SendTransactionSettings.Common)
         }
         val adapterManager = mockk<IAdapterManager>(relaxed = true)
-        val marketKit = mockk<MarketKitWrapper>(relaxed = true)
+        val assetFiatRateService = mockk<AssetFiatRateService>(relaxed = true)
         val currencyManager = mockk<CurrencyManager> {
             every { baseCurrency } returns Currency("USD", "$", 2, 0)
         }
@@ -174,14 +174,15 @@ class SwapConfirmViewModelSaveTest {
             swapQuote = swapQuote,
             swapSettings = emptyMap(),
             currencyManager = currencyManager,
-            fiatServiceIn = FiatService(marketKit),
-            fiatServiceOut = FiatService(marketKit),
-            fiatServiceOutMin = FiatService(marketKit),
+            fiatServiceIn = FiatService(assetFiatRateService),
+            fiatServiceOut = FiatService(assetFiatRateService),
+            fiatServiceOutMin = FiatService(assetFiatRateService),
             sendTransactionService = sendTransactionService,
             timerService = TimerService(),
             priceImpactService = PriceImpactService(),
             wallet = previewWallet,
             adapterManager = adapterManager,
+            dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
         )
         viewModelStore.put("test-vm", vm)
         return vm

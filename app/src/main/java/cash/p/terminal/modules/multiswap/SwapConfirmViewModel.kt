@@ -80,7 +80,6 @@ class SwapConfirmViewModel(
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage by inject(SwapProviderTransactionsStorage::class.java)
-    private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
