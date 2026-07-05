@@ -71,7 +71,7 @@ class TransactionsViewModel(
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val contactsRepository: ContactsRepository,
     private val dispatcherProvider: DispatcherProvider,
-) : ViewModelUiState<TransactionsUiState>() {
+) : ViewModelUiState<TransactionsUiState>(), TransactionSearchController.Host {
 
     private val poisonAddressManager: PoisonAddressManager = getKoinInstance()
 
@@ -103,12 +103,11 @@ class TransactionsViewModel(
     private var currentTransactionWallet: TransactionWallet? = null
     private var currentBlockchain: Blockchain? = null
     private var currentContact: Contact? = null
-    private var searchActive = false
-    private var searchQuery = ""
     private var appliedSearchQuery = ""
     private var searchScanning = false
-    private var searchDebounceJob: Job? = null
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
+
+    private val searchController = TransactionSearchController(viewModelScope, this)
 
     // Maps transaction record UID to SwapProviderTransaction for reactive updates
     private val swapStatusMap = MutableStateFlow(emptyMap<String, SwapProviderTransaction>())
@@ -348,7 +347,9 @@ class TransactionsViewModel(
         return baseId?.let { "$it|search=$query" }
     }
 
-    private suspend fun applySearchQuery(query: String) {
+    override fun onSearchStateChanged() = emitState()
+
+    override suspend fun applySearchQuery(query: String) {
         if (appliedSearchQuery == query) return
 
         appliedSearchQuery = query
@@ -484,8 +485,8 @@ class TransactionsViewModel(
         showAmlPromo = shouldShowAmlPromo(),
         amlCheckEnabled = amlStatusManager.isEnabled,
         balanceHidden = balanceHiddenManager.balanceHidden,
-        searchActive = searchActive,
-        searchQuery = searchQuery,
+        searchActive = searchController.searchActive,
+        searchQuery = searchController.searchQuery,
         searchScanning = searchScanning,
     )
 
@@ -513,33 +514,11 @@ class TransactionsViewModel(
         transactionFilterService.reset()
     }
 
-    fun onSearchClick() {
-        searchActive = true
-        emitState()
-    }
+    fun onSearchClick() = searchController.onSearchClick()
 
-    fun onSearchQueryChange(query: String) {
-        if (searchQuery == query) return
+    fun onSearchQueryChange(query: String) = searchController.onSearchQueryChange(query)
 
-        searchQuery = query
-        emitState()
-
-        searchDebounceJob?.cancel()
-        searchDebounceJob = viewModelScope.launch {
-            delay(SEARCH_DEBOUNCE_MILLIS)
-            applySearchQuery(searchQuery.trim())
-        }
-    }
-
-    fun onSearchClose() {
-        searchDebounceJob?.cancel()
-        searchActive = false
-        searchQuery = ""
-        emitState()
-        searchDebounceJob = viewModelScope.launch {
-            applySearchQuery("")
-        }
-    }
+    fun onSearchClose() = searchController.onSearchClose()
 
     fun onBottomReached() {
         service.loadNext()
@@ -605,10 +584,6 @@ class TransactionsViewModel(
         premiumSettings.setAmlCheckShowAlert(false)
         amlPromoAlertEnabled = false
         emitState()
-    }
-
-    private companion object {
-        const val SEARCH_DEBOUNCE_MILLIS = 300L
     }
 
 }

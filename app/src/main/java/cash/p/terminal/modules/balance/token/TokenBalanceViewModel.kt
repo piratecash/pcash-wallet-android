@@ -42,7 +42,9 @@ import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.Filter
 import cash.p.terminal.modules.transactions.FilterTransactionType
+import cash.p.terminal.modules.transactions.SearchScanState
 import cash.p.terminal.modules.transactions.TransactionItem
+import cash.p.terminal.modules.transactions.TransactionSearchController
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
 import cash.p.terminal.modules.transactions.withClearedAmlStatus
@@ -103,7 +105,7 @@ class TokenBalanceViewModel(
     private val localStorage: ILocalStorage,
     private val numberFormatter: IAppNumberFormatter,
     private val contactsRepository: ContactsRepository,
-) : ViewModelUiState<TokenBalanceUiState>() {
+) : ViewModelUiState<TokenBalanceUiState>(), TransactionSearchController.Host {
 
     private val logger = AppLogger("TokenBalanceViewModel-${wallet.coin.code}")
     private val stackingType: StackingType? = when {
@@ -121,6 +123,10 @@ class TokenBalanceViewModel(
     private val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository = getKoinInstance()
 
     private val title = wallet.token.coin.name
+
+    private val searchController = TransactionSearchController(viewModelScope, this)
+    private var appliedSearchQuery = ""
+    private var searchScanning = false
 
     private var balanceViewItem: BalanceViewItem? = null
     private var transactions: Map<String, List<TransactionViewItem>>? = null
@@ -225,9 +231,8 @@ class TokenBalanceViewModel(
         }
 
         viewModelScope.launch {
-            transactionsService.transactionItemsFlow.collect {
-                updateTransactions(it)
-            }
+            combine(transactionsService.transactionItemsFlow, transactionsService.searchScanStateFlow, ::updateTransactions)
+                .collect { }
         }
 
         viewModelScope.launch {
@@ -240,7 +245,7 @@ class TokenBalanceViewModel(
                 val wasSyncing = syncing
                 syncing = newSyncing
                 if (wasSyncing && !newSyncing && transactions == null) {
-                    updateTransactions(transactionsService.transactionItemsFlow.value)
+                    updateTransactions(transactionsService.transactionItemsFlow.value, transactionsService.searchScanStateFlow.value)
                 }
                 emitState()
             }
@@ -350,10 +355,28 @@ class TokenBalanceViewModel(
 
     fun showAllTransactions(show: Boolean) = transactionHiddenManager.showAllTransactions(show)
 
+    fun onSearchClick() = searchController.onSearchClick()
+    fun onSearchQueryChange(query: String) = searchController.onSearchQueryChange(query)
+    fun onSearchClose() = searchController.onSearchClose()
+
+    override fun onSearchStateChanged() = emitState()
+
+    override suspend fun applySearchQuery(query: String) {
+        if (appliedSearchQuery == query) return
+
+        appliedSearchQuery = query
+        transactions = if (appliedSearchQuery.isEmpty()) null else emptyMap()
+        searchScanning = appliedSearchQuery.isNotEmpty()
+        // Reopen the "please wait" window (see updateTransactions()) so the reload to the full list can't flash empty.
+        if (appliedSearchQuery.isEmpty()) syncing = true
+        emitState()
+        transactionsService.setSearchQuery(appliedSearchQuery.ifBlank { null })
+    }
+
     private suspend fun refreshTransactionsFromCache() {
         val currentItems = transactionsService.transactionItemsFlow.value
         if (currentItems.isNotEmpty()) {
-            updateTransactions(currentItems)
+            updateTransactions(currentItems, transactionsService.searchScanStateFlow.value)
         }
     }
 
@@ -427,7 +450,11 @@ class TokenBalanceViewModel(
         transactionFiltersEnabled = transactionFiltersEnabled,
         transactionFilterTypes = if (transactionFiltersEnabled) {
             FilterTransactionType.entries.map { Filter(it, it == selectedTransactionType) }
-        } else emptyList()
+        } else emptyList(),
+        searchActive = searchController.searchActive,
+        searchQuery = searchController.searchQuery,
+        searchScanning = searchScanning,
+        searchEmptyResult = appliedSearchQuery.isNotEmpty() && !searchScanning && transactions?.values?.flatten().isNullOrEmpty(),
     )
 
     private fun calculateHoursUntilNextAccrual(): Int? {
@@ -510,7 +537,16 @@ class TokenBalanceViewModel(
         return hasReachedSyncedState()
     }
 
-    private suspend fun updateTransactions(items: List<TransactionItem>) {
+    private suspend fun updateTransactions(items: List<TransactionItem>, scanState: SearchScanState) {
+        // While a search scan runs, show only the spinner - a search batch has a single terminal (Finished) emission.
+        if (appliedSearchQuery.isNotEmpty() && scanState == SearchScanState.Scanning) {
+            transactions = emptyMap()
+            searchScanning = true
+            emitState()
+            return
+        }
+        searchScanning = false
+
         // Skip the initial empty emission from transactionRecordRepository.set() while
         // still syncing. Once syncing finishes, allow empty items through so coins with
         // zero transactions show "no transactions" instead of "wait for sync" forever.

@@ -139,6 +139,10 @@ class TokenBalanceModule {
         val networkFeeWarning: NetworkFeeWarningBannerData? = null,
         val syncing: Boolean = true,
         val transactionFiltersEnabled: Boolean = false,
-        val transactionFilterTypes: List<Filter<FilterTransactionType>> = emptyList()
+        val transactionFilterTypes: List<Filter<FilterTransactionType>> = emptyList(),
+        val searchActive: Boolean = false,
+        val searchQuery: String = "",
+        val searchScanning: Boolean = false,
+        val searchEmptyResult: Boolean = false,
     )
 }

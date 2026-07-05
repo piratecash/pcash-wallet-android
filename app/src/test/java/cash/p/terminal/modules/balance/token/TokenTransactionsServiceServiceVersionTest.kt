@@ -3,7 +3,6 @@ package cash.p.terminal.modules.balance.token
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
-import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.ITransactionRecordRepository
 import cash.p.terminal.modules.transactions.NftMetadataService
@@ -393,19 +392,5 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
         )
 
         service.clear()
-    }
-
-    private fun mockRecord(uid: String, source: TransactionSource) =
-        mockk<TransactionRecord>(relaxed = true) {
-            every { this@mockk.uid } returns uid
-            every { this@mockk.source } returns source
-            every { mainValue } returns null
-        }
-
-    private fun waitUntil(timeoutMs: Long = 5_000, condition: () -> Boolean) {
-        val deadline = System.currentTimeMillis() + timeoutMs
-        while (!condition() && System.currentTimeMillis() < deadline) {
-            Thread.sleep(10)
-        }
     }
 }

@@ -27,16 +27,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -51,16 +47,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -89,7 +80,6 @@ import cash.p.terminal.ui_compose.components.ColumnUniversal
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HeaderStick
 import cash.p.terminal.ui_compose.components.HsBackButton
-import cash.p.terminal.ui_compose.components.HsIconButton
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
@@ -284,72 +274,6 @@ private fun TransactionsAppBar(
                     onClick = onFilterClick,
                 )
             )
-        )
-    }
-}
-
-@Composable
-private fun TransactionSearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-) {
-    val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-        keyboardController?.show()
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(modifier = Modifier.weight(1f)) {
-            if (query.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.Market_Search_Hint),
-                    style = ComposeAppTheme.typography.body,
-                    color = ComposeAppTheme.colors.grey50,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                textStyle = ComposeAppTheme.typography.body.copy(
-                    color = ComposeAppTheme.colors.leah,
-                ),
-                maxLines = 1,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        keyboardController?.hide()
-                    }
-                ),
-                cursorBrush = SolidColor(ComposeAppTheme.colors.jacob),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester)
-            )
-        }
-
-        if (query.isNotEmpty()) {
-            SearchCloseButton(onClick = { onQueryChange("") })
-        }
-    }
-}
-
-@Composable
-private fun SearchCloseButton(onClick: () -> Unit) {
-    HsIconButton(onClick = onClick) {
-        Icon(
-            painter = painterResource(R.drawable.ic_close_24),
-            contentDescription = stringResource(R.string.Button_Cancel),
-            tint = ComposeAppTheme.colors.jacob,
-            modifier = Modifier.size(24.dp),
         )
     }
 }
@@ -936,46 +860,6 @@ private fun AmlLoadingIndicator() {
             color = ComposeAppTheme.colors.grey,
             strokeWidth = 1.5.dp
         )
-    }
-}
-
-@Composable
-private fun SearchEmptyResultsView() {
-    ListEmptyView(
-        text = stringResource(R.string.transactions_empty_search_results),
-        icon = R.drawable.ic_not_found
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SearchEmptyResultsPreview() {
-    ComposeAppTheme {
-        SearchEmptyResultsView()
-    }
-}
-
-@Composable
-private fun SearchInProgressView() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        HSCircularProgressIndicator()
-        VSpacer(16.dp)
-        subhead2_grey(
-            text = stringResource(R.string.Balance_SearchingTransactions),
-            textAlign = TextAlign.Center,
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SearchInProgressPreview() {
-    ComposeAppTheme {
-        SearchInProgressView()
     }
 }
 
