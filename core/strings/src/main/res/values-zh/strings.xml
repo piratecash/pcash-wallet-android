@@ -1685,6 +1685,10 @@
     <string name="balance_sync_error_changeable_source">无法从当前源获取数据。您可以重试或切换到不同的同步源。</string>
     <string name="balance_sync_error_fixed_source">无法从当前源获取数据。请稍后再试。</string>
     <string name="source_blocked_by_provider_error">无法从当前源获取数据。\n\n您可以：\n• 稍后重试\n• 启用VPN并重新同步\n\n如果您收到<b>403</b>错误，<b>您的IP地址可能被封锁</b>。使用VPN通常可以<b>解决此问题</b>。</string>
+    <!-- Token not synced -->
+    <string name="token_not_synced_title">数据未同步。</string>
+    <string name="token_not_synced_description">显示的是最后已知的交易记录，信息可能已过时。</string>
+    <string name="token_not_synced_retry">再试一次</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">激活</string>
     <!--Widget-->

@@ -266,14 +266,13 @@ val BlockchainType.isEvm: Boolean
             -> false
     }
 
-val BlockchainType.isUtxoBased: Boolean
+val BlockchainType.isBtcLike: Boolean
     get() = when (this) {
         BlockchainType.Bitcoin,
         BlockchainType.BitcoinCash,
         BlockchainType.Dash,
         BlockchainType.ECash,
         BlockchainType.Litecoin,
-        BlockchainType.Zcash,
         BlockchainType.Dogecoin,
         BlockchainType.PirateCash,
         BlockchainType.Cosanta
@@ -294,9 +293,13 @@ val BlockchainType.isUtxoBased: Boolean
         BlockchainType.Ton,
         BlockchainType.Tron,
         is BlockchainType.Unsupported,
+        BlockchainType.Zcash,
         BlockchainType.Monero
             -> false
     }
+
+val BlockchainType.isUtxoBased: Boolean
+    get() = isBtcLike || this == BlockchainType.Zcash
 
 
 fun BlockchainType.supports(accountType: AccountType): Boolean {

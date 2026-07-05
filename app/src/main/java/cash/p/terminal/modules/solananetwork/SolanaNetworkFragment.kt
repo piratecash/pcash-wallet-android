@@ -30,8 +30,7 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
-import cash.p.terminal.modules.blockchainstatus.SolanaBlockchainStatusProvider
-import cash.p.terminal.core.managers.SolanaKitManager
+import cash.p.terminal.modules.blockchainstatus.rememberBlockchainStatusProvider
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -44,7 +43,9 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.MarketKitWrapper
 import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.imageUrl
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -77,19 +78,18 @@ private fun SolanaNetworkNavHost(fragmentNavController: NavController) {
             )
         }
         composablePage(StatusPage) {
-            val solanaKitManager = koinInject<SolanaKitManager>()
-            val provider = remember(solanaKitManager) {
-                SolanaBlockchainStatusProvider(
-                    solanaKitManager = solanaKitManager
+            val marketKit = koinInject<MarketKitWrapper>()
+            val solanaBlockchain = remember { marketKit.blockchain(BlockchainType.Solana.uid) }
+            solanaBlockchain?.let { blockchain ->
+                val provider = rememberBlockchainStatusProvider(blockchain)
+                val viewModel = koinViewModel<BlockchainStatusViewModel> {
+                    parametersOf(provider)
+                }
+                BlockchainStatusScreen(
+                    viewModel = viewModel,
+                    onBack = navController::navigateUpSafely
                 )
             }
-            val viewModel = koinViewModel<BlockchainStatusViewModel> {
-                parametersOf(provider)
-            }
-            BlockchainStatusScreen(
-                viewModel = viewModel,
-                onBack = navController::navigateUpSafely
-            )
         }
     }
 }

@@ -127,7 +127,7 @@ private fun onClick(
         }
 
         is BlockchainSettingsModule.BlockchainItem.StatusOnly -> {
-            navController.slideFromBottom(R.id.blockchainStatusFragment, item.blockchainItem.blockchain.type)
+            navController.slideFromBottom(R.id.blockchainStatusFragment, item.blockchainItem.blockchain)
         }
     }
 }

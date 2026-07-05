@@ -11,12 +11,14 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -33,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -56,6 +57,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -66,6 +68,7 @@ import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -91,11 +94,13 @@ import cash.p.terminal.ui.compose.components.BadgeText
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.CoinFragmentInput
-import cash.p.terminal.ui_compose.ScreenSecurityState
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
+import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
+import cash.p.terminal.ui_compose.components.ButtonSecondary
+import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui_compose.components.HSpacer
@@ -107,10 +112,12 @@ import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.SnackbarDuration
+import cash.p.terminal.ui_compose.components.TextImportant
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.components.diffColor
+import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -139,13 +146,6 @@ fun TokenBalanceScreen(
 
     val failedIconVisible = uiState.balanceViewItem?.failedIconVisible == true
     val loading = uiState.balanceViewItem?.syncingProgress?.progress != null
-
-    LaunchedEffect(failedIconVisible) {
-        val viewItem = uiState.balanceViewItem
-        if (viewItem != null && shouldAutoShowSyncError(failedIconVisible, ScreenSecurityState.isAppLocked)) {
-            onSyncErrorClicked(viewItem, viewModel, navController)
-        }
-    }
 
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -301,6 +301,19 @@ fun TokenBalanceScreen(
                                     isShowShieldFunds = uiState.isShowShieldFunds
                                 )
                             }
+                        }
+                    }
+
+                    if (failedIconVisible) {
+                        item {
+                            TokenNotSyncedSection(
+                                onBlockchainStatusClick = {
+                                    uiState.balanceViewItem?.wallet?.token?.blockchain?.let { blockchain ->
+                                        navController.slideFromRight(R.id.blockchainStatusFragment, blockchain)
+                                    }
+                                },
+                                onRetry = onRefresh,
+                            )
                         }
                     }
 
@@ -764,10 +777,62 @@ private fun LockedBalanceCell(
     }
 }
 
-// Never auto-open the wallet sync-error sheet while the app is locked: it lives in its
-// own Window and would leak wallet UI above the calculator/PIN disguise (deanonymization).
-internal fun shouldAutoShowSyncError(failedIconVisible: Boolean, appLocked: Boolean): Boolean =
-    failedIconVisible && !appLocked
+@Composable
+private fun TokenNotSyncedSection(
+    onBlockchainStatusClick: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    Column {
+        BlockchainStatusButton(onClick = onBlockchainStatusClick)
+        VSpacer(12.dp)
+        TextImportant(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            title = stringResource(R.string.token_not_synced_title),
+            icon = R.drawable.ic_attention_24,
+            borderColor = ComposeAppTheme.colors.steel20,
+            backgroundColor = ComposeAppTheme.colors.lawrence,
+            textColor = ComposeAppTheme.colors.leah,
+            iconColor = ComposeAppTheme.colors.grey,
+        ) {
+            subhead2_grey(text = stringResource(R.string.token_not_synced_description))
+            ButtonSecondary(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onRetry,
+                border = BorderStroke(1.dp, ComposeAppTheme.colors.steel20),
+                buttonColors = SecondaryButtonDefaults.buttonColors(
+                    backgroundColor = ComposeAppTheme.colors.transparent,
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                content = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            painter = painterResource(R.drawable.ic_refresh_20),
+                            contentDescription = null,
+                            tint = ComposeAppTheme.colors.grey
+                        )
+                        HSpacer(8.dp)
+                        subhead1_leah(text = stringResource(R.string.token_not_synced_retry))
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun TokenNotSyncedSectionPreview() {
+    ComposeAppTheme {
+        TokenNotSyncedSection(
+            onBlockchainStatusClick = {},
+            onRetry = {},
+        )
+    }
+}
 
 private fun onSyncErrorClicked(
     viewItem: BalanceViewItem,
