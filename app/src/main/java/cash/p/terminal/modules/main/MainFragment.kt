@@ -3,6 +3,7 @@ package cash.p.terminal.modules.main
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -175,6 +176,12 @@ private fun MainScreen(
     val uiState = viewModel.uiState
     val selectedPage = uiState.selectedTabIndex
     val pagerState = rememberPagerState(initialPage = selectedPage) { uiState.mainNavItems.size }
+
+    // On a non-first tab, back returns to the first (Balance) tab instead of leaving the app.
+    // On the first tab this stays disabled, so back falls through to the activity callback (minimize).
+    BackHandler(enabled = selectedPage != 0) {
+        viewModel.onSelect(MainNavigation.Balance)
+    }
 
     var showWalletSheet by remember { mutableStateOf(false) }
     LaunchedEffect(intentLiveData, uiState.contentHidden) {
