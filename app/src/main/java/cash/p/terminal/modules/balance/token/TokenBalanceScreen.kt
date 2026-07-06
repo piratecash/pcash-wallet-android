@@ -129,6 +129,10 @@ import cash.p.terminal.wallet.isStakingWallet
 
 private const val HEADER_CONTENT_TYPE = "token_balance_sticky_header"
 
+// Distinct type for the sticky header's Lazy key so it can never collide with the
+// transaction rows' String uid keys (an enum never equals a String).
+private enum class TokenBalanceLazyKey { SearchHeader }
+
 @Composable
 fun TokenBalanceScreen(
     viewModel: TokenBalanceViewModel,
@@ -409,7 +413,10 @@ private fun TokenBalanceScreenContent(
                     // so passing HEADER_CONTENT_TYPE positionally would set the key and leave
                     // contentType null, and stickyTransactionDate (which matches on contentType)
                     // would never find this header.
-                    stickyHeader(contentType = HEADER_CONTENT_TYPE) {
+                    // Stable key so the pinned search/filter header keeps its slot (and the
+                    // search field's internal TextFieldValue state) across recompositions
+                    // instead of being recreated — Samsung problem.
+                    stickyHeader(key = TokenBalanceLazyKey.SearchHeader, contentType = HEADER_CONTENT_TYPE) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
