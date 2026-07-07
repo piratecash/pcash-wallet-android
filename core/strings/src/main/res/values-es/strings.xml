@@ -897,7 +897,7 @@
     <string name="appearance_app_icon_our_icon">NUESTRO ICONO</string>
     <string name="appearance_app_icon_other">OTROS</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
-    <string name="Appearance_Warning_CloseApplication">Cambiar icono cerrará la aplicación</string>
+    <string name="Appearance_Warning_CloseApplication">Para aplicar el nuevo icono, la aplicación se reiniciará automáticamente</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Saldo Auto Ocultar</string>

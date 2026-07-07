@@ -1229,7 +1229,7 @@ Proceed only if you\'re sure.</string>
     <string name="appearance_app_icon_our_icon">OUR ICON</string>
     <string name="appearance_app_icon_other">OTHER</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
-    <string name="Appearance_Warning_CloseApplication">Changing icon will close application</string>
+    <string name="Appearance_Warning_CloseApplication">The application will be restarted automatically to apply the new icon</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>

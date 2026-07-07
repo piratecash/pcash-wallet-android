@@ -902,7 +902,7 @@
     <string name="appearance_app_icon_our_icon">BİZİM SİMGEMİZ</string>
     <string name="appearance_app_icon_other">DİĞER</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
-    <string name="Appearance_Warning_CloseApplication">Simgeyi değiştirmek uygulamayı kapatır</string>
+    <string name="Appearance_Warning_CloseApplication">Yeni simgeyi uygulamak için uygulama otomatik olarak yeniden başlatılacak</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Denge Otomatik Gizleme</string>
