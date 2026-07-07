@@ -38,13 +38,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Продовжити офлайн</string>
     <string name="trezor_wallet">Гаманець Trezor</string>
     <string name="connect_trezor">Підключити Trezor</string>
-    <string name="trezor_setup_description">Переконайтеся, що Trezor Suite встановлено та ваш пристрій Trezor підключено.</string>
+    <string name="trezor_setup_description">Підключіть Trezor кабелем USB і підтвердьте на пристрої.</string>
     <string name="trezor_not_initialized_title">Пристрій не налаштовано</string>
-    <string name="trezor_not_initialized_description">Цей Trezor ще не налаштовано. Завершіть налаштування на пристрої або в Trezor Suite, потім підключіть знову.</string>
+    <string name="trezor_not_initialized_description">Цей Trezor ще не налаштований. Завершіть налаштування на пристрої та підключіть його знову.</string>
     <string name="trezor_not_initialized_cta">Інструкція з налаштування</string>
-    <string name="trezor_suite_required_title">Потрібен Trezor Suite</string>
-    <string name="trezor_suite_required_description">Для підключення пристрою Trezor потрібно встановити застосунок Trezor Suite на ваш телефон.</string>
-    <string name="install_from_play_store">Встановити з Play Store</string>
+    <string name="trezor_connect_failed">Не вдалося підключитися до Trezor.</string>
     <string name="Button_Restore">Імпорт</string>
     <string name="Button_Reset">Скинути</string>
     <string name="Button_Understand">Я розумію</string>

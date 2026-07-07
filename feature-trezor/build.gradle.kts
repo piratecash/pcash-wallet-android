@@ -15,14 +15,9 @@ android {
     }
     defaultConfig {
         minSdk = 27
-
-        // Switcher for the USB migration: false keeps the app on the legacy Trezor Suite deeplink,
-        // true routes ITrezorClient through the direct-USB kit. Default off until USB is verified.
-        buildConfigField("boolean", "USE_TREZOR_USB", "true")
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 

@@ -54,13 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Çevrimdışı devam et</string>
     <string name="trezor_wallet">Trezor Cüzdan</string>
     <string name="connect_trezor">Trezor Bağla</string>
-    <string name="trezor_setup_description">Trezor Suite\'un yüklü olduğundan ve Trezor cihazınızın bağlı olduğundan emin olun.</string>
+    <string name="trezor_setup_description">Trezor\'unuzu USB kablosuyla bağlayın ve cihazda onaylayın.</string>
     <string name="trezor_not_initialized_title">Cihaz kurulmadı</string>
-    <string name="trezor_not_initialized_description">Bu Trezor henüz kurulmadı. Kurulumu cihazda veya Trezor Suite\'te tamamlayın ve yeniden bağlayın.</string>
+    <string name="trezor_not_initialized_description">Bu Trezor henüz kurulmadı. Kurulumu cihazda tamamlayın ve yeniden bağlayın.</string>
     <string name="trezor_not_initialized_cta">Kurulum kılavuzu</string>
-    <string name="trezor_suite_required_title">Trezor Suite gerekli</string>
-    <string name="trezor_suite_required_description">Trezor cihazınızı bağlamak için telefonunuzda Trezor Suite uygulamasının yüklü olması gerekir.</string>
-    <string name="install_from_play_store">Play Store\'dan yükle</string>
+    <string name="trezor_connect_failed">Trezor\'a bağlanılamadı.</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">kaydol</string>
     <string name="Button_TryAgain">Tekrar deneyin</string>

@@ -54,13 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">ادامه به‌صورت آفلاین</string>
     <string name="trezor_wallet">کیف پول Trezor</string>
     <string name="connect_trezor">اتصال Trezor</string>
-    <string name="trezor_setup_description">مطمئن شوید که Trezor Suite نصب شده و دستگاه Trezor شما متصل است.</string>
+    <string name="trezor_setup_description">Trezor خود را با کابل USB وصل کنید و روی دستگاه تأیید کنید.</string>
     <string name="trezor_not_initialized_title">دستگاه راه‌اندازی نشده است</string>
-    <string name="trezor_not_initialized_description">این Trezor هنوز راه‌اندازی نشده است. راه‌اندازی را روی دستگاه یا در Trezor Suite کامل کنید و دوباره متصل شوید.</string>
+    <string name="trezor_not_initialized_description">این Trezor هنوز راه‌اندازی نشده است. راه‌اندازی را روی دستگاه کامل کنید و دوباره آن را وصل کنید.</string>
     <string name="trezor_not_initialized_cta">راهنمای راه‌اندازی</string>
-    <string name="trezor_suite_required_title">Trezor Suite لازم است</string>
-    <string name="trezor_suite_required_description">برای اتصال دستگاه Trezor، باید برنامه Trezor Suite روی گوشی شما نصب شود.</string>
-    <string name="install_from_play_store">نصب از Play Store</string>
+    <string name="trezor_connect_failed">اتصال به Trezor برقرار نشد.</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">نشانه</string>
     <string name="Button_TryAgain">Try Again</string>

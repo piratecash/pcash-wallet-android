@@ -45,13 +45,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Continue offline</string>
     <string name="trezor_wallet">Trezor Wallet</string>
     <string name="connect_trezor">Connect Trezor</string>
-    <string name="trezor_setup_description">Make sure Trezor Suite is installed and your Trezor device is connected.</string>
+    <string name="trezor_setup_description">Connect your Trezor with a USB cable, then confirm on the device.</string>
     <string name="trezor_not_initialized_title">Device not set up</string>
-    <string name="trezor_not_initialized_description">This Trezor is not set up yet. Complete setup on the device or in Trezor Suite, then reconnect it.</string>
+    <string name="trezor_not_initialized_description">This Trezor is not set up yet. Complete setup on the device, then reconnect it.</string>
     <string name="trezor_not_initialized_cta">Setup guide</string>
-    <string name="trezor_suite_required_title">Trezor Suite Required</string>
-    <string name="trezor_suite_required_description">To connect your Trezor device, you need the Trezor Suite app installed on your phone.</string>
-    <string name="install_from_play_store">Install from Play Store</string>
+    <string name="trezor_connect_failed">Couldn\'t connect to Trezor.</string>
     <string name="Button_Restore">Import</string>
     <string name="Button_Reset">Reset</string>
     <string name="Button_Understand">I Understand</string>

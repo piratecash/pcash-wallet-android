@@ -54,13 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Offline doorgaan</string>
     <string name="trezor_wallet">Trezor Wallet</string>
     <string name="connect_trezor">Trezor verbinden</string>
-    <string name="trezor_setup_description">Zorg ervoor dat Trezor Suite is geïnstalleerd en je Trezor-apparaat is verbonden.</string>
+    <string name="trezor_setup_description">Sluit je Trezor aan met een USB-kabel en bevestig op het apparaat.</string>
     <string name="trezor_not_initialized_title">Apparaat niet ingesteld</string>
-    <string name="trezor_not_initialized_description">Deze Trezor is nog niet ingesteld. Voltooi de installatie op het apparaat of in Trezor Suite en verbind opnieuw.</string>
+    <string name="trezor_not_initialized_description">Deze Trezor is nog niet ingesteld. Voltooi de installatie op het apparaat en sluit het opnieuw aan.</string>
     <string name="trezor_not_initialized_cta">Installatiegids</string>
-    <string name="trezor_suite_required_title">Trezor Suite vereist</string>
-    <string name="trezor_suite_required_description">Om je Trezor-apparaat te verbinden, moet de Trezor Suite-app op je telefoon zijn geïnstalleerd.</string>
-    <string name="install_from_play_store">Installeren vanuit Play Store</string>
+    <string name="trezor_connect_failed">Kon geen verbinding maken met Trezor.</string>
     <string name="Button_Activate">Activate</string>
     <string name="Button_Sign">Sign</string>
     <string name="Button_TryAgain">Try Again</string>

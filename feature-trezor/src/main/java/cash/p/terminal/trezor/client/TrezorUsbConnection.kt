@@ -33,7 +33,7 @@ internal class TrezorUsbConnection(private val context: Context) {
             // than "not found".
             if (trezorDevices.any { it.productId == UsbTrezorTransport.PRODUCT_ID_BOOTLOADER }) {
                 throw TrezorNotInitializedException(
-                    "Trezor is in bootloader mode. Complete setup on the device or in Trezor Suite."
+                    "Trezor is in bootloader mode. Complete setup on the device."
                 )
             }
             throw TrezorTransportException("No Trezor found. Connect it with a cable.")

@@ -54,13 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">متابعة بدون إنترنت</string>
     <string name="trezor_wallet">محفظة Trezor</string>
     <string name="connect_trezor">توصيل Trezor</string>
-    <string name="trezor_setup_description">تأكد من تثبيت Trezor Suite وأن جهاز Trezor متصل.</string>
+    <string name="trezor_setup_description">وصّل جهاز Trezor بكابل USB ثم أكّد على الجهاز.</string>
     <string name="trezor_not_initialized_title">الجهاز غير مُعد</string>
-    <string name="trezor_not_initialized_description">لم يتم إعداد جهاز Trezor هذا بعد. أكمل الإعداد على الجهاز أو في Trezor Suite ثم أعد توصيله.</string>
+    <string name="trezor_not_initialized_description">لم يتم إعداد جهاز Trezor هذا بعد. أكمل الإعداد على الجهاز ثم أعد توصيله.</string>
     <string name="trezor_not_initialized_cta">دليل الإعداد</string>
-    <string name="trezor_suite_required_title">مطلوب Trezor Suite</string>
-    <string name="trezor_suite_required_description">لتوصيل جهاز Trezor، يجب تثبيت تطبيق Trezor Suite على هاتفك.</string>
-    <string name="install_from_play_store">التثبيت من Play Store</string>
+    <string name="trezor_connect_failed">تعذّر الاتصال بـ Trezor.</string>
     <string name="Button_Activate">تفعيل</string>
     <string name="Button_Sign">توقيع</string>
     <string name="Button_TryAgain">حاول مرة أخرى</string>

@@ -54,13 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Offline fortfahren</string>
     <string name="trezor_wallet">Trezor Wallet</string>
     <string name="connect_trezor">Trezor verbinden</string>
-    <string name="trezor_setup_description">Stelle sicher, dass Trezor Suite installiert ist und dein Trezor-Gerät verbunden ist.</string>
+    <string name="trezor_setup_description">Verbinden Sie Ihren Trezor per USB-Kabel und bestätigen Sie auf dem Gerät.</string>
     <string name="trezor_not_initialized_title">Gerät nicht eingerichtet</string>
-    <string name="trezor_not_initialized_description">Dieser Trezor ist noch nicht eingerichtet. Schließen Sie die Einrichtung auf dem Gerät oder in Trezor Suite ab und verbinden Sie ihn erneut.</string>
+    <string name="trezor_not_initialized_description">Dieser Trezor ist noch nicht eingerichtet. Schließen Sie die Einrichtung auf dem Gerät ab und verbinden Sie es erneut.</string>
     <string name="trezor_not_initialized_cta">Einrichtungsanleitung</string>
-    <string name="trezor_suite_required_title">Trezor Suite erforderlich</string>
-    <string name="trezor_suite_required_description">Um dein Trezor-Gerät zu verbinden, muss die Trezor Suite App auf deinem Telefon installiert sein.</string>
-    <string name="install_from_play_store">Aus dem Play Store installieren</string>
+    <string name="trezor_connect_failed">Verbindung mit Trezor fehlgeschlagen.</string>
     <string name="Button_Activate">Aktivieren</string>
     <string name="Button_Sign">Signieren</string>
     <string name="Button_TryAgain">Bitte versuche es noch einmal</string>
