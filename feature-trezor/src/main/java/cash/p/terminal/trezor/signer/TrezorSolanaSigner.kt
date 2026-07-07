@@ -1,30 +1,27 @@
 package cash.p.terminal.trezor.signer
 
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
-import cash.p.terminal.trezor.domain.hexBytes
-import cash.p.terminal.trezor.domain.model.TrezorMethod
-import cash.p.terminal.trezor.domain.requirePayload
+import cash.p.terminal.trezor.client.TrezorDerivationPath
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import com.solana.core.Account
 import com.solana.core.PublicKey
-import io.horizontalsystems.core.toRawHexString
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 
 class TrezorSolanaSigner(
     override val publicKey: PublicKey,
     private val derivationPath: String,
-    private val deepLinkManager: TrezorDeepLinkManager
+    private val trezorClient: ITrezorClient
 ) : Account {
 
     override val supportsPriorityFees: Boolean get() = false
 
+    /**
+     * solana-kit's [Account.sign] is synchronous and called on its background send path, while the
+     * USB signing API is suspend - so we bridge via [runBlocking] on that background thread (never
+     * main). The kit's `connect` opens, initializes and closes the USB session for this one call.
+     */
     override fun sign(serializedMessage: ByteArray): ByteArray = runBlocking {
-        val params = buildJsonObject {
-            put("path", derivationPath)
-            put("serializedTx", serializedMessage.toRawHexString())
+        trezorClient.connect {
+            signSolana(TrezorDerivationPath.parse(derivationPath), serializedMessage)
         }
-        val response = deepLinkManager.call(TrezorMethod.SolSignTransaction, params)
-        response.requirePayload().hexBytes("signature")
     }
 }

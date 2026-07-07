@@ -1,17 +1,16 @@
 package cash.p.terminal.trezor.signer
 
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezor.client.TrezorDerivationPath
 import cash.p.terminal.trezor.domain.TrezorSigningException
-import cash.p.terminal.trezor.domain.hexBytes
-import cash.p.terminal.trezor.domain.hexInt
-import cash.p.terminal.trezor.domain.model.TrezorMethod
-import cash.p.terminal.trezor.domain.requirePayload
+import cash.p.terminal.trezorkit.client.ITrezorClient
+import cash.p.terminal.trezorkit.client.TrezorEvmGasFee
+import cash.p.terminal.trezorkit.client.TrezorEvmTx
 import cash.p.terminal.wallet.crypto.EvmSignatureRecovery
 import io.horizontalsystems.ethereumkit.core.TransactionBuilder
 import io.horizontalsystems.ethereumkit.core.TransactionSigner
 import io.horizontalsystems.ethereumkit.core.signer.EthSigner
 import io.horizontalsystems.ethereumkit.core.signer.Signer
-import io.horizontalsystems.ethereumkit.core.toHexString
+import io.horizontalsystems.ethereumkit.core.toByteArray
 import io.horizontalsystems.ethereumkit.crypto.CryptoUtils
 import io.horizontalsystems.ethereumkit.crypto.EIP712Encoder
 import io.horizontalsystems.ethereumkit.models.Address
@@ -21,15 +20,13 @@ import io.horizontalsystems.ethereumkit.models.RawTransaction
 import io.horizontalsystems.ethereumkit.models.Signature
 import io.horizontalsystems.ethereumkit.spv.rlp.RLP
 import io.horizontalsystems.ethereumkit.spv.rlp.RLPList
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import java.math.BigInteger
 
 class TrezorEvmSigner(
     private val address: Address,
     private val chain: Chain,
     private val derivationPath: String,
-    private val deepLinkManager: TrezorDeepLinkManager
+    private val trezorClient: ITrezorClient
 ) : Signer(
     transactionBuilder = TransactionBuilder(address, chain.id),
     transactionSigner = TransactionSigner(MOCK_PRIVATE_KEY, chain.id),
@@ -46,39 +43,61 @@ class TrezorEvmSigner(
     }
 
     /**
-     * Not supported for Trezor: the base [Signer] contract returns only a [Signature], but Trezor
-     * Suite re-estimates gas fields and signs a transaction that differs from the one we requested.
-     * A bare signature would be broadcast against our stale raw transaction and recover a wrong
-     * sender. Use [signTransaction], which returns the transaction the device actually signed.
+     * Not supported for Trezor: the base [Signer] contract returns only a [Signature], but the
+     * device signs over a full transaction and the caller needs the exact fields that were signed.
+     * A bare signature broadcast against a mismatched raw transaction would recover a wrong sender.
+     * Use [signTransaction], which returns the transaction the device actually signed.
      */
     override suspend fun signature(rawTransaction: RawTransaction): Signature =
         throw TrezorSigningException("Use signTransaction() for Trezor; signature() loses the device-signed fields")
 
     /**
-     * Signs the transaction on the device and returns both the signature and the transaction the
-     * device actually signed. Trezor Suite re-estimates the gas fields instead of honoring the ones
-     * we send, so the device signs over different values than requested. Broadcasting our original
-     * raw transaction with that signature would make the node recover a wrong sender ("balance 0"),
-     * so we rebuild the raw transaction from the gas fields the device signed.
+     * Signs the transaction on the device over USB and returns both the signature and the transaction
+     * the device actually signed. The device returns only v/r/s; the kit reassembles [serializedTx]
+     * from the request fields, and we rebuild the raw transaction from it. Reconciliation is defense
+     * in depth: it confirms the device signed exactly the fields we sent, so the signature can never
+     * be broadcast against a mismatched transaction.
      */
     suspend fun signTransaction(rawTransaction: RawTransaction): SignedEvmTransaction {
-        val params = buildJsonObject {
-            put("path", derivationPath)
-            put("transaction", buildTransactionJson(rawTransaction))
-        }
-        val payload = deepLinkManager.call(TrezorMethod.EthSignTransaction, params).requirePayload()
+        val deviceSignature = trezorClient.connect { signEthereum(rawTransaction.toTrezorEvmTx()) }
         val signature = Signature(
-            v = payload.hexInt("v"),
-            r = payload.hexBytes("r"),
-            s = payload.hexBytes("s")
+            v = deviceSignature.v,
+            r = deviceSignature.r,
+            s = deviceSignature.s
         )
-        if (!payload.containsKey("serializedTx")) {
-            throw TrezorSigningException("Trezor response has no serializedTx")
-        }
-        val serializedTx = payload.hexBytes("serializedTx")
+        val serializedTx = deviceSignature.serializedTx
+            ?: throw TrezorSigningException("Trezor did not return the signed transaction")
         val signedRawTransaction = reconcileSignedTransaction(rawTransaction, signature, serializedTx)
         verifySender(signedRawTransaction, signature)
         return SignedEvmTransaction(signature, signedRawTransaction)
+    }
+
+    private fun RawTransaction.toTrezorEvmTx(): TrezorEvmTx = TrezorEvmTx(
+        addressN = TrezorDerivationPath.parse(derivationPath),
+        nonce = nonce.toByteArray(),
+        gasLimit = gasLimit.toByteArray(),
+        to = to.hex,
+        value = value.toTrimmedByteArray(),
+        data = data,
+        chainId = chain.id.toLong(),
+        gasFee = when (val gp = gasPrice) {
+            is GasPrice.Legacy -> TrezorEvmGasFee.Legacy(gasPrice = gp.legacyGasPrice.toByteArray())
+            is GasPrice.Eip1559 -> TrezorEvmGasFee.Eip1559(
+                maxFeePerGas = gp.maxFeePerGas.toByteArray(),
+                maxPriorityFeePerGas = gp.maxPriorityFeePerGas.toByteArray()
+            )
+        }
+    )
+
+    /**
+     * Minimal big-endian encoding Trezor expects, matching ethereumkit's `Long.toByteArray`: strip the
+     * leading sign byte that [BigInteger.toByteArray] prepends for positive high-bit values, and encode
+     * zero as an empty array — so the kit's RLP re-encoding matches `TransactionBuilder.encode` (which
+     * encodes zero as an empty string), keeping reconciliation byte-equal for zero-value contract calls.
+     */
+    private fun BigInteger.toTrimmedByteArray(): ByteArray {
+        val bytes = toByteArray()
+        return if (bytes[0].toInt() == 0) bytes.copyOfRange(1, bytes.size) else bytes
     }
 
     private fun reconcileSignedTransaction(
@@ -134,24 +153,6 @@ class TrezorEvmSigner(
 
     private fun RLPList.longAt(index: Int): Long =
         BigInteger(1, this[index].rlpData ?: ByteArray(0)).toLong()
-
-    private fun buildTransactionJson(rawTransaction: RawTransaction) = buildJsonObject {
-        put("to", rawTransaction.to.hex)
-        put("value", "0x" + rawTransaction.value.toString(16))
-        put("gasLimit", "0x" + rawTransaction.gasLimit.toString(16))
-        put("nonce", "0x" + rawTransaction.nonce.toString(16))
-        put("data", rawTransaction.data.toHexString())
-        put("chainId", chain.id)
-        when (val gp = rawTransaction.gasPrice) {
-            is GasPrice.Legacy -> {
-                put("gasPrice", "0x" + gp.legacyGasPrice.toString(16))
-            }
-            is GasPrice.Eip1559 -> {
-                put("maxFeePerGas", "0x" + gp.maxFeePerGas.toString(16))
-                put("maxPriorityFeePerGas", "0x" + gp.maxPriorityFeePerGas.toString(16))
-            }
-        }
-    }
 }
 
 data class SignedEvmTransaction(

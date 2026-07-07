@@ -55,6 +55,9 @@
     <string name="trezor_wallet">Carteira Trezor</string>
     <string name="connect_trezor">Ligar Trezor</string>
     <string name="trezor_setup_description">Certifique-se de que o Trezor Suite está instalado e o seu dispositivo Trezor está ligado.</string>
+    <string name="trezor_not_initialized_title">Dispositivo não configurado</string>
+    <string name="trezor_not_initialized_description">Este Trezor ainda não está configurado. Conclua a configuração no dispositivo ou no Trezor Suite e ligue-o novamente.</string>
+    <string name="trezor_not_initialized_cta">Guia de configuração</string>
     <string name="trezor_suite_required_title">Trezor Suite necessário</string>
     <string name="trezor_suite_required_description">Para ligar o seu dispositivo Trezor, é necessário ter a aplicação Trezor Suite instalada no seu telemóvel.</string>
     <string name="install_from_play_store">Instalar a partir do Play Store</string>
@@ -2045,4 +2048,6 @@
     <string name="send_error_balance_unavailable">Saldo indisponível</string>
     <string name="litecoin_mweb_invalid_amount">Montante Litecoin MWEB inválido</string>
     <string name="litecoin_hardware_extended_public_key_required">A carteira hardware Litecoin requer uma chave pública estendida</string>
+    <string name="send_trezor_mweb_not_supported">A Trezor não suporta MWEB. Envie Litecoin para um endereço normal (não MWEB).</string>
+    <string name="send_trezor_time_lock_not_supported">A Trezor não suporta transações com bloqueio temporal.</string>
 </resources>

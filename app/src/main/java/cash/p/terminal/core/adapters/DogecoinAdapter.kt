@@ -152,7 +152,7 @@ class DogecoinAdapter(
                         blockchainType = wallet.token.blockchainType,
                         coin = "Dogecoin"
                     )
-                    return DogecoinKit(
+                    val kit = DogecoinKit(
                         context = App.instance,
                         extendedKey = requireNotNull(wallet.getHDExtendedKey()),
                         walletId = account.id,
@@ -162,6 +162,8 @@ class DogecoinAdapter(
                         iInputSigner = trezorSigner,
                         iSchnorrInputSigner = trezorSigner,
                     )
+                    bindPreviousTransactionProvider(trezorSigner, kit)
+                    return kit
                 }
 
                 else -> throw UnsupportedAccountException()

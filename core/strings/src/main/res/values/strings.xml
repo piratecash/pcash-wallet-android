@@ -46,6 +46,9 @@
     <string name="trezor_wallet">Trezor Wallet</string>
     <string name="connect_trezor">Connect Trezor</string>
     <string name="trezor_setup_description">Make sure Trezor Suite is installed and your Trezor device is connected.</string>
+    <string name="trezor_not_initialized_title">Device not set up</string>
+    <string name="trezor_not_initialized_description">This Trezor is not set up yet. Complete setup on the device or in Trezor Suite, then reconnect it.</string>
+    <string name="trezor_not_initialized_cta">Setup guide</string>
     <string name="trezor_suite_required_title">Trezor Suite Required</string>
     <string name="trezor_suite_required_description">To connect your Trezor device, you need the Trezor Suite app installed on your phone.</string>
     <string name="install_from_play_store">Install from Play Store</string>
@@ -2484,4 +2487,6 @@ Proceed only if you\'re sure.</string>
     <string name="duration_short_hours">%1$dh</string>
     <string name="duration_short_minutes">%1$dm</string>
     <string name="duration_short_seconds">%1$ds</string>
+    <string name="send_trezor_mweb_not_supported">Trezor doesn\'t support MWEB. Send Litecoin to a regular (non-MWEB) address.</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor doesn\'t support time-locked transactions.</string>
 </resources>

@@ -1,19 +1,17 @@
 package cash.p.terminal.trezor.signer
 
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
-import cash.p.terminal.trezor.domain.hexString
-import cash.p.terminal.trezor.domain.model.TrezorMethod
-import cash.p.terminal.trezor.domain.requirePayload
+import cash.p.terminal.trezor.client.TrezorDerivationPath
+import cash.p.terminal.trezorkit.client.ITrezorClient
+import cash.p.terminal.trezorkit.client.TrezorStellarAsset
+import cash.p.terminal.trezorkit.client.TrezorStellarMemo
+import cash.p.terminal.trezorkit.client.TrezorStellarOperation
+import cash.p.terminal.trezorkit.client.TrezorStellarSignTx
 import io.horizontalsystems.stellarkit.Signer
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import org.stellar.sdk.Asset
-import org.stellar.sdk.AssetTypeCreditAlphaNum
 import org.stellar.sdk.AssetTypeCreditAlphaNum12
 import org.stellar.sdk.AssetTypeCreditAlphaNum4
 import org.stellar.sdk.AssetTypeNative
+import org.stellar.sdk.ChangeTrustAsset
 import org.stellar.sdk.Memo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
@@ -23,26 +21,26 @@ import org.stellar.sdk.MemoText
 import org.stellar.sdk.Transaction
 import org.stellar.sdk.operations.ChangeTrustOperation
 import org.stellar.sdk.operations.CreateAccountOperation
+import org.stellar.sdk.operations.Operation
 import org.stellar.sdk.operations.PaymentOperation
 import org.stellar.sdk.xdr.DecoratedSignature
 import org.stellar.sdk.xdr.Signature
 import org.stellar.sdk.xdr.SignatureHint
 import java.math.BigDecimal
+import java.math.BigInteger
 
 class TrezorStellarSigner(
     override val publicKey: ByteArray,
     private val derivationPath: String,
     private val networkPassphrase: String,
-    private val deepLinkManager: TrezorDeepLinkManager
+    private val trezorClient: ITrezorClient
 ) : Signer {
 
     /**
-     * Holds the pending transaction so that [sign] can access the full
-     * structured transaction when StellarKit calls `sign(hash)`.
-     * This is needed because the published StellarKit calls `sign(hash)` only,
-     * but Trezor requires the full transaction structure.
-     * Once StellarKit is updated to call `signTransaction(transaction)` first,
-     * this field becomes unused.
+     * Holds the pending transaction so that [sign] can access the full structured transaction when
+     * StellarKit calls `sign(hash)`. Trezor needs the whole transaction, not just its hash; this
+     * field bridges the older `sign(hash)`-only StellarKit contract and becomes unused once every
+     * caller invokes [signTransaction] first.
      */
     @Volatile
     private var pendingTransaction: Transaction? = null
@@ -50,8 +48,8 @@ class TrezorStellarSigner(
     override fun canSign() = true
 
     /**
-     * Prepares a transaction for signing. Must be called before StellarKit
-     * invokes [sign] so that the full transaction data is available.
+     * Prepares a transaction for signing. Must be called before StellarKit invokes [sign] so that
+     * the full transaction data is available.
      */
     fun prepareTransaction(transaction: Transaction) {
         pendingTransaction = transaction
@@ -66,25 +64,13 @@ class TrezorStellarSigner(
         return signViaTrezor(transaction)
     }
 
-    // Will become `override` once stellar-kit publishes signTransaction in Signer interface
     override suspend fun signTransaction(transaction: Transaction): DecoratedSignature {
         return signViaTrezor(transaction)
     }
 
     private suspend fun signViaTrezor(transaction: Transaction): DecoratedSignature {
-        val params = buildJsonObject {
-            put("path", derivationPath)
-            put("networkPassphrase", networkPassphrase)
-            put("transaction", buildTransactionJson(transaction))
-        }
-        val response = deepLinkManager.call(TrezorMethod.XlmSignTransaction, params)
-        val payload = response.requirePayload()
-        val signatureBytes = payload.hexString("signature")
-            .removePrefix("0x")
-            .chunked(2)
-            .map { it.toInt(16).toByte() }
-            .toByteArray()
-
+        val signTx = transaction.toTrezorSignTx()
+        val signatureBytes = trezorClient.connect { signStellar(signTx) }
         return buildDecoratedSignature(signatureBytes)
     }
 
@@ -101,105 +87,122 @@ class TrezorStellarSigner(
         }
     }
 
-    private fun buildTransactionJson(transaction: Transaction): JsonObject = buildJsonObject {
-        put("source", transaction.sourceAccount)
-        put("fee", transaction.fee.toInt())
-        put("sequence", transaction.sequenceNumber.toString())
-        transaction.preconditions?.timeBounds?.let {
-            put("timebounds", buildJsonObject {
-                put("minTime", it.minTime.toLong())
-                put("maxTime", it.maxTime.toLong())
-            })
-        }
-        put("memo", buildMemoJson(transaction.memo))
-        put("operations", buildOperationsJson(transaction))
+    private fun Transaction.toTrezorSignTx(): TrezorStellarSignTx {
+        rejectUnsupported()
+        val bounds = timeBounds
+        return TrezorStellarSignTx(
+            addressN = TrezorDerivationPath.parse(derivationPath),
+            networkPassphrase = networkPassphrase,
+            source = sourceAccount,
+            fee = fee.toInt(),
+            sequenceNumber = sequenceNumber,
+            timeboundsStart = bounds?.minTime.toTimeboundLong("timebounds start"),
+            timeboundsEnd = bounds?.maxTime.toTimeboundLong("timebounds end"),
+            memo = memo.toTrezorMemo(),
+            operations = operations.map { it.toTrezorOperation() }
+        )
     }
 
-    private fun buildMemoJson(memo: Memo): JsonObject = buildJsonObject {
-        when (memo) {
-            is MemoNone -> put("type", 0)
-            is MemoText -> {
-                put("type", 1)
-                put("text", memo.text)
-            }
-            is MemoId -> {
-                put("type", 2)
-                put("id", memo.id.toString())
-            }
-            is MemoHash -> {
-                put("type", 3)
-                put("hash", memo.hexValue)
-            }
-            is MemoReturnHash -> {
-                put("type", 4)
-                put("hash", memo.hexValue)
-            }
+    /**
+     * Rejects anything [TrezorStellarSignTx] cannot faithfully represent. A silent drop would let the
+     * device sign a transaction that differs from the caller's XDR, producing a valid-looking but
+     * wrong signature - fatal for raw-XDR/WalletConnect flows that submit the original envelope.
+     */
+    private fun Transaction.rejectUnsupported() {
+        if (isSorobanTransaction) {
+            throw UnsupportedOperationException("Trezor does not support Soroban Stellar transactions")
         }
-    }
-
-    private fun buildOperationsJson(transaction: Transaction) = buildJsonArray {
-        for (op in transaction.operations) {
-            add(buildOperationJson(op))
-        }
-    }
-
-    private fun buildOperationJson(operation: org.stellar.sdk.operations.Operation): JsonObject =
-        when (operation) {
-            is PaymentOperation -> buildPaymentJson(operation)
-            is CreateAccountOperation -> buildCreateAccountJson(operation)
-            is ChangeTrustOperation -> buildChangeTrustJson(operation)
-            else -> throw UnsupportedOperationException(
-                "Trezor does not support Stellar operation: ${operation.javaClass.simpleName}"
+        if (preconditions?.hasV2() == true) {
+            throw UnsupportedOperationException(
+                "Trezor does not support Stellar V2 preconditions " +
+                    "(ledger bounds, min sequence number/age/ledger gap, extra signers)"
             )
         }
-
-    private fun buildPaymentJson(op: PaymentOperation) = buildJsonObject {
-        put("type", "payment")
-        put("destination", op.destination)
-        put("amount", toStroops(op.amount))
-        put("asset", buildAssetJson(op.asset))
-        op.sourceAccount?.let { put("source", it) }
     }
 
-    private fun buildCreateAccountJson(op: CreateAccountOperation) = buildJsonObject {
-        put("type", "createAccount")
-        put("destination", op.destination)
-        put("startingBalance", toStroops(op.startingBalance))
-        op.sourceAccount?.let { put("source", it) }
-    }
-
-    private fun buildChangeTrustJson(op: ChangeTrustOperation) = buildJsonObject {
-        put("type", "changeTrust")
-        put("limit", toStroops(op.limit))
-        val asset = op.asset.asset
-        if (asset != null) {
-            put("line", buildAssetJson(asset))
+    private fun Memo.toTrezorMemo(): TrezorStellarMemo = when (this) {
+        is MemoNone -> TrezorStellarMemo.None
+        is MemoText -> {
+            // MemoText holds raw bytes; getText() decodes them as UTF-8 (lossy). Signing the decoded
+            // string would diverge from the caller's XDR for non-UTF-8 memo bytes, so require an exact
+            // round-trip and fail loud otherwise.
+            if (!bytes.contentEquals(text.toByteArray(Charsets.UTF_8))) {
+                throw UnsupportedOperationException(
+                    "Stellar memo text is not valid UTF-8 and cannot be faithfully signed by Trezor"
+                )
+            }
+            TrezorStellarMemo.Text(text)
         }
-        op.sourceAccount?.let { put("source", it) }
+        is MemoId -> TrezorStellarMemo.Id(id.toMemoIdLong())
+        is MemoHash -> TrezorStellarMemo.Hash(bytes)
+        is MemoReturnHash -> TrezorStellarMemo.ReturnHash(bytes)
+        else -> throw UnsupportedOperationException(
+            "Trezor does not support Stellar memo: ${javaClass.simpleName}"
+        )
     }
 
-    private fun buildAssetJson(asset: Asset) = buildJsonObject {
-        when (asset) {
-            is AssetTypeNative -> put("type", 0)
-            is AssetTypeCreditAlphaNum4 -> {
-                put("type", 1)
-                put("code", asset.code)
-                put("issuer", asset.issuer)
-            }
-            is AssetTypeCreditAlphaNum12 -> {
-                put("type", 2)
-                put("code", asset.code)
-                put("issuer", asset.issuer)
-            }
-            is AssetTypeCreditAlphaNum -> {
-                val type = if (asset.code.length <= 4) 1 else 2
-                put("type", type)
-                put("code", asset.code)
-                put("issuer", asset.issuer)
-            }
+    private fun Operation.toTrezorOperation(): TrezorStellarOperation = when (this) {
+        is PaymentOperation -> TrezorStellarOperation.Payment(
+            destination = destination,
+            asset = asset.toTrezorAsset(),
+            amount = amount.toStroops(),
+            sourceAccount = sourceAccount
+        )
+
+        is CreateAccountOperation -> TrezorStellarOperation.CreateAccount(
+            destination = destination,
+            startingBalance = startingBalance.toStroops(),
+            sourceAccount = sourceAccount
+        )
+
+        is ChangeTrustOperation -> TrezorStellarOperation.ChangeTrust(
+            asset = asset.toTrezorAsset(),
+            limit = limit.toStroops(),
+            sourceAccount = sourceAccount
+        )
+
+        else -> throw UnsupportedOperationException(
+            "Trezor does not support Stellar operation: ${javaClass.simpleName}"
+        )
+    }
+
+    private fun ChangeTrustAsset.toTrezorAsset(): TrezorStellarAsset {
+        val underlying = asset ?: throw UnsupportedOperationException(
+            "Trezor does not support change-trust on liquidity pool shares"
+        )
+        return underlying.toTrezorAsset()
+    }
+
+    private fun Asset.toTrezorAsset(): TrezorStellarAsset = when (this) {
+        is AssetTypeNative -> TrezorStellarAsset.Native
+        is AssetTypeCreditAlphaNum4 -> TrezorStellarAsset.AlphaNum4(code, issuer)
+        is AssetTypeCreditAlphaNum12 -> TrezorStellarAsset.AlphaNum12(code, issuer)
+        else -> throw UnsupportedOperationException(
+            "Trezor does not support Stellar asset: ${javaClass.simpleName}"
+        )
+    }
+
+    /** Exact stroop conversion: throws on fractional precision or Long overflow, never truncates. */
+    private fun BigDecimal.toStroops(): Long = movePointRight(STROOP_SCALE).longValueExact()
+
+    private fun BigInteger?.toTimeboundLong(label: String): Long {
+        val value = this ?: return 0L
+        if (value < BigInteger.ZERO || value > MAX_UINT32) {
+            throw UnsupportedOperationException("Stellar $label $value exceeds Trezor's uint32 range")
         }
+        return value.toLong()
     }
 
-    private fun toStroops(amount: BigDecimal): String =
-        amount.movePointRight(7).toBigInteger().toString()
+    private fun BigInteger.toMemoIdLong(): Long {
+        if (this < BigInteger.ZERO || this > MAX_LONG) {
+            throw UnsupportedOperationException("Stellar memo id $this exceeds Trezor's supported range")
+        }
+        return toLong()
+    }
+
+    companion object {
+        private const val STROOP_SCALE = 7
+        private val MAX_UINT32 = BigInteger.valueOf(0xFFFFFFFFL)
+        private val MAX_LONG = BigInteger.valueOf(Long.MAX_VALUE)
+    }
 }

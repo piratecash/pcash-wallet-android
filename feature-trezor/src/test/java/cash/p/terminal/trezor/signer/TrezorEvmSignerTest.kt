@@ -1,9 +1,12 @@
 package cash.p.terminal.trezor.signer
 
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezor.client.TrezorDerivationPath
 import cash.p.terminal.trezor.domain.TrezorSigningException
-import cash.p.terminal.trezor.domain.model.TrezorMethod
-import cash.p.terminal.trezor.domain.model.TrezorResponse
+import cash.p.terminal.trezorkit.client.ITrezorClient
+import cash.p.terminal.trezorkit.client.TrezorClientSession
+import cash.p.terminal.trezorkit.client.TrezorEvmGasFee
+import cash.p.terminal.trezorkit.client.TrezorEvmTx
+import cash.p.terminal.trezorkit.client.TrezorSignature
 import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
@@ -11,10 +14,8 @@ import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.RawTransaction
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
@@ -25,15 +26,21 @@ import java.security.Security
 
 class TrezorEvmSignerTest {
 
-    private val deepLinkManager: TrezorDeepLinkManager = mockk()
+    // Fake ITrezorClient whose connect(block) runs the block on a mocked TrezorClientSession, so the
+    // signer exercises the real connect() path and we can stub/capture signEthereum.
+    private val session: TrezorClientSession = mockk()
+    private val trezorClient = object : ITrezorClient {
+        override suspend fun <T> connect(block: suspend TrezorClientSession.() -> T): T = session.block()
+    }
+    private val txSlot = slot<TrezorEvmTx>()
 
     @Before
     fun setUp() {
         Security.addProvider(InternalBouncyCastleProvider.getInstance())
     }
 
-    // Real capture from a Trezor Safe 5 BSC token approve (legacy tx). The app requested gasLimit
-    // 0xe8f0 (59632) but Trezor Suite re-estimated and signed over gasLimit 0x065053 (413779).
+    // Real capture from a Trezor Safe 5 BSC token approve (legacy tx). The requested gasLimit 0xe8f0
+    // (59632) differs from the signed gasLimit 0x065053 (413779) - exercises gas reconciliation.
     private val toAddress = "0xba2ae424d960c26247dd6c32edc70b295c744c43"
     private val data = "0x095ea7b300000000000000000000000013f4ea83d0bd40e75c8222255bc855a974568dd4" +
         "000000000000000000000000000000000000000000000000000000003b034361"
@@ -71,8 +78,8 @@ class TrezorEvmSignerTest {
         "5f0c820c60"
 
     @Test
-    fun signTransaction_suiteReestimatesGasLimit_reconcilesToSignedGasLimit() = runBlocking {
-        stubResponse(fullPayload())
+    fun signTransaction_signedGasLimitDiffers_reconcilesToSignedGasLimit() = runBlocking {
+        stubSignature(legacySignature())
         val rawTransaction = requestedRawTransaction()
 
         val signed = createSigner().signTransaction(rawTransaction)
@@ -87,7 +94,7 @@ class TrezorEvmSignerTest {
 
     @Test
     fun signTransaction_validResponse_parsesSignature() = runBlocking {
-        stubResponse(fullPayload())
+        stubSignature(legacySignature())
 
         val signed = createSigner().signTransaction(requestedRawTransaction())
 
@@ -97,8 +104,65 @@ class TrezorEvmSignerTest {
     }
 
     @Test
-    fun signTransaction_eip1559SuiteReestimatesGasLimit_reconcilesGasFields() = runBlocking {
-        stubResponse(eip1559FullPayload())
+    fun signTransaction_mapsRawTransactionToTrezorEvmTx() = runBlocking {
+        stubSignature(legacySignature())
+        val raw = requestedRawTransaction()
+
+        createSigner().signTransaction(raw)
+
+        val tx = txSlot.captured
+        assertEquals(TrezorDerivationPath.parse("m/44'/60'/0'/0/0"), tx.addressN)
+        assertEquals(nonce, BigInteger(1, tx.nonce).toLong())
+        assertEquals(requestedGasLimit, BigInteger(1, tx.gasLimit).toLong())
+        assertEquals(raw.to.hex, tx.to)
+        assertArrayEquals(raw.data, tx.data)
+        assertEquals(Chain.BinanceSmartChain.id.toLong(), tx.chainId)
+        val gasFee = tx.gasFee as TrezorEvmGasFee.Legacy
+        assertEquals(gasPrice, BigInteger(1, gasFee.gasPrice).toLong())
+    }
+
+    @Test
+    fun signTransaction_highBitValue_trimmedToMinimalBigEndian() = runBlocking {
+        stubSignature(legacySignature())
+        // 0x80: BigInteger.toByteArray() prepends a 0x00 sign byte for positive high-bit values;
+        // the mapper must trim it to the minimal unsigned big-endian form Trezor expects.
+        val raw = RawTransaction(
+            gasPrice = GasPrice.Legacy(gasPrice),
+            gasLimit = requestedGasLimit,
+            to = Address(toAddress),
+            value = BigInteger.valueOf(0x80),
+            nonce = nonce,
+            data = data.hexToBytes()
+        )
+
+        runCatchingSign { createSigner().signTransaction(raw) }
+
+        assertArrayEquals(byteArrayOf(0x80.toByte()), txSlot.captured.value)
+    }
+
+    @Test
+    fun signTransaction_zeroValue_encodesEmptyByteArray() = runBlocking {
+        stubSignature(legacySignature())
+
+        createSigner().signTransaction(requestedRawTransaction())
+
+        assertArrayEquals(ByteArray(0), txSlot.captured.value)
+    }
+
+    @Test
+    fun signTransaction_eip1559_mapsFeeFieldsToTrezorEvmTx() = runBlocking {
+        stubSignature(eip1559Signature())
+
+        createSigner(eip1559Sender).signTransaction(eip1559RequestedRawTransaction())
+
+        val gasFee = txSlot.captured.gasFee as TrezorEvmGasFee.Eip1559
+        assertEquals(eip1559MaxFee, BigInteger(1, gasFee.maxFeePerGas).toLong())
+        assertEquals(eip1559MaxPriorityFee, BigInteger(1, gasFee.maxPriorityFeePerGas).toLong())
+    }
+
+    @Test
+    fun signTransaction_eip1559SignedGasLimitDiffers_reconcilesGasFields() = runBlocking {
+        stubSignature(eip1559Signature())
         val requested = eip1559RequestedRawTransaction()
 
         val signed = createSigner(eip1559Sender).signTransaction(requested)
@@ -114,8 +178,8 @@ class TrezorEvmSignerTest {
     }
 
     @Test
-    fun signTransaction_suiteChangesGasPrice_reconcilesToSignedGasPrice() = runBlocking {
-        stubResponse(fullPayload())
+    fun signTransaction_signedGasPriceDiffers_reconcilesToSignedGasPrice() = runBlocking {
+        stubSignature(legacySignature())
         // Request a gasPrice that differs from the one the device signed. Reconciliation must adopt
         // the device's value; keeping the requested one would break the byte-equality check.
         val requested = RawTransaction(
@@ -133,8 +197,8 @@ class TrezorEvmSignerTest {
     }
 
     @Test
-    fun signTransaction_eip1559SuiteChangesFees_reconcilesToSignedFees() = runBlocking {
-        stubResponse(eip1559FullPayload())
+    fun signTransaction_eip1559SignedFeesDiffer_reconcilesToSignedFees() = runBlocking {
+        stubSignature(eip1559Signature())
         // Request fee fields that differ from those the device signed; the signed values must win.
         val requested = RawTransaction(
             gasPrice = GasPrice.Eip1559(
@@ -157,12 +221,7 @@ class TrezorEvmSignerTest {
 
     @Test
     fun signTransaction_missingSerializedTx_throws() {
-        val payload = buildJsonObject {
-            put("v", responseV)
-            put("r", responseR)
-            put("s", responseS)
-        }
-        stubResponse(payload)
+        stubSignature(legacySignature().copy(serializedTx = null))
 
         assertThrows(TrezorSigningException::class.java) {
             runBlocking { createSigner().signTransaction(requestedRawTransaction()) }
@@ -171,7 +230,7 @@ class TrezorEvmSignerTest {
 
     @Test
     fun signTransaction_rebuiltTransactionDiffersFromSignature_throws() {
-        stubResponse(fullPayload())
+        stubSignature(legacySignature())
         // The device signed value 0, but here we request a non-zero value. The rebuilt transaction
         // no longer re-encodes to the device's serializedTx, so reconciliation must fail loudly.
         val tampered = RawTransaction(
@@ -190,7 +249,7 @@ class TrezorEvmSignerTest {
 
     @Test
     fun signTransaction_deviceSignedWithUnexpectedAccount_throws() {
-        stubResponse(fullPayload())
+        stubSignature(legacySignature())
         // The signer is configured with a different wallet address than the one that produced the
         // captured signature, so the sender guard must reject it.
         val wrongAddress = "0x000000000000000000000000000000000000dead"
@@ -207,23 +266,22 @@ class TrezorEvmSignerTest {
         }
     }
 
-    private fun fullPayload(): JsonObject = buildJsonObject {
-        put("v", responseV)
-        put("r", responseR)
-        put("s", responseS)
-        put("serializedTx", serializedTx)
-    }
+    private fun legacySignature() = TrezorSignature(
+        v = responseV.hexToInt(),
+        r = responseR.hexToBytes(),
+        s = responseS.hexToBytes(),
+        serializedTx = serializedTx.hexToBytes()
+    )
 
-    private fun eip1559FullPayload(): JsonObject = buildJsonObject {
-        put("v", eip1559ResponseV)
-        put("r", eip1559ResponseR)
-        put("s", eip1559ResponseS)
-        put("serializedTx", eip1559SerializedTx)
-    }
+    private fun eip1559Signature() = TrezorSignature(
+        v = eip1559ResponseV.hexToInt(),
+        r = eip1559ResponseR.hexToBytes(),
+        s = eip1559ResponseS.hexToBytes(),
+        serializedTx = eip1559SerializedTx.hexToBytes()
+    )
 
-    private fun stubResponse(payload: JsonObject) {
-        coEvery { deepLinkManager.call(TrezorMethod.EthSignTransaction, any()) } returns
-            TrezorResponse(success = true, payload = payload)
+    private fun stubSignature(signature: TrezorSignature) {
+        coEvery { session.signEthereum(capture(txSlot)) } returns signature
     }
 
     private fun requestedRawTransaction() = RawTransaction(
@@ -248,9 +306,20 @@ class TrezorEvmSignerTest {
         address = Address(address),
         chain = Chain.BinanceSmartChain,
         derivationPath = "m/44'/60'/0'/0/0",
-        deepLinkManager = deepLinkManager
+        trezorClient = trezorClient
     )
+
+    /** Runs a signing call for tests that only inspect the captured [TrezorEvmTx], ignoring later reconciliation. */
+    private inline fun runCatchingSign(block: () -> Unit) {
+        try {
+            block()
+        } catch (_: TrezorSigningException) {
+            // Reconciliation may reject the mismatched fixture; the captured request is what matters here.
+        }
+    }
 
     private fun String.hexToBytes(): ByteArray =
         removePrefix("0x").chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+
+    private fun String.hexToInt(): Int = removePrefix("0x").toInt(16)
 }

@@ -55,6 +55,9 @@
     <string name="trezor_wallet">Trezor 钱包</string>
     <string name="connect_trezor">连接 Trezor</string>
     <string name="trezor_setup_description">请确保已安装 Trezor Suite 并且您的 Trezor 设备已连接。</string>
+    <string name="trezor_not_initialized_title">设备未设置</string>
+    <string name="trezor_not_initialized_description">此 Trezor 尚未设置。请在设备上或 Trezor Suite 中完成设置，然后重新连接。</string>
+    <string name="trezor_not_initialized_cta">设置指南</string>
     <string name="trezor_suite_required_title">需要 Trezor Suite</string>
     <string name="trezor_suite_required_description">要连接您的 Trezor 设备，需要在手机上安装 Trezor Suite 应用。</string>
     <string name="install_from_play_store">从 Play Store 安装</string>
@@ -2030,4 +2033,6 @@
     <string name="send_error_balance_unavailable">余额不可用</string>
     <string name="litecoin_mweb_invalid_amount">无效的 Litecoin MWEB 金额</string>
     <string name="litecoin_hardware_extended_public_key_required">硬件 Litecoin 钱包需要扩展公钥</string>
+    <string name="send_trezor_mweb_not_supported">Trezor 不支持 MWEB。请将莱特币发送到普通（非 MWEB）地址。</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor 不支持时间锁定交易。</string>
 </resources>

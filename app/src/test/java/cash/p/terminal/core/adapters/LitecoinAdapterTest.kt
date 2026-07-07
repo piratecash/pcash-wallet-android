@@ -21,6 +21,7 @@ import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.TransactionStatus as RecordTransactionStatus
 import io.horizontalsystems.bitcoincore.BitcoinCore
+import io.horizontalsystems.bitcoincore.core.IPluginData
 import io.horizontalsystems.bitcoincore.exceptions.AddressFormatException
 import io.horizontalsystems.bitcoincore.models.BalanceInfo
 import io.horizontalsystems.bitcoincore.models.BlockInfo
@@ -34,6 +35,7 @@ import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.DefaultDispatcherProvider
+import io.horizontalsystems.hodler.HodlerPlugin
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -1191,6 +1193,50 @@ class LitecoinAdapterTest {
     }
 
     @Test
+    fun validate_trezorMwebDestination_throwsUnsupported() {
+        val adapter = createPublicAdapter(account = trezorAccount())
+        every { kit.isMwebAddress(MWEB_ADDRESS) } returns true
+
+        assertFailsWith<LocalizedException> {
+            adapter.validate(MWEB_ADDRESS, null)
+        }
+        verify(exactly = 0) { kit.validateAddress(any(), any()) }
+    }
+
+    @Test
+    fun send_trezorMwebDestination_throwsUnsupported() = runTest {
+        val adapter = createPublicAdapter(account = trezorAccount())
+        every { kit.isMwebAddress(MWEB_ADDRESS) } returns true
+
+        assertFailsWith<LocalizedException> {
+            adapter.send(
+                amount = BigDecimal.ONE,
+                address = MWEB_ADDRESS,
+                memo = null,
+                feeRate = 1,
+                unspentOutputs = null,
+                pluginData = null,
+                transactionSorting = null,
+                rbfEnabled = false,
+                changeToFirstInput = false,
+                utxoFilters = UtxoFilters()
+            )
+        }
+    }
+
+    @Test
+    fun validate_trezorHodlerPlugin_throwsUnsupported() {
+        val adapter = createPublicAdapter(account = trezorAccount())
+        every { kit.isMwebAddress(PUBLIC_ADDRESS) } returns false
+        val pluginData = mapOf(HodlerPlugin.id to mockk<IPluginData>(relaxed = true))
+
+        assertFailsWith<LocalizedException> {
+            adapter.validate(PUBLIC_ADDRESS, pluginData)
+        }
+        verify(exactly = 0) { kit.validateAddress(any(), any()) }
+    }
+
+    @Test
     fun validate_publicInvalidNonMwebDestination_delegatesToPublicValidation() {
         val adapter = createPublicAdapter()
         every { kit.isMwebAddress(INVALID_ADDRESS) } returns false
@@ -2063,7 +2109,8 @@ class LitecoinAdapterTest {
     }
 
     private fun createPublicAdapter(
-        dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider()
+        dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider(),
+        account: Account = mnemonicAccount()
     ): LitecoinAdapter {
         every { kit.litecoinBalance } returns LitecoinBalance(
             publicSpendable = 0,
@@ -2076,32 +2123,53 @@ class LitecoinAdapterTest {
             kit = kit,
             syncMode = BitcoinCore.SyncMode.Api(),
             backgroundManager = backgroundManager,
-            wallet = wallet(TokenType.Derived(TokenType.Derivation.Bip84)),
+            wallet = wallet(TokenType.Derived(TokenType.Derivation.Bip84), account),
             mode = LitecoinAdapter.Mode.Public(TokenType.Derivation.Bip84),
             dispatcherProvider = dispatcherProvider,
             feeRateProvider = feeRateProvider
         )
     }
 
-    private fun wallet(tokenType: TokenType) = requireNotNull(
-        WalletFactory(mockk<HardwareWalletTokenPolicy>(relaxed = true)).create(
+    private fun wallet(tokenType: TokenType, account: Account = mnemonicAccount()) = requireNotNull(
+        WalletFactory(
+            mockk<HardwareWalletTokenPolicy>(relaxed = true) {
+                every { isSupported(any<Account>(), any<Token>()) } returns true
+            }
+        ).create(
             token = Token(
                 coin = Coin("litecoin", "Litecoin", "LTC"),
                 blockchain = Blockchain(BlockchainType.Litecoin, "Litecoin", null),
                 type = tokenType,
                 decimals = 8
             ),
-            account = Account(
-                id = "account-id",
-                name = "Account",
-                type = AccountType.Mnemonic(List(12) { "word$it" }, ""),
-                origin = AccountOrigin.Created,
-                level = 0,
-                isBackedUp = false,
-                isFileBackedUp = false
-            ),
+            account = account,
             hardwarePublicKey = null
         )
+    )
+
+    private fun mnemonicAccount() = Account(
+        id = "account-id",
+        name = "Account",
+        type = AccountType.Mnemonic(List(12) { "word$it" }, ""),
+        origin = AccountOrigin.Created,
+        level = 0,
+        isBackedUp = false,
+        isFileBackedUp = false
+    )
+
+    private fun trezorAccount() = Account(
+        id = "trezor-account-id",
+        name = "Trezor",
+        type = AccountType.TrezorDevice(
+            deviceId = "device-1",
+            model = "Safe 5",
+            firmwareVersion = "1.0.0",
+            walletPublicKey = "trezor-public-key"
+        ),
+        origin = AccountOrigin.Created,
+        level = 0,
+        isBackedUp = false,
+        isFileBackedUp = false
     )
 
     private fun mwebState(

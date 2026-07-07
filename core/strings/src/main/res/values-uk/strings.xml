@@ -39,6 +39,9 @@
     <string name="trezor_wallet">Гаманець Trezor</string>
     <string name="connect_trezor">Підключити Trezor</string>
     <string name="trezor_setup_description">Переконайтеся, що Trezor Suite встановлено та ваш пристрій Trezor підключено.</string>
+    <string name="trezor_not_initialized_title">Пристрій не налаштовано</string>
+    <string name="trezor_not_initialized_description">Цей Trezor ще не налаштовано. Завершіть налаштування на пристрої або в Trezor Suite, потім підключіть знову.</string>
+    <string name="trezor_not_initialized_cta">Інструкція з налаштування</string>
     <string name="trezor_suite_required_title">Потрібен Trezor Suite</string>
     <string name="trezor_suite_required_description">Для підключення пристрою Trezor потрібно встановити застосунок Trezor Suite на ваш телефон.</string>
     <string name="install_from_play_store">Встановити з Play Store</string>
@@ -2197,4 +2200,6 @@
     <string name="swap_provider_type_precheck_description">Перед початком обміну провайдер виконує додаткові перевірки адреси та параметрів транзакції. Це допомагає знизити ймовірність помилок і підвищити успішність обміну.</string>
     <string name="swap_sort_best_rate">Найкращий курс</string>
     <string name="swap_sort_best_time">Найшвидший</string>
+    <string name="send_trezor_mweb_not_supported">Trezor не підтримує MWEB. Надішліть Litecoin на звичайну (не MWEB) адресу.</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor не підтримує транзакції з часовим блокуванням.</string>
 </resources>

@@ -197,7 +197,7 @@ class DashAdapter(
                         blockchainType = wallet.token.blockchainType,
                         coin = "Dash"
                     )
-                    DashKit(
+                    val kit = DashKit(
                         context = App.instance,
                         extendedKey = requireNotNull(wallet.getHDExtendedKey()),
                         walletId = account.id,
@@ -209,6 +209,8 @@ class DashAdapter(
                         iSchnorrInputSigner = trezorSigner,
                         minConnectedPeerSize = MIN_CONNECTED_PEER_TO_SEND_SIZE
                     )
+                    bindPreviousTransactionProvider(trezorSigner, kit)
+                    kit
                 }
 
                 else -> throw UnsupportedAccountException()

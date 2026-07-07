@@ -165,7 +165,7 @@ class BitcoinCashAdapter(
                         blockchainType = wallet.token.blockchainType,
                         coin = "Bcash"
                     )
-                    return BitcoinCashKit(
+                    val kit = BitcoinCashKit(
                         context = App.instance,
                         extendedKey = requireNotNull(wallet.getHDExtendedKey()),
                         walletId = account.id,
@@ -175,6 +175,8 @@ class BitcoinCashAdapter(
                         iInputSigner = trezorSigner,
                         iSchnorrInputSigner = trezorSigner,
                     )
+                    bindPreviousTransactionProvider(trezorSigner, kit)
+                    return kit
                 }
 
                 else -> throw UnsupportedAccountException()

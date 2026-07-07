@@ -49,6 +49,8 @@ class TrezorSetupFragment : BaseComposeFragment() {
             onConnect = viewModel::connectTrezor,
             onInstallSuite = viewModel::openPlayStore,
             onDismissInstall = viewModel::dismissInstallPrompt,
+            onOpenSetupGuide = viewModel::openSetupGuide,
+            onDismissNotInitialized = viewModel::dismissNotInitialized,
             onBack = navController::navigateUp
         )
     }

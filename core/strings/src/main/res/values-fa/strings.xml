@@ -55,6 +55,9 @@
     <string name="trezor_wallet">کیف پول Trezor</string>
     <string name="connect_trezor">اتصال Trezor</string>
     <string name="trezor_setup_description">مطمئن شوید که Trezor Suite نصب شده و دستگاه Trezor شما متصل است.</string>
+    <string name="trezor_not_initialized_title">دستگاه راه‌اندازی نشده است</string>
+    <string name="trezor_not_initialized_description">این Trezor هنوز راه‌اندازی نشده است. راه‌اندازی را روی دستگاه یا در Trezor Suite کامل کنید و دوباره متصل شوید.</string>
+    <string name="trezor_not_initialized_cta">راهنمای راه‌اندازی</string>
     <string name="trezor_suite_required_title">Trezor Suite لازم است</string>
     <string name="trezor_suite_required_description">برای اتصال دستگاه Trezor، باید برنامه Trezor Suite روی گوشی شما نصب شود.</string>
     <string name="install_from_play_store">نصب از Play Store</string>
@@ -2049,4 +2052,6 @@
     <string name="send_error_balance_unavailable">موجودی در دسترس نیست</string>
     <string name="litecoin_mweb_invalid_amount">مبلغ Litecoin MWEB نامعتبر است</string>
     <string name="litecoin_hardware_extended_public_key_required">کیف پول سخت‌افزاری Litecoin به کلید عمومی توسعه‌یافته نیاز دارد</string>
+    <string name="send_trezor_mweb_not_supported">Trezor از MWEB پشتیبانی نمی‌کند. لایت‌کوین را به یک آدرس عادی (غیر MWEB) ارسال کنید.</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor از تراکنش‌های زمان‌قفل پشتیبانی نمی‌کند.</string>
 </resources>

@@ -170,6 +170,7 @@ class CoinOverviewViewModel(
                 val canAddToWallet = accountTypeNotWatch != null
                         && token.isSupported
                         && token.blockchainType.supports(accountTypeNotWatch)
+                        && token.supports(accountTypeNotWatch)
 
                 when (val tokenType = token.type) {
                     is TokenType.Asset -> {

@@ -10,7 +10,7 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
 import cash.p.terminal.tangem.domain.model.AddressBytesWithPublicKey
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.trezor.signer.TrezorEvmSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -62,8 +62,8 @@ class EvmKitManager(
 ) {
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
             by inject(IHardwarePublicKeyStorage::class.java)
-    private val trezorDeepLinkManager: TrezorDeepLinkManager
-            by inject(TrezorDeepLinkManager::class.java)
+    private val trezorClient: ITrezorClient
+            by inject(ITrezorClient::class.java)
 
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
@@ -170,7 +170,7 @@ class EvmKitManager(
                     address = address,
                     chain = chain,
                     derivationPath = publicKey.derivationPath,
-                    deepLinkManager = trezorDeepLinkManager
+                    trezorClient = trezorClient
                 )
             }
 
@@ -354,10 +354,10 @@ class EvmKitWrapper(
 
     /**
      * Signs [rawTransaction] and returns the transaction that was actually signed together with its
-     * signature. Hardware wallets may sign over different fields than requested (Trezor Suite
-     * re-estimates the gas limit), so the returned raw transaction can differ from the input. Always
-     * go through this instead of the base Signer.signedTransaction(), which signs hardware-wallet
-     * transactions with a mock key.
+     * signature. Hardware wallets return the device-signed transaction, reconciled from the fields the
+     * device signed, so the returned raw transaction can differ from the input. Always go through this
+     * instead of the base Signer.signedTransaction(), which signs hardware-wallet transactions with a
+     * mock key.
      */
     suspend fun signReconciled(rawTransaction: RawTransaction): Pair<RawTransaction, Signature> {
         val signer = requireNotNull(signer) { "Signer is not initialized for this EVM kit" }

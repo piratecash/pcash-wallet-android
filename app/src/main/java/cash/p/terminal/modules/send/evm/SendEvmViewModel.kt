@@ -144,19 +144,27 @@ internal class SendEvmViewModel(
         addressService.setAddress(address)
     }
 
-    fun onClickSend() = viewModelScope.launch(Dispatchers.Default) {
-        sendResult = try {
-            val sendResult = sendTransactionService.sendTransaction()
-            onSendSuccess(addressState.address?.hex)
-            SendResult.Sent(sendResult.getRecordUid())
-        } catch (e: TrezorCancelledException) {
-            null
-        } catch (e: Throwable) {
-            if (e.isHardwareWalletUserCancelled()) {
-                Timber.i("user cancelled")
+    fun onClickSend() {
+        // Set the sending state synchronously before launching so the button disables (and the HUD
+        // spinner shows) for the whole sign+broadcast wait - critical for the slow Trezor USB
+        // confirmation - and a second tap can't enqueue a duplicate send.
+        if (sendResult == SendResult.Sending) return
+        sendResult = SendResult.Sending
+
+        viewModelScope.launch(Dispatchers.Default) {
+            sendResult = try {
+                val sendResult = sendTransactionService.sendTransaction()
+                onSendSuccess(addressState.address?.hex)
+                SendResult.Sent(sendResult.getRecordUid())
+            } catch (e: TrezorCancelledException) {
                 null
-            } else {
-                SendResult.Failed(createCaution(e))
+            } catch (e: Throwable) {
+                if (e.isHardwareWalletUserCancelled()) {
+                    Timber.i("user cancelled")
+                    null
+                } else {
+                    SendResult.Failed(createCaution(e))
+                }
             }
         }
     }

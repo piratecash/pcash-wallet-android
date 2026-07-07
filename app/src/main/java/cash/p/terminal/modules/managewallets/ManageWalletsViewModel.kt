@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.R
+import cash.p.terminal.trezorkit.TrezorNotInitializedException
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.modules.restoreaccount.restoreblockchains.CoinViewItem
@@ -131,6 +132,9 @@ class ManageWalletsViewModel(
         try {
             val publicKeys = fetchTrezorPublicKeys(blockchainTypesToDerive, account.id)
             applyFetchedKeys(publicKeys, account, closeAfterSuccess)
+        } catch (e: TrezorNotInitializedException) {
+            Timber.w(e, "Trezor is not set up")
+            showError(App.instance.getString(R.string.trezor_not_initialized_description))
         } catch (e: Exception) {
             Timber.e(e, "Trezor: failed to fetch public keys")
             showError(e.message)
@@ -148,7 +152,7 @@ class ManageWalletsViewModel(
         closeAfterSuccess: Boolean
     ) {
         val (addedTokens, notFoundTokens) = awaitingEnabledTokens.partition { token ->
-            publicKeys.any { it.blockchainType == token.blockchainType.uid }
+            publicKeys.any { it.blockchainType == token.blockchainType.uid && it.tokenType == token.type }
         }
         with(awaitingEnabledTokens) {
             clear()
@@ -258,7 +262,7 @@ class ManageWalletsViewModel(
 
     private fun hasPublicKey(token: Token): Boolean =
         existingPublicKeys?.any {
-            it.blockchainType == token.blockchainType.uid
+            it.blockchainType == token.blockchainType.uid && it.tokenType == token.type
         } == true
 
     override val addTokenEnabled: Boolean

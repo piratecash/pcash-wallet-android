@@ -46,7 +46,7 @@ val useCaseModule = module {
     factoryOf(::MoneroWalletUseCase)
     factoryOf(::GenerateMoneroWalletUseCase)
     factoryOf(::CreateHardwareWalletUseCase) bind ICreateHardwareWalletUseCase::class
-    factory { CreateTrezorWalletUseCase(get(), get(), get(), get(), get(), get(), get()) } bind ICreateTrezorWalletUseCase::class
+    factoryOf(::CreateTrezorWalletUseCase) bind ICreateTrezorWalletUseCase::class
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class
     singleOf(::TorConnectionStatusUseCase) bind ITorConnectionStatusUseCase::class
     singleOf(::ClearZCashWalletDataUseCase)

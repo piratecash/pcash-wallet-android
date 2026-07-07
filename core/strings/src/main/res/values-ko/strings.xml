@@ -55,6 +55,9 @@
     <string name="trezor_wallet">Trezor 지갑</string>
     <string name="connect_trezor">Trezor 연결</string>
     <string name="trezor_setup_description">Trezor Suite가 설치되어 있고 Trezor 기기가 연결되어 있는지 확인하세요.</string>
+    <string name="trezor_not_initialized_title">기기가 설정되지 않음</string>
+    <string name="trezor_not_initialized_description">이 Trezor는 아직 설정되지 않았습니다. 기기 또는 Trezor Suite에서 설정을 완료한 후 다시 연결하세요.</string>
+    <string name="trezor_not_initialized_cta">설정 가이드</string>
     <string name="trezor_suite_required_title">Trezor Suite 필요</string>
     <string name="trezor_suite_required_description">Trezor 기기를 연결하려면 Trezor Suite 앱이 휴대폰에 설치되어 있어야 합니다.</string>
     <string name="install_from_play_store">Play Store에서 설치</string>
@@ -2039,4 +2042,6 @@
     <string name="send_error_balance_unavailable">잔액을 사용할 수 없습니다</string>
     <string name="litecoin_mweb_invalid_amount">Litecoin MWEB 금액이 올바르지 않습니다</string>
     <string name="litecoin_hardware_extended_public_key_required">하드웨어 Litecoin 지갑에는 확장 공개 키가 필요합니다</string>
+    <string name="send_trezor_mweb_not_supported">Trezor는 MWEB를 지원하지 않습니다. 일반(비 MWEB) 주소로 라이트코인을 보내세요.</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor는 시간 잠금 거래를 지원하지 않습니다.</string>
 </resources>

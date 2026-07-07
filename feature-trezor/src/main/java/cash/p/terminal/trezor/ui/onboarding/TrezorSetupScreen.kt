@@ -28,6 +28,8 @@ fun TrezorSetupScreen(
     onConnect: () -> Unit,
     onInstallSuite: () -> Unit,
     onDismissInstall: () -> Unit,
+    onOpenSetupGuide: () -> Unit,
+    onDismissNotInitialized: () -> Unit,
     onBack: () -> Unit
 ) {
     Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
@@ -69,6 +71,13 @@ fun TrezorSetupScreen(
             onDismiss = onDismissInstall
         )
     }
+
+    if (uiState.showNotInitialized) {
+        TrezorNotInitializedDialog(
+            onOpenSetupGuide = onOpenSetupGuide,
+            onDismiss = onDismissNotInitialized
+        )
+    }
 }
 
 @Preview
@@ -80,6 +89,8 @@ private fun TrezorSetupScreenPreview() {
             onConnect = {},
             onInstallSuite = {},
             onDismissInstall = {},
+            onOpenSetupGuide = {},
+            onDismissNotInitialized = {},
             onBack = {}
         )
     }

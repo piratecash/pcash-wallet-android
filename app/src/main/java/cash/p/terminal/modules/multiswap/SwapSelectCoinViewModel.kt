@@ -127,7 +127,9 @@ class SwapSelectCoinViewModel(
                         }
                             .flatten()
                     val suggestedTokens = tokens.filter { tokenToFilter ->
-                        tokenToFilter.blockchainType.supports(activeAccount.type) && resultTokens.none { tokenToFilter == it.token }
+                        tokenToFilter.blockchainType.supports(activeAccount.type) &&
+                            tokenToFilter.supports(activeAccount.type) &&
+                            resultTokens.none { tokenToFilter == it.token }
                     }
 
                     suggestedTokens
@@ -156,7 +158,9 @@ class SwapSelectCoinViewModel(
 
             val supportedNativeTokens = marketKit.tokens(tokenQueries)
             supportedNativeTokens.filter { token ->
-                token.blockchainType.supports(activeAccount.type) && resultTokens.none { it.token == token }
+                token.blockchainType.supports(activeAccount.type) &&
+                    token.supports(activeAccount.type) &&
+                    resultTokens.none { it.token == token }
             }
                 .sortedWith(
                     compareBy<Token> { it.blockchainType.order }

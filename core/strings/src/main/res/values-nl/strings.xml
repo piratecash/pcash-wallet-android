@@ -55,6 +55,9 @@
     <string name="trezor_wallet">Trezor Wallet</string>
     <string name="connect_trezor">Trezor verbinden</string>
     <string name="trezor_setup_description">Zorg ervoor dat Trezor Suite is geïnstalleerd en je Trezor-apparaat is verbonden.</string>
+    <string name="trezor_not_initialized_title">Apparaat niet ingesteld</string>
+    <string name="trezor_not_initialized_description">Deze Trezor is nog niet ingesteld. Voltooi de installatie op het apparaat of in Trezor Suite en verbind opnieuw.</string>
+    <string name="trezor_not_initialized_cta">Installatiegids</string>
     <string name="trezor_suite_required_title">Trezor Suite vereist</string>
     <string name="trezor_suite_required_description">Om je Trezor-apparaat te verbinden, moet de Trezor Suite-app op je telefoon zijn geïnstalleerd.</string>
     <string name="install_from_play_store">Installeren vanuit Play Store</string>
@@ -2052,4 +2055,6 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="send_error_balance_unavailable">Saldo niet beschikbaar</string>
     <string name="litecoin_mweb_invalid_amount">Ongeldig Litecoin MWEB-bedrag</string>
     <string name="litecoin_hardware_extended_public_key_required">Hardware-Litecoin-portemonnee vereist een uitgebreide publieke sleutel</string>
+    <string name="send_trezor_mweb_not_supported">Trezor ondersteunt MWEB niet. Stuur Litecoin naar een gewoon (niet-MWEB) adres.</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor ondersteunt tijdvergrendelde transacties niet.</string>
 </resources>

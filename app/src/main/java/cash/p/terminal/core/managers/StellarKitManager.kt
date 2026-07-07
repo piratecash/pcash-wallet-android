@@ -7,8 +7,8 @@ import cash.p.terminal.core.onPollingStarted
 import cash.p.terminal.core.onPollingStopped
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.tangem.signer.HardwareWalletStellarSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
 import cash.p.terminal.trezor.signer.TrezorStellarSigner
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class StellarKitManager(
     private val backgroundManager: BackgroundManager,
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
-    private val trezorDeepLinkManager: TrezorDeepLinkManager,
+    private val trezorClient: ITrezorClient,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
 ) {
     private val lifecycleMutex = Mutex()
@@ -113,7 +113,7 @@ class StellarKitManager(
             publicKey = publicKeyBytes,
             derivationPath = key.derivationPath,
             networkPassphrase = org.stellar.sdk.Network.PUBLIC.networkPassphrase,
-            deepLinkManager = trezorDeepLinkManager
+            trezorClient = trezorClient
         )
         val kit = StellarKit.getInstance(signer, Network.MainNet, App.instance, account.id)
         return StellarKitWrapper(kit)

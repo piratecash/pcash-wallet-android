@@ -15,6 +15,10 @@ android {
     }
     defaultConfig {
         minSdk = 27
+
+        // Switcher for the USB migration: false keeps the app on the legacy Trezor Suite deeplink,
+        // true routes ITrezorClient through the direct-USB kit. Default off until USB is verified.
+        buildConfigField("boolean", "USE_TREZOR_USB", "true")
     }
     buildFeatures {
         compose = true
@@ -45,7 +49,6 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.androidx.material3.android)
-    implementation(libs.compose.tooling)
 
     implementation(libs.kotlinx.serialization.json)
 
@@ -55,6 +58,8 @@ dependencies {
     implementation(libs.solanakt)
     implementation(libs.stellar.kit)
     implementation(libs.bitcoin.kit)
+    // api: app-level code (e.g. CreateTrezorWalletUseCase) references ITrezorClient/DTOs directly.
+    api(libs.trezor.kit)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 

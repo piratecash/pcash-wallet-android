@@ -8,7 +8,7 @@ import cash.p.terminal.core.onPollingStartedSuspend
 import cash.p.terminal.core.onPollingStoppedSuspend
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.tangem.signer.HardwareWalletSolanaAccountSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.trezor.signer.TrezorSolanaSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -47,7 +47,7 @@ class SolanaKitManager(
     private val walletManager: SolanaWalletManager,
     private val backgroundManager: BackgroundManager,
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
-    private val trezorDeepLinkManager: TrezorDeepLinkManager,
+    private val trezorClient: ITrezorClient,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
 ) {
 
@@ -198,7 +198,7 @@ class SolanaKitManager(
         val account = TrezorSolanaSigner(
             publicKey = PublicKey(hardwarePublicKey.key.value.fromHex()),
             derivationPath = hardwarePublicKey.derivationPath,
-            deepLinkManager = trezorDeepLinkManager
+            trezorClient = trezorClient
         )
         return createHardwareKitInstance(accountId, hardwarePublicKey, account)
     }
