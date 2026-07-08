@@ -1541,6 +1541,7 @@ class LitecoinAdapter(
             val trezorSigner = buildTrezorBtcSigner(
                 accountId = context.account.id,
                 blockchainType = token.blockchainType,
+                tokenType = token.type,
                 coin = "Litecoin"
             )
             val kit = LitecoinKit(

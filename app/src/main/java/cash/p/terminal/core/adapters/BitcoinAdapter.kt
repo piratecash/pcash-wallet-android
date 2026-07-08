@@ -180,6 +180,7 @@ class BitcoinAdapter(
                     val trezorSigner = buildTrezorBtcSigner(
                         accountId = account.id,
                         blockchainType = wallet.token.blockchainType,
+                        tokenType = wallet.token.type,
                         coin = "Bitcoin"
                     )
                     val kit = BitcoinKit(

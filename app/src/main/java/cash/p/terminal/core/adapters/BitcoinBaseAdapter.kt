@@ -1,5 +1,6 @@
 package cash.p.terminal.core.adapters
 
+import androidx.annotation.VisibleForTesting
 import cash.p.terminal.R
 import cash.p.terminal.core.BitcoinSwapSendResult
 import cash.p.terminal.core.IFeeRateProvider
@@ -780,9 +781,11 @@ abstract class BitcoinBaseAdapter(
         }
 
         @JvmStatic
-        protected fun buildTrezorBtcSigner(
+        @VisibleForTesting
+        internal fun buildTrezorBtcSigner(
             accountId: String,
             blockchainType: BlockchainType,
+            tokenType: TokenType,
             coin: String
         ): TrezorBtcSigner {
             val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
@@ -791,10 +794,7 @@ abstract class BitcoinBaseAdapter(
                     by inject(ITrezorClient::class.java)
             val hardwarePublicKey = runBlocking {
                 requireNotNull(
-                    hardwarePublicKeyStorage.getKeyByBlockchain(
-                        accountId = accountId,
-                        blockchainType = blockchainType
-                    )
+                    hardwarePublicKeyStorage.getKey(accountId, blockchainType, tokenType)
                 )
             }
             return TrezorBtcSigner(

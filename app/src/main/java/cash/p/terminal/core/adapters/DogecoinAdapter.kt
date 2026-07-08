@@ -150,6 +150,7 @@ class DogecoinAdapter(
                     val trezorSigner = buildTrezorBtcSigner(
                         accountId = account.id,
                         blockchainType = wallet.token.blockchainType,
+                        tokenType = wallet.token.type,
                         coin = "Dogecoin"
                     )
                     val kit = DogecoinKit(

@@ -195,6 +195,7 @@ class DashAdapter(
                     val trezorSigner = buildTrezorBtcSigner(
                         accountId = account.id,
                         blockchainType = wallet.token.blockchainType,
+                        tokenType = wallet.token.type,
                         coin = "Dash"
                     )
                     val kit = DashKit(

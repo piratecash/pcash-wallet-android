@@ -163,6 +163,7 @@ class BitcoinCashAdapter(
                     val trezorSigner = buildTrezorBtcSigner(
                         accountId = account.id,
                         blockchainType = wallet.token.blockchainType,
+                        tokenType = wallet.token.type,
                         coin = "Bcash"
                     )
                     val kit = BitcoinCashKit(
