@@ -35,7 +35,6 @@ internal class ChangeNowApi(
         amount: BigDecimal
     ): ExchangeAmountDto {
         return httpClient.get {
-            amount.toPlainString()
             url(BASE_URL + "exchange-amount/${amount.toPlainString()}/${tickerFrom}_${tickerTo}")
             parameter("api_key", API_KEY)
         }.parseChangeNowResponse()
