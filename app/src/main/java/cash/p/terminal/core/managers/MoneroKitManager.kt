@@ -33,6 +33,7 @@ import com.m2049r.xmrwallet.service.WalletCorruptedException
 import com.m2049r.xmrwallet.util.Helper
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.core.sizeInMb
@@ -62,12 +63,13 @@ class MoneroKitManager(
     private val moneroWalletService: MoneroWalletService,
     private val backgroundManager: BackgroundManager,
     private val restoreSettingsManager: RestoreSettingsManager,
-    private val backgroundKeepAliveManager: BackgroundKeepAliveManager
+    private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val connectivityManager: ConnectivityManager,
+    private val dispatcherProvider: DispatcherProvider,
 ) {
-    private val connectivityManager = App.connectivityManager
     private val pollingSessionCount = AtomicInteger(0)
     private val coroutineScope =
-        CoroutineScope(Dispatchers.IO + CoroutineExceptionHandler { _, throwable ->
+        CoroutineScope(dispatcherProvider.io + CoroutineExceptionHandler { _, throwable ->
             Timber.e(throwable, "Coroutine error")
         })
     var moneroKitWrapper: MoneroKitWrapper? = null
@@ -126,13 +128,13 @@ class MoneroKitManager(
 
     suspend fun startForPolling() {
         pollingSessionCount.onPollingStartedSuspend {
-            moneroKitWrapper?.resume()
+            resumeOrStartKit()
         }
     }
 
     suspend fun stopForPolling() {
         pollingSessionCount.onPollingStoppedSuspend(backgroundManager) {
-            moneroKitWrapper?.pause()
+            stopAndSaveKit()
         }
     }
 
@@ -147,8 +149,8 @@ class MoneroKitManager(
         moneroKitWrapper?.start()
     }
 
-    private suspend fun pauseKit() {
-        moneroKitWrapper?.pause()
+    private suspend fun stopAndSaveKit() {
+        moneroKitWrapper?.stop(saveWallet = true)
     }
 
     private suspend fun resumeOrStartKit() {
@@ -168,7 +170,7 @@ class MoneroKitManager(
                     resumeOrStartKit()
                 } else if (state == BackgroundManagerState.EnterBackground) {
                     if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Monero)) {
-                        pauseKit()
+                        stopAndSaveKit()
                     } else {
                         Timber.tag("TxPoller").d("MoneroKit staying alive")
                     }
@@ -567,23 +569,27 @@ class MoneroKitWrapper(
         return true
     }
 
+    // Held under lifecycleMutex so a background stop() cannot close the wallet mid-send.
     suspend fun send(
         amount: BigDecimal,
         address: String,
         memo: String?
-    ): String = withContext(Dispatchers.IO) {
-        val wallet = moneroWalletService.wallet
-            ?: throw IllegalStateException("Monero wallet not initialized")
-        val txData = buildTxData(amount, address, memo, wallet)
-        moneroWalletService.prepareTransaction(txData)
-        moneroWalletService.sendTransaction(memo)
+    ): String = lifecycleMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val wallet = moneroWalletService.wallet
+                ?: throw IllegalStateException("Monero wallet not initialized")
+            val txData = buildTxData(amount, address, memo, wallet)
+            moneroWalletService.prepareTransaction(txData)
+            moneroWalletService.sendTransaction(memo)
+        }
     }
 
-    fun estimateFee(
+    // Held under lifecycleMutex so a background stop() cannot close the wallet mid-estimate.
+    suspend fun estimateFee(
         amount: BigDecimal,
         address: String,
         memo: String?
-    ): Long {
+    ): Long = lifecycleMutex.withLock {
         val wallet = moneroWalletService.wallet
             ?: throw IllegalStateException("Monero wallet not initialized")
         val txData = buildTxData(amount, address, memo, wallet)
@@ -591,7 +597,7 @@ class MoneroKitWrapper(
         if (fee < 0) {
             throw IllegalStateException("Failed to estimate fee: wallet not synced with daemon")
         }
-        return fee
+        fee
     }
 
     private fun buildTxData(
