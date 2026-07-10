@@ -36,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -102,6 +103,7 @@ import cash.p.terminal.ui.compose.components.BadgeText
 import cash.p.terminal.ui.compose.components.CoinIconWithSyncProgress
 import cash.p.terminal.ui.compose.components.ListEmptyView
 import cash.p.terminal.ui_compose.CoinFragmentInput
+import cash.p.terminal.ui_compose.ScreenSecurityState
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
@@ -1005,6 +1007,11 @@ private fun TokenNotSyncedSectionPreview() {
         )
     }
 }
+
+// Never auto-open the wallet sync-error sheet while the app is locked: it lives in its
+// own Window and would leak wallet UI above the calculator/PIN disguise (deanonymization).
+internal fun shouldAutoShowSyncError(failedIconVisible: Boolean, appLocked: Boolean): Boolean =
+    failedIconVisible && !appLocked
 
 private fun onSyncErrorClicked(
     viewItem: BalanceViewItem,
