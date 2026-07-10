@@ -134,6 +134,10 @@ class TokenBalanceViewModel(
         transactionsService.syncingFlow.value || !transactionsService.recordsLoadedFlow.value
     private var hasHiddenTransactions: Boolean = false
     private var amlPromoAlertEnabled = premiumSettings.getAmlCheckShowAlert()
+    // Reflects whether the wallet has transactions, updated only on non-search loads. This keeps
+    // the AML promo banner from blinking out (and shifting the pinned search panel) on every
+    // keystroke, since a search transiently empties the transaction list while scanning.
+    private var walletHasTransactions = false
     private var lastAddressPoisoningViewMode = localStorage.addressPoisoningViewMode
 
     // Maps transaction record UID to SwapProviderTransaction for reactive updates
@@ -406,8 +410,7 @@ class TokenBalanceViewModel(
     }
 
     private fun shouldShowAmlPromo(): Boolean {
-        val hasTransactions = transactions?.values?.flatten()?.isNotEmpty() == true
-        return amlPromoAlertEnabled && hasTransactions
+        return amlPromoAlertEnabled && walletHasTransactions
     }
 
     private fun refreshStaking() {
@@ -572,6 +575,12 @@ class TokenBalanceViewModel(
                 }
                 .map { amlStatusManager.applyStatus(it) }
                 .groupBy { it.formattedDate }
+
+        // Only a non-search load reflects the real wallet history; a search filters the list and
+        // must not flip the AML promo banner (see walletHasTransactions).
+        if (appliedSearchQuery.isEmpty()) {
+            walletHasTransactions = transactions?.values?.flatten()?.isNotEmpty() == true
+        }
 
         emitState()
     }
@@ -771,6 +780,11 @@ class TokenBalanceViewModel(
         // until the new filter's first batch arrives.
         transactions = null
         syncing = true
+        // A non-search filter switch hides the promo during its loading window, exactly as before;
+        // updateTransactions recomputes walletHasTransactions once the new filter's list arrives.
+        if (appliedSearchQuery.isEmpty()) {
+            walletHasTransactions = false
+        }
         transactionsService.setTransactionType(type)
         emitState()
     }
