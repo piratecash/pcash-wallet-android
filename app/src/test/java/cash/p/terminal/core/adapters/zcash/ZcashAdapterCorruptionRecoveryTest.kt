@@ -26,6 +26,7 @@ import cash.z.ecc.android.sdk.model.ZcashNetwork
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.CoreApp
+import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -80,6 +81,7 @@ class ZcashAdapterCorruptionRecoveryTest {
     private val backgroundManager = mockk<BackgroundManager>(relaxed = true)
     private val singleUseAddressManager = mockk<ZcashSingleUseAddressManager>(relaxed = true)
     private val clearZCashWalletDataUseCase = mockk<ClearZCashWalletDataUseCase>(relaxed = true)
+    private val backgroundKeepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
     private val restoreSettings = RestoreSettings().apply { birthdayHeight = 2000000L }
 
     private lateinit var mockSynchronizer: SdkSynchronizer
@@ -105,7 +107,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         startKoin {
             modules(module {
                 single { clearZCashWalletDataUseCase }
-                single { mockk<BackgroundKeepAliveManager>(relaxed = true) }
+                single { backgroundKeepAliveManager }
             })
         }
 
@@ -1089,6 +1091,45 @@ class ZcashAdapterCorruptionRecoveryTest {
         Thread.sleep(500)
 
         coVerify(exactly = 0) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun stopped_duringPollingSession_restartsInBackground() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns false
+
+        adapter = createAdapter(20L, 100L)
+        adapter.startForPolling()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        coVerify(timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun stopped_duringKeepAlive_restartsInBackground() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns false
+        every { backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash) } returns true
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        coVerify(timeout = VERIFY_TIMEOUT) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),

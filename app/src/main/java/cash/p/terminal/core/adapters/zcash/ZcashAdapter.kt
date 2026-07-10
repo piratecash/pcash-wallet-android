@@ -304,7 +304,7 @@ class ZcashAdapter(
                         start()
                     }
                     BackgroundManagerState.EnterBackground -> {
-                        if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash)) {
+                        if (!hasActiveBackgroundSession()) {
                             pauseSynchronizer()
                         } else {
                             Timber.tag("TxPoller").d("ZcashAdapter staying alive")
@@ -817,9 +817,15 @@ class ZcashAdapter(
 
     private fun onChainError(errorHeight: BlockHeight, rewindHeight: BlockHeight) = Unit
 
+    // ZEC is intentionally kept running in the background during an active polling session or
+    // realtime keep-alive (see EnterBackground above), so self-heal must be allowed in those
+    // cases too, not just while the app is in the foreground.
+    private fun hasActiveBackgroundSession(): Boolean =
+        pollingSessionCount.get() > 0 || backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash)
+
     private fun scheduleRestart() {
         if (recovering.get()) return
-        if (!backgroundManager.inForeground) return
+        if (!backgroundManager.inForeground && !hasActiveBackgroundSession()) return
         if (restartJob?.isActive == true) return
         val delayMs = zcashRestartDelayFor(restartAttempt, restartBaseDelayMs, restartMaxDelayMs)
         restartAttempt++
@@ -829,7 +835,7 @@ class ZcashAdapter(
             // SYNCING/SYNCED is observed, so reaching this point means the restart is still due.
             // (syncState itself is unreliable at this point - subscribe()'s eager resubscription
             // to the progress/processorInfo flows can transiently flip it back to Syncing.)
-            if (backgroundManager.inForeground) {
+            if (backgroundManager.inForeground || hasActiveBackgroundSession()) {
                 start()
             }
         }
