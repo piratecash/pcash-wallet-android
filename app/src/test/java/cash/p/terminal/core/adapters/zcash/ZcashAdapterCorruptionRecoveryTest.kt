@@ -752,6 +752,14 @@ class ZcashAdapterCorruptionRecoveryTest {
     private fun awaitState(predicate: (AdapterState) -> Boolean) {
         val deadline = System.currentTimeMillis() + VERIFY_TIMEOUT
         while (!predicate(adapter.balanceState)) {
+            // Drain coroutines already queued on the test dispatcher (e.g. the status
+            // collector reacting to a StateFlow emission). Without this the wait depends on
+            // whether the unconfined dispatcher happened to run the collector eagerly, which
+            // is not guaranteed once sibling tests leave work on the shared scheduler — the
+            // source of the intermittent timeout. runCurrent() (not advanceUntilIdle()) is
+            // used so delay-based polling loops are not driven.
+            dispatcher.scheduler.runCurrent()
+            if (predicate(adapter.balanceState)) return
             if (System.currentTimeMillis() > deadline) {
                 throw AssertionError("Timed out waiting for state, current: ${adapter.balanceState}")
             }

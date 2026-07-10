@@ -41,6 +41,18 @@ Devices with Android versions 8.1 and above
 
 [https://github.com/piratecash/pcash-wallet-android](https://github.com/piratecash/pcash-wallet-android)
 
+## Performance — Baseline Profile
+
+The app ships with a [Baseline Profile](https://developer.android.com/topic/performance/baselineprofiles):
+a precomputed list of the code paths exercised during startup and the main user journeys.
+On install, ART ahead-of-time compiles exactly those paths, so the first cold start (all the
+way to the asset list) is meaningfully faster — instead of relying on interpreted/JIT code
+that only warms up after repeated use. The profile is bundled in the APK/AAB and applied
+automatically: by `profileinstaller` on F-Droid/APK installs, and at install time on Google
+Play.
+
+To (re)generate it, see [baselineprofile/README.md](./baselineprofile/README.md).
+
 ## License
 
 This wallet is open source and available under the terms of the MIT License.

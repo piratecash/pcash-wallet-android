@@ -2,6 +2,7 @@ package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.TonHelper
+import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.entities.TransactionValue
@@ -21,6 +22,7 @@ import cash.p.terminal.modules.transactionInfo.TransactionViewItemFactoryHelper.
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.ui_compose.ColorName
 import io.horizontalsystems.core.entities.BlockchainType
 
 class TransactionInfoViewItemFactory(
@@ -629,16 +631,20 @@ class TransactionInfoViewItemFactory(
 
             is PendingTransactionRecord -> {
                 itemSections.add(
-                    TransactionViewItemFactoryHelper.getSendSectionItems(
-                        value = transaction.mainValue,
-                        toAddress = transaction.to,
-                        coinPrice = rates[transaction.mainValue.coinUid],
-                        hideAmount = transactionItem.hideAmount,
-                        sentToSelf = transaction.sentToSelf,
-                        nftMetadata = nftMetadata,
-                        blockchainType = blockchainType,
-                        showCopyWarning = isSuspicious,
-                    )
+                    if (transactionItem.hasUnknownOfflineMetadata) {
+                        getUnknownOfflineSendSectionItems(transaction.mainValue)
+                    } else {
+                        TransactionViewItemFactoryHelper.getSendSectionItems(
+                            value = transaction.mainValue,
+                            toAddress = transaction.to,
+                            coinPrice = rates[transaction.mainValue.coinUid],
+                            hideAmount = transactionItem.hideAmount,
+                            sentToSelf = transaction.sentToSelf,
+                            nftMetadata = nftMetadata,
+                            blockchainType = blockchainType,
+                            showCopyWarning = isSuspicious,
+                        )
+                    }
                 )
             }
 
@@ -700,15 +706,14 @@ class TransactionInfoViewItemFactory(
             itemSections.add(miscItemsSection)
         }
 
-        itemSections.add(
-            TransactionViewItemFactoryHelper.getStatusSectionItems(
-                transaction = transaction,
-                status = status,
-                rates = rates,
-                blockchainType = blockchainType,
-                hideSensitiveInfo = transactionItem.hideAmount
-            )
+        val statusItems = TransactionViewItemFactoryHelper.getStatusSectionItems(
+            transaction = transaction,
+            status = status,
+            rates = rates,
+            blockchainType = blockchainType,
+            hideSensitiveInfo = transactionItem.hideAmount,
         )
+        itemSections.add(statusItems.withOfflineStatus(transactionItem.offlineStatus))
 
         if (transaction is EvmTransactionRecord && !transaction.foreignTransaction && !transaction.protected && status == TransactionStatus.Pending && resendEnabled) {
             itemSections.add(
@@ -787,3 +792,48 @@ class TransactionInfoViewItemFactory(
         }
     }
 }
+
+private val TransactionInfoItem.hasUnknownOfflineMetadata: Boolean
+    get() {
+        val pendingRecord = record as? PendingTransactionRecord ?: return false
+        return offlineStatus != null && pendingRecord.to.orEmpty().all { it.isBlank() }
+    }
+
+private fun getUnknownOfflineSendSectionItems(
+    value: TransactionValue,
+): List<TransactionInfoViewItem> =
+    listOf(
+        TransactionInfoViewItem.Amount(
+            coinValue = ColoredValue(UNKNOWN_VALUE, ColorName.Grey),
+            fiatValue = ColoredValue(UNKNOWN_VALUE, ColorName.Grey),
+            coinIconUrl = value.coinIconUrl,
+            alternativeCoinIconUrl = value.alternativeCoinIconUrl,
+            coinIconPlaceholder = value.coinIconPlaceholder,
+            coinUid = null,
+            badge = value.badge,
+            amountType = AmountType.Sent,
+        ),
+        TransactionInfoViewItem.Value(
+            Translator.getString(R.string.TransactionInfo_To),
+            UNKNOWN_VALUE,
+        )
+    )
+
+// Offline-signed transactions replace the regular status row with a dedicated offline status. When no
+// offline status is present the list is returned unchanged.
+private fun List<TransactionInfoViewItem>.withOfflineStatus(
+    offlineStatus: ColoredValue?,
+): List<TransactionInfoViewItem> =
+    if (offlineStatus == null) {
+        this
+    } else {
+        map { item ->
+            if (item is TransactionInfoViewItem.Status) {
+                TransactionInfoViewItem.OfflineStatus(offlineStatus)
+            } else {
+                item
+            }
+        }
+    }
+
+private const val UNKNOWN_VALUE = "---"

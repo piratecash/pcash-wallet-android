@@ -9,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -22,6 +23,20 @@ import kotlinx.coroutines.launch
 fun InfoBottomSheet(
     title: String,
     text: String,
+    onDismiss: () -> Unit
+) {
+    InfoBottomSheet(
+        title = title,
+        text = AnnotatedString(text),
+        onDismiss = onDismiss,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InfoBottomSheet(
+    title: String,
+    text: AnnotatedString,
     onDismiss: () -> Unit
 ) {
     val scope = rememberCoroutineScope()

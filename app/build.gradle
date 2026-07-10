@@ -15,6 +15,8 @@ plugins {
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'androidx.navigation.safeargs.kotlin'
+    id 'io.github.takahirom.roborazzi' version '1.65.0'
+    id 'androidx.baselineprofile'
 }
 
 // Git version information helpers (using modern providers.exec API)
@@ -73,6 +75,8 @@ android {
         buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
         buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
         buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
+        // True only for the disposable baseline-profile generation build type (see baselinegen).
+        buildConfigField "boolean", "BASELINE_PROFILE_MODE", "false"
         buildConfigField "boolean", "PAYCORE_ENABLED", "true"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -143,6 +147,7 @@ android {
             minifyEnabled false
             applicationIdSuffix ".dev"
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://cash.p.cash/api/\""
+            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "false"
             resValue "string", "uniswapGraphUrl", "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
             resValue "string", "is_release", "false"
             resValue "string", "guidesUrl", "https://raw.githubusercontent.com/horizontalsystems/Unstoppable-Wallet-Website/refs/tags/v1.4/src/edu.json"
@@ -170,6 +175,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://p.cash/api/\""
+            buildConfigField "boolean", "SHOW_DEBUG_OFFLINE_SIGN_BUTTON", "false"
             firebaseCrashlytics {
                 nativeSymbolUploadEnabled true
             }
@@ -194,6 +200,21 @@ android {
             buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://cash.p.cash/api/\""
             signingConfig signingConfigs.appCenter
             matchingFallbacks = ['release']
+        }
+
+        // Local-only, DISPOSABLE sandbox for baseline-profile generation.
+        // Release code paths (DEBUG=false → ART AOT, the only mode baseline profiles
+        // help) under a unique applicationId that NEVER holds real wallets: the
+        // generation UI test creates throwaway wallets from scratch. Safe for the
+        // connectedAndroidTest task to install and uninstall at will. Not for distribution.
+        baselinegen {
+            initWith release
+            applicationIdSuffix ".baseline"
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+            // This disposable sandbox reuses the production Firebase app_id; keep its
+            // generation crashes/telemetry out of production Firebase (see App.kt guard).
+            buildConfigField "boolean", "BASELINE_PROFILE_MODE", "true"
         }
 
     }
@@ -221,6 +242,7 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
         unitTests.all {
             useJUnitPlatform()
         }
@@ -317,6 +339,7 @@ dependencies {
 
     //Baseline Profiles
     implementation libs.profileinstaller
+    baselineProfile project(':baselineprofile')
 
     //AppWidgets
     implementation libs.androidx.glance.appwidget
@@ -480,6 +503,8 @@ dependencies {
     testImplementation libs.junit
     testImplementation libs.androidx.core.testing
     testImplementation libs.mockk
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.test.core
     testImplementation libs.kotlinx.coroutines.test
     testImplementation libs.powermock.api.mockito2
     testImplementation libs.powermock.module.junit4
@@ -491,6 +516,18 @@ dependencies {
     testImplementation libs.spek.dsl.jvm
     testRuntimeOnly libs.spek.runner.junit5
     testRuntimeOnly libs.kotlin.reflect
+
+    // Roborazzi — JVM screenshot rendering of @Preview composables (no emulator)
+    testImplementation platform(libs.compose.bom)
+    testImplementation libs.roborazzi
+    testImplementation libs.roborazzi.compose
+    testImplementation libs.roborazzi.preview.scanner.support
+    testImplementation libs.composable.preview.scanner.android
+    testImplementation libs.robolectric
+    testImplementation libs.compose.ui.test.junit4
+    // Robolectric runners are JUnit4; the module runs tests on the JUnit Platform,
+    // so the vintage engine is required to discover and run them.
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 
     //Android Tor
     implementation libs.tor.android
@@ -544,3 +581,48 @@ tasks.register('cleanMacOsMetadata') {
     }
 }
 preBuild.dependsOn cleanMacOsMetadata
+
+// Roborazzi preview screenshots are a local design-review tool, not a CI gate.
+// Robolectric renders differently across OSes (fonts/colors), so running them on
+// CI (Linux) would be flaky against images recorded elsewhere. Keep them out of the
+// normal unit-test run (including CI's :app:testDebugUnitTest) unless explicitly
+// opted in with -Pscreenshots (used by the record/verify commands).
+tasks.withType(Test).configureEach {
+    if (!project.hasProperty('screenshots')) {
+        filter {
+            excludeTestsMatching 'cash.p.terminal.screenshots.*'
+        }
+    }
+}
+
+// Single entry point. Runs one generation journey on the DISPOSABLE
+// cash.p.terminal.baseline sandbox (onboarding → create wallet → tabs → search →
+// cold restart with wallet → second wallet + switch) and copies the resulting
+// profile into src/main/baseline-prof.txt. No real-data package is ever touched.
+//   ./gradlew :app:bakeBaselineProfile
+tasks.register('bakeBaselineProfile') {
+    description = 'Generate the baseline profile on the disposable .baseline sandbox and copy it into src/main/baseline-prof.txt'
+    group = 'baseline profile'
+    dependsOn 'generateBaselinegenBaselineProfile'
+    doLast {
+        def source = file('src/baselinegen/generated/baselineProfiles/baseline-prof.txt')
+        if (!source.exists()) {
+            throw new GradleException("Generated profile not found: $source")
+        }
+        def rules = new LinkedHashSet<String>()
+        source.eachLine { line -> if (line.trim()) rules.add(line.trim()) }
+        def out = file('src/main/baseline-prof.txt')
+        out.text = rules.join('\n') + '\n'
+        println "Baked ${rules.size()} rules -> ${out}"
+    }
+}
+
+// F-Droid reproducible builds: when invoked with -Pfdroid=true (F-Droid's build recipe
+// passes it), disable ART profile packaging so the APK omits assets/dexopt/baseline.prof
+// and baseline.profm, keeping the build byte-reproducible. Non-F-Droid channels (Google
+// Play, direct APK) are built without the flag and keep the profile — and its startup win.
+if (project.hasProperty('fdroid')) {
+    tasks.matching { it.name.contains('ArtProfile') }.configureEach {
+        enabled = false
+    }
+}

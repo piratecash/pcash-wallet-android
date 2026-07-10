@@ -35,6 +35,8 @@ navigationUiKtx = "2.9.7"
 powermockApiMockito2 = "2.0.9"
 powermockModuleJunit4 = "2.0.9"
 profileinstaller = "1.4.1"
+benchmark = "1.5.0-alpha07"
+uiautomator = "2.3.0"
 recyclerview = "1.4.0"
 coil = "3.4.0"
 annotation = "1.9.1"
@@ -62,16 +64,16 @@ swiperefreshlayout = "1.2.0"
 timber = "5.0.1"
 
 tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
-piratecash-ton = "v1.0.0-pcash.2"
-piratecash-bitcoin = "v0.1.0-pcash.13"
-stellar-kit = "1258d25"
-piratecash-ethereum = "633b922"
+piratecash-ton = "v1.0.0-pcash.4"
+piratecash-bitcoin = "v0.1.0-pcash.20"
+stellar-kit = "v1.0.0-pcash.2"
+piratecash-ethereum = "v0.1.0-pcash.3"
 horizontalsystems-blockchain-fee = "393cc14"
-piratecash-solana = "v1.0.0-pcash.1"
-monero-kit-android = "v0.18.3.4-pcash.3"
+piratecash-solana = "v1.0.0-pcash.8"
+monero-kit-android = "v0.18.3.4-pcash.6"
 netcipher = "2.1.0"
 solanakt = "5d5a0cb"
-piratecash-tron = "cdae838"
+piratecash-tron = "v1.0.0-pcash.2"
 tangem-sdk = "3.9.2-pcash.1"
 gson = "2.13.2"
 retrofit = "3.0.0"
@@ -85,13 +87,15 @@ android-core-ktx = "1.18.0"
 twitterText = "3.1.0"
 workRuntimeKtx = "2.11.2"
 workRxjava2 = "2.11.2"
-zcashAndroidSdk = "2.5.2"
+zcashAndroidSdk = "v2.5.2-pcash.15"
 junitJupiter = "6.0.3"
 google-play-core = "2.1.0"
 bitcoinj = "0.17"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 robolectric = "4.12.1"
+roborazzi = "1.65.0"
+composablePreviewScanner = "0.9.0"
 androidxTestCore = "1.7.0"
 espressoCore = "3.7.0"
 camerax = "1.6.0"
@@ -194,6 +198,8 @@ room-paging = { group = "androidx.room", name = "room-paging", version.ref = "ro
 paging-runtime = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+androidx-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "benchmark" }
+androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 
 spek-dsl-jvm = { module = "org.spekframework.spek2:spek-dsl-jvm", version.ref = "spekDslJvm" }
 spek-runner-junit5 = { module = "org.spekframework.spek2:spek-runner-junit5", version.ref = "spekRunnerJunit5" }
@@ -232,7 +238,7 @@ javax-inject = { group = "javax.inject", name = "javax.inject", version.ref = "j
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android" }
 twitter-text = { module = "com.twitter.twittertext:twitter-text", version.ref = "twitterText" }
 web3j-core = { module = "org.web3j:core", version.ref = "coreVersion" }
-zcash-android-sdk = { module = "cash.z.ecc.android:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
+zcash-android-sdk = { module = "com.github.piratecash.zcash-android-wallet-sdk:zcash-android-sdk", version.ref = "zcashAndroidSdk" }
 junit-bom = { group = "org.junit", name = "junit-bom", version.ref = "junitJupiter" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
@@ -244,6 +250,10 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-test-core = { group = "androidx.test", name = "core", version.ref = "androidxTestCore" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
+roborazzi = { group = "io.github.takahirom.roborazzi", name = "roborazzi", version.ref = "roborazzi" }
+roborazzi-compose = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose", version.ref = "roborazzi" }
+roborazzi-preview-scanner-support = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose-preview-scanner-support", version.ref = "roborazzi" }
+composable-preview-scanner-android = { group = "io.github.sergio-sastre.ComposablePreviewScanner", name = "android", version.ref = "composablePreviewScanner" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 tor-android = { group = "info.guardianproject", name = "tor-android", version.ref = "tor-android" }
@@ -274,3 +284,5 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 devtools-ksp = { id = "com.google.devtools.ksp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
+androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "benchmark" }
+android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }

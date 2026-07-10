@@ -26,6 +26,7 @@ import cash.p.terminal.modules.balance.TotalBalance
 import cash.p.terminal.modules.balance.TotalService
 import cash.p.terminal.modules.transactions.Filter
 import cash.p.terminal.modules.transactions.FilterTransactionType
+import cash.p.terminal.modules.transactions.SearchScanState
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
@@ -127,6 +128,7 @@ class TokenBalanceViewModelTest : KoinTest {
     private lateinit var amlEnabledStateFlow: MutableStateFlow<Boolean>
     private lateinit var syncingFlow: MutableStateFlow<Boolean>
     private lateinit var recordsLoadedFlow: MutableStateFlow<Boolean>
+    private lateinit var searchScanStateFlow: MutableStateFlow<SearchScanState>
     private lateinit var nativeBalanceUpdatedFlow: MutableSharedFlow<Unit>
     private var nativeBalanceData = BalanceData(available = BigDecimal.ZERO)
 
@@ -181,6 +183,9 @@ class TokenBalanceViewModelTest : KoinTest {
         recordsLoadedFlow = MutableStateFlow(false)
         every { transactionsService.syncingFlow } returns syncingFlow
         every { transactionsService.recordsLoadedFlow } returns recordsLoadedFlow
+        searchScanStateFlow = MutableStateFlow(SearchScanState.Idle)
+        every { transactionsService.searchScanStateFlow } returns searchScanStateFlow
+        every { transactionsService.setSearchQuery(any()) } returns Unit
         every { transactionsService.refreshList() } returns Unit
         every { balanceService.balanceItemFlow } returns balanceItemFlow
         every { balanceService.balanceItem } returns null
@@ -1089,6 +1094,140 @@ class TokenBalanceViewModelTest : KoinTest {
         // Disabling resets the active filter back to All through the service
         verify(exactly = 1) { transactionsService.setTransactionType(FilterTransactionType.All) }
         assertEquals(false, viewModel.uiState.transactionFiltersEnabled)
+    }
+
+    // endregion
+
+    // region Search Tests
+
+    @Test
+    fun onSearchQueryChange_debounced_appliesQueryAndUpdatesUiState() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onSearchClick()
+        viewModel.onSearchQueryChange("needle")
+
+        // Debounce has not elapsed yet: query is reflected immediately, service is not called yet.
+        assertEquals(true, viewModel.uiState.searchActive)
+        assertEquals("needle", viewModel.uiState.searchQuery)
+        verify(exactly = 0) { transactionsService.setSearchQuery(any()) }
+
+        advanceUntilIdle()
+
+        verify(exactly = 1) { transactionsService.setSearchQuery("needle") }
+    }
+
+    @Test
+    fun onSearchQueryChange_matchArrivesAfterScanning_showsResultOnlyWhenFinished() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onSearchClick()
+        viewModel.onSearchQueryChange("needle")
+        advanceUntilIdle()
+        verify(exactly = 1) { transactionsService.setSearchQuery("needle") }
+
+        // The service starts (possibly deep-)scanning: nothing must be shown but the spinner,
+        // even though the loading-window reset already made transactionItemsFlow empty.
+        searchScanStateFlow.value = SearchScanState.Scanning
+        advanceUntilIdle()
+
+        assertEquals(emptyMap<String, List<TransactionViewItem>>(), viewModel.uiState.transactions)
+        assertEquals(true, viewModel.uiState.searchScanning)
+        assertEquals(false, viewModel.uiState.searchEmptyResult)
+
+        // The scan finds a match buried deeper than the first batch and reports its single
+        // terminal (Finished) emission - only then must the result be shown.
+        transactionItemsFlow.value = listOf(createTransactionItem("match-1"))
+        searchScanStateFlow.value = SearchScanState.Finished
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.transactions?.values?.flatten()?.size)
+        assertEquals(false, viewModel.uiState.searchScanning)
+        assertEquals(false, viewModel.uiState.searchEmptyResult)
+    }
+
+    @Test
+    fun searchEmptyResult_whileScanning_staysFalseUntilScanFinishes() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onSearchClick()
+        viewModel.onSearchQueryChange("nothing-matches")
+        advanceUntilIdle()
+
+        searchScanStateFlow.value = SearchScanState.Scanning
+        advanceUntilIdle()
+
+        // Mid-scan the list is empty, but this must never be reported as a final "no results" -
+        // the scan is still in progress and could still find a match on a deeper page.
+        assertEquals(true, viewModel.uiState.searchScanning)
+        assertEquals(false, viewModel.uiState.searchEmptyResult)
+
+        // The scan is exhausted with nothing found - only now is the empty result final.
+        searchScanStateFlow.value = SearchScanState.Finished
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.searchScanning)
+        assertEquals(true, viewModel.uiState.searchEmptyResult)
+    }
+
+    @Test
+    fun onSearchClose_afterActiveSearch_reopensLoadingWindowThenShowsFullList() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.onSearchClick()
+        viewModel.onSearchQueryChange("needle")
+        advanceUntilIdle()
+        searchScanStateFlow.value = SearchScanState.Scanning
+        advanceUntilIdle()
+        transactionItemsFlow.value = listOf(createTransactionItem("match-1"))
+        searchScanStateFlow.value = SearchScanState.Finished
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.transactions?.values?.flatten()?.size)
+
+        viewModel.onSearchClose()
+        advanceUntilIdle()
+
+        // Closing the search must reopen the loading window rather than flashing the stale
+        // search result or an empty list before the full reload lands.
+        verify(exactly = 1) { transactionsService.setSearchQuery(null) }
+        assertEquals(false, viewModel.uiState.searchActive)
+        assertEquals("", viewModel.uiState.searchQuery)
+
+        // The reload lands with the full (unfiltered) list restored, sync reported complete.
+        searchScanStateFlow.value = SearchScanState.Idle
+        recordsLoadedFlow.value = true
+        transactionItemsFlow.value = listOf(createTransactionItem("full-1"), createTransactionItem("full-2"))
+        syncingFlow.value = false
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.uiState.transactions?.values?.flatten()?.size)
+        assertEquals(false, viewModel.uiState.syncing)
+    }
+
+    @Test
+    fun setTransactionType_duringActiveSearch_preservesSearchUiStateAndOpensLoadingWindow() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.setTransactionFiltersEnabled(true)
+
+        viewModel.onSearchClick()
+        viewModel.onSearchQueryChange("needle")
+        advanceUntilIdle()
+        verify(exactly = 1) { transactionsService.setSearchQuery("needle") }
+
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+
+        // The filter switch opens its own loading window...
+        assertEquals(null, viewModel.uiState.transactions)
+        assertEquals(true, viewModel.uiState.syncing)
+        // ...without touching the still-active search.
+        assertEquals(true, viewModel.uiState.searchActive)
+        assertEquals("needle", viewModel.uiState.searchQuery)
+        verify(exactly = 1) { transactionsService.setTransactionType(FilterTransactionType.Incoming) }
     }
 
     // endregion

@@ -32,12 +32,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -66,6 +67,9 @@ import cash.p.terminal.modules.balance.BalanceAccountsViewModel
 import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceScreenState
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
+import cash.p.terminal.modules.send.offline.OfflineSignedTransactionViewItem
+import cash.p.terminal.modules.send.offline.OfflineSignedTransactionsUiState
+import cash.p.terminal.modules.send.offline.OfflineSignedTransactionsViewModel
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatusBadge
 import cash.p.terminal.modules.transactions.poison_status.TransactionStatusesInfoSheet
@@ -80,6 +84,7 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ColumnUniversal
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HeaderStick
+import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
@@ -90,12 +95,12 @@ import cash.p.terminal.ui_compose.components.TabItem
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead1_grey
-import cash.p.terminal.ui_compose.components.subhead2
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.entities.SectionItemPosition
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.ui_compose.sectionItemBorder
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import org.koin.compose.viewmodel.koinViewModel
 import java.util.Date
 
 @Composable
@@ -111,107 +116,141 @@ fun TransactionsScreen(
     val filterTypes by viewModel.filterTypesLiveData.observeAsState()
     val showFilterAlertDot by viewModel.filterResetEnabled.observeAsState(false)
 
+    val offlineSignedViewModel: OfflineSignedTransactionsViewModel = koinViewModel()
+    val offlineSignedState = offlineSignedViewModel.uiState
+
     val uiState = viewModel.uiState
     val syncing = uiState.syncing
     val transactions = uiState.transactions
+    val accountViewItemId =
+        (accountsViewModel.balanceScreenState as? BalanceScreenState.HasAccount)?.accountViewItem?.id
 
+    var offlineSignedSelected by rememberSaveable { mutableStateOf(false) }
     var showAmlInfoSheet by remember { mutableStateOf(false) }
     val view = LocalView.current
 
     Surface(color = ComposeAppTheme.colors.tyler) {
         Column(modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())) {
-            AppBar(
-                title = stringResource(R.string.Transactions_Title),
-                showSpinner = syncing,
-                menuItems = listOf(
-                    MenuItem(
-                        title = TranslatableString.ResString(R.string.Transactions_Filter),
-                        icon = R.drawable.ic_manage_2_24,
-                        showAlertDot = showFilterAlertDot,
-                        onClick = {
-                            navController.slideFromRight(R.id.transactionFilterFragment)
-                        },
-                    )
-                )
+            TransactionsAppBar(
+                uiState = uiState,
+                syncing = syncing,
+                showFilterAlertDot = showFilterAlertDot,
+                onSearchClick = viewModel::onSearchClick,
+                onSearchClose = viewModel::onSearchClose,
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                onFilterClick = {
+                    navController.slideFromRight(R.id.transactionFilterFragment)
+                },
             )
             filterTypes?.let { filterTypes ->
                 FilterTypeTabs(
                     filterTypes = filterTypes,
+                    offlineSignedSelected = offlineSignedSelected,
                     onTransactionTypeClick = {
+                        offlineSignedSelected = false
                         viewModel.setFilterTransactionType(it)
-                    }
+                    },
+                    onOfflineSignedClick = {
+                        offlineSignedSelected = true
+                    },
                 )
             }
 
-            Crossfade(uiState.viewState, label = "") { viewState ->
-                when (viewState) {
-                    ViewState.Loading -> {
-                        ListEmptyView(
-                            text = stringResource(R.string.Transactions_WaitForSync),
-                            icon = R.drawable.ic_clock
+            if (offlineSignedSelected) {
+                OfflineSignedTransactionsTabContent(
+                    uiState = offlineSignedState,
+                    convertToViewItem = viewModel::convertToViewItem,
+                    balanceHidden = uiState.balanceHidden,
+                    accountViewItemId = accountViewItemId,
+                    onItemClick = { item ->
+                        onOfflineSignedTransactionClick(
+                            item = item,
+                            transactionsViewModel = viewModel,
+                            navController = navController,
                         )
-                    }
+                    },
+                    onToggleBalanceVisibility = {
+                        HudHelper.vibrate(App.instance)
+                        viewModel.toggleBalanceHidden()
+                    },
+                )
+            } else {
+                Crossfade(uiState.viewState, label = "") { viewState ->
+                    when (viewState) {
+                        ViewState.Loading -> {
+                            ListEmptyView(
+                                text = stringResource(R.string.Transactions_WaitForSync),
+                                icon = R.drawable.ic_clock
+                            )
+                        }
 
-                    ViewState.Success -> {
-                        transactions?.let { transactionItems ->
-                            if (transactionItems.isEmpty() && !uiState.hasHiddenTransactions) {
-                                if (uiState.syncing) {
-                                    ListEmptyView(
-                                        text = stringResource(R.string.Transactions_WaitForSync),
-                                        icon = R.drawable.ic_clock
-                                    )
+                        ViewState.Success -> {
+                            transactions?.let { transactionItems ->
+                                if (transactionItems.isEmpty() && !uiState.hasHiddenTransactions) {
+                                    if (uiState.searchQuery.isNotBlank()) {
+                                        if (uiState.searchScanning) {
+                                            SearchInProgressView()
+                                        } else {
+                                            SearchEmptyResultsView()
+                                        }
+                                    } else if (uiState.syncing) {
+                                        ListEmptyView(
+                                            text = stringResource(R.string.Transactions_WaitForSync),
+                                            icon = R.drawable.ic_clock
+                                        )
+                                    } else {
+                                        ListEmptyView(
+                                            text = stringResource(R.string.Transactions_EmptyList),
+                                            icon = R.drawable.ic_outgoingraw
+                                        )
+                                    }
                                 } else {
-                                    ListEmptyView(
-                                        text = stringResource(R.string.Transactions_EmptyList),
-                                        icon = R.drawable.ic_outgoingraw
-                                    )
-                                }
-                            } else {
-                                TransactionListContent(
-                                    uiState = uiState,
-                                    accountViewItemId = (accountsViewModel.balanceScreenState as? BalanceScreenState.HasAccount)?.accountViewItem?.id,
-                                    onClickTransaction = { onTransactionClick(it, viewModel, navController) },
-                                    onClickSensitiveValue = {
-                                        HudHelper.vibrate(App.instance)
-                                        viewModel.toggleTransactionInfoHidden(it.uid)
-                                    },
-                                    onToggleBalanceVisibility = {
-                                        HudHelper.vibrate(App.instance)
-                                        viewModel.toggleBalanceHidden()
-                                    },
-                                    willShow = viewModel::willShow,
-                                    onReachBottom = viewModel::onBottomReached,
-                                    onClickShowAll = onShowAllTransactionsClicked
-                                ) {
-                                    AmlCheckPromoBanner(
-                                        amlCheckEnabled = uiState.amlCheckEnabled,
-                                        onToggleChange = { enabled ->
-                                            if (enabled) {
-                                                navController.premiumAction {
-                                                    viewModel.setAmlCheckEnabled(true)
+                                    TransactionListContent(
+                                        uiState = uiState,
+                                        accountViewItemId = accountViewItemId,
+                                        onClickTransaction = { onTransactionClick(it, viewModel, navController) },
+                                        onClickSensitiveValue = {
+                                            HudHelper.vibrate(App.instance)
+                                            viewModel.toggleTransactionInfoHidden(it.uid)
+                                        },
+                                        onToggleBalanceVisibility = {
+                                            HudHelper.vibrate(App.instance)
+                                            viewModel.toggleBalanceHidden()
+                                        },
+                                        willShow = viewModel::willShow,
+                                        onReachBottom = viewModel::onBottomReached,
+                                        onClickShowAll = onShowAllTransactionsClicked
+                                    ) {
+                                        AmlCheckPromoBanner(
+                                            amlCheckEnabled = uiState.amlCheckEnabled,
+                                            onToggleChange = { enabled ->
+                                                if (enabled) {
+                                                    navController.premiumAction {
+                                                        viewModel.setAmlCheckEnabled(true)
+                                                    }
+                                                } else {
+                                                    viewModel.setAmlCheckEnabled(false)
                                                 }
-                                            } else {
-                                                viewModel.setAmlCheckEnabled(false)
-                                            }
-                                        },
-                                        onInfoClick = { showAmlInfoSheet = true },
-                                        onClose = {
-                                            viewModel.dismissAmlPromo()
-                                            HudHelper.showPremiumMessage(
-                                                view,
-                                                R.string.aml_promo_dismiss_hud,
-                                                SnackbarDuration.LONG
-                                            )
-                                        },
-                                        modifier = Modifier.padding(vertical = 12.dp)
-                                    )
+                                            },
+                                            onInfoClick = { showAmlInfoSheet = true },
+                                            onClose = {
+                                                viewModel.dismissAmlPromo()
+                                                HudHelper.showPremiumMessage(
+                                                    view,
+                                                    R.string.aml_promo_dismiss_hud,
+                                                    SnackbarDuration.LONG
+                                                )
+                                            },
+                                            modifier = Modifier.padding(vertical = 12.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    is ViewState.Error -> {
-                        // Show error state if needed
+                        is ViewState.Error -> {
+                            // Show error state if needed
+                        }
                     }
                 }
             }
@@ -232,6 +271,50 @@ fun TransactionsScreen(
     }
 }
 
+@Composable
+private fun TransactionsAppBar(
+    uiState: TransactionsUiState,
+    syncing: Boolean,
+    showFilterAlertDot: Boolean,
+    onSearchClick: () -> Unit,
+    onSearchClose: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
+) {
+    if (uiState.searchActive) {
+        AppBar(
+            title = {
+                TransactionSearchField(
+                    query = uiState.searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                )
+            },
+            navigationIcon = {
+                HsBackButton(onClick = onSearchClose)
+            },
+            showSpinner = false
+        )
+    } else {
+        AppBar(
+            title = stringResource(R.string.Transactions_Title),
+            showSpinner = syncing,
+            menuItems = listOf(
+                MenuItem(
+                    title = TranslatableString.ResString(R.string.Button_Search),
+                    icon = R.drawable.ic_search,
+                    onClick = onSearchClick,
+                ),
+                MenuItem(
+                    title = TranslatableString.ResString(R.string.Transactions_Filter),
+                    icon = R.drawable.ic_manage_2_24,
+                    showAlertDot = showFilterAlertDot,
+                    onClick = onFilterClick,
+                )
+            )
+        )
+    }
+}
+
 private fun onTransactionClick(
     transactionViewItem: TransactionViewItem,
     viewModel: TransactionsViewModel,
@@ -242,6 +325,82 @@ private fun onTransactionClick(
     viewModel.tmpItemToShow = transactionItem
 
     navController.slideFromBottom(R.id.transactionInfoFragment)
+}
+
+private fun onOfflineSignedTransactionClick(
+    item: OfflineSignedTransactionViewItem,
+    transactionsViewModel: TransactionsViewModel,
+    navController: NavController,
+) {
+    transactionsViewModel.tmpItemToShow = item.transactionItem
+    navController.slideFromBottom(R.id.transactionInfoFragment)
+}
+
+@Composable
+private fun OfflineSignedTransactionsTabContent(
+    uiState: OfflineSignedTransactionsUiState,
+    convertToViewItem: suspend (TransactionItem) -> TransactionViewItem,
+    balanceHidden: Boolean,
+    accountViewItemId: String?,
+    onItemClick: (OfflineSignedTransactionViewItem) -> Unit,
+    onToggleBalanceVisibility: () -> Unit,
+) {
+    if (uiState.items.isEmpty()) {
+        ListEmptyView(
+            text = stringResource(R.string.offline_signed_empty),
+            icon = R.drawable.ic_outgoingraw,
+        )
+        return
+    }
+
+    val itemByUid = remember(uiState.items) {
+        uiState.items.associateBy { it.uid }
+    }
+    val signedTitle = stringResource(R.string.offline_signed_title)
+    val currentConvertToViewItem by rememberUpdatedState(convertToViewItem)
+    val transactionItems by produceState(
+        initialValue = emptyMap<String, List<TransactionViewItem>>(),
+        uiState.items,
+        signedTitle,
+        balanceHidden,
+    ) {
+        value = uiState.items.map { item ->
+            val viewItem = currentConvertToViewItem(item.transactionItem)
+            viewItem.copy(
+                progress = null,
+                title = signedTitle,
+                subtitle = if (item.metadataUnknown) UNKNOWN_VALUE else viewItem.subtitle,
+                primaryValue = if (item.metadataUnknown) {
+                    ColoredValue(UNKNOWN_VALUE, ColorName.Grey)
+                } else {
+                    viewItem.primaryValue
+                },
+                secondaryValue = if (item.metadataUnknown) null else viewItem.secondaryValue,
+                showAmount = !balanceHidden,
+                addressPoisoningViewMode = AddressPoisoningViewMode.STANDARD,
+                statusValue = item.statusValue,
+            )
+        }.groupBy { it.formattedDate }
+    }
+
+    TransactionListContent(
+        uiState = TransactionsUiState(
+            transactions = transactionItems,
+            viewState = ViewState.Success,
+            transactionListId = OFFLINE_SIGNED_TRANSACTION_LIST_ID,
+            syncing = false,
+            hasHiddenTransactions = false,
+            balanceHidden = balanceHidden,
+        ),
+        accountViewItemId = accountViewItemId,
+        onClickTransaction = { viewItem ->
+            itemByUid[viewItem.uid]?.let(onItemClick)
+        },
+        onClickSensitiveValue = {},
+        onToggleBalanceVisibility = onToggleBalanceVisibility,
+        willShow = {},
+        onReachBottom = {},
+    )
 }
 
 @Composable
@@ -558,8 +717,8 @@ fun TransactionCell(
                     TransactionContentRow(
                         item = item,
                         showAmount = showAmount,
-                        blurModifier = blurModifier,
                         onValueClick = onValueClick,
+                        modifier = blurModifier,
                     )
                 }
                 if (item.addressPoisoningViewMode == AddressPoisoningViewMode.STANDARD) {
@@ -578,8 +737,9 @@ fun TransactionCell(
                         color = ComposeAppTheme.colors.steel10,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
-                    PoisonStatusBadge(
-                        poisonStatus = item.poisonStatus,
+                    TransactionFooter(
+                        item = item,
+                        showAmount = showAmount,
                         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 5.dp),
                         onInfoClick = { showStatusesInfo = true },
                     )
@@ -591,9 +751,10 @@ fun TransactionCell(
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                     VSpacer(6.dp)
-                    PoisonStatusBadge(
-                        poisonStatus = item.poisonStatus,
-                        text = if (showAmount) item.subtitle else "*****",
+                    TransactionFooter(
+                        item = item,
+                        showAmount = showAmount,
+                        poisonText = if (showAmount) item.subtitle else "*****",
                         modifier = Modifier.padding(horizontal = 12.dp),
                         onInfoClick = { showStatusesInfo = true },
                     )
@@ -601,6 +762,35 @@ fun TransactionCell(
             }
         }
     }
+}
+
+@Composable
+private fun TransactionFooter(
+    item: TransactionViewItem,
+    showAmount: Boolean,
+    onInfoClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    poisonText: String? = null,
+) {
+    val statusValue = item.statusValue
+    if (statusValue != null) {
+        Text(
+            text = if (showAmount) statusValue.value else "*****",
+            style = ComposeAppTheme.typography.subhead2,
+            color = statusValue.color.compose(),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = modifier.fillMaxWidth(),
+        )
+        return
+    }
+
+    PoisonStatusBadge(
+        poisonStatus = item.poisonStatus,
+        text = poisonText,
+        modifier = modifier,
+        onInfoClick = onInfoClick,
+    )
 }
 
 @Composable
@@ -692,12 +882,11 @@ private fun TransactionIconBox(item: TransactionViewItem) {
 private fun TransactionContentRow(
     item: TransactionViewItem,
     showAmount: Boolean,
-    blurModifier: Modifier,
     onValueClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
-            .then(blurModifier)
+        modifier = modifier
             .padding(end = 16.dp)
             .alpha(if (item.spam) 0.5f else 1f),
         verticalAlignment = Alignment.CenterVertically
@@ -882,15 +1071,45 @@ private fun FailedSwapTransactionCellPreview() {
 @Composable
 internal fun FilterTypeTabs(
     filterTypes: List<Filter<FilterTransactionType>>,
-    onTransactionTypeClick: (FilterTransactionType) -> Unit
+    offlineSignedSelected: Boolean,
+    onTransactionTypeClick: (FilterTransactionType) -> Unit,
+    onOfflineSignedClick: (() -> Unit)? = null,
 ) {
-    val tabItems = filterTypes.map {
-        TabItem(stringResource(it.item.title), it.selected, it.item)
+    val tabItems = buildList<TabItem<TransactionsTab>> {
+        filterTypes.forEach {
+            add(
+                TabItem(
+                    title = stringResource(it.item.title),
+                    selected = it.selected && !offlineSignedSelected,
+                    item = TransactionsTab.Regular(it.item),
+                )
+            )
+        }
+        if (onOfflineSignedClick != null) {
+            add(
+                TabItem(
+                    title = stringResource(R.string.offline_signed_title),
+                    selected = offlineSignedSelected,
+                    item = TransactionsTab.OfflineSigned,
+                )
+            )
+        }
     }
 
-    ScrollableTabs(tabItems) { transactionType ->
-        onTransactionTypeClick.invoke(transactionType)
+    ScrollableTabs(tabItems) { tab ->
+        when (tab) {
+            is TransactionsTab.Regular -> onTransactionTypeClick(tab.type)
+            TransactionsTab.OfflineSigned -> onOfflineSignedClick?.invoke()
+        }
     }
 }
 
 data class Filter<T>(val item: T, val selected: Boolean)
+
+private sealed interface TransactionsTab {
+    data class Regular(val type: FilterTransactionType) : TransactionsTab
+    data object OfflineSigned : TransactionsTab
+}
+
+private const val OFFLINE_SIGNED_TRANSACTION_LIST_ID = "offline-signed"
+private const val UNKNOWN_VALUE = "---"

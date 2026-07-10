@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.send.bitcoin
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,10 +11,17 @@ import cash.p.terminal.core.IMwebAddressValidator
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineBitcoinSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineBitcoinTransaction
 import cash.p.terminal.core.adapters.BitcoinFeeInfo
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
@@ -21,6 +29,9 @@ import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.bitcoin.SendBitcoinModule.rbfSupported
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAdapterManager
@@ -62,7 +73,7 @@ class SendBitcoinViewModel(
     private val pendingRegistrar: PendingTransactionRegistrar,
     private val adapterManager: IAdapterManager,
     private val dispatcherProvider: DispatcherProvider
-) : BaseSendViewModel<SendBitcoinUiState>(wallet, adapterManager) {
+) : BaseSendViewModel<SendBitcoinUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
     private companion object {
         val BLOCKCHAINS_NOT_SUPPORTING_EXTRA_SETTINGS = listOf(
             BlockchainType.Dogecoin,
@@ -78,10 +89,30 @@ class SendBitcoinViewModel(
         val sdkBalance: BigDecimal
     )
 
-    private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    data class OfflineSignResult(
+        val signedTransaction: SignedOfflineBitcoinTransaction,
+        val amount: BigDecimal,
+        val toAddress: String,
+    )
 
-    val coinMaxAllowedDecimals = wallet.token.decimals
+    private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder = getKoinInstance()
+    private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository = getKoinInstance()
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineBitcoinTransaction>
+    override val offlineSigningController = OfflineSigningController<OfflineSignResult>(
+        scope = viewModelScope,
+        dispatcherProvider = dispatcherProvider,
+        payloadEncoder = offlineTransactionPayloadEncoder,
+        repository = offlineSignedTransactionRepository,
+        cautionFactory = ::createCaution,
+        isSilentCancellation = { it is TangemSdkError || it is TrezorCancelledException },
+    )
+
+    override val coinMaxAllowedDecimals = wallet.token.decimals
+    override val feeCoinMaxAllowedDecimals get() = coinMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
+    val offlineSignSupported = offlineSignAdapter != null
 
     val blockchainType by adapter::blockchainType
     val feeRateChangeable by feeRateService::feeRateChangeable
@@ -108,7 +139,7 @@ class SendBitcoinViewModel(
 
     var sendResult by mutableStateOf<SendResult?>(null)
 
-    var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
 
     init {
@@ -316,7 +347,7 @@ class SendBitcoinViewModel(
         emitState()
     }
 
-    fun getConfirmationData(): SendConfirmationData {
+    override fun getConfirmationData(): SendConfirmationData {
         val address = addressState.validAddress
             ?: throw LocalizedException(R.string.send_error_address_unavailable)
         val amount = amountState.amount
@@ -343,6 +374,52 @@ class SendBitcoinViewModel(
             send()
         }
     }
+
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        val logger = logger.getScopedUnique()
+        logger.info("offline sign click")
+        val request = sendRequest()
+        val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
+        val signedTransaction = signingAdapter.signOffline(
+            OfflineBitcoinSignRequest(
+                amount = request.amount,
+                address = request.address.hex,
+                memo = memo,
+                feeRate = request.feeRate,
+                unspentOutputs = customUnspentOutputs,
+                pluginData = pluginState.pluginData,
+                transactionSorting = btcBlockchainManager.transactionSortMode(adapter.blockchainType),
+                rbfEnabled = !isMweb && blockchainType.rbfSupported && localStorage.rbfEnabled,
+                changeToFirstInput = false,
+                utxoFilters = UtxoFilters(),
+            )
+        )
+        logger.info("offline sign success")
+        return OfflineSignResult(
+            signedTransaction = signedTransaction,
+            amount = request.amount,
+            toAddress = request.address.hex,
+        )
+    }
+
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft =
+        OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = result.amount,
+            fee = fee,
+            toAddress = result.toAddress,
+            rawHex = result.signedTransaction.rawHex,
+            txHash = result.signedTransaction.txHash,
+            inputOutpoints = result.signedTransaction.inputOutpoints,
+        )
 
     private suspend fun send() = withContext(dispatcherProvider.io) {
         val logger = logger.getScopedUnique()
@@ -380,17 +457,20 @@ class SendBitcoinViewModel(
 
     private fun sendRequest(): SendRequest {
         val validAddress = addressState.validAddress
-            ?: throw LocalizedException(R.string.send_error_address_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_address_unavailable)
         val amount = amountState.amount
-            ?: throw LocalizedException(R.string.send_error_amount_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_amount_unavailable)
         val feeRate = feeRateState.feeRate
-            ?: throw LocalizedException(R.string.send_error_fee_rate_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_fee_rate_unavailable)
         val sdkBalance = adapterManager.getBalanceAdapterForWallet(wallet)
             ?.balanceData?.available ?: amountState.availableBalance
-            ?: throw LocalizedException(R.string.send_error_balance_unavailable)
+            ?: missingSendRequestValue(R.string.send_error_balance_unavailable)
 
         return SendRequest(validAddress, amount, feeRate, sdkBalance)
     }
+
+    private fun missingSendRequestValue(@StringRes messageRes: Int): Nothing =
+        throw LocalizedException(messageRes)
 
     private fun pendingTransactionDraft(request: SendRequest): PendingTransactionDraft {
         return PendingTransactionDraft(

@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -61,6 +62,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
@@ -69,6 +71,7 @@ import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
+import cash.p.terminal.modules.balance.SyncingProgress
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -78,7 +81,12 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.syncerror.showSyncErrorDialog
 import cash.p.terminal.modules.transactions.AmlCheckInfoBottomSheet
 import cash.p.terminal.modules.transactions.AmlCheckPromoBanner
+import cash.p.terminal.modules.transactions.Filter
+import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.FilterTypeTabs
+import cash.p.terminal.modules.transactions.SearchEmptyResultsView
+import cash.p.terminal.modules.transactions.SearchInProgressView
+import cash.p.terminal.modules.transactions.TransactionSearchField
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.transactions.transactionList
@@ -121,10 +129,15 @@ import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isStakingWallet
 
-private const val FILTER_TABS_CONTENT_TYPE = "filter_tabs"
+private const val HEADER_CONTENT_TYPE = "token_balance_sticky_header"
+
+// Distinct type for the sticky header's Lazy key so it can never collide with the
+// transaction rows' String uid keys (an enum never equals a String).
+private enum class TokenBalanceLazyKey { SearchHeader }
 
 @Composable
 fun TokenBalanceScreen(
@@ -139,13 +152,93 @@ fun TokenBalanceScreen(
     onRefresh: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
-    val uiState = viewModel.uiState
+    val view = LocalView.current
+    TokenBalanceScreenContent(
+        uiState = viewModel.uiState,
+        secondaryValue = viewModel.secondaryValue,
+        sendResult = sendResult,
+        navController = navController,
+        refreshing = refreshing,
+        onToggleFavorite = viewModel::toggleFavorite,
+        onToggleBalanceVisibility = viewModel::toggleBalanceVisibility,
+        onSearchClick = viewModel::onSearchClick,
+        onSearchClose = viewModel::onSearchClose,
+        onSearchQueryChange = viewModel::onSearchQueryChange,
+        onSetTransactionType = viewModel::setTransactionType,
+        onWillShow = viewModel::willShow,
+        onTransactionClick = {
+            onTransactionClick(it, viewModel, transactionsViewModel, navController)
+        },
+        onSensitiveTransactionClick = {
+            HudHelper.vibrate(App.instance)
+            transactionsViewModel.toggleTransactionInfoHidden(it.uid)
+        },
+        onBottomReached = viewModel::onBottomReached,
+        onSetAmlCheckEnabled = { enabled ->
+            if (enabled) {
+                navController.premiumAction { viewModel.setAmlCheckEnabled(true) }
+            } else {
+                viewModel.setAmlCheckEnabled(false)
+            }
+        },
+        onDismissAmlPromo = {
+            viewModel.dismissAmlPromo()
+            HudHelper.showPremiumMessage(view, R.string.aml_promo_dismiss_hud, SnackbarDuration.LONG)
+        },
+        onDismissNetworkFeeWarning = viewModel::dismissNetworkFeeWarning,
+        onReceiveClick = { onReceiveClicked(viewModel, navController) },
+        onShieldClick = viewModel::proposeShielding,
+        onSyncErrorClick = { onSyncErrorClicked(it, viewModel, navController) },
+        onStackingClicked = onStackingClicked,
+        onShowAllTransactionsClicked = onShowAllTransactionsClicked,
+        onClickSubtitle = onClickSubtitle,
+        onRefresh = onRefresh,
+        onSettingsClick = onSettingsClick,
+    )
+}
+
+@Composable
+private fun TokenBalanceScreenContent(
+    uiState: TokenBalanceModule.TokenBalanceUiState,
+    secondaryValue: DeemedValue<String>,
+    sendResult: SendResult?,
+    navController: NavController,
+    refreshing: Boolean,
+    onToggleFavorite: () -> Unit,
+    onToggleBalanceVisibility: () -> Unit,
+    onSearchClick: () -> Unit,
+    onSearchClose: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onSetTransactionType: (FilterTransactionType) -> Unit,
+    onWillShow: (TransactionViewItem) -> Unit,
+    onTransactionClick: (TransactionViewItem) -> Unit,
+    onSensitiveTransactionClick: (TransactionViewItem) -> Unit,
+    onBottomReached: () -> Unit,
+    onSetAmlCheckEnabled: (Boolean) -> Unit,
+    onDismissAmlPromo: () -> Unit,
+    onDismissNetworkFeeWarning: () -> Unit,
+    onReceiveClick: () -> Unit,
+    onShieldClick: () -> Unit,
+    onSyncErrorClick: (BalanceViewItem) -> Unit,
+    onStackingClicked: () -> Unit,
+    onShowAllTransactionsClicked: () -> Unit,
+    onClickSubtitle: () -> Unit,
+    onRefresh: () -> Unit,
+    onSettingsClick: () -> Unit,
+) {
     val view = LocalView.current
 
     var showAmlInfoSheet by remember { mutableStateOf(false) }
 
     val failedIconVisible = uiState.balanceViewItem?.failedIconVisible == true
     val loading = uiState.balanceViewItem?.syncingProgress?.progress != null
+
+    LaunchedEffect(failedIconVisible) {
+        val viewItem = uiState.balanceViewItem
+        if (viewItem != null && shouldAutoShowSyncError(failedIconVisible, ScreenSecurityState.isAppLocked)) {
+            onSyncErrorClick(viewItem)
+        }
+    }
 
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
@@ -163,7 +256,7 @@ fun TokenBalanceScreen(
                             ),
                             icon = if (uiState.isFavorite) R.drawable.ic_star_filled_20 else R.drawable.ic_star_20,
                             tint = if (uiState.isFavorite) ComposeAppTheme.colors.jacob else ComposeAppTheme.colors.grey,
-                            onClick = { viewModel.toggleFavorite() }
+                            onClick = onToggleFavorite
                         )
                     )
                     if (!uiState.isCustomToken) {
@@ -193,7 +286,7 @@ fun TokenBalanceScreen(
                                 icon = R.drawable.ic_attention_red_24,
                                 tint = ComposeAppTheme.colors.lucian,
                                 onClick = {
-                                    onSyncErrorClicked(uiState.balanceViewItem, viewModel, navController)
+                                    uiState.balanceViewItem?.let(onSyncErrorClick)
                                 }
                             )
                         )
@@ -259,14 +352,15 @@ fun TokenBalanceScreen(
         }
         // A single LazyColumn renders every state (loading / empty / content) so the scroll
         // container is never recreated. Swapping to a separate Column when the list briefly
-        // empties on a tab switch would reset the scroll position and make the pinned tabs jump.
+        // empties on a tab switch would reset the scroll position and make the pinned header jump.
         // The empty/loading placeholder is an item filling the viewport (fillParentMaxSize), which
-        // keeps the scroll extent so the tabs stay pinned while the next filter loads.
+        // keeps the scroll extent so the header stays pinned while the next filter loads.
         //
-        // The tabs are the only sticky header (they scroll up with the balance, then pin). A
-        // LazyColumn pins just one sticky header at a time, so the date can't be sticky too.
-        // Instead the date group headers stay inline in the list and an opaque overlay, positioned
-        // right below the pinned tabs, shows the current group's date.
+        // The tabs and the hide-balance/search panel are combined into a single sticky header
+        // (they scroll up with the balance, then pin together). A LazyColumn pins just one
+        // sticky header at a time, so the date can't be sticky too. Instead the date group
+        // headers stay inline in the list and an opaque overlay, positioned right below the
+        // pinned header, shows the current group's date.
         val uidToDate = remember(transactionItems) {
             buildMap<Any, String> {
                 transactionItems?.forEach { (date, txs) ->
@@ -277,7 +371,7 @@ fun TokenBalanceScreen(
         val currentStickyDate by remember(listState, uidToDate) {
             derivedStateOf { stickyTransactionDate(listState, uidToDate) }
         }
-        var tabsHeightPx by remember { mutableIntStateOf(0) }
+        var headerHeightPx by remember { mutableIntStateOf(0) }
         var balanceHeaderHeightPx by remember { mutableIntStateOf(0) }
         HSSwipeRefresh(
             refreshing = refreshing,
@@ -285,7 +379,7 @@ fun TokenBalanceScreen(
             onRefresh = onRefresh
         ) {
             Box {
-                // Overscroll is disabled: the stretch effect moves the pinned tabs (inside the
+                // Overscroll is disabled: the stretch effect moves the pinned header (inside the
                 // list) but not the date overlay (drawn outside it), opening a gap between them.
                 LazyColumn(state = listState, overscrollEffect = null) {
                     item {
@@ -294,10 +388,15 @@ fun TokenBalanceScreen(
                                 TokenBalanceHeader(
                                     balanceViewItem = it,
                                     navController = navController,
-                                    viewModel = viewModel,
                                     uiState = uiState,
+                                    secondaryValue = secondaryValue,
                                     onStackingClicked = onStackingClicked,
                                     onClickSubtitle = onClickSubtitle,
+                                    onToggleBalanceVisibility = onToggleBalanceVisibility,
+                                    onReceiveClick = onReceiveClick,
+                                    onShieldClick = onShieldClick,
+                                    onSyncErrorClick = onSyncErrorClick,
+                                    onDismissNetworkFeeWarning = onDismissNetworkFeeWarning,
                                     isShowShieldFunds = uiState.isShowShieldFunds
                                 )
                             }
@@ -321,37 +420,63 @@ fun TokenBalanceScreen(
                         item {
                             AmlCheckPromoBanner(
                                 amlCheckEnabled = uiState.amlCheckEnabled,
-                                onToggleChange = { enabled ->
-                                    if (enabled) {
-                                        navController.premiumAction {
-                                            viewModel.setAmlCheckEnabled(true)
-                                        }
-                                    } else {
-                                        viewModel.setAmlCheckEnabled(false)
-                                    }
-                                },
+                                onToggleChange = onSetAmlCheckEnabled,
                                 onInfoClick = { showAmlInfoSheet = true },
-                                onClose = {
-                                    viewModel.dismissAmlPromo()
-                                    HudHelper.showPremiumMessage(
-                                        view,
-                                        R.string.aml_promo_dismiss_hud,
-                                        SnackbarDuration.LONG
-                                    )
-                                },
+                                onClose = onDismissAmlPromo,
                                 modifier = Modifier.padding(vertical = 12.dp)
                             )
                         }
                     }
 
-                    if (showFilterTabs) {
-                        stickyHeader(contentType = FILTER_TABS_CONTENT_TYPE) {
-                            Box(modifier = Modifier.onSizeChanged { tabsHeightPx = it.height }) {
+                    // NAMED contentType argument: stickyHeader's first positional param is `key`,
+                    // so passing HEADER_CONTENT_TYPE positionally would set the key and leave
+                    // contentType null, and stickyTransactionDate (which matches on contentType)
+                    // would never find this header.
+                    // Stable key so the pinned search/filter header keeps its slot (and the
+                    // search field's internal TextFieldValue state) across recompositions
+                    // instead of being recreated — Samsung problem.
+                    stickyHeader(key = TokenBalanceLazyKey.SearchHeader, contentType = HEADER_CONTENT_TYPE) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                // Opaque background: once pinned, transactions scroll UNDER this
+                                // header. FilterTypeTabs paints its own background, but the search
+                                // row / HideBalanceSearchRow do not, so without this the list would
+                                // bleed through the pinned header.
+                                .background(ComposeAppTheme.colors.tyler)
+                                .onSizeChanged { headerHeightPx = it.height }
+                        ) {
+                            if (showFilterTabs) {
                                 FilterTypeTabs(
-                                    uiState.transactionFilterTypes,
-                                    viewModel::setTransactionType
+                                    filterTypes = uiState.transactionFilterTypes,
+                                    offlineSignedSelected = false,
+                                    onTransactionTypeClick = onSetTransactionType,
                                 )
                             }
+                            if (uiState.searchActive) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 4.dp, vertical = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    HsBackButton(onClick = onSearchClose)
+                                    TransactionSearchField(
+                                        query = uiState.searchQuery,
+                                        onQueryChange = onSearchQueryChange,
+                                    )
+                                }
+                            } else {
+                                HideBalanceSearchRow(
+                                    hideBalance = !uiState.balanceViewItem.primaryValue.visible,
+                                    onToggleBalanceVisibility = onToggleBalanceVisibility,
+                                    onSearchClick = onSearchClick,
+                                )
+                            }
+                            HorizontalDivider(
+                                thickness = 1.dp,
+                                color = ComposeAppTheme.colors.steel20,
+                            )
                         }
                     }
 
@@ -359,20 +484,28 @@ fun TokenBalanceScreen(
                         (transactionItems.isEmpty() && !uiState.hasHiddenTransactions)
                     ) {
                         // Placeholder fills the viewport so switching to an empty filter keeps the
-                        // tabs pinned at the same scroll position instead of snapping the list.
+                        // sticky header pinned at the same scroll position instead of snapping the list.
                         item {
                             Box(modifier = Modifier.fillParentMaxSize()) {
                                 // The placeholder fills the viewport (to keep the scroll extent),
                                 // so its vertically centered content would otherwise land below the
-                                // fold, hidden under the balance header and tabs. Shrinking the
-                                // centering region by their combined height re-centers the content
-                                // in the visible gap below the tabs.
+                                // fold, hidden under the balance header and the sticky header.
+                                // Shrinking the centering region by their combined height re-centers
+                                // the content in the visible gap below the sticky header.
                                 val paddingValues = PaddingValues(
                                     bottom = with(LocalDensity.current) {
-                                        (balanceHeaderHeightPx + tabsHeightPx).toDp()
+                                        (balanceHeaderHeightPx + headerHeightPx).toDp()
                                     }
                                 )
-                                if (transactionItems == null || uiState.syncing) {
+                                if (uiState.searchScanning) {
+                                    Box(modifier = Modifier.padding(paddingValues)) {
+                                        SearchInProgressView()
+                                    }
+                                } else if (uiState.searchEmptyResult) {
+                                    Box(modifier = Modifier.padding(paddingValues)) {
+                                        SearchEmptyResultsView()
+                                    }
+                                } else if (transactionItems == null || uiState.syncing) {
                                     ListEmptyView(
                                         text = stringResource(R.string.Transactions_WaitForSync),
                                         icon = R.drawable.ic_clock,
@@ -390,22 +523,12 @@ fun TokenBalanceScreen(
                     } else {
                         transactionList(
                             transactionsMap = transactionItems,
-                            willShow = { viewModel.willShow(it) },
-                            onClick = {
-                                onTransactionClick(
-                                    it,
-                                    viewModel,
-                                    transactionsViewModel,
-                                    navController
-                                )
-                            },
+                            willShow = onWillShow,
+                            onClick = onTransactionClick,
                             isItemBalanceHidden = { !it.showAmount },
-                            onSensitiveValueClick = {
-                                HudHelper.vibrate(App.instance)
-                                transactionsViewModel.toggleTransactionInfoHidden(it.uid)
-                            },
-                            onBottomReached = viewModel::onBottomReached,
-                            stickyDateHeaders = !showFilterTabs
+                            onSensitiveValueClick = onSensitiveTransactionClick,
+                            onBottomReached = onBottomReached,
+                            stickyDateHeaders = false
                         )
                         if (uiState.hasHiddenTransactions) {
                             transactionsHiddenBlock(
@@ -415,9 +538,7 @@ fun TokenBalanceScreen(
                         }
                     }
                 }
-                if (showFilterTabs) {
-                    PinnedDateOverlay(offsetY = { tabsHeightPx }, date = { currentStickyDate })
-                }
+                PinnedDateOverlay(offsetY = { headerHeightPx }, date = { currentStickyDate })
             }
         }
     }
@@ -437,23 +558,22 @@ fun TokenBalanceScreen(
 }
 
 
-// Date for the overlay pinned below the tabs: the day-group of the first transaction whose
-// bottom edge is still below the tabs' bottom edge. Returns null until the tabs are actually
-// pinned (header.offset == 0), so the overlay stays hidden while the balance is on screen and
-// the inline date headers carry the date. Reading layout offsets makes the date flip exactly
-// when a group meets the overlay's edge, not when it reaches the very top of the list.
+// Date for the overlay pinned below the combined sticky header (tabs + hide-balance/search
+// panel): the day-group of the first transaction whose bottom edge is still below the header's
+// bottom edge. Returns null until the header is actually pinned (header.offset == 0), so the
+// overlay stays hidden while the balance is on screen and the inline date headers carry the
+// date. Reading layout offsets makes the date flip exactly when a group meets the overlay's
+// edge, not when it reaches the very top of the list.
 private fun stickyTransactionDate(
     listState: LazyListState,
     uidToDate: Map<Any, String>
 ): String? {
     val visibleItems = listState.layoutInfo.visibleItemsInfo
-    val header = visibleItems.firstOrNull { it.contentType == FILTER_TABS_CONTENT_TYPE }
-        ?: return null
+    val header = visibleItems.firstOrNull { it.contentType == HEADER_CONTENT_TYPE } ?: return null
     if (header.offset > 0) return null
     val headerBottom = header.offset + header.size
-    val anchor = visibleItems.firstOrNull {
-        it.key in uidToDate && it.offset + it.size > headerBottom
-    } ?: return null
+    val anchor = visibleItems.firstOrNull { it.key in uidToDate && it.offset + it.size > headerBottom }
+        ?: return null
     return uidToDate[anchor.key]
 }
 
@@ -462,6 +582,52 @@ private fun PinnedDateOverlay(offsetY: () -> Int, date: () -> String?) {
     val text = date() ?: return
     Box(modifier = Modifier.offset { IntOffset(0, offsetY()) }) {
         HeaderStick(text = text)
+    }
+}
+
+@Composable
+private fun HideBalanceSearchRow(
+    hideBalance: Boolean,
+    onToggleBalanceVisibility: () -> Unit,
+    onSearchClick: () -> Unit,
+) {
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 4.dp, top = 12.dp, bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    onToggleBalanceVisibility()
+                    HudHelper.vibrate(context)
+                }
+            ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            subhead2_grey(text = stringResource(R.string.hide_balance))
+            HSpacer(8.dp)
+            Icon(
+                painter = painterResource(
+                    if (hideBalance) R.drawable.ic_eye_off else R.drawable.ic_eye_20
+                ),
+                contentDescription = null,
+                tint = ComposeAppTheme.colors.grey,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        HsIconButton(onClick = onSearchClick) {
+            Icon(
+                painter = painterResource(R.drawable.ic_search),
+                contentDescription = stringResource(R.string.Button_Search),
+                tint = ComposeAppTheme.colors.grey
+            )
+        }
     }
 }
 
@@ -481,10 +647,15 @@ private fun onTransactionClick(
 private fun TokenBalanceHeader(
     balanceViewItem: BalanceViewItem,
     navController: NavController,
-    viewModel: TokenBalanceViewModel,
     uiState: TokenBalanceModule.TokenBalanceUiState,
+    secondaryValue: DeemedValue<String>,
     onStackingClicked: () -> Unit,
     onClickSubtitle: () -> Unit,
+    onToggleBalanceVisibility: () -> Unit,
+    onReceiveClick: () -> Unit,
+    onShieldClick: () -> Unit,
+    onSyncErrorClick: (BalanceViewItem) -> Unit,
+    onDismissNetworkFeeWarning: () -> Unit,
     isShowShieldFunds: Boolean
 ) {
     val context = LocalContext.current
@@ -509,7 +680,7 @@ private fun TokenBalanceHeader(
                     syncingProgress = balanceViewItem.syncingProgress,
                     failedIconVisible = balanceViewItem.failedIconVisible,
                     onClickSyncError = {
-                        onSyncErrorClicked(balanceViewItem, viewModel, navController)
+                        onSyncErrorClick(balanceViewItem)
                     }
                 )
             }
@@ -545,7 +716,7 @@ private fun TokenBalanceHeader(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = {
-                        viewModel.toggleBalanceVisibility()
+                        onToggleBalanceVisibility()
                         HudHelper.vibrate(context)
                     }
                 ),
@@ -564,7 +735,7 @@ private fun TokenBalanceHeader(
             )
         } else {
             Text(
-                text = if (balanceViewItem.secondaryValue.visible) viewModel.secondaryValue.value else "*****",
+                text = if (balanceViewItem.secondaryValue.visible) secondaryValue.value else "*****",
                 color = if (balanceViewItem.secondaryValue.dimmed) ComposeAppTheme.colors.grey50 else ComposeAppTheme.colors.grey,
                 style = ComposeAppTheme.typography.body,
                 maxLines = 1,
@@ -671,7 +842,8 @@ private fun TokenBalanceHeader(
         ButtonsRow(
             viewItem = balanceViewItem,
             navController = navController,
-            viewModel = viewModel,
+            onReceiveClick = onReceiveClick,
+            onShieldClick = onShieldClick,
             onStackingClicked = onStackingClicked,
             isShowShieldFunds = isShowShieldFunds
         )
@@ -702,7 +874,7 @@ private fun TokenBalanceHeader(
                 icon = R.drawable.ic_attention_20,
                 title = warningData.title,
                 text = bodyText,
-                onClose = viewModel::dismissNetworkFeeWarning
+                onClose = onDismissNetworkFeeWarning
             )
         }
         VSpacer(height = 16.dp)
@@ -850,32 +1022,36 @@ private fun onSyncErrorClicked(
     }
 }
 
+private fun onReceiveClicked(
+    viewModel: TokenBalanceViewModel,
+    navController: NavController
+) {
+    try {
+        val wallet = viewModel.getWalletForReceive()
+        navController.slideFromRight(R.id.receiveFragment, ReceiveFragment.Input(wallet))
+    } catch (e: BackupRequiredError) {
+        val text = Translator.getString(
+            R.string.ManageAccount_BackupRequired_Description,
+            e.account.name,
+            e.coinTitle
+        )
+        navController.slideFromBottom(
+            R.id.backupRequiredDialog,
+            BackupRequiredDialog.Input(e.account, text)
+        )
+    }
+}
+
 
 @Composable
 private fun ButtonsRow(
     viewItem: BalanceViewItem,
     navController: NavController,
-    viewModel: TokenBalanceViewModel,
+    onReceiveClick: () -> Unit,
+    onShieldClick: () -> Unit,
     onStackingClicked: () -> Unit,
     isShowShieldFunds: Boolean
 ) {
-    val onClickReceive = {
-        try {
-            val wallet = viewModel.getWalletForReceive()
-            navController.slideFromRight(R.id.receiveFragment, ReceiveFragment.Input(wallet))
-        } catch (e: BackupRequiredError) {
-            val text = Translator.getString(
-                R.string.ManageAccount_BackupRequired_Description,
-                e.account.name,
-                e.coinTitle
-            )
-            navController.slideFromBottom(
-                R.id.backupRequiredDialog,
-                BackupRequiredDialog.Input(e.account, text)
-            )
-        }
-    }
-
     Row(
         modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
     ) {
@@ -883,7 +1059,7 @@ private fun ButtonsRow(
             ButtonPrimaryDefault(
                 modifier = Modifier.weight(1f),
                 title = stringResource(R.string.Balance_Address),
-                onClick = onClickReceive,
+                onClick = onReceiveClick,
             )
             if (viewItem.wallet.isStakingWallet()) {
                 HSpacer(8.dp)
@@ -926,13 +1102,13 @@ private fun ButtonsRow(
                 ButtonPrimaryDefault(
                     modifier = Modifier.weight(1f),
                     title = stringResource(R.string.Balance_Receive),
-                    onClick = onClickReceive,
+                    onClick = onReceiveClick,
                 )
             } else {
                 ButtonPrimaryCircle(
                     icon = R.drawable.ic_arrow_down_left_24,
                     contentDescription = stringResource(R.string.Balance_Receive),
-                    onClick = onClickReceive,
+                    onClick = onReceiveClick,
                     iconTint = Color.Black,
                     background = Color.White,
                 )
@@ -975,7 +1151,7 @@ private fun ButtonsRow(
             ButtonPrimaryYellow(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.shield_funds),
-                onClick = viewModel::proposeShielding
+                onClick = onShieldClick
             )
             body_grey(
                 text = stringResource(R.string.typical_fee),
@@ -1002,3 +1178,115 @@ private fun StakingStatusBadge(status: TokenBalanceModule.StakingStatus) {
         textColor = color
     )
 }
+
+@Preview(name = "With tabs")
+@Composable
+internal fun TokenBalanceScreenContentPreview() {
+    PreviewTokenBalanceScreenContent(previewTokenBalanceUiState())
+}
+
+@Preview(name = "Without tabs")
+@Composable
+internal fun TokenBalanceScreenContentNoTabsPreview() {
+    PreviewTokenBalanceScreenContent(
+        previewTokenBalanceUiState(transactionFiltersEnabled = false)
+    )
+}
+
+@Preview(name = "Search, with tabs")
+@Composable
+internal fun TokenBalanceScreenContentSearchWithTabsPreview() {
+    PreviewTokenBalanceScreenContent(
+        previewTokenBalanceUiState(searchActive = true)
+    )
+}
+
+@Preview(name = "Search, without tabs")
+@Composable
+internal fun TokenBalanceScreenContentSearchNoTabsPreview() {
+    PreviewTokenBalanceScreenContent(
+        previewTokenBalanceUiState(searchActive = true, transactionFiltersEnabled = false)
+    )
+}
+
+@Composable
+private fun PreviewTokenBalanceScreenContent(
+    uiState: TokenBalanceModule.TokenBalanceUiState
+) {
+    ComposeAppTheme(darkTheme = true) {
+        TokenBalanceScreenContent(
+            uiState = uiState,
+            secondaryValue = DeemedValue("$1,234.56"),
+            sendResult = null,
+            navController = rememberNavController(),
+            refreshing = false,
+            onToggleFavorite = {},
+            onToggleBalanceVisibility = {},
+            onSearchClick = {},
+            onSearchClose = {},
+            onSearchQueryChange = {},
+            onSetTransactionType = {},
+            onWillShow = {},
+            onTransactionClick = {},
+            onSensitiveTransactionClick = {},
+            onBottomReached = {},
+            onSetAmlCheckEnabled = {},
+            onDismissAmlPromo = {},
+            onDismissNetworkFeeWarning = {},
+            onReceiveClick = {},
+            onShieldClick = {},
+            onSyncErrorClick = {},
+            onStackingClicked = {},
+            onShowAllTransactionsClicked = {},
+            onClickSubtitle = {},
+            onRefresh = {},
+            onSettingsClick = {},
+        )
+    }
+}
+
+private fun previewTokenBalanceUiState(
+    transactionFiltersEnabled: Boolean = true,
+    searchActive: Boolean = false,
+) = TokenBalanceModule.TokenBalanceUiState(
+    title = "Preview Coin",
+    coinCode = "PCN",
+    balanceViewItem = previewBalanceViewItem(),
+    transactions = emptyMap(),
+    hasHiddenTransactions = false,
+    isFavorite = true,
+    syncing = false,
+    transactionFiltersEnabled = transactionFiltersEnabled,
+    transactionFilterTypes = listOf(
+        Filter(FilterTransactionType.All, selected = true),
+        Filter(FilterTransactionType.Incoming, selected = false),
+        Filter(FilterTransactionType.Outgoing, selected = false),
+        Filter(FilterTransactionType.Swap, selected = false),
+    ),
+    searchActive = searchActive,
+    searchQuery = if (searchActive) "0x1f9840" else "",
+    searchEmptyResult = searchActive,
+)
+
+private fun previewBalanceViewItem() = BalanceViewItem(
+    wallet = WalletFactory.previewWallet(),
+    primaryValue = DeemedValue("1.2345 PCN"),
+    exchangeValue = DeemedValue("$1,000.00", visible = false),
+    secondaryValue = DeemedValue("$1,234.56"),
+    lockedValues = emptyList(),
+    sendEnabled = true,
+    syncingProgress = SyncingProgress(null, null),
+    syncingTextValue = null,
+    syncedUntilTextValue = null,
+    failedIconVisible = false,
+    coinIconVisible = true,
+    badge = null,
+    swapVisible = true,
+    swapEnabled = true,
+    errorMessage = null,
+    isWatchAccount = false,
+    isSendDisabled = false,
+    isShowShieldFunds = false,
+    warning = null,
+    displayDiffOptionType = DisplayDiffOptionType.NONE,
+)

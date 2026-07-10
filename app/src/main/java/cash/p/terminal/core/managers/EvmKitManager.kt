@@ -28,8 +28,10 @@ import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.RawTransaction
+import io.horizontalsystems.ethereumkit.models.RawTransactionBroadcastResult
 import io.horizontalsystems.ethereumkit.models.RpcSource
 import io.horizontalsystems.ethereumkit.models.Signature
+import io.horizontalsystems.ethereumkit.models.SignedRawTransaction
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.horizontalsystems.merkleiokit.MerkleTransactionAdapter
 import io.horizontalsystems.nftkit.core.NftKit
@@ -352,6 +354,20 @@ class EvmKitWrapper(
         }
     }
 
+    suspend fun signedRawTransaction(
+        transactionData: TransactionData,
+        gasPrice: GasPrice,
+        gasLimit: Long,
+        nonce: Long?,
+    ): SignedRawTransaction {
+        val rawTransaction = evmKit.rawTransaction(transactionData, gasPrice, gasLimit, nonce).await()
+        val (reconciledRawTransaction, signature) = signReconciled(rawTransaction)
+        return evmKit.signedRawTransaction(reconciledRawTransaction, signature)
+    }
+
+    suspend fun broadcastRawTransaction(rawTransactionHex: String): RawTransactionBroadcastResult =
+        evmKit.broadcastRawTransaction(rawTransactionHex).await()
+
     /**
      * Signs [rawTransaction] and returns the transaction that was actually signed together with its
      * signature. Hardware wallets may sign over different fields than requested (Trezor Suite
@@ -360,7 +376,7 @@ class EvmKitWrapper(
      * transactions with a mock key.
      */
     suspend fun signReconciled(rawTransaction: RawTransaction): Pair<RawTransaction, Signature> {
-        val signer = requireNotNull(signer) { "Signer is not initialized for this EVM kit" }
+        val signer = signer ?: throw EvmSignerNotInitializedException()
         return when (signer) {
             is TrezorEvmSigner -> signer.signTransaction(rawTransaction)
                 .let { it.rawTransaction to it.signature }
@@ -369,3 +385,5 @@ class EvmKitWrapper(
     }
 
 }
+
+internal class EvmSignerNotInitializedException : IllegalStateException("Signer is not initialized for this EVM kit")

@@ -6,16 +6,22 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
+import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
+import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.getMaxSendableBalance
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.SolanaKit
 import org.koin.java.KoinJavaComponent.inject
@@ -31,7 +37,17 @@ object SendSolanaModule {
         private val adapter: ISendSolanaAdapter
     ) : ViewModelProvider.Factory {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        private val contactsRepo: ContactsRepository by inject(ContactsRepository::class.java)
+        private val connectivityManager: ConnectivityManager by inject(ConnectivityManager::class.java)
         private val pendingRegistrar: PendingTransactionRegistrar by inject(PendingTransactionRegistrar::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
+        private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+        private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder by inject(
+            OfflineTransactionPayloadEncoder::class.java
+        )
+        private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository by inject(
+            OfflineSignedTransactionRepository::class.java
+        )
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -71,12 +87,16 @@ object SendSolanaModule {
                         amountService = amountService,
                         addressService = addressService,
                         coinMaxAllowedDecimals = coinMaxAllowedDecimals,
-                        contactsRepo = App.contactsRepository,
                         showAddressInput = !hideAddress,
                         address = address,
-                        connectivityManager = App.connectivityManager,
+                        contactsRepo = contactsRepo,
+                        connectivityManager = connectivityManager,
                         pendingRegistrar = pendingRegistrar,
-                        adapterManager = adapterManager
+                        adapterManager = adapterManager,
+                        dispatcherProvider = dispatcherProvider,
+                        recentAddressManager = recentAddressManager,
+                        offlineTransactionPayloadEncoder = offlineTransactionPayloadEncoder,
+                        offlineSignedTransactionRepository = offlineSignedTransactionRepository,
                     ) as T
                 }
 
