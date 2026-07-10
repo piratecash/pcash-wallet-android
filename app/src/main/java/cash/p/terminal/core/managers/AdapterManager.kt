@@ -13,12 +13,12 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.litecoinMwebAccountIds
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -57,11 +57,12 @@ class AdapterManager(
     private val moneroKitManager: MoneroKitManager,
     private val stellarKitManager: StellarKitManager,
     private val pendingBalanceCalculator: PendingBalanceCalculator,
-    private val fallbackAddressProvider: FallbackAddressProvider
+    private val fallbackAddressProvider: FallbackAddressProvider,
+    dispatcherProvider: DispatcherProvider
 ) : IAdapterManager, HandlerThread("A") {
 
     private val mutex = Mutex()
-    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val coroutineScope = CoroutineScope(dispatcherProvider.io + SupervisorJob())
 
     private val adaptersReadySubject = PublishSubject.create<Map<Wallet, IAdapter>>()
     private val adaptersMap = ConcurrentHashMap<Wallet, IAdapter>()

@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.address
 
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.core.utils.AddressUriResult
 import cash.p.terminal.entities.Address
@@ -7,27 +8,21 @@ import cash.p.terminal.ui_compose.entities.DataState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FullAddressParserUseCaseTest {
 
-    private val dispatcher = UnconfinedTestDispatcher()
+    private val dispatcher = StandardTestDispatcher()
     private val testScope = TestScope(dispatcher)
 
     private val addressUriParser = mockk<AddressUriParser>()
@@ -41,8 +36,6 @@ class FullAddressParserUseCaseTest {
 
     @Before
     fun setup() {
-        Dispatchers.setMain(dispatcher)
-
         every { addressUriParser.parse(any()) } returns AddressUriResult.NoUri
         every { addressParserChain.supportedHandler(validAddress) } returns handler
         every { handler.parseAddress(validAddress) } returns parsedAddress
@@ -52,24 +45,8 @@ class FullAddressParserUseCaseTest {
             addressUriParser = addressUriParser,
             addressParserChain = addressParserChain,
             coroutineScope = testScope,
+            dispatcherProvider = TestDispatcherProvider(dispatcher, testScope),
         )
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-    }
-
-    private fun awaitCondition(message: String, condition: () -> Boolean) {
-        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(1)
-
-        while (!condition()) {
-            if (System.nanoTime() >= deadline) {
-                throw AssertionError(message)
-            }
-
-            Thread.sleep(10)
-        }
     }
 
     // =========================================================================
@@ -98,13 +75,11 @@ class FullAddressParserUseCaseTest {
 
         useCase.parseText(addressWithSpaces)
         advanceUntilIdle()
-        awaitCondition("Expected success for address with spaces") {
-            useCase.inputState.value is DataState.Success
-        }
 
         // UI shows exact user input (with spaces)
         assertEquals(addressWithSpaces, useCase.valueFlow.value)
         // Validation succeeds on trimmed text, _address has clean value
+        assertTrue(useCase.inputState.value is DataState.Success)
         assertEquals(parsedAddress, useCase.address.value)
     }
 
@@ -113,9 +88,7 @@ class FullAddressParserUseCaseTest {
         val addressWithSpaces = "  $validAddress  "
         useCase.parseText(addressWithSpaces)
         advanceUntilIdle()
-        awaitCondition("Expected success for address with spaces") {
-            useCase.inputState.value is DataState.Success
-        }
+        assertTrue(useCase.inputState.value is DataState.Success)
 
         // User edits in the middle — deletes char at position 20
         val edited = addressWithSpaces.removeRange(20, 21)
@@ -123,9 +96,7 @@ class FullAddressParserUseCaseTest {
 
         useCase.parseText(edited)
         advanceUntilIdle()
-        awaitCondition("Expected error after editing") {
-            useCase.inputState.value is DataState.Error
-        }
+        assertTrue(useCase.inputState.value is DataState.Error)
 
         // valueFlow reflects exact user edit — spaces preserved
         assertEquals(edited, useCase.valueFlow.value)
@@ -157,40 +128,17 @@ class FullAddressParserUseCaseTest {
 
     @Test
     fun parseText_middleEdit_valueFlowMatchesUserInput() = testScope.runTest {
-        val firstParseStarted = CountDownLatch(1)
-        val allowFirstParseToFinish = CountDownLatch(1)
         val editedAddress = validAddress.removeRange(39, 40)
-
-        every { handler.parseAddress(validAddress) } answers {
-            firstParseStarted.countDown()
-            assertTrue(
-                "First validation did not unblock in time",
-                allowFirstParseToFinish.await(1, TimeUnit.SECONDS)
-            )
-            parsedAddress
-        }
         every { addressParserChain.supportedHandler(editedAddress) } returns null
 
+        // First validation is queued but not yet run (StandardTestDispatcher). Editing
+        // before it runs must cancel the stale job so it never sets the old success state.
         useCase.parseText(validAddress)
-        assertTrue(
-            "First validation did not start in time",
-            firstParseStarted.await(1, TimeUnit.SECONDS)
-        )
-
         useCase.parseText(editedAddress)
         advanceUntilIdle()
 
-        awaitCondition("Edited address should produce error state") {
-            useCase.inputState.value is DataState.Error
-        }
+        assertTrue(useCase.inputState.value is DataState.Error)
         assertNull(useCase.address.value)
-        assertEquals(editedAddress, useCase.valueFlow.value)
-
-        allowFirstParseToFinish.countDown()
-        awaitCondition("Canceled first validation should not restore old success state") {
-            useCase.inputState.value is DataState.Error
-        }
-
         assertEquals(editedAddress, useCase.valueFlow.value)
     }
 
@@ -210,10 +158,6 @@ class FullAddressParserUseCaseTest {
     fun parseAddress_validAddress_setsSuccessState() = testScope.runTest {
         useCase.parseAddress(validAddress)
         advanceUntilIdle()
-
-        awaitCondition("Expected success state for valid address") {
-            useCase.inputState.value is DataState.Success
-        }
 
         val state = useCase.inputState.value
         assertTrue("Expected DataState.Success, got $state", state is DataState.Success)
@@ -257,10 +201,6 @@ class FullAddressParserUseCaseTest {
         useCase.parseText(validAddress)
         advanceUntilIdle()
 
-        awaitCondition("Expected success state for valid address") {
-            useCase.inputState.value is DataState.Success
-        }
-
         val state = useCase.inputState.value
         assertTrue("Expected DataState.Success, got $state", state is DataState.Success)
     }
@@ -272,10 +212,6 @@ class FullAddressParserUseCaseTest {
 
         useCase.parseText(unsupported)
         advanceUntilIdle()
-
-        awaitCondition("Expected error state for unsupported address") {
-            useCase.inputState.value is DataState.Error
-        }
 
         val state = useCase.inputState.value
         assertTrue("Expected DataState.Error, got $state", state is DataState.Error)
@@ -292,10 +228,6 @@ class FullAddressParserUseCaseTest {
         useCase.parseText("first_address")
         useCase.parseText(validAddress)
         advanceUntilIdle()
-
-        awaitCondition("Expected success state for latest valid address") {
-            useCase.inputState.value is DataState.Success
-        }
 
         assertEquals(validAddress, useCase.valueFlow.value)
         // Final state should be for the last call (validAddress), not the first
