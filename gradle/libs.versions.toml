@@ -35,6 +35,8 @@ navigationUiKtx = "2.9.7"
 powermockApiMockito2 = "2.0.9"
 powermockModuleJunit4 = "2.0.9"
 profileinstaller = "1.4.1"
+benchmark = "1.5.0-alpha07"
+uiautomator = "2.3.0"
 recyclerview = "1.4.0"
 coil = "3.4.0"
 annotation = "1.9.1"
@@ -194,6 +196,8 @@ room-paging = { group = "androidx.room", name = "room-paging", version.ref = "ro
 paging-runtime = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 profileinstaller = { module = "androidx.profileinstaller:profileinstaller", version.ref = "profileinstaller" }
+androidx-benchmark-macro-junit4 = { module = "androidx.benchmark:benchmark-macro-junit4", version.ref = "benchmark" }
+androidx-test-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 
 spek-dsl-jvm = { module = "org.spekframework.spek2:spek-dsl-jvm", version.ref = "spekDslJvm" }
 spek-runner-junit5 = { module = "org.spekframework.spek2:spek-runner-junit5", version.ref = "spekRunnerJunit5" }
@@ -274,3 +278,5 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 devtools-ksp = { id = "com.google.devtools.ksp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlytics" }
+androidx-baselineprofile = { id = "androidx.baselineprofile", version.ref = "benchmark" }
+android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }

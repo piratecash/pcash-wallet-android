@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.test'
+    id 'androidx.baselineprofile'
+}
+
+android {
+    namespace 'cash.p.terminal.baselineprofile'
+    compileSdk 36
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        minSdk 28
+        targetSdk 36
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    targetProjectPath = ":app"
+    experimentalProperties["android.experimental.self-instrumenting"] = true
+
+    // Match the app's disposable generation build type so the plugin generates
+    // against cash.p.terminal.baseline (a throwaway sandbox; the UI test creates
+    // its own wallets — no real data is ever installed or uninstalled here).
+    buildTypes {
+        baselinegen {
+            matchingFallbacks = ['release']
+        }
+    }
+}
+
+// Generation runs on a connected device/emulator.
+baselineProfile {
+    useConnectedDevices = true
+}
+
+dependencies {
+    implementation "androidx.test.ext:junit:1.2.1"
+    implementation libs.androidx.test.uiautomator
+    implementation libs.androidx.benchmark.macro.junit4
+}

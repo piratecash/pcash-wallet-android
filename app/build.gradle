@@ -15,6 +15,7 @@ plugins {
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'androidx.navigation.safeargs.kotlin'
+    id 'androidx.baselineprofile'
 }
 
 // Git version information helpers (using modern providers.exec API)
@@ -73,6 +74,8 @@ android {
         buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
         buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
         buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
+        // True only for the disposable baseline-profile generation build type (see baselinegen).
+        buildConfigField "boolean", "BASELINE_PROFILE_MODE", "false"
         buildConfigField "boolean", "PAYCORE_ENABLED", "true"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -198,6 +201,21 @@ android {
             matchingFallbacks = ['release']
         }
 
+        // Local-only, DISPOSABLE sandbox for baseline-profile generation.
+        // Release code paths (DEBUG=false → ART AOT, the only mode baseline profiles
+        // help) under a unique applicationId that NEVER holds real wallets: the
+        // generation UI test creates throwaway wallets from scratch. Safe for the
+        // connectedAndroidTest task to install and uninstall at will. Not for distribution.
+        baselinegen {
+            initWith release
+            applicationIdSuffix ".baseline"
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+            // This disposable sandbox reuses the production Firebase app_id; keep its
+            // generation crashes/telemetry out of production Firebase (see App.kt guard).
+            buildConfigField "boolean", "BASELINE_PROFILE_MODE", "true"
+        }
+
     }
 
     compileOptions {
@@ -319,6 +337,7 @@ dependencies {
 
     //Baseline Profiles
     implementation libs.profileinstaller
+    baselineProfile project(':baselineprofile')
 
     //AppWidgets
     implementation libs.androidx.glance.appwidget
@@ -548,3 +567,35 @@ tasks.register('cleanMacOsMetadata') {
     }
 }
 preBuild.dependsOn cleanMacOsMetadata
+
+// Single entry point. Runs one generation journey on the DISPOSABLE
+// cash.p.terminal.baseline sandbox (onboarding → create wallet → tabs → search →
+// cold restart with wallet → second wallet + switch) and copies the resulting
+// profile into src/main/baseline-prof.txt. No real-data package is ever touched.
+//   ./gradlew :app:bakeBaselineProfile
+tasks.register('bakeBaselineProfile') {
+    description = 'Generate the baseline profile on the disposable .baseline sandbox and copy it into src/main/baseline-prof.txt'
+    group = 'baseline profile'
+    dependsOn 'generateBaselinegenBaselineProfile'
+    doLast {
+        def source = file('src/baselinegen/generated/baselineProfiles/baseline-prof.txt')
+        if (!source.exists()) {
+            throw new GradleException("Generated profile not found: $source")
+        }
+        def rules = new LinkedHashSet<String>()
+        source.eachLine { line -> if (line.trim()) rules.add(line.trim()) }
+        def out = file('src/main/baseline-prof.txt')
+        out.text = rules.join('\n') + '\n'
+        println "Baked ${rules.size()} rules -> ${out}"
+    }
+}
+
+// F-Droid reproducible builds: when invoked with -Pfdroid=true (F-Droid's build recipe
+// passes it), disable ART profile packaging so the APK omits assets/dexopt/baseline.prof
+// and baseline.profm, keeping the build byte-reproducible. Non-F-Droid channels (Google
+// Play, direct APK) are built without the flag and keep the profile — and its startup win.
+if (project.hasProperty('fdroid')) {
+    tasks.matching { it.name.contains('ArtProfile') }.configureEach {
+        enabled = false
+    }
+}

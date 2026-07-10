@@ -16,9 +16,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import cash.p.terminal.ui_compose.components.ConnectionStatusView
@@ -35,6 +38,7 @@ abstract class BaseComposeFragment(
 
     open val showConnectionPanel: Boolean = true
 
+    @OptIn(ExperimentalComposeUiApi::class)
     final override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,8 +69,12 @@ abstract class BaseComposeFragment(
 
                     if (isOnBackStack) {
                         Box(
+                            // Expose Compose testTag values as resource-ids so UiAutomator
+                            // (baseline profile generation, instrumented UI tests) can select
+                            // nodes by By.res(tag). Applied at the screen composition root.
                             modifier = Modifier
                                 .fillMaxSize()
+                                .semantics { testTagsAsResourceId = true }
                         ) {
                             GetContent(navController)
                             if (showConnectionPanel && LocalConnectionPanelState.current.value) {
