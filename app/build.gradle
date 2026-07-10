@@ -245,6 +245,8 @@ android {
         unitTests.includeAndroidResources = true
         unitTests.all {
             useJUnitPlatform()
+            maxHeapSize = "2g"
+            forkEvery = 80
         }
     }
 

@@ -30,7 +30,7 @@ import org.robolectric.annotation.Config
 import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
-@Config(application = TestCoreApp::class, sdk = [34])
+@Config(application = TestCoreApp::class)
 class TransactionInfoViewItemFactoryTest {
 
     @Before
