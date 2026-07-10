@@ -903,7 +903,7 @@
     <string name="appearance_app_icon_our_icon">ONS PICTOGRAM</string>
     <string name="appearance_app_icon_other">OVERIGE</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
-    <string name="Appearance_Warning_CloseApplication">Changing icon will close application</string>
+    <string name="Appearance_Warning_CloseApplication">Om het nieuwe pictogram toe te passen, wordt de applicatie automatisch opnieuw opgestart</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>

@@ -901,7 +901,7 @@
     <string name="appearance_app_icon_our_icon">أيقونتنا</string>
     <string name="appearance_app_icon_other">أخرى</string>
     <string name="Appearance_BalanceValue">Balance Value</string>
-    <string name="Appearance_Warning_CloseApplication">Changing icon will close application</string>
+    <string name="Appearance_Warning_CloseApplication">لتطبيق الأيقونة الجديدة، ستتم إعادة تشغيل التطبيق تلقائيًا</string>
     <string name="Appearance_HideMarketsTab">Hide Markets</string>
     <string name="Appearance_HideBalanceTabButtons">Hide Buttons</string>
     <string name="Appearance_BalanceAutoHide">Balance Auto Hide</string>

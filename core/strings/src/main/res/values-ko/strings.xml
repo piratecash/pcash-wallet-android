@@ -902,7 +902,7 @@
     <string name="appearance_app_icon_our_icon">우리 아이콘</string>
     <string name="appearance_app_icon_other">기타</string>
     <string name="Appearance_BalanceValue">균형 가치</string>
-    <string name="Appearance_Warning_CloseApplication">아이콘을 변경하면 애플리케이션이 종료됩니다.</string>
+    <string name="Appearance_Warning_CloseApplication">새 아이콘을 적용하기 위해 애플리케이션이 자동으로 다시 시작됩니다</string>
     <string name="Appearance_HideMarketsTab">마켓 숨기기</string>
     <string name="Appearance_HideBalanceTabButtons">숨김 버튼</string>
     <string name="Appearance_BalanceAutoHide">밸런스 자동 숨기기</string>

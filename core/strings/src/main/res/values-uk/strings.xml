@@ -904,7 +904,7 @@
     <string name="appearance_app_icon_our_icon">НАША ІКОНКА</string>
     <string name="appearance_app_icon_other">ІНШІ</string>
     <string name="Appearance_BalanceValue">Значення балансу</string>
-    <string name="Appearance_Warning_CloseApplication">Зміна іконки закриє програму</string>
+    <string name="Appearance_Warning_CloseApplication">Для застосування нової іконки застосунок буде автоматично перезапущено</string>
     <string name="Appearance_HideMarketsTab">Приховати ринки</string>
     <string name="Appearance_HideBalanceTabButtons">Приховати кнопки</string>
     <string name="Appearance_BalanceAutoHide">Автоприховування балансу</string>

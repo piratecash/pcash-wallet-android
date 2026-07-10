@@ -901,7 +901,7 @@
     <string name="appearance_app_icon_our_icon">NOSSO ÍCONE</string>
     <string name="appearance_app_icon_other">OUTROS</string>
     <string name="Appearance_BalanceValue">Valor Patrimonial</string>
-    <string name="Appearance_Warning_CloseApplication">Alterar o ícone fechará o aplicativo</string>
+    <string name="Appearance_Warning_CloseApplication">Para aplicar o novo ícone, o aplicativo será reiniciado automaticamente</string>
     <string name="Appearance_HideMarketsTab">Esconder Mercados</string>
     <string name="Appearance_HideBalanceTabButtons">Ocultar Botões</string>
     <string name="Appearance_BalanceAutoHide">Ocultar Saldo</string>

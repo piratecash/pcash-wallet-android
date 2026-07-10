@@ -895,7 +895,7 @@
     <string name="appearance_app_icon_our_icon">UNSER SYMBOL</string>
     <string name="appearance_app_icon_other">ANDERE</string>
     <string name="Appearance_BalanceValue">Saldo Wert</string>
-    <string name="Appearance_Warning_CloseApplication">Das Ändern des Symbols schließt die Anwendung</string>
+    <string name="Appearance_Warning_CloseApplication">Zum Anwenden des neuen Symbols wird die Anwendung automatisch neu gestartet</string>
     <string name="Appearance_HideMarketsTab">Märkte ausblenden</string>
     <string name="Appearance_HideBalanceTabButtons">Schaltflächen ausblenden</string>
     <string name="Appearance_BalanceAutoHide">Auto-Ausblenden ausgleichen</string>
