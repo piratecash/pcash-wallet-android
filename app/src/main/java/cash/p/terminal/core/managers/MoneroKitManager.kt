@@ -28,6 +28,8 @@ import com.m2049r.xmrwallet.model.TransactionInfo
 import com.m2049r.xmrwallet.model.Wallet
 import com.m2049r.xmrwallet.model.Wallet.ConnectionStatus
 import com.m2049r.xmrwallet.model.WalletManager
+import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
+import com.m2049r.xmrwallet.offline.SignedRawMoneroTransaction
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.m2049r.xmrwallet.service.WalletCorruptedException
 import com.m2049r.xmrwallet.util.Helper
@@ -579,6 +581,21 @@ class MoneroKitWrapper(
         moneroWalletService.sendTransaction(memo)
     }
 
+    suspend fun createSignedRawTransaction(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+    ): SignedRawMoneroTransaction = withContext(Dispatchers.IO) {
+        val wallet = moneroWalletService.wallet
+            ?: throw IllegalStateException("Monero wallet not initialized")
+        moneroWalletService.createSignedRawTransaction(buildTxData(amount, address, memo, wallet))
+    }
+
+    suspend fun submitSignedRawTransaction(raw: ByteArray): RawMoneroBroadcastResult =
+        withContext(Dispatchers.IO) {
+            moneroWalletService.submitSignedRawTransaction(raw)
+        }
+
     fun estimateFee(
         amount: BigDecimal,
         address: String,
@@ -634,6 +651,15 @@ class MoneroKitWrapper(
         } catch (e: Exception) {
             logger.warning("getBalance: failed to fetch balance", e)
             Timber.d("getBalance: Failed to get balance")
+            0L
+        }
+    }
+
+    fun getUnlockedBalance(): Long {
+        return try {
+            moneroWalletService.wallet?.unlockedBalance ?: 0L
+        } catch (e: Exception) {
+            logger.warning("getUnlockedBalance: failed to fetch unlocked balance", e)
             0L
         }
     }

@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.isNative
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
+import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
 import cash.p.terminal.modules.amount.SendAmountService
@@ -13,6 +16,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import org.koin.java.KoinJavaComponent.inject
 
@@ -24,6 +28,14 @@ object SendStellarModule {
         private val adapter: ISendStellarAdapter
     ) : ViewModelProvider.Factory {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
+        private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+        private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder by inject(
+            OfflineTransactionPayloadEncoder::class.java
+        )
+        private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository by inject(
+            OfflineSignedTransactionRepository::class.java
+        )
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -66,7 +78,11 @@ object SendStellarModule {
                 addressService,
                 App.contactsRepository,
                 SendStellarMinimumAmountService(adapter),
-                adapterManager
+                adapterManager,
+                dispatcherProvider,
+                recentAddressManager,
+                offlineTransactionPayloadEncoder,
+                offlineSignedTransactionRepository,
             ) as T
         }
     }

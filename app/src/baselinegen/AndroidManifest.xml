@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+            The baselinegen sandbox reuses the production Firebase app_id and runs only
+            during local baseline-profile generation. Disable Crashlytics collection so a
+            stray crash/ANR during generation never reaches production Firebase. Analytics
+            is already disabled globally in the main manifest.
+        -->
+        <meta-data
+            android:name="firebase_crashlytics_collection_enabled"
+            android:value="false" />
+    </application>
+
+</manifest>

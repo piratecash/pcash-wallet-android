@@ -1,9 +1,10 @@
 package cash.p.terminal.modules.transactions
 
 import android.util.Log
+import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.wallet.Clearable
-import io.horizontalsystems.core.CurrencyManager
 import cash.p.terminal.wallet.MarketKitWrapper
+import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -77,3 +78,21 @@ class TransactionsRateRepository(
 }
 
 data class HistoricalRateKey(val coinUid: String, val timestamp: Long)
+
+fun TransactionRecord.currencyValue(rateRepository: TransactionsRateRepository): CurrencyValue? {
+    val value = mainValue ?: return null
+    val decimalValue = value.decimalValue ?: return null
+    val coinUid = value.coin?.uid ?: return null
+    return rateRepository.getHistoricalRate(HistoricalRateKey(coinUid, timestamp))
+        ?.ratedCurrencyValue(decimalValue)
+}
+
+fun TransactionRecord.currencyValue(key: HistoricalRateKey, rate: CurrencyValue): CurrencyValue? {
+    val value = mainValue ?: return null
+    val decimalValue = value.decimalValue ?: return null
+    if (value.coin?.uid != key.coinUid || timestamp != key.timestamp) return null
+    return rate.ratedCurrencyValue(decimalValue)
+}
+
+private fun CurrencyValue.ratedCurrencyValue(decimalValue: BigDecimal) =
+    CurrencyValue(currency, decimalValue * value)

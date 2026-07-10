@@ -335,8 +335,9 @@ fun TokenBalanceScreen(
                         stickyHeader(contentType = FILTER_TABS_CONTENT_TYPE) {
                             Box(modifier = Modifier.onSizeChanged { tabsHeightPx = it.height }) {
                                 FilterTypeTabs(
-                                    uiState.transactionFilterTypes,
-                                    viewModel::setTransactionType
+                                    filterTypes = uiState.transactionFilterTypes,
+                                    offlineSignedSelected = false,
+                                    onTransactionTypeClick = viewModel::setTransactionType,
                                 )
                             }
                         }

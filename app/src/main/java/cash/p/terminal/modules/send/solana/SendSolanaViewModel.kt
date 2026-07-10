@@ -11,11 +11,18 @@ import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendSolanaAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineSolanaSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineSolanaTransaction
 import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineSolanaRetryMetadata
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -23,6 +30,9 @@ import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendErrorInsufficientBalance
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IAdapterManager
@@ -30,52 +40,75 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.modules.send.BaseSendViewModel
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.solanakit.SolanaKit
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.math.BigDecimal
 import java.net.UnknownHostException
 import kotlin.getValue
 
+@Suppress("LongParameterList")
 class SendSolanaViewModel(
     wallet: Wallet,
-    val sendToken: Token,
+    private val sendToken: Token,
     override val feeToken: Token,
     val solBalance: BigDecimal,
     val adapter: ISendSolanaAdapter,
     xRateService: XRateService,
     private val amountService: SendAmountService,
     private val addressService: SendSolanaAddressService,
-    val coinMaxAllowedDecimals: Int,
-    private val contactsRepo: ContactsRepository,
+    override val coinMaxAllowedDecimals: Int,
     private val showAddressInput: Boolean,
-    private val connectivityManager: ConnectivityManager,
     address: Address?,
+    private val contactsRepo: ContactsRepository,
+    private val connectivityManager: ConnectivityManager,
     private val pendingRegistrar: PendingTransactionRegistrar,
-    private val adapterManager: IAdapterManager
-) : BaseSendViewModel<SendSolanaModule.SendUiState>(wallet, adapterManager) {
+    private val adapterManager: IAdapterManager,
+    private val dispatcherProvider: DispatcherProvider,
+    private val recentAddressManager: RecentAddressManager,
+    private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder,
+    private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository,
+) : BaseSendViewModel<SendSolanaModule.SendUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
+    data class OfflineSignResult(
+        val signedTransaction: SignedOfflineSolanaTransaction,
+        val confirmationData: SendConfirmationData,
+    )
+
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
+    override val feeCoinMaxAllowedDecimals get() = feeTokenMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
-    private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineSolanaTransaction>
+    override val offlineSigningController: OfflineSigningController<OfflineSignResult> by lazy {
+        OfflineSigningController(
+            scope = viewModelScope,
+            dispatcherProvider = dispatcherProvider,
+            payloadEncoder = offlineTransactionPayloadEncoder,
+            repository = offlineSignedTransactionRepository,
+            cautionFactory = ::createCaution,
+            isSilentCancellation = { it is TrezorCancelledException || it.isHardwareWalletUserCancelled() },
+        )
+    }
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
     private var pendingTxId: String? = null
 
-    var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
     private val decimalAmount: BigDecimal
-        get() = amountState.amount!!
+        get() = amountState.amount ?: throw LocalizedException(R.string.send_error_amount_unavailable)
+
+    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
 
     init {
         amountService.stateFlow.collectWith(viewModelScope) {
@@ -117,8 +150,9 @@ class SendSolanaViewModel(
         addressService.setAddress(address)
     }
 
-    fun getConfirmationData(): SendConfirmationData {
-        val address = addressState.address!!
+    override fun getConfirmationData(): SendConfirmationData {
+        val address = addressState.address
+            ?: throw LocalizedException(R.string.send_error_address_unavailable)
         val contact = contactsRepo.getContactsFiltered(
             blockchainType,
             addressQuery = address.hex
@@ -140,11 +174,19 @@ class SendSolanaViewModel(
         }
     }
 
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
+    }
+
     fun hasConnection(): Boolean {
         return connectivityManager.isConnected.value
     }
 
-    private suspend fun send() = withContext(Dispatchers.IO) {
+    private suspend fun send() = withContext(dispatcherProvider.io) {
         if (!hasConnection()) {
             sendResult = SendResult.Failed(createCaution(UnknownHostException()))
             return@withContext
@@ -152,6 +194,10 @@ class SendSolanaViewModel(
 
         try {
             sendResult = SendResult.Sending
+            val address = addressState.address
+                ?: throw LocalizedException(R.string.send_error_address_unavailable)
+            val solanaAddress = addressState.solanaAddress
+                ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
             val totalSolAmount = (if (sendToken.type == TokenType.Native) decimalAmount else BigDecimal.ZERO) + SolanaKit.fee
 
@@ -170,20 +216,20 @@ class SendSolanaViewModel(
                 fee = SolanaKit.fee,
                 sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",
-                toAddress = addressState.address!!.hex
+                toAddress = address.hex
             )
 
             // 2. Register pending transaction
             pendingTxId = pendingRegistrar.register(draft)
 
             // 3. Broadcast transaction
-            val transaction = adapter.send(decimalAmount, addressState.solanaAddress!!)
+            val transaction = adapter.send(decimalAmount, solanaAddress)
             pendingTxId?.let { pendingRegistrar.updateTxId(it, transaction.transaction.hash) }
 
-            onSendSuccess(addressState.address?.hex)
+            onSendSuccess(address.hex)
             sendResult = SendResult.Sent()
 
-            recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Solana)
+            recentAddressManager.setRecentAddress(address, BlockchainType.Solana)
         } catch (e: TrezorCancelledException) {
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             sendResult = null
@@ -196,6 +242,39 @@ class SendSolanaViewModel(
             }
             sendResult = SendResult.Failed(createCaution(e))
         }
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        val confirmationData = getConfirmationData()
+        val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
+        return OfflineSignResult(
+            signedTransaction = signingAdapter.signOffline(
+                OfflineSolanaSignRequest(
+                    amount = confirmationData.amount,
+                    address = confirmationData.address.hex,
+                )
+            ),
+            confirmationData = confirmationData,
+        )
+    }
+
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
+        val confirmationData = result.confirmationData
+        val signed = result.signedTransaction
+        return OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = confirmationData.amount,
+            fee = signed.fee,
+            toAddress = confirmationData.address.hex,
+            rawHex = signed.rawHex,
+            txHash = signed.txHash,
+            inputOutpoints = emptyList(),
+            feeToken = feeToken,
+            solanaRetryMetadata = OfflineSolanaRetryMetadata(
+                blockHash = signed.blockHash,
+                lastValidBlockHeight = signed.lastValidBlockHeight,
+            ),
+        )
     }
 
     private fun createCaution(error: Throwable) = when (error) {

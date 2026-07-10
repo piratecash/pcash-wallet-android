@@ -14,6 +14,7 @@ import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.getMaxSendableBalance
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import kotlinx.parcelize.Parcelize
 import org.koin.java.KoinJavaComponent.inject
@@ -68,6 +69,7 @@ object SendEvmModule {
         private val adapter: ISendEthereumAdapter
     ) : ViewModelProvider.Factory {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -100,6 +102,7 @@ object SendEvmModule {
                         showAddressInput = !hideAddress,
                         address = address,
                         adapterManager = adapterManager,
+                        dispatcherProvider = dispatcherProvider,
                     ) as T
                 }
                 else -> throw IllegalArgumentException()

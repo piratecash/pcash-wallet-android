@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ISendTronAdapter
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
+import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.isNative
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
@@ -14,6 +17,7 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.getMaxSendableBalance
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import org.koin.java.KoinJavaComponent.inject
 import java.math.RoundingMode
@@ -27,6 +31,10 @@ object SendTronModule {
         private val adapter: ISendTronAdapter
     ) : ViewModelProvider.Factory {
         private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
+        private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+        private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder by inject(OfflineTransactionPayloadEncoder::class.java)
+        private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository by inject(OfflineSignedTransactionRepository::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -60,6 +68,10 @@ object SendTronModule {
                         connectivityManager = App.connectivityManager,
                         address = address,
                         adapterManager = adapterManager,
+                        dispatcherProvider = dispatcherProvider,
+                        recentAddressManager = recentAddressManager,
+                        offlineTransactionPayloadEncoder = offlineTransactionPayloadEncoder,
+                        offlineSignedTransactionRepository = offlineSignedTransactionRepository,
                     ) as T
                 }
 
