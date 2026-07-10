@@ -429,8 +429,9 @@ private fun TokenBalanceScreenContent(
                         ) {
                             if (showFilterTabs) {
                                 FilterTypeTabs(
-                                    uiState.transactionFilterTypes,
-                                    onSetTransactionType
+                                    filterTypes = uiState.transactionFilterTypes,
+                                    offlineSignedSelected = false,
+                                    onTransactionTypeClick = onSetTransactionType,
                                 )
                             }
                             if (uiState.searchActive) {

@@ -14,6 +14,7 @@ import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.storage.toRecordUidMap
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
 import cash.p.terminal.core.usecase.UpdateSwapProviderTransactionsStatusUseCase
 import cash.p.terminal.entities.LastBlockInfo
@@ -49,10 +50,14 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.atomic.AtomicLong
@@ -572,6 +577,58 @@ class TransactionsViewModel(
             changeNowTransactionId = viewItem.changeNowTransactionId
         )
 
+    suspend fun convertToViewItem(transactionItem: TransactionItem): TransactionViewItem =
+        transactionViewItem2Factory.convertToViewItemCached(
+            transactionItem = transactionItem,
+            walletUid = transactionItem.walletUid,
+        )
+
+    suspend fun awaitTransactionItem(recordUid: String, timeoutMs: Long = 5_000): TransactionItem? {
+        getTransactionItem(recordUid)?.let { return it }
+
+        return withTimeoutOrNull(timeoutMs) {
+            merge(
+                service.transactionItemsFlow.map { },
+                transactionAdapterManager.adaptersReadyFlow.map { },
+            ).first { getTransactionItem(recordUid) != null }
+            getTransactionItem(recordUid)
+        }
+    }
+
+    suspend fun getTransactionItem(recordUid: String): TransactionItem? {
+        val item = service.getTransactionItem(recordUid)
+            ?: findTransactionRecordInAdapters(recordUid)?.let {
+                TransactionItem(
+                    record = it,
+                    currencyValue = null,
+                    lastBlockInfo = null,
+                    nftMetadata = emptyMap(),
+                )
+            }
+            ?: return null
+
+        val swapTx = swapProviderTransactionsStorage.getByOutgoingRecordUid(recordUid)
+            ?: swapProviderTransactionsStorage.getByIncomingRecordUid(recordUid)
+        return if (swapTx != null) {
+            item.copy(
+                changeNowTransactionId = swapTx.transactionId,
+                transactionStatusUrl = swapTx.toStatusUrl(),
+            )
+        } else {
+            item
+        }
+    }
+
+    private suspend fun findTransactionRecordInAdapters(recordUid: String): TransactionRecord? {
+        for ((_, adapter) in transactionAdapterManager.adaptersReadyFlow.value) {
+            val record = tryOrNull {
+                adapter.getTransactions(null, null, 100, FilterTransactionType.All, null)
+            }?.firstOrNull { it.uid == recordUid }
+            if (record != null) return record
+        }
+        return null
+    }
+
     fun updateFilterHideSuspiciousTx(checked: Boolean) {
         transactionFilterService.updateFilterHideSuspiciousTx(checked)
     }
@@ -596,6 +653,7 @@ data class TransactionItem(
     val changeNowTransactionId: String? = null,
     val transactionStatusUrl: Pair<String, String>? = null,
     val walletUid: String? = null,
+    val offlineStatus: ColoredValue? = null,
     val cacheVersion: Long = nextVersion(),
 ) {
     fun withUpdatedListData(
@@ -638,7 +696,8 @@ data class TransactionViewItem(
     val transactionStatusUrl: Pair<String, String>? = null,
     val amlStatus: AmlStatus? = null,
     val poisonStatus: PoisonStatus = PoisonStatus.BLOCKCHAIN,
-    val addressPoisoningViewMode: AddressPoisoningViewMode = AddressPoisoningViewMode.COMPACT
+    val addressPoisoningViewMode: AddressPoisoningViewMode = AddressPoisoningViewMode.COMPACT,
+    val statusValue: ColoredValue? = null,
 ) {
 
     sealed class Icon {

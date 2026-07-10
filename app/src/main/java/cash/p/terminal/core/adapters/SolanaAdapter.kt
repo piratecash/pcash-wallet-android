@@ -1,7 +1,11 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.App
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.OfflineSolanaSignRequest
+import cash.p.terminal.core.SignedOfflineSolanaTransaction
 import cash.p.terminal.core.managers.SolanaKitWrapper
+import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.entities.BalanceData
 import io.horizontalsystems.core.SafeSuspendedCall
@@ -52,11 +56,30 @@ class SolanaAdapter(private val kitWrapper: SolanaKitWrapper) :
         get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
 
     override suspend fun send(amount: BigDecimal, to: Address): FullTransaction {
-        if (signer == null) throw Exception()
+        val signer = signer ?: throw SolanaSignerNotInitializedException()
 
         return SafeSuspendedCall.executeSuspendable {
             solanaKit.sendSol(to, amount.movePointRight(decimal).toLong(), signer)
         }
+    }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineSolanaTransaction {
+        val solanaRequest = requireNotNull(request as? OfflineSolanaSignRequest) {
+            "OfflineSolanaSignRequest is required"
+        }
+        val signer = signer ?: throw SolanaSignerNotInitializedException()
+        val signed = solanaKit.signedSolTransaction(
+            toAddress = Address(solanaRequest.address),
+            amount = solanaRequest.amount.movePointRight(decimal).toLong(),
+            signer = signer,
+        )
+        return SignedOfflineSolanaTransaction(
+            rawHex = signed.raw.toRawHexString(),
+            txHash = signed.signature,
+            fee = signed.fee,
+            blockHash = signed.blockHash,
+            lastValidBlockHeight = signed.lastValidBlockHeight,
+        )
     }
 
     private fun convertToAdapterState(syncState: SolanaKit.SyncState): AdapterState =

@@ -38,6 +38,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -66,6 +67,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import cash.p.terminal.R
@@ -79,10 +82,7 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
-import cash.p.terminal.ui_compose.components.title3_jacob
 import cash.p.terminal.ui_compose.components.title3_leah
-import cash.p.terminal.ui_compose.components.title3_lucian
-import cash.p.terminal.ui_compose.components.title3_remus
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.theme.SteelLight
 import cash.p.terminal.ui_compose.theme.YellowD
@@ -90,6 +90,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberPermissionState
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -238,7 +240,7 @@ private fun LoadingOverlay() {
             .background(ComposeAppTheme.colors.tyler.copy(alpha = 0.7f)),
         contentAlignment = Alignment.Center
     ) {
-        androidx.compose.material.CircularProgressIndicator(
+        CircularProgressIndicator(
             modifier = Modifier.size(48.dp),
             color = ComposeAppTheme.colors.leah
         )
@@ -253,29 +255,57 @@ private fun ScannerView(onScan: (String) -> Unit) {
     val previewView = remember { PreviewView(context) }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
-    val hasScanned = remember { java.util.concurrent.atomic.AtomicBoolean(false) }
+    val hasScanned = remember { AtomicBoolean(false) }
+    val disposed = remember { AtomicBoolean(false) }
+    val cameraProviderRef = remember { AtomicReference<ProcessCameraProvider?>() }
+    val imageAnalysisRef = remember { AtomicReference<ImageAnalysis?>() }
+    val analyzerRef = remember { AtomicReference<QrCodeAnalyzer?>() }
     var cameraError by remember { mutableStateOf<String?>(null) }
+    val cameraInitErrorText = stringResource(R.string.scan_qr_camera_initialization_failed)
 
-    DisposableEffect(Unit) {
+    fun releaseCamera() {
+        analyzerRef.getAndSet(null)?.release()
+        imageAnalysisRef.getAndSet(null)?.clearAnalyzer()
+        cameraProviderRef.getAndSet(null)?.unbindAll()
+    }
+
+    fun isCameraBindingDisposed() =
+        disposed.get() || lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED
+
+    DisposableEffect(lifecycleOwner) {
+        // Tear down on view-lifecycle destruction directly, not only on Compose
+        // disposal: clearAnalyzer()/unbindAll() must run for the CameraX pipeline
+        // (rooted in its internal thread) to drop the analyzer and the captured
+        // scan callback, otherwise the hosting screen leaks.
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                disposed.set(true)
+                releaseCamera()
+                cameraExecutor.shutdown()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            disposed.set(true)
+            releaseCamera()
             cameraExecutor.shutdown()
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
     LaunchedEffect(previewView) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-        cameraProviderFuture.addListener({
+        cameraProviderFuture.addListener(listener@{
             try {
                 val cameraProvider = cameraProviderFuture.get()
+                cameraProviderRef.set(cameraProvider)
 
-                val resolutionSelector = ResolutionSelector.Builder()
-                    .setResolutionStrategy(
-                        ResolutionStrategy(
-                            Size(1920, 1080),
-                            ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
-                        )
-                    )
-                    .build()
+                if (isCameraBindingDisposed()) {
+                    releaseCamera()
+                    return@listener
+                }
+
+                val resolutionSelector = buildResolutionSelector()
 
                 val preview = Preview.Builder()
                     .setResolutionSelector(resolutionSelector)
@@ -288,14 +318,17 @@ private fun ScannerView(onScan: (String) -> Unit) {
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also { analysis ->
-                        analysis.setAnalyzer(cameraExecutor, QrCodeAnalyzer { result ->
-                            if (hasScanned.compareAndSet(false, true)) {
-                                mainHandler.post {
-                                    onScan(result)
-                                }
-                            }
-                        })
+                        imageAnalysisRef.set(analysis)
+                        val analyzer =
+                            createQrCodeAnalyzer(hasScanned, disposed, mainHandler, onScan)
+                        analyzerRef.set(analyzer)
+                        analysis.setAnalyzer(cameraExecutor, analyzer)
                     }
+
+                if (isCameraBindingDisposed()) {
+                    releaseCamera()
+                    return@listener
+                }
 
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
@@ -305,7 +338,10 @@ private fun ScannerView(onScan: (String) -> Unit) {
                     imageAnalyzer
                 )
             } catch (e: Exception) {
-                cameraError = context.getString(R.string.scan_qr_camera_initialization_failed)
+                releaseCamera()
+                if (!disposed.get()) {
+                    cameraError = cameraInitErrorText
+                }
             }
         }, ContextCompat.getMainExecutor(context))
     }
@@ -318,6 +354,31 @@ private fun ScannerView(onScan: (String) -> Unit) {
         cameraError?.let { error ->
             CameraErrorOverlay(error)
         } ?: ScannerOverlay()
+    }
+}
+
+private fun buildResolutionSelector(): ResolutionSelector =
+    ResolutionSelector.Builder()
+        .setResolutionStrategy(
+            ResolutionStrategy(
+                Size(1920, 1080),
+                ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+            )
+        )
+        .build()
+
+private fun createQrCodeAnalyzer(
+    hasScanned: AtomicBoolean,
+    disposed: AtomicBoolean,
+    mainHandler: Handler,
+    onScan: (String) -> Unit,
+): QrCodeAnalyzer = QrCodeAnalyzer { result ->
+    if (hasScanned.compareAndSet(false, true)) {
+        mainHandler.post {
+            if (!disposed.get()) {
+                onScan(result)
+            }
+        }
     }
 }
 

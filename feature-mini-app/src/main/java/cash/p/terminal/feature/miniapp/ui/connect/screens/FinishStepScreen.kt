@@ -72,7 +72,7 @@ fun FinishStepScreen(
                     VSpacer(16.dp)
                     ButtonPrimaryYellow(
                         modifier = Modifier.fillMaxWidth(),
-                        title = stringResource(R.string.connect_mini_app_try_again),
+                        title = stringResource(R.string.try_again),
                         onClick = onRetryClick
                     )
                 }

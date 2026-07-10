@@ -28,12 +28,12 @@ fun HsIconButton(
     enabled: Boolean = true,
     rippleColor: Color = ComposeAppTheme.colors.leah,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    minSize: Dp = 48.dp,
+    minWidth: Dp = 48.dp,
     content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
-            .defaultMinSize(minSize)
+            .defaultMinSize(minWidth)
             .clickable(
                 onClick = onClick,
                 enabled = enabled,

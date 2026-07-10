@@ -1,15 +1,26 @@
 package cash.p.terminal.core.adapters
 
+import cash.p.terminal.core.BroadcastRawTransactionResult
+import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.ISendMoneroAdapter
+import cash.p.terminal.core.OfflineBroadcastMetadata
+import cash.p.terminal.core.OfflineMoneroSignRequest
+import cash.p.terminal.core.OfflineSignRequest
+import cash.p.terminal.core.SignedOfflineMoneroTransaction
+import cash.p.terminal.core.canonicalTransactionHash
+import cash.p.terminal.core.hexToByteArray
 import cash.p.terminal.core.managers.MoneroKitWrapper
 import cash.p.terminal.core.managers.MoneroSubaddressInfo
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.core.toRawHexString
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.entities.BalanceData
+import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +43,10 @@ class MoneroAdapter(
     override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
 
     override val maxSpendableBalance: BigDecimal
-        get() = maxOf(balanceData.available - fee.value, BigDecimal.ZERO)
+        get() = maxOf(unlockedBalance - fee.value, BigDecimal.ZERO)
+
+    private val unlockedBalance: BigDecimal
+        get() = balanceInBigDecimal(moneroKitWrapper.getUnlockedBalance(), decimal)
 
     override val debugInfo: String
         get() = "Monero wallet: ${moneroKitWrapper.statusInfo()}"
@@ -74,7 +88,7 @@ class MoneroAdapter(
     private suspend fun estimateFeeForMax() {
         tryOrNull {
             val address = AppConfigProvider.donateAddresses[BlockchainType.Monero] ?: return@tryOrNull
-            val amount = maxOf(balanceData.available, BigDecimal.ONE.movePointLeft(12))
+            val amount = maxOf(unlockedBalance, BigDecimal.ONE.movePointLeft(12))
             _fee.value = estimateFee(amount, address, null)
         }
     }
@@ -111,6 +125,40 @@ class MoneroAdapter(
     ): BigDecimal {
         return moneroKitWrapper.estimateFee(amount, address, memo).toBigDecimal()
             .movePointLeft(decimal)
+    }
+
+    override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineMoneroTransaction {
+        require(request is OfflineMoneroSignRequest) { "OfflineMoneroSignRequest is required" }
+        val signed = moneroKitWrapper.createSignedRawTransaction(
+            amount = request.amount,
+            address = request.address,
+            memo = request.memo,
+        )
+        return SignedOfflineMoneroTransaction(
+            rawHex = signed.raw.toRawHexString(),
+            txHash = signed.txId.canonicalTransactionHash(),
+            fee = signed.fee.toBigDecimal().movePointLeft(decimal),
+        )
+    }
+
+    override suspend fun broadcastRawTransaction(
+        rawTransactionHex: String,
+        metadata: OfflineBroadcastMetadata?,
+    ): BroadcastRawTransactionResult {
+        require(metadata == null) { "Monero offline broadcast does not support retry metadata" }
+        val normalizedRawHex = rawTransactionHex.trim()
+        require(OfflineTransactionPayloadEncoder.isRawTransactionHex(normalizedRawHex)) {
+            "Valid raw transaction hex is required"
+        }
+        val result = moneroKitWrapper.submitSignedRawTransaction(normalizedRawHex.hexToByteArray())
+        val status = when (result) {
+            is RawMoneroBroadcastResult.Submitted -> BroadcastRawTransactionStatus.Submitted
+            is RawMoneroBroadcastResult.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
+        }
+        return BroadcastRawTransactionResult(
+            txHash = result.txId.canonicalTransactionHash(),
+            status = status,
+        )
     }
 
     companion object {

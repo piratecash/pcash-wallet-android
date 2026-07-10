@@ -1,7 +1,6 @@
 package cash.p.terminal.core.adapters.stellar
 
 import cash.p.terminal.core.INativeBalanceProvider
-import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.managers.StellarKitWrapper
 import cash.p.terminal.core.managers.statusInfo
 import cash.p.terminal.core.managers.toAdapterState
@@ -26,7 +25,7 @@ class StellarAssetAdapter(
     stellarKitWrapper: StellarKitWrapper,
     code: String,
     issuer: String
-) : BaseStellarAdapter(stellarKitWrapper), ISendStellarAdapter, INativeBalanceProvider {
+) : BaseStellarAdapter(stellarKitWrapper), INativeBalanceProvider {
 
     private val stellarAsset = StellarAsset.Asset(code, issuer)
     private var assetBalance: BigDecimal? = null
@@ -99,6 +98,12 @@ class StellarAssetAdapter(
     override suspend fun send(amount: BigDecimal, address: String, memo: String?): String? {
         return stellarKit.sendAsset(stellarAsset.id, address, amount, memo).hash
     }
+
+    override suspend fun signedTransaction(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+    ) = stellarKit.signedAsset(stellarAsset.id, address, amount, memo)
 
     override fun validate(address: String) {
         StellarKit.validateAddress(address)

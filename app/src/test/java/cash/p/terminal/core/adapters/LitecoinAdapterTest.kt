@@ -1,11 +1,14 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.R
+import cash.p.terminal.core.BroadcastRawTransactionStatus
 import cash.p.terminal.core.IFeeRateProvider
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineBitcoinSignRequest
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.TransactionExplorerData
 import cash.p.terminal.core.UnsupportedAccountException
+import cash.p.terminal.entities.TransactionDataSortMode
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
@@ -24,12 +27,16 @@ import io.horizontalsystems.bitcoincore.BitcoinCore
 import io.horizontalsystems.bitcoincore.exceptions.AddressFormatException
 import io.horizontalsystems.bitcoincore.models.BalanceInfo
 import io.horizontalsystems.bitcoincore.models.BlockInfo
+import io.horizontalsystems.bitcoincore.models.RawTransactionBroadcastResult
+import io.horizontalsystems.bitcoincore.models.RawTransactionBroadcastStatus
+import io.horizontalsystems.bitcoincore.models.Transaction
 import io.horizontalsystems.bitcoincore.models.TransactionInfo
 import io.horizontalsystems.bitcoincore.models.TransactionOutputInfo
 import io.horizontalsystems.bitcoincore.models.TransactionFilterType
 import io.horizontalsystems.bitcoincore.models.TransactionStatus
 import io.horizontalsystems.bitcoincore.models.TransactionType
 import io.horizontalsystems.bitcoincore.models.TransactionDataSortType
+import io.horizontalsystems.bitcoincore.storage.FullTransaction
 import io.horizontalsystems.bitcoincore.storage.UnspentOutputInfo
 import io.horizontalsystems.bitcoincore.storage.UtxoFilters
 import io.horizontalsystems.core.BackgroundManager
@@ -50,6 +57,7 @@ import io.horizontalsystems.litecoinkit.mweb.MwebNetworkPolicy
 import io.horizontalsystems.litecoinkit.mweb.MwebPendingTransaction
 import io.horizontalsystems.litecoinkit.mweb.MwebSendInfo
 import io.horizontalsystems.litecoinkit.mweb.MwebSendResult
+import io.horizontalsystems.litecoinkit.mweb.MwebSignedRawTransaction
 import io.horizontalsystems.litecoinkit.mweb.MwebSyncState
 import io.horizontalsystems.litecoinkit.mweb.MwebTransaction
 import io.horizontalsystems.litecoinkit.mweb.MwebTransactionKind
@@ -2039,6 +2047,153 @@ class LitecoinAdapterTest {
             )
         }
     }
+
+    @Test
+    fun signOffline_publicMwebDestination_usesMwebCreateSignedTransaction() = runTest {
+        val adapter = createPublicAdapter()
+        val filters = UtxoFilters()
+        every { kit.isMwebAddress(MWEB_ADDRESS) } returns true
+        coEvery {
+            kit.createSignedMwebTransaction(
+                address = MWEB_ADDRESS,
+                value = 123_000_000,
+                source = LitecoinSendSource.Public,
+                feeRate = 5,
+                rbfEnabled = true,
+                changeToFirstInput = true,
+                filters = filters,
+                unspentOutputs = null
+            )
+        } returns mwebSignedRawTransaction(transactionHash = "a".repeat(64), rawTransaction = byteArrayOf(0x0a))
+
+        val signedTransaction = adapter.signOffline(
+            OfflineBitcoinSignRequest(
+                amount = BigDecimal("1.23"),
+                address = MWEB_ADDRESS,
+                memo = "ignored for mweb",
+                feeRate = 5,
+                unspentOutputs = null,
+                pluginData = null,
+                transactionSorting = TransactionDataSortMode.Shuffle,
+                rbfEnabled = true,
+                changeToFirstInput = true,
+                utxoFilters = filters,
+            )
+        )
+
+        assertEquals("0a", signedTransaction.rawHex)
+        assertEquals("a".repeat(64), signedTransaction.txHash)
+        assertTrue(signedTransaction.inputOutpoints.isEmpty())
+        coVerify(exactly = 1) {
+            kit.createSignedMwebTransaction(
+                address = MWEB_ADDRESS,
+                value = 123_000_000,
+                source = LitecoinSendSource.Public,
+                feeRate = 5,
+                rbfEnabled = true,
+                changeToFirstInput = true,
+                filters = filters,
+                unspentOutputs = null
+            )
+        }
+    }
+
+    @Test
+    fun signOffline_mwebWallet_usesMwebSource() = runTest {
+        val adapter = createMwebAdapter()
+        val filters = UtxoFilters()
+        coEvery {
+            kit.createSignedMwebTransaction(
+                address = PUBLIC_ADDRESS,
+                value = 10_000_000,
+                source = LitecoinSendSource.Mweb,
+                feeRate = 3,
+                rbfEnabled = false,
+                changeToFirstInput = false,
+                filters = filters,
+                unspentOutputs = null
+            )
+        } returns mwebSignedRawTransaction(transactionHash = "b".repeat(64), rawTransaction = byteArrayOf(0x0b))
+
+        val signedTransaction = adapter.signOffline(
+            OfflineBitcoinSignRequest(
+                amount = BigDecimal("0.1"),
+                address = PUBLIC_ADDRESS,
+                memo = null,
+                feeRate = 3,
+                unspentOutputs = listOf(mockk<UnspentOutputInfo>(relaxed = true)),
+                pluginData = null,
+                transactionSorting = TransactionDataSortMode.Shuffle,
+                rbfEnabled = true,
+                changeToFirstInput = true,
+                utxoFilters = filters,
+            )
+        )
+
+        assertEquals("0b", signedTransaction.rawHex)
+        assertEquals("b".repeat(64), signedTransaction.txHash)
+        coVerify(exactly = 1) {
+            kit.createSignedMwebTransaction(
+                address = PUBLIC_ADDRESS,
+                value = 10_000_000,
+                source = LitecoinSendSource.Mweb,
+                feeRate = 3,
+                rbfEnabled = false,
+                changeToFirstInput = false,
+                filters = filters,
+                unspentOutputs = null
+            )
+        }
+    }
+
+    @Test
+    fun broadcastRawTransaction_mwebRaw_submitsThroughMwebDaemon() = runTest {
+        val adapter = createPublicAdapter()
+        val raw = byteArrayOf(0x01, 0x02)
+        every { kit.isMwebRawTransaction(match { it.contentEquals(raw) }) } returns true
+        coEvery { kit.broadcastMwebRawTransaction(match { it.contentEquals(raw) }) } returns "c".repeat(64)
+
+        val result = adapter.broadcastRawTransaction("0102", metadata = null)
+
+        assertEquals("c".repeat(64), result.txHash)
+        assertEquals(BroadcastRawTransactionStatus.Submitted, result.status)
+        coVerify(exactly = 1) { kit.broadcastMwebRawTransaction(match { it.contentEquals(raw) }) }
+    }
+
+    @Test
+    fun broadcastRawTransaction_publicRaw_delegatesToBitcoinBase() = runTest {
+        val adapter = createPublicAdapter()
+        val raw = byteArrayOf(0x01, 0x02)
+        every { kit.isMwebRawTransaction(match { it.contentEquals(raw) }) } returns false
+        coEvery { kit.broadcastRawTransaction("0102") } returns RawTransactionBroadcastResult(
+            transaction = fullTransaction(ByteArray(32) { it.toByte() }),
+            status = RawTransactionBroadcastStatus.Queued,
+        )
+
+        val result = adapter.broadcastRawTransaction("0102", metadata = null)
+
+        assertEquals(BroadcastRawTransactionStatus.Queued, result.status)
+        coVerify(exactly = 0) { kit.broadcastMwebRawTransaction(any()) }
+        coVerify(exactly = 1) { kit.broadcastRawTransaction("0102") }
+    }
+
+    private fun mwebSignedRawTransaction(
+        transactionHash: String,
+        rawTransaction: ByteArray,
+    ) = MwebSignedRawTransaction(
+        transactionHash = transactionHash,
+        canonicalTransactionHash = null,
+        rawTransaction = rawTransaction,
+        outputIds = emptyList(),
+        fee = 1,
+    )
+
+    private fun fullTransaction(hash: ByteArray) = FullTransaction(
+        header = Transaction().apply { this.hash = hash },
+        inputs = emptyList(),
+        outputs = emptyList(),
+        forceHashUpdate = false,
+    )
 
     private fun createMwebAdapter(
         dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider()

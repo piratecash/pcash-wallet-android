@@ -25,9 +25,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
@@ -49,6 +52,8 @@ import cash.p.terminal.modules.send.bitcoin.advanced.BtcTransactionInputSortInfo
 import cash.p.terminal.modules.send.bitcoin.advanced.FeeRateCaution
 import cash.p.terminal.modules.send.bitcoin.advanced.SendBtcAdvancedSettingsScreen
 import cash.p.terminal.modules.send.bitcoin.utxoexpert.UtxoExpertModeScreen
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -75,6 +80,9 @@ const val SendBtcPage = "send_btc"
 const val SendBtcAdvancedSettingsPage = "send_btc_advanced_settings"
 const val TransactionInputsSortInfoPage = "transaction_input_sort_info_settings"
 const val UtxoExpertModePage = "utxo_expert_mode_page"
+private const val DebugOfflineBitcoinSignPage = "debug_offline_bitcoin_sign"
+private const val DebugOfflineTransactionTransferPage = "debug_offline_transaction_transfer"
+private const val DebugOfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendBitcoinNavHost(
@@ -125,7 +133,29 @@ fun SendBitcoinNavHost(
                 }
             )
         }
+        debugOfflineBitcoinSignFlowRoutes(
+            navController = navController,
+            fragmentNavController = fragmentNavController,
+            sendViewModel = viewModel,
+        )
     }
+}
+
+private fun NavGraphBuilder.debugOfflineBitcoinSignFlowRoutes(
+    navController: NavHostController,
+    fragmentNavController: NavController,
+    sendViewModel: SendBitcoinViewModel,
+) {
+    offlineSignFlowRoutes(
+        routes = OfflineSignFlowRoutes(
+            signRoute = DebugOfflineBitcoinSignPage,
+            transferRoute = DebugOfflineTransactionTransferPage,
+            transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+        ),
+        navController = navController,
+        fragmentNavController = fragmentNavController,
+        sendViewModel = sendViewModel,
+    )
 }
 
 @Composable
@@ -324,6 +354,17 @@ private fun SendBitcoinScreen(
                         },
                         enabled = proceedEnabled
                     )
+
+                    if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
+                        ButtonPrimaryYellow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            title = stringResource(R.string.offline_transaction_sign_title),
+                            onClick = { composeNavController.navigate(DebugOfflineBitcoinSignPage) },
+                            enabled = viewModel.offlineSignSupported && proceedEnabled,
+                        )
+                    }
                 }
                 SendSuggestionsBar(
                     availableBalance = availableBalance ?: BigDecimal.ZERO,

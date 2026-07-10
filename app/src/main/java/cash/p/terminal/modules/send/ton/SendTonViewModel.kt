@@ -9,29 +9,39 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineTonSignRequest
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineTonTransaction
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.modules.send.BaseSendViewModel
 import cash.p.terminal.entities.Address
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineTonRetryMetadata
 import cash.p.terminal.entities.PendingTransactionDraft
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
 
+@Suppress("LongParameterList")
 class SendTonViewModel(
     wallet: Wallet,
     private val sendToken: Token,
@@ -41,18 +51,39 @@ class SendTonViewModel(
     private val amountService: SendTonAmountService,
     private val addressService: SendTonAddressService,
     private val feeService: SendTonFeeService,
-    val coinMaxAllowedDecimals: Int,
+    override val coinMaxAllowedDecimals: Int,
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
     address: Address?,
     private val pendingRegistrar: PendingTransactionRegistrar,
     private val adapterManager: IAdapterManager,
-): BaseSendViewModel<SendTonUiState>(wallet, adapterManager) {
+    private val dispatcherProvider: DispatcherProvider,
+    private val recentAddressManager: RecentAddressManager,
+    private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder,
+    private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository,
+) : BaseSendViewModel<SendTonUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
+    data class OfflineSignResult(
+        val signedTransaction: SignedOfflineTonTransaction,
+        val confirmationData: SendConfirmationData,
+    )
+
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
+    override val feeCoinMaxAllowedDecimals get() = feeTokenMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
 
-    private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineTonTransaction>
+    override val offlineSigningController: OfflineSigningController<OfflineSignResult> by lazy {
+        OfflineSigningController(
+            scope = viewModelScope,
+            dispatcherProvider = dispatcherProvider,
+            payloadEncoder = offlineTransactionPayloadEncoder,
+            repository = offlineSignedTransactionRepository,
+            cautionFactory = ::createCaution,
+            isSilentCancellation = { it.isHardwareWalletUserCancelled() },
+        )
+    }
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -60,12 +91,23 @@ class SendTonViewModel(
     private var memo: String? = null
     private var pendingTxId: String? = null
 
-    var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
+
+    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
+
+    private val decimalAmount: BigDecimal
+        get() = amountState.amount ?: throw LocalizedException(R.string.send_error_amount_unavailable)
+
+    private val destinationAddress: Address
+        get() = addressState.address ?: throw LocalizedException(R.string.send_error_address_unavailable)
+
+    private val destinationTonAddress
+        get() = addressState.tonAddress ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
     override fun getEstimatedFee(): BigDecimal? = (feeState.feeStatus as? FeeStatus.Success)?.fee
     override fun onSendRequested() = onClickSend()
@@ -75,27 +117,27 @@ class SendTonViewModel(
     init {
         addCloseable(feeService)
 
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             amountService.stateFlow.collect {
                 handleUpdatedAmountState(it)
             }
         }
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             addressService.stateFlow.collect {
                 handleUpdatedAddressState(it)
             }
         }
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             feeService.stateFlow.collect {
                 handleUpdatedFeeState(it)
             }
         }
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             xRateService.getRateFlow(sendToken.coin.uid).collect {
                 coinRate = it
             }
         }
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             xRateService.getRateFlow(feeToken.coin.uid).collect {
                 feeCoinRate = it
             }
@@ -136,14 +178,14 @@ class SendTonViewModel(
         addressService.setAddress(address)
     }
 
-    fun getConfirmationData(): SendConfirmationData {
-        val address = addressState.address!!
+    override fun getConfirmationData(): SendConfirmationData {
+        val address = destinationAddress
         val contact = contactsRepo.getContactsFiltered(
             blockchainType,
             addressQuery = address.hex
         ).firstOrNull()
         return SendConfirmationData(
-            amount = amountState.amount!!,
+            amount = decimalAmount,
             fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
             address = address,
             contact = contact,
@@ -162,14 +204,22 @@ class SendTonViewModel(
     }
 
     fun onEnterMemo(memo: String) {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcherProvider.default) {
             this@SendTonViewModel.memo = memo.ifBlank { null }
             amountService.setMemo(this@SendTonViewModel.memo)
             feeService.setMemo(this@SendTonViewModel.memo)
         }
     }
 
-    private suspend fun send() = withContext(Dispatchers.IO) {
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
+    }
+
+    private suspend fun send() = withContext(dispatcherProvider.io) {
         try {
             sendResult = SendResult.Sending
             logger.info("sending tx")
@@ -180,11 +230,11 @@ class SendTonViewModel(
             val draft = PendingTransactionDraft(
                 wallet = wallet,
                 token = sendToken,
-                amount = amountState.amount!!,
+                amount = decimalAmount,
                 fee = (feeState.feeStatus as? FeeStatus.Success)?.fee,
                 sdkBalanceAtCreation = sdkBalance,
                 fromAddress = "",  // TON doesn't require from address
-                toAddress = addressState.address!!.hex,
+                toAddress = destinationAddress.hex,
                 memo = memo,
                 txHash = null  // TON doesn't return hash immediately
             )
@@ -193,13 +243,13 @@ class SendTonViewModel(
             pendingTxId = pendingRegistrar.register(draft)
 
             // 3. Broadcast transaction
-            adapter.send(amountState.amount!!, addressState.tonAddress!!, memo)
+            adapter.send(decimalAmount, destinationTonAddress, memo)
 
-            onSendSuccess(addressState.address?.hex)
+            onSendSuccess(destinationAddress.hex)
             sendResult = SendResult.Sent()
             logger.info("success")
 
-            recentAddressManager.setRecentAddress(addressState.address!!, BlockchainType.Ton)
+            recentAddressManager.setRecentAddress(destinationAddress, BlockchainType.Ton)
         } catch (e: Throwable) {
             // Delete pending transaction on error
             pendingTxId?.let {
@@ -213,6 +263,42 @@ class SendTonViewModel(
             sendResult = SendResult.Failed(createCaution(e))
             logger.warning("failed", e)
         }
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        val confirmationData = getConfirmationData()
+        val signingAdapter = offlineSignAdapter
+            ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
+        return OfflineSignResult(
+            signedTransaction = signingAdapter.signOffline(
+                OfflineTonSignRequest(
+                    amount = confirmationData.amount,
+                    address = destinationTonAddress,
+                    memo = confirmationData.memo,
+                )
+            ),
+            confirmationData = confirmationData,
+        )
+    }
+
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
+        val confirmationData = result.confirmationData
+        val signed = result.signedTransaction
+        return OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = confirmationData.amount,
+            fee = signed.fee,
+            toAddress = confirmationData.address.hex,
+            rawHex = signed.rawHex,
+            txHash = signed.txHash,
+            inputOutpoints = emptyList(),
+            feeToken = feeToken,
+            tonRetryMetadata = OfflineTonRetryMetadata(
+                validUntil = signed.validUntil,
+                senderAddress = signed.senderAddress,
+                seqno = signed.seqno,
+            ),
+        )
     }
 
     private fun createCaution(error: Throwable) = when (error) {
