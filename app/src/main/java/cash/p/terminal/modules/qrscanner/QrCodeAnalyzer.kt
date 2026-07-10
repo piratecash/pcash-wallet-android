@@ -9,10 +9,17 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
+import java.util.concurrent.atomic.AtomicReference
 
 class QrCodeAnalyzer(
-    private val onQrCodeScanned: (String) -> Unit
+    onQrCodeScanned: (String) -> Unit
 ) : ImageAnalysis.Analyzer {
+
+    // Clearable reference to the scan callback: release() nulls it to break the
+    // chain to everything the callback captures. CameraX may keep the analyzer
+    // alive on its internal executor thread after teardown; dropping the callback
+    // prevents that from leaking the calling screen.
+    private val callback = AtomicReference(onQrCodeScanned)
 
     private val reader = MultiFormatReader().apply {
         setHints(
@@ -69,7 +76,7 @@ class QrCodeAnalyzer(
             try {
                 val result = reader.decodeWithState(binaryBitmap)
                 result.text?.takeIf { it.isNotEmpty() }?.let { text ->
-                    onQrCodeScanned(text)
+                    callback.get()?.invoke(text)
                 }
             } catch (e: NotFoundException) {
                 // No QR code found in this frame
@@ -79,6 +86,10 @@ class QrCodeAnalyzer(
         } finally {
             image.close()
         }
+    }
+
+    fun release() {
+        callback.set(null)
     }
 
     private fun removePadding(data: ByteArray, width: Int, height: Int, rowStride: Int): ByteArray {

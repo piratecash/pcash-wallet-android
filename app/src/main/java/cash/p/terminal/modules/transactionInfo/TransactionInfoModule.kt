@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.getKoinInstance
 import io.horizontalsystems.core.entities.CurrencyValue
 import cash.p.terminal.entities.LastBlockInfo
@@ -18,6 +17,7 @@ import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
+import cash.p.terminal.ui_compose.ColoredValue
 import io.horizontalsystems.core.entities.BlockchainType
 import java.math.BigDecimal
 
@@ -28,7 +28,7 @@ object TransactionInfoModule {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             val transactionSource = transactionItem.record.source
-            val adapter: ITransactionsAdapter = App.transactionAdapterManager.getAdapter(transactionSource)!!
+            val adapter = App.transactionAdapterManager.getAdapter(transactionSource)
             val service = TransactionInfoService(
                 initialTransactionRecord = transactionItem.record,
                 userSwapTransactionId = transactionItem.changeNowTransactionId,
@@ -40,7 +40,8 @@ object TransactionInfoModule {
                 updateSwapProviderTransactionsStatusUseCase = getKoinInstance(),
                 swapProviderTransactionsStorage = getKoinInstance(),
                 dispatcherProvider = getKoinInstance(),
-                transactionStatusUrl = transactionItem.transactionStatusUrl
+                transactionStatusUrl = transactionItem.transactionStatusUrl,
+                offlineStatus = transactionItem.offlineStatus,
             )
             val factory = TransactionInfoViewItemFactory(
                 transactionSource.blockchain.type.resendable,
@@ -99,6 +100,7 @@ data class TransactionInfoItem(
     val swapTransactionId: String? = null,
     val swapTransactionStatus: TransactionStatusEnum? = null,
     val poisonStatus: PoisonStatus = PoisonStatus.BLOCKCHAIN,
+    val offlineStatus: ColoredValue? = null,
 )
 
 val BlockchainType.resendable: Boolean

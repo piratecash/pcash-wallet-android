@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import cash.p.terminal.core.OfflineEvmSignRequest
 import cash.p.terminal.core.adapters.BaseEvmAdapter
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.ethereum.CautionViewItemFactory
@@ -256,10 +257,7 @@ internal class SendTransactionServiceEvm(
     }
 
     override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult {
-        val transaction = transaction ?: throw Exception("Transaction is empty")
-        if (transaction.errors.isNotEmpty()) {
-            throw IllegalStateException(transaction.errors.firstOrNull()?.cause)
-        }
+        val transaction = requireValidTransaction()
 
         val transactionData = transaction.transactionData
         val gasPrice = transaction.gasData.gasPrice
@@ -302,6 +300,24 @@ internal class SendTransactionServiceEvm(
             pendingTxId?.let { pendingRegistrar.deleteFailed(it) }
             throw e
         }
+    }
+
+    fun offlineSignRequest(): OfflineEvmSignRequest {
+        val transaction = requireValidTransaction()
+        return OfflineEvmSignRequest(
+            transactionData = transaction.transactionData,
+            gasPrice = transaction.gasData.gasPrice,
+            gasLimit = transaction.gasData.gasLimit,
+            nonce = transaction.nonce,
+        )
+    }
+
+    private fun requireValidTransaction(): SendEvmSettingsService.Transaction {
+        val transaction = checkNotNull(transaction) { "Transaction is empty" }
+        if (transaction.errors.isNotEmpty()) {
+            throw IllegalStateException(transaction.errors.firstOrNull()?.cause)
+        }
+        return transaction
     }
 
     fun decorate(transactionData: TransactionData): TransactionDecoration? {

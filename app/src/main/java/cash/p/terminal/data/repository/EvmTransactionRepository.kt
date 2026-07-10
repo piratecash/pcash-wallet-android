@@ -19,6 +19,10 @@ import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.DefaultBlockParameter
 import io.horizontalsystems.ethereumkit.models.FullTransaction
+import io.horizontalsystems.ethereumkit.models.GasPrice
+import io.horizontalsystems.ethereumkit.models.RawTransactionBroadcastResult
+import io.horizontalsystems.ethereumkit.models.SignedRawTransaction
+import io.horizontalsystems.ethereumkit.models.TransactionData
 import io.reactivex.Flowable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -96,6 +100,17 @@ internal class EvmTransactionRepository(
     fun getBlockchainType(): BlockchainType = requireNotNull(_blockchainType)
 
     fun getTagTokenContractAddresses(): List<String> = evmKit.getTagTokenContractAddresses()
+
+    suspend fun signedRawTransaction(
+        transactionData: TransactionData,
+        gasPrice: GasPrice,
+        gasLimit: Long,
+        nonce: Long?,
+    ): SignedRawTransaction =
+        requireNotNull(evmKitWrapper).signedRawTransaction(transactionData, gasPrice, gasLimit, nonce)
+
+    suspend fun broadcastRawTransaction(rawTransactionHex: String): RawTransactionBroadcastResult =
+        requireNotNull(evmKitWrapper).broadcastRawTransaction(rawTransactionHex)
 
     suspend fun getFullTransactionsAsync(
         tags: List<List<String>>,

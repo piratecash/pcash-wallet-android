@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.FaqManager
 import cash.p.terminal.core.usecase.PayCoreNavigationTarget
@@ -62,6 +63,7 @@ import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
 import cash.p.terminal.modules.rateapp.RateAppModule
 import cash.p.terminal.modules.rateapp.RateAppViewModel
+import cash.p.terminal.modules.send.offline.OfflineBroadcastFragment
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.navigation.slideFromBottom
@@ -523,6 +525,14 @@ fun BalanceItems(
             )
         )
         viewModel.onRestoreFromQrOpened()
+    }
+    uiState.openOfflineBroadcast?.let { input ->
+        navController.slideFromRight(
+            MainGraphDirections.actionGlobalToOfflineBroadcastFragment(
+                OfflineBroadcastFragment.Input(initialInput = input)
+            )
+        )
+        viewModel.onOfflineBroadcastOpened()
     }
 }
 

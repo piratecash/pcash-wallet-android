@@ -102,6 +102,12 @@ fun TitleAndValueColoredCell(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+
+            ColorName.Jacob -> subhead1_jacob(
+                text = value,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

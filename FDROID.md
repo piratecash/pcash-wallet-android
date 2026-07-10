@@ -154,19 +154,16 @@ meld /tmp/local-build /tmp/fdroid-build
 The `app/build.gradle` contains:
 
 ```gradle
-// Disable baseline profile generation for F-Droid reproducible builds
-// https://f-droid.org/docs/Reproducible_Builds/
-// F-Droid builds should pass -Pfdroid=true to disable baseline profiles
+// F-Droid reproducible builds: when invoked with -Pfdroid=true, disable ART profile
+// packaging so the APK omits assets/dexopt/baseline.prof and baseline.profm.
 if (project.hasProperty('fdroid')) {
-    tasks.whenTaskAdded { task ->
-        if (task.name.contains("ArtProfile")) {
-            task.enabled = false
-        }
+    tasks.matching { it.name.contains('ArtProfile') }.configureEach {
+        enabled = false
     }
 }
 ```
 
-When `-Pfdroid=true` is passed, all tasks containing "ArtProfile" in their name are disabled, preventing baseline profile generation.
+When `-Pfdroid=true` is passed, all tasks containing "ArtProfile" in their name are disabled, so the APK ships without the baseline profile — keeping F-Droid builds byte-reproducible. Non-F-Droid channels (Google Play, direct APK) build without the flag and keep the profile.
 
 ## References
 

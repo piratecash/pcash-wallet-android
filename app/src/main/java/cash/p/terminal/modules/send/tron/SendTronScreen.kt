@@ -17,6 +17,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -32,6 +36,8 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
@@ -44,6 +50,53 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import java.math.BigDecimal
 
 @Composable
+@Suppress("ViewModelForwarding")
+fun SendTronNavHost(
+    title: String,
+    fragmentNavController: NavController,
+    viewModel: SendTronViewModel,
+    amountInputModeViewModel: AmountInputModeViewModel,
+    prefilledData: PrefilledData?,
+    addressCheckerControl: AddressCheckerControl,
+    onNextClick: (ProceedActionData) -> Unit,
+) {
+    val navController = rememberNavController()
+    NavHost(
+        navController = navController,
+        startDestination = SendTronPage,
+    ) {
+        composable(SendTronPage) {
+            SendTronScreen(
+                title = title,
+                navController = fragmentNavController,
+                viewModel = viewModel,
+                amountInputModeViewModel = amountInputModeViewModel,
+                prefilledData = prefilledData,
+                addressCheckerControl = addressCheckerControl,
+                onDebugOfflineSignClick = { navController.navigate(DebugOfflineTronSignPage) },
+                onNextClick = onNextClick,
+            )
+        }
+        offlineSignFlowRoutes(
+            routes = OfflineSignFlowRoutes(
+                signRoute = DebugOfflineTronSignPage,
+                transferRoute = DebugOfflineTronTransactionTransferPage,
+                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+            ),
+            navController = navController,
+            fragmentNavController = fragmentNavController,
+            sendViewModel = viewModel,
+        )
+    }
+}
+
+private const val SendTronPage = "send_tron"
+private const val DebugOfflineTronSignPage = "debug_offline_tron_sign"
+private const val DebugOfflineTronTransactionTransferPage = "debug_offline_tron_transaction_transfer"
+private const val DebugOfflineTransactionTransferFormatArg = "format"
+
+@Composable
+@Suppress("LongMethod", "LongParameterList")
 fun SendTronScreen(
     title: String,
     navController: NavController,
@@ -51,6 +104,7 @@ fun SendTronScreen(
     amountInputModeViewModel: AmountInputModeViewModel,
     prefilledData: PrefilledData?,
     addressCheckerControl: AddressCheckerControl,
+    onDebugOfflineSignClick: () -> Unit,
     onNextClick: (ProceedActionData) -> Unit,
 ) {
     val view = LocalView.current
@@ -205,6 +259,16 @@ fun SendTronScreen(
                 },
                 enabled = proceedEnabled
             )
+            if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
+                ButtonPrimaryYellow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    title = stringResource(R.string.offline_transaction_sign_title),
+                    onClick = onDebugOfflineSignClick,
+                    enabled = viewModel.offlineSignSupported && uiState.sendEnabled,
+                )
+            }
         }
     }
 

@@ -1,6 +1,5 @@
 package cash.p.terminal.core.adapters.stellar
 
-import cash.p.terminal.core.ISendStellarAdapter
 import cash.p.terminal.core.managers.StellarKitWrapper
 import cash.p.terminal.core.managers.statusInfo
 import cash.p.terminal.core.managers.toAdapterState
@@ -26,7 +25,7 @@ import kotlin.minus
 
 class StellarAdapter(
     stellarKitWrapper: StellarKitWrapper
-) : BaseStellarAdapter(stellarKitWrapper), ISendStellarAdapter {
+) : BaseStellarAdapter(stellarKitWrapper) {
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     private var totalBalance: BigDecimal? = null
@@ -111,6 +110,12 @@ class StellarAdapter(
             null
         }
     }
+
+    override suspend fun signedTransaction(
+        amount: BigDecimal,
+        address: String,
+        memo: String?,
+    ) = stellarKit.signedNative(address, amount, memo)
 
     override fun validate(address: String) {
         StellarKit.validateAddress(address)

@@ -6,11 +6,17 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.trezor.domain.TrezorCancelledException
-import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.SignedOfflineEvmTransaction
+import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.managers.EvmBlockchainManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
@@ -19,6 +25,9 @@ import cash.p.terminal.modules.multiswap.sendtransaction.services.SendTransactio
 import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.SendUiState
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -28,8 +37,9 @@ import cash.p.terminal.wallet.Wallet
 import cash.z.ecc.android.sdk.ext.collectWith
 import com.tangem.common.extensions.isZero
 import cash.p.terminal.modules.send.BaseSendViewModel
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.ethereumkit.api.jsonrpc.JsonRpc
-import kotlinx.coroutines.Dispatchers
+import io.horizontalsystems.ethereumkit.models.Address as EvmAddress
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -46,11 +56,17 @@ internal class SendEvmViewModel(
     xRateService: XRateService,
     private val amountService: SendAmountService,
     private val addressService: SendEvmAddressService,
-    val coinMaxAllowedDecimals: Int,
+    override val coinMaxAllowedDecimals: Int,
     private val showAddressInput: Boolean,
     address: Address?,
-    adapterManager: IAdapterManager
-) : BaseSendViewModel<SendUiState>(wallet, adapterManager) {
+    adapterManager: IAdapterManager,
+    private val dispatcherProvider: DispatcherProvider,
+) : BaseSendViewModel<SendUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
+    internal data class OfflineSignResult(
+        val signedTransaction: SignedOfflineEvmTransaction,
+        val confirmationData: SendConfirmationData,
+    )
+
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
     val blockchainType = wallet.token.blockchainType
 
@@ -58,16 +74,32 @@ internal class SendEvmViewModel(
     private var addressState = addressService.stateFlow.value
 
     private val contactsRepository: ContactsRepository by inject(ContactsRepository::class.java)
-    override val feeToken = App.evmBlockchainManager.getBaseToken(blockchainType)
+    override val feeToken = getKoinInstance<EvmBlockchainManager>().getBaseToken(blockchainType)
         ?: throw IllegalArgumentException()
     val feeTokenMaxAllowedDecimals = feeToken.decimals
+    override val feeCoinMaxAllowedDecimals get() = feeTokenMaxAllowedDecimals
 
-    var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
+
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineEvmTransaction>
+    override val offlineSigningController: OfflineSigningController<OfflineSignResult> by lazy {
+        OfflineSigningController(
+            scope = viewModelScope,
+            dispatcherProvider = dispatcherProvider,
+            payloadEncoder = getKoinInstance<OfflineTransactionPayloadEncoder>(),
+            repository = getKoinInstance<OfflineSignedTransactionRepository>(),
+            cautionFactory = ::createCaution,
+            isSilentCancellation = { it is TrezorCancelledException || it.isHardwareWalletUserCancelled() },
+        )
+    }
+
+    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
 
     init {
         amountService.stateFlow.collectWith(viewModelScope) {
@@ -98,7 +130,7 @@ internal class SendEvmViewModel(
                     SendTransactionData.Evm(
                         adapter.getTransactionData(
                             amount,
-                            io.horizontalsystems.ethereumkit.models.Address(address.hex)
+                            EvmAddress(address.hex)
                         ),
                         null,
                         amount = amount
@@ -144,7 +176,7 @@ internal class SendEvmViewModel(
         addressService.setAddress(address)
     }
 
-    fun onClickSend() = viewModelScope.launch(Dispatchers.Default) {
+    fun onClickSend() = viewModelScope.launch(dispatcherProvider.default) {
         sendResult = try {
             val sendResult = sendTransactionService.sendTransaction()
             onSendSuccess(addressState.address?.hex)
@@ -161,8 +193,19 @@ internal class SendEvmViewModel(
         }
     }
 
-    fun getConfirmationData(): SendConfirmationData {
-        val address = requireNotNull(addressState.address)
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
+    }
+
+    override fun getConfirmationData(): SendConfirmationData {
+        val address = addressState.address
+            ?: throw LocalizedException(R.string.send_error_address_unavailable)
+        val amount = amountState.amount
+            ?: throw LocalizedException(R.string.send_error_amount_unavailable)
         val fee = sendTransactionService.stateFlow.value.networkFee?.primary?.value
 
         val contact = contactsRepository.getContactsFiltered(
@@ -170,13 +213,36 @@ internal class SendEvmViewModel(
             addressQuery = address.hex
         ).firstOrNull()
         return SendConfirmationData(
-            amount = amountState.amount!!,
+            amount = amount,
             fee = fee,
             address = address,
             contact = contact,
             coin = wallet.token.coin,
             feeCoin = feeToken.coin,
             memo = null,
+        )
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        val confirmationData = getConfirmationData()
+        val signingAdapter = offlineSignAdapter ?: throw LocalizedException(R.string.Error)
+        return OfflineSignResult(
+            signedTransaction = signingAdapter.signOffline(sendTransactionService.offlineSignRequest()),
+            confirmationData = confirmationData,
+        )
+    }
+
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
+        val confirmationData = result.confirmationData
+        return OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = confirmationData.amount,
+            fee = confirmationData.fee,
+            toAddress = confirmationData.address.hex,
+            rawHex = result.signedTransaction.rawHex,
+            txHash = result.signedTransaction.txHash,
+            inputOutpoints = emptyList(),
+            feeToken = feeToken,
         )
     }
 
@@ -200,7 +266,7 @@ internal class SendEvmViewModel(
                 SendTransactionData.Evm(
                     adapter.getTransactionData(
                         amount,
-                        io.horizontalsystems.ethereumkit.models.Address(address.hex)
+                        EvmAddress(address.hex)
                     ),
                     null
                 )

@@ -10,34 +10,45 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.LocalizedException
+import cash.p.terminal.core.OfflineTransactionAdapter
+import cash.p.terminal.core.OfflineTronSignRequest
+import cash.p.terminal.core.SignedOfflineTronTransaction
 import cash.p.terminal.core.managers.ConnectivityManager
+import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
+import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.entities.Address
-import cash.p.terminal.ui_compose.entities.ViewState
+import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.entities.OfflineTronRetryMetadata
 import cash.p.terminal.modules.amount.SendAmountService
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.send.BaseSendViewModel
+import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
+import cash.p.terminal.modules.send.offline.OfflineSigningController
+import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.entities.TokenType
+import io.horizontalsystems.core.DispatcherProvider
+import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.tronkit.transaction.Fee
-import com.tangem.common.extensions.isZero
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 import java.net.UnknownHostException
-import kotlin.getValue
 import io.horizontalsystems.tronkit.models.Address as TronAddress
 
+@Suppress("LongParameterList")
 class SendTronViewModel(
     wallet: Wallet,
     private val sendToken: Token,
@@ -46,19 +57,41 @@ class SendTronViewModel(
     private val xRateService: XRateService,
     private val amountService: SendAmountService,
     private val addressService: SendTronAddressService,
-    val coinMaxAllowedDecimals: Int,
+    override val coinMaxAllowedDecimals: Int,
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
     private val connectivityManager: ConnectivityManager,
     private val address: Address?,
     adapterManager: IAdapterManager,
-) : BaseSendViewModel<SendUiState>(wallet, adapterManager) {
+    private val dispatcherProvider: DispatcherProvider,
+    private val recentAddressManager: RecentAddressManager,
+    private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder,
+    private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository,
+) : BaseSendViewModel<SendUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
+    data class OfflineSignResult(
+        val signedTransaction: SignedOfflineTronTransaction,
+        val confirmationData: SendConfirmationData,
+    )
+
     val logger: AppLogger = AppLogger("send-tron")
 
-    private val recentAddressManager: RecentAddressManager by inject(RecentAddressManager::class.java)
     val blockchainType = wallet.token.blockchainType
     val feeTokenMaxAllowedDecimals = feeToken.decimals
+    override val feeCoinMaxAllowedDecimals get() = feeTokenMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
+
+    @Suppress("UNCHECKED_CAST")
+    private val offlineSignAdapter = adapter as? OfflineTransactionAdapter<SignedOfflineTronTransaction>
+    override val offlineSigningController: OfflineSigningController<OfflineSignResult> by lazy {
+        OfflineSigningController(
+            scope = viewModelScope,
+            dispatcherProvider = dispatcherProvider,
+            payloadEncoder = offlineTransactionPayloadEncoder,
+            repository = offlineSignedTransactionRepository,
+            cautionFactory = ::createCaution,
+            isSilentCancellation = { it.isHardwareWalletUserCancelled() },
+        )
+    }
 
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
@@ -69,7 +102,7 @@ class SendTronViewModel(
     private var feeLoading: Boolean = false
     private var feeEstimationJob: Job? = null
 
-    var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
+    override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
@@ -77,6 +110,17 @@ class SendTronViewModel(
         private set
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
+
+    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
+
+    private val decimalAmount: BigDecimal
+        get() = amountState.amount ?: throw LocalizedException(R.string.send_error_amount_unavailable)
+
+    private val destinationAddress: Address
+        get() = addressState.address ?: throw LocalizedException(R.string.send_error_address_unavailable)
+
+    private val destinationTronAddress: TronAddress
+        get() = addressState.tronAddress ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
     override fun getEstimatedFee(): BigDecimal? = confirmationData?.fee
     override fun onSendRequested() = onClickSend()
@@ -139,19 +183,15 @@ class SendTronViewModel(
     }
 
     fun onNavigateToConfirmation() {
-        val address = addressState.address!!
-        val contact = contactsRepo.getContactsFiltered(
-            blockchainType = blockchainType,
-            addressQuery = address.hex
-        ).firstOrNull()
+        val address = destinationAddress
 
         confirmationData = SendTronConfirmationData(
-            amount = amountState.amount!!,
+            amount = decimalAmount,
             fee = null,
             activationFee = null,
             resourcesConsumed = null,
             address = address,
-            contact = contact,
+            contact = contact(address),
             coin = wallet.coin,
             feeCoin = feeToken.coin,
             isInactiveAddress = addressState.isInactiveAddress
@@ -191,9 +231,8 @@ class SendTronViewModel(
             feeState = FeeState.Loading
             emitState()
 
-            val amount = amountState.amount!!
-            val tronAddress = TronAddress.fromBase58(addressState.address!!.hex)
-            val fees = adapter.estimateFee(amount, tronAddress)
+            val amount = decimalAmount
+            val fees = adapter.estimateFee(amount, destinationTronAddress)
 
             var activationFee: BigDecimal? = null
             var bandwidth: String? = null
@@ -225,8 +264,7 @@ class SendTronViewModel(
             feeState = FeeState.Success(fees)
             emitState()
 
-            val totalFee = fees.sumOf { it.feeInSuns }.toBigInteger()
-            val fee = totalFee.toBigDecimal().movePointLeft(feeToken.decimals)
+            val fee = fees.totalFee(feeToken.decimals)
 
             confirmationData = confirmationData?.copy(
                 amount = amount,
@@ -257,23 +295,22 @@ class SendTronViewModel(
         return connectivityManager.isConnected.value
     }
 
-    private suspend fun send() = withContext(Dispatchers.IO) {
+    private suspend fun send() = withContext(dispatcherProvider.io) {
         try {
             val confirmationData = confirmationData ?: return@withContext
             sendResult = SendResult.Sending
             logger.info("sending tx")
 
             val amount = confirmationData.amount
-            val tronAddress = checkNotNull(addressState.tronAddress)
-            val address = addressState.address
-            val txId = adapter.send(amount, tronAddress, feeState.feeLimit)
+            val address = destinationAddress
+            val txId = adapter.send(amount, destinationTronAddress, feeLimitForTransaction())
             locallyCreatedTransactionRepository.markCreated(wallet, txId)
 
-            onSendSuccess(address?.hex)
+            onSendSuccess(address.hex)
             sendResult = SendResult.Sent(txId)
             logger.info("success")
 
-            address?.let { recentAddressManager.setRecentAddress(it, BlockchainType.Tron) }
+            recentAddressManager.setRecentAddress(address, BlockchainType.Tron)
         } catch (e: Throwable) {
             if (e.isHardwareWalletUserCancelled()) {
                 sendResult = null
@@ -284,6 +321,73 @@ class SendTronViewModel(
             logger.warning("failed", e)
         }
     }
+
+    override fun getConfirmationData(): SendConfirmationData {
+        val address = destinationAddress
+        return SendConfirmationData(
+            amount = decimalAmount,
+            fee = confirmationData?.fee ?: currentFee,
+            address = address,
+            contact = contact(address),
+            coin = wallet.coin,
+            feeCoin = feeToken.coin,
+            memo = null,
+        )
+    }
+
+    override fun onClickSignOffline(format: OfflineTransactionFormat) {
+        offlineSigningController.sign(
+            format = format,
+            producer = ::signedOfflineTransaction,
+            draftBuilder = ::offlineSignedTransactionDraft,
+        )
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        val confirmationData = getConfirmationData()
+        val signingAdapter = offlineSignAdapter
+            ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
+        return OfflineSignResult(
+            signedTransaction = signingAdapter.signOffline(
+                OfflineTronSignRequest(
+                    amount = confirmationData.amount,
+                    address = destinationTronAddress,
+                    feeLimit = feeLimitForTransaction(),
+                )
+            ),
+            confirmationData = confirmationData,
+        )
+    }
+
+    private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
+        val confirmationData = result.confirmationData
+        val signed = result.signedTransaction
+        return OfflineSignedTransactionDraft(
+            wallet = wallet,
+            amount = confirmationData.amount,
+            fee = confirmationData.fee,
+            toAddress = confirmationData.address.hex,
+            rawHex = signed.rawHex,
+            txHash = signed.txHash,
+            inputOutpoints = emptyList(),
+            feeToken = feeToken,
+            tronRetryMetadata = OfflineTronRetryMetadata(signed.expiration),
+        )
+    }
+
+    private suspend fun feeLimitForTransaction(): Long? =
+        if (sendToken.type == TokenType.Native) {
+            null
+        } else {
+            feeState.feeLimit ?: adapter.estimateFee(decimalAmount, destinationTronAddress).feeLimit
+                ?: throw LocalizedException(R.string.send_error_fee_rate_unavailable)
+        }
+
+    private fun contact(address: Address) =
+        contactsRepo.getContactsFiltered(
+            blockchainType = blockchainType,
+            addressQuery = address.hex
+        ).firstOrNull()
 
     private fun createCaution(error: Throwable) = when (error) {
         is UnknownHostException -> HSCaution(TranslatableString.ResString(R.string.Hud_Text_NoInternet))
@@ -307,6 +411,7 @@ class SendTronViewModel(
         if (amount == null || amount.isZero() || address == null) {
             feeEstimationJob?.cancel()
             currentFee = null
+            feeState = FeeState.Loading
             feeLoading = false
             emitState()
             return
@@ -314,15 +419,17 @@ class SendTronViewModel(
 
         feeEstimationJob?.cancel()
         feeEstimationJob = viewModelScope.launch {
+            feeState = FeeState.Loading
             feeLoading = true
             emitState()
             try {
                 val tronAddress = TronAddress.fromBase58(address.hex)
                 val fees = adapter.estimateFee(amount, tronAddress)
-                val totalFee = fees.sumOf { it.feeInSuns }.toBigInteger()
-                currentFee = totalFee.toBigDecimal().movePointLeft(feeToken.decimals)
-            } catch (_: Throwable) {
+                currentFee = fees.totalFee(feeToken.decimals)
+                feeState = FeeState.Success(fees)
+            } catch (error: Throwable) {
                 currentFee = null
+                feeState = FeeState.Error(error)
             }
             feeLoading = false
             emitState()
@@ -347,7 +454,13 @@ sealed class FeeState {
             is Error -> null
             Loading -> null
             is Success -> {
-                (fees.find { it is Fee.Energy } as? Fee.Energy)?.feeInSuns
+                fees.feeLimit
             }
         }
 }
+
+private val List<Fee>.feeLimit: Long?
+    get() = (find { it is Fee.Energy } as? Fee.Energy)?.feeInSuns
+
+private fun List<Fee>.totalFee(decimals: Int): BigDecimal =
+    sumOf { it.feeInSuns }.toBigInteger().toBigDecimal().movePointLeft(decimals)

@@ -22,6 +22,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -224,6 +225,7 @@ fun BalanceTitleRow(
             contentDescription = null,
             tint = ComposeAppTheme.colors.yellowD,
             modifier = Modifier
+                .testTag("wallet_switcher")
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,

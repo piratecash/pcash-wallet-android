@@ -138,10 +138,8 @@ class TransactionsService(
         _transactionItems.update { currentList ->
             var updated = false
             val newList = currentList.map { item ->
-                val mainValue = item.record.mainValue
-                val decimalValue = mainValue?.decimalValue
-                if (decimalValue != null && mainValue.coin?.uid == key.coinUid && item.record.timestamp == key.timestamp) {
-                    val currencyValue = CurrencyValue(rate.currency, decimalValue * rate.value)
+                val currencyValue = item.record.currencyValue(key, rate)
+                if (currencyValue != null) {
                     if (currencyValue == item.currencyValue) {
                         item
                     } else {
@@ -160,7 +158,7 @@ class TransactionsService(
         _transactionItems.update { currentList ->
             var updated = false
             val newList = currentList.map { item ->
-                val currencyValue = getCurrencyValue(item.record)
+                val currencyValue = item.record.currencyValue(rateRepository)
                 if (currencyValue == item.currencyValue) {
                     item
                 } else {
@@ -212,7 +210,7 @@ class TransactionsService(
 
                 if (existingItem == null) {
                     val lastBlockInfo = transactionSyncStateRepository.getLastBlockInfo(record.source)
-                    val currencyValue = getCurrencyValue(record)
+                    val currencyValue = record.currencyValue(rateRepository)
                     TransactionItem(record, currencyValue, lastBlockInfo, nftMetadata)
                 } else if (existingItem.record === record) {
                     existingItem
@@ -221,14 +219,6 @@ class TransactionsService(
                 }
             }
         }
-    }
-
-    private fun getCurrencyValue(record: TransactionRecord): CurrencyValue? {
-        val decimalValue = record.mainValue?.decimalValue ?: return null
-        val coinUid = record.mainValue?.coin?.uid ?: return null
-
-        return rateRepository.getHistoricalRate(HistoricalRateKey(coinUid, record.timestamp))
-            ?.let { rate -> CurrencyValue(rate.currency, decimalValue * rate.value) }
     }
 
     override fun clear() {
