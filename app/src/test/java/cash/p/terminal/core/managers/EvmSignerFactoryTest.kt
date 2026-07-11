@@ -61,6 +61,19 @@ class EvmSignerFactoryTest {
         derivedPublicKey = byteArrayOf(4, 5, 6)
     )
 
+    // Same xpub (an EVM address is identical across token types) but stored under an ERC-20 token type,
+    // representing an account that enabled only a token and therefore has no Native row.
+    private val erc20OnlyKey = HardwarePublicKey(
+        accountId = hardwareAccount.id,
+        blockchainType = BlockchainType.Ethereum.uid,
+        type = HardwarePublicKeyType.PUBLIC_KEY,
+        tokenType = TokenType.Eip20("0xdac17f958d2ee523a2206206994597c13d831ec7"),
+        key = SecretString(xPubKey),
+        derivationPath = "m/44'/60'/0'/0/0",
+        publicKey = byteArrayOf(1, 2, 3),
+        derivedPublicKey = byteArrayOf(4, 5, 6)
+    )
+
     @Before
     fun setUp() {
         Security.addProvider(InternalBouncyCastleProvider.getInstance())
@@ -89,6 +102,36 @@ class EvmSignerFactoryTest {
         coVerify(exactly = 1) {
             hardwarePublicKeyStorage.getKey(hardwareAccount.id, BlockchainType.Ethereum, TokenType.Native)
         }
+    }
+
+    @Test
+    fun resolveAddress_hardwareWithoutNativeKey_fallsBackToAnyBlockchainKey() = runBlocking {
+        // Account enabled only an ERC-20 token, so no Native row exists — only a blockchain key.
+        coEvery {
+            hardwarePublicKeyStorage.getKey(hardwareAccount.id, BlockchainType.Ethereum, TokenType.Native)
+        } returns null
+        coEvery {
+            hardwarePublicKeyStorage.getKeyByBlockchain(hardwareAccount.id, BlockchainType.Ethereum)
+        } returns erc20OnlyKey
+        val expectedAddress = Address(CustomXPubKeyAddressParser.parse(xPubKey).addressBytes)
+
+        val address = factory.resolveAddress(hardwareAccount, BlockchainType.Ethereum, Chain.Ethereum)
+
+        assertEquals(expectedAddress, address)
+    }
+
+    @Test
+    fun createSigner_hardwareWithoutNativeKey_fallsBackToAnyBlockchainKey() = runBlocking {
+        coEvery {
+            hardwarePublicKeyStorage.getKey(hardwareAccount.id, BlockchainType.Ethereum, TokenType.Native)
+        } returns null
+        coEvery {
+            hardwarePublicKeyStorage.getKeyByBlockchain(hardwareAccount.id, BlockchainType.Ethereum)
+        } returns erc20OnlyKey
+
+        val signer = factory.createSigner(hardwareAccount, BlockchainType.Ethereum, Chain.Ethereum)
+
+        assertTrue(signer is HardwareWalletEvmSigner)
     }
 
     @Test

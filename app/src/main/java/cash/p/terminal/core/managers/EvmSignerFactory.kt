@@ -18,8 +18,9 @@ import io.horizontalsystems.ethereumkit.models.Chain
 /**
  * Resolves EVM addresses and builds [Signer] instances without starting
  * [io.horizontalsystems.ethereumkit.core.EthereumKit]. The single source of truth for hardware-wallet
- * EVM key resolution (always the native token type), reused by [EvmKitManager], WalletConnect and
- * premium subscription signing so they never disagree on the address/key a hardware account signs with.
+ * EVM key resolution (native token type preferred, any key for the blockchain as fallback), reused by
+ * [EvmKitManager], WalletConnect and premium subscription signing so they never disagree on the
+ * address/key a hardware account signs with.
  */
 class EvmSignerFactory(
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
@@ -62,7 +63,12 @@ class EvmSignerFactory(
         accountId: String,
         blockchainType: BlockchainType
     ): Pair<HardwarePublicKey, AddressBytesWithPublicKey>? {
-        val publicKey = hardwarePublicKeyStorage.getKey(accountId, blockchainType, TokenType.Native) ?: return null
+        // Prefer the native key, but fall back to any key stored for this blockchain. All EVM token
+        // types share the same derivation and address, so an account that enabled only an ERC-20 token
+        // (no native row) is still a valid EVM wallet and must resolve.
+        val publicKey = hardwarePublicKeyStorage.getKey(accountId, blockchainType, TokenType.Native)
+            ?: hardwarePublicKeyStorage.getKeyByBlockchain(accountId, blockchainType)
+            ?: return null
         return publicKey to CustomXPubKeyAddressParser.parse(publicKey.key.value)
     }
 
