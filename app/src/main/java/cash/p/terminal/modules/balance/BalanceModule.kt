@@ -12,13 +12,6 @@ import cash.p.terminal.wallet.balance.BalanceWarning
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 
 object BalanceModule {
-    class AccountsFactory : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return BalanceAccountsViewModel(getKoinInstance()) as T
-        }
-    }
-
     class Factory : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

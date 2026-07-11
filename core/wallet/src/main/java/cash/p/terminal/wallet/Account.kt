@@ -410,30 +410,6 @@ sealed class AccountType : Parcelable {
         is EvmPrivateKey -> Signer.address(key)
         else -> null
     }
-
-    fun sign(
-        message: ByteArray,
-        getChain: (BlockchainType) -> Chain,
-        isLegacy: Boolean = false
-    ): ByteArray? {
-        val signer = when (this) {
-            is Mnemonic -> {
-                Signer.getInstance(seed, getChain(BlockchainType.Ethereum))
-            }
-
-            is EvmPrivateKey -> {
-                Signer.getInstance(key, getChain(BlockchainType.Ethereum))
-            }
-
-            else -> null
-        } ?: return null
-
-        return if (isLegacy) {
-            signer.signByteArrayLegacy(message)
-        } else {
-            signer.signByteArray(message)
-        }
-    }
 }
 
 val HDWallet.Purpose.derivation: Derivation

@@ -2,10 +2,9 @@ package cash.p.terminal.modules.walletconnect.request
 
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import cash.p.terminal.core.App
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.EvmKitWrapper
+import cash.p.terminal.core.managers.EvmMessageSigning
 import cash.p.terminal.core.to0xHexString
 import cash.p.terminal.modules.walletconnect.WCDelegate
 import cash.p.terminal.modules.walletconnect.WCManager
@@ -114,6 +113,21 @@ class WCRequestEvmViewModel(
         }
     }
 
+    /**
+     * personal_sign message, decoded to raw bytes exactly as received (no hex->String round-trip,
+     * which would corrupt non-UTF-8 payloads before signing).
+     */
+    private fun personalSignBytes(): ByteArray {
+        val jsonArray = JSONArray(sessionRequestEvent?.request?.params.orEmpty())
+        if (jsonArray.length() == 0) throw IllegalArgumentException()
+        val raw = jsonArray.getString(0)
+        return try {
+            raw.hexStringToByteArray()
+        } catch (_: Throwable) {
+            raw.toByteArray()
+        }
+    }
+
     private fun getEthereumKitWrapper(): EvmKitWrapper? {
         val blockchainType = blockchainType ?: return null
         val account = accountManager.activeAccount ?: return null
@@ -125,44 +139,64 @@ class WCRequestEvmViewModel(
     suspend fun allow() {
         val evmKit = evmKitWrapper ?: throw WCSessionManager.RequestDataError.NoSuitableEvmKit
         val signer = evmKit.signer ?: throw WCSessionManager.RequestDataError.NoSigner
-        return suspendCoroutine { continuation ->
-            val sessionRequest = sessionRequestUi as? SessionRequestUI.Content
-            if (sessionRequest != null) {
-                val result = when (sessionRequest.method) {
-                    ETH_SIGN_METHOD -> {
-                        val message = sessionRequest.param.hexStringToByteArray()
-                        if (message.size == 32) {
-                            signer.signByteArrayLegacy(message = message)
-                        } else {
-                            signer.signByteArray(message = message)
-                        }
-                    }
+        val content = sessionRequestUi as? SessionRequestUI.Content ?: return
 
-                    PERSONAL_SIGN_METHOD -> {
-                        signer.signByteArray(message = sessionRequest.param.toByteArray())
+        val result = try {
+            when (content.method) {
+                ETH_SIGN_METHOD -> {
+                    val message = content.param.hexStringToByteArray()
+                    if (message.size == 32) {
+                        EvmMessageSigning.signLegacyHash(signer, message)
+                    } else {
+                        EvmMessageSigning.signPersonalMessage(signer, message)
                     }
-
-                    TYPED_DATA_METHOD, TYPED_DATA_METHOD_V4 -> {
-                        signer.signTypedData(rawJsonMessage = sessionRequest.param)
-                    }
-
-                    else -> throw Exception("Unsupported Chain")
                 }
 
-                WCDelegate.respondPendingRequest(
-                    sessionRequest.requestId,
-                    sessionRequest.topic,
-                    result.to0xHexString().normalizeSignature(),
+                PERSONAL_SIGN_METHOD -> {
+                    EvmMessageSigning.signPersonalMessage(signer, personalSignBytes())
+                }
+
+                TYPED_DATA_METHOD, TYPED_DATA_METHOD_V4 -> {
+                    EvmMessageSigning.signTypedData(signer, content.param)
+                }
+
+                else -> throw Exception("Unsupported Chain")
+            }
+        } catch (e: Throwable) {
+            // Signing failed or is unsupported by the hardware wallet (e.g. eth_sign or typed data
+            // on Trezor, or the user cancelled on the device): respond with a JSON-RPC error so the
+            // dApp doesn't hang, and propagate the failure to the caller.
+            return suspendCoroutine { continuation ->
+                WCDelegate.respondError(
+                    content.topic,
+                    content.requestId,
+                    e.message ?: "Signing failed",
                     onSuccessResult = {
-                        continuation.resume(Unit)
                         clearSessionRequest()
+                        continuation.resumeWithException(e)
                     },
                     onErrorResult = {
-                        continuation.resumeWithException(it)
                         clearSessionRequest()
+                        continuation.resumeWithException(it)
                     }
                 )
             }
+        }
+
+        return suspendCoroutine { continuation ->
+            WCDelegate.respondPendingRequest(
+                content.requestId,
+                content.topic,
+                result.to0xHexString().normalizeSignature(),
+                onSuccessResult = {
+                    continuation.resume(Unit)
+                    clearSessionRequest()
+                },
+                onErrorResult = {
+                    continuation.resumeWithException(it)
+                    clearSessionRequest()
+                }
+            )
         }
     }
 
@@ -199,16 +233,6 @@ class WCRequestEvmViewModel(
         }
     }
 
-    class Factory : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return WCRequestEvmViewModel(
-                App.accountManager,
-                App.evmBlockchainManager,
-                App.wcManager
-            ) as T
-        }
-    }
 }
 
 sealed class SessionRequestUI {

@@ -1,28 +1,20 @@
 package cash.p.terminal.modules.walletconnect.handler
 
-import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.managers.EvmBlockchainManager
-import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
+import cash.p.terminal.core.managers.EvmSignerFactory
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.IHardwarePublicKeyStorage
-import cash.p.terminal.wallet.entities.TokenType
 import com.reown.android.Core
 import com.reown.walletkit.client.Wallet
-import io.horizontalsystems.ethereumkit.core.signer.Signer
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import kotlinx.coroutines.runBlocking
-import org.koin.java.KoinJavaComponent.inject
 
 class WCHandlerEvm(
-    private val evmBlockchainManager: EvmBlockchainManager
+    private val evmBlockchainManager: EvmBlockchainManager,
+    private val evmSignerFactory: EvmSignerFactory
 ) : IWCHandler {
     private val supportedEvmChains =
         EvmBlockchainManager.blockchainTypes.map { evmBlockchainManager.getChain(it) }
-
-    private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
-            by inject(IHardwarePublicKeyStorage::class.java)
 
     override val chainNamespace = "eip155"
 
@@ -78,43 +70,7 @@ class WCHandlerEvm(
     }
 
     private fun getEvmAddress(account: Account, chain: Chain): Address? =
-        when (val accountType = account.type) {
-            is AccountType.Mnemonic -> {
-                val seed: ByteArray = accountType.seed
-                Signer.address(seed, chain)
-            }
-
-            is AccountType.EvmPrivateKey -> {
-                Signer.address(accountType.key)
-            }
-
-            is AccountType.EvmAddress -> {
-                Address(accountType.address)
-            }
-
-            is AccountType.TrezorDevice,
-            is AccountType.HardwareCard -> {
-                val publicKey = runBlocking {
-                    hardwarePublicKeyStorage.getKey(
-                        account.id,
-                        chain.toBlockchainType(),
-                        tokenType = TokenType.Native
-                    )
-                } ?: return null
-                val addressWithPublicKey = CustomXPubKeyAddressParser.parse(publicKey.key.value)
-                Address(addressWithPublicKey.addressBytes)
-            }
-
-            is AccountType.BitcoinAddress,
-            is AccountType.HdExtendedKey,
-            is AccountType.MnemonicMonero,
-            is AccountType.SolanaAddress,
-            is AccountType.StellarAddress,
-            is AccountType.StellarSecretKey,
-            is AccountType.TonAddress,
-            is AccountType.TronAddress,
-            is AccountType.ZCashUfvKey -> throw UnsupportedAccountException()
-        }
+        runBlocking { evmSignerFactory.resolveAddress(account, chain.toBlockchainType(), chain) }
 
     override fun getChainName(chainInternalId: String): String? {
         val evmChainId = chainInternalId.toInt()

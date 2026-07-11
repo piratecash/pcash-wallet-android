@@ -4,6 +4,9 @@ import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
 import cash.p.terminal.trezor.domain.TrezorSigningException
 import cash.p.terminal.trezor.domain.model.TrezorMethod
 import cash.p.terminal.trezor.domain.model.TrezorResponse
+import cash.p.terminal.wallet.crypto.EvmSignatureRecovery
+import io.horizontalsystems.ethereumkit.core.toHexString
+import io.horizontalsystems.ethereumkit.crypto.CryptoUtils
 import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
@@ -206,6 +209,73 @@ class TrezorEvmSignerTest {
             runBlocking { createSigner().signature(requestedRawTransaction()) }
         }
     }
+
+    @Test
+    fun signPersonalMessage_validDeviceSignature_returnsRsRecId() = runBlocking {
+        val privateKey = BigInteger("46".repeat(32), 16)
+        val publicKeyBytes = CryptoUtils.CURVE.g.multiply(privateKey).getEncoded(false)
+        val address = addressOf(publicKeyBytes)
+        val message = "Sign in to near.com".toByteArray()
+        val hash = EvmSignatureRecovery.personalSignHash(message)
+        val ellipticSignature = CryptoUtils.ellipticSign(hash, privateKey)
+        val recId = ellipticSignature[64].toInt()
+        stubMessageResponse(deviceSignature(ellipticSignature, recId))
+
+        val result = createSigner(address.hex).signPersonalMessage(message)
+
+        assertEquals(65, result.size)
+        assertArrayEquals(ellipticSignature.sliceArray(0..63), result.sliceArray(0..63))
+        assertEquals(recId, result[64].toInt())
+
+        val r = BigInteger(1, result.sliceArray(0..31))
+        val s = BigInteger(1, result.sliceArray(32..63))
+        assertEquals(address, EvmSignatureRecovery.recoverMessageAddress(hash, r, s, result[64].toInt()))
+    }
+
+    @Test
+    fun signPersonalMessage_wrongAccountSignature_throws() {
+        // The device signature is produced by a different private key than the account this
+        // signer was constructed for, so the recovery-id resolution must find no match.
+        val privateKey = BigInteger("64".repeat(32), 16)
+        val message = "Sign in to near.com".toByteArray()
+        val hash = EvmSignatureRecovery.personalSignHash(message)
+        val ellipticSignature = CryptoUtils.ellipticSign(hash, privateKey)
+        stubMessageResponse(deviceSignature(ellipticSignature, ellipticSignature[64].toInt()))
+
+        val wrongAddress = Address("0x000000000000000000000000000000000000dead")
+
+        assertThrows(TrezorSigningException::class.java) {
+            runBlocking { createSigner(wrongAddress.hex).signPersonalMessage(message) }
+        }
+    }
+
+    @Test
+    fun signLegacyHash_always_throwsNotSupported() {
+        assertThrows(TrezorSigningException::class.java) {
+            runBlocking { createSigner().signLegacyHash(ByteArray(32)) }
+        }
+    }
+
+    @Test
+    fun signTypedDataMessage_always_throwsNotSupported() {
+        assertThrows(TrezorSigningException::class.java) {
+            runBlocking { createSigner().signTypedDataMessage("{}") }
+        }
+    }
+
+    /** Builds the 65-byte `r‖s‖v` payload Trezor Suite returns for `ethereumSignMessage` (v = 27/28). */
+    private fun deviceSignature(ellipticSignature: ByteArray, recId: Int): ByteArray =
+        ellipticSignature.sliceArray(0..63) + byteArrayOf((27 + recId).toByte())
+
+    private fun stubMessageResponse(signature: ByteArray) {
+        val payload = buildJsonObject { put("signature", signature.toHexString()) }
+        coEvery { deepLinkManager.call(TrezorMethod.EthSignMessage, any()) } returns
+            TrezorResponse(success = true, payload = payload)
+    }
+
+    /** Derives the Ethereum address (last 20 bytes of keccak256 of the uncompressed key, minus the 0x04 prefix). */
+    private fun addressOf(uncompressedPublicKeyBytes: ByteArray): Address =
+        Address(CryptoUtils.sha3(uncompressedPublicKeyBytes.copyOfRange(1, 65)).copyOfRange(12, 32))
 
     private fun fullPayload(): JsonObject = buildJsonObject {
         put("v", responseV)

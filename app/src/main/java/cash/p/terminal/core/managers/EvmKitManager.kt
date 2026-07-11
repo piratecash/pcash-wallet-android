@@ -7,23 +7,15 @@ import cash.p.terminal.core.onPollingStarted
 import cash.p.terminal.core.onPollingStopped
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
-import cash.p.terminal.tangem.domain.model.AddressBytesWithPublicKey
-import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
 import cash.p.terminal.trezor.signer.TrezorEvmSigner
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
-import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.IHardwarePublicKeyStorage
-import cash.p.terminal.wallet.entities.HardwarePublicKey
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.erc20kit.core.Erc20Kit
 import io.horizontalsystems.ethereumkit.core.EthereumKit
 import io.horizontalsystems.ethereumkit.core.signer.Signer
-import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import io.horizontalsystems.ethereumkit.models.FullTransaction
 import io.horizontalsystems.ethereumkit.models.GasPrice
@@ -62,10 +54,8 @@ class EvmKitManager(
     private val syncSourceManager: EvmSyncSourceManager,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager
 ) {
-    private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
-            by inject(IHardwarePublicKeyStorage::class.java)
-    private val trezorDeepLinkManager: TrezorDeepLinkManager
-            by inject(TrezorDeepLinkManager::class.java)
+    private val evmSignerFactory: EvmSignerFactory
+            by inject(EvmSignerFactory::class.java)
 
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
@@ -118,9 +108,7 @@ class EvmKitManager(
         }
 
         if (this.evmKitWrapper == null) {
-            val accountType = account.type
             evmKitWrapper = createKitInstance(
-                accountType = accountType,
                 account = account,
                 blockchainType = blockchainType
             )
@@ -133,55 +121,14 @@ class EvmKitManager(
     }
 
     private fun createKitInstance(
-        accountType: AccountType,
         account: Account,
         blockchainType: BlockchainType
     ): EvmKitWrapper {
         val syncSource = syncSourceManager.getSyncSource(blockchainType)
 
-        val address: Address
-        var signer: Signer? = null
-
-        when (accountType) {
-            is AccountType.Mnemonic -> {
-                val seed: ByteArray = accountType.seed
-                address = Signer.address(seed, chain)
-                signer = Signer.getInstance(seed, chain)
-            }
-
-            is AccountType.EvmPrivateKey -> {
-                address = Signer.address(accountType.key)
-                signer = Signer.getInstance(accountType.key, chain)
-            }
-
-            is AccountType.HardwareCard -> {
-                val (publicKey, addressWithPublicKey) = resolveHardwareAddress(account.id, blockchainType)
-                address = Address(addressWithPublicKey.addressBytes)
-                signer = HardwareWalletEvmSigner(
-                    address = address,
-                    publicKey = publicKey,
-                    chain = chain,
-                    expectedPublicKeyBytes = addressWithPublicKey.publicKey
-                )
-            }
-
-            is AccountType.TrezorDevice -> {
-                val (publicKey, addressWithPublicKey) = resolveHardwareAddress(account.id, blockchainType)
-                address = Address(addressWithPublicKey.addressBytes)
-                signer = TrezorEvmSigner(
-                    address = address,
-                    chain = chain,
-                    derivationPath = publicKey.derivationPath,
-                    deepLinkManager = trezorDeepLinkManager
-                )
-            }
-
-            is AccountType.EvmAddress -> {
-                address = Address(accountType.address)
-            }
-
-            else -> throw UnsupportedAccountException()
-        }
+        val address = runBlocking { evmSignerFactory.resolveAddress(account, blockchainType, chain) }
+            ?: throw UnsupportedAccountException()
+        val signer = runBlocking { evmSignerFactory.createSigner(account, blockchainType, chain) }
 
         val evmKit = EthereumKit.getInstance(
             application = App.instance,
@@ -245,19 +192,6 @@ class EvmKitManager(
             signer = signer,
             merkleTransactionAdapter = merkleTransactionAdapter
         )
-    }
-
-    private fun resolveHardwareAddress(
-        accountId: String,
-        blockchainType: BlockchainType
-    ): Pair<HardwarePublicKey, AddressBytesWithPublicKey> {
-        val publicKey = runBlocking {
-            requireNotNull(
-                hardwarePublicKeyStorage.getKeyByBlockchain(accountId, blockchainType)
-            )
-        }
-        val addressWithPublicKey = CustomXPubKeyAddressParser.parse(publicKey.key.value)
-        return Pair(publicKey, addressWithPublicKey)
     }
 
     suspend fun unlink(account: Account) = lifecycleMutex.withLock {

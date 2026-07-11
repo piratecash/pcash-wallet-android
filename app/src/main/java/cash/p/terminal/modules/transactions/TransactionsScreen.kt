@@ -58,13 +58,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BalanceAccountsViewModel
-import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceScreenState
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
 import cash.p.terminal.modules.send.offline.OfflineSignedTransactionViewItem
@@ -110,8 +109,7 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     onShowAllTransactionsClicked: () -> Unit
 ) {
-    val accountsViewModel =
-        viewModel<BalanceAccountsViewModel>(factory = BalanceModule.AccountsFactory())
+    val accountsViewModel = koinViewModel<BalanceAccountsViewModel>()
 
     val filterTypes by viewModel.filterTypesLiveData.observeAsState()
     val showFilterAlertDot by viewModel.filterResetEnabled.observeAsState(false)

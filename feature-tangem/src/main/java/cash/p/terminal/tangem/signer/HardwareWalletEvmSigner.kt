@@ -40,13 +40,36 @@ class HardwareWalletEvmSigner(
         SignOneHashTransactionUseCase::class.java
     )
 
-    override suspend fun signature(rawTransaction: RawTransaction): Signature =
-        getSignature(
-            hash = EvmSignatureRecovery.signingHash(rawTransaction, chain.id),
-            isLegacy = rawTransaction.gasPrice is GasPrice.Legacy
-        )
+    override suspend fun signature(rawTransaction: RawTransaction): Signature {
+        val (r, s, recId) = signHashRaw(EvmSignatureRecovery.signingHash(rawTransaction, chain.id))
+        val isLegacy = rawTransaction.gasPrice is GasPrice.Legacy
+        val v = if (isLegacy) {
+            recId + if (chain.id == 0) PRE_EIP155_V_OFFSET else (EIP155_V_OFFSET + 2 * chain.id)
+        } else {
+            recId
+        }
+        return Signature(v = v, r = r, s = s)
+    }
 
-    private suspend fun getSignature(hash: ByteArray, isLegacy: Boolean): Signature {
+    /** Signs [message] as an EIP-191 `personal_sign` payload; returns `r‖s‖recId` (recId in 0..1). */
+    suspend fun signPersonalMessage(message: ByteArray): ByteArray =
+        signMessageBytes(EvmSignatureRecovery.personalSignHash(message))
+
+    /** Signs a raw 32-byte hash (`eth_sign`, no EIP-191 prefix); returns `r‖s‖recId` (recId in 0..1). */
+    suspend fun signLegacyHash(hash: ByteArray): ByteArray =
+        signMessageBytes(hash)
+
+    /** Signs an EIP-712 typed data payload; returns `r‖s‖recId` (recId in 0..1). */
+    suspend fun signTypedDataMessage(rawJson: String): ByteArray =
+        signMessageBytes(EIP712Encoder().encodeTypedDataHash(rawJson))
+
+    private suspend fun signMessageBytes(hash: ByteArray): ByteArray {
+        val (r, s, recId) = signHashRaw(hash)
+        return r + s + byteArrayOf(recId.toByte())
+    }
+
+    /** Signs a raw hash on the card; the common building block for both transaction and message signing. */
+    private suspend fun signHashRaw(hash: ByteArray): Triple<ByteArray, ByteArray, Int> {
         val signBytesResponse =
             signOneHashTransactionUseCase(hash, publicKey.publicKey, DerivationPath(publicKey.derivationPath))
         when (signBytesResponse) {
@@ -65,13 +88,7 @@ class HardwareWalletEvmSigner(
                     throw SignatureException("Could not find valid recoveryId for the signature")
                 }
 
-                val v = if (isLegacy) {
-                    recId + if (chain.id == 0) PRE_EIP155_V_OFFSET else (EIP155_V_OFFSET + 2 * chain.id)
-                } else {
-                    recId
-                }
-
-                return Signature(v = v, r = r, s = s)
+                return Triple(r, s, recId)
             }
 
             is CompletionResult.Failure -> {

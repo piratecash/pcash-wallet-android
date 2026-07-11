@@ -74,6 +74,32 @@ object EvmSignatureRecovery {
             messageHash = signingHash(rawTransaction, chainId),
             compressed = false
         ) ?: return null
+        return pubKeyToAddress(publicKey)
+    }
+
+    /**
+     * Keccak-256 of the EIP-191 `personal_sign` preimage. Exact copy of the preimage built by
+     * the fork's `EthSigner.signByteArray`, so hardware signers produce the same hash mnemonic
+     * signing would, keeping the recovered address identical either way.
+     */
+    fun personalSignHash(message: ByteArray): ByteArray {
+        val prefix = "Ethereum Signed Message:\n" + message.size
+        return CryptoUtils.sha3(prefix.toByteArray() + message)
+    }
+
+    /** Recovers the signer address of a message signature, or null if it cannot be recovered. */
+    fun recoverMessageAddress(messageHash: ByteArray, r: BigInteger, s: BigInteger, recId: Int): Address? {
+        val publicKey = recoverPublicKey(
+            recId = recId,
+            r = r,
+            s = s,
+            messageHash = messageHash,
+            compressed = false
+        ) ?: return null
+        return pubKeyToAddress(publicKey)
+    }
+
+    private fun pubKeyToAddress(publicKey: ByteArray): Address {
         val keyWithoutPrefix = publicKey.copyOfRange(UNCOMPRESSED_KEY_PREFIX_SIZE, publicKey.size)
         return Address(CryptoUtils.sha3(keyWithoutPrefix).copyOfRange(ADDRESS_BYTE_OFFSET, 32))
     }

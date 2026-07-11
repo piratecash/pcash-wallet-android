@@ -1,25 +1,31 @@
 package cash.p.terminal.modules.subscription
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.managers.EvmBlockchainManager
+import cash.p.terminal.core.managers.EvmMessageSigning
+import cash.p.terminal.core.managers.EvmSignerFactory
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.SubscriptionManager
 import cash.p.terminal.core.to0xHexString
+import cash.p.terminal.wallet.IAccountManager
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.BlockchainType
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.rx2.await
 import java.net.UnknownHostException
 
 class ActivateSubscriptionViewModel(
     private val marketKit: MarketKitWrapper,
-    private val accountManager: cash.p.terminal.wallet.IAccountManager,
-    private val subscriptionManager: SubscriptionManager
+    private val accountManager: IAccountManager,
+    private val subscriptionManager: SubscriptionManager,
+    private val dispatcherProvider: DispatcherProvider,
+    private val evmSignerFactory: EvmSignerFactory,
+    private val evmBlockchainManager: EvmBlockchainManager
 ) : ViewModelUiState<ActivateSubscription>() {
+
+    private val ethChain get() = evmBlockchainManager.getChain(BlockchainType.Ethereum)
 
     private var subscriptionAccount: SubscriptionAccount? = null
 
@@ -45,16 +51,18 @@ class ActivateSubscriptionViewModel(
     )
 
     private fun fetchMessageToSign() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcherProvider.io) {
             fetchingMessage = true
             emitState()
 
             try {
-                val accountsMap = accountManager.accounts.mapNotNull { account ->
-                    account.type.evmAddress(App.evmBlockchainManager.getChain(BlockchainType.Ethereum))?.hex?.let { address ->
-                        Pair(address, account)
-                    }
-                }.associateBy({ it.first }, { it.second })
+                val accountsMap = accountManager.accounts
+                    .filterNot { it.isWatchAccount }
+                    .mapNotNull { account ->
+                        evmSignerFactory.resolveAddress(account, BlockchainType.Ethereum, ethChain)?.hex?.let { address ->
+                            Pair(address, account)
+                        }
+                    }.associateBy({ it.first }, { it.second })
 
                 val addresses = accountsMap.keys.toList()
                 val subscriptions = marketKit.subscriptionsSingle(addresses).await()
@@ -101,13 +109,11 @@ class ActivateSubscriptionViewModel(
         fetchingToken = true
         emitState()
 
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatcherProvider.io) {
             try {
-                val signature =
-                    account.type.sign(
-                        message = subscriptionInfo.messageToSign.toByteArray(),
-                        getChain = { App.evmBlockchainManager.getChain(it) }
-                    ) ?: throw IllegalStateException()
+                val signer = evmSignerFactory.createSigner(account, BlockchainType.Ethereum, ethChain)
+                    ?: throw IllegalStateException()
+                val signature = EvmMessageSigning.signPersonalMessage(signer, subscriptionInfo.messageToSign.toByteArray())
                 val token = marketKit.authenticate(signature.to0xHexString(), address).await()
                 subscriptionManager.authToken = token
                 fetchingTokenSuccess = true
@@ -122,17 +128,6 @@ class ActivateSubscriptionViewModel(
 
     fun retry() {
         fetchMessageToSign()
-    }
-
-    class Factory : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ActivateSubscriptionViewModel(
-                App.marketKit,
-                App.accountManager,
-                App.subscriptionManager
-            ) as T
-        }
     }
 }
 
