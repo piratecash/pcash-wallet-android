@@ -51,6 +51,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -116,7 +118,8 @@ class MoneroKitManager(
         return MoneroKitWrapper(
             moneroWalletService = moneroWalletService,
             restoreSettingsManager = restoreSettingsManager,
-            account = account
+            account = account,
+            dispatcherProvider = dispatcherProvider,
         )
     }
 
@@ -186,13 +189,22 @@ class MoneroKitManager(
                 }
             }
         }
+        lifecycleJobs += coroutineScope.launch {
+            moneroKitWrapper?.let { w ->
+                w.syncState.map { it is AdapterState.Synced }.distinctUntilChanged()
+                    .collect { synced ->
+                        if (synced) tryOrNull { w.saveSynced() }
+                    }
+            }
+        }
     }
 }
 
 class MoneroKitWrapper(
     private val moneroWalletService: MoneroWalletService,
     private val restoreSettingsManager: RestoreSettingsManager,
-    private val account: Account
+    private val account: Account,
+    private val dispatcherProvider: DispatcherProvider,
 ) : MoneroWalletService.Observer {
     private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
@@ -212,6 +224,9 @@ class MoneroKitWrapper(
     private var isStarted = false
     private var isPaused = false
     private val lifecycleMutex = Mutex()
+
+    @Volatile
+    private var storedForSync = false
 
     private val _syncState = MutableStateFlow<AdapterState>(AdapterState.Syncing())
     val syncState = _syncState.asStateFlow()
@@ -260,6 +275,7 @@ class MoneroKitWrapper(
                 logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, isStarted=$isStarted")
                 lastLoggedSyncProgress = -1
                 lastLoggedConnectionStatus = null
+                storedForSync = false
                 _syncState.value = AdapterState.Connecting
                 try {
                     val walletFileName: String
@@ -526,6 +542,55 @@ class MoneroKitWrapper(
         }
     }
 
+    /**
+     * Persists the wallet cache via a SIGSEGV-guarded native store, once per session,
+     * the first time sync reaches [AdapterState.Synced]. Runs OFF the refresh thread
+     * (dispatcherProvider.io) and is serialized with stop()/pause()/resume()/send() via
+     * lifecycleMutex, so it never races a concurrent native call on the wallet.
+     */
+    suspend fun saveSynced(): Boolean = lifecycleMutex.withLock {
+        withContext(dispatcherProvider.io) {
+            if (!isStarted || isPaused || storedForSync) return@withContext storedForSync
+            var status = -1
+            try {
+                moneroWalletService.pause()
+                delay(200)
+                var attempt = 0
+                while (attempt < 2) {
+                    status = moneroWalletService.wallet?.storeSafe() ?: -1
+                    if (status != 1) break
+                    attempt++
+                    delay(200)
+                }
+                when (status) {
+                    0 -> {
+                        storedForSync = true
+                        logger.info("saveSynced: stored at height=${moneroWalletService.wallet?.blockChainHeight}")
+                    }
+
+                    2 -> logger.warning(
+                        "saveSynced: SIGSEGV, wallet abandoned",
+                        IllegalStateException("storeSafe faulted with SIGSEGV")
+                    )
+
+                    else -> logger.info("saveSynced: storeSafe status=$status")
+                }
+            } finally {
+                if (status == 2) {
+                    // storeSafe zeroed the native handle; clear ownership by identity
+                    // (no native calls on the dead wallet), then reopen fresh with
+                    // corruption recovery enabled (post-fault file state uncertain).
+                    moneroWalletService.abandonFaultedWallet()
+                    isStarted = false
+                    startInternal(fixIfCorruptedFile = true)
+                } else {
+                    moneroWalletService.resume(this@MoneroKitWrapper)
+                }
+            }
+            storedForSync
+        }
+    }
+
     suspend fun refresh() = lifecycleMutex.withLock {
         if (_syncState.value is AdapterState.Syncing) {
             logger.info("refresh: skip, already syncing")
@@ -586,19 +651,25 @@ class MoneroKitWrapper(
         }
     }
 
+    // Held under lifecycleMutex so a background stop()/saveSynced() cannot race a raw-tx sign/submit.
     suspend fun createSignedRawTransaction(
         amount: BigDecimal,
         address: String,
         memo: String?,
-    ): SignedRawMoneroTransaction = withContext(Dispatchers.IO) {
-        val wallet = moneroWalletService.wallet
-            ?: throw IllegalStateException("Monero wallet not initialized")
-        moneroWalletService.createSignedRawTransaction(buildTxData(amount, address, memo, wallet))
+    ): SignedRawMoneroTransaction = lifecycleMutex.withLock {
+        withContext(Dispatchers.IO) {
+            val wallet = moneroWalletService.wallet
+                ?: throw IllegalStateException("Monero wallet not initialized")
+            moneroWalletService.createSignedRawTransaction(buildTxData(amount, address, memo, wallet))
+        }
     }
 
+    // Held under lifecycleMutex so a background stop()/saveSynced() cannot race a raw-tx sign/submit.
     suspend fun submitSignedRawTransaction(raw: ByteArray): RawMoneroBroadcastResult =
-        withContext(Dispatchers.IO) {
-            moneroWalletService.submitSignedRawTransaction(raw)
+        lifecycleMutex.withLock {
+            withContext(Dispatchers.IO) {
+                moneroWalletService.submitSignedRawTransaction(raw)
+            }
         }
 
     // Held under lifecycleMutex so a background stop() cannot close the wallet mid-estimate.
