@@ -1,5 +1,6 @@
 package cash.p.terminal.core.managers
 
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -10,11 +11,17 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MoneroKitWrapperRefreshTest {
+
+    private val dispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(dispatcher)
+    private val dispatcherProvider = TestDispatcherProvider(dispatcher, testScope)
 
     private val restoreSettingsManager = mockk<RestoreSettingsManager>(relaxed = true)
     private val account = Account(
@@ -69,7 +76,8 @@ class MoneroKitWrapperRefreshTest {
         return MoneroKitWrapper(
             moneroWalletService = service,
             restoreSettingsManager = restoreSettingsManager,
-            account = account
+            account = account,
+            dispatcherProvider = dispatcherProvider,
         )
     }
 
