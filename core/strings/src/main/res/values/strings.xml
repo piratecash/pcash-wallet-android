@@ -2119,6 +2119,11 @@ Proceed only if you\'re sure.</string>
     <string name="balance_sync_error_fixed_source">Failed to fetch data from the current source. Please try again later.</string>
     <string name="source_blocked_by_provider_error">Failed to fetch data from current source.\n\nYou can:\n• Try again later\n• Enable VPN and retry sync\n\nIf you received a <b>403</b> error, <b>your IP address may be blocked</b>. Using a VPN usually <b>resolves this issue</b>.</string>
 
+    <!-- Token not synced -->
+    <string name="token_not_synced_title">Data is not synchronized.</string>
+    <string name="token_not_synced_description">Showing the last known transactions. The information may be out of date.</string>
+    <string name="token_not_synced_retry">Try Again</string>
+
     <!--Release notes-->
     <string name="show_changelog_after_update">Show changelog after update</string>
     <string name="ReleaseNotes_JoinUnstoppables" translatable="false">JOIN P.CASH</string>

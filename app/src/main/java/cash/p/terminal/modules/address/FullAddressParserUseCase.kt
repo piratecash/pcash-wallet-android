@@ -6,9 +6,10 @@ import cash.p.terminal.core.utils.ToncoinUriParser
 import cash.p.terminal.entities.Address
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.title
+import io.horizontalsystems.core.DefaultDispatcherProvider
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlin.coroutines.coroutineContext
@@ -22,6 +23,7 @@ class FullAddressParserUseCase(
     private val addressUriParser: AddressUriParser,
     private val addressParserChain: AddressParserChain,
     private val coroutineScope: CoroutineScope,
+    private val dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider(),
 ) {
 
     private val _valueFlow = MutableStateFlow("")
@@ -121,10 +123,10 @@ class FullAddressParserUseCase(
      * Validates an address on a background thread.
      * Only updates [_inputState] and [_address] — never [_valueFlow].
      */
-    private suspend fun validateAddress(addressText: String) = withContext(Dispatchers.Default) {
+    private suspend fun validateAddress(addressText: String) = withContext(dispatcherProvider.default) {
         val handler = addressParserChain.supportedHandler(addressText) ?: run {
             ensureActive()
-            withContext(Dispatchers.Main) {
+            withContext(dispatcherProvider.main) {
                 _inputState.value = DataState.Error(AddressValidationException.Unsupported())
             }
             return@withContext
@@ -133,13 +135,13 @@ class FullAddressParserUseCase(
         try {
             val parsedAddress = handler.parseAddress(addressText)
             ensureActive()
-            withContext(Dispatchers.Main) {
+            withContext(dispatcherProvider.main) {
                 _address.value = parsedAddress
                 _inputState.value = DataState.Success(parsedAddress)
             }
         } catch (t: Throwable) {
             ensureActive()
-            withContext(Dispatchers.Main) {
+            withContext(dispatcherProvider.main) {
                 _inputState.value = DataState.Error(t)
             }
         }

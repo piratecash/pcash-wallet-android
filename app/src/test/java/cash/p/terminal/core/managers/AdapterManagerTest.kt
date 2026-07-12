@@ -1,5 +1,6 @@
 package cash.p.terminal.core.managers
 
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.factories.AdapterFactory
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAdapter
@@ -15,8 +16,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.reactivex.Observable
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -25,10 +30,12 @@ import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import java.util.Collections
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class AdapterManagerTest {
+
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
 
     private lateinit var walletManager: IWalletManager
     private lateinit var adapterFactory: AdapterFactory
@@ -65,7 +72,8 @@ class AdapterManagerTest {
             },
             stellarKitManager = mockk(relaxed = true),
             pendingBalanceCalculator = mockk(relaxed = true),
-            fallbackAddressProvider = mockk(relaxed = true)
+            fallbackAddressProvider = mockk(relaxed = true),
+            dispatcherProvider = TestDispatcherProvider(testDispatcher, testScope)
         )
     }
 
@@ -86,22 +94,18 @@ class AdapterManagerTest {
      * while another one with the same alias is still active.
      */
     @Test
-    fun initAdapters_stopsOldAdaptersBeforeCreatingNew() {
+    fun initAdapters_stopsOldAdaptersBeforeCreatingNew() = testScope.runTest {
         val oldWallet: Wallet = mockk(relaxed = true)
         val newWallet: Wallet = mockk(relaxed = true)
         val oldAdapter: IAdapter = mockk(relaxed = true)
         val newAdapter: IAdapter = mockk(relaxed = true)
 
         val callOrder = Collections.synchronizedList(mutableListOf<String>())
-        val oldAdapterReady = CountDownLatch(1)
-        val newAdapterReady = CountDownLatch(1)
 
-        coEvery { adapterFactory.getAdapterOrNull(oldWallet, any()) } coAnswers {
-            oldAdapter.also { oldAdapterReady.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(oldWallet, any()) } returns oldAdapter
         coEvery { adapterFactory.getAdapterOrNull(newWallet, any()) } coAnswers {
             callOrder.add("getAdapterOrNull(newWallet)")
-            newAdapter.also { newAdapterReady.countDown() }
+            newAdapter
         }
         every { oldAdapter.stop() } answers {
             callOrder.add("oldAdapter.stop()")
@@ -109,10 +113,10 @@ class AdapterManagerTest {
 
         activeWalletsFlow.value = listOf(oldWallet)
         adapterManager.startAdapterManager()
-        assertTrue("Old adapter was never created", oldAdapterReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         activeWalletsFlow.value = listOf(newWallet)
-        assertTrue("New adapter was never created", newAdapterReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         val stopIndex = callOrder.indexOf("oldAdapter.stop()")
         val createIndex = callOrder.indexOf("getAdapterOrNull(newWallet)")
@@ -130,7 +134,7 @@ class AdapterManagerTest {
      * the shared wallets' adapters must be reused (not stopped and recreated).
      */
     @Test
-    fun initAdapters_reusesSharedAdaptersWithoutStopping() {
+    fun initAdapters_reusesSharedAdaptersWithoutStopping() = testScope.runTest {
         val sharedWallet: Wallet = mockk(relaxed = true)
         val removedWallet: Wallet = mockk(relaxed = true)
         val addedWallet: Wallet = mockk(relaxed = true)
@@ -138,34 +142,25 @@ class AdapterManagerTest {
         val removedAdapter: IAdapter = mockk(relaxed = true)
         val addedAdapter: IAdapter = mockk(relaxed = true)
 
-        val initialReady = CountDownLatch(2)
-        val addedReady = CountDownLatch(1)
-
-        coEvery { adapterFactory.getAdapterOrNull(sharedWallet, any()) } coAnswers {
-            sharedAdapter.also { initialReady.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(removedWallet, any()) } coAnswers {
-            removedAdapter.also { initialReady.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(addedWallet, any()) } coAnswers {
-            addedAdapter.also { addedReady.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(sharedWallet, any()) } returns sharedAdapter
+        coEvery { adapterFactory.getAdapterOrNull(removedWallet, any()) } returns removedAdapter
+        coEvery { adapterFactory.getAdapterOrNull(addedWallet, any()) } returns addedAdapter
 
         // Phase 1: [shared, removed]
         activeWalletsFlow.value = listOf(sharedWallet, removedWallet)
         adapterManager.startAdapterManager()
-        assertTrue("Initial adapters were never created", initialReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         // Phase 2: [shared, added] — shared must be reused, removed must be stopped
         activeWalletsFlow.value = listOf(sharedWallet, addedWallet)
-        assertTrue("Added adapter was never created", addedReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         verify(exactly = 0) { sharedAdapter.stop() }
         verify(exactly = 1) { removedAdapter.stop() }
     }
 
     @Test
-    fun initAdapters_stopsOnlyNonReusableAdapters() {
+    fun initAdapters_stopsOnlyNonReusableAdapters() = testScope.runTest {
         val walletA: Wallet = mockk(relaxed = true)
         val walletB: Wallet = mockk(relaxed = true)
         val walletC: Wallet = mockk(relaxed = true)
@@ -174,18 +169,12 @@ class AdapterManagerTest {
         val adapterC: IAdapter = mockk(relaxed = true)
 
         val callOrder = Collections.synchronizedList(mutableListOf<String>())
-        val initialReady = CountDownLatch(2)
-        val walletCReady = CountDownLatch(1)
 
-        coEvery { adapterFactory.getAdapterOrNull(walletA, any()) } coAnswers {
-            adapterA.also { initialReady.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(walletB, any()) } coAnswers {
-            adapterB.also { initialReady.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(walletA, any()) } returns adapterA
+        coEvery { adapterFactory.getAdapterOrNull(walletB, any()) } returns adapterB
         coEvery { adapterFactory.getAdapterOrNull(walletC, any()) } coAnswers {
             callOrder.add("getAdapterOrNull(walletC)")
-            adapterC.also { walletCReady.countDown() }
+            adapterC
         }
         every { adapterB.stop() } answers {
             callOrder.add("adapterB.stop()")
@@ -193,10 +182,10 @@ class AdapterManagerTest {
 
         activeWalletsFlow.value = listOf(walletA, walletB)
         adapterManager.startAdapterManager()
-        assertTrue("Initial adapters were never created", initialReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         activeWalletsFlow.value = listOf(walletA, walletC)
-        assertTrue("Adapter C was never created", walletCReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         verify(exactly = 1) { adapterB.stop() }
         verify(exactly = 0) { adapterA.stop() }
@@ -213,7 +202,7 @@ class AdapterManagerTest {
     }
 
     @Test
-    fun initAdapters_litecoinMwebEnabled_recreatesReusableLitecoinPublicAdapter() {
+    fun initAdapters_litecoinMwebEnabled_recreatesReusableLitecoinPublicAdapter() = testScope.runTest {
         val publicWallet = wallet(
             accountId = "account",
             blockchainType = BlockchainType.Litecoin,
@@ -227,37 +216,27 @@ class AdapterManagerTest {
         val oldPublicAdapter: IAdapter = mockk(relaxed = true)
         val newPublicAdapter: IAdapter = mockk(relaxed = true)
         val mwebAdapter: IAdapter = mockk(relaxed = true)
-        val oldPublicReady = CountDownLatch(1)
-        val newPublicReady = CountDownLatch(1)
-        val mwebReady = CountDownLatch(1)
         var publicCreates = 0
 
         coEvery { adapterFactory.getAdapterOrNull(publicWallet, any()) } coAnswers {
             publicCreates += 1
-            if (publicCreates == 1) {
-                oldPublicAdapter.also { oldPublicReady.countDown() }
-            } else {
-                newPublicAdapter.also { newPublicReady.countDown() }
-            }
+            if (publicCreates == 1) oldPublicAdapter else newPublicAdapter
         }
-        coEvery { adapterFactory.getAdapterOrNull(mwebWallet, any()) } coAnswers {
-            mwebAdapter.also { mwebReady.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(mwebWallet, any()) } returns mwebAdapter
 
         activeWalletsFlow.value = listOf(publicWallet)
         adapterManager.startAdapterManager()
-        assertTrue("Public adapter was never created", oldPublicReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         activeWalletsFlow.value = listOf(publicWallet, mwebWallet)
-        assertTrue("Public adapter was not recreated", newPublicReady.await(5, TimeUnit.SECONDS))
-        assertTrue("MWEB adapter was never created", mwebReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         verify(exactly = 1) { oldPublicAdapter.stop() }
         assertSame(newPublicAdapter, adapterManager.getAdapterForWallet<IAdapter>(publicWallet))
     }
 
     @Test
-    fun initAdapters_litecoinMwebStateUnchanged_reusesLitecoinPublicAdapter() {
+    fun initAdapters_litecoinMwebStateUnchanged_reusesLitecoinPublicAdapter() = testScope.runTest {
         val publicWallet = wallet(
             accountId = "account",
             blockchainType = BlockchainType.Litecoin,
@@ -270,22 +249,16 @@ class AdapterManagerTest {
         )
         val litecoinAdapter: IAdapter = mockk(relaxed = true)
         val bitcoinAdapter: IAdapter = mockk(relaxed = true)
-        val initialReady = CountDownLatch(1)
-        val bitcoinReady = CountDownLatch(1)
 
-        coEvery { adapterFactory.getAdapterOrNull(publicWallet, any()) } coAnswers {
-            litecoinAdapter.also { initialReady.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(bitcoinWallet, any()) } coAnswers {
-            bitcoinAdapter.also { bitcoinReady.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(publicWallet, any()) } returns litecoinAdapter
+        coEvery { adapterFactory.getAdapterOrNull(bitcoinWallet, any()) } returns bitcoinAdapter
 
         activeWalletsFlow.value = listOf(publicWallet)
         adapterManager.startAdapterManager()
-        assertTrue("Litecoin adapter was never created", initialReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         activeWalletsFlow.value = listOf(publicWallet, bitcoinWallet)
-        assertTrue("Bitcoin adapter was never created", bitcoinReady.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         coVerify(exactly = 1) { adapterFactory.getAdapterOrNull(publicWallet, any()) }
         verify(exactly = 0) { litecoinAdapter.stop() }
@@ -293,23 +266,18 @@ class AdapterManagerTest {
     }
 
     @Test
-    fun stopAdapters_accountId_stopsOnlyMatchingAdapters() = runTest {
+    fun stopAdapters_accountId_stopsOnlyMatchingAdapters() = testScope.runTest {
         val targetWallet = wallet("target")
         val otherWallet = wallet("other")
         val targetAdapter: IAdapter = mockk(relaxed = true)
         val otherAdapter: IAdapter = mockk(relaxed = true)
-        val ready = CountDownLatch(2)
 
-        coEvery { adapterFactory.getAdapterOrNull(targetWallet, any()) } coAnswers {
-            targetAdapter.also { ready.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(otherWallet, any()) } coAnswers {
-            otherAdapter.also { ready.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(targetWallet, any()) } returns targetAdapter
+        coEvery { adapterFactory.getAdapterOrNull(otherWallet, any()) } returns otherAdapter
 
         activeWalletsFlow.value = listOf(targetWallet, otherWallet)
         adapterManager.startAdapterManager()
-        assertTrue("Adapters were never created", ready.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         adapterManager.stopAdapters(listOf("target"))
 
@@ -321,28 +289,21 @@ class AdapterManagerTest {
     }
 
     @Test
-    fun stopAdapters_accountIdAndBlockchain_stopsOnlyMatchingBlockchainAdapters() = runTest {
+    fun stopAdapters_accountIdAndBlockchain_stopsOnlyMatchingBlockchainAdapters() = testScope.runTest {
         val targetLitecoinWallet = wallet("target", BlockchainType.Litecoin, TokenType.Native)
         val targetBitcoinWallet = wallet("target", BlockchainType.Bitcoin, TokenType.Native)
         val otherLitecoinWallet = wallet("other", BlockchainType.Litecoin, TokenType.Native)
         val targetLitecoinAdapter: IAdapter = mockk(relaxed = true)
         val targetBitcoinAdapter: IAdapter = mockk(relaxed = true)
         val otherLitecoinAdapter: IAdapter = mockk(relaxed = true)
-        val ready = CountDownLatch(3)
 
-        coEvery { adapterFactory.getAdapterOrNull(targetLitecoinWallet, any()) } coAnswers {
-            targetLitecoinAdapter.also { ready.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(targetBitcoinWallet, any()) } coAnswers {
-            targetBitcoinAdapter.also { ready.countDown() }
-        }
-        coEvery { adapterFactory.getAdapterOrNull(otherLitecoinWallet, any()) } coAnswers {
-            otherLitecoinAdapter.also { ready.countDown() }
-        }
+        coEvery { adapterFactory.getAdapterOrNull(targetLitecoinWallet, any()) } returns targetLitecoinAdapter
+        coEvery { adapterFactory.getAdapterOrNull(targetBitcoinWallet, any()) } returns targetBitcoinAdapter
+        coEvery { adapterFactory.getAdapterOrNull(otherLitecoinWallet, any()) } returns otherLitecoinAdapter
 
         activeWalletsFlow.value = listOf(targetLitecoinWallet, targetBitcoinWallet, otherLitecoinWallet)
         adapterManager.startAdapterManager()
-        assertTrue("Adapters were never created", ready.await(5, TimeUnit.SECONDS))
+        advanceUntilIdle()
 
         adapterManager.stopAdapters(listOf("target"), BlockchainType.Litecoin)
 

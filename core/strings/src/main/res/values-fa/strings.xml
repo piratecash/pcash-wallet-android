@@ -1760,6 +1760,10 @@
     <string name="balance_sync_error_changeable_source">دریافت داده از منبع فعلی ناموفق بود. می‌توانید دوباره تلاش کنید یا به منبع همگام‌سازی دیگری تغییر دهید.</string>
     <string name="balance_sync_error_fixed_source">دریافت داده از منبع فعلی ناموفق بود. لطفاً بعداً دوباره تلاش کنید.</string>
     <string name="source_blocked_by_provider_error">دریافت داده از منبع فعلی ناموفق بود.\n\nشما می‌توانید:\n• بعداً دوباره تلاش کنید\n• VPN را فعال کرده و همگام‌سازی را دوباره امتحان کنید\n\nاگر خطای <b>403</b> دریافت کردید، <b>آدرس IP شما ممکن است مسدود شده باشد</b>. استفاده از VPN معمولاً <b>این مشکل را حل می‌کند</b>.</string>
+    <!-- Token not synced -->
+    <string name="token_not_synced_title">داده‌ها همگام‌سازی نشده‌اند.</string>
+    <string name="token_not_synced_description">آخرین تراکنش‌های شناخته‌شده نمایش داده می‌شوند. این اطلاعات ممکن است قدیمی باشد.</string>
+    <string name="token_not_synced_retry">تلاش مجدد</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Activate</string>
     <!--Widget-->
