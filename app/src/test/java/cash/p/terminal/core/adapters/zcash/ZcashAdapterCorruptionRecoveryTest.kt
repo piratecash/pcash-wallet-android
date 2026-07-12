@@ -39,6 +39,7 @@ import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -46,9 +47,12 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -61,19 +65,20 @@ import org.koin.dsl.module
 /**
  * Tests for ZcashAdapter database corruption detection and recovery.
  *
- * Recovery runs on Dispatchers.IO, so tests wait for recovery to reach resubscription
- * before tearDown resets Dispatchers.Main.
+ * All adapter coroutines (recovery, status/start/restart jobs, the subscriber scope) run on
+ * [dispatcher], a single [StandardTestDispatcher] shared with `runTest`, so every wait below is
+ * driven deterministically via the virtual-time scheduler instead of real timeouts.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ZcashAdapterCorruptionRecoveryTest {
 
-    companion object {
-        private const val VERIFY_TIMEOUT = 5000L
-        private const val RETRY_DELAY_GUARD_MS = 4000L
-    }
+    private val dispatcher = StandardTestDispatcher()
 
-    private val dispatcher = UnconfinedTestDispatcher()
-    private val testScope = CoroutineScope(dispatcher + SupervisorJob())
+    // Separate from the `runTest` scope on purpose: the adapter's subscriber collectors are
+    // parented to synchronizer.coroutineScope (ZcashAdapter.subscribe()) and never complete on
+    // their own. If they were children of the `runTest` scope, `runTest` would hang waiting for
+    // them. They live in `appScope` instead, cancelled explicitly in tearDown().
+    private val appScope = CoroutineScope(SupervisorJob() + dispatcher)
 
     private val context = mockk<Context>(relaxed = true)
     private val wallet = mockk<Wallet>(relaxed = true)
@@ -141,7 +146,7 @@ class ZcashAdapterCorruptionRecoveryTest {
             every { walletBalances } returns walletBalancesFlow
             every { processorInfo } returns processorInfoFlow
             every { allTransactions } returns allTransactionsFlow
-            every { coroutineScope } returns testScope
+            every { coroutineScope } returns appScope
             every { latestHeight } returns null
         }
 
@@ -184,14 +189,14 @@ class ZcashAdapterCorruptionRecoveryTest {
             localStorage = localStorage,
             backgroundManager = backgroundManager,
             singleUseAddressManager = singleUseAddressManager,
-            dispatcherProvider = TestDispatcherProvider(dispatcher, testScope),
+            dispatcherProvider = TestDispatcherProvider(dispatcher, appScope),
         )
     }
 
     private fun createAdapter(baseDelayMs: Long, maxDelayMs: Long): ZcashAdapter {
         return ZcashAdapter(
             context, wallet, restoreSettings, null, localStorage, backgroundManager,
-            singleUseAddressManager, TestDispatcherProvider(dispatcher, testScope),
+            singleUseAddressManager, TestDispatcherProvider(dispatcher, appScope),
             baseDelayMs, maxDelayMs
         )
     }
@@ -201,7 +206,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         if (::adapter.isInitialized) {
             adapter.stop()
         }
-        testScope.cancel()
+        appScope.cancel()
         stopKoin()
         Dispatchers.resetMain()
         unmockkAll()
@@ -218,7 +223,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         )
 
         assertFalse("Should return false to signal abort", result ?: true)
-        coVerify(timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
+        advanceUntilIdle()
+        coVerify { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
         verifyRecoveryResubscribed()
     }
 
@@ -239,7 +245,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         )
 
         assertFalse("Should detect Rust database malformed error", result ?: true)
-        coVerify(timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
+        advanceUntilIdle()
+        coVerify { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
         verifyRecoveryResubscribed()
     }
 
@@ -250,7 +257,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         val result = capturedProcessorErrorHandler?.invoke(RuntimeException("some other error"))
 
         assertTrue("Should return true to signal retry", result ?: false)
-        coVerify(exactly = 0, timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), any(), any()) }
+        advanceUntilIdle()
+        coVerify(exactly = 0) { Synchronizer.erase(any(), any(), any()) }
     }
 
     // --- onCriticalErrorHandler ---
@@ -264,7 +272,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         )
 
         assertFalse("Should return false to signal abort", result ?: true)
-        coVerify(timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
+        advanceUntilIdle()
+        coVerify { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
         verifyRecoveryResubscribed()
     }
 
@@ -277,7 +286,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         val result = capturedCriticalErrorHandler?.invoke(wrapped)
 
         assertFalse("Should detect wrapped corruption", result ?: true)
-        coVerify(timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
+        advanceUntilIdle()
+        coVerify { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
         verifyRecoveryResubscribed()
     }
 
@@ -292,10 +302,11 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter()
         adapter.start()
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
+        coVerify { Synchronizer.erase(any(), ZcashNetwork.Mainnet, "zcash_test") }
         verifySynchronizerNew()
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 2) { mockSynchronizer.processorInfo }
+        verify(atLeast = 2) { mockSynchronizer.processorInfo }
     }
 
     // --- Recovery correctness ---
@@ -322,8 +333,9 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(),
@@ -332,7 +344,7 @@ class ZcashAdapterCorruptionRecoveryTest {
             )
         }
         assertEquals(WalletInitMode.RestoreWallet, capturedInitMode)
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { mockSynchronizer.processorInfo }
+        verify(atLeast = 1) { mockSynchronizer.processorInfo }
     }
 
     @Test
@@ -360,8 +372,9 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT, atLeast = 2) {
+        coVerify(atLeast = 2) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(),
@@ -374,13 +387,12 @@ class ZcashAdapterCorruptionRecoveryTest {
             "All attempts must use RestoreWallet",
             capturedModes.all { it == WalletInitMode.RestoreWallet }
         )
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { mockSynchronizer.processorInfo }
+        verify(atLeast = 1) { mockSynchronizer.processorInfo }
     }
 
     @Test
     fun recovery_newCancellation_doesNotRetryOrResubscribe() = runTest(dispatcher) {
-        val newCallCount = java.util.concurrent.atomic.AtomicInteger(0)
-        val secondNewCall = java.util.concurrent.CountDownLatch(1)
+        var newCallCount = 0
         coEvery {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -389,9 +401,7 @@ class ZcashAdapterCorruptionRecoveryTest {
                 isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         } coAnswers {
-            if (newCallCount.incrementAndGet() > 1) {
-                secondNewCall.countDown()
-            }
+            newCallCount++
             throw CancellationException("Synchronizer.new cancelled")
         }
 
@@ -400,9 +410,13 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        // Cancellation from Synchronizer.new propagates straight out of createNewSynchronizer()
+        // (no retry delay on that path), so a full idle-drain deterministically proves whether a
+        // second attempt happened - no real-time guard window needed.
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) { Synchronizer.erase(any(), any(), any()) }
-        coVerify(timeout = VERIFY_TIMEOUT, exactly = 1) {
+        coVerify { Synchronizer.erase(any(), any(), any()) }
+        coVerify(exactly = 1) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(),
@@ -410,12 +424,12 @@ class ZcashAdapterCorruptionRecoveryTest {
                 isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         }
-        assertFalse(
+        assertEquals(
             "Cancellation from Synchronizer.new must not be treated as retryable failure",
-            secondNewCall.await(RETRY_DELAY_GUARD_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+            1,
+            newCallCount
         )
-        assertEquals(1, newCallCount.get())
-        verify(timeout = 500, exactly = 0) { mockSynchronizer.processorInfo }
+        verify(exactly = 0) { mockSynchronizer.processorInfo }
     }
 
     @Test
@@ -445,8 +459,9 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(),
@@ -455,7 +470,7 @@ class ZcashAdapterCorruptionRecoveryTest {
             )
         }
         assertEquals(2000000L, capturedBirthday?.value)
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { mockSynchronizer.processorInfo }
+        verify(atLeast = 1) { mockSynchronizer.processorInfo }
     }
 
     // --- Erase failure ---
@@ -471,11 +486,14 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        // eraseWithRetry() backs off 1s/2s/3s between its 3 bounded attempts; advanceUntilIdle()
+        // deterministically fast-forwards through all of them.
+        advanceUntilIdle()
 
-        // Wait for all 3 erase retries to complete — this means recovery has finished
-        coVerify(timeout = VERIFY_TIMEOUT, exactly = 3) { Synchronizer.erase(any(), any(), any()) }
+        // All 3 erase retries must have completed - this means recovery has finished.
+        coVerify(exactly = 3) { Synchronizer.erase(any(), any(), any()) }
         // Synchronizer.new should NOT be called after failed erase
-        coVerify(timeout = 500, exactly = 0) {
+        coVerify(exactly = 0) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(),
@@ -491,14 +509,11 @@ class ZcashAdapterCorruptionRecoveryTest {
 
     @Test
     fun recovery_eraseCancellation_doesNotRetryOrCreateSynchronizer() = runTest(dispatcher) {
-        val eraseCallCount = java.util.concurrent.atomic.AtomicInteger(0)
-        val secondEraseCall = java.util.concurrent.CountDownLatch(1)
+        var eraseCallCount = 0
         coEvery {
             Synchronizer.erase(any(), any(), any())
         } coAnswers {
-            if (eraseCallCount.incrementAndGet() > 1) {
-                secondEraseCall.countDown()
-            }
+            eraseCallCount++
             throw CancellationException("erase cancelled")
         }
 
@@ -507,13 +522,16 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        // Cancellation is rethrown immediately by eraseWithRetry() (no backoff delay on that
+        // path), so idle-draining the scheduler is a deterministic proof no retry occurred.
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT, exactly = 1) { Synchronizer.erase(any(), any(), any()) }
-        assertFalse(
+        coVerify(exactly = 1) { Synchronizer.erase(any(), any(), any()) }
+        assertEquals(
             "Cancellation from erase must not be treated as retryable IllegalStateException",
-            secondEraseCall.await(RETRY_DELAY_GUARD_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+            1,
+            eraseCallCount
         )
-        assertEquals(1, eraseCallCount.get())
         coVerify(exactly = 0) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -528,15 +546,13 @@ class ZcashAdapterCorruptionRecoveryTest {
 
     @Test
     fun recovery_concurrentCorruptions_onlyOneRecoveryRuns() = runTest(dispatcher) {
-        val eraseStarted = java.util.concurrent.CountDownLatch(1)
-        val releaseErase = java.util.concurrent.CountDownLatch(1)
+        val eraseStarted = CompletableDeferred<Unit>()
+        val releaseErase = CompletableDeferred<Unit>()
         coEvery {
             Synchronizer.erase(any(), any(), any())
         } coAnswers {
-            eraseStarted.countDown()
-            if (!releaseErase.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)) {
-                throw AssertionError("Timed out waiting to release erase")
-            }
+            eraseStarted.complete(Unit)
+            releaseErase.await()
             true
         }
 
@@ -544,27 +560,26 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         val error = SQLiteDatabaseCorruptException("database disk image is malformed")
         capturedProcessorErrorHandler?.invoke(error)
-        assertTrue(
-            "Recovery must start before the second corruption is reported",
-            eraseStarted.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
-        )
-        capturedCriticalErrorHandler?.invoke(error)
+        advanceUntilIdle()
+        assertTrue("Recovery must start before the second corruption is reported", eraseStarted.isCompleted)
 
-        coVerify(timeout = VERIFY_TIMEOUT, exactly = 1) { Synchronizer.erase(any(), any(), any()) }
-        releaseErase.countDown()
+        capturedCriticalErrorHandler?.invoke(error)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { Synchronizer.erase(any(), any(), any()) }
+        releaseErase.complete(Unit)
+        advanceUntilIdle()
         verifyRecoveryResubscribed()
     }
 
     @Test
     fun recovery_stopAfterNewSynchronizer_doesNotResubscribeClosedSynchronizer() = runTest(dispatcher) {
-        val getAccountsStarted = java.util.concurrent.CountDownLatch(1)
-        val releaseGetAccounts = java.util.concurrent.CountDownLatch(1)
+        val getAccountsStarted = CompletableDeferred<Unit>()
+        val releaseGetAccounts = CompletableDeferred<Unit>()
         val recoverySynchronizer = createMockSynchronizer().also { synchronizer ->
             coEvery { synchronizer.getAccounts() } coAnswers {
-                getAccountsStarted.countDown()
-                if (!releaseGetAccounts.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)) {
-                    throw AssertionError("Timed out waiting to release getAccounts")
-                }
+                getAccountsStarted.complete(Unit)
+                releaseGetAccounts.await()
                 emptyList()
             }
         }
@@ -582,16 +597,15 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
-        assertTrue(
-            "Recovery synchronizer must be installed before stop()",
-            getAccountsStarted.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
-        )
+        advanceUntilIdle()
+        assertTrue("Recovery synchronizer must be installed before stop()", getAccountsStarted.isCompleted)
 
         adapter.stop()
-        releaseGetAccounts.countDown()
+        releaseGetAccounts.complete(Unit)
+        advanceUntilIdle()
 
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { recoverySynchronizer.close() }
-        verify(timeout = 500, exactly = 0) { recoverySynchronizer.processorInfo }
+        verify(atLeast = 1) { recoverySynchronizer.close() }
+        verify(exactly = 0) { recoverySynchronizer.processorInfo }
     }
 
     // --- Zombie adapter (MOBILE-587) ---
@@ -622,8 +636,9 @@ class ZcashAdapterCorruptionRecoveryTest {
         // Simulate app returning to foreground — stopped adapter must NOT react
         // scope is cancelled so the stateFlow collector is dead
         bgStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
 
-        coVerify(exactly = 0, timeout = VERIFY_TIMEOUT) {
+        coVerify(exactly = 0) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -642,8 +657,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         val bgStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
         every { backgroundManager.stateFlow } returns bgStateFlow
 
-        val startReached = java.util.concurrent.CountDownLatch(1)
-        val cancelled = java.util.concurrent.CountDownLatch(1)
+        val startReached = CompletableDeferred<Unit>()
+        val cancelled = CompletableDeferred<Unit>()
         coEvery {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -651,11 +666,11 @@ class ZcashAdapterCorruptionRecoveryTest {
                 setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         } coAnswers {
-            startReached.countDown()
+            startReached.complete(Unit)
             try {
-                kotlinx.coroutines.suspendCancellableCoroutine<Nothing> { }
+                suspendCancellableCoroutine<Nothing> { }
             } finally {
-                cancelled.countDown()
+                cancelled.complete(Unit)
             }
         }
 
@@ -663,17 +678,13 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         statusFlow.value = Synchronizer.Status.STOPPED
         bgStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
 
-        assertTrue(
-            "Synchronizer.new() must be reached before stop()",
-            startReached.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
-        )
+        assertTrue("Synchronizer.new() must be reached before stop()", startReached.isCompleted)
         adapter.stop()
+        advanceUntilIdle()
 
-        assertTrue(
-            "Coroutine must be cancelled by stop()",
-            cancelled.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
-        )
+        assertTrue("Coroutine must be cancelled by stop()", cancelled.isCompleted)
     }
 
     @Test
@@ -681,8 +692,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         val bgStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
         every { backgroundManager.stateFlow } returns bgStateFlow
 
-        val startReached = java.util.concurrent.CountDownLatch(1)
-        val cancelled = java.util.concurrent.CountDownLatch(1)
+        val startReached = CompletableDeferred<Unit>()
+        val cancelled = CompletableDeferred<Unit>()
         coEvery {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -690,11 +701,11 @@ class ZcashAdapterCorruptionRecoveryTest {
                 setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         } coAnswers {
-            startReached.countDown()
+            startReached.complete(Unit)
             try {
-                kotlinx.coroutines.suspendCancellableCoroutine<Nothing> { }
+                suspendCancellableCoroutine<Nothing> { }
             } finally {
-                cancelled.countDown()
+                cancelled.complete(Unit)
             }
         }
 
@@ -702,17 +713,13 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         statusFlow.value = Synchronizer.Status.STOPPED
         bgStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
 
-        assertTrue(
-            "Synchronizer.new() must be reached before enterBackground",
-            startReached.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
-        )
+        assertTrue("Synchronizer.new() must be reached before enterBackground", startReached.isCompleted)
         bgStateFlow.value = BackgroundManagerState.EnterBackground
+        advanceUntilIdle()
 
-        assertTrue(
-            "Coroutine must be cancelled by enterBackground",
-            cancelled.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
-        )
+        assertTrue("Coroutine must be cancelled by enterBackground", cancelled.isCompleted)
     }
 
     // --- Pause / resume (background → foreground) ---
@@ -742,8 +749,9 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         // Simulate app returning to foreground
         bgStateFlow.value = BackgroundManagerState.EnterForeground
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -759,22 +767,15 @@ class ZcashAdapterCorruptionRecoveryTest {
 
     // --- Sync progress preservation ---
 
-    private fun awaitState(predicate: (AdapterState) -> Boolean) {
-        val deadline = System.currentTimeMillis() + VERIFY_TIMEOUT
-        while (!predicate(adapter.balanceState)) {
-            // Drain coroutines already queued on the test dispatcher (e.g. the status
-            // collector reacting to a StateFlow emission). Without this the wait depends on
-            // whether the unconfined dispatcher happened to run the collector eagerly, which
-            // is not guaranteed once sibling tests leave work on the shared scheduler — the
-            // source of the intermittent timeout. runCurrent() (not advanceUntilIdle()) is
-            // used so delay-based polling loops are not driven.
-            dispatcher.scheduler.runCurrent()
-            if (predicate(adapter.balanceState)) return
-            if (System.currentTimeMillis() > deadline) {
-                throw AssertionError("Timed out waiting for state, current: ${adapter.balanceState}")
-            }
-            Thread.sleep(50)
-        }
+    /**
+     * Drains the shared virtual-time scheduler and asserts the adapter's state matches
+     * [predicate]. Deterministic replacement for wall-clock polling: since every adapter
+     * coroutine (recovery/status/subscriber jobs) runs on [dispatcher], draining it fully
+     * guarantees all currently-schedulable work (including any queued flow emissions) has run.
+     */
+    private fun advanceAndAssertState(predicate: (AdapterState) -> Boolean) {
+        dispatcher.scheduler.advanceUntilIdle()
+        assertTrue("Unexpected state: ${adapter.balanceState}", predicate(adapter.balanceState))
     }
 
     @Test
@@ -783,16 +784,16 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.start()
 
         // Wait for subscribe() to process initial SYNCING status
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         // SDK reports progress via onDownloadProgress
         progressFlow.value = PercentDecimal(0.99f)
 
-        // subscriberScope uses Dispatchers.Main (UnconfinedTestDispatcher) — immediate
-        awaitState { it is AdapterState.Syncing && it.progress == 99.0 }
+        advanceAndAssertState { it is AdapterState.Syncing && it.progress == 99.0 }
 
         // SDK re-emits SYNCING status (e.g. entering new scan phase)
         statusFlow.value = Synchronizer.Status.SYNCING
+        advanceUntilIdle()
 
         // Progress must NOT be wiped
         val state = adapter.balanceState
@@ -812,10 +813,10 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter = createAdapter()
         adapter.start()
 
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         progressFlow.value = PercentDecimal(0.01f)
-        awaitState { it is AdapterState.Syncing && it.progress == 1.0 }
+        advanceAndAssertState { it is AdapterState.Syncing && it.progress == 1.0 }
 
         processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
             networkBlockHeight = BlockHeight.new(2_881_516L),
@@ -823,7 +824,7 @@ class ZcashAdapterCorruptionRecoveryTest {
             firstUnenhancedHeight = null
         )
 
-        awaitState { it is AdapterState.Syncing && it.blocksRemained != null }
+        advanceAndAssertState { it is AdapterState.Syncing && it.blocksRemained != null }
         val state = adapter.balanceState as AdapterState.Syncing
         assertEquals(
             "ProcessorInfo range must not be treated as sync progress",
@@ -837,7 +838,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter = createAdapter()
         adapter.start()
 
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         // accountBirthday from mock checkpoint = 2_500_000; networkHeight 3_500_000 → totalBlocks = 1_000_000
         processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
@@ -845,10 +846,10 @@ class ZcashAdapterCorruptionRecoveryTest {
             overallSyncRange = null,
             firstUnenhancedHeight = null
         )
-        awaitState { it is AdapterState.Syncing && it.blocksRemained == 1_000_000L }
+        advanceAndAssertState { it is AdapterState.Syncing && it.blocksRemained == 1_000_000L }
 
         progressFlow.value = PercentDecimal(0.5f)
-        awaitState {
+        advanceAndAssertState {
             it is AdapterState.Syncing && it.progress == 50.0 && it.blocksRemained == 500_000L
         }
     }
@@ -858,17 +859,17 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter = createAdapter()
         adapter.start()
 
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
             networkBlockHeight = BlockHeight.new(3_500_000L),
             overallSyncRange = null,
             firstUnenhancedHeight = null
         )
-        awaitState { it is AdapterState.Syncing && it.blocksRemained == 1_000_000L }
+        advanceAndAssertState { it is AdapterState.Syncing && it.blocksRemained == 1_000_000L }
 
         statusFlow.value = Synchronizer.Status.SYNCED
-        awaitState { it is AdapterState.Synced }
+        advanceAndAssertState { it is AdapterState.Synced }
 
         processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
             networkBlockHeight = BlockHeight.new(3_500_001L),
@@ -885,13 +886,13 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter = createAdapter()
         adapter.start()
 
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.SYNCED
-        awaitState { it is AdapterState.Synced }
+        advanceAndAssertState { it is AdapterState.Synced }
 
         statusFlow.value = Synchronizer.Status.SYNCING
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         processorInfoFlow.value = CompactBlockProcessor.ProcessorInfo(
             networkBlockHeight = BlockHeight.new(3_500_000L),
@@ -900,7 +901,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         )
         progressFlow.value = PercentDecimal(0.5f)
 
-        awaitState {
+        advanceAndAssertState {
             it is AdapterState.Syncing && it.progress == 50.0 && it.blocksRemained == 500_000L
         }
     }
@@ -911,15 +912,15 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.start()
 
         // Wait for subscribe() to process initial SYNCING status
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         // Move to a non-syncing state without triggering synchronizer recreation.
         statusFlow.value = Synchronizer.Status.DISCONNECTED
-        awaitState { it is AdapterState.NotSynced }
+        advanceAndAssertState { it is AdapterState.NotSynced }
 
         // Transition to SYNCING — should create fresh Syncing (no progress)
         statusFlow.value = Synchronizer.Status.SYNCING
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         val state = adapter.balanceState as AdapterState.Syncing
         assertEquals("Fresh Syncing should have no progress", null, state.progress)
@@ -943,8 +944,9 @@ class ZcashAdapterCorruptionRecoveryTest {
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -952,7 +954,7 @@ class ZcashAdapterCorruptionRecoveryTest {
             )
         }
         assertEquals(2, eraseCallCount)
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { mockSynchronizer.processorInfo }
+        verify(atLeast = 1) { mockSynchronizer.processorInfo }
     }
 
     // --- Self-heal restart after terminal STOPPED ---
@@ -963,11 +965,12 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.STOPPED
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -993,10 +996,11 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.STOPPED
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        advanceUntilIdle()
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1005,10 +1009,11 @@ class ZcashAdapterCorruptionRecoveryTest {
         }
 
         statusFlow.value = Synchronizer.Status.SYNCED
-        awaitState { it is AdapterState.Synced }
+        advanceAndAssertState { it is AdapterState.Synced }
 
         statusFlow.value = Synchronizer.Status.STOPPED
-        coVerify(timeout = VERIFY_TIMEOUT, atLeast = 2) {
+        advanceUntilIdle()
+        coVerify(atLeast = 2) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1033,11 +1038,12 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         // First STOPPED -> restart cycle.
         statusFlow.value = Synchronizer.Status.STOPPED
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        advanceUntilIdle()
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1049,7 +1055,8 @@ class ZcashAdapterCorruptionRecoveryTest {
         // STOPPED value change is a genuinely new emission, driving a second restart cycle.
         statusFlow.value = Synchronizer.Status.DISCONNECTED
         statusFlow.value = Synchronizer.Status.STOPPED
-        coVerify(timeout = VERIFY_TIMEOUT, atLeast = 2) {
+        advanceUntilIdle()
+        coVerify(atLeast = 2) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1058,7 +1065,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         }
 
         statusFlow.value = Synchronizer.Status.SYNCED
-        awaitState { it is AdapterState.Synced }
+        advanceAndAssertState { it is AdapterState.Synced }
 
         val restartAttempt = adapter.javaClass.getDeclaredField("restartAttempt")
             .apply { isAccessible = true }
@@ -1072,11 +1079,12 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.STOPPED
+        advanceUntilIdle()
 
-        coVerify(exactly = 0, timeout = VERIFY_TIMEOUT) {
+        coVerify(exactly = 0) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1092,12 +1100,30 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(300L, 300L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.STOPPED
+        // Let onStatus() react to STOPPED and schedule the 300ms backoff job before flipping
+        // foreground, mirroring the original real-time ordering (STOPPED observed while still
+        // in foreground, background happens while the backoff is pending).
+        runCurrent()
         foreground = false
-        Thread.sleep(500)
 
+        // Guard "not yet": right before the backoff delay elapses, no restart has fired.
+        advanceTimeBy(299)
+        runCurrent()
+        coVerify(exactly = 0) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+
+        // Guard "now": the backoff delay elapses, but the guard re-checks inForeground, which is
+        // now false, so it still must not restart.
+        advanceTimeBy(1)
+        runCurrent()
         coVerify(exactly = 0) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -1113,11 +1139,12 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.startForPolling()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.STOPPED
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1133,11 +1160,12 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         statusFlow.value = Synchronizer.Status.STOPPED
+        advanceUntilIdle()
 
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1152,14 +1180,12 @@ class ZcashAdapterCorruptionRecoveryTest {
         val bgStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
         every { backgroundManager.stateFlow } returns bgStateFlow
 
-        val getAccountsStarted = java.util.concurrent.CountDownLatch(1)
-        val releaseGetAccounts = java.util.concurrent.CountDownLatch(1)
+        val getAccountsStarted = CompletableDeferred<Unit>()
+        val releaseGetAccounts = CompletableDeferred<Unit>()
         val recoverySynchronizer = createMockSynchronizer().also { synchronizer ->
             coEvery { synchronizer.getAccounts() } coAnswers {
-                getAccountsStarted.countDown()
-                if (!releaseGetAccounts.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)) {
-                    throw AssertionError("Timed out waiting to release getAccounts")
-                }
+                getAccountsStarted.complete(Unit)
+                releaseGetAccounts.await()
                 emptyList()
             }
         }
@@ -1174,24 +1200,27 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         capturedProcessorErrorHandler?.invoke(
             SQLiteDatabaseCorruptException("database disk image is malformed")
         )
+        advanceUntilIdle()
         assertTrue(
             "Recovery must be installing its synchronizer before competing triggers fire",
-            getAccountsStarted.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
+            getAccountsStarted.isCompleted
         )
 
         // Competing triggers fire while recovery is still in flight.
         bgStateFlow.value = BackgroundManagerState.EnterForeground
         statusFlow.value = Synchronizer.Status.STOPPED
+        advanceUntilIdle()
 
-        releaseGetAccounts.countDown()
+        releaseGetAccounts.complete(Unit)
+        advanceUntilIdle()
 
         // Only recovery's own Synchronizer.new call should have happened - no competing restart.
-        coVerify(timeout = VERIFY_TIMEOUT, exactly = 1) {
+        coVerify(exactly = 1) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(),
@@ -1215,16 +1244,31 @@ class ZcashAdapterCorruptionRecoveryTest {
 
         adapter = createAdapter(20L, 100L)
         adapter.start()
-        awaitState { it is AdapterState.Syncing }
+        advanceAndAssertState { it is AdapterState.Syncing }
 
         // Wait for the real pause path to run: closeSynchronizer() cancels the subscriber, then close().
         bgStateFlow.value = BackgroundManagerState.EnterBackground
-        verify(timeout = VERIFY_TIMEOUT) { mockSynchronizer.close() }
+        advanceUntilIdle()
+        verify { mockSynchronizer.close() }
 
         // The subscriber is now cancelled, so this STOPPED must not reach onStatus / schedule a restart.
         statusFlow.value = Synchronizer.Status.STOPPED
-        Thread.sleep(200) // let a wrongly-scheduled restart's 20ms backoff fire, if any
+        runCurrent()
 
+        // Guard "not yet": right before a wrongly-scheduled restart's 20ms backoff would fire.
+        advanceTimeBy(19)
+        runCurrent()
+        coVerify(exactly = 0) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+
+        // Guard "now": past the 20ms window - still no restart, since the subscriber never saw STOPPED.
+        advanceTimeBy(1)
+        runCurrent()
         coVerify(exactly = 0) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -1235,7 +1279,7 @@ class ZcashAdapterCorruptionRecoveryTest {
     }
 
     private fun verifySynchronizerNew() {
-        coVerify(timeout = VERIFY_TIMEOUT) {
+        coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
                 lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
@@ -1246,7 +1290,7 @@ class ZcashAdapterCorruptionRecoveryTest {
 
     private fun verifyRecoveryResubscribed() {
         verifySynchronizerNew()
-        verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { mockSynchronizer.processorInfo }
+        verify(atLeast = 1) { mockSynchronizer.processorInfo }
     }
 
     private fun createMockSynchronizer(): SdkSynchronizer {
@@ -1256,7 +1300,7 @@ class ZcashAdapterCorruptionRecoveryTest {
             every { walletBalances } returns walletBalancesFlow
             every { processorInfo } returns processorInfoFlow
             every { allTransactions } returns allTransactionsFlow
-            every { coroutineScope } returns testScope
+            every { coroutineScope } returns appScope
             every { latestHeight } returns null
         }
     }
