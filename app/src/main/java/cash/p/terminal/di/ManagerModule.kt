@@ -42,6 +42,7 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.EvmSignerFactory
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
 import cash.p.terminal.core.managers.GuidesManager
@@ -227,6 +228,7 @@ val managerModule = module {
     singleOf(::EvmSyncSourceManager)
     singleOf(::TokenAutoEnableManager)
     singleOf(::EvmBlockchainManager)
+    singleOf(::EvmSignerFactory)
     singleOf(::BtcBlockchainManager)
     singleOf(::OfflineBroadcastTokenResolver)
     singleOf(::SolanaKitManager)
@@ -262,7 +264,7 @@ val managerModule = module {
     singleOf(::WCSessionStorage)
     single {
         WCManager(accountManager = get()).also {
-            it.addWcHandler(WCHandlerEvm(get()))
+            it.addWcHandler(WCHandlerEvm(get(), get()))
             it.addWcHandler(WCHandlerStellar(get()))
         }
     }

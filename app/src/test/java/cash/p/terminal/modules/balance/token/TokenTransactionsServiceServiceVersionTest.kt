@@ -3,10 +3,10 @@ package cash.p.terminal.modules.balance.token
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.managers.SpamManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
-import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.ITransactionRecordRepository
 import cash.p.terminal.modules.transactions.NftMetadataService
+import cash.p.terminal.modules.transactions.RecordsBatch
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.modules.transactions.TransactionsRateRepository
 import cash.p.terminal.wallet.Wallet
@@ -58,7 +58,7 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
     private val spamManager = mockk<SpamManager>(relaxed = true)
     private val wallet = mockk<Wallet>(relaxed = true)
 
-    private lateinit var repositoryItemsFlow: MutableSharedFlow<List<TransactionRecord>>
+    private lateinit var repositoryItemsFlow: MutableSharedFlow<RecordsBatch>
 
     @get:Rule
     val koinRule = KoinTestRule.create {
@@ -128,7 +128,7 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
         waitUntil { repositoryItemsFlow.subscriptionCount.value >= 1 }
 
         // Batch A arrives and blocks inside handleUpdatedRecords on the metadata read
-        repositoryItemsFlow.emit(listOf(recordA))
+        repositoryItemsFlow.emit(RecordsBatch(listOf(recordA)))
         assertTrue(
             "handleUpdatedRecords did not reach the metadata read",
             metadataReached.await(5, TimeUnit.SECONDS)
@@ -142,7 +142,7 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
 
         // Emit batch B (current filter) as a barrier: the sequential collector runs it only
         // after batch A's handler has fully returned.
-        repositoryItemsFlow.emit(listOf(recordB))
+        repositoryItemsFlow.emit(RecordsBatch(listOf(recordB)))
         assertTrue(
             "Batch B was never processed",
             batchBReached.await(5, TimeUnit.SECONDS)
@@ -186,7 +186,7 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
         service.start()
         waitUntil { repositoryItemsFlow.subscriptionCount.value >= 1 }
 
-        repositoryItemsFlow.emit(listOf(record))
+        repositoryItemsFlow.emit(RecordsBatch(listOf(record)))
         assertTrue("Item building was never reached", buildReached.await(5, TimeUnit.SECONDS))
 
         // Items must be published before the loaded flag flips.
@@ -229,8 +229,8 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
         waitUntil { repositoryItemsFlow.subscriptionCount.value >= 1 }
 
         // 1) synthetic empty clear, 2) real first page
-        repositoryItemsFlow.emit(emptyList())
-        repositoryItemsFlow.emit(listOf(record))
+        repositoryItemsFlow.emit(RecordsBatch(emptyList()))
+        repositoryItemsFlow.emit(RecordsBatch(listOf(record)))
 
         assertTrue("Item building was never reached", buildReached.await(5, TimeUnit.SECONDS))
 
@@ -297,11 +297,11 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
         // With no active adapters (pre-init) the result is empty; once adapters are ready it
         // returns the real page.
         every { repository.set(any(), any(), any(), any(), any()) } answers {
-            repositoryItemsFlow.tryEmit(emptyList())
+            repositoryItemsFlow.tryEmit(RecordsBatch(emptyList()))
             if (adaptersFlow.value.isEmpty()) {
-                repositoryItemsFlow.tryEmit(emptyList())
+                repositoryItemsFlow.tryEmit(RecordsBatch(emptyList()))
             } else {
-                repositoryItemsFlow.tryEmit(listOf(record))
+                repositoryItemsFlow.tryEmit(RecordsBatch(listOf(record)))
             }
         }
 
@@ -363,6 +363,7 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
                 releaseInitSet.await(5, TimeUnit.SECONDS)
             }
             if (type == FilterTransactionType.Incoming) incomingSetReached.countDown()
+            false
         }
 
         val service = TokenTransactionsService(
@@ -391,19 +392,5 @@ class TokenTransactionsServiceServiceVersionTest : KoinTest {
         )
 
         service.clear()
-    }
-
-    private fun mockRecord(uid: String, source: TransactionSource) =
-        mockk<TransactionRecord>(relaxed = true) {
-            every { this@mockk.uid } returns uid
-            every { this@mockk.source } returns source
-            every { mainValue } returns null
-        }
-
-    private fun waitUntil(timeoutMs: Long = 5_000, condition: () -> Boolean) {
-        val deadline = System.currentTimeMillis() + timeoutMs
-        while (!condition() && System.currentTimeMillis() < deadline) {
-            Thread.sleep(10)
-        }
     }
 }

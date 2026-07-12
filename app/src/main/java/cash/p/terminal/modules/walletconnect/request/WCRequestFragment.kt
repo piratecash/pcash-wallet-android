@@ -41,6 +41,7 @@ import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.logger.AppLogger
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 class WCRequestFragment : BaseComposeFragment() {
     private val logger = AppLogger("wallet-connect request")
@@ -76,7 +77,7 @@ class WCRequestFragment : BaseComposeFragment() {
 
     @Composable
     fun WcRequestEvm(navController: NavController) {
-        val wcRequestEvmViewModel = viewModel<WCRequestEvmViewModel>(factory = WCRequestEvmViewModel.Factory())
+        val wcRequestEvmViewModel = koinViewModel<WCRequestEvmViewModel>()
         val composableScope = rememberCoroutineScope()
         when (val sessionRequestUI = wcRequestEvmViewModel.sessionRequestUi) {
             is SessionRequestUI.Content -> {

@@ -229,7 +229,8 @@
     <string name="MarketEtf_Outflow">Outflow</string>
     <string name="MarketEtf_TotalNetAssets">Total Net Assets</string>
     <!--Market Search-->
-    <string name="EmptyResults">No results found</string>
+    <string name="EmptyResults">لم يتم العثور على نتائج</string>
+    <string name="transactions_empty_search_results">لم يتم العثور على معاملات</string>
     <string name="Market_Filters">Filters</string>
     <string name="Market_AdvancedSearch_Results">Results</string>
     <string name="Market_Search_Hint">بحث</string>
@@ -315,7 +316,7 @@
     <string name="Balance_RatePerCoin">%1$s per %2$s</string>
     <string name="Balance_SyncedUntil">until %s</string>
     <string name="Balance_Syncing">Syncing…</string>
-    <string name="Balance_SearchingTransactions">Searching transactions…</string>
+    <string name="Balance_SearchingTransactions">جارٍ البحث عن المعاملات…</string>
     <string name="Balance_FoundTx">%s tx</string>
     <string name="Balance_Syncing_WithProgress">Syncing… %s%%</string>
     <string name="balance_connecting">جارٍ الاتصال…</string>
@@ -1764,6 +1765,10 @@
     <string name="balance_sync_error_changeable_source">فشل في جلب البيانات من المصدر الحالي. يمكنك إعادة المحاولة أو التبديل إلى مصدر مزامنة مختلف.</string>
     <string name="balance_sync_error_fixed_source">فشل في جلب البيانات من المصدر الحالي. يرجى المحاولة مرة أخرى لاحقاً.</string>
     <string name="source_blocked_by_provider_error">فشل في جلب البيانات من المصدر الحالي.\n\nيمكنك:\n• المحاولة مرة أخرى لاحقاً\n• تفعيل VPN وإعادة محاولة المزامنة\n\nإذا تلقيت خطأ <b>403</b>، <b>فقد يكون عنوان IP الخاص بك محظوراً</b>. استخدام VPN عادةً ما <b>يحل هذه المشكلة</b>.</string>
+    <!-- Token not synced -->
+    <string name="token_not_synced_title">البيانات غير متزامنة.</string>
+    <string name="token_not_synced_description">يتم عرض آخر المعاملات المعروفة. قد تكون المعلومات غير محدثة.</string>
+    <string name="token_not_synced_retry">حاول مرة أخرى</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">تفعيل</string>
     <!--Widget-->

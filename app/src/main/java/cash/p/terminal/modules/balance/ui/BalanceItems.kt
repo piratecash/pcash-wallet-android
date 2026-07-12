@@ -43,7 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
@@ -61,7 +61,6 @@ import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
-import cash.p.terminal.modules.rateapp.RateAppModule
 import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.send.offline.OfflineBroadcastFragment
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
@@ -196,7 +195,7 @@ fun BalanceItems(
     totalState: TotalUIState,
     onOpenTransactionInfo: (TransactionItem) -> Unit,
 ) {
-    val rateAppViewModel = viewModel<RateAppViewModel>(factory = RateAppModule.Factory())
+    val rateAppViewModel = koinViewModel<RateAppViewModel>()
     DisposableEffect(true) {
         rateAppViewModel.onBalancePageActive()
         onDispose {

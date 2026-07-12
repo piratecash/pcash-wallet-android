@@ -46,6 +46,10 @@ import cash.p.terminal.modules.settings.appcache.AppCacheViewModel
 import cash.p.terminal.modules.settings.appstatus.AppStatusViewModel
 import cash.p.terminal.modules.settings.displaytransactions.DisplayTransactionsViewModel
 import cash.p.terminal.modules.settings.guides.GuidesViewModel
+import cash.p.terminal.modules.balance.BalanceAccountsViewModel
+import cash.p.terminal.modules.rateapp.RateAppViewModel
+import cash.p.terminal.modules.subscription.ActivateSubscriptionViewModel
+import cash.p.terminal.modules.walletconnect.request.WCRequestEvmViewModel
 import cash.p.terminal.modules.settings.main.MainSettingsViewModel
 import cash.p.terminal.modules.settings.privacy.PrivacyViewModel
 import cash.p.terminal.modules.settings.security.passcode.SecuritySettingsViewModel
@@ -81,6 +85,10 @@ val viewModelModule = module {
     viewModelOf(::OfflineBroadcastViewModel)
     viewModelOf(::OfflineSignedTransactionsViewModel)
     viewModelOf(::GuidesViewModel)
+    viewModelOf(::ActivateSubscriptionViewModel)
+    viewModelOf(::WCRequestEvmViewModel)
+    viewModelOf(::RateAppViewModel)
+    viewModelOf(::BalanceAccountsViewModel)
     viewModelOf(::PrivacyViewModel)
     viewModelOf(::HardwareWalletViewModel)
     viewModelOf(::ImportWalletViewModel)

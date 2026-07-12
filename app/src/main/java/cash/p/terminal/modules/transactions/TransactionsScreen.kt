@@ -58,13 +58,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.premiumAction
 import cash.p.terminal.modules.balance.BalanceAccountsViewModel
-import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceScreenState
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
 import cash.p.terminal.modules.send.offline.OfflineSignedTransactionViewItem
@@ -84,6 +83,7 @@ import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ColumnUniversal
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HeaderStick
+import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsImage
 import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.MenuItem
@@ -109,8 +109,7 @@ fun TransactionsScreen(
     viewModel: TransactionsViewModel,
     onShowAllTransactionsClicked: () -> Unit
 ) {
-    val accountsViewModel =
-        viewModel<BalanceAccountsViewModel>(factory = BalanceModule.AccountsFactory())
+    val accountsViewModel = koinViewModel<BalanceAccountsViewModel>()
 
     val filterTypes by viewModel.filterTypesLiveData.observeAsState()
     val showFilterAlertDot by viewModel.filterResetEnabled.observeAsState(false)
@@ -130,19 +129,16 @@ fun TransactionsScreen(
 
     Surface(color = ComposeAppTheme.colors.tyler) {
         Column(modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())) {
-            AppBar(
-                title = stringResource(R.string.Transactions_Title),
-                showSpinner = syncing,
-                menuItems = listOf(
-                    MenuItem(
-                        title = TranslatableString.ResString(R.string.Transactions_Filter),
-                        icon = R.drawable.ic_manage_2_24,
-                        showAlertDot = showFilterAlertDot,
-                        onClick = {
-                            navController.slideFromRight(R.id.transactionFilterFragment)
-                        },
-                    )
-                )
+            TransactionsAppBar(
+                uiState = uiState,
+                syncing = syncing,
+                showFilterAlertDot = showFilterAlertDot,
+                onSearchClick = viewModel::onSearchClick,
+                onSearchClose = viewModel::onSearchClose,
+                onSearchQueryChange = viewModel::onSearchQueryChange,
+                onFilterClick = {
+                    navController.slideFromRight(R.id.transactionFilterFragment)
+                },
             )
             filterTypes?.let { filterTypes ->
                 FilterTypeTabs(
@@ -189,7 +185,13 @@ fun TransactionsScreen(
                         ViewState.Success -> {
                             transactions?.let { transactionItems ->
                                 if (transactionItems.isEmpty() && !uiState.hasHiddenTransactions) {
-                                    if (uiState.syncing) {
+                                    if (uiState.searchQuery.isNotBlank()) {
+                                        if (uiState.searchScanning) {
+                                            SearchInProgressView()
+                                        } else {
+                                            SearchEmptyResultsView()
+                                        }
+                                    } else if (uiState.syncing) {
                                         ListEmptyView(
                                             text = stringResource(R.string.Transactions_WaitForSync),
                                             icon = R.drawable.ic_clock
@@ -263,6 +265,50 @@ fun TransactionsScreen(
             },
             onLaterClick = { showAmlInfoSheet = false },
             onDismiss = { showAmlInfoSheet = false }
+        )
+    }
+}
+
+@Composable
+private fun TransactionsAppBar(
+    uiState: TransactionsUiState,
+    syncing: Boolean,
+    showFilterAlertDot: Boolean,
+    onSearchClick: () -> Unit,
+    onSearchClose: () -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
+) {
+    if (uiState.searchActive) {
+        AppBar(
+            title = {
+                TransactionSearchField(
+                    query = uiState.searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                )
+            },
+            navigationIcon = {
+                HsBackButton(onClick = onSearchClose)
+            },
+            showSpinner = false
+        )
+    } else {
+        AppBar(
+            title = stringResource(R.string.Transactions_Title),
+            showSpinner = syncing,
+            menuItems = listOf(
+                MenuItem(
+                    title = TranslatableString.ResString(R.string.Button_Search),
+                    icon = R.drawable.ic_search,
+                    onClick = onSearchClick,
+                ),
+                MenuItem(
+                    title = TranslatableString.ResString(R.string.Transactions_Filter),
+                    icon = R.drawable.ic_manage_2_24,
+                    showAlertDot = showFilterAlertDot,
+                    onClick = onFilterClick,
+                )
+            )
         )
     }
 }
@@ -669,8 +715,8 @@ fun TransactionCell(
                     TransactionContentRow(
                         item = item,
                         showAmount = showAmount,
-                        blurModifier = blurModifier,
                         onValueClick = onValueClick,
+                        modifier = blurModifier,
                     )
                 }
                 if (item.addressPoisoningViewMode == AddressPoisoningViewMode.STANDARD) {
@@ -834,12 +880,11 @@ private fun TransactionIconBox(item: TransactionViewItem) {
 private fun TransactionContentRow(
     item: TransactionViewItem,
     showAmount: Boolean,
-    blurModifier: Modifier,
     onValueClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = Modifier
-            .then(blurModifier)
+        modifier = modifier
             .padding(end = 16.dp)
             .alpha(if (item.spam) 0.5f else 1f),
         verticalAlignment = Alignment.CenterVertically

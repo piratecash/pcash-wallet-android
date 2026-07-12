@@ -242,6 +242,22 @@ object WCDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
         respondSessionRequest(topic, jsonRpcResponse, onSuccessResult, onErrorResult)
     }
 
+    fun respondError(
+        topic: String,
+        requestId: Long,
+        message: String,
+        onSuccessResult: () -> Unit = {},
+        onErrorResult: (Throwable) -> Unit = {},
+    ) {
+        val jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
+            id = requestId,
+            code = 4200,
+            message = message
+        )
+
+        respondSessionRequest(topic, jsonRpcResponse, onSuccessResult, onErrorResult)
+    }
+
     private fun respondSessionRequest(
         topic: String,
         jsonRpcResponse: Wallet.Model.JsonRpcResponse,

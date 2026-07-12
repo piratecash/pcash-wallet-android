@@ -229,6 +229,7 @@
     <string name="MarketEtf_TotalNetAssets">Activos Netos Totales</string>
     <!--Market Search-->
     <string name="EmptyResults">No se han encontrado resultados</string>
+    <string name="transactions_empty_search_results">No se han encontrado transacciones</string>
     <string name="Market_Filters">Filtros</string>
     <string name="Market_AdvancedSearch_Results">Resultados</string>
     <string name="Market_Search_Hint">Buscar</string>
@@ -1749,6 +1750,10 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="balance_sync_error_changeable_source">Error al recuperar los datos de la fuente actual. Puede volver a intentar o cambiar a una fuente de sincronización diferente.</string>
     <string name="balance_sync_error_fixed_source">Error al obtener los datos de la fuente actual. Inténtalo de nuevo más tarde.</string>
     <string name="source_blocked_by_provider_error">Error al obtener datos de la fuente actual.\n\nPuedes:\n• Intentar de nuevo más tarde\n• Activar VPN y reintentar la sincronización\n\nSi recibiste un error <b>403</b>, <b>tu dirección IP puede estar bloqueada</b>. Usar una VPN generalmente <b>resuelve este problema</b>.</string>
+    <!-- Token not synced -->
+    <string name="token_not_synced_title">Los datos no están sincronizados.</string>
+    <string name="token_not_synced_description">Se muestran las últimas transacciones conocidas. La información puede estar desactualizada.</string>
+    <string name="token_not_synced_retry">Intentar de nuevo</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Activar</string>
     <!--Widget-->

@@ -1,17 +1,15 @@
 package cash.p.terminal.modules.btcblockchainsettings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.core.App
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
-import cash.p.terminal.modules.blockchainstatus.BtcBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.rememberBlockchainStatusProvider
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import io.horizontalsystems.core.entities.Blockchain
@@ -55,14 +53,7 @@ private fun BtcBlockchainSettingsNavHost(
             )
         }
         composablePage(StatusPage) {
-            val provider = remember {
-                BtcBlockchainStatusProvider(
-                    blockchain = blockchain,
-                    btcBlockchainManager = App.btcBlockchainManager,
-                    walletManager = App.walletManager,
-                    adapterManager = App.adapterManager
-                )
-            }
+            val provider = rememberBlockchainStatusProvider(blockchain)
             val viewModel = koinViewModel<BlockchainStatusViewModel> {
                 parametersOf(provider)
             }

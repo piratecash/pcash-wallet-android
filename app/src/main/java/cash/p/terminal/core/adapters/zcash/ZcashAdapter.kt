@@ -120,6 +120,8 @@ class ZcashAdapter(
     private val backgroundManager: BackgroundManager,
     private val singleUseAddressManager: ZcashSingleUseAddressManager,
     private val dispatcherProvider: DispatcherProvider,
+    private val restartBaseDelayMs: Long = 15_000,
+    private val restartMaxDelayMs: Long = 120_000,
 ) : IAdapter, IBalanceAdapter, IReceiveAdapter, ITransactionsAdapter, ISendZcashAdapter,
     OneTimeReceiveAdapter {
     private var accountBirthday = 0L
@@ -161,6 +163,8 @@ class ZcashAdapter(
 
     private var startJob: Job? = null
     private var statusJob: Job? = null
+    private var restartJob: Job? = null
+    private var restartAttempt = 0
     private var subscriberScope: CoroutineScope? = null
     override val isMainNet: Boolean = true
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -309,9 +313,13 @@ class ZcashAdapter(
         scope.launch {
             backgroundManager.stateFlow.collect { state ->
                 when (state) {
-                    BackgroundManagerState.EnterForeground -> start()
+                    BackgroundManagerState.EnterForeground -> {
+                        // Cancel a pending self-heal restart so it doesn't race with this one.
+                        resetRestart()
+                        start()
+                    }
                     BackgroundManagerState.EnterBackground -> {
-                        if (pollingSessionCount.get() == 0 && !backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash)) {
+                        if (!hasActiveBackgroundSession()) {
                             pauseSynchronizer()
                         } else {
                             Timber.tag("TxPoller").d("ZcashAdapter staying alive")
@@ -435,6 +443,10 @@ class ZcashAdapter(
     }
 
     override fun start() {
+        // Corruption recovery owns the whole lifecycle: it closes, erases, and recreates the
+        // synchronizer itself, so every other restart trigger (foreground, polling, self-heal)
+        // must stay out of the way while it is in flight.
+        if (recovering.get()) return
         importUfvkError?.let {
             syncState = AdapterState.NotSynced(it)
             return
@@ -878,6 +890,36 @@ class ZcashAdapter(
 
     private fun onChainError(errorHeight: BlockHeight, rewindHeight: BlockHeight) = Unit
 
+    // ZEC is intentionally kept running in the background during an active polling session or
+    // realtime keep-alive (see EnterBackground above), so self-heal must be allowed in those
+    // cases too, not just while the app is in the foreground.
+    private fun hasActiveBackgroundSession(): Boolean =
+        pollingSessionCount.get() > 0 || backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash)
+
+    private fun scheduleRestart() {
+        if (recovering.get()) return
+        if (!backgroundManager.inForeground && !hasActiveBackgroundSession()) return
+        if (restartJob?.isActive == true) return
+        val delayMs = zcashRestartDelayFor(restartAttempt, restartBaseDelayMs, restartMaxDelayMs)
+        restartAttempt++
+        restartJob = scope.launch {
+            delay(delayMs)
+            // No syncState re-check here: resetRestart() already cancels this job the moment
+            // SYNCING/SYNCED is observed, so reaching this point means the restart is still due.
+            // (syncState itself is unreliable at this point - subscribe()'s eager resubscription
+            // to the progress/processorInfo flows can transiently flip it back to Syncing.)
+            if (backgroundManager.inForeground || hasActiveBackgroundSession()) {
+                start()
+            }
+        }
+    }
+
+    private fun resetRestart() {
+        restartAttempt = 0
+        restartJob?.cancel()
+        restartJob = null
+    }
+
     private fun onStatus(status: Synchronizer.Status) {
         syncState = when (status) {
             Synchronizer.Status.STOPPED -> AdapterState.NotSynced(Exception("stopped"))
@@ -885,6 +927,14 @@ class ZcashAdapter(
             Synchronizer.Status.SYNCING -> if (syncState is AdapterState.Syncing) syncState else AdapterState.Syncing()
             Synchronizer.Status.SYNCED -> AdapterState.Synced
             else -> syncState
+        }
+        // Self-heal on terminal STOPPED; reset backoff once syncing resumes. DISCONNECTED and
+        // PREPARING are left to the SDK's own reconnect loop.
+        when (status) {
+            Synchronizer.Status.STOPPED -> scheduleRestart()
+            Synchronizer.Status.SYNCING,
+            Synchronizer.Status.SYNCED -> resetRestart()
+            else -> {}
         }
     }
 
@@ -1055,6 +1105,9 @@ internal fun WalletBalance.toBalanceData(decimalCount: Int) = BalanceData(
     available = available.convertZatoshiToZec(decimalCount),
     pending = pending.convertZatoshiToZec(decimalCount)
 )
+
+internal fun zcashRestartDelayFor(attempt: Int, baseMs: Long, maxMs: Long): Long =
+    (baseMs shl attempt.coerceAtMost(3)).coerceAtMost(maxMs)
 
 object ZcashAddressValidator {
     fun validate(address: String): Boolean {

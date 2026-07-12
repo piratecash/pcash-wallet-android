@@ -11,6 +11,7 @@ import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.HistoricalRateKey
 import cash.p.terminal.modules.transactions.ITransactionRecordRepository
 import cash.p.terminal.modules.transactions.NftMetadataService
+import cash.p.terminal.modules.transactions.SearchScanState
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionSyncStateRepository
 import cash.p.terminal.modules.transactions.TransactionWallet
@@ -49,8 +50,11 @@ class TokenTransactionsService(
     private val _recordsLoadedFlow = MutableStateFlow(false)
     val recordsLoadedFlow: StateFlow<Boolean> = _recordsLoadedFlow.asStateFlow()
     val syncingFlow: StateFlow<Boolean> = transactionSyncStateRepository.syncingFlow
+    private val _searchScanStateFlow = MutableStateFlow(SearchScanState.Idle)
+    val searchScanStateFlow: StateFlow<SearchScanState> = _searchScanStateFlow.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private var lastHiddenOnlyLoadKey: String? = null
 
     @Volatile
     private var serviceVersion = 0
@@ -62,6 +66,9 @@ class TokenTransactionsService(
     private var selectedTransactionType: FilterTransactionType = FilterTransactionType.All
 
     @Volatile
+    private var searchQuery: String? = null
+
+    @Volatile
     private var initialized = false
 
     private val transactionWallet by lazy {
@@ -71,7 +78,7 @@ class TokenTransactionsService(
     fun start() {
         coroutineScope.launch {
             transactionRecordRepository.itemsFlow.collect {
-                handleUpdatedRecords(it)
+                handleUpdatedRecords(it.records, it.searchCompleted, it.searchExhausted)
             }
         }
         coroutineScope.launch {
@@ -108,25 +115,30 @@ class TokenTransactionsService(
 
     private fun handleInitialization() {
         _recordsLoadedFlow.value = false
+        lastHiddenOnlyLoadKey = null
         transactionSyncStateRepository.setTransactionWallets(listOf(transactionWallet))
         val loadedType = selectedTransactionType
+        val loadedSearchQuery = searchQuery
         loadTransactions()
         initialized = true
-        // A setTransactionType() that raced during the initial load saw initialized == false and
-        // skipped its own reload; apply the latest selection if it changed meanwhile.
-        if (selectedTransactionType != loadedType) {
+        // A setTransactionType() or setSearchQuery() that raced during the initial load saw
+        // initialized == false and skipped its own reload; apply the latest selection if it
+        // changed meanwhile.
+        if (selectedTransactionType != loadedType || searchQuery != loadedSearchQuery) {
             loadTransactions()
         }
     }
 
     private fun loadTransactions() {
-        transactionRecordRepository.set(
+        val willReload = transactionRecordRepository.set(
             transactionWallets = listOf(transactionWallet),
             wallet = transactionWallet,
             transactionType = selectedTransactionType,
             blockchain = null,
-            contact = null
+            contact = null,
+            searchQuery = searchQuery,
         )
+        if (willReload) transactionRecordRepository.reloadItems()
     }
 
     fun setTransactionType(transactionType: FilterTransactionType) {
@@ -137,11 +149,33 @@ class TokenTransactionsService(
         selectedTransactionType = transactionType
         serviceVersion++
         _recordsLoadedFlow.value = false
+        // Set before clearing the list: a search re-scan is driven by the resulting reload, so
+        // the scan state must already read Scanning by the time collectors see the empty list -
+        // otherwise a stale Finished/Idle could slip through and flash the old results as final.
+        _searchScanStateFlow.value = if (searchQuery != null) SearchScanState.Scanning else SearchScanState.Idle
         _transactionItems.value = emptyList()
         // Before initialization the repository has no adapters yet, so set() would load against an
         // empty adapter map and emit a premature empty result that flips recordsLoaded to true,
         // flashing "no transactions". handleInitialization() issues the first set() with the saved
         // type once adapters are ready.
+        if (initialized) {
+            loadTransactions()
+        }
+    }
+
+    /**
+     * Applies (or clears, for `null`) an in-app search query, preserving the current
+     * [selectedTransactionType] and wallet. Mirrors [setTransactionType]'s reset pattern; the
+     * resulting reload is driven deeper by [handleUpdatedRecords] calling [loadNext] while the
+     * repository reports the scan is not yet exhausted.
+     */
+    fun setSearchQuery(query: String?) {
+        searchQuery = query
+        serviceVersion++
+        _recordsLoadedFlow.value = false
+        lastHiddenOnlyLoadKey = null
+        _searchScanStateFlow.value = if (query != null) SearchScanState.Scanning else SearchScanState.Idle
+        _transactionItems.value = emptyList()
         if (initialized) {
             loadTransactions()
         }
@@ -222,15 +256,21 @@ class TokenTransactionsService(
         }
     }
 
-    private suspend fun handleUpdatedRecords(transactionRecords: List<TransactionRecord>) {
+    private suspend fun handleUpdatedRecords(
+        transactionRecords: List<TransactionRecord>,
+        searchCompleted: Boolean,
+        searchExhausted: Boolean,
+    ) {
         // The repository emits a synthetic empty list once, when wallets are first set, to clear the
         // UI before the initial page loads. That clear is not a completed load: marking records as
         // loaded on it would let an already-synced wallet briefly show "no transactions" before its
         // first page arrives. Drop it once; a genuinely empty wallet still reports loaded through the
-        // real (also empty) result that follows.
+        // real (also empty) result that follows. A terminal empty SEARCH batch (searchCompleted) is
+        // never that synthetic clear - it is the real (empty) search result, so let it flow through
+        // instead of leaving the UI stuck on the scanning spinner.
         if (initialClearPending) {
             initialClearPending = false
-            if (transactionRecords.isEmpty()) return
+            if (transactionRecords.isEmpty() && !searchCompleted) return
         }
 
         val capturedVersion = serviceVersion
@@ -254,9 +294,11 @@ class TokenTransactionsService(
 
         if (newRecords.isNotEmpty() && newRecords.all { spamManager.shouldHide(it) }) {
             _recordsLoadedFlow.value = true
-            loadNext()
+            handleAllSpamPage(newRecords, searchCompleted, searchExhausted, capturedVersion)
             return
         }
+
+        lastHiddenOnlyLoadKey = null
 
         _transactionItems.update { latestItems ->
             // Re-check inside the CAS loop: setTransactionType() may have run between the
@@ -283,6 +325,34 @@ class TokenTransactionsService(
         // Mark loaded only after the items are published, so a consumer that observes
         // syncing flip to false always sees the new list — never an empty intermediate state.
         _recordsLoadedFlow.value = true
+        // A search batch is always the terminal answer for its requested page; flip out of
+        // Scanning so the UI shows the (possibly empty) results instead of a spinner.
+        if (searchCompleted && capturedVersion == serviceVersion) {
+            _searchScanStateFlow.value = SearchScanState.Finished
+        }
+    }
+
+    /**
+     * An all-spam page never contains a real match. Page deeper while the repository reports the
+     * scan is not yet exhausted (deduplicated via [lastHiddenOnlyLoadKey] so a repeated identical
+     * page doesn't re-trigger [loadNext]); once exhausted, this all-spam page is the final answer.
+     */
+    private fun handleAllSpamPage(
+        newRecords: List<TransactionRecord>,
+        searchCompleted: Boolean,
+        searchExhausted: Boolean,
+        capturedVersion: Int,
+    ) {
+        val canPageDeeper = !searchCompleted || !searchExhausted
+        if (canPageDeeper) {
+            val hiddenOnlyLoadKey = newRecords.joinToString(separator = "|") { it.uid }
+            if (lastHiddenOnlyLoadKey != hiddenOnlyLoadKey) {
+                lastHiddenOnlyLoadKey = hiddenOnlyLoadKey
+                loadNext()
+            }
+        } else if (capturedVersion == serviceVersion) {
+            _searchScanStateFlow.value = SearchScanState.Finished
+        }
     }
 
     private val executorService = Executors.newCachedThreadPool()

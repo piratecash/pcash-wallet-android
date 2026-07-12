@@ -43,14 +43,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.composablePopup
 import cash.p.terminal.entities.EvmSyncSource
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusScreen
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
-import cash.p.terminal.modules.blockchainstatus.EvmBlockchainStatusProvider
+import cash.p.terminal.modules.blockchainstatus.rememberBlockchainStatusProvider
 import cash.p.terminal.modules.btcblockchainsettings.BlockchainSettingCell
 import cash.p.terminal.modules.evmnetwork.addrpc.AddRpcScreen
 import cash.p.terminal.modules.walletconnect.list.ui.ActionsRow
@@ -118,12 +117,7 @@ private fun EvmNetworkNavHost(
             )
         }
         composablePage(StatusPage) {
-            val provider = remember {
-                EvmBlockchainStatusProvider(
-                    blockchain = blockchain,
-                    evmBlockchainManager = App.evmBlockchainManager
-                )
-            }
+            val provider = rememberBlockchainStatusProvider(blockchain)
             val viewModel = koinViewModel<BlockchainStatusViewModel> {
                 parametersOf(provider)
             }

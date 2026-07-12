@@ -1,5 +1,7 @@
 package cash.p.terminal.wallet.crypto
 
+import io.horizontalsystems.ethereumkit.core.signer.Signer
+import io.horizontalsystems.ethereumkit.crypto.CryptoUtils
 import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.GasPrice
@@ -87,6 +89,30 @@ class EvmSignatureRecoveryTest {
     fun recoverSenderAddress_legacyWrongChainId_returnsNullOrDifferentSender() {
         // On a wrong chainId the EIP-155 recovery id no longer reduces to 0/1.
         assertNull(EvmSignatureRecovery.recoverSenderAddress(legacyTx, legacySignature, chainId = 1))
+    }
+
+    @Test
+    fun personalSignHash_knownMessage_matchesGroundTruth() {
+        // keccak256("Ethereum Signed Message:\n5hello"), verified against an independent
+        // Keccak-256 implementation (pycryptodome), not just this codebase's own CryptoUtils.
+        assertEquals(
+            "50b2c43fd39106bafbba0da34fc430e1f91e3c96ea2acee2bc34119f92b37750",
+            EvmSignatureRecovery.personalSignHash("hello".toByteArray()).toHex()
+        )
+    }
+
+    @Test
+    fun recoverMessageAddress_roundTripSignedMessage_recoversSignerAddress() {
+        val privateKey = BigInteger("123456789987654321")
+        val expectedAddress = Signer.address(privateKey)
+        val hash = EvmSignatureRecovery.personalSignHash("round-trip message".toByteArray())
+
+        val signature = CryptoUtils.ellipticSign(hash, privateKey)
+        val r = BigInteger(1, signature.copyOfRange(0, 32))
+        val s = BigInteger(1, signature.copyOfRange(32, 64))
+        val recId = signature[64].toInt()
+
+        assertEquals(expectedAddress, EvmSignatureRecovery.recoverMessageAddress(hash, r, s, recId))
     }
 
     @Test

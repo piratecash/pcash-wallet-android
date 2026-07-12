@@ -15,7 +15,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.providers.AppConfigProvider
@@ -38,6 +37,7 @@ import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.core.entities.BlockchainType
+import org.koin.compose.viewmodel.koinViewModel
 
 class ActivateSubscriptionFragment : BaseComposeFragment() {
 
@@ -50,7 +50,7 @@ class ActivateSubscriptionFragment : BaseComposeFragment() {
 
 @Composable
 fun ActivateSubscriptionScreen(navController: NavController) {
-    val viewModel = viewModel<ActivateSubscriptionViewModel>(factory = ActivateSubscriptionViewModel.Factory())
+    val viewModel = koinViewModel<ActivateSubscriptionViewModel>()
     val uiState = viewModel.uiState
     val view = LocalView.current
     val uriHandler = LocalUriHandler.current

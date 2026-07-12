@@ -229,6 +229,7 @@
     <string name="MarketEtf_TotalNetAssets">Gesamte Netto-Assets</string>
     <!--Market Search-->
     <string name="EmptyResults">Keine Ergebnisse gefunden</string>
+    <string name="transactions_empty_search_results">Keine Transaktionen gefunden</string>
     <string name="Market_Filters">Filter</string>
     <string name="Market_AdvancedSearch_Results">Ergebnisse</string>
     <string name="Market_Search_Hint">Suchen</string>
@@ -1747,6 +1748,10 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="balance_sync_error_changeable_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Sie können erneut versuchen oder zu einer anderen Sync-Quelle wechseln.</string>
     <string name="balance_sync_error_fixed_source">Fehler beim Abrufen der Daten aus der aktuellen Quelle. Bitte versuchen Sie es später erneut.</string>
     <string name="source_blocked_by_provider_error">Fehler beim Abrufen der Daten aus der aktuellen Quelle.\n\nSie können:\n• Später erneut versuchen\n• VPN aktivieren und Synchronisierung wiederholen\n\nWenn Sie einen <b>403</b>-Fehler erhalten haben, ist <b>Ihre IP-Adresse möglicherweise gesperrt</b>. Die Verwendung eines VPN <b>behebt dieses Problem normalerweise</b>.</string>
+    <!-- Token not synced -->
+    <string name="token_not_synced_title">Daten sind nicht synchronisiert.</string>
+    <string name="token_not_synced_description">Es werden die zuletzt bekannten Transaktionen angezeigt. Die Informationen können veraltet sein.</string>
+    <string name="token_not_synced_retry">Erneut versuchen</string>
     <!--Release notes-->
     <string name="Hud_Text_Activate">Aktivieren</string>
     <!--Widget-->

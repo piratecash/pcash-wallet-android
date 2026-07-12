@@ -1,10 +1,12 @@
 package cash.p.terminal.tangem.signer
 
 import cash.p.terminal.tangem.domain.usecase.SignOneHashTransactionUseCase
+import cash.p.terminal.wallet.crypto.EvmSignatureRecovery
 import cash.p.terminal.wallet.entities.HardwarePublicKey
 import com.tangem.common.CompletionResult
 import com.tangem.common.core.TangemSdkError
 import com.tangem.operations.sign.SignHashResponse
+import io.horizontalsystems.ethereumkit.crypto.CryptoUtils
 import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
@@ -122,6 +124,46 @@ class HardwareWalletEvmSignerTest {
         }
     }
 
+    @Test
+    fun signPersonalMessage_validCardSignature_recoversWalletAddress() = runBlocking {
+        val privateKey = BigInteger("46".repeat(32), 16)
+        val publicKeyBytes = CryptoUtils.CURVE.g.multiply(privateKey).getEncoded(false)
+        val address = addressOf(publicKeyBytes)
+        val message = "Sign in to near.com".toByteArray()
+        val hash = EvmSignatureRecovery.personalSignHash(message)
+        val ellipticSignature = CryptoUtils.ellipticSign(hash, privateKey)
+        stubSuccess(ellipticSignature.sliceArray(0..63))
+
+        val result = createSigner(address, publicKeyBytes).signPersonalMessage(message)
+
+        assertEquals(65, result.size)
+        assertArrayEquals(ellipticSignature.sliceArray(0..63), result.sliceArray(0..63))
+        assertEquals(ellipticSignature[64], result[64])
+
+        val r = BigInteger(1, result.sliceArray(0..31))
+        val s = BigInteger(1, result.sliceArray(32..63))
+        val recovered = EvmSignatureRecovery.recoverMessageAddress(hash, r, s, result[64].toInt())
+        assertEquals(address, recovered)
+    }
+
+    @Test
+    fun signLegacyHash_rawHash_signsHashDirectlyWithoutEip191Prefix() = runBlocking {
+        val privateKey = BigInteger("64".repeat(32), 16)
+        val publicKeyBytes = CryptoUtils.CURVE.g.multiply(privateKey).getEncoded(false)
+        val address = addressOf(publicKeyBytes)
+        // Not a personal_sign hash: if the implementation accidentally applied the EIP-191
+        // prefix here, recovery below would fail against the mismatched hash.
+        val hash = CryptoUtils.sha3("eth_sign raw payload".toByteArray())
+        val ellipticSignature = CryptoUtils.ellipticSign(hash, privateKey)
+        stubSuccess(ellipticSignature.sliceArray(0..63))
+
+        val result = createSigner(address, publicKeyBytes).signLegacyHash(hash)
+
+        assertEquals(65, result.size)
+        assertArrayEquals(ellipticSignature.sliceArray(0..63), result.sliceArray(0..63))
+        assertEquals(ellipticSignature[64], result[64])
+    }
+
     private fun stubSuccess(signatureBytes: ByteArray) {
         coEvery { signOneHashTransactionUseCase(any(), any(), any(), any()) } returns
             CompletionResult.Success(
@@ -134,18 +176,25 @@ class HardwareWalletEvmSignerTest {
             )
     }
 
-    private fun createSigner(address: String, expectedPublicKeyBytes: ByteArray): HardwareWalletEvmSigner {
+    private fun createSigner(address: String, expectedPublicKeyBytes: ByteArray): HardwareWalletEvmSigner =
+        createSigner(Address(address), expectedPublicKeyBytes)
+
+    private fun createSigner(address: Address, expectedPublicKeyBytes: ByteArray): HardwareWalletEvmSigner {
         val hardwarePublicKey = mockk<HardwarePublicKey> {
             every { publicKey } returns expectedPublicKeyBytes
             every { derivationPath } returns "m/44'/60'/0'/0/0"
         }
         return HardwareWalletEvmSigner(
-            address = Address(address),
+            address = address,
             publicKey = hardwarePublicKey,
             chain = Chain.BinanceSmartChain,
             expectedPublicKeyBytes = expectedPublicKeyBytes
         )
     }
+
+    /** Derives the Ethereum address (last 20 bytes of keccak256 of the uncompressed key, minus the 0x04 prefix). */
+    private fun addressOf(uncompressedPublicKeyBytes: ByteArray): Address =
+        Address(CryptoUtils.sha3(uncompressedPublicKeyBytes.copyOfRange(1, 65)).copyOfRange(12, 32))
 
     private fun String.hexToBytes(): ByteArray =
         removePrefix("0x").chunked(2).map { it.toInt(16).toByte() }.toByteArray()

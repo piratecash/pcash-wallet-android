@@ -6,7 +6,10 @@ import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.trezorkit.client.TrezorClientSession
 import cash.p.terminal.trezorkit.client.TrezorEvmGasFee
 import cash.p.terminal.trezorkit.client.TrezorEvmTx
+import cash.p.terminal.trezorkit.client.TrezorMessageSignature
 import cash.p.terminal.trezorkit.client.TrezorSignature
+import cash.p.terminal.wallet.crypto.EvmSignatureRecovery
+import io.horizontalsystems.ethereumkit.crypto.CryptoUtils
 import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
@@ -272,6 +275,72 @@ class TrezorEvmSignerTest {
         s = responseS.hexToBytes(),
         serializedTx = serializedTx.hexToBytes()
     )
+
+    @Test
+    fun signPersonalMessage_validDeviceSignature_returnsRsRecId() = runBlocking {
+        val privateKey = BigInteger("46".repeat(32), 16)
+        val publicKeyBytes = CryptoUtils.CURVE.g.multiply(privateKey).getEncoded(false)
+        val address = addressOf(publicKeyBytes)
+        val message = "Sign in to near.com".toByteArray()
+        val hash = EvmSignatureRecovery.personalSignHash(message)
+        val ellipticSignature = CryptoUtils.ellipticSign(hash, privateKey)
+        val recId = ellipticSignature[64].toInt()
+        stubMessageSignature(deviceSignature(ellipticSignature, recId))
+
+        val result = createSigner(address.hex).signPersonalMessage(message)
+
+        assertEquals(65, result.size)
+        assertArrayEquals(ellipticSignature.sliceArray(0..63), result.sliceArray(0..63))
+        assertEquals(recId, result[64].toInt())
+
+        val r = BigInteger(1, result.sliceArray(0..31))
+        val s = BigInteger(1, result.sliceArray(32..63))
+        assertEquals(address, EvmSignatureRecovery.recoverMessageAddress(hash, r, s, result[64].toInt()))
+    }
+
+    @Test
+    fun signPersonalMessage_wrongAccountSignature_throws() {
+        // The device signature is produced by a different private key than the account this
+        // signer was constructed for, so the recovery-id resolution must find no match.
+        val privateKey = BigInteger("64".repeat(32), 16)
+        val message = "Sign in to near.com".toByteArray()
+        val hash = EvmSignatureRecovery.personalSignHash(message)
+        val ellipticSignature = CryptoUtils.ellipticSign(hash, privateKey)
+        stubMessageSignature(deviceSignature(ellipticSignature, ellipticSignature[64].toInt()))
+
+        val wrongAddress = Address("0x000000000000000000000000000000000000dead")
+
+        assertThrows(TrezorSigningException::class.java) {
+            runBlocking { createSigner(wrongAddress.hex).signPersonalMessage(message) }
+        }
+    }
+
+    @Test
+    fun signLegacyHash_always_throwsNotSupported() {
+        assertThrows(TrezorSigningException::class.java) {
+            runBlocking { createSigner().signLegacyHash(ByteArray(32)) }
+        }
+    }
+
+    @Test
+    fun signTypedDataMessage_always_throwsNotSupported() {
+        assertThrows(TrezorSigningException::class.java) {
+            runBlocking { createSigner().signTypedDataMessage("{}") }
+        }
+    }
+
+    /** Builds the 65-byte `r‖s‖v` payload Trezor returns for `EthereumSignMessage` (v = 27/28). */
+    private fun deviceSignature(ellipticSignature: ByteArray, recId: Int): ByteArray =
+        ellipticSignature.sliceArray(0..63) + byteArrayOf((27 + recId).toByte())
+
+    private fun stubMessageSignature(signature: ByteArray) {
+        coEvery { session.signEthereumMessage(any(), any()) } returns
+            TrezorMessageSignature(signature = signature, address = legacySender)
+    }
+
+    /** Derives the Ethereum address (last 20 bytes of keccak256 of the uncompressed key, minus the 0x04 prefix). */
+    private fun addressOf(uncompressedPublicKeyBytes: ByteArray): Address =
+        Address(CryptoUtils.sha3(uncompressedPublicKeyBytes.copyOfRange(1, 65)).copyOfRange(12, 32))
 
     private fun eip1559Signature() = TrezorSignature(
         v = eip1559ResponseV.hexToInt(),

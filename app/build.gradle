@@ -15,6 +15,7 @@ plugins {
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.plugin.serialization'
     id 'androidx.navigation.safeargs.kotlin'
+    id 'io.github.takahirom.roborazzi' version '1.65.0'
     id 'androidx.baselineprofile'
 }
 
@@ -241,8 +242,11 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
         unitTests.all {
             useJUnitPlatform()
+            maxHeapSize = "2g"
+            forkEvery = 80
         }
     }
 
@@ -515,6 +519,18 @@ dependencies {
     testRuntimeOnly libs.spek.runner.junit5
     testRuntimeOnly libs.kotlin.reflect
 
+    // Roborazzi — JVM screenshot rendering of @Preview composables (no emulator)
+    testImplementation platform(libs.compose.bom)
+    testImplementation libs.roborazzi
+    testImplementation libs.roborazzi.compose
+    testImplementation libs.roborazzi.preview.scanner.support
+    testImplementation libs.composable.preview.scanner.android
+    testImplementation libs.robolectric
+    testImplementation libs.compose.ui.test.junit4
+    // Robolectric runners are JUnit4; the module runs tests on the JUnit Platform,
+    // so the vintage engine is required to discover and run them.
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+
     //Android Tor
     implementation libs.tor.android
 
@@ -567,6 +583,19 @@ tasks.register('cleanMacOsMetadata') {
     }
 }
 preBuild.dependsOn cleanMacOsMetadata
+
+// Roborazzi preview screenshots are a local design-review tool, not a CI gate.
+// Robolectric renders differently across OSes (fonts/colors), so running them on
+// CI (Linux) would be flaky against images recorded elsewhere. Keep them out of the
+// normal unit-test run (including CI's :app:testDebugUnitTest) unless explicitly
+// opted in with -Pscreenshots (used by the record/verify commands).
+tasks.withType(Test).configureEach {
+    if (!project.hasProperty('screenshots')) {
+        filter {
+            excludeTestsMatching 'cash.p.terminal.screenshots.*'
+        }
+    }
+}
 
 // Single entry point. Runs one generation journey on the DISPOSABLE
 // cash.p.terminal.baseline sandbox (onboarding → create wallet → tabs → search →

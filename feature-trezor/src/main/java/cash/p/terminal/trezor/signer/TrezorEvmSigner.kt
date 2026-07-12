@@ -40,6 +40,8 @@ class TrezorEvmSigner(
         private const val EIP1559_MAX_PRIORITY_FEE_INDEX = 2
         private const val EIP1559_MAX_FEE_INDEX = 3
         private const val EIP1559_GAS_LIMIT_INDEX = 4
+        private const val SIGNATURE_SIZE = 65
+        private const val R_S_SIZE = 32
     }
 
     /**
@@ -153,6 +155,46 @@ class TrezorEvmSigner(
 
     private fun RLPList.longAt(index: Int): Long =
         BigInteger(1, this[index].rlpData ?: ByteArray(0)).toLong()
+
+    /**
+     * Signs an EIP-191 `personal_sign` message on-device over USB (`signEthereumMessage`).
+     * Returns `r‖s‖recId` (recId ∈ {0,1}), byte-identical to mnemonic signing, so callers can
+     * treat hardware and software signatures uniformly.
+     */
+    suspend fun signPersonalMessage(message: ByteArray): ByteArray {
+        val result = trezorClient.connect { signEthereumMessage(TrezorDerivationPath.parse(derivationPath), message) }
+        val sig = result.signature
+        if (sig.size != SIGNATURE_SIZE) {
+            throw TrezorSigningException("Unexpected Trezor signature size: ${sig.size}")
+        }
+        val r = sig.copyOfRange(0, R_S_SIZE)
+        val s = sig.copyOfRange(R_S_SIZE, 2 * R_S_SIZE)
+        val hash = EvmSignatureRecovery.personalSignHash(message)
+        val recId = resolveRecoveryId(hash, r, s)
+            ?: throw TrezorSigningException("Device signed with an unexpected account")
+        return r + s + byteArrayOf(recId.toByte())
+    }
+
+    /**
+     * Determines which recovery id (0 or 1) recovers our wallet address. This doubles as the
+     * defense-in-depth account check: a signature from the wrong account never resolves, and we
+     * don't have to trust how Trezor happens to encode `v` in the raw signature byte.
+     */
+    private fun resolveRecoveryId(hash: ByteArray, r: ByteArray, s: ByteArray): Int? {
+        val rInt = BigInteger(1, r)
+        val sInt = BigInteger(1, s)
+        return (0..1).firstOrNull { recId ->
+            EvmSignatureRecovery.recoverMessageAddress(hash, rInt, sInt, recId) == address
+        }
+    }
+
+    /** Not supported: Trezor has no raw-hash (`eth_sign`) operation for Ethereum. */
+    suspend fun signLegacyHash(hash: ByteArray): ByteArray =
+        throw TrezorSigningException("eth_sign (raw hash) is not supported on Trezor")
+
+    /** Not supported: typed-data signing is not wired for Trezor. */
+    suspend fun signTypedDataMessage(rawJson: String): ByteArray =
+        throw TrezorSigningException("eth_signTypedData is not supported on Trezor")
 }
 
 data class SignedEvmTransaction(

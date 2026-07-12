@@ -26,6 +26,7 @@ import cash.z.ecc.android.sdk.model.ZcashNetwork
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.CoreApp
+import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -80,6 +81,7 @@ class ZcashAdapterCorruptionRecoveryTest {
     private val backgroundManager = mockk<BackgroundManager>(relaxed = true)
     private val singleUseAddressManager = mockk<ZcashSingleUseAddressManager>(relaxed = true)
     private val clearZCashWalletDataUseCase = mockk<ClearZCashWalletDataUseCase>(relaxed = true)
+    private val backgroundKeepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
     private val restoreSettings = RestoreSettings().apply { birthdayHeight = 2000000L }
 
     private lateinit var mockSynchronizer: SdkSynchronizer
@@ -105,7 +107,7 @@ class ZcashAdapterCorruptionRecoveryTest {
         startKoin {
             modules(module {
                 single { clearZCashWalletDataUseCase }
-                single { mockk<BackgroundKeepAliveManager>(relaxed = true) }
+                single { backgroundKeepAliveManager }
             })
         }
 
@@ -183,6 +185,14 @@ class ZcashAdapterCorruptionRecoveryTest {
             backgroundManager = backgroundManager,
             singleUseAddressManager = singleUseAddressManager,
             dispatcherProvider = TestDispatcherProvider(dispatcher, testScope),
+        )
+    }
+
+    private fun createAdapter(baseDelayMs: Long, maxDelayMs: Long): ZcashAdapter {
+        return ZcashAdapter(
+            context, wallet, restoreSettings, null, localStorage, backgroundManager,
+            singleUseAddressManager, TestDispatcherProvider(dispatcher, testScope),
+            baseDelayMs, maxDelayMs
         )
     }
 
@@ -943,6 +953,285 @@ class ZcashAdapterCorruptionRecoveryTest {
         }
         assertEquals(2, eraseCallCount)
         verify(timeout = VERIFY_TIMEOUT, atLeast = 1) { mockSynchronizer.processorInfo }
+    }
+
+    // --- Self-heal restart after terminal STOPPED ---
+
+    @Test
+    fun stopped_whileForeground_restartsSynchronizer() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns true
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        coVerify(timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun stopped_thenSynced_thenStopped_restartsAgain() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns true
+        var restartCount = 0
+        coEvery {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        } answers {
+            restartCount++
+            mockSynchronizer
+        }
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+        coVerify(timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+
+        statusFlow.value = Synchronizer.Status.SYNCED
+        awaitState { it is AdapterState.Synced }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+        coVerify(timeout = VERIFY_TIMEOUT, atLeast = 2) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+        assertTrue("Expected at least 2 restarts, got $restartCount", restartCount >= 2)
+    }
+
+    @Test
+    fun zcashRestartDelayFor_exponentialWithCap() {
+        assertEquals(20L, zcashRestartDelayFor(0, 20L, 100L))
+        assertEquals(40L, zcashRestartDelayFor(1, 20L, 100L))
+        assertEquals(80L, zcashRestartDelayFor(2, 20L, 100L))
+        assertEquals(100L, zcashRestartDelayFor(3, 20L, 100L))
+        assertEquals(100L, zcashRestartDelayFor(4, 20L, 100L))
+    }
+
+    @Test
+    fun syncedResetsBackoffAttempt() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns true
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        // First STOPPED -> restart cycle.
+        statusFlow.value = Synchronizer.Status.STOPPED
+        coVerify(timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+
+        // Move off STOPPED (without resetting backoff, unlike SYNCING/SYNCED) so the next
+        // STOPPED value change is a genuinely new emission, driving a second restart cycle.
+        statusFlow.value = Synchronizer.Status.DISCONNECTED
+        statusFlow.value = Synchronizer.Status.STOPPED
+        coVerify(timeout = VERIFY_TIMEOUT, atLeast = 2) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+
+        statusFlow.value = Synchronizer.Status.SYNCED
+        awaitState { it is AdapterState.Synced }
+
+        val restartAttempt = adapter.javaClass.getDeclaredField("restartAttempt")
+            .apply { isAccessible = true }
+            .getInt(adapter)
+        assertEquals(0, restartAttempt)
+    }
+
+    @Test
+    fun stopped_whileBackground_doesNotRestart() = runTest(dispatcher) {
+        // backgroundManager is relaxed => inForeground defaults to false
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        coVerify(exactly = 0, timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun stopped_thenBackgroundBeforeBackoff_doesNotRestart() = runTest(dispatcher) {
+        var foreground = true
+        every { backgroundManager.inForeground } answers { foreground }
+
+        adapter = createAdapter(300L, 300L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+        foreground = false
+        Thread.sleep(500)
+
+        coVerify(exactly = 0) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun stopped_duringPollingSession_restartsInBackground() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns false
+
+        adapter = createAdapter(20L, 100L)
+        adapter.startForPolling()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        coVerify(timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun stopped_duringKeepAlive_restartsInBackground() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns false
+        every { backgroundKeepAliveManager.isKeepAlive(BlockchainType.Zcash) } returns true
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        coVerify(timeout = VERIFY_TIMEOUT) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun restartTrigger_duringCorruptionRecovery_doesNotCompete() = runTest(dispatcher) {
+        every { backgroundManager.inForeground } returns true
+        val bgStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
+        every { backgroundManager.stateFlow } returns bgStateFlow
+
+        val getAccountsStarted = java.util.concurrent.CountDownLatch(1)
+        val releaseGetAccounts = java.util.concurrent.CountDownLatch(1)
+        val recoverySynchronizer = createMockSynchronizer().also { synchronizer ->
+            coEvery { synchronizer.getAccounts() } coAnswers {
+                getAccountsStarted.countDown()
+                if (!releaseGetAccounts.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                    throw AssertionError("Timed out waiting to release getAccounts")
+                }
+                emptyList()
+            }
+        }
+        coEvery {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(),
+                walletInitMode = any(), setup = any(),
+                isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        } returns recoverySynchronizer
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        capturedProcessorErrorHandler?.invoke(
+            SQLiteDatabaseCorruptException("database disk image is malformed")
+        )
+        assertTrue(
+            "Recovery must be installing its synchronizer before competing triggers fire",
+            getAccountsStarted.await(VERIFY_TIMEOUT, java.util.concurrent.TimeUnit.MILLISECONDS)
+        )
+
+        // Competing triggers fire while recovery is still in flight.
+        bgStateFlow.value = BackgroundManagerState.EnterForeground
+        statusFlow.value = Synchronizer.Status.STOPPED
+
+        releaseGetAccounts.countDown()
+
+        // Only recovery's own Synchronizer.new call should have happened - no competing restart.
+        coVerify(timeout = VERIFY_TIMEOUT, exactly = 1) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(),
+                walletInitMode = any(), setup = any(),
+                isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
+    }
+
+    @Test
+    fun enterBackground_pauseThenStopped_doesNotRestart() = runTest(dispatcher) {
+        // Foreground + syncing, then the user backgrounds the app. Backgrounding pauses the adapter
+        // (pauseSynchronizer -> closeSynchronizer cancels the onStatus subscriber BEFORE close()), so
+        // the STOPPED that intentional close emits never reaches onStatus and must not restart.
+        // inForeground is kept true on purpose: it removes the foreground guard as a confound so this
+        // test locks the subscriber-cancellation itself — a regression that stopped cancelling the
+        // subscriber would let STOPPED through and wrongly restart, failing this test.
+        every { backgroundManager.inForeground } returns true
+        val bgStateFlow = MutableStateFlow<BackgroundManagerState>(BackgroundManagerState.Unknown)
+        every { backgroundManager.stateFlow } returns bgStateFlow
+
+        adapter = createAdapter(20L, 100L)
+        adapter.start()
+        awaitState { it is AdapterState.Syncing }
+
+        // Wait for the real pause path to run: closeSynchronizer() cancels the subscriber, then close().
+        bgStateFlow.value = BackgroundManagerState.EnterBackground
+        verify(timeout = VERIFY_TIMEOUT) { mockSynchronizer.close() }
+
+        // The subscriber is now cancelled, so this STOPPED must not reach onStatus / schedule a restart.
+        statusFlow.value = Synchronizer.Status.STOPPED
+        Thread.sleep(200) // let a wrongly-scheduled restart's 20ms backoff fire, if any
+
+        coVerify(exactly = 0) {
+            Synchronizer.new(
+                context = any(), zcashNetwork = any(), alias = any(),
+                lightWalletEndpoint = any(), birthday = any(), walletInitMode = any(),
+                setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
+            )
+        }
     }
 
     private fun verifySynchronizerNew() {
