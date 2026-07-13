@@ -76,7 +76,7 @@ class ECashAdapter(
     }
 
     override fun onTransactionsDelete(hashes: List<String>) {
-        // ignored for now
+        onTransactionsDeleted()
     }
 
     override val blockchainType = BlockchainType.ECash
