@@ -1,6 +1,6 @@
 package cash.p.terminal.trezor.domain.policy
 
-import cash.p.terminal.trezor.domain.TrezorModelSupport
+import cash.p.terminal.trezor.client.TrezorPublicKeySpecs
 import cash.p.terminal.trezor.domain.model.TrezorModel
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -11,13 +11,13 @@ import io.horizontalsystems.core.entities.BlockchainType
 
 class TrezorHardwareWalletTokenPolicy : HardwareWalletTokenPolicy {
     override fun isSupported(blockchainType: BlockchainType, tokenType: TokenType): Boolean {
-        return TrezorModelSupport.isSupported(null, blockchainType)
+        return TrezorPublicKeySpecs.supports(null, blockchainType, tokenType)
     }
 
     override fun isSupported(account: Account, token: Token): Boolean {
         val model = (account.type as? AccountType.TrezorDevice)?.let {
             TrezorModel.fromInternalModel(it.model)
         }
-        return TrezorModelSupport.isSupported(model, token.blockchainType)
+        return TrezorPublicKeySpecs.supports(model, token.blockchainType, token.type)
     }
 }

@@ -180,9 +180,10 @@ class BitcoinAdapter(
                     val trezorSigner = buildTrezorBtcSigner(
                         accountId = account.id,
                         blockchainType = wallet.token.blockchainType,
+                        tokenType = wallet.token.type,
                         coin = "Bitcoin"
                     )
-                    return BitcoinKit(
+                    val kit = BitcoinKit(
                         context = App.instance,
                         extendedKey = requireNotNull(wallet.getHDExtendedKey()),
                         purpose = derivation.purpose,
@@ -193,6 +194,8 @@ class BitcoinAdapter(
                         iInputSigner = trezorSigner,
                         iSchnorrInputSigner = trezorSigner,
                     )
+                    bindPreviousTransactionProvider(trezorSigner, kit)
+                    return kit
                 }
 
                 else -> throw UnsupportedAccountException()

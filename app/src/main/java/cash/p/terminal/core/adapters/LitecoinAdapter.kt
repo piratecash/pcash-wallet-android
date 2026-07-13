@@ -879,8 +879,22 @@ class LitecoinAdapter(
         val destination = address ?: return null
         return when {
             mwebMode -> LitecoinSendSource.Mweb
-            kit.isMwebAddress(destination) -> LitecoinSendSource.Public
+            kit.isMwebAddress(destination) -> {
+                rejectMwebForTrezor()
+                LitecoinSendSource.Public
+            }
             else -> null
+        }
+    }
+
+    /**
+     * A Trezor wallet runs public-only (it can never enter MWEB mode), and the device cannot produce
+     * the MWEB commitment/kernel signature required to peg funds into MWEB. Block MWEB destinations
+     * for Trezor accounts instead of building a transaction the device can't sign.
+     */
+    private fun rejectMwebForTrezor() {
+        if (isTrezorAccount) {
+            throw LocalizedException(R.string.send_trezor_mweb_not_supported)
         }
     }
 
@@ -927,7 +941,10 @@ class LitecoinAdapter(
     }
 
     override fun validate(address: String, pluginData: Map<Byte, IPluginData>?) {
-        if (kit.isMwebAddress(address)) return
+        if (kit.isMwebAddress(address)) {
+            rejectMwebForTrezor()
+            return
+        }
         super.validate(address, pluginData)
     }
 
@@ -1576,9 +1593,10 @@ class LitecoinAdapter(
             val trezorSigner = buildTrezorBtcSigner(
                 accountId = context.account.id,
                 blockchainType = token.blockchainType,
+                tokenType = token.type,
                 coin = "Litecoin"
             )
-            return LitecoinKit(
+            val kit = LitecoinKit(
                 context = App.instance,
                 extendedKey = requireNotNull(context.wallet.getHDExtendedKey()),
                 purpose = context.purpose,
@@ -1591,6 +1609,8 @@ class LitecoinAdapter(
                 sharedPeerGroupHolder = context.sharedPeerGroupHolder,
                 mwebPublicSendConfig = mwebPublicSendConfig(context.dispatcherProvider)
             )
+            bindPreviousTransactionProvider(trezorSigner, kit)
+            return kit
         }
 
         private fun mwebPublicSendConfig(dispatcherProvider: DispatcherProvider): MwebPublicSendConfig {

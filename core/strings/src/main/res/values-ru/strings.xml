@@ -40,10 +40,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Продолжить офлайн</string>
     <string name="trezor_wallet">Кошелёк Trezor</string>
     <string name="connect_trezor">Подключить Trezor</string>
-    <string name="trezor_setup_description">Убедитесь, что приложение Trezor Suite установлено и ваше устройство Trezor подключено.</string>
-    <string name="trezor_suite_required_title">Требуется Trezor Suite</string>
-    <string name="trezor_suite_required_description">Для подключения Trezor необходимо установить приложение Trezor Suite на ваш телефон.</string>
-    <string name="install_from_play_store">Установить из Play Store</string>
+    <string name="trezor_setup_description">Подключите Trezor кабелем USB и подтвердите на устройстве.</string>
+    <string name="trezor_not_initialized_title">Устройство не настроено</string>
+    <string name="trezor_not_initialized_description">Этот Trezor ещё не настроен. Завершите настройку на устройстве и подключите его снова.</string>
+    <string name="trezor_not_initialized_cta">Инструкция по настройке</string>
+    <string name="trezor_connect_failed">Не удалось подключиться к Trezor.</string>
     <string name="Button_Restore">Импорт</string>
     <string name="Button_Reset">Сбросить</string>
     <string name="Button_Understand">Я понимаю</string>
@@ -2288,4 +2289,6 @@
     <string name="duration_short_hours">%1$dч</string>
     <string name="duration_short_minutes">%1$dмин</string>
     <string name="duration_short_seconds">%1$dс</string>
+    <string name="send_trezor_mweb_not_supported">Trezor не поддерживает MWEB. Отправьте Litecoin на обычный (не MWEB) адрес.</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor не поддерживает транзакции с временной блокировкой.</string>
 </resources>

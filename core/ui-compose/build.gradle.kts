@@ -50,7 +50,6 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.material)
-    implementation(libs.compose.tooling)
     implementation(libs.coil.compose)
 
     implementation(libs.lifecycle.viewmodel.ktx)

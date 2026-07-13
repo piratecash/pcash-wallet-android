@@ -304,10 +304,10 @@ class EvmKitWrapper(
 
     /**
      * Signs [rawTransaction] and returns the transaction that was actually signed together with its
-     * signature. Hardware wallets may sign over different fields than requested (Trezor Suite
-     * re-estimates the gas limit), so the returned raw transaction can differ from the input. Always
-     * go through this instead of the base Signer.signedTransaction(), which signs hardware-wallet
-     * transactions with a mock key.
+     * signature. Hardware wallets return the device-signed transaction, reconciled from the fields the
+     * device signed, so the returned raw transaction can differ from the input. Always go through this
+     * instead of the base Signer.signedTransaction(), which signs hardware-wallet transactions with a
+     * mock key.
      */
     suspend fun signReconciled(rawTransaction: RawTransaction): Pair<RawTransaction, Signature> {
         val signer = signer ?: throw EvmSignerNotInitializedException()

@@ -54,10 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Continuar sin conexión</string>
     <string name="trezor_wallet">Trezor Wallet</string>
     <string name="connect_trezor">Conectar Trezor</string>
-    <string name="trezor_setup_description">Asegúrate de que Trezor Suite esté instalado y tu dispositivo Trezor esté conectado.</string>
-    <string name="trezor_suite_required_title">Se requiere Trezor Suite</string>
-    <string name="trezor_suite_required_description">Para conectar tu dispositivo Trezor, necesitas la aplicación Trezor Suite instalada en tu teléfono.</string>
-    <string name="install_from_play_store">Instalar desde Play Store</string>
+    <string name="trezor_setup_description">Conecta tu Trezor con un cable USB y confirma en el dispositivo.</string>
+    <string name="trezor_not_initialized_title">Dispositivo no configurado</string>
+    <string name="trezor_not_initialized_description">Este Trezor aún no está configurado. Completa la configuración en el dispositivo y vuelve a conectarlo.</string>
+    <string name="trezor_not_initialized_cta">Guía de configuración</string>
+    <string name="trezor_connect_failed">No se pudo conectar con Trezor.</string>
     <string name="Button_Activate">Activar</string>
     <string name="Button_Sign">Firma</string>
     <string name="Button_TryAgain">Inténtalo de nuevo</string>
@@ -2102,4 +2103,6 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="send_error_balance_unavailable">Saldo no disponible</string>
     <string name="litecoin_mweb_invalid_amount">Importe de Litecoin MWEB no válido</string>
     <string name="litecoin_hardware_extended_public_key_required">La cartera hardware de Litecoin requiere una clave pública extendida</string>
+    <string name="send_trezor_mweb_not_supported">Trezor no admite MWEB. Envía Litecoin a una dirección normal (no MWEB).</string>
+    <string name="send_trezor_time_lock_not_supported">Trezor no admite transacciones con bloqueo temporal.</string>
 </resources>

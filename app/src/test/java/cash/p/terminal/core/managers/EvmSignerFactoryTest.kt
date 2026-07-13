@@ -2,8 +2,8 @@ package cash.p.terminal.core.managers
 
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
 import cash.p.terminal.trezor.signer.TrezorEvmSigner
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -34,8 +34,8 @@ class EvmSignerFactoryTest {
         "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8"
 
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage = mockk()
-    private val trezorDeepLinkManager: TrezorDeepLinkManager = mockk()
-    private val factory = EvmSignerFactory(hardwarePublicKeyStorage, trezorDeepLinkManager)
+    private val trezorClient: ITrezorClient = mockk()
+    private val factory = EvmSignerFactory(hardwarePublicKeyStorage, trezorClient)
 
     private val hardwareAccount = Account(
         id = "hardware-account-id",

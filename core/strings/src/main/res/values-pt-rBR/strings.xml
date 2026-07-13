@@ -54,10 +54,11 @@
     <string name="hardware_wallet_offline_confirmation_positive">Continuar offline</string>
     <string name="trezor_wallet">Carteira Trezor</string>
     <string name="connect_trezor">Conectar Trezor</string>
-    <string name="trezor_setup_description">Certifique-se de que o Trezor Suite está instalado e seu dispositivo Trezor está conectado.</string>
-    <string name="trezor_suite_required_title">Trezor Suite necessário</string>
-    <string name="trezor_suite_required_description">Para conectar seu dispositivo Trezor, é necessário ter o aplicativo Trezor Suite instalado no celular.</string>
-    <string name="install_from_play_store">Instalar pela Play Store</string>
+    <string name="trezor_setup_description">Conecte sua Trezor com um cabo USB e confirme no dispositivo.</string>
+    <string name="trezor_not_initialized_title">Dispositivo não configurado</string>
+    <string name="trezor_not_initialized_description">Esta Trezor ainda não está configurada. Conclua a configuração no dispositivo e conecte-a novamente.</string>
+    <string name="trezor_not_initialized_cta">Guia de configuração</string>
+    <string name="trezor_connect_failed">Não foi possível conectar ao Trezor.</string>
     <string name="Button_Activate">Ativar</string>
     <string name="Button_Sign">Assinar</string>
     <string name="Button_TryAgain">Tentar novamente</string>
@@ -2110,4 +2111,6 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="send_error_balance_unavailable">Saldo indisponível</string>
     <string name="litecoin_mweb_invalid_amount">Valor de Litecoin MWEB inválido</string>
     <string name="litecoin_hardware_extended_public_key_required">A carteira hardware Litecoin requer uma chave pública estendida</string>
+    <string name="send_trezor_mweb_not_supported">A Trezor não é compatível com MWEB. Envie Litecoin para um endereço comum (não MWEB).</string>
+    <string name="send_trezor_time_lock_not_supported">A Trezor não é compatível com transações com bloqueio de tempo.</string>
 </resources>

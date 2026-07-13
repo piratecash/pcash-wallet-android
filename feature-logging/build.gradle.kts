@@ -50,7 +50,6 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.material)
     implementation(libs.androidx.material3.android)
-    implementation(libs.compose.tooling)
     implementation(libs.androidx.navigation.runtime.ktx)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)

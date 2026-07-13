@@ -4,11 +4,14 @@ import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.navigation.NavController
 import cash.p.terminal.navigation.setNavigationResultX
+import cash.p.terminal.trezor.R
 import cash.p.terminal.trezor.ui.TrezorSideEffect
 import cash.p.terminal.trezor.ui.TrezorWalletViewModel
 import cash.p.terminal.ui_compose.BaseComposeFragment
+import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.getInput
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
@@ -28,6 +31,7 @@ class TrezorSetupFragment : BaseComposeFragment() {
             parameters = { parametersOf(input.accountName) }
         )
         val context = LocalContext.current
+        val view = LocalView.current
 
         LaunchedEffect(viewModel.uiState.success) {
             if (viewModel.uiState.success) {
@@ -40,6 +44,10 @@ class TrezorSetupFragment : BaseComposeFragment() {
             viewModel.sideEffects.collect { effect ->
                 when (effect) {
                     is TrezorSideEffect.OpenIntent -> context.startActivity(effect.intent)
+                    is TrezorSideEffect.ShowError -> HudHelper.showErrorMessage(
+                        view,
+                        effect.message ?: context.getString(R.string.trezor_connect_failed)
+                    )
                 }
             }
         }
@@ -47,8 +55,8 @@ class TrezorSetupFragment : BaseComposeFragment() {
         TrezorSetupScreen(
             uiState = viewModel.uiState,
             onConnect = viewModel::connectTrezor,
-            onInstallSuite = viewModel::openPlayStore,
-            onDismissInstall = viewModel::dismissInstallPrompt,
+            onOpenSetupGuide = viewModel::openSetupGuide,
+            onDismissNotInitialized = viewModel::dismissNotInitialized,
             onBack = navController::navigateUp
         )
     }

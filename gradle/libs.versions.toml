@@ -67,6 +67,7 @@ tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
 piratecash-ton = "v1.0.0-pcash.4"
 piratecash-bitcoin = "v0.1.0-pcash.22"
 stellar-kit = "v1.0.0-pcash.2"
+trezor-kit = "1.1.1"
 piratecash-ethereum = "v0.1.0-pcash.3"
 horizontalsystems-blockchain-fee = "393cc14"
 piratecash-solana = "v1.0.0-pcash.8"
@@ -157,7 +158,6 @@ koin-test-junit4 = { module = "io.insert-koin:koin-test-junit4"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material = { module = "androidx.compose.material:material" }
 compose-animation = { module = "androidx.compose.animation:animation" }
-compose-tooling = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
@@ -208,6 +208,7 @@ ton-kotlin-contract = { module = "org.ton.kotlin:ton-kotlin-contract", version.r
 ton-kit = { group = "com.github.piratecash", name = "ton-kit-android", version.ref = "piratecash-ton" }
 bitcoin-kit = { group = "com.github.piratecash", name = "bitcoin-kit-android", version.ref = "piratecash-bitcoin" }
 stellar-kit = { group = "com.github.piratecash", name = "stellar-kit-android", version.ref = "stellar-kit" }
+trezor-kit = { group = "com.github.piratecash", name = "trezor-kit-android", version.ref = "trezor-kit" }
 solana-kit = { group = "com.github.piratecash", name = "solana-kit-android", version.ref = "piratecash-solana" }
 monero-kit = { group = "com.github.piratecash", name = "monero-kit-android", version.ref = "monero-kit-android" }
 netcipher = { group = "info.guardianproject.netcipher", name = "netcipher", version.ref = "netcipher" }

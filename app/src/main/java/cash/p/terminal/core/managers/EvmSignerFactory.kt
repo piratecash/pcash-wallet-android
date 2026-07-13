@@ -3,8 +3,8 @@ package cash.p.terminal.core.managers
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
 import cash.p.terminal.tangem.domain.model.AddressBytesWithPublicKey
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
 import cash.p.terminal.trezor.signer.TrezorEvmSigner
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
@@ -24,7 +24,7 @@ import io.horizontalsystems.ethereumkit.models.Chain
  */
 class EvmSignerFactory(
     private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
-    private val trezorDeepLinkManager: TrezorDeepLinkManager,
+    private val trezorClient: ITrezorClient,
 ) {
 
     suspend fun resolveAddress(account: Account, blockchainType: BlockchainType, chain: Chain): Address? =
@@ -53,7 +53,7 @@ class EvmSignerFactory(
                     address = Address(addressWithPublicKey.addressBytes),
                     chain = chain,
                     derivationPath = publicKey.derivationPath,
-                    deepLinkManager = trezorDeepLinkManager
+                    trezorClient = trezorClient
                 )
             }
             else -> null // EvmAddress (watch) and unsupported account types have no signer

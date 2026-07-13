@@ -27,6 +27,8 @@ import cash.p.terminal.modules.fee.DataFieldFee
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromRight
+import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
+import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
 import cash.p.terminal.ui.compose.components.TransactionInfoContactCell
 import cash.p.terminal.ui_compose.BaseComposeFragment
@@ -130,7 +132,7 @@ private fun Eip20ApproveConfirmButtons(
             onClick = {
                 coroutineScope.launch {
                     buttonEnabled = false
-                    HudHelper.showInProcessMessage(
+                    val currentSnackbar = HudHelper.showInProcessMessage(
                         view,
                         R.string.Swap_Approving,
                         SnackbarDuration.INDEFINITE
@@ -142,9 +144,16 @@ private fun Eip20ApproveConfirmButtons(
                         HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
                         delay(1200)
                         Eip20ApproveConfirmFragment.Result(true)
+                    } catch (e: TrezorCancelledException) {
+                        currentSnackbar?.dismiss()
+                        Eip20ApproveConfirmFragment.Result(false)
                     } catch (t: Throwable) {
-                        val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
-                        HudHelper.showErrorMessage(view, msg)
+                        if (t.isHardwareWalletUserCancelled()) {
+                            currentSnackbar?.dismiss()
+                        } else {
+                            val msg = (t as? IllegalStateException)?.message ?: t.javaClass.simpleName
+                            HudHelper.showErrorMessage(view, msg)
+                        }
                         Eip20ApproveConfirmFragment.Result(false)
                     }
 

@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import cash.p.terminal.strings.R
+import cash.p.terminal.trezor.R
 import cash.p.terminal.trezor.ui.TrezorSetupUiState
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
@@ -26,8 +26,8 @@ import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 fun TrezorSetupScreen(
     uiState: TrezorSetupUiState,
     onConnect: () -> Unit,
-    onInstallSuite: () -> Unit,
-    onDismissInstall: () -> Unit,
+    onOpenSetupGuide: () -> Unit,
+    onDismissNotInitialized: () -> Unit,
     onBack: () -> Unit
 ) {
     Column(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
@@ -63,10 +63,10 @@ fun TrezorSetupScreen(
         }
     }
 
-    if (uiState.showInstallPrompt) {
-        InstallSuiteDialog(
-            onInstall = onInstallSuite,
-            onDismiss = onDismissInstall
+    if (uiState.showNotInitialized) {
+        TrezorNotInitializedDialog(
+            onOpenSetupGuide = onOpenSetupGuide,
+            onDismiss = onDismissNotInitialized
         )
     }
 }
@@ -78,8 +78,8 @@ private fun TrezorSetupScreenPreview() {
         TrezorSetupScreen(
             uiState = TrezorSetupUiState(),
             onConnect = {},
-            onInstallSuite = {},
-            onDismissInstall = {},
+            onOpenSetupGuide = {},
+            onDismissNotInitialized = {},
             onBack = {}
         )
     }

@@ -727,9 +727,7 @@ private fun SwapScreenInner(
                         ProviderField(
                             swapProvider = quote.provider,
                             estimationTime = quote.estimationTime,
-                            showSettings = quote.hasSettings,
                             onClickProvider = onClickProvider,
-                            onClickProviderSettings = onClickProviderSettings,
                         )
                         val finalTokenOut = uiState.tokenOut ?: quote.tokenOut
                         val finalAmountOut = uiState.multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quote.amountOut
@@ -857,9 +855,7 @@ fun PriceImpactField(
 private fun ProviderField(
     swapProvider: IMultiSwapProvider,
     estimationTime: Long?,
-    showSettings: Boolean,
     onClickProvider: () -> Unit,
-    onClickProviderSettings: () -> Unit,
 ) {
     HSRow(
         modifier = Modifier
@@ -893,17 +889,6 @@ private fun ProviderField(
             }
         }
         HSpacer(width = 8.dp)
-        if (showSettings) {
-            Icon(
-                modifier = Modifier.clickable(
-                    onClick = onClickProviderSettings
-                ),
-                painter = painterResource(R.drawable.ic_manage_2),
-                contentDescription = "",
-                tint = ComposeAppTheme.colors.grey
-            )
-            HSpacer(width = 8.dp)
-        }
         Icon(
             painter = painterResource(R.drawable.ic_arrow_right),
             contentDescription = null,
@@ -1288,7 +1273,6 @@ private fun MultiSwapLegCard(
     legIndex: Int,
     quote: SwapProviderQuote,
     onClickProvider: () -> Unit,
-    onClickProviderSettings: () -> Unit,
     navController: NavController,
 ) {
     CardsSwapInfo {
@@ -1301,9 +1285,7 @@ private fun MultiSwapLegCard(
         ProviderField(
             swapProvider = quote.provider,
             estimationTime = quote.estimationTime,
-            showSettings = quote.hasSettings,
             onClickProvider = onClickProvider,
-            onClickProviderSettings = onClickProviderSettings,
         )
         LegAmountRow(
             label = stringResource(R.string.swap_you_send),

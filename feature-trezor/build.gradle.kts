@@ -18,7 +18,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 
@@ -45,7 +44,6 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.androidx.material3.android)
-    implementation(libs.compose.tooling)
 
     implementation(libs.kotlinx.serialization.json)
 
@@ -55,6 +53,8 @@ dependencies {
     implementation(libs.solanakt)
     implementation(libs.stellar.kit)
     implementation(libs.bitcoin.kit)
+    // api: app-level code (e.g. CreateTrezorWalletUseCase) references ITrezorClient/DTOs directly.
+    api(libs.trezor.kit)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
 

@@ -6,6 +6,9 @@ import cash.p.terminal.core.managers.RestoreSettingType
 import cash.p.terminal.entities.FeePriceScale
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.trezor.client.TrezorPublicKeySpecs
+import cash.p.terminal.trezor.domain.TrezorModelSupport
+import cash.p.terminal.trezor.domain.model.TrezorModel
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Derivation
 import cash.p.terminal.wallet.Token
@@ -310,8 +313,10 @@ fun BlockchainType.supports(accountType: AccountType): Boolean {
         is AccountType.MnemonicMonero ->
             this == BlockchainType.Monero
 
+        is AccountType.TrezorDevice ->
+            TrezorModelSupport.isSupported(TrezorModel.fromInternalModel(accountType.model), this)
+
         is AccountType.HardwareCard,
-        is AccountType.TrezorDevice,
         is AccountType.Mnemonic -> true
 
         is AccountType.HdExtendedKey -> {
@@ -487,6 +492,9 @@ fun Token.supports(accountType: AccountType): Boolean {
         is AccountType.MnemonicMonero -> {
             accountType.isCompatibleWith(blockchainType, type)
         }
+
+        is AccountType.TrezorDevice ->
+            TrezorPublicKeySpecs.supports(TrezorModel.fromInternalModel(accountType.model), blockchainType, type)
 
         else -> true
     }

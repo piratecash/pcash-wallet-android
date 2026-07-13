@@ -1,7 +1,10 @@
 package cash.p.terminal.core.adapters
 
+import androidx.annotation.VisibleForTesting
+import cash.p.terminal.R
 import cash.p.terminal.core.BitcoinSwapSendResult
 import cash.p.terminal.core.IFeeRateProvider
+import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.ISendBitcoinAdapter
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.BroadcastRawTransactionResult
@@ -28,8 +31,10 @@ import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.TransactionLockInfo
 import cash.p.terminal.tangem.signer.HardwareWalletEcdaSigner
 import cash.p.terminal.tangem.signer.HardwareWalletSchnorrSigner
-import cash.p.terminal.trezor.domain.TrezorDeepLinkManager
+import cash.p.terminal.trezor.signer.KitBtcPreviousTransactionProvider
 import cash.p.terminal.trezor.signer.TrezorBtcSigner
+import cash.p.terminal.trezorkit.client.ITrezorClient
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.IAdapter
 import cash.p.terminal.wallet.IBalanceAdapter
@@ -491,6 +496,19 @@ abstract class BitcoinBaseAdapter(
         )
     }
 
+    protected val isTrezorAccount: Boolean
+        get() = wallet.account.type is AccountType.TrezorDevice
+
+    /**
+     * Trezor cannot build the time-locked P2SH script the Hodler plugin needs, so reject a
+     * Hodler-carrying send on a Trezor account instead of signing a transaction it cannot honor.
+     */
+    private fun rejectHodlerForTrezor(pluginData: Map<Byte, IPluginData>?) {
+        if (isTrezorAccount && pluginData?.containsKey(HodlerPlugin.id) == true) {
+            throw LocalizedException(R.string.send_trezor_time_lock_not_supported)
+        }
+    }
+
     private suspend fun executeSend(
         amount: BigDecimal,
         address: String,
@@ -503,6 +521,7 @@ abstract class BitcoinBaseAdapter(
         changeToFirstInput: Boolean,
         utxoFilters: UtxoFilters
     ): FullTransaction {
+        rejectHodlerForTrezor(pluginData)
         val sortingType = getTransactionSortingType(transactionSorting)
 
         return kit.send(
@@ -641,6 +660,7 @@ abstract class BitcoinBaseAdapter(
     }
 
     override fun validate(address: String, pluginData: Map<Byte, IPluginData>?) {
+        rejectHodlerForTrezor(pluginData)
         kit.validateAddress(address, pluginData ?: mapOf())
     }
 
@@ -836,28 +856,37 @@ abstract class BitcoinBaseAdapter(
         }
 
         @JvmStatic
-        protected fun buildTrezorBtcSigner(
+        @VisibleForTesting
+        internal fun buildTrezorBtcSigner(
             accountId: String,
             blockchainType: BlockchainType,
+            tokenType: TokenType,
             coin: String
         ): TrezorBtcSigner {
             val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
                     by inject(IHardwarePublicKeyStorage::class.java)
-            val trezorDeepLinkManager: TrezorDeepLinkManager
-                    by inject(TrezorDeepLinkManager::class.java)
+            val trezorClient: ITrezorClient
+                    by inject(ITrezorClient::class.java)
             val hardwarePublicKey = runBlocking {
                 requireNotNull(
-                    hardwarePublicKeyStorage.getKeyByBlockchain(
-                        accountId = accountId,
-                        blockchainType = blockchainType
-                    )
+                    hardwarePublicKeyStorage.getKey(accountId, blockchainType, tokenType)
                 )
             }
             return TrezorBtcSigner(
                 coin = coin,
                 derivationPath = hardwarePublicKey.derivationPath,
-                deepLinkManager = trezorDeepLinkManager
+                trezorClient = trezorClient
             )
+        }
+
+        /**
+         * Wires the just-created [kit] into [signer] so the USB signer can fetch each spent input's
+         * previous transaction (needed by the Trezor firmware to verify UTXO amounts). Call after the
+         * kit is built and before it is returned.
+         */
+        @JvmStatic
+        protected fun bindPreviousTransactionProvider(signer: TrezorBtcSigner, kit: AbstractKit) {
+            signer.setPreviousTransactionProvider(KitBtcPreviousTransactionProvider(kit))
         }
     }
 

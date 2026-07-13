@@ -55,7 +55,6 @@ dependencies {
 
     implementation(platform(libs.compose.bom))
     implementation(libs.androidx.material3.android)
-    implementation(libs.compose.tooling)
     implementation(libs.javax.inject)
     implementation(libs.rxjava)
     implementation(libs.kotlinx.coroutines.rx2)
