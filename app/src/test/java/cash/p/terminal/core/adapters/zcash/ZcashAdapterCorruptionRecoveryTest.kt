@@ -298,7 +298,13 @@ class ZcashAdapterCorruptionRecoveryTest {
         val corruptFlow = flow<List<TransactionOverview>> {
             throw SQLiteDatabaseCorruptException("database disk image is malformed")
         }
-        every { mockSynchronizer.allTransactions } returns corruptFlow
+        // One-shot corruption: the first collection throws (triggering recovery), then the recovered
+        // synchronizer resubscribes to a healthy flow. Otherwise recovery re-subscribes to the same
+        // permanently corrupt flow and loops forever, hanging advanceUntilIdle().
+        var allTransactionsReads = 0
+        every { mockSynchronizer.allTransactions } answers {
+            if (allTransactionsReads++ == 0) corruptFlow else allTransactionsFlow
+        }
 
         adapter = createAdapter()
         adapter.start()
@@ -967,8 +973,13 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.start()
         advanceAndAssertState { it is AdapterState.Syncing }
 
+        // Bounded drain to the first restart: the mock synchronizer's status flow never changes
+        // on its own, so an unbounded advanceUntilIdle() here would busy-loop forever through
+        // repeated self-heal restarts (each resubscription re-observes STOPPED and reschedules).
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(20L)
+        runCurrent()
 
         coVerify {
             Synchronizer.new(
@@ -977,6 +988,12 @@ class ZcashAdapterCorruptionRecoveryTest {
                 setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         }
+
+        // The resubscription above re-observes the still-STOPPED status and schedules another
+        // self-heal restart. Move off STOPPED so that pending job is cancelled instead of firing
+        // indefinitely (and potentially hanging runTest's own end-of-test scheduler drain).
+        statusFlow.value = Synchronizer.Status.SYNCED
+        advanceAndAssertState { it is AdapterState.Synced }
     }
 
     @Test
@@ -998,8 +1015,13 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.start()
         advanceAndAssertState { it is AdapterState.Syncing }
 
+        // Bounded drain to the first restart (see stopped_whileForeground_restartsSynchronizer):
+        // an unbounded advanceUntilIdle() here would busy-loop forever, since the resubscription
+        // keeps re-observing the still-STOPPED status and rescheduling.
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(20L)
+        runCurrent()
         coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -1011,8 +1033,11 @@ class ZcashAdapterCorruptionRecoveryTest {
         statusFlow.value = Synchronizer.Status.SYNCED
         advanceAndAssertState { it is AdapterState.Synced }
 
+        // SYNCED reset the backoff attempt, so the next restart is due after 20ms again.
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(20L)
+        runCurrent()
         coVerify(atLeast = 2) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -1021,6 +1046,11 @@ class ZcashAdapterCorruptionRecoveryTest {
             )
         }
         assertTrue("Expected at least 2 restarts, got $restartCount", restartCount >= 2)
+
+        // Move off STOPPED so the pending self-heal restart scheduled by the resubscription
+        // above is cancelled instead of firing indefinitely.
+        statusFlow.value = Synchronizer.Status.SYNCED
+        advanceAndAssertState { it is AdapterState.Synced }
     }
 
     @Test
@@ -1040,9 +1070,14 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.start()
         advanceAndAssertState { it is AdapterState.Syncing }
 
-        // First STOPPED -> restart cycle.
+        // First STOPPED -> restart cycle. Bounded drain (see
+        // stopped_whileForeground_restartsSynchronizer): an unbounded advanceUntilIdle() here
+        // would busy-loop forever, since the resubscription keeps re-observing the still-STOPPED
+        // status and rescheduling.
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(20L)
+        runCurrent()
         coVerify {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -1052,10 +1087,14 @@ class ZcashAdapterCorruptionRecoveryTest {
         }
 
         // Move off STOPPED (without resetting backoff, unlike SYNCING/SYNCED) so the next
-        // STOPPED value change is a genuinely new emission, driving a second restart cycle.
+        // STOPPED value change is a genuinely new emission, driving a second restart cycle. The
+        // resubscription after the first restart already scheduled a second restart job with a
+        // 40ms backoff (attempt 1); advance exactly to it instead of draining unbounded.
         statusFlow.value = Synchronizer.Status.DISCONNECTED
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(40L)
+        runCurrent()
         coVerify(atLeast = 2) {
             Synchronizer.new(
                 context = any(), zcashNetwork = any(), alias = any(),
@@ -1064,6 +1103,8 @@ class ZcashAdapterCorruptionRecoveryTest {
             )
         }
 
+        // Moving to SYNCED cancels the pending self-heal restart scheduled by the resubscription
+        // above (instead of letting it fire indefinitely) and resets the backoff attempt.
         statusFlow.value = Synchronizer.Status.SYNCED
         advanceAndAssertState { it is AdapterState.Synced }
 
@@ -1141,8 +1182,14 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.startForPolling()
         advanceAndAssertState { it is AdapterState.Syncing }
 
+        // Bounded drain (see stopped_whileForeground_restartsSynchronizer): the mocked
+        // Synchronizer.new() returns the same mockSynchronizer whose status is still STOPPED, so
+        // an unbounded advanceUntilIdle() here would busy-loop forever on self-perpetuating
+        // restarts.
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(20L)
+        runCurrent()
 
         coVerify {
             Synchronizer.new(
@@ -1151,6 +1198,11 @@ class ZcashAdapterCorruptionRecoveryTest {
                 setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         }
+
+        // Neutralize the still-armed self-heal chain so runTest's implicit end-of-test drain
+        // doesn't hang: moving to SYNCED cancels the pending restart job and resets the backoff.
+        statusFlow.value = Synchronizer.Status.SYNCED
+        advanceAndAssertState { it is AdapterState.Synced }
     }
 
     @Test
@@ -1162,8 +1214,14 @@ class ZcashAdapterCorruptionRecoveryTest {
         adapter.start()
         advanceAndAssertState { it is AdapterState.Syncing }
 
+        // Bounded drain (see stopped_whileForeground_restartsSynchronizer): the mocked
+        // Synchronizer.new() returns the same mockSynchronizer whose status is still STOPPED, so
+        // an unbounded advanceUntilIdle() here would busy-loop forever on self-perpetuating
+        // restarts.
         statusFlow.value = Synchronizer.Status.STOPPED
-        advanceUntilIdle()
+        runCurrent()
+        advanceTimeBy(20L)
+        runCurrent()
 
         coVerify {
             Synchronizer.new(
@@ -1172,6 +1230,11 @@ class ZcashAdapterCorruptionRecoveryTest {
                 setup = any(), isTorEnabled = any(), isExchangeRateEnabled = any()
             )
         }
+
+        // Neutralize the still-armed self-heal chain so runTest's implicit end-of-test drain
+        // doesn't hang: moving to SYNCED cancels the pending restart job and resets the backoff.
+        statusFlow.value = Synchronizer.Status.SYNCED
+        advanceAndAssertState { it is AdapterState.Synced }
     }
 
     @Test
@@ -1216,6 +1279,13 @@ class ZcashAdapterCorruptionRecoveryTest {
         statusFlow.value = Synchronizer.Status.STOPPED
         advanceUntilIdle()
 
+        // Move the shared status off STOPPED before letting recovery finish installing its new
+        // synchronizer. Otherwise recovery's own resubscription (which attaches once
+        // createNewSynchronizer() completes, after recovering is cleared) would immediately
+        // re-observe the stale STOPPED value and arm a genuine competing restart - both hanging
+        // the drain below and breaking the exactly=1 assertion. Flipping to SYNCING here only
+        // makes the resubscription call the harmless resetRestart() no-op.
+        statusFlow.value = Synchronizer.Status.SYNCING
         releaseGetAccounts.complete(Unit)
         advanceUntilIdle()
 
