@@ -23,6 +23,7 @@ import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.InfoText
+import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ fun SelectDateBottomSheet(
                 }
             }
         ) {
-            InfoText(text = stringResource(R.string.select_date_description))
+            subhead2_grey(text = stringResource(R.string.select_date_description))
             DatePicker(
                 modifier = Modifier.fillMaxWidth(),
                 state = datePickerState,
