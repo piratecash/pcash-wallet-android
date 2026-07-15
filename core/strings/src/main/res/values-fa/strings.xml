@@ -126,6 +126,13 @@
     <string name="restoreheight_title">بلوک شروع برای بازیابی</string>
     <string name="restoreheight_hint">بلوک یا تاریخ را وارد کنید (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">شماره بلوک را وارد کنید</string>
+    <string name="select_date_title">انتخاب تاریخ</string>
+    <string name="select_date_description">تاریخ تقریبی ایجاد کیف پول را انتخاب کنید. ارتفاع بلوک به‌طور خودکار محاسبه خواهد شد.</string>
+    <string name="birthday_height_description">می‌توانید ارتفاع بلوک را تغییر دهید یا تاریخی تقریبی برای اسکن مجدد تاریخچه تراکنش‌ها انتخاب کنید.</string>
+    <string name="birthday_height_date_label">تاریخ بلوک:</string>
+    <string name="birthday_height_rescan">اسکن مجدد</string>
+    <string name="birthday_height_rescan_confirm_title">کیف پول دوباره اسکن شود؟</string>
+    <string name="birthday_height_rescan_confirm_text">داده‌های محلی کیف پول پاک خواهد شد و همگام‌سازی از ارتفاع جدید آغاز می‌شود. این ممکن است زمان و ترافیک مصرف کند.</string>
     <string name="invalid_height_format">ارتفاع نامعتبر، مطمئن شوید که تاریخ را به صورت YYYY-MM-DD یا ارتفاع تولد وارد کرده‌اید</string>
     <string name="invalid_qr_code">کد QR نامعتبر</string>
     <string name="blockchair_height_by_date_connection_error">امکان اتصال به Blockchair برای یافتن ارتفاع بر اساس تاریخ وجود ندارد</string>

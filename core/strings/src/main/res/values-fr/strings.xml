@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Bloc initial de restauration</string>
     <string name="restoreheight_hint">Indiquez le bloc ou la date (AAAA-MM-JJ)</string>
     <string name="restoreheight_hint_block_only">Saisissez le numéro de bloc</string>
+    <string name="select_date_title">Sélectionner une date</string>
+    <string name="select_date_description">Sélectionnez la date de création approximative du portefeuille. La hauteur du bloc sera calculée automatiquement.</string>
+    <string name="birthday_height_description">Vous pouvez modifier la hauteur du bloc ou choisir une date approximative pour rescanner l\'historique des transactions.</string>
+    <string name="birthday_height_date_label">Date du bloc :</string>
+    <string name="birthday_height_rescan">Rescanner</string>
+    <string name="birthday_height_rescan_confirm_title">Rescanner le portefeuille ?</string>
+    <string name="birthday_height_rescan_confirm_text">Les données locales du portefeuille seront effacées et la synchronisation commencera à partir de la nouvelle hauteur. Cela peut prendre du temps et consommer des données.</string>
     <string name="invalid_height_format">Hauteur invalide, assurez-vous d\'avoir entré AAAA-MM-JJ ou la hauteur de naissance</string>
     <string name="invalid_qr_code">Code QR invalide</string>
     <string name="blockchair_height_by_date_connection_error">Impossible de se connecter à Blockchair pour trouver la hauteur par date</string>

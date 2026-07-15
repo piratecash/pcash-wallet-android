@@ -185,26 +185,8 @@ class ZcashAdapter(
     }
 
     init {
-        val walletInitMode = if (existingWallet || requiresUfvkImport()) {
-            WalletInitMode.ExistingWallet
-        } else when (wallet.account.origin) {
-            AccountOrigin.Created -> WalletInitMode.NewWallet
-            AccountOrigin.Restored -> WalletInitMode.RestoreWallet
-        }
-
-        val birthday = when (wallet.account.origin) {
-            AccountOrigin.Created -> runBlocking {
-                BlockHeight.ofLatestCheckpoint(context, network)
-            }
-
-            AccountOrigin.Restored -> restoreSettings.birthdayHeight
-                ?.let { height ->
-                    max(network.saplingActivationHeight.value, height)
-                }
-                ?.let {
-                    BlockHeight.new(it)
-                }
-        }
+        val walletInitMode = resolveWalletInitMode()
+        val birthday = resolveBirthday(context)
 
         birthday?.value?.let {
             accountBirthday = it
@@ -266,6 +248,24 @@ class ZcashAdapter(
     private fun requiresUfvkImport(): Boolean {
         return wallet.account.type is AccountType.ZCashUfvKey
             || wallet.account.type is AccountType.TrezorDevice
+    }
+
+    private fun resolveWalletInitMode(): WalletInitMode {
+        return if (existingWallet || requiresUfvkImport()) {
+            WalletInitMode.ExistingWallet
+        } else when (wallet.account.origin) {
+            AccountOrigin.Created -> WalletInitMode.NewWallet
+            AccountOrigin.Restored -> WalletInitMode.RestoreWallet
+        }
+    }
+
+    private fun resolveBirthday(context: Context): BlockHeight? {
+        return when (wallet.account.origin) {
+            AccountOrigin.Created -> runBlocking { BlockHeight.ofLatestCheckpoint(context, network) }
+            AccountOrigin.Restored -> restoreSettings.birthdayHeight
+                ?.let { height -> max(network.saplingActivationHeight.value, height) }
+                ?.let { BlockHeight.new(it) }
+        }
     }
 
     private fun getWatchOnlyUfvk(): String? {
@@ -352,29 +352,16 @@ class ZcashAdapter(
         val isRecovery = corruptionRecovery.get()
         val walletInitMode = if (isRecovery) {
             WalletInitMode.RestoreWallet
-        } else if (existingWallet) {
-            WalletInitMode.ExistingWallet
-        } else when (wallet.account.origin) {
-            AccountOrigin.Created -> WalletInitMode.NewWallet
-            AccountOrigin.Restored -> WalletInitMode.RestoreWallet
+        } else {
+            resolveWalletInitMode()
         }
 
         val birthday = if (isRecovery) {
             restoreSettings.birthdayHeight
                 ?.let { max(network.saplingActivationHeight.value, it) }
                 ?.let { BlockHeight.new(it) }
-        } else when (wallet.account.origin) {
-            AccountOrigin.Created -> runBlocking {
-                BlockHeight.ofLatestCheckpoint(App.instance, network)
-            }
-
-            AccountOrigin.Restored -> restoreSettings.birthdayHeight
-                ?.let { height ->
-                    max(network.saplingActivationHeight.value, height)
-                }
-                ?.let {
-                    BlockHeight.new(it)
-                }
+        } else {
+            resolveBirthday(App.instance)
         }
 
         birthday?.value?.let {

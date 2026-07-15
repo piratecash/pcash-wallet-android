@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,8 +42,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -56,7 +53,10 @@ import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.strings.helpers.TranslatableString
-import cash.p.terminal.ui.compose.components.FormsInput
+import cash.p.terminal.ui.compose.components.RestoreHeightInput
+import cash.p.terminal.ui.compose.components.SelectDateBottomSheet
+import cash.p.terminal.ui.compose.components.restoreGenesisDateMillis
+import cash.p.terminal.ui.compose.components.restoreMaxDateMillis
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.BottomSheetHeader
@@ -70,7 +70,6 @@ import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.body_leah
-import cash.p.terminal.ui_compose.components.caption_lucian
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.title3_leah
 import cash.p.terminal.ui_compose.findNavController
@@ -129,6 +128,7 @@ fun ZcashConfigureScreen(
 
     val uiState = viewModel.uiState
     var showSlowSyncWarning by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -177,6 +177,17 @@ fun ZcashConfigureScreen(
             )
         }
     }
+
+    if (showDatePicker) {
+        SelectDateBottomSheet(
+            initialDateMillis = null,
+            minDateMillis = restoreGenesisDateMillis(BlockchainType.Zcash),
+            maxDateMillis = restoreMaxDateMillis(),
+            onDateSelect = viewModel::onDatePicked,
+            onDismiss = { showDatePicker = false }
+        )
+    }
+
     Scaffold(
         containerColor = ComposeAppTheme.colors.tyler,
         topBar = { ZcashAppBar(onCloseClick = onCloseClick) }
@@ -225,25 +236,15 @@ fun ZcashConfigureScreen(
                     Spacer(Modifier.height(24.dp))
                     HeaderText(text = stringResource(R.string.restore_birthday_height_or_date))
 
-                    FormsInput(
-                        initial = uiState.birthdayHeight,
-                        pasteEnabled = false,
-                        singleLine = true,
-                        hint = stringResource(R.string.restoreheight_hint),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Ascii,
-                            imeAction = ImeAction.Done
-                        ),
-                        onValueChange = viewModel::setBirthdayHeight,
+                    RestoreHeightInput(
                         modifier = Modifier.padding(horizontal = 16.dp),
+                        initial = uiState.birthdayHeight,
+                        hint = stringResource(R.string.restoreheight_hint),
+                        error = uiState.errorHeight,
+                        pasteEnabled = false,
+                        onValueChange = viewModel::setBirthdayHeight,
+                        onCalendarClick = { showDatePicker = true },
                     )
-                    uiState.errorHeight?.let { errorText ->
-                        Spacer(Modifier.height(8.dp))
-                        caption_lucian(
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            text = errorText
-                        )
-                    }
 
                     InfoText(
                         text = stringResource(R.string.Restore_ZCash_BirthdayHeight_Hint),

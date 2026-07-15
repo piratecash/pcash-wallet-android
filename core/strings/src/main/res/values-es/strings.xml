@@ -125,6 +125,13 @@
     <string name="restoreheight_title">Bloque inicial para restauración</string>
     <string name="restoreheight_hint">Indique el bloque o la fecha (AAAA-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Introduce el número de bloque</string>
+    <string name="select_date_title">Seleccionar fecha</string>
+    <string name="select_date_description">Seleccione la fecha aproximada de creación del monedero. La altura del bloque se calculará automáticamente.</string>
+    <string name="birthday_height_description">Puede cambiar la altura del bloque o elegir una fecha aproximada para volver a escanear el historial de transacciones.</string>
+    <string name="birthday_height_date_label">Fecha del bloque:</string>
+    <string name="birthday_height_rescan">Volver a escanear</string>
+    <string name="birthday_height_rescan_confirm_title">¿Volver a escanear el monedero?</string>
+    <string name="birthday_height_rescan_confirm_text">Los datos locales del monedero se borrarán y la sincronización comenzará desde la nueva altura. Esto puede tardar tiempo y consumir datos.</string>
     <string name="invalid_height_format">Altura no válida, asegúrese de haber ingresado AAAA-MM-DD o altura de nacimiento</string>
     <string name="invalid_qr_code">Código QR no válido</string>
     <string name="blockchair_height_by_date_connection_error">No se puede conectar a Blockchair para encontrar la altura por fecha</string>

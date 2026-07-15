@@ -9,6 +9,7 @@ import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.modules.enablecoin.restoresettings.BirthdayHeightConfigUiState
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.strings.helpers.Translator
+import java.time.LocalDate
 
 class MoneroConfigureViewModel(
     private val validateMoneroHeightUseCase: ValidateMoneroHeightUseCase,
@@ -33,6 +34,15 @@ class MoneroConfigureViewModel(
             birthdayHeight = height,
             errorHeight = null
         )
+    }
+
+    fun onDatePicked(date: LocalDate) {
+        val height = validateMoneroHeightUseCase.getHeight(date)
+        if (height == -1L) {
+            uiState = uiState.copy(errorHeight = Translator.getString(R.string.invalid_height_format))
+        } else {
+            setBirthdayHeight(height.toString())
+        }
     }
 
     fun setInitialConfig(config: TokenConfig?) {

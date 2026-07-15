@@ -27,4 +27,11 @@ internal class GetZcashHeightUseCaseImpl(
         logger.log("current", error)
         null
     }
+
+    override suspend fun getDateForHeight(height: Long): LocalDate? = try {
+        zcashApi.getBlockDate(height)
+    } catch (error: Throwable) {
+        logger.log(height.toString(), error)
+        null
+    }
 }

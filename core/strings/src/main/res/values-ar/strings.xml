@@ -126,6 +126,13 @@
     <string name="restoreheight_title">كتلة البدء للاستعادة</string>
     <string name="restoreheight_hint">أدخل الكتلة أو التاريخ (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">أدخل رقم الكتلة</string>
+    <string name="select_date_title">اختر التاريخ</string>
+    <string name="select_date_description">اختر التاريخ التقريبي لإنشاء المحفظة. سيتم احتساب ارتفاع الكتلة تلقائيًا.</string>
+    <string name="birthday_height_description">يمكنك تغيير ارتفاع الكتلة أو اختيار تاريخ تقريبي لإعادة مسح سجل المعاملات.</string>
+    <string name="birthday_height_date_label">تاريخ الكتلة:</string>
+    <string name="birthday_height_rescan">إعادة المسح</string>
+    <string name="birthday_height_rescan_confirm_title">إعادة مسح المحفظة؟</string>
+    <string name="birthday_height_rescan_confirm_text">سيتم مسح بيانات المحفظة المحلية وستبدأ المزامنة من الارتفاع الجديد. قد يستغرق ذلك وقتًا واستهلاك بيانات.</string>
     <string name="invalid_height_format">ارتفاع غير صالح، تأكد من إدخال YYYY-MM-DD أو ارتفاع الولادة</string>
     <string name="invalid_qr_code">رمز QR غير صالح</string>
     <string name="blockchair_height_by_date_connection_error">لا يمكن الاتصال بـ Blockchair للعثور على الارتفاع حسب التاريخ</string>

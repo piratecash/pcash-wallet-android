@@ -1862,6 +1862,13 @@
     <string name="restoreheight_title">Початковий блок для відновлення</string>
     <string name="restoreheight_hint">Вкажіть блок або дату (РРРР-ММ-ДД)</string>
     <string name="restoreheight_hint_block_only">Вкажіть номер блоку</string>
+    <string name="select_date_title">Виберіть дату</string>
+    <string name="select_date_description">Виберіть приблизну дату створення гаманця. Висота блоку буде розрахована автоматично.</string>
+    <string name="birthday_height_description">Ви можете змінити висоту блоку або вибрати приблизну дату, щоб повторно сканувати історію транзакцій.</string>
+    <string name="birthday_height_date_label">Дата блоку:</string>
+    <string name="birthday_height_rescan">Повторне сканування</string>
+    <string name="birthday_height_rescan_confirm_title">Пересканувати гаманець?</string>
+    <string name="birthday_height_rescan_confirm_text">Локальні дані гаманця буде видалено, а синхронізація почнеться з нової висоти. Це може зайняти час і трафік.</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Невірна кількість слів. Має бути 25. Ви ввели: %d</string>
     <string name="invalid_height">Невірне значення висоти</string>
     <string name="invalid_height_format">Невірне значення висоти, переконайтесь, що ви ввели РРРР-ММ-ДД або висоту народження</string>

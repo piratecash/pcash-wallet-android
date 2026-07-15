@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Startblok voor herstel</string>
     <string name="restoreheight_hint">Voer blok of datum in (JJJJ-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Voer het bloknummer in</string>
+    <string name="select_date_title">Datum selecteren</string>
+    <string name="select_date_description">Selecteer de geschatte aanmaakdatum van de wallet. De blokhoogte wordt automatisch berekend.</string>
+    <string name="birthday_height_description">U kunt de blokhoogte wijzigen of een geschatte datum kiezen om de transactiegeschiedenis opnieuw te scannen.</string>
+    <string name="birthday_height_date_label">Blokdatum:</string>
+    <string name="birthday_height_rescan">Opnieuw scannen</string>
+    <string name="birthday_height_rescan_confirm_title">Wallet opnieuw scannen?</string>
+    <string name="birthday_height_rescan_confirm_text">Lokale walletgegevens worden gewist en de synchronisatie begint vanaf de nieuwe hoogte. Dit kan tijd en dataverkeer kosten.</string>
     <string name="invalid_height_format">Ongeldige hoogte, zorg ervoor dat u JJJJ-MM-DD of geboortehoogte hebt ingevoerd</string>
     <string name="invalid_qr_code">Ongeldige QR-code</string>
     <string name="blockchair_height_by_date_connection_error">Kan geen verbinding maken met Blockchair om de hoogte op basis van de datum te vinden</string>

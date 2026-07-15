@@ -74,6 +74,7 @@ internal fun NavGraphBuilder.addRestoreTokenConfigureRoutes(
             },
             onRestoreNew = viewModel::onRestoreNew,
             onSetBirthdayHeight = viewModel::setBirthdayHeight,
+            onDatePick = viewModel::onDatePicked,
             onDoneClick = viewModel::onDoneClick,
             uiState = viewModel.uiState,
         )

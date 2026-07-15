@@ -48,6 +48,9 @@ fun AssetSettingsScreen(
     onTransactionFiltersChange: (Boolean) -> Unit,
     navController: NavController,
     onBack: () -> Unit,
+    creationBlockVisible: Boolean,
+    currentHeightText: String?,
+    onCreationBlockClick: () -> Unit,
 ) {
     var showAmlInfoSheet by remember { mutableStateOf(false) }
     var showPeriodSelector by remember { mutableStateOf(false) }
@@ -117,6 +120,18 @@ fun AssetSettingsScreen(
                     )
                 }
             )
+            if (creationBlockVisible) {
+                VSpacer(24.dp)
+                CellUniversalLawrenceSection(
+                    listOf {
+                        HsSettingCell(
+                            title = R.string.Restore_BirthdayHeight,
+                            value = currentHeightText,
+                            onClick = onCreationBlockClick
+                        )
+                    }
+                )
+            }
         }
     }
 
@@ -162,6 +177,9 @@ private fun AssetSettingsScreenPreview() {
             onTransactionFiltersChange = {},
             navController = rememberNavController(),
             onBack = {},
+            creationBlockVisible = true,
+            currentHeightText = "2477000",
+            onCreationBlockClick = {},
         )
     }
 }
