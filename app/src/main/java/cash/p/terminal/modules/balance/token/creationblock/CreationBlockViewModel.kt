@@ -41,10 +41,12 @@ class CreationBlockViewModel(
         viewModelScope.launch {
             val height = getRestoreHeightForWalletUseCase(wallet)
             initialHeight = height?.toString().orEmpty()
-            uiState = uiState.copy(
-                heightText = initialHeight,
-                blockDateText = height?.let { blockDateForHeight(it)?.format(dateFormatter) }
-            )
+            // Publish the locally-known height first; the Zcash date lookup is a network call and
+            // must not gate the field. A later copy only touches blockDateText, so it can't clobber
+            // a height the user typed while the request was in flight.
+            uiState = uiState.copy(heightText = initialHeight)
+            val blockDate = height?.let { blockDateForHeight(it)?.format(dateFormatter) }
+            uiState = uiState.copy(blockDateText = blockDate)
         }
     }
 
