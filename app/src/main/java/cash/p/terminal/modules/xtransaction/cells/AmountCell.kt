@@ -50,7 +50,7 @@ fun AmountCell(
             contentDescription = null,
             modifier = Modifier.size(32.dp),
             colorFilter = null,
-            contentScale = ContentScale.FillBounds
+            contentScale = ContentScale.Fit
         )
 
         HSpacer(16.dp)

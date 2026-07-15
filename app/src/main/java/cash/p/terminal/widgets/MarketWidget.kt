@@ -200,7 +200,7 @@ class MarketWidget : GlanceAppWidget() {
             Image(
                 provider = imageProvider(item.imageLocalPath),
                 contentDescription = null,
-                contentScale= ContentScale.FillBounds,
+                contentScale = ContentScale.Fit,
                 modifier = modifier
             )
             Spacer(modifier = GlanceModifier.width(16.dp))

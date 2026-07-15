@@ -55,7 +55,9 @@ fun HsImage(
             contentDescription = null,
             modifier = modifier,
             colorFilter = colorFilter,
-            contentScale = ContentScale.FillBounds
+            // Fit (not FillBounds) so non-square source logos keep their aspect ratio and are
+            // centered within the square container instead of being stretched.
+            contentScale = ContentScale.Fit
         )
 
         else -> Image(
