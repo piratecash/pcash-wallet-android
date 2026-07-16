@@ -8,7 +8,7 @@ class SwapProvidersRegistry(
     exolixProvider: ExolixProvider,
     stonFiProvider: StonFiProvider,
     payCoreProvider: PayCoreProvider,
-    unstoppableProviders: List<IMultiSwapProvider>,
+    unstoppableProvidersFactory: UnstoppableProvidersFactory,
 ) {
     val providers: List<IMultiSwapProvider> = listOf(
         OneInchProvider,
@@ -25,7 +25,7 @@ class SwapProvidersRegistry(
         AllBridgeProvider,
         stonFiProvider,
         payCoreProvider
-    ) + unstoppableProviders
+    ) + unstoppableProvidersFactory.create()
 
     fun findById(id: String): IMultiSwapProvider? =
         providers.firstOrNull { it.id == id }

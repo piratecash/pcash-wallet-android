@@ -8,16 +8,13 @@ import cash.p.terminal.modules.multiswap.providers.ExolixProvider
 import cash.p.terminal.modules.multiswap.providers.MayaProvider
 import cash.p.terminal.modules.multiswap.providers.OffChainSwapProviderSupport
 import cash.p.terminal.modules.multiswap.providers.QuickexProvider
-import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.providers.StonFiProvider
 import cash.p.terminal.modules.multiswap.providers.SwapProviderTransactionFactory
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRegistry
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
 import cash.p.terminal.modules.multiswap.providers.ThorChainProvider
 import cash.p.terminal.modules.multiswap.providers.ThorChainSwapStatusRepository
-import cash.p.terminal.modules.multiswap.providers.UnstoppableEvmSwapProvider
-import cash.p.terminal.modules.multiswap.providers.UnstoppableProvider
-import cash.p.terminal.modules.multiswap.providers.UnstoppableSwapProvider
+import cash.p.terminal.modules.multiswap.providers.UnstoppableProvidersFactory
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import org.koin.core.module.dsl.factoryOf
@@ -35,15 +32,7 @@ val swapProvidersModule = module {
     singleOf(::ExolixProvider)
     singleOf(::StonFiProvider)
 
-    single<List<IMultiSwapProvider>> {
-        UnstoppableProvider.registrable().map { descriptor ->
-            if (descriptor.isEvm) {
-                UnstoppableEvmSwapProvider(descriptor, get(), get(), get(), get(), get(), get())
-            } else {
-                UnstoppableSwapProvider(descriptor, get(), get(), get(), get(), get(), get())
-            }
-        }
-    }
+    singleOf(::UnstoppableProvidersFactory)
 
     single<SwapProviderTransactionStatusRepository>(named(SwapProvider.THORCHAIN)) {
         ThorChainSwapStatusRepository(ThorChainProvider.thornodeAPI)

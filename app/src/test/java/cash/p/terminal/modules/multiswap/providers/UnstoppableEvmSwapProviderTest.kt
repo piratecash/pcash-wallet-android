@@ -21,6 +21,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -101,7 +102,8 @@ class UnstoppableEvmSwapProviderTest {
         method = UnstoppableExecution.METHOD_SIGNED_TRANSACTION,
         chain = ETH_CHAIN_ID,
         transactions = listOf(
-            UnstoppableSignableTx(kind = "evm", to = ROUTER_ADDRESS, from = SENDER_ADDRESS, value = "0x0", data = "0xabcdef", gas = "0x5208"),
+            // Native ETH input of AMOUNT_IN=1 → value must be 1e18 wei (0xde0b6b3a7640000).
+            UnstoppableSignableTx(kind = "evm", to = ROUTER_ADDRESS, from = SENDER_ADDRESS, value = "0xde0b6b3a7640000", data = "0xabcdef", gas = "0x5208"),
         ),
         approval = UnstoppableApproval(token = null, spender = SPENDER_ADDRESS, amount = null),
         depositAddress = null,
@@ -151,9 +153,31 @@ class UnstoppableEvmSwapProviderTest {
 
         val sendData = quote.sendTransactionData as SendTransactionData.Evm
         assertEquals(ROUTER_ADDRESS.lowercase(), sendData.transactionData.to.hex.lowercase())
-        assertEquals(BigInteger.ZERO, sendData.transactionData.value)
+        assertEquals(BigInteger("1000000000000000000"), sendData.transactionData.value)
         assertEquals(21000L, sendData.gasLimit)
         assertNull(quote.amountOutMin)
+    }
+
+    @Test
+    fun fetchFinalQuote_nativeValueMismatch_throws() = runTest(dispatcher) {
+        // Native input but the server-signed value differs from the quoted amount → reject before sending.
+        val execution = validExecution().let { it.copy(transactions = listOf(it.transactions.single().copy(value = "0x1"))) }
+        assertFetchFinalQuoteThrows(routeWith(execution), "does not match expected")
+    }
+
+    @Test
+    fun fetchFinalQuote_usesOutputTokenReceiveAddressAsDestination() = runTest(dispatcher) {
+        val recipient = "0x9999999999999999999999999999999999999999"
+        every { walletUseCase.getReceiveAddress(tokenOut) } returns recipient
+        val destinationSlot = slot<String>()
+        coEvery {
+            repository.swap(any(), any(), any(), any(), any(), capture(destinationSlot), any(), any(), any())
+        } returns routeWith(validExecution())
+
+        fetchFinalQuote(createProvider())
+
+        // P1: the committed order must pay out to the OUTPUT token's receive address.
+        assertEquals(recipient, destinationSlot.captured)
     }
 
     @Test

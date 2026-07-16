@@ -18,6 +18,7 @@ import cash.p.terminal.network.unstoppable.domain.repository.UnstoppableReposito
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.ethereumkit.core.hexStringToByteArray
@@ -97,7 +98,10 @@ class UnstoppableEvmSwapProvider(
             val assetIn = requireAsset(tokenIn)
             val assetOut = requireAsset(tokenOut)
             val sourceAddress = walletUseCase.getReceiveAddress(tokenIn)
-            val request = RouteRequest(assetIn.identifier, assetOut.identifier, amountIn.toPlainString(), sourceAddress)
+            // Committed order must pay out to the OUTPUT token's receive address, not the source one —
+            // for cross-chain routes (e.g. Circle CCTP) these differ. sourceAddress stays the refund/from.
+            val destinationAddress = walletUseCase.getReceiveAddress(tokenOut)
+            val request = RouteRequest(assetIn.identifier, assetOut.identifier, amountIn.toPlainString(), destinationAddress)
 
             val cached = cachedRoute
             val route = if (
@@ -114,7 +118,7 @@ class UnstoppableEvmSwapProvider(
                 ).also { cachedRoute = CachedRoute(request, it, System.currentTimeMillis()) }
             }
 
-            val signable = validateExecution(route, tokenIn, sourceAddress)
+            val signable = validateExecution(route, tokenIn, amountIn, sourceAddress)
             val transactionId = route.uuid ?: error("$id: swap response has no uuid, not trackable")
             val amountOut = route.expectedBuyAmount ?: amountIn
 
@@ -154,7 +158,12 @@ class UnstoppableEvmSwapProvider(
      * preferring one over the other (as [UnstoppableRoute.resolvedApprovalSpender] does for display
      * purposes) is not acceptable once real funds are about to move.
      */
-    private fun validateExecution(route: UnstoppableRoute, tokenIn: Token, sourceAddress: String): UnstoppableSignableTx {
+    private fun validateExecution(
+        route: UnstoppableRoute,
+        tokenIn: Token,
+        amountIn: BigDecimal,
+        sourceAddress: String,
+    ): UnstoppableSignableTx {
         val execution = route.execution ?: error("$id: no execution in swap response")
         check(execution.method == UnstoppableExecution.METHOD_SIGNED_TRANSACTION) {
             "$id: unexpected execution method ${execution.method}"
@@ -163,6 +172,18 @@ class UnstoppableEvmSwapProvider(
         val signable = execution.primarySignable ?: error("$id: no signable transaction in execution")
         check(signable.kind == KIND_EVM) { "$id: unexpected signable kind ${signable.kind}" }
         check(!signable.to.isNullOrBlank()) { "$id: signable transaction has no `to` address" }
+
+        // Native amount the wallet actually signs must match what we quoted: exactly `amountIn` for a
+        // native input, and zero for a token input (ERC20 moves via calldata, not native value).
+        val signableValue = parseHexBigInteger(signable.value)
+        val expectedValue = if (tokenIn.type is TokenType.Native) {
+            amountIn.movePointRight(tokenIn.decimals).toBigInteger()
+        } else {
+            BigInteger.ZERO
+        }
+        check(signableValue == expectedValue) {
+            "$id: signable value $signableValue does not match expected $expectedValue for $tokenIn"
+        }
 
         val expectedChainId = tokenResolver.chainId(tokenIn.blockchainType)
         check(expectedChainId != null && execution.chain == expectedChainId) {
