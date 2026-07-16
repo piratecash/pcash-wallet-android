@@ -117,7 +117,10 @@ class OffChainSwapProviderSupport(
         tokenOut: Token,
         amountIn: BigDecimal,
         amountOut: BigDecimal,
-    ) = swapProviderTransactionFactory.build(provider, transactionId, tokenIn, tokenOut, amountIn, amountOut)
+        subProviderId: String? = null,
+    ) = swapProviderTransactionFactory.build(
+        provider, transactionId, tokenIn, tokenOut, amountIn, amountOut, subProviderId = subProviderId
+    )
 
     fun buildTransactionData(
         tokenIn: Token,
@@ -194,11 +197,13 @@ class OffChainSwapProviderSupport(
     fun onTransactionCompleted(
         transaction: SwapProviderTransaction,
         result: SendTransactionResult,
+        depositTransactionHash: String? = null,
     ) {
         swapProviderTransactionsStorage.save(
             transaction.copy(
                 outgoingRecordUid = result.getRecordUid(),
                 date = System.currentTimeMillis(),
+                depositTransactionHash = depositTransactionHash ?: transaction.depositTransactionHash,
             )
         )
     }

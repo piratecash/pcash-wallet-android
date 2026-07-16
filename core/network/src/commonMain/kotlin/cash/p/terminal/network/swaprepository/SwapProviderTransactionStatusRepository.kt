@@ -16,9 +16,15 @@ data class SwapProviderTransactionStatusResult(
     val finishedAt: Long? = null
 )
 
+data class SwapProviderStatusRequest(
+    val transactionId: String,
+    val destinationAddress: String,
+    val inboundTxHash: String? = null,
+)
+
 interface SwapProviderTransactionStatusRepository {
+    /** A `null` result means "status unchanged" — the caller must not overwrite the stored status. */
     suspend fun getTransactionStatus(
-        transactionId: String,
-        destinationAddress: String,
-    ): SwapProviderTransactionStatusResult
+        request: SwapProviderStatusRequest,
+    ): SwapProviderTransactionStatusResult?
 }

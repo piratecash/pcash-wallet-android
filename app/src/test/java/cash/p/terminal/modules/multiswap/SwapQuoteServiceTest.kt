@@ -216,7 +216,7 @@ class SwapQuoteServiceTest {
     }
 
     @Test
-    fun setAmount_disabledProviderHasQuote_visibleInQuotesButNotAutoSelected() = runTest {
+    fun setAmount_disabledProviderSupportsPair_stillVisibleInQuotesButNotAutoSelected() = runTest {
         val enabledProvider = mockProvider(providerId = "enabled", quoteAmountOut = BigDecimal("5"))
         val disabledProvider = mockProvider(providerId = "disabled", quoteAmountOut = BigDecimal("10"))
 
@@ -232,8 +232,12 @@ class SwapQuoteServiceTest {
 
         val state = service.stateFlow.value
         val quoteIds = state.quotes.map { it.provider.id }
+        // Regression guard: a disabled provider that supports the pair MUST still be fetched and kept in
+        // `quotes`. The provider-selection screen (SwapSelectProviderScreen) renders these greyed-out
+        // (alpha 0.4) with an inline toggle so the user can see the rate they're missing and re-enable it.
+        // Fetching only enabled providers would hide disabled providers from that screen entirely.
         assertTrue(
-            "Disabled provider must remain visible in quotes when it has swap data",
+            "Disabled provider must remain visible in quotes so the selection screen can show it",
             "disabled" in quoteIds,
         )
         assertTrue("Enabled provider must be in quotes", "enabled" in quoteIds)

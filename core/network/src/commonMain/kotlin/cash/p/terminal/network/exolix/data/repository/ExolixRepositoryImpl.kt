@@ -5,6 +5,7 @@ import cash.p.terminal.network.exolix.api.ExolixApi
 import cash.p.terminal.network.exolix.data.entity.request.NewTransactionExolixRequest
 import cash.p.terminal.network.exolix.data.mapper.ExolixMapper
 import cash.p.terminal.network.exolix.domain.repository.ExolixRepository
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import cash.p.terminal.network.swaprepository.parseIsoTimestamp
@@ -47,10 +48,9 @@ internal class ExolixRepositoryImpl(
     }
 
     override suspend fun getTransactionStatus(
-        transactionId: String,
-        destinationAddress: String,
+        request: SwapProviderStatusRequest,
     ): SwapProviderTransactionStatusResult = withContext(Dispatchers.IO) {
-        val transaction = exolixApi.getTransaction(transactionId)
+        val transaction = exolixApi.getTransaction(request.transactionId)
             .let(exolixMapper::mapTransactionDto)
         val status = transaction.status.toTransactionStatus()
         val finishedAt = if (status == TransactionStatusEnum.FINISHED) {
