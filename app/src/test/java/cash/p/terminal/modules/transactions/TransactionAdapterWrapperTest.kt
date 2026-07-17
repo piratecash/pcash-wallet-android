@@ -32,6 +32,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -130,6 +131,7 @@ class TransactionAdapterWrapperTest {
                 listOf(realRecord)
             }
             every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
+            every { getTransactionsReloadSignalFlow() } returns emptyFlow()
         }
         val pendingRepository = mockk<PendingTransactionRepository> {
             every { getActivePendingFlow(any()) } returns emptyFlow()
@@ -882,6 +884,7 @@ class TransactionAdapterWrapperTest {
                 )
             } returns listOf(contactARecord)
             every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
+            every { getTransactionsReloadSignalFlow() } returns emptyFlow()
         }
         val pendingRepository = mockk<PendingTransactionRepository> {
             every { getActivePendingFlow(any()) } returns emptyFlow()
@@ -915,6 +918,85 @@ class TransactionAdapterWrapperTest {
 
         assertEquals(listOf(contactARecord.uid), records.map { it.uid })
         advanceUntilIdle()
+    }
+
+    @Test
+    fun reloadSignal_emitsForAllFilter_reloadsRecordList() = runTest {
+        verifyReloadSignalTriggersReload(FilterTransactionType.All)
+    }
+
+    @Test
+    fun reloadSignal_emitsForIncomingFilter_reloadsRecordList() = runTest {
+        verifyReloadSignalTriggersReload(FilterTransactionType.Incoming)
+    }
+
+    @Test
+    fun reloadSignal_deletedOnlyOutgoingTransaction_outgoingTabReloadsToEmpty() = runTest {
+        verifyReloadSignalTriggersReload(FilterTransactionType.Outgoing)
+    }
+
+    // Simulates a stuck outgoing transaction that gets deleted by the kit reconciler: the first
+    // load returns the transaction, the reload signal fires (onTransactionsDelete), and the next
+    // load must reflect its removal - for every filter, since the reload signal is content-unfiltered.
+    private suspend fun TestScope.verifyReloadSignalTriggersReload(filterType: FilterTransactionType) {
+        val token = createToken()
+        val source = createSource(blockchain = token.blockchain)
+        val transactionWallet = TransactionWallet(token = token, source = source, badge = null)
+        val record = createBitcoinOutgoingRecord(
+            token = token,
+            source = source,
+            uid = "stuck-outgoing-tx",
+            transactionHash = "hash-stuck",
+            timestamp = 1_715_000_000,
+            amount = BigDecimal("-0.00000563"),
+            toAddress = "bc1stuck-address",
+        )
+        val reloadSignal = MutableSharedFlow<Unit>()
+        var loadCount = 0
+        val adapter = mockk<ITransactionsAdapter> {
+            coEvery { getTransactions(any(), any(), any(), any(), any()) } coAnswers {
+                loadCount++
+                if (loadCount == 1) listOf(record) else emptyList()
+            }
+            every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
+            every { getTransactionsReloadSignalFlow() } returns reloadSignal
+        }
+        val pendingRepository = mockk<PendingTransactionRepository> {
+            every { getActivePendingFlow(any()) } returns emptyFlow()
+            coEvery { getPendingForWallet(any()) } returns emptyList()
+        }
+
+        val wrapper = TransactionAdapterWrapper(
+            transactionsAdapter = adapter,
+            transactionWallet = transactionWallet,
+            transactionType = filterType,
+            contact = null,
+            pendingRepository = pendingRepository,
+            pendingConverter = mockk(relaxed = true),
+            pendingTransactionMatcher = PendingTransactionMatcher(),
+            locallyCreatedTransactionRepository = mockk(relaxed = true),
+            dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler), this),
+        )
+
+        val initialRecords = wrapper.get(
+            limit = 20,
+            requestedFilterType = filterType,
+            requestedContact = null,
+        )
+        assertEquals(listOf(record.uid), initialRecords.map { it.uid })
+
+        // Let the merge()-based subscription (launched from init) actually start collecting
+        // before emitting - otherwise the signal has zero subscribers yet and is lost.
+        advanceUntilIdle()
+        reloadSignal.emit(Unit)
+        advanceUntilIdle()
+
+        val recordsAfterDelete = wrapper.get(
+            limit = 20,
+            requestedFilterType = filterType,
+            requestedContact = null,
+        )
+        assertEquals(emptyList<String>(), recordsAfterDelete.map { it.uid })
     }
 
     private data class BitcoinPendingScenario(
@@ -975,6 +1057,7 @@ class TransactionAdapterWrapperTest {
                 adapterPages[responseIndex]
             }
             every { getTransactionRecordsFlow(any(), any(), any()) } returns emptyFlow()
+            every { getTransactionsReloadSignalFlow() } returns emptyFlow()
         }
         val pendingConverter = mockk<PendingTransactionConverter> {
             pendingRecords.forEach { pending ->

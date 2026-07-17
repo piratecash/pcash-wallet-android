@@ -42,6 +42,7 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import java.math.BigDecimal
 import java.math.BigInteger
 import io.horizontalsystems.solanakit.models.Address as SolanaAddress
@@ -137,6 +138,11 @@ interface ITransactionsAdapter {
         transactionType: FilterTransactionType,
         address: String?
     ): Flow<List<TransactionRecord>>
+
+    // Content-unfiltered reload signal (e.g. a stuck transaction expiring and being deleted).
+    // Unlike getTransactionRecordsFlow, this is not filtered by list content, so it also
+    // triggers a reload for filters (Incoming/Outgoing) that would otherwise drop empty emissions.
+    fun getTransactionsReloadSignalFlow(): Flow<Unit> = emptyFlow()
 
     fun getTransactionUrl(transactionHash: String): String
 
