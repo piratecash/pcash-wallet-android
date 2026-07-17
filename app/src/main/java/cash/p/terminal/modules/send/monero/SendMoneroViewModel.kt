@@ -110,7 +110,7 @@ class SendMoneroViewModel(
     private val destinationAddress: Address
         get() = addressState.address ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
-    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
+    override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
 
     init {
         amountService.stateFlow.collectWith(viewModelScope) {

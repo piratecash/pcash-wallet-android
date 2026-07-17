@@ -7,24 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.res.stringResource
-import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.modules.send.SendConfirmationScreen
-import cash.p.terminal.modules.send.offline.OfflineSyncRetryProgressEffect
-import cash.p.terminal.modules.send.offline.OfflineSendSyncErrorCallbacks
-import cash.p.terminal.modules.send.offline.OfflineSendSyncErrorScreen
-import cash.p.terminal.modules.send.offline.OfflineSendSyncErrorState
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
-import cash.p.terminal.navigation.popBackStackSafely
-import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 
 private const val EvmConfirmationPage = "evm_confirmation"
 private const val OfflineEvmSignPage = "offline_evm_sign"
@@ -37,54 +23,36 @@ internal fun SendEvmConfirmationScreen(
     sendViewModel: SendEvmViewModel,
     sendEntryPointDestId: Int
 ) {
-    val navState = EvmConfirmationNavState(
+    OfflineSignableConfirmationHost(
         fragmentNavController = navController,
-        composeNavController = rememberNavController(),
-        sendEntryPointDestId = sendEntryPointDestId,
-    )
-    NavHost(
-        navController = navState.composeNavController,
-        startDestination = EvmConfirmationPage,
-    ) {
-        evmConfirmationRoute(navState, sendViewModel)
-        offlineSignFlowRoutes(
-            routes = OfflineSignFlowRoutes(
-                signRoute = OfflineEvmSignPage,
-                transferRoute = OfflineEvmTransactionTransferPage,
-                transferFormatArgument = OfflineTransactionTransferFormatArg,
-            ),
-            navController = navState.composeNavController,
-            fragmentNavController = navState.fragmentNavController,
+        sendViewModel = sendViewModel,
+        confirmationRoute = EvmConfirmationPage,
+        signFlowRoutes = OfflineSignFlowRoutes(
+            signRoute = OfflineEvmSignPage,
+            transferRoute = OfflineEvmTransactionTransferPage,
+            transferFormatArgument = OfflineTransactionTransferFormatArg,
+        ),
+        sourceChangeable = false,
+        onChangeSourceClick = {},
+    ) { onRequestOfflineSign ->
+        EvmOnlineConfirmation(
+            navController = navController,
             sendViewModel = sendViewModel,
-        )
-    }
-}
-
-private fun NavGraphBuilder.evmConfirmationRoute(
-    navState: EvmConfirmationNavState,
-    sendViewModel: SendEvmViewModel,
-) {
-    composable(EvmConfirmationPage) {
-        SendEvmConfirmationContent(
-            navState = navState,
-            sendViewModel = sendViewModel,
+            sendEntryPointDestId = sendEntryPointDestId,
+            onRequestOfflineSign = onRequestOfflineSign,
         )
     }
 }
 
 @Composable
-private fun SendEvmConfirmationContent(
-    navState: EvmConfirmationNavState,
+private fun EvmOnlineConfirmation(
+    navController: NavController,
     sendViewModel: SendEvmViewModel,
+    sendEntryPointDestId: Int,
+    onRequestOfflineSign: (() -> Unit)?,
 ) {
-    val isConnected by App.connectivityManager.isConnected.collectAsStateWithLifecycle()
     var confirmationData by remember { mutableStateOf(sendViewModel.getConfirmationData()) }
     var refresh by remember { mutableStateOf(false) }
-    var retrying by remember { mutableStateOf(false) }
-    val showSyncBlocker = sendViewModel.offlineSignSupported &&
-        (!isConnected || !sendViewModel.isSynced || sendViewModel.hasAdapterError)
-    val retryInProgress = retrying ||
-        (sendViewModel.syncRetrying && isConnected && !sendViewModel.hasAdapterError)
 
     LifecycleResumeEffect(sendViewModel) {
         if (refresh) {
@@ -102,43 +70,8 @@ private fun SendEvmConfirmationContent(
         }
     }
 
-    OfflineSyncRetryProgressEffect(
-        retrying = retrying,
-        isConnected = isConnected,
-        isSynced = sendViewModel.isSynced,
-        hasAdapterError = sendViewModel.hasAdapterError,
-        onRetryFinish = { retrying = false },
-    )
-
-    if (showSyncBlocker) {
-        OfflineSendSyncErrorScreen(
-            state = OfflineSendSyncErrorState(
-                title = stringResource(
-                    R.string.Send_Title,
-                    sendViewModel.wallet.coin.code,
-                ),
-                coinCode = sendViewModel.wallet.coin.code,
-                noConnection = !isConnected,
-                inProgress = retryInProgress,
-                sourceChangeable = false,
-            ),
-            callbacks = OfflineSendSyncErrorCallbacks(
-                onBackClick = navState.fragmentNavController::popBackStackSafely,
-                onRetryClick = {
-                    retrying = true
-                    sendViewModel.retryAdapterSync()
-                },
-                onChangeSourceClick = {},
-                onSignOfflineClick = {
-                    navState.composeNavController.navigate(OfflineEvmSignPage)
-                },
-            ),
-        )
-        return
-    }
-
     SendConfirmationScreen(
-        navController = navState.fragmentNavController,
+        navController = navController,
         coinMaxAllowedDecimals = sendViewModel.coinMaxAllowedDecimals,
         feeCoinMaxAllowedDecimals = sendViewModel.feeTokenMaxAllowedDecimals,
         rate = sendViewModel.coinRate,
@@ -155,10 +88,12 @@ private fun SendEvmConfirmationContent(
         memo = confirmationData.memo,
         rbfEnabled = confirmationData.rbfEnabled,
         onClickSend = sendViewModel::onClickSend,
-        sendEntryPointDestId = navState.sendEntryPointDestId,
+        sendEntryPointDestId = sendEntryPointDestId,
         isSynced = sendViewModel.isSynced,
         hasAdapterError = sendViewModel.hasAdapterError,
         onRetrySync = sendViewModel::retryAdapterSync,
+        sendEnabled = sendViewModel.isEffectivelySynced,
+        onSignOfflineOnFailure = onRequestOfflineSign,
         sendToken = sendViewModel.wallet.token,
         feeToken = sendViewModel.feeToken,
         feeCoinBalance = sendViewModel.feeCoinBalance,
@@ -168,9 +103,3 @@ private fun SendEvmConfirmationContent(
         onBalanceClicked = sendViewModel::toggleHideBalance,
     )
 }
-
-private data class EvmConfirmationNavState(
-    val fragmentNavController: NavController,
-    val composeNavController: NavHostController,
-    val sendEntryPointDestId: Int,
-)

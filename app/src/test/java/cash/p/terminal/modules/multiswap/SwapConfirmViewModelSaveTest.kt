@@ -51,6 +51,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import java.math.BigDecimal
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 /**
  * Covers the on-chain (Thorchain/Maya) completion path in [SwapConfirmViewModel.onTransactionCompleted]:
@@ -111,6 +113,7 @@ class SwapConfirmViewModelSaveTest {
         Dispatchers.setMain(dispatcher)
         startKoin {
             modules(module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single<ILocalStorage> { localStorage }
                 single<PendingMultiSwapStorage> { pendingMultiSwapStorage }
                 single<SwapProviderTransactionsStorage> { swapProviderTransactionsStorage }

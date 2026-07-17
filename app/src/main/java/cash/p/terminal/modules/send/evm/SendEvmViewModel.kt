@@ -99,7 +99,7 @@ internal class SendEvmViewModel(
         )
     }
 
-    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
+    override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
 
     init {
         amountService.stateFlow.collectWith(viewModelScope) {

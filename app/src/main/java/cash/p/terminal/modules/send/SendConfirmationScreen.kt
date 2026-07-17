@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -90,6 +93,8 @@ fun SendConfirmationScreen(
     isSynced: Boolean,
     hasAdapterError: Boolean,
     onRetrySync: () -> Unit,
+    sendEnabled: Boolean = isSynced,
+    onSignOfflineOnFailure: (() -> Unit)? = null,
     sendToken: Token? = null,
     feeToken: Token? = null,
     feeCoinBalance: BigDecimal? = null,
@@ -294,11 +299,46 @@ fun SendConfirmationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     sendResult = sendResult,
                     onClickSend = onClickSend,
-                    enabled = isSynced
+                    enabled = sendEnabled
                 )
             }
         }
     }
+
+    SendFailedOfflineSignPrompt(sendResult = sendResult, onSignOffline = onSignOfflineOnFailure)
+}
+
+@Composable
+internal fun SendFailedOfflineSignPrompt(
+    sendResult: SendResult?,
+    onSignOffline: (() -> Unit)?,
+) {
+    if (onSignOffline == null) return
+
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(sendResult) {
+        if (sendResult is SendResult.Failed) visible = true
+    }
+    if (!visible) return
+
+    AlertDialog(
+        onDismissRequest = { visible = false },
+        title = { Text(stringResource(R.string.send_failed_offline_prompt_title)) },
+        text = { Text(stringResource(R.string.send_failed_offline_prompt_message)) },
+        confirmButton = {
+            TextButton(onClick = {
+                visible = false
+                onSignOffline()
+            }) {
+                Text(stringResource(R.string.offline_transaction_sign_offline))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { visible = false }) {
+                Text(stringResource(R.string.Button_Cancel))
+            }
+        },
+    )
 }
 
 @Composable

@@ -112,7 +112,7 @@ class SendBitcoinViewModel(
     override val coinMaxAllowedDecimals = wallet.token.decimals
     override val feeCoinMaxAllowedDecimals get() = coinMaxAllowedDecimals
     val fiatMaxAllowedDecimals = AppConfigProvider.fiatDecimal
-    val offlineSignSupported = offlineSignAdapter != null
+    override val offlineSignSupported = offlineSignAdapter != null
 
     val blockchainType by adapter::blockchainType
     val feeRateChangeable by feeRateService::feeRateChangeable

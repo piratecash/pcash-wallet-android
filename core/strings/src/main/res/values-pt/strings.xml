@@ -2113,4 +2113,6 @@
     <string name="litecoin_hardware_extended_public_key_required">A carteira hardware Litecoin requer uma chave pública estendida</string>
     <string name="send_trezor_mweb_not_supported">A Trezor não suporta MWEB. Envie Litecoin para um endereço normal (não MWEB).</string>
     <string name="send_trezor_time_lock_not_supported">A Trezor não suporta transações com bloqueio temporal.</string>
+    <string name="send_failed_offline_prompt_title">Transação não enviada</string>
+    <string name="send_failed_offline_prompt_message">Assinar a transação offline e enviá-la mais tarde?</string>
 </resources>

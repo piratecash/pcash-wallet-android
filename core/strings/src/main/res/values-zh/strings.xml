@@ -2098,4 +2098,6 @@
     <string name="litecoin_hardware_extended_public_key_required">硬件 Litecoin 钱包需要扩展公钥</string>
     <string name="send_trezor_mweb_not_supported">Trezor 不支持 MWEB。请将莱特币发送到普通（非 MWEB）地址。</string>
     <string name="send_trezor_time_lock_not_supported">Trezor 不支持时间锁定交易。</string>
+    <string name="send_failed_offline_prompt_title">交易未发送</string>
+    <string name="send_failed_offline_prompt_message">离线签署交易并稍后发送？</string>
 </resources>
