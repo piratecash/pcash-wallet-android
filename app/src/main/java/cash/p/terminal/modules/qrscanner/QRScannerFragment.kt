@@ -21,6 +21,7 @@ import cash.p.terminal.navigation.setNavigationResultX
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.R
+import cash.p.terminal.tangem.domain.sdk.CardSdkConfigRepository
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import kotlinx.coroutines.flow.collectLatest
@@ -34,6 +35,7 @@ class QRScannerFragment : BaseComposeFragment() {
     private val viewModel: QRScannerViewModel by viewModel()
     private val deeplinkParser: DeeplinkParser by inject()
     private val tonConnectManager: TonConnectManager by inject()
+    private val cardSdkConfigRepository: CardSdkConfigRepository by inject()
 
     @Composable
     override fun GetContent(navController: NavController) {
@@ -112,5 +114,12 @@ class QRScannerFragment : BaseComposeFragment() {
             data = Uri.fromParts("package", requireContext().packageName, null)
         }
         startActivity(intent)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Using the camera can silently disable NFC reader mode outside the Activity lifecycle on
+        // some devices (e.g. Samsung), leaving a Tangem card unreadable on the next sign. Restore it.
+        cardSdkConfigRepository.forceEnableReaderMode()
     }
 }
