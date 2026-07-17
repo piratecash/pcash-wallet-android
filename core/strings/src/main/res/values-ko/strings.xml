@@ -2114,4 +2114,6 @@
     <string name="litecoin_hardware_extended_public_key_required">하드웨어 Litecoin 지갑에는 확장 공개 키가 필요합니다</string>
     <string name="send_trezor_mweb_not_supported">Trezor는 MWEB를 지원하지 않습니다. 일반(비 MWEB) 주소로 라이트코인을 보내세요.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor는 시간 잠금 거래를 지원하지 않습니다.</string>
+    <string name="send_failed_offline_prompt_title">거래가 전송되지 않음</string>
+    <string name="send_failed_offline_prompt_message">거래를 오프라인으로 서명하고 나중에 전송하시겠습니까?</string>
 </resources>

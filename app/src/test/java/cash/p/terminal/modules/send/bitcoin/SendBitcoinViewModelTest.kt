@@ -60,6 +60,8 @@ import org.koin.dsl.module
 import org.koin.test.KoinTestRule
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendBitcoinViewModelTest {
@@ -87,6 +89,7 @@ class SendBitcoinViewModelTest {
     val koinRule = KoinTestRule.create {
         modules(
             module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single { mockk<MarketKitWrapper>(relaxed = true) }
                 single<IBalanceHiddenManager> {
                     mockk(relaxed = true) {

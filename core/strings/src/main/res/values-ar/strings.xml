@@ -567,9 +567,9 @@
     <string name="EthereumTransaction_Warning_CoinNeededForFee">Consider leaving some %s on balance to be able to pay for future transactions.</string>
     <string name="EthereumTransaction_Error_ExecutionReverted">Unexpected error: %s</string>
     <!--Swap-->
-    <string name="Swap">Swap</string>
-    <string name="Swap_FromAmountTitle">You Pay</string>
-    <string name="Swap_ToAmountTitle">You Get</string>
+    <string name="Swap">مبادلة</string>
+    <string name="Swap_FromAmountTitle">أنت تدفع</string>
+    <string name="Swap_ToAmountTitle">أنت تستلم</string>
     <string name="Swap_TokenSelectorTitle">Select</string>
     <string name="Swap_Allowance">Allowance</string>
     <string name="Swap_Price">Price</string>
@@ -2143,4 +2143,6 @@
     <string name="litecoin_hardware_extended_public_key_required">تتطلب محفظة Litecoin للأجهزة مفتاحًا عامًا موسعًا</string>
     <string name="send_trezor_mweb_not_supported">لا يدعم Trezor بروتوكول MWEB. أرسل Litecoin إلى عنوان عادي (غير MWEB).</string>
     <string name="send_trezor_time_lock_not_supported">لا يدعم Trezor المعاملات المقفلة زمنيًا.</string>
+    <string name="send_failed_offline_prompt_title">لم يتم إرسال المعاملة</string>
+    <string name="send_failed_offline_prompt_message">توقيع المعاملة دون اتصال وإرسالها لاحقًا؟</string>
 </resources>

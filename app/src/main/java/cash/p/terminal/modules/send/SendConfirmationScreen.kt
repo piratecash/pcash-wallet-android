@@ -14,12 +14,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,6 +94,8 @@ fun SendConfirmationScreen(
     isSynced: Boolean,
     hasAdapterError: Boolean,
     onRetrySync: () -> Unit,
+    sendEnabled: Boolean = isSynced,
+    onSignOfflineOnFailure: (() -> Unit)? = null,
     sendToken: Token? = null,
     feeToken: Token? = null,
     feeCoinBalance: BigDecimal? = null,
@@ -294,11 +300,56 @@ fun SendConfirmationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     sendResult = sendResult,
                     onClickSend = onClickSend,
-                    enabled = isSynced
+                    enabled = sendEnabled
                 )
             }
         }
     }
+
+    SendFailedOfflineSignPrompt(sendResult = sendResult, onSignOffline = onSignOfflineOnFailure)
+}
+
+@Composable
+internal fun SendFailedOfflineSignPrompt(
+    sendResult: SendResult?,
+    onSignOffline: (() -> Unit)?,
+) {
+    // Offline signing is offered only for a failure that happened while offline. Decide that ONCE, at
+    // the moment the failure appears (offline-at-failure == onSignOffline non-null then). Keying the
+    // decision and the dismissal to THIS failure via rememberSaveable(sendResult) makes them survive
+    // configuration recreation (the ViewModel keeps the same Failed instance, so neither a later
+    // connectivity drop nor a dark-mode/font/locale recreation resurrects the prompt for an online
+    // failure) yet reset for a distinct new failure — including a direct Failed -> Failed retry
+    // (Monero/Solana) with no intervening state. The == null guard keeps the effect from re-deciding
+    // on recreation, where it re-runs but the restored value is non-null. null = not yet decided.
+    var failedOffline by rememberSaveable(sendResult) { mutableStateOf<Boolean?>(null) }
+    var dismissed by rememberSaveable(sendResult) { mutableStateOf(false) }
+    LaunchedEffect(sendResult) {
+        if (sendResult is SendResult.Failed && failedOffline == null) {
+            failedOffline = onSignOffline != null
+        }
+    }
+    if (failedOffline != true || dismissed) return
+    val action = onSignOffline ?: return
+
+    AlertDialog(
+        onDismissRequest = { dismissed = true },
+        title = { Text(stringResource(R.string.send_failed_offline_prompt_title)) },
+        text = { Text(stringResource(R.string.send_failed_offline_prompt_message)) },
+        confirmButton = {
+            TextButton(onClick = {
+                dismissed = true
+                action()
+            }) {
+                Text(stringResource(R.string.offline_transaction_sign_offline))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { dismissed = true }) {
+                Text(stringResource(R.string.Button_Cancel))
+            }
+        },
+    )
 }
 
 @Composable

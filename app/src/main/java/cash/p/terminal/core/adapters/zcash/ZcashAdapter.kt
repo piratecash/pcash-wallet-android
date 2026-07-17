@@ -84,7 +84,6 @@ import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -167,7 +166,7 @@ class ZcashAdapter(
     private var restartAttempt = 0
     private var subscriberScope: CoroutineScope? = null
     override val isMainNet: Boolean = true
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(dispatcherProvider.io)
 
     private var balanceCheckJob: Job? = null
     private val balanceCheckMutex = Mutex()
@@ -767,7 +766,7 @@ class ZcashAdapter(
             }
         }
         val parentJob = synchronizer.coroutineScope.coroutineContext[Job]
-        val scope = CoroutineScope(Dispatchers.Main + SupervisorJob(parentJob) + handler)
+        val scope = CoroutineScope(dispatcherProvider.main + SupervisorJob(parentJob) + handler)
         subscriberScope = scope
         synchronizer.allTransactions.safeCollectIn(scope, transactionsProvider::onTransactions)
         synchronizer.status.safeCollectIn(scope, ::onStatus)

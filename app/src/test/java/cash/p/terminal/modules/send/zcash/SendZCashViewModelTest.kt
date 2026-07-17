@@ -64,6 +64,8 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
 import java.math.BigDecimal
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendZCashViewModelTest : KoinTest {
@@ -102,6 +104,7 @@ class SendZCashViewModelTest : KoinTest {
     val koinRule = KoinTestRule.create {
         modules(
             module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single<IBalanceHiddenManager> { balanceHiddenManager }
                 single<MarketKitWrapper> { marketKit }
                 single { poisonAddressManager }

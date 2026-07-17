@@ -277,7 +277,9 @@ class SwapQuoteService(
         runQuotationJob?.cancel()
 
         quotingJob?.cancel()
-        quoting = false
+        // A fresh quote is pending: mark quoting so the swap button stays disabled
+        // until real quotes for the current input arrive (covers the debounce window).
+        quoting = true
         // Keep previous quotes during requoting to prevent choose provider from closing
         error = null
         emitState()

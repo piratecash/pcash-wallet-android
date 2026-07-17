@@ -2562,4 +2562,6 @@ Proceed only if you\'re sure.</string>
     <string name="duration_short_seconds">%1$ds</string>
     <string name="send_trezor_mweb_not_supported">Trezor doesn\'t support MWEB. Send Litecoin to a regular (non-MWEB) address.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor doesn\'t support time-locked transactions.</string>
+    <string name="send_failed_offline_prompt_title">Transaction not sent</string>
+    <string name="send_failed_offline_prompt_message">Sign the transaction offline and send it later?</string>
 </resources>

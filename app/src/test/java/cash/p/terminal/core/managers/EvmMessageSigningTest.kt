@@ -1,10 +1,10 @@
 package cash.p.terminal.core.managers
 
+import cash.p.terminal.core.installEthereumCryptoProviderForTest
 import cash.p.terminal.trezor.domain.TrezorSigningException
 import cash.p.terminal.trezor.signer.TrezorEvmSigner
 import cash.p.terminal.wallet.AccountType
 import io.horizontalsystems.ethereumkit.core.signer.Signer
-import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Chain
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -13,13 +13,12 @@ import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
-import java.security.Security
 
 class EvmMessageSigningTest {
 
     @Before
     fun setUp() {
-        Security.addProvider(InternalBouncyCastleProvider.getInstance())
+        installEthereumCryptoProviderForTest()
     }
 
     private fun mnemonicSigner(): Signer {

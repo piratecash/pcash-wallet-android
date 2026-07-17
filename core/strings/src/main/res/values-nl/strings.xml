@@ -569,9 +569,9 @@
     <string name="EthereumTransaction_Warning_CoinNeededForFee">Consider leaving some %s on balance to be able to pay for future transactions.</string>
     <string name="EthereumTransaction_Error_ExecutionReverted">Unexpected error: %s</string>
     <!--Swap-->
-    <string name="Swap">Swap</string>
-    <string name="Swap_FromAmountTitle">You Pay</string>
-    <string name="Swap_ToAmountTitle">You Get</string>
+    <string name="Swap">Wisselen</string>
+    <string name="Swap_FromAmountTitle">U betaalt</string>
+    <string name="Swap_ToAmountTitle">U ontvangt</string>
     <string name="Swap_TokenSelectorTitle">Select</string>
     <string name="Swap_Allowance">Allowance</string>
     <string name="Swap_Price">Price</string>
@@ -2127,4 +2127,6 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="litecoin_hardware_extended_public_key_required">Hardware-Litecoin-portemonnee vereist een uitgebreide publieke sleutel</string>
     <string name="send_trezor_mweb_not_supported">Trezor ondersteunt MWEB niet. Stuur Litecoin naar een gewoon (niet-MWEB) adres.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor ondersteunt tijdvergrendelde transacties niet.</string>
+    <string name="send_failed_offline_prompt_title">Transactie niet verzonden</string>
+    <string name="send_failed_offline_prompt_message">De transactie offline ondertekenen en later verzenden?</string>
 </resources>

@@ -39,8 +39,11 @@ import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.fee.HSFeeRaw
 import cash.p.terminal.modules.send.ConfirmAmountCell
 import cash.p.terminal.modules.send.MemoCell
+import cash.p.terminal.modules.send.SendFailedOfflineSignPrompt
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.components.SectionTitleCell
 import cash.p.terminal.ui.compose.components.TransactionInfoAddressCell
@@ -64,12 +67,47 @@ import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import kotlinx.coroutines.delay
 
+private const val TronConfirmationPage = "tron_confirmation"
+private const val OfflineTronSignPage = "offline_tron_confirmation_sign"
+private const val OfflineTronTransactionTransferPage = "offline_tron_confirmation_transfer"
+private const val OfflineTransactionTransferFormatArg = "format"
+
 @Composable
 fun SendTronConfirmationScreen(
     navController: NavController,
     sendViewModel: SendTronViewModel,
     amountInputModeViewModel: AmountInputModeViewModel,
     sendEntryPointDestId: Int
+) {
+    OfflineSignableConfirmationHost(
+        fragmentNavController = navController,
+        sendViewModel = sendViewModel,
+        confirmationRoute = TronConfirmationPage,
+        signFlowRoutes = OfflineSignFlowRoutes(
+            signRoute = OfflineTronSignPage,
+            transferRoute = OfflineTronTransactionTransferPage,
+            transferFormatArgument = OfflineTransactionTransferFormatArg,
+        ),
+        sourceChangeable = false,
+        onChangeSourceClick = {},
+    ) { onRequestOfflineSign ->
+        TronOnlineConfirmation(
+            navController = navController,
+            sendViewModel = sendViewModel,
+            amountInputModeViewModel = amountInputModeViewModel,
+            sendEntryPointDestId = sendEntryPointDestId,
+            onRequestOfflineSign = onRequestOfflineSign,
+        )
+    }
+}
+
+@Composable
+private fun TronOnlineConfirmation(
+    navController: NavController,
+    sendViewModel: SendTronViewModel,
+    amountInputModeViewModel: AmountInputModeViewModel,
+    sendEntryPointDestId: Int,
+    onRequestOfflineSign: (() -> Unit)?,
 ) {
     val closeUntilDestId = if (sendEntryPointDestId == 0) {
         R.id.sendXFragment
@@ -303,7 +341,7 @@ fun SendTronConfirmationScreen(
                     modifier = Modifier.fillMaxWidth(),
                     sendResult = sendResult,
                     onClickSend = sendViewModel::onClickSendWithWarningCheck,
-                    enabled = sendEnabled && sendViewModel.isSynced
+                    enabled = sendEnabled && sendViewModel.isEffectivelySynced
                 )
             }
 
@@ -314,6 +352,8 @@ fun SendTronConfirmationScreen(
             )
         }
     }
+
+    SendFailedOfflineSignPrompt(sendResult = sendResult, onSignOffline = onRequestOfflineSign)
 }
 
 @Composable

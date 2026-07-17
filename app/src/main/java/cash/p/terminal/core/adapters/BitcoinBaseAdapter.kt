@@ -172,6 +172,7 @@ abstract class BitcoinBaseAdapter(
     protected val adapterStateUpdatedSubject: PublishSubject<Unit> = PublishSubject.create()
     protected val transactionRecordsSubject: PublishSubject<List<TransactionRecord>> =
         PublishSubject.create()
+    private val transactionsReloadSubject: PublishSubject<Unit> = PublishSubject.create()
 
     final override val unspentOutputs: List<UnspentOutputInfo>
         get() = kit.getUnspentOutputs(UtxoFilters())
@@ -187,6 +188,17 @@ abstract class BitcoinBaseAdapter(
 
     override val balanceStateUpdatedFlow: Flow<Unit>
         get() = adapterStateUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
+
+    override fun getTransactionsReloadSignalFlow(): Flow<Unit> =
+        transactionsReloadSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
+
+    // Shared handler for the BitcoinCore.Listener onTransactionsDelete callback (e.g. a stuck
+    // NEW transaction expiring). Each concrete adapter's Kit.Listener interface requires its own
+    // override, so subclasses delegate here to keep the logic in one place.
+    protected fun onTransactionsDeleted() {
+        transactionsReloadSubject.onNext(Unit)
+        balanceUpdatedSubject.onNext(Unit)
+    }
 
     override fun getTransactionRecordsFlow(
         token: Token?,

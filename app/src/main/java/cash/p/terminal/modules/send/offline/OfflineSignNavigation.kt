@@ -43,6 +43,17 @@ internal interface OfflineSignCapableViewModel {
     val coinRate: CurrencyValue?
     val offlineSigningController: OfflineSigningController<*>
 
+    // Inputs the shared confirmation gate needs. isSynced/hasAdapterError/syncRetrying/
+    // retryAdapterSync are provided by BaseSendViewModel; offlineSignSupported is a
+    // concrete val on each send view model.
+    val offlineSignSupported: Boolean
+    val isSynced: Boolean
+    val hasAdapterError: Boolean
+    val syncRetrying: Boolean
+    val syncGraceActive: Boolean
+    val isEffectivelySynced: Boolean
+    fun retryAdapterSync()
+
     val offlineSignState: OfflineSignState
         get() = offlineSigningController.signState
     val offlineSignedTransaction: OfflineSignedTransaction?

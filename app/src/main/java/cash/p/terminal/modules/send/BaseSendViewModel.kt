@@ -24,11 +24,18 @@ import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.ui_compose.components.HudHelper
+import android.os.SystemClock
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.offline.isWithinSyncGrace
 import io.horizontalsystems.core.ViewModelUiState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
+
+private const val SYNC_GRACE_MS = 60 * 1000L
 
 abstract class BaseSendViewModel<T>(
     val wallet: Wallet,
@@ -41,6 +48,7 @@ abstract class BaseSendViewModel<T>(
     protected val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository by inject(
         LocallyCreatedTransactionRepository::class.java
     )
+    private val connectivityManager: IConnectivityManager by inject(IConnectivityManager::class.java)
 
     var isSynced by mutableStateOf(true)
         private set
@@ -50,6 +58,54 @@ abstract class BaseSendViewModel<T>(
     var syncRetrying by mutableStateOf(false)
         private set
     private var autoRetried = false
+
+    // "Recently good" (synced && connected) grace: keeps the Send button enabled and suppresses the
+    // offline blocker through a brief network/sync blip, bounded to SYNC_GRACE_MS by a reactive timer.
+    var syncGraceActive by mutableStateOf(false)
+        private set
+    private var lastGoodElapsed: Long? = null
+    private var wasGood = false
+    private var graceTimerJob: Job? = null
+
+    val isEffectivelySynced: Boolean
+        get() = (isSynced && connectivityManager.isConnected.value) || syncGraceActive
+
+    /** Monotonic clock; overridable in tests to control the grace window deterministically. */
+    protected open val elapsedRealtimeMs: Long
+        get() = SystemClock.elapsedRealtime()
+
+    private fun recomputeGrace() {
+        if (isSynced && connectivityManager.isConnected.value) {
+            graceTimerJob?.cancel()
+            graceTimerJob = null
+            lastGoodElapsed = elapsedRealtimeMs
+            syncGraceActive = true
+            wasGood = true
+            return
+        }
+        if (wasGood) {
+            // The grace window starts when the good state ends, not at the last emission — a quiet
+            // synced period must not shorten it.
+            lastGoodElapsed = elapsedRealtimeMs
+            wasGood = false
+        }
+        val last = lastGoodElapsed
+        val within = isWithinSyncGrace(last, elapsedRealtimeMs, SYNC_GRACE_MS)
+        if (!within) {
+            graceTimerJob?.cancel()
+            graceTimerJob = null
+            syncGraceActive = false
+            return
+        }
+        if (graceTimerJob?.isActive != true) {
+            syncGraceActive = true
+            val remaining = SYNC_GRACE_MS - (elapsedRealtimeMs - (last ?: 0L))
+            graceTimerJob = viewModelScope.launch {
+                delay(remaining)
+                syncGraceActive = false
+            }
+        }
+    }
 
     open val feeToken: Token? by lazy {
         val token = wallet.token
@@ -183,6 +239,7 @@ abstract class BaseSendViewModel<T>(
                 syncRetrying = true
             }
         }
+        recomputeGrace()
     }
 
     fun retryAdapterSync() {
@@ -197,6 +254,15 @@ abstract class BaseSendViewModel<T>(
                 adapter.balanceStateUpdatedFlow.collect {
                     handleAdapterState(adapter.balanceState)
                 }
+            }
+        }
+
+        // Bound the sync grace off connectivity too: losing the network while the adapter is still
+        // stale-Synced must start the bounded expiry timer (Codex). isConnected is a StateFlow, so the
+        // collector fires with the current value immediately.
+        viewModelScope.launch {
+            connectivityManager.isConnected.collect {
+                recomputeGrace()
             }
         }
 

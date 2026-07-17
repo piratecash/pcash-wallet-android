@@ -43,6 +43,8 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import java.math.BigDecimal
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapConfirmViewModelLeg2Test {
@@ -99,6 +101,7 @@ class SwapConfirmViewModelLeg2Test {
         Dispatchers.setMain(dispatcher)
         startKoin {
             modules(module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single<ILocalStorage> { localStorage }
                 single<PendingMultiSwapStorage> { pendingMultiSwapStorage }
                 single<MarketKitWrapper> { mockk(relaxed = true) }

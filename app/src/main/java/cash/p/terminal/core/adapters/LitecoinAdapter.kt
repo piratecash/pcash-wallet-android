@@ -372,7 +372,7 @@ class LitecoinAdapter(
     }
 
     override fun onTransactionsDelete(hashes: List<String>) {
-        // ignored for now
+        onTransactionsDeleted()
     }
 
     override fun getTransactionRecordsFlow(

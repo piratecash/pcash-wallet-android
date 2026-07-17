@@ -2124,4 +2124,6 @@
     <string name="litecoin_hardware_extended_public_key_required">کیف پول سخت‌افزاری Litecoin به کلید عمومی توسعه‌یافته نیاز دارد</string>
     <string name="send_trezor_mweb_not_supported">Trezor از MWEB پشتیبانی نمی‌کند. لایت‌کوین را به یک آدرس عادی (غیر MWEB) ارسال کنید.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor از تراکنش‌های زمان‌قفل پشتیبانی نمی‌کند.</string>
+    <string name="send_failed_offline_prompt_title">تراکنش ارسال نشد</string>
+    <string name="send_failed_offline_prompt_message">تراکنش را آفلاین امضا کرده و بعداً ارسال کنید؟</string>
 </resources>

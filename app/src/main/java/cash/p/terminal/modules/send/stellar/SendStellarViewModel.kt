@@ -99,7 +99,7 @@ class SendStellarViewModel(
     var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
-    val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
+    override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
 
     private val decimalAmount: BigDecimal
         get() = amountState.amount ?: throw LocalizedException(R.string.send_error_amount_unavailable)

@@ -2298,4 +2298,6 @@
     <string name="duration_short_seconds">%1$dс</string>
     <string name="send_trezor_mweb_not_supported">Trezor не поддерживает MWEB. Отправьте Litecoin на обычный (не MWEB) адрес.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor не поддерживает транзакции с временной блокировкой.</string>
+    <string name="send_failed_offline_prompt_title">Транзакция не отправлена</string>
+    <string name="send_failed_offline_prompt_message">Подписать транзакцию офлайн и отправить позже?</string>
 </resources>

@@ -146,7 +146,11 @@ class TransactionAdapterWrapper(
                         transactionWallet.token,
                         expectedType,     // Use snapshot!
                         expectedAddress   // Use snapshot!
-                    ), pendingRepository.getActivePendingFlow(walletId)
+                    ),
+                pendingRepository.getActivePendingFlow(walletId),
+                // Not content-filtered, unlike getTransactionRecordsFlow (which drops empty
+                // emissions for Incoming/Outgoing) - ensures a deletion reloads those tabs too.
+                transactionsAdapter.getTransactionsReloadSignalFlow(),
             ).collectLatest {
                 if (!isActive ||
                     transactionType != expectedType ||
