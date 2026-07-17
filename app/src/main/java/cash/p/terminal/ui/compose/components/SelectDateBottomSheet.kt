@@ -22,7 +22,6 @@ import cash.p.terminal.R
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import io.horizontalsystems.core.entities.BlockchainType
@@ -88,7 +87,14 @@ fun SelectDateBottomSheet(
                 }
             }
         ) {
-            subhead2_grey(text = stringResource(R.string.select_date_description))
+            subhead2_grey(
+                text = stringResource(R.string.select_date_description),
+                modifier = Modifier.padding(
+                    start = 32.dp,
+                    end = 32.dp,
+                    bottom = 12.dp
+                )
+            )
             DatePicker(
                 modifier = Modifier.fillMaxWidth(),
                 state = datePickerState,
@@ -99,7 +105,7 @@ fun SelectDateBottomSheet(
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 24.dp, top = 12.dp, end = 24.dp),
+                    .padding(horizontal = 24.dp),
                 title = stringResource(R.string.Button_Apply),
                 enabled = datePickerState.selectedDateMillis != null,
                 onClick = {
