@@ -23,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -313,28 +314,38 @@ internal fun SendFailedOfflineSignPrompt(
     sendResult: SendResult?,
     onSignOffline: (() -> Unit)?,
 ) {
-    if (onSignOffline == null) return
-
-    var visible by remember { mutableStateOf(false) }
+    // Offline signing is offered only for a failure that happened while offline. Decide that ONCE, at
+    // the moment the failure appears (offline-at-failure == onSignOffline non-null then). Keying the
+    // decision and the dismissal to THIS failure via rememberSaveable(sendResult) makes them survive
+    // configuration recreation (the ViewModel keeps the same Failed instance, so neither a later
+    // connectivity drop nor a dark-mode/font/locale recreation resurrects the prompt for an online
+    // failure) yet reset for a distinct new failure — including a direct Failed -> Failed retry
+    // (Monero/Solana) with no intervening state. The == null guard keeps the effect from re-deciding
+    // on recreation, where it re-runs but the restored value is non-null. null = not yet decided.
+    var failedOffline by rememberSaveable(sendResult) { mutableStateOf<Boolean?>(null) }
+    var dismissed by rememberSaveable(sendResult) { mutableStateOf(false) }
     LaunchedEffect(sendResult) {
-        if (sendResult is SendResult.Failed) visible = true
+        if (sendResult is SendResult.Failed && failedOffline == null) {
+            failedOffline = onSignOffline != null
+        }
     }
-    if (!visible) return
+    if (failedOffline != true || dismissed) return
+    val action = onSignOffline ?: return
 
     AlertDialog(
-        onDismissRequest = { visible = false },
+        onDismissRequest = { dismissed = true },
         title = { Text(stringResource(R.string.send_failed_offline_prompt_title)) },
         text = { Text(stringResource(R.string.send_failed_offline_prompt_message)) },
         confirmButton = {
             TextButton(onClick = {
-                visible = false
-                onSignOffline()
+                dismissed = true
+                action()
             }) {
                 Text(stringResource(R.string.offline_transaction_sign_offline))
             }
         },
         dismissButton = {
-            TextButton(onClick = { visible = false }) {
+            TextButton(onClick = { dismissed = true }) {
                 Text(stringResource(R.string.Button_Cancel))
             }
         },
