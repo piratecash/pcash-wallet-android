@@ -20,6 +20,7 @@ import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.MarketModule
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.premium.settings.PollingInterval
+import cash.p.terminal.modules.softwareupdate.domain.UpdateCheckInterval
 import cash.p.terminal.modules.market.favorites.WatchlistSorting
 import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.settings.appearance.PriceChangeInterval
@@ -858,6 +859,27 @@ class LocalStorageManager(
         key = "showChangelogOnUpdate",
         default = true
     )
+
+    override var lastUpdateCheckTimestamp: Long
+        get() = preferences.getLong("last_update_check_ts", 0L)
+        set(value) {
+            preferences.edit().putLong("last_update_check_ts", value).apply()
+        }
+
+    override var latestKnownVersion: String?
+        get() = preferences.getString("latest_known_version", null)
+        set(value) {
+            preferences.edit().putString("latest_known_version", value).apply()
+        }
+
+    override var updateCheckInterval: UpdateCheckInterval
+        get() {
+            val name = preferences.getString("update_check_interval", null)
+            return name?.let { tryOrNull { UpdateCheckInterval.valueOf(it) } } ?: UpdateCheckInterval.DAY
+        }
+        set(value) {
+            preferences.edit().putString("update_check_interval", value.name).apply()
+        }
     override var swapMevProtectionEnabled by preferences.delegate(
         key = "swap_mev_protection_enabled",
         default = false

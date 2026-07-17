@@ -2115,4 +2115,31 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="send_trezor_time_lock_not_supported">A Trezor não é compatível com transações com bloqueio de tempo.</string>
     <string name="send_failed_offline_prompt_title">Transação não enviada</string>
     <string name="send_failed_offline_prompt_message">Assinar a transação off-line e enviá-la mais tarde?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Atualizações de software</string>
+    <string name="version_history_title">Histórico de versões</string>
+    <string name="auto_check_updates">Verificar atualizações automaticamente</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1S</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Última verificação: %1$s</string>
+    <string name="update_available_title">Nova atualização disponível</string>
+    <string name="update_up_to_date">A atualização está atualizada</string>
+    <string name="update_now">Atualizar agora</string>
+    <string name="update_source">Fonte: %1$s</string>
+    <string name="update_details_ellipsis">Detalhes…</string>
+    <string name="update_details">Detalhes</string>
+    <string name="update_version_label">Versão %1$s</string>
+    <string name="update_current_version_section">Versão atual</string>
+    <string name="update_old_versions_section">VERSÕES ANTIGAS</string>
+    <string name="update_checking">Verificando atualizações…</string>
+    <string name="update_improvements_fixes">Nesta atualização: %1$d melhorias, %2$d correções</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Atualizações</string>
+    <string name="update_interval_day_full">1 dia</string>
+    <string name="update_interval_week_full">1 semana</string>
+    <string name="update_interval_month_full">1 mês</string>
 </resources>

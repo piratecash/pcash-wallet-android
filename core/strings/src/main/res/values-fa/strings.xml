@@ -2119,4 +2119,31 @@
     <string name="send_trezor_time_lock_not_supported">Trezor از تراکنش‌های زمان‌قفل پشتیبانی نمی‌کند.</string>
     <string name="send_failed_offline_prompt_title">تراکنش ارسال نشد</string>
     <string name="send_failed_offline_prompt_message">تراکنش را آفلاین امضا کرده و بعداً ارسال کنید؟</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">به‌روزرسانی‌های نرم‌افزار</string>
+    <string name="version_history_title">تاریخچه نسخه‌ها</string>
+    <string name="auto_check_updates">بررسی خودکار به‌روزرسانی‌ها</string>
+    <string name="update_interval_day">1روز</string>
+    <string name="update_interval_week">1هفته</string>
+    <string name="update_interval_month">1ماه</string>
+    <string name="update_last_check_date">آخرین بررسی: %1$s</string>
+    <string name="update_available_title">به‌روزرسانی جدید موجود است</string>
+    <string name="update_up_to_date">برنامه به‌روز است</string>
+    <string name="update_now">اکنون به‌روزرسانی کنید</string>
+    <string name="update_source">منبع: %1$s</string>
+    <string name="update_details_ellipsis">جزئیات…</string>
+    <string name="update_details">جزئیات</string>
+    <string name="update_version_label">نسخه %1$s</string>
+    <string name="update_current_version_section">نسخه فعلی</string>
+    <string name="update_old_versions_section">نسخه‌های قدیمی</string>
+    <string name="update_checking">در حال بررسی به‌روزرسانی‌ها…</string>
+    <string name="update_improvements_fixes">این به‌روزرسانی: %1$d بهبود، %2$d رفع اشکال</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">به‌روزرسانی‌ها</string>
+    <string name="update_interval_day_full">1 روز</string>
+    <string name="update_interval_week_full">1 هفته</string>
+    <string name="update_interval_month_full">1 ماه</string>
 </resources>

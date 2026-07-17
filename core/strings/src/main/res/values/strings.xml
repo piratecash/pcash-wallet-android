@@ -2557,4 +2557,31 @@ Proceed only if you\'re sure.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor doesn\'t support time-locked transactions.</string>
     <string name="send_failed_offline_prompt_title">Transaction not sent</string>
     <string name="send_failed_offline_prompt_message">Sign the transaction offline and send it later?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software Updates</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="version_history_title">Version History</string>
+    <string name="auto_check_updates">Auto-check for updates</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_interval_day_full">1 day</string>
+    <string name="update_interval_week_full">1 week</string>
+    <string name="update_interval_month_full">1 month</string>
+    <string name="update_last_check_date">Last check was: %1$s</string>
+    <string name="update_available_title">New update available</string>
+    <string name="update_up_to_date">Update is up to date</string>
+    <string name="update_now">Update now</string>
+    <string name="update_source">Source: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Current version</string>
+    <string name="update_old_versions_section">OLD VERSIONS</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_improvements_fixes">This update: %1$d improvements, %2$d fixes</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
 </resources>

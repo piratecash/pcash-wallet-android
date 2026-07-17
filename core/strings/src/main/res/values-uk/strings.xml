@@ -2267,4 +2267,31 @@
     <string name="send_trezor_time_lock_not_supported">Trezor не підтримує транзакції з часовим блокуванням.</string>
     <string name="send_failed_offline_prompt_title">Транзакцію не надіслано</string>
     <string name="send_failed_offline_prompt_message">Підписати транзакцію офлайн і надіслати пізніше?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Оновлення ПЗ</string>
+    <string name="version_history_title">Історія версій</string>
+    <string name="auto_check_updates">Автоперевірка оновлень</string>
+    <string name="update_interval_day">1Д</string>
+    <string name="update_interval_week">1Т</string>
+    <string name="update_interval_month">1М</string>
+    <string name="update_last_check_date">Остання перевірка: %1$s</string>
+    <string name="update_available_title">Доступне нове оновлення</string>
+    <string name="update_up_to_date">Оновлення актуальне</string>
+    <string name="update_now">Оновити зараз</string>
+    <string name="update_source">Джерело: %1$s</string>
+    <string name="update_details_ellipsis">Детальніше…</string>
+    <string name="update_details">Детальніше</string>
+    <string name="update_version_label">Версія %1$s</string>
+    <string name="update_current_version_section">Поточна версія</string>
+    <string name="update_old_versions_section">СТАРІ ВЕРСІЇ</string>
+    <string name="update_checking">Перевірка оновлень…</string>
+    <string name="update_improvements_fixes">У цьому оновленні: покращень — %1$d, виправлень — %2$d</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Оновлення</string>
+    <string name="update_interval_day_full">1 день</string>
+    <string name="update_interval_week_full">1 тиждень</string>
+    <string name="update_interval_month_full">1 місяць</string>
 </resources>

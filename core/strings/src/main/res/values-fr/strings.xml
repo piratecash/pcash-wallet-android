@@ -2113,4 +2113,31 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="send_trezor_time_lock_not_supported">Trezor ne prend pas en charge les transactions à verrouillage temporel.</string>
     <string name="send_failed_offline_prompt_title">Transaction non envoyée</string>
     <string name="send_failed_offline_prompt_message">Signer la transaction hors ligne et envoyer plus tard ?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Mises à jour du logiciel</string>
+    <string name="version_history_title">Historique des versions</string>
+    <string name="auto_check_updates">Vérifier automatiquement les mises à jour</string>
+    <string name="update_interval_day">1J</string>
+    <string name="update_interval_week">1S</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Dernière vérification : %1$s</string>
+    <string name="update_available_title">Nouvelle mise à jour disponible</string>
+    <string name="update_up_to_date">La mise à jour est à jour</string>
+    <string name="update_now">Mettre à jour maintenant</string>
+    <string name="update_source">Source : %1$s</string>
+    <string name="update_details_ellipsis">Détails…</string>
+    <string name="update_details">Détails</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Version actuelle</string>
+    <string name="update_old_versions_section">ANCIENNES VERSIONS</string>
+    <string name="update_checking">Recherche de mises à jour…</string>
+    <string name="update_improvements_fixes">Cette mise à jour : %1$d améliorations, %2$d corrections</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Mises à jour</string>
+    <string name="update_interval_day_full">1 jour</string>
+    <string name="update_interval_week_full">1 semaine</string>
+    <string name="update_interval_month_full">1 mois</string>
 </resources>

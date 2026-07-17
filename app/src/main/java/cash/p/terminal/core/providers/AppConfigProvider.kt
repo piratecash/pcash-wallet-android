@@ -19,6 +19,10 @@ object AppConfigProvider {
     val appWebPageLink by lazy { Translator.getString(R.string.appWebPageLink) }
     val analyticsLink by lazy { Translator.getString(R.string.analyticsLink) }
     val appGithubLink by lazy { Translator.getString(R.string.appGithubLink) }
+    val githubApiBaseUrl by lazy { Translator.getString(R.string.githubApiBaseUrl) }
+    val githubRawBaseUrl by lazy { Translator.getString(R.string.githubRawBaseUrl) }
+    val githubApiProxyBaseUrl by lazy { Translator.getString(R.string.githubApiProxyBaseUrl) }
+    val githubRawProxyBaseUrl by lazy { Translator.getString(R.string.githubRawProxyBaseUrl) }
     val appTwitterLink by lazy { Translator.getString(R.string.appTwitterLink) }
     val appTelegramLink by lazy { Translator.getString(R.string.appTelegramLink) }
     val appRedditLink by lazy { Translator.getString(R.string.appRedditLink) }

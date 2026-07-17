@@ -2109,4 +2109,31 @@
     <string name="send_trezor_time_lock_not_supported">Trezor는 시간 잠금 거래를 지원하지 않습니다.</string>
     <string name="send_failed_offline_prompt_title">거래가 전송되지 않음</string>
     <string name="send_failed_offline_prompt_message">거래를 오프라인으로 서명하고 나중에 전송하시겠습니까?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">소프트웨어 업데이트</string>
+    <string name="version_history_title">버전 기록</string>
+    <string name="auto_check_updates">자동으로 업데이트 확인</string>
+    <string name="update_interval_day">1일</string>
+    <string name="update_interval_week">1주</string>
+    <string name="update_interval_month">1개월</string>
+    <string name="update_last_check_date">마지막 확인: %1$s</string>
+    <string name="update_available_title">새 업데이트 사용 가능</string>
+    <string name="update_up_to_date">최신 버전입니다</string>
+    <string name="update_now">지금 업데이트</string>
+    <string name="update_source">출처: %1$s</string>
+    <string name="update_details_ellipsis">자세히…</string>
+    <string name="update_details">세부 정보</string>
+    <string name="update_version_label">버전 %1$s</string>
+    <string name="update_current_version_section">현재 버전</string>
+    <string name="update_old_versions_section">이전 버전</string>
+    <string name="update_checking">업데이트 확인 중…</string>
+    <string name="update_improvements_fixes">이번 업데이트: 개선 사항 %1$d개, 수정 사항 %2$d개</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">업데이트</string>
+    <string name="update_interval_day_full">1일</string>
+    <string name="update_interval_week_full">1주일</string>
+    <string name="update_interval_month_full">1개월</string>
 </resources>
