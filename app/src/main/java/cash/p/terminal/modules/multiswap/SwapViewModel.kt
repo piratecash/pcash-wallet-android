@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
-import cash.p.terminal.core.moreThanZero
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -366,19 +365,16 @@ data class SwapUiState(
 ) {
     val currentStep: SwapStep = when {
         error != null -> SwapStep.Error(error)
-        quoting || (allChosen() && amountIn.moreThanZero() && !fiatAmountOut.moreThanZero()) -> SwapStep.Quoting
         tokenIn == null -> SwapStep.InputRequired(InputType.TokenIn)
         tokenOut == null -> SwapStep.InputRequired(InputType.TokenOut)
         amountIn == null || amountIn.compareTo(BigDecimal.ZERO) == 0 -> SwapStep.InputRequired(
             InputType.Amount
         )
-
-        quote?.actionRequired != null -> SwapStep.ActionRequired(requireNotNull(quote.actionRequired))
+        // No fresh quote for the current input yet (fetching or pending debounce) - keep loading
+        quoting || quote == null -> SwapStep.Quoting
+        quote.actionRequired != null -> SwapStep.ActionRequired(requireNotNull(quote.actionRequired))
         else -> SwapStep.Proceed
     }
-
-    private fun allChosen() =
-        tokenIn != null && tokenOut != null
 }
 
 sealed class SwapStep {

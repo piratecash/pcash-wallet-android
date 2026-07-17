@@ -173,9 +173,6 @@ private object SwapTransactionSettingsPage
 private object SwapProvidersSettingsPage
 
 @Serializable
-private data class SwapSelectLegProviderPage(val legIndex: Int)
-
-@Serializable
 private data class PayCoreVerificationPage(
     val networkType: PayCoreTicker,
     val walletAddress: String,
