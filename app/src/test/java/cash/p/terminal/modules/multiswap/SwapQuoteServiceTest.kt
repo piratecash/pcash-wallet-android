@@ -25,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -394,6 +395,25 @@ class SwapQuoteServiceTest {
             "lower",
             service.stateFlow.value.quote?.provider?.id,
         )
+    }
+
+    @Test
+    fun setAmount_amountChanged_marksQuotingImmediately() = runTest {
+        val provider = mockProvider(providerId = "provider")
+        val service = createService(listOf(provider), testScheduler)
+
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        advanceUntilIdle()
+
+        // Both tokens chosen but no amount yet -> not quoting.
+        assertFalse(service.stateFlow.value.quoting)
+
+        service.setAmount(BigDecimal.ONE)
+
+        // Changing the amount flips quoting=true immediately, before the debounced fetch
+        // runs, so the swap button shows the spinner and cannot act on a stale quote.
+        assertTrue(service.stateFlow.value.quoting)
     }
 
     private fun createService(
