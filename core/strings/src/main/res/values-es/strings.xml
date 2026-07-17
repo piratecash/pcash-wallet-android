@@ -2105,4 +2105,6 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="litecoin_hardware_extended_public_key_required">La cartera hardware de Litecoin requiere una clave pública extendida</string>
     <string name="send_trezor_mweb_not_supported">Trezor no admite MWEB. Envía Litecoin a una dirección normal (no MWEB).</string>
     <string name="send_trezor_time_lock_not_supported">Trezor no admite transacciones con bloqueo temporal.</string>
+    <string name="send_failed_offline_prompt_title">Transacción no enviada</string>
+    <string name="send_failed_offline_prompt_message">¿Firmar la transacción sin conexión y enviarla más tarde?</string>
 </resources>

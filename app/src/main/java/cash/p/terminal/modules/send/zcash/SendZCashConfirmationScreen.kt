@@ -8,12 +8,47 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
 import cash.p.terminal.modules.send.SendConfirmationScreen
+import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
+import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
+
+private const val ZCashConfirmationPage = "zcash_confirmation"
+private const val OfflineZCashSignPage = "offline_zcash_confirmation_sign"
+private const val OfflineZCashTransactionTransferPage = "offline_zcash_confirmation_transfer"
+private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendZCashConfirmationScreen(
     navController: NavController,
     sendViewModel: SendZCashViewModel,
     sendEntryPointDestId: Int
+) {
+    OfflineSignableConfirmationHost(
+        fragmentNavController = navController,
+        sendViewModel = sendViewModel,
+        confirmationRoute = ZCashConfirmationPage,
+        signFlowRoutes = OfflineSignFlowRoutes(
+            signRoute = OfflineZCashSignPage,
+            transferRoute = OfflineZCashTransactionTransferPage,
+            transferFormatArgument = OfflineTransactionTransferFormatArg,
+        ),
+        sourceChangeable = false,
+        onChangeSourceClick = {},
+    ) { onRequestOfflineSign ->
+        ZCashOnlineConfirmation(
+            navController = navController,
+            sendViewModel = sendViewModel,
+            sendEntryPointDestId = sendEntryPointDestId,
+            onRequestOfflineSign = onRequestOfflineSign,
+        )
+    }
+}
+
+@Composable
+private fun ZCashOnlineConfirmation(
+    navController: NavController,
+    sendViewModel: SendZCashViewModel,
+    sendEntryPointDestId: Int,
+    onRequestOfflineSign: (() -> Unit)?,
 ) {
     var confirmationData by remember { mutableStateOf(sendViewModel.getConfirmationData()) }
     var refresh by remember { mutableStateOf(false) }
@@ -50,6 +85,8 @@ fun SendZCashConfirmationScreen(
         isSynced = sendViewModel.isSynced,
         hasAdapterError = sendViewModel.hasAdapterError,
         onRetrySync = sendViewModel::retryAdapterSync,
+        sendEnabled = sendViewModel.isEffectivelySynced,
+        onSignOfflineOnFailure = onRequestOfflineSign,
         sendToken = sendViewModel.wallet.token,
         feeToken = sendViewModel.feeToken,
         feeCoinBalance = sendViewModel.feeCoinBalance,

@@ -22,6 +22,7 @@ import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.modules.send.offline.OfflineBroadcastTokenResolver
 import android.content.Context
+import android.net.ConnectivityManager as AndroidConnectivityManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.notifications.NotificationDeduplicator
 import cash.p.terminal.core.notifications.TransactionMonitor
@@ -224,6 +225,9 @@ val managerModule = module {
     }
     singleOf(::TransactionMonitor)
     singleOf(::TransactionNotificationCoordinator)
+    single {
+        get<Context>().getSystemService(Context.CONNECTIVITY_SERVICE) as AndroidConnectivityManager
+    }
     singleOf(::ConnectivityManager) bind IConnectivityManager::class
     singleOf(::EvmSyncSourceManager)
     singleOf(::TokenAutoEnableManager)

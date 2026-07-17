@@ -66,6 +66,8 @@ import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import org.koin.test.KoinTestRule
 import java.math.BigDecimal
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendEvmViewModelTest : KoinTest {
@@ -128,6 +130,7 @@ class SendEvmViewModelTest : KoinTest {
     val koinRule = KoinTestRule.create {
         modules(
             module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single { evmBlockchainManager }
                 single { payloadEncoder }
                 single { offlineSignedTransactionRepository }

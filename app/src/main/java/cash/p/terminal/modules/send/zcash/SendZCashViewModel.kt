@@ -101,7 +101,7 @@ class SendZCashViewModel(
     private val destinationAddress: Address
         get() = addressState.address ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
-    val offlineSignSupported =
+    override val offlineSignSupported =
         offlineSignAdapter != null && wallet.account.type is AccountType.Mnemonic
 
     init {

@@ -1,38 +1,44 @@
 package cash.p.terminal.core.managers
 
-import android.content.Context
-import android.net.ConnectivityManager
+import android.net.ConnectivityManager as AndroidConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.manager.IConnectivityManager
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
+import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
+
+// While foreground, re-derive connectivity from the system on this cadence so a missed
+// callback event (or a failed registration) can't leave isConnected stale indefinitely.
+private const val REVALIDATE_INTERVAL_MS = 15_000L
+// One delayed retry after a failed callback registration.
+private const val CALLBACK_RETRY_DELAY_MS = 2_000L
 
 class ConnectivityManager(
     backgroundManager: BackgroundManager,
     private val localStorage: ILocalStorage,
-    private val backgroundKeepAliveManager: BackgroundKeepAliveManager
+    private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val systemConnectivityManager: AndroidConnectivityManager,
+    dispatcherProvider: DispatcherProvider,
 ) : IConnectivityManager {
 
-    private val systemConnectivityManager: ConnectivityManager by lazy {
-        App.instance.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    }
-
-    private val scope = CoroutineScope(Dispatchers.Default)
+    private val scope = CoroutineScope(dispatcherProvider.default)
 
     private val _networkAvailabilityFlow = MutableSharedFlow<Boolean>(
         extraBufferCapacity = 1,
@@ -51,6 +57,9 @@ class ConnectivityManager(
 
     // Actor pattern: single channel ensures FIFO processing of network events
     private val eventChannel = Channel<NetworkEvent>(Channel.UNLIMITED)
+
+    // Foreground safety-net timer (see REVALIDATE_INTERVAL_MS)
+    private var revalidateJob: Job? = null
 
     // State managed only by the event processor (no mutex needed)
     private val activeNetworks = mutableSetOf<Network>()
@@ -98,7 +107,7 @@ class ConnectivityManager(
             }
         }
 
-        setInitialValues()
+        refreshFromSystem(forceEmit = true)
     }
 
     private fun processEvent(event: NetworkEvent) {
@@ -155,22 +164,25 @@ class ConnectivityManager(
         }
 
         unregisterCallbackSafely()
-        setInitialValues()
+        refreshFromSystem(forceEmit = true)
         registerCallback()
+        startRevalidateTimer()
     }
 
     private fun didEnterBackground() {
+        stopRevalidateTimer()
         if (backgroundKeepAliveManager.keepAliveBlockchains.value.isEmpty()) {
             unregisterCallbackSafely()
         }
     }
 
     private fun cleanup() {
+        stopRevalidateTimer()
         unregisterCallbackSafely()
         callback = null
     }
 
-    private fun registerCallback() {
+    private fun registerCallback(isRetry: Boolean = false) {
         callback?.let { cb ->
             // Set flag first to prevent repeated attempts
             if (isCallbackRegistered.compareAndSet(false, true)) {
@@ -179,8 +191,18 @@ class ConnectivityManager(
                         NetworkRequest.Builder().build(),
                         cb
                     )
-                }.onFailure {
+                }.onFailure { error ->
                     isCallbackRegistered.set(false)
+                    Timber.e(error, "Network callback registration failed; relying on periodic refresh")
+                    // Without a live callback the state would freeze — read the system now so it isn't
+                    // left stale, then retry registration once shortly after.
+                    refreshFromSystem(forceEmit = false)
+                    if (!isRetry) {
+                        scope.launch {
+                            delay(CALLBACK_RETRY_DELAY_MS)
+                            registerCallback(isRetry = true)
+                        }
+                    }
                 }
             }
         }
@@ -194,7 +216,22 @@ class ConnectivityManager(
         }
     }
 
-    private fun setInitialValues() {
+    private fun startRevalidateTimer() {
+        revalidateJob?.cancel()
+        revalidateJob = scope.launch {
+            while (isActive) {
+                delay(REVALIDATE_INTERVAL_MS)
+                refreshFromSystem(forceEmit = false)
+            }
+        }
+    }
+
+    private fun stopRevalidateTimer() {
+        revalidateJob?.cancel()
+        revalidateJob = null
+    }
+
+    private fun refreshFromSystem(forceEmit: Boolean) {
         val network = systemConnectivityManager.activeNetwork
         val hasValidInternet = network?.let { activeNetwork ->
             systemConnectivityManager.getNetworkCapabilities(activeNetwork)?.let { caps ->
@@ -207,12 +244,12 @@ class ConnectivityManager(
             NetworkEvent.Initialize(
                 network = network,
                 hasValidInternet = hasValidInternet,
-                forceEmit = true
+                forceEmit = forceEmit
             )
         )
     }
 
-    inner class ConnectionStatusCallback : ConnectivityManager.NetworkCallback() {
+    inner class ConnectionStatusCallback : AndroidConnectivityManager.NetworkCallback() {
 
         override fun onAvailable(network: Network) {
             super.onAvailable(network)

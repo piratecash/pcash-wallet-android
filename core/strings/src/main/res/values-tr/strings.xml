@@ -2114,4 +2114,6 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="litecoin_hardware_extended_public_key_required">Donanım Litecoin cüzdanı genişletilmiş açık anahtar gerektirir</string>
     <string name="send_trezor_mweb_not_supported">Trezor MWEB\'i desteklemiyor. Litecoin\'i normal (MWEB olmayan) bir adrese gönderin.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor zaman kilitli işlemleri desteklemiyor.</string>
+    <string name="send_failed_offline_prompt_title">İşlem gönderilmedi</string>
+    <string name="send_failed_offline_prompt_message">İşlemi çevrimdışı imzalayıp daha sonra göndermek ister misiniz?</string>
 </resources>

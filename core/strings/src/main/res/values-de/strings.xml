@@ -2105,4 +2105,6 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="litecoin_hardware_extended_public_key_required">Hardware-Litecoin-Wallet benötigt einen erweiterten öffentlichen Schlüssel</string>
     <string name="send_trezor_mweb_not_supported">Trezor unterstützt MWEB nicht. Senden Sie Litecoin an eine reguläre (Nicht-MWEB-)Adresse.</string>
     <string name="send_trezor_time_lock_not_supported">Trezor unterstützt zeitgesperrte Transaktionen nicht.</string>
+    <string name="send_failed_offline_prompt_title">Transaktion nicht gesendet</string>
+    <string name="send_failed_offline_prompt_message">Transaktion offline signieren und später senden?</string>
 </resources>

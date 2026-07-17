@@ -2113,4 +2113,6 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="litecoin_hardware_extended_public_key_required">A carteira hardware Litecoin requer uma chave pública estendida</string>
     <string name="send_trezor_mweb_not_supported">A Trezor não é compatível com MWEB. Envie Litecoin para um endereço comum (não MWEB).</string>
     <string name="send_trezor_time_lock_not_supported">A Trezor não é compatível com transações com bloqueio de tempo.</string>
+    <string name="send_failed_offline_prompt_title">Transação não enviada</string>
+    <string name="send_failed_offline_prompt_message">Assinar a transação off-line e enviá-la mais tarde?</string>
 </resources>

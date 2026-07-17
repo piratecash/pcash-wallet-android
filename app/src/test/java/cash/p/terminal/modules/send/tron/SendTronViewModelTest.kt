@@ -63,6 +63,8 @@ import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
 import java.math.BigDecimal
 import io.horizontalsystems.tronkit.models.Address as TronAddress
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendTronViewModelTest : KoinTest {
@@ -114,6 +116,7 @@ class SendTronViewModelTest : KoinTest {
     val koinRule = KoinTestRule.create {
         modules(
             module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single<IBalanceHiddenManager> { balanceHiddenManager }
                 single<MarketKitWrapper> { marketKit }
                 single { poisonAddressManager }

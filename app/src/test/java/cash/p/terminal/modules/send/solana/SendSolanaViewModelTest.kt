@@ -65,6 +65,8 @@ import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
 import java.math.BigDecimal
 import io.horizontalsystems.solanakit.models.Address as SolanaAddress
+import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.mockConnectivityManager
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SendSolanaViewModelTest : KoinTest {
@@ -117,6 +119,7 @@ class SendSolanaViewModelTest : KoinTest {
     val koinRule = KoinTestRule.create {
         modules(
             module {
+                single<IConnectivityManager> { mockConnectivityManager() }
                 single<IBalanceHiddenManager> { balanceHiddenManager }
                 single<MarketKitWrapper> { marketKit }
                 single { poisonAddressManager }

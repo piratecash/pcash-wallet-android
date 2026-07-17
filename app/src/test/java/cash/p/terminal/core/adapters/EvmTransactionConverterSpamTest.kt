@@ -1,6 +1,7 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.ICoinManager
+import cash.p.terminal.core.installEthereumCryptoProviderForTest
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
@@ -15,7 +16,6 @@ import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.erc20kit.events.TokenInfo
 import io.horizontalsystems.erc20kit.events.TransferEventInstance
 import io.horizontalsystems.ethereumkit.core.storage.TransactionSyncSourceStorage
-import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.decorations.UnknownTransactionDecoration
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.FullTransaction
@@ -27,7 +27,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigInteger
-import java.security.Security
 
 /**
  * Regression test for MOBILE-623: zero-value token-event spam must be marked as spam so
@@ -42,7 +41,7 @@ class EvmTransactionConverterSpamTest {
             // CryptoUtils.sha3 needs ETH-KECCAK-256 from BouncyCastle, which EthereumKit
             // registers at runtime. Unit tests must register it manually before
             // TransferEventInstance.<clinit> triggers the keccak computation.
-            Security.addProvider(InternalBouncyCastleProvider.getInstance())
+            installEthereumCryptoProviderForTest()
         }
     }
 

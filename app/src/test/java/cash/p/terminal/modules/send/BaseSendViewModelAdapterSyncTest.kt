@@ -33,6 +33,7 @@ class BaseSendViewModelAdapterSyncTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val balanceStateFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 10)
+    private val connectivityFlow = MutableStateFlow(true)
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val wallet = WalletFactory.previewWallet()
 
@@ -50,6 +51,7 @@ class BaseSendViewModelAdapterSyncTest {
         startKoin {
             modules(module {
                 single { mockk<cash.p.terminal.wallet.MarketKitWrapper>(relaxed = true) }
+                single<cash.p.terminal.manager.IConnectivityManager> { mockConnectivityManager(connectivityFlow) }
                 single {
                     mockk<cash.p.terminal.wallet.managers.IBalanceHiddenManager>(relaxed = true) {
                         every { balanceHiddenFlow } returns MutableStateFlow(false)
@@ -195,6 +197,70 @@ class BaseSendViewModelAdapterSyncTest {
         assertTrue(vm.hasAdapterError)
     }
 
+    // --- Sync grace tests ---
+
+    @Test
+    fun syncGrace_goodState_activeAndEffectivelySynced() = runTest(dispatcher) {
+        currentAdapterState = AdapterState.Synced
+        connectivityFlow.value = true
+        val vm = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(vm.syncGraceActive)
+        assertTrue(vm.isEffectivelySynced)
+    }
+
+    @Test
+    fun syncGrace_offlineWhileStaleSynced_boundedExpiryDisablesSend() = runTest(dispatcher) {
+        currentAdapterState = AdapterState.Synced
+        connectivityFlow.value = true
+        val vm = createViewModel()
+        advanceUntilIdle()
+        assertTrue(vm.syncGraceActive)
+
+        // Network drops while the adapter is still (stale) Synced — no adapter transition.
+        connectivityFlow.value = false
+        assertTrue(vm.syncGraceActive)          // brief flap → still within grace
+        assertTrue(vm.isEffectivelySynced)      // Send button stays enabled
+
+        // Grace is bounded: it expires purely on the timer, without any adapter transition.
+        advanceUntilIdle()
+        assertFalse(vm.syncGraceActive)
+        assertFalse(vm.isEffectivelySynced)     // isSynced still true, but offline past grace → false
+    }
+
+    @Test
+    fun syncGrace_neverGood_inactive() = runTest(dispatcher) {
+        currentAdapterState = AdapterState.NotSynced(Exception("fail"))
+        connectivityFlow.value = true
+        val vm = createViewModel()
+        advanceUntilIdle()
+
+        assertFalse(vm.syncGraceActive)
+    }
+
+    @Test
+    fun syncGrace_quietGoodPeriodThenDrop_grantsFullGraceFromDrop() = runTest(dispatcher) {
+        currentAdapterState = AdapterState.Synced
+        connectivityFlow.value = true
+        val vm = createViewModel()
+        advanceUntilIdle()
+        assertTrue(vm.syncGraceActive)
+
+        // Good state persists quietly far past the grace window, with no adapter/connectivity emission.
+        vm.fakeElapsedRealtime = 5 * 60 * 1000L
+
+        // Network drops now: the grace window must be anchored to THIS moment, not the last emission.
+        connectivityFlow.value = false
+        assertTrue(vm.syncGraceActive)          // regression: was false without the good→bad anchor
+        assertTrue(vm.isEffectivelySynced)
+
+        // The full grace window still expires via the reactive timer.
+        advanceUntilIdle()
+        assertFalse(vm.syncGraceActive)
+        assertFalse(vm.isEffectivelySynced)
+    }
+
     // --- Helpers ---
 
     private fun emitAdapterState(state: AdapterState) {
@@ -214,6 +280,9 @@ private class TestSendViewModel(
     wallet: Wallet,
     adapterManager: IAdapterManager,
 ) : BaseSendViewModel<TestSendUiState>(wallet, adapterManager) {
+    var fakeElapsedRealtime: Long = 0L
+    override val elapsedRealtimeMs: Long
+        get() = fakeElapsedRealtime
     override fun createState() = TestSendUiState()
     override fun getEstimatedFee(): BigDecimal? = null
     override fun onSendRequested() {}
