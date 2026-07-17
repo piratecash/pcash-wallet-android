@@ -1,5 +1,6 @@
 package cash.p.terminal.core.managers
 
+import cash.p.terminal.core.installEthereumCryptoProviderForTest
 import cash.p.terminal.tangem.common.CustomXPubKeyAddressParser
 import cash.p.terminal.tangem.signer.HardwareWalletEvmSigner
 import cash.p.terminal.trezor.signer.TrezorEvmSigner
@@ -14,7 +15,6 @@ import cash.p.terminal.wallet.entities.SecretString
 import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.ethereumkit.core.signer.Signer
-import io.horizontalsystems.ethereumkit.crypto.InternalBouncyCastleProvider
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.Chain
 import io.mockk.coEvery
@@ -25,7 +25,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.security.Security
 
 class EvmSignerFactoryTest {
 
@@ -76,7 +75,7 @@ class EvmSignerFactoryTest {
 
     @Before
     fun setUp() {
-        Security.addProvider(InternalBouncyCastleProvider.getInstance())
+        installEthereumCryptoProviderForTest()
         coEvery {
             hardwarePublicKeyStorage.getKey(hardwareAccount.id, BlockchainType.Ethereum, TokenType.Native)
         } returns hardwarePublicKey
