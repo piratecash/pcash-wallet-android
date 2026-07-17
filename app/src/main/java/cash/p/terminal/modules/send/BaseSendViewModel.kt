@@ -35,7 +35,7 @@ import kotlinx.coroutines.yield
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
 
-private const val SYNC_GRACE_MS = 3 * 60 * 1000L
+private const val SYNC_GRACE_MS = 60 * 1000L
 
 abstract class BaseSendViewModel<T>(
     val wallet: Wallet,
@@ -64,21 +64,33 @@ abstract class BaseSendViewModel<T>(
     var syncGraceActive by mutableStateOf(false)
         private set
     private var lastGoodElapsed: Long? = null
+    private var wasGood = false
     private var graceTimerJob: Job? = null
 
     val isEffectivelySynced: Boolean
         get() = (isSynced && connectivityManager.isConnected.value) || syncGraceActive
 
+    /** Monotonic clock; overridable in tests to control the grace window deterministically. */
+    protected open val elapsedRealtimeMs: Long
+        get() = SystemClock.elapsedRealtime()
+
     private fun recomputeGrace() {
         if (isSynced && connectivityManager.isConnected.value) {
             graceTimerJob?.cancel()
             graceTimerJob = null
-            lastGoodElapsed = SystemClock.elapsedRealtime()
+            lastGoodElapsed = elapsedRealtimeMs
             syncGraceActive = true
+            wasGood = true
             return
         }
+        if (wasGood) {
+            // The grace window starts when the good state ends, not at the last emission — a quiet
+            // synced period must not shorten it.
+            lastGoodElapsed = elapsedRealtimeMs
+            wasGood = false
+        }
         val last = lastGoodElapsed
-        val within = isWithinSyncGrace(last, SystemClock.elapsedRealtime(), SYNC_GRACE_MS)
+        val within = isWithinSyncGrace(last, elapsedRealtimeMs, SYNC_GRACE_MS)
         if (!within) {
             graceTimerJob?.cancel()
             graceTimerJob = null
@@ -87,7 +99,7 @@ abstract class BaseSendViewModel<T>(
         }
         if (graceTimerJob?.isActive != true) {
             syncGraceActive = true
-            val remaining = SYNC_GRACE_MS - (SystemClock.elapsedRealtime() - (last ?: 0L))
+            val remaining = SYNC_GRACE_MS - (elapsedRealtimeMs - (last ?: 0L))
             graceTimerJob = viewModelScope.launch {
                 delay(remaining)
                 syncGraceActive = false

@@ -239,6 +239,28 @@ class BaseSendViewModelAdapterSyncTest {
         assertFalse(vm.syncGraceActive)
     }
 
+    @Test
+    fun syncGrace_quietGoodPeriodThenDrop_grantsFullGraceFromDrop() = runTest(dispatcher) {
+        currentAdapterState = AdapterState.Synced
+        connectivityFlow.value = true
+        val vm = createViewModel()
+        advanceUntilIdle()
+        assertTrue(vm.syncGraceActive)
+
+        // Good state persists quietly far past the grace window, with no adapter/connectivity emission.
+        vm.fakeElapsedRealtime = 5 * 60 * 1000L
+
+        // Network drops now: the grace window must be anchored to THIS moment, not the last emission.
+        connectivityFlow.value = false
+        assertTrue(vm.syncGraceActive)          // regression: was false without the good→bad anchor
+        assertTrue(vm.isEffectivelySynced)
+
+        // The full grace window still expires via the reactive timer.
+        advanceUntilIdle()
+        assertFalse(vm.syncGraceActive)
+        assertFalse(vm.isEffectivelySynced)
+    }
+
     // --- Helpers ---
 
     private fun emitAdapterState(state: AdapterState) {
@@ -258,6 +280,9 @@ private class TestSendViewModel(
     wallet: Wallet,
     adapterManager: IAdapterManager,
 ) : BaseSendViewModel<TestSendUiState>(wallet, adapterManager) {
+    var fakeElapsedRealtime: Long = 0L
+    override val elapsedRealtimeMs: Long
+        get() = fakeElapsedRealtime
     override fun createState() = TestSendUiState()
     override fun getEstimatedFee(): BigDecimal? = null
     override fun onSendRequested() {}
