@@ -18,12 +18,9 @@ import com.solana.core.PublicKey
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.extractCertificateChainInfo
-import io.horizontalsystems.core.logger.AppLogger
 import io.horizontalsystems.hdwalletkit.Base58
 import io.horizontalsystems.solanakit.Signer
 import io.horizontalsystems.solanakit.SolanaKit
-import io.horizontalsystems.solanakit.network.SolanaNetworkError
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -39,7 +36,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 class SolanaKitManager(
@@ -49,6 +45,7 @@ class SolanaKitManager(
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
     private val trezorClient: ITrezorClient,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
 
     private companion object {
@@ -74,10 +71,8 @@ class SolanaKitManager(
     var currentAccount: Account? = null
         private set
     private val solanaKitStoppedSubject = PublishSubject.create<Unit>()
-    private val networkLogger = AppLogger(BlockchainType.Solana.uid).getScoped("network")
 
     private val mutex = Mutex()
-    private val recentNetworkErrorInfoByAccountId = ConcurrentHashMap<String, Map<String, String>>()
 
     val kitStoppedObservable: Observable<Unit>
         get() = solanaKitStoppedSubject
@@ -90,10 +85,8 @@ class SolanaKitManager(
             }
         }
 
-    fun networkErrorInfo(accountId: String): Map<String, String>? = recentNetworkErrorInfoByAccountId[accountId]
-
     private val currentNetworkErrorInfo: Map<String, String>?
-        get() = currentAccount?.id?.let(recentNetworkErrorInfoByAccountId::get)
+        get() = currentAccount?.id?.let { networkErrorTracker.errorInfo(BlockchainType.Solana, it) }
 
     private fun handleUpdateNetwork() {
         stopKit()
@@ -288,34 +281,9 @@ class SolanaKitManager(
             limitFirstTimeTransactionCount = limitFirstTimeTransactionCount,
             limitTimeTransactionCount = limitTimeTransactionCount,
             networkErrorListener = { error ->
-                handleNetworkError(walletId, error)
+                networkErrorTracker.record(BlockchainType.Solana, walletId, error.toNetworkErrorInfo())
             }
         )
-
-    private fun handleNetworkError(accountId: String, error: SolanaNetworkError) {
-        val info = linkedMapOf(
-            "Recent Network Error Source" to error.source,
-            "Recent Network Error Method" to error.method,
-            "Recent Network Error URL" to error.url,
-            "Recent Network Error Host" to error.host,
-            "Recent Network Error Type" to error.throwable.javaClass.simpleName,
-            "Recent Network Error Message" to error.throwable.message.orEmpty(),
-        ).filterValues(String::isNotBlank).toMutableMap()
-
-        if (error.resolvedIps.isNotEmpty()) {
-            info["Recent Network Error Resolved IPs"] = error.resolvedIps.joinToString(", ")
-        }
-
-        info += error.throwable.extractCertificateChainInfo()
-
-        recentNetworkErrorInfoByAccountId[accountId] = info
-        val message = info.entries.joinToString(separator = "\n") { (key, value) -> "$key: $value" }
-        networkLogger.warning(
-            message,
-            error.throwable
-        )
-        Timber.tag("SolanaNetwork").e(error.throwable, message)
-    }
 
     private fun subscribeToEvents() {
         backgroundEventListenerJob = coroutineScope.launch {

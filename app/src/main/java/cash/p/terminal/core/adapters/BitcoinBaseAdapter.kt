@@ -44,10 +44,12 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.entities.TokenType
+import cash.p.terminal.core.managers.NetworkErrorTracker
+import cash.p.terminal.core.managers.toNetworkErrorInfo
 import io.horizontalsystems.bitcoincore.AbstractKit
 import io.horizontalsystems.bitcoincore.BitcoinCore
+import io.horizontalsystems.bitcoincore.network.BitcoinNetworkErrorListener
 import io.horizontalsystems.bitcoincore.core.IPluginData
-import io.horizontalsystems.bitcoincore.extensions.toReversedHex
 import io.horizontalsystems.bitcoincore.models.Address
 import io.horizontalsystems.bitcoincore.models.RawTransactionBroadcastStatus
 import io.horizontalsystems.bitcoincore.models.TransactionDataSortType
@@ -102,6 +104,9 @@ abstract class BitcoinBaseAdapter(
 
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager
             by inject(BackgroundKeepAliveManager::class.java)
+
+    private val networkErrorTracker: NetworkErrorTracker
+            by inject(NetworkErrorTracker::class.java)
 
     private val pollingSessionCount = AtomicInteger(0)
 
@@ -269,6 +274,17 @@ abstract class BitcoinBaseAdapter(
         get() = satoshiToBTC(kit.balance.unspendableNotRelayed)
 
     override fun start() {
+        // Installed here (not in an init block): `kit` is an overridden open val whose
+        // subclass backing field is still null during base-class construction, so touching
+        // it from init would NPE. By start() the kit is fully constructed, and network
+        // errors can only occur once syncing has begun.
+        kit.networkErrorListener = BitcoinNetworkErrorListener { error ->
+            networkErrorTracker.record(
+                wallet.token.blockchainType,
+                wallet.account.id,
+                error.toNetworkErrorInfo()
+            )
+        }
         kit.start()
         subscribeToEvents()
         scope.launch {
@@ -793,7 +809,11 @@ abstract class BitcoinBaseAdapter(
     }
 
     override val statusInfo: Map<String, Any>
-        get() = kit.statusInfo()
+        get() = buildMap {
+            putAll(kit.statusInfo())
+            networkErrorTracker.errorInfo(wallet.token.blockchainType, wallet.account.id)
+                ?.let { putAll(it) }
+        }
 
     override fun satoshiToBTC(value: Long): BigDecimal {
         return BigDecimal(value).movePointLeft(decimal)
