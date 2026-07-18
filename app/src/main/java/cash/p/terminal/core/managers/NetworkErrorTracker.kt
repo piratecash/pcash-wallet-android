@@ -39,7 +39,11 @@ class NetworkErrorTracker {
         val message = info.entries.joinToString(separator = "\n") { (key, value) -> "$key: $value" }
         // Use logTag (not uid): the blockchain status screen filters its APP LOG by
         // BlockchainType.logTag (e.g. "BTC"/"LTC"), so logging under uid would hide the entry there.
-        AppLogger(blockchainType.logTag).getScoped("network").warning(message, error.throwable)
+        // Sanitize the stack trace too: its first line (throwable.message) and nested causes can embed
+        // the request URL with an API key, and the app log is surfaced/shared via AppStatus. The raw
+        // throwable still reaches logcat (Timber) — device-local, not shared.
+        val sanitizedStackTrace = sanitizeNetworkUrl(error.throwable.stackTraceToString())
+        AppLogger(blockchainType.logTag).getScoped("network").warning("$message\n$sanitizedStackTrace")
         Timber.tag("NetworkError").e(error.throwable, message)
     }
 
@@ -53,7 +57,7 @@ class NetworkErrorTracker {
             "Recent Network Error URL" to sanitizeNetworkUrl(error.url),
             "Recent Network Error Host" to error.host,
             "Recent Network Error Type" to error.throwable.javaClass.simpleName,
-            "Recent Network Error Message" to error.throwable.message.orEmpty(),
+            "Recent Network Error Message" to sanitizeNetworkUrl(error.throwable.message.orEmpty()),
         ).filterValues(String::isNotBlank).toMutableMap()
 
         if (error.resolvedIps.isNotEmpty()) {

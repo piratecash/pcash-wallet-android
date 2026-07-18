@@ -25,4 +25,8 @@ class AppLogger(private val scope: List<String> = listOf()) : KeyStoreManager.Lo
     override fun warning(message: String, e: Throwable) {
         AppLog.warning(actionId, message, e)
     }
+
+    fun warning(message: String) {
+        AppLog.warning(actionId, message)
+    }
 }
