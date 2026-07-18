@@ -1,5 +1,6 @@
 package cash.p.terminal.core.managers
 
+import cash.p.terminal.modules.blockchainstatus.logTag
 import io.horizontalsystems.bitcoincore.network.BitcoinNetworkError
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.extractCertificateChainInfo
@@ -36,7 +37,9 @@ class NetworkErrorTracker {
         recentByKey[key(blockchainType, accountId)] = info
 
         val message = info.entries.joinToString(separator = "\n") { (key, value) -> "$key: $value" }
-        AppLogger(blockchainType.uid).getScoped("network").warning(message, error.throwable)
+        // Use logTag (not uid): the blockchain status screen filters its APP LOG by
+        // BlockchainType.logTag (e.g. "BTC"/"LTC"), so logging under uid would hide the entry there.
+        AppLogger(blockchainType.logTag).getScoped("network").warning(message, error.throwable)
         Timber.tag("NetworkError").e(error.throwable, message)
     }
 
