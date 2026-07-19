@@ -52,13 +52,11 @@ class EvmKitManager(
     val chain: Chain,
     private val backgroundManager: BackgroundManager,
     private val syncSourceManager: EvmSyncSourceManager,
-    private val backgroundKeepAliveManager: BackgroundKeepAliveManager
+    private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
     private val evmSignerFactory: EvmSignerFactory
             by inject(EvmSignerFactory::class.java)
-
-    private val networkErrorTracker: NetworkErrorTracker
-            by inject(NetworkErrorTracker::class.java)
 
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)

@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -38,9 +37,8 @@ class TronKitManager(
     private val backgroundManager: BackgroundManager,
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
-    private val networkErrorTracker: NetworkErrorTracker
-            by inject(NetworkErrorTracker::class.java)
 
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
