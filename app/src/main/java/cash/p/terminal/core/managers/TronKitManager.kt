@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koin.java.KoinJavaComponent.inject
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -38,6 +39,9 @@ class TronKitManager(
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
 ) {
+    private val networkErrorTracker: NetworkErrorTracker
+            by inject(NetworkErrorTracker::class.java)
+
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -58,7 +62,11 @@ class TronKitManager(
         private set
 
     val statusInfo: Map<String, Any>?
-        get() = tronKitWrapper?.tronKit?.statusInfo()
+        get() = networkErrorTracker.mergedStatusInfo(
+            tronKitWrapper?.tronKit?.statusInfo(),
+            BlockchainType.Tron,
+            currentAccount?.id,
+        )
 
     suspend fun getTronKitWrapper(account: Account): TronKitWrapper = lifecycleMutex.withLock {
         if (this.tronKitWrapper != null && currentAccount != account) {
@@ -97,6 +105,9 @@ class TronKitManager(
         requireNotNull(this.tronKitWrapper)
     }
 
+    private fun eventListenerFactory(account: Account): NetworkErrorEventListener.Factory =
+        NetworkErrorEventListener.Factory(BlockchainType.Tron, account.id, networkErrorTracker)
+
     private fun createKitInstance(
         accountType: AccountType.Mnemonic,
         account: Account
@@ -109,7 +120,8 @@ class TronKitManager(
             walletId = account.id,
             seed = seed,
             network = network,
-            tronGridApiKeys = AppConfigProvider.trongridApiKeys
+            tronGridApiKeys = AppConfigProvider.trongridApiKeys,
+            eventListenerFactory = eventListenerFactory(account)
         )
 
         return TronKitWrapper(kit, signer)
@@ -124,7 +136,8 @@ class TronKitManager(
             address = Address.fromBase58(address),
             network = network,
             walletId = account.id,
-            tronGridApiKeys = AppConfigProvider.trongridApiKeys
+            tronGridApiKeys = AppConfigProvider.trongridApiKeys,
+            eventListenerFactory = eventListenerFactory(account)
         )
 
         return TronKitWrapper(kit, null)
@@ -148,7 +161,8 @@ class TronKitManager(
             address = addressAndPublicKey.address,
             network = network,
             walletId = account.id,
-            tronGridApiKeys = AppConfigProvider.trongridApiKeys
+            tronGridApiKeys = AppConfigProvider.trongridApiKeys,
+            eventListenerFactory = eventListenerFactory(account)
         )
 
         return TronKitWrapper(kit, signer)

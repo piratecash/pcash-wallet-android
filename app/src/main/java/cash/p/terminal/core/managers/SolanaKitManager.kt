@@ -78,15 +78,11 @@ class SolanaKitManager(
         get() = solanaKitStoppedSubject
 
     val statusInfo: Map<String, Any>?
-        get() = solanaKitWrapper?.solanaKit?.statusInfo()?.let { info ->
-            linkedMapOf<String, Any>().apply {
-                putAll(info)
-                currentNetworkErrorInfo?.let { putAll(it) }
-            }
-        }
-
-    private val currentNetworkErrorInfo: Map<String, String>?
-        get() = currentAccount?.id?.let { networkErrorTracker.errorInfo(BlockchainType.Solana, it) }
+        get() = networkErrorTracker.mergedStatusInfo(
+            solanaKitWrapper?.solanaKit?.statusInfo(),
+            BlockchainType.Solana,
+            currentAccount?.id,
+        )
 
     private fun handleUpdateNetwork() {
         stopKit()

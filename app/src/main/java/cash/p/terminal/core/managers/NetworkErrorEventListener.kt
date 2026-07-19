@@ -8,12 +8,12 @@ import java.io.IOException
 import java.net.InetAddress
 
 /**
- * Per-call OkHttp observer that records EVM transport failures (SSL/DNS/timeout/connect) into the
+ * Per-call OkHttp observer that records transport failures (SSL/DNS/timeout/connect) into the
  * shared [NetworkErrorTracker] for one (blockchainType, accountId). Passive: it only reads, never
  * throws into OkHttp, and does not record benign lifecycle-canceled calls. HTTP status errors
  * (4xx/5xx) are successful calls and are intentionally not captured here.
  */
-class EvmNetworkErrorEventListener(
+class NetworkErrorEventListener(
     private val blockchainType: BlockchainType,
     private val accountId: String,
     private val tracker: NetworkErrorTracker,
@@ -55,6 +55,6 @@ class EvmNetworkErrorEventListener(
         private val tracker: NetworkErrorTracker,
     ) : EventListener.Factory {
         override fun create(call: Call): EventListener =
-            EvmNetworkErrorEventListener(blockchainType, accountId, tracker)
+            NetworkErrorEventListener(blockchainType, accountId, tracker)
     }
 }

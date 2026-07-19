@@ -101,12 +101,7 @@ class EvmKitManager(
 
     val statusInfo: Map<String, Any>?
         get() = evmKitWrapper?.let { wrapper ->
-            buildMap {
-                putAll(wrapper.evmKit.statusInfo())
-                currentAccount?.id?.let { accountId ->
-                    networkErrorTracker.errorInfo(wrapper.blockchainType, accountId)?.let { putAll(it) }
-                }
-            }
+            networkErrorTracker.mergedStatusInfo(wrapper.evmKit.statusInfo(), wrapper.blockchainType, currentAccount?.id)
         }
 
     suspend fun getEvmKitWrapper(
@@ -141,7 +136,7 @@ class EvmKitManager(
         val signer = runBlocking { evmSignerFactory.createSigner(account, blockchainType, chain) }
 
         val eventListenerFactory =
-            EvmNetworkErrorEventListener.Factory(blockchainType, account.id, networkErrorTracker)
+            NetworkErrorEventListener.Factory(blockchainType, account.id, networkErrorTracker)
 
         val evmKit = EthereumKit.getInstance(
             application = App.instance,

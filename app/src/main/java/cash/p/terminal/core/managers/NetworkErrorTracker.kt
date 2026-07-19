@@ -71,6 +71,32 @@ class NetworkErrorTracker {
     private fun key(blockchainType: BlockchainType, accountId: String) = "${blockchainType.uid}:$accountId"
 }
 
+/**
+ * Merges the tracker's most recent network error (if any) into [base]. Use when a status map is
+ * already guaranteed to exist (e.g. the kit is running).
+ */
+fun NetworkErrorTracker.appendNetworkErrors(
+    base: Map<String, Any>,
+    blockchainType: BlockchainType,
+    accountId: String,
+): Map<String, Any> {
+    val errors = errorInfo(blockchainType, accountId)
+    return if (errors.isNullOrEmpty()) base else base + errors
+}
+
+/**
+ * Nullable variant of [appendNetworkErrors] for managers whose status map (or account) may not
+ * exist yet, e.g. before the underlying kit has been created.
+ */
+fun NetworkErrorTracker.mergedStatusInfo(
+    base: Map<String, Any>?,
+    blockchainType: BlockchainType,
+    accountId: String?,
+): Map<String, Any>? {
+    if (base == null || accountId == null) return base
+    return appendNetworkErrors(base, blockchainType, accountId)
+}
+
 fun SolanaNetworkError.toNetworkErrorInfo() =
     NetworkErrorInfo(source, method, url, host, resolvedIps, throwable)
 

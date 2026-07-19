@@ -45,6 +45,7 @@ import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.core.managers.NetworkErrorTracker
+import cash.p.terminal.core.managers.appendNetworkErrors
 import cash.p.terminal.core.managers.toNetworkErrorInfo
 import io.horizontalsystems.bitcoincore.AbstractKit
 import io.horizontalsystems.bitcoincore.BitcoinCore
@@ -809,11 +810,7 @@ abstract class BitcoinBaseAdapter(
     }
 
     override val statusInfo: Map<String, Any>
-        get() = buildMap {
-            putAll(kit.statusInfo())
-            networkErrorTracker.errorInfo(wallet.token.blockchainType, wallet.account.id)
-                ?.let { putAll(it) }
-        }
+        get() = networkErrorTracker.appendNetworkErrors(kit.statusInfo(), wallet.token.blockchainType, wallet.account.id)
 
     override fun satoshiToBTC(value: Long): BigDecimal {
         return BigDecimal(value).movePointLeft(decimal)
