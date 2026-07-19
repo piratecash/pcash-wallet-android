@@ -5,6 +5,7 @@ import io.horizontalsystems.core.entities.BlockchainType
 import okhttp3.Call
 import okhttp3.EventListener
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.net.InetAddress
 
 /**
@@ -26,9 +27,11 @@ class NetworkErrorEventListener(
     }
 
     override fun callFailed(call: Call, ioe: IOException) {
-        // Skip only genuine cancellations (lifecycle stop / unlink / background). Do NOT filter by
-        // InterruptedIOException type — SocketTimeoutException is one and timeouts are in scope.
-        if (call.isCanceled()) return
+        // Skip only genuine lifecycle cancellations (stop / unlink / background), which surface as a
+        // plain IOException. OkHttp implements callTimeout() by canceling the call, so a call-level
+        // timeout also arrives with isCanceled()==true but as an InterruptedIOException — keep those,
+        // like SocketTimeoutException, since timeouts are exactly what this listener must diagnose.
+        if (call.isCanceled() && ioe !is InterruptedIOException) return
 
         tryOrNull {
             val request = call.request()
