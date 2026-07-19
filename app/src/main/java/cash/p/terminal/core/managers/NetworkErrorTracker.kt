@@ -42,7 +42,9 @@ class NetworkErrorTracker {
         // Sanitize the stack trace too: its first line (throwable.message) and nested causes can embed
         // the request URL with an API key, and the app log is surfaced/shared via AppStatus. The raw
         // throwable still reaches logcat (Timber) — device-local, not shared.
-        val sanitizedStackTrace = sanitizeNetworkUrl(error.throwable.stackTraceToString())
+        // Persist a BOUNDED trace only: the full throwable would bypass AppLog's 5-frame limit and,
+        // during prolonged connectivity failures, bloat the 90-day-retained app log with multi-KB rows.
+        val sanitizedStackTrace = sanitizeNetworkUrl(error.throwable.boundedStackTraceToString())
         AppLogger(blockchainType.logTag).getScoped("network").warning("$message\n$sanitizedStackTrace")
         Timber.tag("NetworkError").e(error.throwable, message)
     }
@@ -102,6 +104,32 @@ fun SolanaNetworkError.toNetworkErrorInfo() =
 
 fun BitcoinNetworkError.toNetworkErrorInfo() =
     NetworkErrorInfo(source, method, url, host, resolvedIps, throwable)
+
+internal const val MAX_TRACE_FRAMES_PER_CAUSE = 8
+internal const val MAX_TRACE_CAUSE_DEPTH = 3
+
+/**
+ * A size-bounded stack trace for persistence: top [MAX_TRACE_FRAMES_PER_CAUSE] frames per level and at
+ * most [MAX_TRACE_CAUSE_DEPTH] cause levels. Keeps the diagnostically important head plus the cause
+ * chain (e.g. SSLHandshakeException / UnknownHostException) without persisting the full unbounded
+ * trace — the complete throwable still reaches logcat via Timber.
+ */
+internal fun Throwable.boundedStackTraceToString(): String {
+    val sb = StringBuilder()
+    var current: Throwable? = this
+    var depth = 0
+    while (depth < MAX_TRACE_CAUSE_DEPTH) {
+        val t = current ?: break
+        sb.appendLine(if (depth == 0) t.toString() else "Caused by: $t")
+        t.stackTrace.take(MAX_TRACE_FRAMES_PER_CAUSE).forEach { sb.appendLine("\tat $it") }
+        val hidden = t.stackTrace.size - MAX_TRACE_FRAMES_PER_CAUSE
+        if (hidden > 0) sb.appendLine("\t... $hidden more")
+        current = t.cause
+        depth++
+    }
+    if (current != null) sb.appendLine("\t... causes truncated")
+    return sb.toString()
+}
 
 private const val REDACTED = "redacted"
 private val URL_USERINFO = Regex("://[^/@\\s]*@")
