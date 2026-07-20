@@ -2119,4 +2119,13 @@
     <string name="send_trezor_time_lock_not_supported">Trezor از تراکنش‌های زمان‌قفل پشتیبانی نمی‌کند.</string>
     <string name="send_failed_offline_prompt_title">تراکنش ارسال نشد</string>
     <string name="send_failed_offline_prompt_message">تراکنش را آفلاین امضا کرده و بعداً ارسال کنید؟</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">پریمیوم فعال</string>
+    <string name="manage_accounts_section_other">سایر کیف‌پول‌ها</string>
+    <string name="manage_accounts_section_watch">کیف‌پول‌های فقط مشاهده</string>
+    <string name="manage_accounts_section_hardware">کیف‌پول‌های سخت‌افزاری</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">آزمایشی</string>
 </resources>

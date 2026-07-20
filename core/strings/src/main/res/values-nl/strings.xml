@@ -2122,4 +2122,13 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="send_trezor_time_lock_not_supported">Trezor ondersteunt tijdvergrendelde transacties niet.</string>
     <string name="send_failed_offline_prompt_title">Transactie niet verzonden</string>
     <string name="send_failed_offline_prompt_message">De transactie offline ondertekenen en later verzenden?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium actief</string>
+    <string name="manage_accounts_section_other">Andere portemonnees</string>
+    <string name="manage_accounts_section_watch">Watch-only portemonnees</string>
+    <string name="manage_accounts_section_hardware">Hardware-portemonnees</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Proefversie</string>
 </resources>

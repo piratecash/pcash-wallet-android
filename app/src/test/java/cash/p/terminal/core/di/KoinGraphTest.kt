@@ -14,6 +14,8 @@ import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
+import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.manageaccounts.ManageAccountsViewModel
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.modules.pin.hiddenwallet.HiddenWalletPinPolicy
 import cash.p.terminal.modules.paycore.PayCoreTicker
@@ -79,6 +81,7 @@ class KoinGraphTest : KoinTest {
             definition<PassphraseTermsViewModel>(Array<String>::class),
             definition<ConfiguredTokenInfoViewModel>(Token::class),
             definition<SafetyRulesViewModel>(SafetyRulesModule.SafetyRulesMode::class, List::class),
+            definition<ManageAccountsViewModel>(ManageAccountsModule.Mode::class),
             definition<ConnectMiniAppViewModel>(SavedStateHandle::class),
             definition<BlockchainStatusViewModel>(BlockchainStatusProvider::class),
             definition<SwapSelectCoinViewModel>(Token::class, Account::class),

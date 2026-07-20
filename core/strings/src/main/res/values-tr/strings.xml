@@ -2116,4 +2116,13 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="send_trezor_time_lock_not_supported">Trezor zaman kilitli işlemleri desteklemiyor.</string>
     <string name="send_failed_offline_prompt_title">İşlem gönderilmedi</string>
     <string name="send_failed_offline_prompt_message">İşlemi çevrimdışı imzalayıp daha sonra göndermek ister misiniz?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium etkin</string>
+    <string name="manage_accounts_section_other">Diğer cüzdanlar</string>
+    <string name="manage_accounts_section_watch">Yalnızca izleme cüzdanları</string>
+    <string name="manage_accounts_section_hardware">Donanım cüzdanları</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Deneme</string>
 </resources>

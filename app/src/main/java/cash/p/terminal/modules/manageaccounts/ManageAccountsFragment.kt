@@ -15,7 +15,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.core.navigateWithTermsAccepted
@@ -32,7 +33,9 @@ import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonSecondaryCircle
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui_compose.components.HsBackButton
+import cash.p.terminal.ui_compose.components.PremiumHeader
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SectionHeaderWithIcon
 import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.components.body_jacob
 import cash.p.terminal.ui_compose.components.body_leah
@@ -55,7 +58,7 @@ class ManageAccountsFragment : BaseComposeFragment() {
 fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModule.Mode) {
     BackupAlert(navController)
 
-    val viewModel = viewModel<ManageAccountsViewModel>(factory = ManageAccountsModule.Factory(mode))
+    val viewModel: ManageAccountsViewModel = koinViewModel { parametersOf(mode) }
 
     val finish = viewModel.finish
 
@@ -75,21 +78,47 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
 
         LazyColumn(modifier = Modifier.background(color = ComposeAppTheme.colors.tyler)) {
             item {
-                Spacer(modifier = Modifier.height(12.dp))
-                AccountSection(
+                WalletSection(
+                    accounts = viewModel.premiumAccountsState,
+                    onSelect = viewModel::onSelect,
+                    navController = navController,
+                    frameColor = ComposeAppTheme.colors.jacob,
+                    header = {
+                        PremiumHeader(text = stringResource(R.string.manage_accounts_premium_active))
+                    }
+                )
+                WalletSection(
                     accounts = viewModel.regularAccountsState,
-                    viewModel = viewModel,
-                    navController = navController
+                    onSelect = viewModel::onSelect,
+                    navController = navController,
+                    header = {
+                        SectionHeaderWithIcon(
+                            iconRes = R.drawable.ic_switch_wallet_24,
+                            text = stringResource(R.string.manage_accounts_section_other)
+                        )
+                    }
                 )
-                AccountSection(
+                WalletSection(
                     accounts = viewModel.watchAccountsState,
-                    viewModel = viewModel,
-                    navController = navController
+                    onSelect = viewModel::onSelect,
+                    navController = navController,
+                    header = {
+                        SectionHeaderWithIcon(
+                            iconRes = R.drawable.icon_binocule_20,
+                            text = stringResource(R.string.manage_accounts_section_watch)
+                        )
+                    }
                 )
-                AccountSection(
+                WalletSection(
                     accounts = viewModel.hardwareAccountsState,
-                    viewModel = viewModel,
-                    navController = navController
+                    onSelect = viewModel::onSelect,
+                    navController = navController,
+                    header = {
+                        SectionHeaderWithIcon(
+                            iconRes = R.drawable.ic_card,
+                            text = stringResource(R.string.manage_accounts_section_hardware)
+                        )
+                    }
                 )
 
                 val args = when (mode) {
@@ -173,86 +202,114 @@ fun ManageAccountsScreen(navController: NavController, mode: ManageAccountsModul
 }
 
 @Composable
-private fun AccountSection(
+private fun WalletSection(
     accounts: List<AccountViewItem>?,
-    viewModel: ManageAccountsViewModel,
-    navController: NavController
+    onSelect: (AccountViewItem) -> Unit,
+    navController: NavController,
+    header: @Composable () -> Unit,
+    frameColor: Color? = null,
 ) {
-    accounts?.also {
-        if (it.isNotEmpty()) {
-            AccountsSection(it, viewModel, navController)
-            Spacer(modifier = Modifier.height(32.dp))
-        }
+    if (!accounts.isNullOrEmpty()) {
+        header()
+        AccountsSection(accounts, onSelect, navController, frameColor)
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 @Composable
 private fun AccountsSection(
     accounts: List<AccountViewItem>,
-    viewModel: ManageAccountsViewModel,
-    navController: NavController
+    onSelect: (AccountViewItem) -> Unit,
+    navController: NavController,
+    frameColor: Color?,
 ) {
-    CellUniversalLawrenceSection(items = accounts) { accountViewItem ->
-        RowUniversal(
-            onClick = {
-                viewModel.onSelect(accountViewItem)
-            }
-        ) {
-            HsRadioButton(
-                modifier = Modifier.padding(horizontal = 4.dp),
-                selected = accountViewItem.selected,
-                onClick = {
-                    viewModel.onSelect(accountViewItem)
-                }
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                body_leah(text = accountViewItem.title)
-                if (accountViewItem.backupRequired) {
-                    subhead2_lucian(text = stringResource(id = R.string.ManageAccount_BackupRequired_Title))
-                } else if (accountViewItem.migrationRequired) {
-                    subhead2_lucian(text = stringResource(id = R.string.ManageAccount_MigrationRequired_Title))
-                } else {
-                    subhead2_grey(
-                        text = accountViewItem.subtitle,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
-                    )
-                }
-            }
-            if (accountViewItem.isWatchAccount) {
-                Icon(
-                    painter = painterResource(id = R.drawable.icon_binocule_20),
-                    contentDescription = null,
-                    tint = ComposeAppTheme.colors.grey
-                )
-            } else if (accountViewItem.showNfcIcon) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_card),
-                    contentDescription = null,
-                    tint = ComposeAppTheme.colors.grey
-                )
-            }
-
-            val icon: Int
-            val iconTint: Color
-            if (accountViewItem.showAlertIcon) {
-                icon = R.drawable.icon_warning_2_20
-                iconTint = ComposeAppTheme.colors.lucian
-            } else {
-                icon = R.drawable.ic_more2_20
-                iconTint = ComposeAppTheme.colors.leah
-            }
-
-            ButtonSecondaryCircle(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                icon = icon,
-                tint = iconTint
-            ) {
-                navController.slideFromRight(
-                    R.id.manageAccountFragment,
-                    ManageAccountFragment.Input(accountViewItem.accountId)
-                )
-            }
+    if (frameColor != null) {
+        CellUniversalLawrenceSection(items = accounts, frameColor = frameColor) { accountViewItem ->
+            AccountRow(accountViewItem, onSelect, navController)
         }
+    } else {
+        CellUniversalLawrenceSection(items = accounts) { accountViewItem ->
+            AccountRow(accountViewItem, onSelect, navController)
+        }
+    }
+}
+
+@Composable
+private fun AccountRow(
+    accountViewItem: AccountViewItem,
+    onSelect: (AccountViewItem) -> Unit,
+    navController: NavController,
+) {
+    RowUniversal(
+        onClick = { onSelect(accountViewItem) }
+    ) {
+        HsRadioButton(
+            modifier = Modifier.padding(horizontal = 4.dp),
+            selected = accountViewItem.selected,
+            onClick = { onSelect(accountViewItem) }
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            body_leah(text = accountViewItem.title)
+            AccountSubtitle(accountViewItem)
+        }
+        PremiumBadge(
+            premiumType = accountViewItem.premiumType,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+        AccountTypeIcon(accountViewItem)
+        AccountMoreButton(accountViewItem, navController)
+    }
+}
+
+@Composable
+private fun AccountSubtitle(accountViewItem: AccountViewItem) {
+    when {
+        accountViewItem.backupRequired ->
+            subhead2_lucian(text = stringResource(id = R.string.ManageAccount_BackupRequired_Title))
+
+        accountViewItem.migrationRequired ->
+            subhead2_lucian(text = stringResource(id = R.string.ManageAccount_MigrationRequired_Title))
+
+        else -> subhead2_grey(
+            text = accountViewItem.subtitle,
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun AccountTypeIcon(accountViewItem: AccountViewItem) {
+    val iconRes = when {
+        accountViewItem.isWatchAccount -> R.drawable.icon_binocule_20
+        accountViewItem.showNfcIcon -> R.drawable.ic_card
+        else -> return
+    }
+    Icon(
+        painter = painterResource(id = iconRes),
+        contentDescription = null,
+        tint = ComposeAppTheme.colors.grey
+    )
+}
+
+@Composable
+private fun AccountMoreButton(
+    accountViewItem: AccountViewItem,
+    navController: NavController,
+) {
+    val (icon, iconTint) = if (accountViewItem.showAlertIcon) {
+        R.drawable.icon_warning_2_20 to ComposeAppTheme.colors.lucian
+    } else {
+        R.drawable.ic_more2_20 to ComposeAppTheme.colors.leah
+    }
+    ButtonSecondaryCircle(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        icon = icon,
+        tint = iconTint
+    ) {
+        navController.slideFromRight(
+            R.id.manageAccountFragment,
+            ManageAccountFragment.Input(accountViewItem.accountId)
+        )
     }
 }

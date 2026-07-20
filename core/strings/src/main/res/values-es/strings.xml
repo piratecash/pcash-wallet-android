@@ -2107,4 +2107,13 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="send_trezor_time_lock_not_supported">Trezor no admite transacciones con bloqueo temporal.</string>
     <string name="send_failed_offline_prompt_title">Transacción no enviada</string>
     <string name="send_failed_offline_prompt_message">¿Firmar la transacción sin conexión y enviarla más tarde?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium activo</string>
+    <string name="manage_accounts_section_other">Otros monederos</string>
+    <string name="manage_accounts_section_watch">Monederos de solo lectura</string>
+    <string name="manage_accounts_section_hardware">Monederos hardware</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Prueba</string>
 </resources>

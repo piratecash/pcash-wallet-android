@@ -554,8 +554,34 @@ fun <T> CellUniversalLawrenceSection(
     showFrame: Boolean = false,
     itemContent: @Composable (T) -> Unit
 ) {
-    val frameModifier = if (showFrame) {
-        Modifier.border(1.dp, ComposeAppTheme.colors.steel20, RoundedCornerShape(12.dp))
+    LawrenceSectionColumn(
+        items = items,
+        frameColor = if (showFrame) ComposeAppTheme.colors.steel20 else null,
+        itemContent = itemContent,
+    )
+}
+
+@Composable
+fun <T> CellUniversalLawrenceSection(
+    items: Iterable<T>,
+    frameColor: Color,
+    itemContent: @Composable (T) -> Unit
+) {
+    LawrenceSectionColumn(
+        items = items,
+        frameColor = frameColor,
+        itemContent = itemContent,
+    )
+}
+
+@Composable
+private fun <T> LawrenceSectionColumn(
+    items: Iterable<T>,
+    frameColor: Color?,
+    itemContent: @Composable (T) -> Unit
+) {
+    val frameModifier = if (frameColor != null) {
+        Modifier.border(1.dp, frameColor, RoundedCornerShape(12.dp))
     } else {
         Modifier
     }

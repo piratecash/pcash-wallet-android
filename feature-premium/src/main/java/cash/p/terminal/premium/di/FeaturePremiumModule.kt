@@ -13,6 +13,7 @@ import cash.p.terminal.premium.domain.usecase.CheckTrialPremiumUseCase
 import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCase
 import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCaseImpl
 import cash.p.terminal.premium.domain.usecase.SeedToEvmAddressUseCase
+import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
@@ -27,6 +28,7 @@ val featurePremiumModule = module {
     single { get<PremiumDatabase>().premiumUserDao() }
     single { get<PremiumDatabase>().demoPremiumUserDao() }
     single { get<PremiumDatabase>().bnbPremiumAddressDao() }
+    single { get<PremiumDatabase>().accountPremiumCacheDao() }
 
     // Repositories
     factoryOf(::PremiumUserRepository)
@@ -36,7 +38,9 @@ val featurePremiumModule = module {
 
     // Use Cases
     singleOf(::CheckAdapterPremiumBalanceUseCaseImpl) bind CheckAdapterPremiumBalanceUseCase::class
-    singleOf(::CheckPremiumUseCaseImpl) bind CheckPremiumUseCase::class
+    // Created eagerly at startup so the per-account premium cache is warmed in the background before the
+    // wallet-list / switcher screens are opened (they then read a warm cache instead of scanning on open).
+    singleOf(::CheckPremiumUseCaseImpl) { createdAtStart() } bind CheckPremiumUseCase::class
     singleOf(::GetBnbAddressUseCaseImpl) bind GetBnbAddressUseCase::class
     factoryOf(::SeedToEvmAddressUseCase)
     factory {

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.annotation.DrawableRes
 import androidx.compose.material.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -156,6 +157,33 @@ fun PremiumHeader(
         subhead1_jacob(
             text = text,
             maxLines = 1
+        )
+    }
+}
+
+@Composable
+fun SectionHeaderWithIcon(
+    @DrawableRes iconRes: Int,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .padding(horizontal = 32.dp)
+            .height(32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .size(16.dp),
+            painter = painterResource(iconRes),
+            tint = ComposeAppTheme.colors.grey,
+            contentDescription = null,
+        )
+        subhead1_grey(
+            text = text,
+            maxLines = 1,
         )
     }
 }

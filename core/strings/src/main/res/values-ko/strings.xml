@@ -2109,4 +2109,13 @@
     <string name="send_trezor_time_lock_not_supported">Trezor는 시간 잠금 거래를 지원하지 않습니다.</string>
     <string name="send_failed_offline_prompt_title">거래가 전송되지 않음</string>
     <string name="send_failed_offline_prompt_message">거래를 오프라인으로 서명하고 나중에 전송하시겠습니까?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">프리미엄 활성화됨</string>
+    <string name="manage_accounts_section_other">기타 지갑</string>
+    <string name="manage_accounts_section_watch">조회 전용 지갑</string>
+    <string name="manage_accounts_section_hardware">하드웨어 지갑</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">체험판</string>
 </resources>

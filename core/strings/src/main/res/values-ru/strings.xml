@@ -2293,4 +2293,13 @@
     <string name="send_trezor_time_lock_not_supported">Trezor не поддерживает транзакции с временной блокировкой.</string>
     <string name="send_failed_offline_prompt_title">Транзакция не отправлена</string>
     <string name="send_failed_offline_prompt_message">Подписать транзакцию офлайн и отправить позже?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Премиум активен</string>
+    <string name="manage_accounts_section_other">Другие кошельки</string>
+    <string name="manage_accounts_section_watch">Кошельки для наблюдения</string>
+    <string name="manage_accounts_section_hardware">Аппаратные кошельки</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Пробный</string>
 </resources>

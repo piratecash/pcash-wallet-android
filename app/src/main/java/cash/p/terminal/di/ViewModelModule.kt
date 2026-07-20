@@ -8,6 +8,8 @@ import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
+import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.manageaccounts.ManageAccountsViewModel
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesViewModel
@@ -139,6 +141,9 @@ val viewModelModule = module {
     }
     viewModel { (accountId: String) ->
         BackupKeyViewModel(accountId = accountId, accountManager = get())
+    }
+    viewModel { (mode: ManageAccountsModule.Mode) ->
+        ManageAccountsViewModel(get(), get(), mode)
     }
     viewModelOf(::AdvancedSecurityViewModel)
     viewModelOf(::CalculatorPinSettingsViewModel)

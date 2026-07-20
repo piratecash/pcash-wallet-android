@@ -2115,4 +2115,13 @@
     <string name="send_trezor_time_lock_not_supported">A Trezor não suporta transações com bloqueio temporal.</string>
     <string name="send_failed_offline_prompt_title">Transação não enviada</string>
     <string name="send_failed_offline_prompt_message">Assinar a transação offline e enviá-la mais tarde?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium ativo</string>
+    <string name="manage_accounts_section_other">Outras carteiras</string>
+    <string name="manage_accounts_section_watch">Carteiras só de leitura</string>
+    <string name="manage_accounts_section_hardware">Carteiras de hardware</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Teste</string>
 </resources>

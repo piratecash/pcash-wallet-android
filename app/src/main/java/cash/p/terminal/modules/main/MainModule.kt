@@ -6,13 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.modules.balance.OpenSendTokenSelect
 import cash.p.terminal.modules.settings.appearance.AppIcon
 import cash.p.terminal.modules.walletconnect.WCManager
+import cash.p.terminal.premium.domain.usecase.PremiumType
 import cash.p.terminal.wallet.Account
 import kotlinx.parcelize.Parcelize
 
@@ -81,6 +80,7 @@ object MainModule {
         val torEnabled: Boolean,
         val wcSupportState: WCManager.SupportState?,
         val openSend: OpenSendTokenSelect?,
+        val walletSwitchPremiumTypes: Map<String, PremiumType> = emptyMap(),
     )
 }
 

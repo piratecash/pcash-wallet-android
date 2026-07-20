@@ -11,6 +11,8 @@ import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.isTonConnectDeeplink
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
+import cash.p.terminal.premium.domain.usecase.PremiumType
 import cash.p.terminal.core.usecase.UpdateResult
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.AddressUri
@@ -58,6 +60,12 @@ class MainViewModel(
     private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
         CheckGooglePlayUpdateUseCase::class.java
     )
+
+    private val checkPremiumUseCase: CheckPremiumUseCase by inject(
+        CheckPremiumUseCase::class.java
+    )
+
+    private var walletSwitchPremiumTypes: Map<String, PremiumType> = emptyMap()
 
     private var wcPendingRequestsCount = 0
     private var marketsTabEnabled = localStorage.marketsTabEnabledFlow.value
@@ -181,6 +189,15 @@ class MainViewModel(
             }
         }
 
+        viewModelScope.launch {
+            // Keep the wallet-switch sheet's premium badges in sync from the persisted+refreshed cache, so
+            // opening the sheet shows the hydrated type immediately and updates as the re-scan completes.
+            checkPremiumUseCase.premiumTypesFlow.collect {
+                walletSwitchPremiumTypes = it
+                emitState()
+            }
+        }
+
         updateSettingsBadge()
         updateTransactionsTabEnabled()
     }
@@ -196,6 +213,7 @@ class MainViewModel(
         wcSupportState = wcSupportState,
         torEnabled = torEnabled,
         openSend = openSendTokenSelect,
+        walletSwitchPremiumTypes = walletSwitchPremiumTypes,
     )
 
     private fun isTransactionsTabEnabled(): Boolean =
