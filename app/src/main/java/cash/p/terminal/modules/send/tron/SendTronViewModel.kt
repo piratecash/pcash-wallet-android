@@ -12,6 +12,7 @@ import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTronSignRequest
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.SignedOfflineTronTransaction
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
@@ -39,6 +40,7 @@ import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.DispatcherProvider
 import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -100,6 +102,12 @@ class SendTronViewModel(
     private var feeLoading: Boolean = false
     private var feeEstimationJob: Job? = null
 
+    // TAPOS anchor captured while online; reused to build the transaction locally when signing offline.
+    private var offlineAnchor: OfflineAnchor? = null
+
+    // Fee limit from the last successful online estimate; used for offline TRC20 signing (no network).
+    private var estimatedFeeLimit: Long? = null
+
     override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
@@ -146,6 +154,11 @@ class SendTronViewModel(
         }
         viewModelScope.launch {
             addressService.setAddress(address)
+        }
+        if (offlineSignSupported) {
+            viewModelScope.launch {
+                offlineAnchor = tryOrNull { OfflineAnchor(adapter.getNowBlock(), elapsedRealtimeMs) }
+            }
         }
     }
 
@@ -260,6 +273,7 @@ class SendTronViewModel(
             }
 
             feeState = FeeState.Success(fees)
+            estimatedFeeLimit = fees.feeLimit
             emitState()
 
             val fee = fees.totalFee(feeToken.decimals)
@@ -341,14 +355,25 @@ class SendTronViewModel(
         val confirmationData = getConfirmationData()
         val signingAdapter = offlineSignAdapter
             ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
+        val anchor = offlineAnchor
+            ?: throw LocalizedException(R.string.offline_transaction_anchor_required)
+        val feeLimit = offlineFeeLimit
+        if (sendToken.type != TokenType.Native && feeLimit == null) {
+            throw LocalizedException(R.string.send_error_fee_rate_unavailable)
+        }
+        // Derive the transaction time from the anchor's network timestamp advanced by the monotonic
+        // clock, so a skewed wall clock cannot invalidate expiration while offline.
+        val timestamp = anchor.block.timestamp + (elapsedRealtimeMs - anchor.elapsedAtFetch)
+        val createdTransaction = adapter.buildOfflineTransaction(
+            amount = confirmationData.amount,
+            to = destinationTronAddress,
+            feeLimit = feeLimit,
+            block = anchor.block,
+            timestamp = timestamp,
+            expiration = timestamp + OFFLINE_TX_EXPIRATION_MS,
+        )
         return OfflineSignResult(
-            signedTransaction = signingAdapter.signOffline(
-                OfflineTronSignRequest(
-                    amount = confirmationData.amount,
-                    address = destinationTronAddress,
-                    feeLimit = feeLimitForTransaction(),
-                )
-            ),
+            signedTransaction = signingAdapter.signOffline(OfflineTronSignRequest(createdTransaction)),
             confirmationData = confirmationData,
         )
     }
@@ -376,6 +401,11 @@ class SendTronViewModel(
             feeState.feeLimit ?: adapter.estimateFee(decimalAmount, destinationTronAddress).feeLimit
                 ?: throw LocalizedException(R.string.send_error_fee_rate_unavailable)
         }
+
+    // Offline signing must not touch the network: reuse the fee limit captured during the last
+    // successful online estimate. Native TRX needs none; TRC20 relies on this being set while online.
+    private val offlineFeeLimit: Long?
+        get() = if (sendToken.type == TokenType.Native) null else estimatedFeeLimit
 
     private fun contact(address: Address) =
         contactsRepo.getContactsFiltered(
@@ -421,6 +451,7 @@ class SendTronViewModel(
                 val fees = adapter.estimateFee(amount, tronAddress)
                 currentFee = fees.totalFee(feeToken.decimals)
                 feeState = FeeState.Success(fees)
+                estimatedFeeLimit = fees.feeLimit
             } catch (error: Throwable) {
                 currentFee = null
                 feeState = FeeState.Error(error)
@@ -430,6 +461,10 @@ class SendTronViewModel(
         }
     }
 }
+
+private const val OFFLINE_TX_EXPIRATION_MS = 6L * 60 * 60 * 1000
+
+private data class OfflineAnchor(val block: NowBlock, val elapsedAtFetch: Long)
 
 sealed class FeeState {
     object Loading : FeeState()

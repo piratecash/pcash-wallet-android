@@ -1019,6 +1019,7 @@
     <string name="offline_signed_status_unknown">Status unbekannt</string>
     <string name="offline_signed_status_broadcasted">An Netzwerk gesendet</string>
     <string name="offline_send_no_connection_description">Die Transaktion kann derzeit nicht gesendet werden. Sie können sie offline signieren, damit eine andere Person sie später überträgt.</string>
+    <string name="offline_transaction_anchor_required">Stellen Sie einmal eine Internetverbindung her, um diese Transaktion vorzubereiten – danach können Sie sie offline signieren.</string>
     <string name="offline_send_sync_error_description">Daten konnten nicht von der aktuellen Quelle geladen werden.\n\nSie können:\n• es später erneut versuchen\n• VPN aktivieren und die Synchronisierung erneut versuchen\n• die Transaktion offline signieren und den HEX-Wert zur manuellen Übertragung teilen\n\nWenn Sie einen 403-Fehler erhalten haben, ist Ihre IP-Adresse möglicherweise blockiert. Ein VPN behebt dieses Problem normalerweise.\nSie können eine signierte Transaktion erstellen und sie an ein anderes Gerät oder eine andere Person senden, damit sie im Netzwerk übertragen wird.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Wählen Sie die Datenquelle für die Wiederherstellung des Wallets mit Transaktionen aus.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Ein-/Ausgänge</string>

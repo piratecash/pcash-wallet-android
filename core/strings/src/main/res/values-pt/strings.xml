@@ -1027,6 +1027,7 @@
     <string name="offline_signed_status_unknown">Estado desconhecido</string>
     <string name="offline_signed_status_broadcasted">Enviada para a rede</string>
     <string name="offline_send_no_connection_description">A transação não pode ser enviada agora. Pode assiná-la offline para que outra pessoa a transmita mais tarde.</string>
+    <string name="offline_transaction_anchor_required">Ligue-se à internet uma vez para preparar esta transação; depois pode assiná-la offline.</string>
     <string name="offline_send_sync_error_description">Não foi possível obter dados da fonte atual.\n\nPode:\n• tentar novamente mais tarde\n• ativar a VPN e tentar sincronizar novamente\n• assinar a transação offline e partilhar o HEX para transmissão manual\n\nSe recebeu um erro 403, o seu endereço IP pode estar bloqueado. Usar uma VPN normalmente resolve este problema.\nPode criar uma transação assinada e enviá-la para outro dispositivo ou pessoa para a transmitir para a rede.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Selecione uma fonte de dados para restauração de carteira. Restaurar da blockchain leva consideravelmente mais tempo.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entrada/Saída</string>

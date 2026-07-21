@@ -32,6 +32,7 @@ import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
+import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -39,6 +40,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -72,6 +74,7 @@ class SendTronViewModelTest : KoinTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val adapter = mockk<TestSendTronAdapter>(relaxed = true)
+    private val nowBlock = NowBlock(number = 100L, blockId = "00".repeat(32), timestamp = 1_700_000_000_000L)
     private val xRateService = mockk<XRateService>(relaxed = true)
     private val amountService = mockk<SendAmountService>(relaxed = true)
     private val addressService = mockk<SendTronAddressService>(relaxed = true)
@@ -140,6 +143,7 @@ class SendTronViewModelTest : KoinTest {
         every { payloadEncoder.encode(any()) } returns "payload"
         coEvery { offlineSignedTransactionRepository.save(any(), any()) } returns Unit
         coEvery { adapter.estimateFee(any(), any()) } returns listOf(Fee.Energy(required = 10, price = 2))
+        coEvery { adapter.getNowBlock() } returns nowBlock
         coEvery { adapter.signOffline(any()) } returns SignedOfflineTronTransaction(
             rawHex = "deadbeef",
             txHash = TRON_TX_HASH,
@@ -191,14 +195,15 @@ class SendTronViewModelTest : KoinTest {
         assertEquals(amount, draft.amount)
         assertEquals(address.hex, draft.toAddress)
         assertEquals(EXPIRATION, draft.tronRetryMetadata?.expiration)
-        coVerify {
-            adapter.signOffline(
-                match {
-                    it is OfflineTronSignRequest &&
-                        it.amount == amount &&
-                        it.address.base58 == TRON_ADDRESS &&
-                        it.feeLimit == null
-                }
+        coVerify { adapter.signOffline(match { it is OfflineTronSignRequest }) }
+        verify {
+            adapter.buildOfflineTransaction(
+                amount = amount,
+                to = match { it.base58 == TRON_ADDRESS },
+                feeLimit = null,
+                block = nowBlock,
+                timestamp = any(),
+                expiration = any(),
             )
         }
         coVerify { offlineSignedTransactionRepository.save(draft, "payload") }
@@ -224,14 +229,14 @@ class SendTronViewModelTest : KoinTest {
         assertEquals(usdtToken, draft.wallet.token)
         assertEquals(trxToken, draft.feeToken)
         assertEquals(EXPIRATION, draft.tronRetryMetadata?.expiration)
-        coVerify {
-            adapter.signOffline(
-                match {
-                    it is OfflineTronSignRequest &&
-                        it.amount == amount &&
-                        it.address.base58 == TRON_ADDRESS &&
-                        it.feeLimit == 20L
-                }
+        verify {
+            adapter.buildOfflineTransaction(
+                amount = amount,
+                to = match { it.base58 == TRON_ADDRESS },
+                feeLimit = 20L,
+                block = nowBlock,
+                timestamp = any(),
+                expiration = any(),
             )
         }
     }

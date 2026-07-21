@@ -1023,6 +1023,7 @@
     <string name="offline_signed_status_unknown">状态未知</string>
     <string name="offline_signed_status_broadcasted">已发送到网络</string>
     <string name="offline_send_no_connection_description">目前无法发送交易。你可以离线签名，让其他人稍后广播。</string>
+    <string name="offline_transaction_anchor_required">请先联网一次以准备此交易，之后即可离线签名。</string>
     <string name="offline_send_sync_error_description">无法从当前来源获取数据。\n\n你可以：\n• 稍后重试\n• 启用 VPN 并重新同步\n• 离线签名交易并共享 HEX 以便手动广播\n\n如果收到 403 错误，你的 IP 地址可能被屏蔽。使用 VPN 通常可以解决此问题。\n你可以创建已签名的交易，并将其发送到另一台设备或其他人，以便广播到网络。</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">通过交易为恢复钱包选择数据源。</string>
     <string name="BtcBlockchainSettings_InputsOutputs">输入/输出</string>

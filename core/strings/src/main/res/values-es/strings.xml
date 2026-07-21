@@ -1022,6 +1022,7 @@
     <string name="offline_signed_status_unknown">Estado desconocido</string>
     <string name="offline_signed_status_broadcasted">Enviada a la red</string>
     <string name="offline_send_no_connection_description">La transacción no se puede enviar ahora. Puede firmarla sin conexión para que otra persona la transmita más tarde.</string>
+    <string name="offline_transaction_anchor_required">Conéctate a internet una vez para preparar esta transacción; después podrás firmarla sin conexión.</string>
     <string name="offline_send_sync_error_description">No se pudieron obtener datos de la fuente actual.\n\nPuede:\n• intentarlo de nuevo más tarde\n• activar una VPN y volver a sincronizar\n• firmar la transacción sin conexión y compartir el HEX para la transmisión manual\n\nSi recibió un error 403, es posible que su dirección IP esté bloqueada. Usar una VPN normalmente resuelve este problema.\nPuede crear una transacción firmada y enviarla a otro dispositivo o persona para transmitirla a la red.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Elige la fuente que la aplicación P.CASH debería usar para sincronizar la(s) cartera(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entradas/Salidas</string>

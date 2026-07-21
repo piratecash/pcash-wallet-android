@@ -37,6 +37,7 @@ import io.horizontalsystems.solanakit.models.FullTransaction
 import io.horizontalsystems.tonkit.FriendlyAddress
 import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.network.CreatedTransaction
+import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.reactivex.Flowable
 import io.reactivex.Single
@@ -325,9 +326,7 @@ data class SignedOfflineTonTransaction(
 )
 
 data class OfflineTronSignRequest(
-    val amount: BigDecimal,
-    val address: TronAddress,
-    val feeLimit: Long?,
+    val createdTransaction: CreatedTransaction,
 ) : OfflineSignRequest
 
 data class SignedOfflineTronTransaction(
@@ -438,6 +437,16 @@ interface ISendTronAdapter : IBalanceAdapter {
     suspend fun send(createdTransaction: CreatedTransaction): String
     suspend fun isAddressActive(address: TronAddress): Boolean
     fun isOwnAddress(address: TronAddress): Boolean
+
+    suspend fun getNowBlock(): NowBlock
+    fun buildOfflineTransaction(
+        amount: BigDecimal,
+        to: TronAddress,
+        feeLimit: Long?,
+        block: NowBlock,
+        timestamp: Long,
+        expiration: Long,
+    ): CreatedTransaction
 }
 interface IFeeRateProvider {
     val feeRateChangeable: Boolean get() = false

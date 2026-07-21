@@ -1028,6 +1028,7 @@
     <string name="offline_signed_status_unknown">Status onbekend</string>
     <string name="offline_signed_status_broadcasted">Naar netwerk verzonden</string>
     <string name="offline_send_no_connection_description">De transactie kan nu niet worden verzonden. U kunt deze offline ondertekenen zodat iemand anders deze later kan uitzenden.</string>
+    <string name="offline_transaction_anchor_required">Maak eenmalig verbinding met internet om deze transactie voor te bereiden; daarna kunt u deze offline ondertekenen.</string>
     <string name="offline_send_sync_error_description">Kon geen gegevens ophalen uit de huidige bron.\n\nU kunt:\n• het later opnieuw proberen\n• VPN inschakelen en opnieuw synchroniseren\n• de transactie offline ondertekenen en de HEX delen voor handmatige uitzending\n\nAls u een 403-fout hebt ontvangen, is uw IP-adres mogelijk geblokkeerd. Een VPN lost dit probleem meestal op.\nU kunt een ondertekende transactie maken en deze naar een ander apparaat of persoon sturen om deze naar het netwerk uit te zenden.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
