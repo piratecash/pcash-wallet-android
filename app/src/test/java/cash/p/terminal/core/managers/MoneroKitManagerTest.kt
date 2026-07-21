@@ -1,6 +1,9 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.TestDispatcherProvider
+import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountOrigin
+import cash.p.terminal.wallet.AccountType
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
@@ -19,7 +22,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertNull
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Regression coverage for the background lifecycle: entering background must stop and
@@ -36,6 +41,18 @@ class MoneroKitManagerTest {
         every { networkAvailabilityFlow } returns MutableSharedFlow()
     }
     private val mockWrapper = mockk<MoneroKitWrapper>(relaxed = true)
+    private val account = Account(
+        id = "account-id",
+        name = "Monero",
+        type = AccountType.MnemonicMonero(
+            words = emptyList(),
+            password = "password",
+            height = 1,
+            walletInnerName = "wallet"
+        ),
+        origin = AccountOrigin.Created,
+        level = 0
+    )
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val testScope = TestScope(dispatcher)
@@ -68,6 +85,7 @@ class MoneroKitManagerTest {
             dispatcherProvider = dispatcherProvider,
             moneroFileDao = mockk(relaxed = true),
             removeMoneroWalletFilesUseCase = mockk(relaxed = true),
+            networkErrorTracker = mockk(relaxed = true),
         ).apply {
             moneroKitWrapper = mockWrapper
             createdManager = this
@@ -128,4 +146,29 @@ class MoneroKitManagerTest {
 
         coVerify(exactly = 1) { mockWrapper.stop(saveWallet = true) }
     }
+
+    @Test
+    fun unlink_lastUser_clearsWrapper() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+
+        manager.unlink(account)
+        advanceUntilIdle()
+
+        // stopKit() must null the wrapper so a later poller restart cannot reuse it with a null factory.
+        assertNull(manager.moneroKitWrapper)
+        coVerify { mockWrapper.stop(any()) }
+    }
+
+    private fun setField(manager: MoneroKitManager, name: String, value: Any?) {
+        MoneroKitManager::class.java.getDeclaredField(name).apply {
+            isAccessible = true
+        }.set(manager, value)
+    }
+
+    private fun fieldValue(manager: MoneroKitManager, name: String): Any? =
+        MoneroKitManager::class.java.getDeclaredField(name).apply {
+            isAccessible = true
+        }.get(manager)
 }

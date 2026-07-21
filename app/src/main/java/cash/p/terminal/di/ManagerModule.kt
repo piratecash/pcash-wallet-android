@@ -69,6 +69,7 @@ import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.SilentCameraManager
+import cash.p.terminal.core.managers.NetworkErrorTracker
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.core.managers.SolanaWalletManager
@@ -235,6 +236,7 @@ val managerModule = module {
     singleOf(::EvmSignerFactory)
     singleOf(::BtcBlockchainManager)
     singleOf(::OfflineBroadcastTokenResolver)
+    singleOf(::NetworkErrorTracker)
     singleOf(::SolanaKitManager)
     singleOf(::StellarKitManager)
     singleOf(::TonKitManager)

@@ -52,7 +52,8 @@ class EvmKitManager(
     val chain: Chain,
     private val backgroundManager: BackgroundManager,
     private val syncSourceManager: EvmSyncSourceManager,
-    private val backgroundKeepAliveManager: BackgroundKeepAliveManager
+    private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
     private val evmSignerFactory: EvmSignerFactory
             by inject(EvmSignerFactory::class.java)
@@ -97,7 +98,9 @@ class EvmKitManager(
         get() = evmKitUpdatedSubject
 
     val statusInfo: Map<String, Any>?
-        get() = evmKitWrapper?.evmKit?.statusInfo()
+        get() = evmKitWrapper?.let { wrapper ->
+            networkErrorTracker.mergedStatusInfo(wrapper.evmKit.statusInfo(), wrapper.blockchainType, currentAccount?.id)
+        }
 
     suspend fun getEvmKitWrapper(
         account: Account,
@@ -130,6 +133,9 @@ class EvmKitManager(
             ?: throw UnsupportedAccountException()
         val signer = runBlocking { evmSignerFactory.createSigner(account, blockchainType, chain) }
 
+        val eventListenerFactory =
+            NetworkErrorEventListener.Factory(blockchainType, account.id, networkErrorTracker)
+
         val evmKit = EthereumKit.getInstance(
             application = App.instance,
             address = address,
@@ -137,7 +143,8 @@ class EvmKitManager(
             rpcSource = syncSource.rpcSource,
             transactionSource = syncSource.transactionSource,
             walletId = account.id,
-            scanHistoricalEip20 = account.origin == AccountOrigin.Restored
+            scanHistoricalEip20 = account.origin == AccountOrigin.Restored,
+            eventListenerFactory = eventListenerFactory
         )
 
         Erc20Kit.addTransactionSyncer(evmKit)
@@ -179,7 +186,8 @@ class EvmKitManager(
             walletId = account.id,
             transactionManager = evmKit.transactionManager,
             sourceTag = "pcash-wallet-android",
-            transactionSyncSourceStorage = evmKit.transactionSyncSourceStorage
+            transactionSyncSourceStorage = evmKit.transactionSyncSourceStorage,
+            eventListenerFactory = eventListenerFactory
         )
         merkleTransactionAdapter?.registerInKit(evmKit)
 

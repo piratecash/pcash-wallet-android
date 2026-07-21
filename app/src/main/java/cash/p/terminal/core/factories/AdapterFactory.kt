@@ -57,6 +57,7 @@ import cash.p.terminal.core.managers.StackingManager
 import cash.p.terminal.core.managers.StellarKitManager
 import cash.p.terminal.core.managers.TonKitManager
 import cash.p.terminal.core.managers.TronKitManager
+import cash.p.terminal.modules.blockchainstatus.logTag
 import cash.p.terminal.data.repository.EvmTransactionRepository
 import cash.p.terminal.network.pirate.domain.repository.MasterNodesRepository
 import cash.p.terminal.premium.domain.usecase.GetBnbAddressUseCase
@@ -187,7 +188,11 @@ class AdapterFactory(
             storeBnbAddresses(it, wallet)
         }
     } catch (e: Throwable) {
-        logger.warning("Failed to create adapter for ${wallet.coin.code} (${wallet.token.type})", e)
+        val message = "Failed to create adapter for ${wallet.coin.code} (${wallet.token.type})"
+        // Scope the log to the wallet's blockchain so the failure shows up in that blockchain's
+        // APP LOG on the status screen (it filters by BlockchainType.logTag via a LIKE match),
+        // not only under the generic "adapter-factory" tag.
+        logger.getScoped(wallet.token.blockchainType.logTag).warning(message, e)
         Timber.e(e, "Failed to create adapter for %s (%s)", wallet.coin.code, wallet.token.type)
         null
     }
