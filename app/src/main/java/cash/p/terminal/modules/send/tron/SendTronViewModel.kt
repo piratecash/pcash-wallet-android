@@ -13,7 +13,6 @@ import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTronSignRequest
 import cash.p.terminal.core.SignedOfflineTronTransaction
-import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.RecentAddressManager
@@ -60,7 +59,6 @@ class SendTronViewModel(
     override val coinMaxAllowedDecimals: Int,
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
-    private val connectivityManager: ConnectivityManager,
     private val address: Address?,
     adapterManager: IAdapterManager,
     private val dispatcherProvider: DispatcherProvider,
@@ -289,10 +287,6 @@ class SendTronViewModel(
         viewModelScope.launch {
             send()
         }
-    }
-
-    fun hasConnection(): Boolean {
-        return connectivityManager.isConnected.value
     }
 
     private suspend fun send() = withContext(dispatcherProvider.io) {

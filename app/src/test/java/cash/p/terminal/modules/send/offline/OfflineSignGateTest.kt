@@ -6,28 +6,22 @@ import org.junit.Test
 
 class OfflineSignGateTest {
 
-    // region shouldShowOfflineSyncBlocker — blocker only on real network loss, suppressed within grace
+    // region shouldShowOfflineSyncBlocker — blocker on real network loss
 
     @Test
     fun shouldShowOfflineSyncBlocker_notSupported_returnsFalse() {
-        assertFalse(shouldShowOfflineSyncBlocker(false, isConnected = false, withinSyncGrace = false))
+        assertFalse(shouldShowOfflineSyncBlocker(false, isConnected = false))
     }
 
     @Test
-    fun shouldShowOfflineSyncBlocker_supportedOfflineNoGrace_returnsTrue() {
-        assertTrue(shouldShowOfflineSyncBlocker(true, isConnected = false, withinSyncGrace = false))
-    }
-
-    @Test
-    fun shouldShowOfflineSyncBlocker_supportedOfflineWithinGrace_returnsFalse() {
-        // Brief network flap while recently synced → stay on confirm, do not bounce to the offline screen.
-        assertFalse(shouldShowOfflineSyncBlocker(true, isConnected = false, withinSyncGrace = true))
+    fun shouldShowOfflineSyncBlocker_supportedOffline_returnsTrue() {
+        assertTrue(shouldShowOfflineSyncBlocker(true, isConnected = false))
     }
 
     @Test
     fun shouldShowOfflineSyncBlocker_supportedConnected_returnsFalse() {
         // Network present (even while the kit resyncs) → never the offline blocker.
-        assertFalse(shouldShowOfflineSyncBlocker(true, isConnected = true, withinSyncGrace = false))
+        assertFalse(shouldShowOfflineSyncBlocker(true, isConnected = true))
     }
 
     // endregion

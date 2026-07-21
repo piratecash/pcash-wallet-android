@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,7 +49,6 @@ import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui.compose.components.TextPreprocessor
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -106,7 +104,6 @@ fun SendMoneroNavHost(
                     onToggleAmountInputType = amountInputModeViewModel::onToggleInputType,
                     onToggleHideBalance = viewModel::toggleHideBalance,
                     onRiskAcceptedChange = viewModel::onRiskAcceptedChange,
-                    hasConnection = viewModel::hasConnection,
                 ),
             )
         }
@@ -165,15 +162,10 @@ private fun SendMoneroContent(
     amountUnique: AmountUnique?,
 ) {
     val focusRequester = remember { FocusRequester() }
-    val view = LocalView.current
     var percentageAmountUnique by remember { mutableStateOf<AmountUnique?>(null) }
     var coinAmount by remember { mutableStateOf<BigDecimal?>(null) }
     val onProceed = {
-        if (callbacks.hasConnection()) {
-            callbacks.onNextClick(state.uiState.proceedActionData(state.wallet))
-        } else {
-            HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
-        }
+        callbacks.onNextClick(state.uiState.proceedActionData(state.wallet))
     }
 
     LaunchedEffect(Unit) {
@@ -260,7 +252,6 @@ private data class SendMoneroScreenCallbacks(
     val onToggleAmountInputType: () -> Unit,
     val onToggleHideBalance: () -> Unit,
     val onRiskAcceptedChange: (Boolean) -> Unit,
-    val hasConnection: () -> Boolean,
 )
 
 @Composable

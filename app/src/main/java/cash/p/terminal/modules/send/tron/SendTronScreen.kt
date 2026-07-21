@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,7 +42,6 @@ import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -107,7 +105,6 @@ fun SendTronScreen(
     onDebugOfflineSignClick: () -> Unit,
     onNextClick: (ProceedActionData) -> Unit,
 ) {
-    val view = LocalView.current
     val wallet = viewModel.wallet
     val uiState = viewModel.uiState
 
@@ -126,6 +123,16 @@ fun SendTronScreen(
         val focusRequester = remember { FocusRequester() }
         var percentageAmountUnique by remember { mutableStateOf<AmountUnique?>(null) }
         var coinAmount by remember { mutableStateOf<BigDecimal?>(null) }
+        val onProceed = {
+            viewModel.onNavigateToConfirmation()
+            onNextClick(
+                ProceedActionData(
+                    address = uiState.address?.hex,
+                    wallet = wallet,
+                    type = SendConfirmationFragment.Type.Tron,
+                )
+            )
+        }
 
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
@@ -135,20 +142,7 @@ fun SendTronScreen(
             title = title,
             onCloseClick = { navController.popBackStackSafely() },
             proceedEnabled = proceedEnabled,
-            onSendClick = {
-                if (viewModel.hasConnection()) {
-                    viewModel.onNavigateToConfirmation()
-                    onNextClick(
-                        ProceedActionData(
-                            address = uiState.address?.hex,
-                            wallet = wallet,
-                            type = SendConfirmationFragment.Type.Tron,
-                        )
-                    )
-                } else {
-                    HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
-                }
-            },
+            onSendClick = onProceed,
             bottomOverlay = {
                 SendSuggestionsBar(
                     availableBalance = availableBalance,
@@ -243,20 +237,7 @@ fun SendTronScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 24.dp),
                 title = stringResource(R.string.Send_DialogProceed),
-                onClick = {
-                    if (viewModel.hasConnection()) {
-                        viewModel.onNavigateToConfirmation()
-                        onNextClick(
-                            ProceedActionData(
-                                address = uiState.address?.hex,
-                                wallet = wallet,
-                                type = SendConfirmationFragment.Type.Tron,
-                            )
-                        )
-                    } else {
-                        HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
-                    }
-                },
+                onClick = onProceed,
                 enabled = proceedEnabled
             )
             if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {

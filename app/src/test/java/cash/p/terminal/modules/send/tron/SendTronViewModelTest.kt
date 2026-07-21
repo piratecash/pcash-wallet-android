@@ -5,7 +5,6 @@ import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTronSignRequest
 import cash.p.terminal.core.SignedOfflineTronTransaction
 import cash.p.terminal.core.TestDispatcherProvider
-import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
@@ -77,7 +76,6 @@ class SendTronViewModelTest : KoinTest {
     private val amountService = mockk<SendAmountService>(relaxed = true)
     private val addressService = mockk<SendTronAddressService>(relaxed = true)
     private val contactsRepository = mockk<ContactsRepository>(relaxed = true)
-    private val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val payloadEncoder = mockk<OfflineTransactionPayloadEncoder>()
     private val offlineSignedTransactionRepository = mockk<OfflineSignedTransactionRepository>(relaxed = true)
@@ -261,7 +259,6 @@ class SendTronViewModelTest : KoinTest {
         coinMaxAllowedDecimals = wallet.token.decimals,
         contactsRepo = contactsRepository,
         showAddressInput = true,
-        connectivityManager = connectivityManager,
         address = null,
         adapterManager = adapterManager,
         dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),

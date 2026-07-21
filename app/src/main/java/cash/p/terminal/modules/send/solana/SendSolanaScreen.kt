@@ -1,6 +1,5 @@
 package cash.p.terminal.modules.send.solana
 
-import android.view.View
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,7 +44,6 @@ import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui.compose.components.TextPreprocessor
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
-import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
 import cash.p.terminal.ui_compose.components.VSpacer
@@ -83,7 +80,6 @@ fun SendSolanaNavHost(
                     onEnterAmount = viewModel::onEnterAmount,
                     onEnterAddress = viewModel::onEnterAddress,
                     onToggleInputType = amountInputModeViewModel::onToggleInputType,
-                    hasConnection = viewModel::hasConnection,
                     onRiskAcceptedChange = viewModel::onRiskAcceptedChange,
                     onBalanceClicked = viewModel::toggleHideBalance,
                     onDebugOfflineSignClick = { navController.navigate(DebugOfflineSolanaSignPage) },
@@ -134,7 +130,6 @@ data class SendSolanaScreenActions(
     val onEnterAmount: (BigDecimal?) -> Unit,
     val onEnterAddress: (Address?) -> Unit,
     val onToggleInputType: () -> Unit,
-    val hasConnection: () -> Boolean,
     val onRiskAcceptedChange: (Boolean) -> Unit,
     val onBalanceClicked: () -> Unit,
     val onDebugOfflineSignClick: () -> Unit,
@@ -150,7 +145,6 @@ fun SendSolanaScreen(
     addressCheckerControl: AddressCheckerControl,
     actions: SendSolanaScreenActions,
 ) {
-    val view = LocalView.current
     val wallet = state.wallet
 
     val paymentAddressViewModel = viewModel<AddressParserViewModel>(
@@ -162,7 +156,7 @@ fun SendSolanaScreen(
     ComposeAppTheme {
         val form = rememberSendSolanaForm(
             amountUnique = amountUnique,
-            onProceed = { handleSolanaProceed(view, state, actions) },
+            onProceed = { handleSolanaProceed(state, actions) },
         )
 
         LaunchedEffect(form.state.focusRequester) {
@@ -254,21 +248,16 @@ private fun rememberSendSolanaForm(
 }
 
 private fun handleSolanaProceed(
-    view: View,
     state: SendSolanaScreenState,
     actions: SendSolanaScreenActions,
 ) {
-    if (actions.hasConnection()) {
-        actions.onNextClick(
-            ProceedActionData(
-                address = state.uiState.address?.hex,
-                wallet = state.wallet,
-                type = SendConfirmationFragment.Type.Solana,
-            )
+    actions.onNextClick(
+        ProceedActionData(
+            address = state.uiState.address?.hex,
+            wallet = state.wallet,
+            type = SendConfirmationFragment.Type.Solana,
         )
-    } else {
-        HudHelper.showErrorMessage(view, R.string.Hud_Text_NoInternet)
-    }
+    )
 }
 
 @Composable

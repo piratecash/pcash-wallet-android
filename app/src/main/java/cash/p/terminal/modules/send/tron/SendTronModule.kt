@@ -65,7 +65,6 @@ object SendTronModule {
                         coinMaxAllowedDecimals = coinMaxAllowedDecimals,
                         contactsRepo = App.contactsRepository,
                         showAddressInput = !hideAddress,
-                        connectivityManager = App.connectivityManager,
                         address = address,
                         adapterManager = adapterManager,
                         dispatcherProvider = dispatcherProvider,
