@@ -30,6 +30,7 @@ import cash.p.terminal.modules.send.offline.isWithinSyncGrace
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 import org.koin.java.KoinJavaComponent.inject
@@ -69,6 +70,10 @@ abstract class BaseSendViewModel<T>(
 
     val isEffectivelySynced: Boolean
         get() = (isSynced && connectivityManager.isConnected.value) || syncGraceActive
+
+    /** Observable connectivity, so send flows can react to reconnection. */
+    protected val isConnectedFlow: StateFlow<Boolean>
+        get() = connectivityManager.isConnected
 
     /** Monotonic clock; overridable in tests to control the grace window deterministically. */
     protected open val elapsedRealtimeMs: Long

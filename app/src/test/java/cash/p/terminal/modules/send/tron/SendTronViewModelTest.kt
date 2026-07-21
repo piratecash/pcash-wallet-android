@@ -54,6 +54,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
@@ -238,6 +239,30 @@ class SendTronViewModelTest : KoinTest {
                 timestamp = any(),
                 expiration = any(),
             )
+        }
+    }
+
+    @Test
+    fun onClickSignOffline_trc20AmountChangedWithoutReestimate_failsClosed() = runTest(dispatcher) {
+        val viewModel = createViewModel(wallet = createWallet(trc20Token()))
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        // Going offline: the recipient/amount changes but the fee estimate can no longer be refreshed,
+        // so the previously captured fee limit no longer matches the inputs being signed.
+        coEvery { adapter.estimateFee(any(), any()) } throws RuntimeException("offline")
+        viewModel.onEnterAmount(BigDecimal("2.5"))
+        advanceUntilIdle()
+        viewModel.onNavigateToConfirmation()
+        advanceUntilIdle()
+
+        viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.offlineSignState is OfflineSignState.Failed)
+        verify(exactly = 0) {
+            adapter.buildOfflineTransaction(any(), any(), any(), any(), any(), any())
         }
     }
 

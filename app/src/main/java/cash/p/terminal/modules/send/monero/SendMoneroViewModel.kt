@@ -139,6 +139,15 @@ class SendMoneroViewModel(
         xRateService.getRateFlow(sendToken.coin.uid).collectWith(viewModelScope) {
             feeCoinRate = it
         }
+        // Reconnecting must re-prepare the offline transaction even if the inputs did not change,
+        // otherwise the "prepare online, then sign offline" instruction never takes effect.
+        isConnectedFlow.collectWith(viewModelScope) { connected ->
+            // StateFlow only re-emits on a real transition, so a reconnect drives a fresh prepare;
+            // prepareOfflineSignedTransaction cancels any in-flight (superseded) build safely.
+            if (connected && offlineSignResult == null) {
+                prepareOfflineSignedTransaction()
+            }
+        }
         viewModelScope.launch {
             addressService.setAddress(address)
         }
