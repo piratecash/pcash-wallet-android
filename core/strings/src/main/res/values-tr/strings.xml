@@ -1013,6 +1013,7 @@
     <string name="offline_broadcast_error_send_failed">Gönderme sırasında hata</string>
     <string name="offline_broadcast_error_timeout">İstek zaman aşımına uğradı. Daha sonra tekrar deneyin.</string>
     <string name="offline_broadcast_error_already_sent">Bu işlem ağ tarafından zaten biliniyor.</string>
+    <string name="offline_broadcast_error_seqno_consumed">İşlem numarası (seqno) zaten kullanılmış. Bu işlem zaten gönderilmiş olabilir — yeniden imzalamadan önce işlem geçmişini kontrol edin.</string>
     <string name="offline_broadcast_error_nonce_used">Bu işlemin nonce değeri zaten kullanılmış. Gönderilmiş veya değiştirilmiş olabilir.</string>
     <string name="offline_broadcast_error_low_fee">Ağ ücreti çok düşük. Daha yüksek ücretli bir işlem oluşturun.</string>
     <string name="offline_broadcast_error_rejected">Ağ bu imzalı işlemi reddetti.</string>
@@ -1028,6 +1029,7 @@
     <string name="offline_signed_status_broadcasted">Ağa gönderildi</string>
     <string name="offline_send_no_connection_description">İşlem şu anda gönderilemiyor. İşlemi çevrim dışı imzalayabilir, daha sonra başka bir kişinin yayınlamasını sağlayabilirsiniz.</string>
     <string name="offline_transaction_anchor_required">Bu işlemi hazırlamak için bir kez internete bağlanın; ardından işlemi çevrim dışı imzalayabilirsiniz.</string>
+    <string name="offline_sign_error_wallet_not_deployed">Cüzdan henüz TON ağında etkinleştirilmedi. İlk işlemi çevrim içi gönderin.</string>
     <string name="offline_send_sync_error_description">Geçerli kaynaktan veri alınamadı.\n\nŞunları yapabilirsiniz:\n• daha sonra tekrar deneyin\n• VPN’i etkinleştirip senkronizasyonu yeniden deneyin\n• işlemi çevrim dışı imzalayıp manuel yayın için HEX’i paylaşın\n\n403 hatası aldıysanız IP adresiniz engellenmiş olabilir. VPN kullanmak genellikle bu sorunu çözer.\nİmzalı bir işlem oluşturup ağa yayınlanması için başka bir cihaza veya kişiye gönderebilirsiniz.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">İşlemler yapılmış cüzdanı geri yüklemek için veri kaynağını seçin.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Giriş/Çıkış</string>

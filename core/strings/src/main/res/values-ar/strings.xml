@@ -1012,6 +1012,7 @@
     <string name="offline_broadcast_error_send_failed">حدث خطأ أثناء الإرسال</string>
     <string name="offline_broadcast_error_timeout">انتهت مهلة الطلب. حاول مرة أخرى لاحقًا.</string>
     <string name="offline_broadcast_error_already_sent">هذه المعاملة معروفة بالفعل لدى الشبكة.</string>
+    <string name="offline_broadcast_error_seqno_consumed">رقم المعاملة (seqno) مستخدم بالفعل. ربما تم إرسال هذه المعاملة من قبل — تحقق من سجل المعاملات قبل التوقيع مرة أخرى.</string>
     <string name="offline_broadcast_error_nonce_used">تم استخدام قيمة nonce لهذه المعاملة بالفعل. ربما تم إرسالها أو استبدالها.</string>
     <string name="offline_broadcast_error_low_fee">رسوم الشبكة منخفضة جدًا. أنشئ معاملة برسوم أعلى.</string>
     <string name="offline_broadcast_error_rejected">رفضت الشبكة هذه المعاملة الموقعة.</string>
@@ -1027,6 +1028,7 @@
     <string name="offline_signed_status_broadcasted">أُرسلت إلى الشبكة</string>
     <string name="offline_send_no_connection_description">لا يمكن إرسال المعاملة الآن. يمكنك توقيعها دون اتصال ليبثها شخص آخر لاحقًا.</string>
     <string name="offline_transaction_anchor_required">اتصل بالإنترنت مرة واحدة لتجهيز هذه المعاملة، ثم يمكنك توقيعها دون اتصال.</string>
+    <string name="offline_sign_error_wallet_not_deployed">المحفظة غير مفعّلة بعد على شبكة TON. أرسل المعاملة الأولى وأنت متصل بالإنترنت.</string>
     <string name="offline_send_sync_error_description">فشل جلب البيانات من المصدر الحالي.\n\nيمكنك:\n• المحاولة مرة أخرى لاحقًا\n• تفعيل VPN وإعادة المزامنة\n• توقيع المعاملة دون اتصال ومشاركة HEX للبث اليدوي\n\nإذا تلقيت خطأ 403، فقد يكون عنوان IP الخاص بك محظورًا. استخدام VPN يحل هذه المشكلة عادةً.\nيمكنك إنشاء معاملة موقّعة وإرسالها إلى جهاز آخر أو شخص آخر لبثها إلى الشبكة.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>

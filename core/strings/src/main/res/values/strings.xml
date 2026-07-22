@@ -1353,6 +1353,7 @@ Proceed only if you\'re sure.</string>
     <string name="offline_broadcast_error_send_failed">Error while sending</string>
     <string name="offline_broadcast_error_timeout">Request timed out. Try again later.</string>
     <string name="offline_broadcast_error_already_sent">This transaction is already known to the network.</string>
+    <string name="offline_broadcast_error_seqno_consumed">The transaction number (seqno) has already been used. This transaction may have already been sent — check the transaction history before signing again.</string>
     <string name="offline_broadcast_error_nonce_used">This transaction nonce has already been used. It may have been sent or replaced.</string>
     <string name="offline_broadcast_error_low_fee">The network fee is too low. Create a transaction with a higher fee.</string>
     <string name="offline_broadcast_error_rejected">The network rejected this signed transaction.</string>
@@ -1368,6 +1369,7 @@ Proceed only if you\'re sure.</string>
     <string name="offline_signed_status_broadcasted">Sent to network</string>
     <string name="offline_send_no_connection_description">The transaction cannot be sent right now. You can sign it offline so another person can broadcast it later.</string>
     <string name="offline_transaction_anchor_required">Connect to the internet once to prepare this transaction, then you can sign it offline.</string>
+    <string name="offline_sign_error_wallet_not_deployed">The wallet is not yet activated on the TON network. Send the first transaction while online.</string>
     <string name="offline_send_sync_error_description">Failed to fetch data from current source.\n\nYou can:\n• Try again later\n• Enable VPN and retry sync\n• Sign the transaction offline and share HEX for manual broadcast\n\nIf you received a 403 error, your IP address may be blocked. Using a VPN usually resolves this issue.\nYou can create a signed transaction and send it to another device or person to broadcast it to the network.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>

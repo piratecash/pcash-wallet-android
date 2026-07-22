@@ -9,7 +9,6 @@ import io.horizontalsystems.core.logger.AppLogger
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendTonAdapter
 import cash.p.terminal.core.LocalizedException
-import cash.p.terminal.core.OfflineTonSignRequest
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.SignedOfflineTonTransaction
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
@@ -36,6 +35,8 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -61,6 +62,7 @@ class SendTonViewModel(
     private val recentAddressManager: RecentAddressManager,
     private val offlineTransactionPayloadEncoder: OfflineTransactionPayloadEncoder,
     private val offlineSignedTransactionRepository: OfflineSignedTransactionRepository,
+    private val anchorService: TonOfflineAnchorService,
 ) : BaseSendViewModel<SendTonUiState>(wallet, adapterManager), OfflineSignCapableViewModel {
     data class OfflineSignResult(
         val signedTransaction: SignedOfflineTonTransaction,
@@ -114,8 +116,27 @@ class SendTonViewModel(
 
     private val logger: AppLogger = AppLogger("send-ton")
 
+    // Single collector serializes anchor refreshes; DROP_OLDEST coalesces bursts.
+    private val anchorRefreshRequests = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+
     init {
         addCloseable(feeService)
+
+        if (offlineSignSupported) {
+            viewModelScope.launch {
+                anchorRefreshRequests.collect {
+                    anchorService.refreshAnchor { isConnectedFlow.value }
+                }
+            }
+            viewModelScope.launch {
+                isConnectedFlow.collect { connected ->
+                    if (connected) anchorRefreshRequests.tryEmit(Unit)
+                }
+            }
+        }
 
         viewModelScope.launch(dispatcherProvider.default) {
             amountService.stateFlow.collect {
@@ -269,16 +290,30 @@ class SendTonViewModel(
         val confirmationData = getConfirmationData()
         val signingAdapter = offlineSignAdapter
             ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
+        // Hardware signing runs non-cancellably, so an abandoned attempt can outlive its
+        // cancellation. The ownership captured here lets consumeAnchor atomically ignore
+        // such a late finish — a replacement attempt owns the seqno by then.
+        val ownership = anchorService.ownershipGeneration
+        val request = anchorService.buildSignRequest(
+            amount = confirmationData.amount,
+            address = destinationTonAddress,
+            memo = confirmationData.memo,
+            quote = feeState.quote,
+        )
+        val signed = signingAdapter.signOffline(request)
+        anchorService.consumeAnchor(request.seqno, ownership)
+        anchorRefreshRequests.tryEmit(Unit)
         return OfflineSignResult(
-            signedTransaction = signingAdapter.signOffline(
-                OfflineTonSignRequest(
-                    amount = confirmationData.amount,
-                    address = destinationTonAddress,
-                    memo = confirmationData.memo,
-                )
-            ),
+            signedTransaction = signed,
             confirmationData = confirmationData,
         )
+    }
+
+    override fun resetOfflineSignState() {
+        // Bump BEFORE cancelling: once bumped, the in-flight producer can no longer
+        // burn the anchor, whatever instant its non-cancellable signing finishes at.
+        anchorService.invalidateOwnership()
+        super.resetOfflineSignState()
     }
 
     private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {

@@ -6,6 +6,7 @@ import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTransactionStatusAdapter
 import cash.p.terminal.core.SignedOfflineTonTransaction
+import cash.p.terminal.core.TonOfflineAnchor
 import cash.p.terminal.core.hexToByteArray
 import cash.p.terminal.core.managers.TonKitWrapper
 import cash.p.terminal.core.managers.statusInfo
@@ -84,6 +85,16 @@ abstract class BaseTonAdapter(
 
     override suspend fun transactionExists(txHash: String): Boolean =
         tonKit.transactionExistsByMessageHash(txHash)
+
+    // Network time first, seqno last: the later the seqno is read, the smaller
+    // the window in which a concurrent transaction can consume it unnoticed.
+    suspend fun fetchOfflineAnchor(): TonOfflineAnchor {
+        val unixTimeSeconds = tonKit.getRawTime().toLong()
+        return TonOfflineAnchor(
+            seqno = tonKit.getAccountSeqno(),
+            unixTimeSeconds = unixTimeSeconds,
+        )
+    }
 }
 
 private fun OfflineBroadcastMetadata.Ton.toTonMetadata() = RawMessageBroadcastMetadata(
@@ -97,4 +108,5 @@ private fun RawMessageBroadcastStatus.toAppStatus(): BroadcastRawTransactionStat
         RawMessageBroadcastStatus.Submitted -> BroadcastRawTransactionStatus.Submitted
         RawMessageBroadcastStatus.Queued -> BroadcastRawTransactionStatus.Queued
         RawMessageBroadcastStatus.AlreadyKnown -> BroadcastRawTransactionStatus.AlreadyKnown
+        RawMessageBroadcastStatus.SeqnoConsumed -> BroadcastRawTransactionStatus.SeqnoConsumed
     }

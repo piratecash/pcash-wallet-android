@@ -1009,6 +1009,7 @@
     <string name="offline_broadcast_error_send_failed">发送时出错</string>
     <string name="offline_broadcast_error_timeout">请求超时。请稍后重试。</string>
     <string name="offline_broadcast_error_already_sent">这笔交易已被网络知晓。</string>
+    <string name="offline_broadcast_error_seqno_consumed">交易序号（seqno）已被使用。此交易可能已发送——请在重新签名前查看交易记录。</string>
     <string name="offline_broadcast_error_nonce_used">这笔交易的 nonce 已被使用。它可能已发送或被替换。</string>
     <string name="offline_broadcast_error_low_fee">网络手续费太低。请创建一笔手续费更高的交易。</string>
     <string name="offline_broadcast_error_rejected">网络拒绝了这笔已签名交易。</string>
@@ -1024,6 +1025,7 @@
     <string name="offline_signed_status_broadcasted">已发送到网络</string>
     <string name="offline_send_no_connection_description">目前无法发送交易。你可以离线签名，让其他人稍后广播。</string>
     <string name="offline_transaction_anchor_required">请先联网一次以准备此交易，之后即可离线签名。</string>
+    <string name="offline_sign_error_wallet_not_deployed">钱包尚未在 TON 网络激活。请先在线发送第一笔交易。</string>
     <string name="offline_send_sync_error_description">无法从当前来源获取数据。\n\n你可以：\n• 稍后重试\n• 启用 VPN 并重新同步\n• 离线签名交易并共享 HEX 以便手动广播\n\n如果收到 403 错误，你的 IP 地址可能被屏蔽。使用 VPN 通常可以解决此问题。\n你可以创建已签名的交易，并将其发送到另一台设备或其他人，以便广播到网络。</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">通过交易为恢复钱包选择数据源。</string>
     <string name="BtcBlockchainSettings_InputsOutputs">输入/输出</string>

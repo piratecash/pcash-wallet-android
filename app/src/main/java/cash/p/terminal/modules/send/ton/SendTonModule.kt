@@ -11,6 +11,7 @@ import cash.p.terminal.core.managers.PendingTransactionRegistrar
 import cash.p.terminal.core.managers.RecentAddressManager
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.amount.AmountValidator
+import cash.p.terminal.modules.pin.core.UptimeProvider
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.getMaxSendableBalance
@@ -36,6 +37,7 @@ object SendTonModule {
         private val offlineRepository: OfflineSignedTransactionRepository by inject(
             OfflineSignedTransactionRepository::class.java
         )
+        private val uptimeProvider: UptimeProvider by inject(UptimeProvider::class.java)
 
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -75,6 +77,7 @@ object SendTonModule {
                         recentAddressManager = recentAddressManager,
                         offlineTransactionPayloadEncoder = payloadEncoder,
                         offlineSignedTransactionRepository = offlineRepository,
+                        anchorService = TonOfflineAnchorService(adapter, uptimeProvider),
                     ) as T
                 }
 
