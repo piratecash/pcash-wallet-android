@@ -85,6 +85,7 @@ import cash.p.terminal.core.storage.migrations.Migration_107_108
 import cash.p.terminal.core.storage.migrations.Migration_108_109
 import cash.p.terminal.core.storage.migrations.Migration_109_110
 import cash.p.terminal.core.storage.migrations.Migration_110_111
+import cash.p.terminal.core.storage.migrations.Migration_111_112
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
 import cash.p.terminal.entities.BlockchainSettingRecord
@@ -115,7 +116,9 @@ import cash.p.terminal.modules.chart.ChartIndicatorSetting
 import cash.p.terminal.modules.chart.ChartIndicatorSettingsDao
 import cash.p.terminal.modules.pin.core.Pin
 import cash.p.terminal.modules.pin.core.PinDao
+import cash.p.terminal.modules.walletconnect.storage.WCPairingMetadataDao
 import cash.p.terminal.modules.walletconnect.storage.WCSessionDao
+import cash.p.terminal.modules.walletconnect.storage.WalletConnectV2PairingMetadata
 import cash.p.terminal.modules.walletconnect.storage.WalletConnectV2Session
 import cash.p.terminal.wallet.entities.AccountRecord
 import cash.p.terminal.wallet.entities.EnabledWallet
@@ -124,7 +127,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 111,
+    version = 112,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -135,6 +138,7 @@ import io.horizontalsystems.core.storage.LogsDao
         LogEntry::class,
         FavoriteCoin::class,
         WalletConnectV2Session::class,
+        WalletConnectV2PairingMetadata::class,
         RestoreSettingRecord::class,
         ActiveAccount::class,
         NftCollectionRecord::class,
@@ -175,6 +179,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun logsDao(): LogsDao
     abstract fun marketFavoritesDao(): MarketFavoritesDao
     abstract fun wcSessionDao(): WCSessionDao
+    abstract fun wcPairingMetadataDao(): WCPairingMetadataDao
     abstract fun nftDao(): NftDao
     abstract fun evmAddressLabelDao(): EvmAddressLabelDao
     abstract fun evmMethodLabelDao(): EvmMethodLabelDao
@@ -289,6 +294,7 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_108_109,
                     Migration_109_110,
                     Migration_110_111,
+                    Migration_111_112,
                 )
                 .build()
         }
