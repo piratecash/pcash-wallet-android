@@ -45,6 +45,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.unmockkAll
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +53,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -60,6 +62,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -304,6 +307,37 @@ class SendTonViewModelTest : KoinTest {
         }
     }
 
+    @Test
+    fun onClickSignOffline_resetWhileSavingSignedTransaction_persistsButDoesNotResurrectSignedState() = runTest(dispatcher) {
+        // A queued io dispatcher distinct from Main materializes the io->main resume as a
+        // real cancellation checkpoint — a single unconfined dispatcher would skip that
+        // dispatch and let an incomplete fix (persisting outside the io block) pass.
+        var saveCompleted = false
+        coEvery { offlineSignedTransactionRepository.save(any(), any()) } coAnswers { saveCompleted = true }
+        val viewModel = createViewModel(ioDispatcher = StandardTestDispatcher(testScheduler))
+        every { payloadEncoder.encode(any()) } answers {
+            // Runs after signing burned seqno 7 but before the transaction is saved.
+            // The user taps Cancel here — the UI still shows "signing…" until the save
+            // lands, so the tap is indistinguishable from cancelling an in-flight signature.
+            viewModel.resetOfflineSignState()
+            "payload"
+        }
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+        advanceUntilIdle()
+
+        // A consumed seqno must imply a persisted transaction — otherwise the signature
+        // is lost while the anchor stays burned, leaving no retry path on this screen.
+        assertTrue(saveCompleted)
+        // ...but the cancelled attempt must not resurrect Signed over the user's Idle:
+        // a resurrected Signed auto-navigates to the abandoned transfer on the next entry.
+        assertTrue(viewModel.offlineSignState is OfflineSignState.Idle)
+        assertNull(viewModel.offlineSignedTransaction)
+    }
+
     /** Makes the FIRST signOffline call block non-cancellably (like hardware signing) until the returned gate completes. */
     private fun gateFirstSignOffline(): CompletableDeferred<Unit> {
         val firstSignGate = CompletableDeferred<Unit>()
@@ -403,6 +437,7 @@ class SendTonViewModelTest : KoinTest {
     private fun createViewModel(
         wallet: Wallet = this.wallet,
         feeToken: Token = tonToken,
+        ioDispatcher: CoroutineDispatcher = dispatcher,
     ) = SendTonViewModel(
         wallet = wallet,
         sendToken = wallet.token,
@@ -418,7 +453,7 @@ class SendTonViewModelTest : KoinTest {
         address = null,
         pendingRegistrar = pendingRegistrar,
         adapterManager = adapterManager,
-        dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
+        dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher), io = ioDispatcher),
         recentAddressManager = recentAddressManager,
         offlineTransactionPayloadEncoder = payloadEncoder,
         offlineSignedTransactionRepository = offlineSignedTransactionRepository,

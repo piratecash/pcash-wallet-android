@@ -35,6 +35,7 @@ import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.BlockchainType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
@@ -301,7 +302,12 @@ class SendTonViewModel(
             quote = feeState.quote,
         )
         val signed = signingAdapter.signOffline(request)
-        anchorService.consumeAnchor(request.seqno, ownership)
+        if (!anchorService.consumeAnchor(request.seqno, ownership)) {
+            // Ownership was bumped mid-signing: the user abandoned this attempt and a
+            // replacement may already own the seqno. Cancel instead of returning, or the
+            // controller would persist the abandoned signature non-cancellably.
+            throw CancellationException("Sign attempt abandoned")
+        }
         anchorRefreshRequests.tryEmit(Unit)
         return OfflineSignResult(
             signedTransaction = signed,

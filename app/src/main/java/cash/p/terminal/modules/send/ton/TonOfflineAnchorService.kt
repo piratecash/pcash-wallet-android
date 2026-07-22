@@ -112,16 +112,20 @@ class TonOfflineAnchorService(
      * abandoned that attempt ([invalidateOwnership] bumped the generation), the burn
      * is skipped — the generation check and the burn are a single CAS, so an abandoned
      * attempt can never take the seqno from the replacement that now owns it.
+     *
+     * Returns true when the attempt still owned the anchor (the burn applied — its
+     * result must be persisted), false when it was abandoned (the result must be
+     * discarded, or it would collide with the replacement signing the same seqno).
      */
-    fun consumeAnchor(signedSeqno: Int, ownership: Int) {
+    fun consumeAnchor(signedSeqno: Int, ownership: Int): Boolean {
         while (true) {
             val current = state.get()
-            if (current.ownershipGeneration != ownership) return
+            if (current.ownershipGeneration != ownership) return false
             val next = current.copy(
                 anchored = current.anchored?.takeUnless { it.anchor.seqno == signedSeqno },
                 lastConsumedSeqno = maxOf(current.lastConsumedSeqno ?: signedSeqno, signedSeqno),
             )
-            if (next == current || state.compareAndSet(current, next)) return
+            if (next == current || state.compareAndSet(current, next)) return true
         }
     }
 
