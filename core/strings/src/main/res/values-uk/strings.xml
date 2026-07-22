@@ -2242,7 +2242,8 @@
     <string name="paycore_verification_warning_text">ДОЗВОЛЕНО ПЕРЕКАЗ ГРОШОВИХ КОШТІВ ВИКЛЮЧНО З РАХУНКУ, ЩО НАЛЕЖИТЬ ВАМ, З ВЕРИФІКОВАНИМ НОМЕРОМ ТЕЛЕФОНУ ТА ОСОБОЮ.</string>
     <string name="paycore_verification_warning_detail">Перекази з інших рахунків не зараховуються, відправлені кошти будуть втрачені!</string>
     <string name="paycore_verification_back">Назад</string>
-    <string name="paycore_verification_error">Не вдалося завершити вхід. Спробуйте пізніше.</string>
+    <string name="paycore_verification_error">Не вдалося завершити вхід. Перевірте номер телефону та спробуйте ще раз.</string>
+    <string name="paycore_generic_error">Не вдалося виконати операцію. Спробуйте пізніше або зверніться до підтримки.</string>
     <string name="paycore_verification_retry">Повторити</string>
     <string name="paycore_verification_phone_label">Номер телефону:</string>
     <string name="paycore_verification_contact_support">Автоматичне відновлення не вдалося. Зверніться до служби підтримки.</string>

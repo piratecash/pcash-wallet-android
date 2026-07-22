@@ -8,8 +8,7 @@ internal fun Throwable.payCoreUserMessage(defaultMessage: String? = null): Strin
     return when {
         this is PayCoreWalletNotApprovedException -> Translator.getString(R.string.paycore_verification_error)
         isNoInternetException() -> Translator.getString(R.string.Hud_Text_NoInternet)
-        !message.isNullOrBlank() -> requireNotNull(message)
         !defaultMessage.isNullOrBlank() -> defaultMessage
-        else -> Translator.getString(R.string.Error)
+        else -> Translator.getString(R.string.paycore_generic_error)
     }
 }

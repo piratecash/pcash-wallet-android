@@ -2072,7 +2072,8 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="paycore_verification_warning_text">GELDÜBERWEISUNGEN SIND AUSSCHLIESSLICH VOM KONTO GESTATTET, DAS IHNEN GEHÖRT, MIT VERIFIZIERTER TELEFONNUMMER UND IDENTITÄT.</string>
     <string name="paycore_verification_warning_detail">Überweisungen von anderen Konten werden nicht gutgeschrieben, gesendete Gelder gehen verloren!</string>
     <string name="paycore_verification_back">Zurück</string>
-    <string name="paycore_verification_error">Anmeldung fehlgeschlagen. Bitte versuchen Sie es später.</string>
+    <string name="paycore_verification_error">Anmeldung fehlgeschlagen. Überprüfen Sie die Telefonnummer und versuchen Sie es erneut.</string>
+    <string name="paycore_generic_error">Der Vorgang konnte nicht abgeschlossen werden. Bitte versuchen Sie es später erneut oder wenden Sie sich an den Support.</string>
     <string name="paycore_verification_retry">Wiederholen</string>
     <string name="paycore_verification_phone_label">Telefonnummer:</string>
     <string name="paycore_verification_contact_support">Automatische Wiederherstellung fehlgeschlagen. Bitte kontaktieren Sie den Support.</string>

@@ -2537,7 +2537,8 @@ Proceed only if you\'re sure.</string>
     <string name="paycore_verification_warning_text">FUND TRANSFERS ARE PERMITTED EXCLUSIVELY FROM THE ACCOUNT BELONGING TO YOU, WITH A VERIFIED PHONE NUMBER AND IDENTITY.</string>
     <string name="paycore_verification_warning_detail">Transfers from other accounts will not be credited, sent funds will be lost!</string>
     <string name="paycore_verification_back">Back</string>
-    <string name="paycore_verification_error">Failed to complete login. Try again later.</string>
+    <string name="paycore_verification_error">Failed to complete login. Check the phone number and try again.</string>
+    <string name="paycore_generic_error">Failed to complete the operation. Please try again later or contact support.</string>
     <string name="paycore_verification_retry">Retry</string>
     <string name="paycore_verification_phone_label">Phone number:</string>
     <string name="paycore_verification_contact_support">Automatic recovery failed. Please contact support.</string>

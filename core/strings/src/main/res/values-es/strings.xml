@@ -2072,7 +2072,8 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="paycore_verification_warning_text">SE PERMITE LA TRANSFERENCIA DE FONDOS EXCLUSIVAMENTE DESDE LA CUENTA QUE LE PERTENECE, CON NÚMERO DE TELÉFONO E IDENTIDAD VERIFICADOS.</string>
     <string name="paycore_verification_warning_detail">Las transferencias desde otras cuentas no serán acreditadas, ¡los fondos enviados se perderán!</string>
     <string name="paycore_verification_back">Atrás</string>
-    <string name="paycore_verification_error">No se pudo completar el inicio de sesión. Inténtelo más tarde.</string>
+    <string name="paycore_verification_error">No se pudo completar el inicio de sesión. Comprueba el número de teléfono e inténtalo de nuevo.</string>
+    <string name="paycore_generic_error">No se pudo completar la operación. Inténtalo más tarde o contacta con soporte.</string>
     <string name="paycore_verification_retry">Reintentar</string>
     <string name="paycore_verification_phone_label">Número de teléfono:</string>
     <string name="paycore_verification_contact_support">La recuperación automática falló. Por favor, contacte al soporte.</string>
