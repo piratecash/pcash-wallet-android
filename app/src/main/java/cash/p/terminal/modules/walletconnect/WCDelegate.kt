@@ -6,7 +6,6 @@ import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import cash.p.terminal.core.App
 import cash.p.terminal.core.getKoinInstance
-import cash.p.terminal.core.managers.sanitizeNetworkUrl
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.utils.Utils
 import cash.p.terminal.modules.walletconnect.storage.WCPairingMetadataStorage
@@ -110,29 +109,23 @@ object WCDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
     // The SDK persists dApp metadata only on the short-lived session/proposal records, so the
     // pairings screen loses the name once the session is disconnected. Cache it here keyed by the
     // pairing topic. Save synchronously so the row exists before this returns (the pairings screen,
-    // opened later, then finds it); url/icon are redacted before this longer-lived store. Metadata
-    // is a supplementary UI cache: failures are swallowed so they never block the proposal event.
+    // opened later, then finds it). The values are stored app-private and never leave the device
+    // (not logged, not reported, not shown as text), so they are persisted as-is. Metadata is a
+    // supplementary UI cache: failures are swallowed so they never block the proposal event.
     private fun persistPairingMetadata(sessionProposal: Wallet.Model.SessionProposal) {
         val storage = getKoinInstance<WCPairingMetadataStorage>()
         tryOrNull {
             storage.save(
                 topic = sessionProposal.pairingTopic,
                 name = sessionProposal.name,
-                url = redactedForStorage(sessionProposal.url),
-                icon = sessionProposal.icons.lastOrNull()?.toString()?.let(::redactedForStorage),
+                url = sessionProposal.url,
+                icon = sessionProposal.icons.lastOrNull()?.toString(),
             )
         }
         scope.launch {
             tryOrNull { storage.reconcile { CoreClient.Pairing.getPairings().map { it.topic } } }
         }
     }
-
-    // sanitizeNetworkUrl covers userinfo, known secret query params, and opaque path segments; also
-    // drop the query and fragment entirely so presigned URLs (X-Amz-Signature), arbitrary auth
-    // params, and #access_token forms never land in this longer-lived store. The pairings subtitle
-    // only needs the dApp's site, so losing query/fragment is harmless.
-    private fun redactedForStorage(url: String): String =
-        sanitizeNetworkUrl(url).substringBefore('?').substringBefore('#')
 
     override fun onSessionRequest(
         sessionRequest: Wallet.Model.SessionRequest,
