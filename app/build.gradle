@@ -23,19 +23,6 @@ def gitHashProvider = providers.exec {
     ignoreExitValue = true
 }.standardOutput.asText.map { it.trim() }
 
-def gitBranchProvider = providers.exec {
-    commandLine 'git', 'rev-parse', '--abbrev-ref', 'HEAD'
-    ignoreExitValue = true
-}.standardOutput.asText.map {
-    def branch = (it ?: "").trim()
-    (branch.isEmpty() || branch == "HEAD") ? "unknown" : branch
-}
-
-def gitDirtyProvider = providers.exec {
-    commandLine 'git', 'diff-index', '--quiet', 'HEAD', '--'
-    ignoreExitValue = true
-}.result.map { it.exitValue != 0 }
-
 def getGitVersionSuffix = { ->
     try {
         def hash = gitHashProvider.getOrElse("unknown")
@@ -82,7 +69,7 @@ android {
         buildConfigField "String", "MONERO_KIT_VERSION", "\"${libs.versions.monero.kit.android.get()}\""
         buildConfigField "String", "STELLAR_KIT_VERSION", "\"${libs.versions.stellar.kit.get()}\""
         buildConfigField "String", "ZCASH_SDK_VERSION", "\"${libs.versions.zcashAndroidSdk.get()}\""
-        buildConfigField "String", "GIT_BRANCH", "\"${gitBranchProvider.getOrElse("unknown")}\""
+        buildConfigField "String", "GIT_BRANCH", "\"f-droid\""
         // True only for the disposable baseline-profile generation build type (see baselinegen).
         buildConfigField "boolean", "BASELINE_PROFILE_MODE", "false"
         buildConfigField "boolean", "PAYCORE_ENABLED", "true"
