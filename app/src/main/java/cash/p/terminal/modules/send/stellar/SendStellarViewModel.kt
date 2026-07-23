@@ -30,6 +30,7 @@ import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
@@ -83,7 +84,7 @@ class SendStellarViewModel(
             payloadEncoder = offlineTransactionPayloadEncoder,
             repository = offlineSignedTransactionRepository,
             cautionFactory = ::createCaution,
-            isSilentCancellation = { it is TrezorCancelledException || it.isHardwareWalletUserCancelled() },
+            isSilentCancellation = { it.isHardwareWalletCancelled() },
         )
     }
 

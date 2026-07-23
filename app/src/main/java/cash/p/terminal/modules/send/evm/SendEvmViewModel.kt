@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ISendEthereumAdapter
@@ -95,7 +96,7 @@ internal class SendEvmViewModel(
             payloadEncoder = getKoinInstance<OfflineTransactionPayloadEncoder>(),
             repository = getKoinInstance<OfflineSignedTransactionRepository>(),
             cautionFactory = ::createCaution,
-            isSilentCancellation = { it is TrezorCancelledException || it.isHardwareWalletUserCancelled() },
+            isSilentCancellation = { it.isHardwareWalletCancelled() },
         )
     }
 

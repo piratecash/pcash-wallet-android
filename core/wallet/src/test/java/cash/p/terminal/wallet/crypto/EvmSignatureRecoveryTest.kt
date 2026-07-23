@@ -7,6 +7,7 @@ import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.GasPrice
 import io.horizontalsystems.ethereumkit.models.RawTransaction
 import io.horizontalsystems.ethereumkit.models.Signature
+import io.horizontalsystems.hdwalletkit.ECKey
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -113,6 +114,36 @@ class EvmSignatureRecoveryTest {
         val recId = signature[64].toInt()
 
         assertEquals(expectedAddress, EvmSignatureRecovery.recoverMessageAddress(hash, r, s, recId))
+    }
+
+    @Test
+    fun recoverMessageAddress_outOfRangeSignatureComponents_returnsNull() {
+        // SEC1 requires r, s in [1, n-1]; r = 0 and r = n would otherwise reach
+        // BigInteger.modInverse inside recovery and throw ArithmeticException.
+        val hash = EvmSignatureRecovery.personalSignHash("garbage".toByteArray())
+        val n = ECKey.ecParams.n
+        for (recId in 0..3) {
+            assertNull(EvmSignatureRecovery.recoverMessageAddress(hash, BigInteger.ZERO, BigInteger.ONE, recId))
+            assertNull(EvmSignatureRecovery.recoverMessageAddress(hash, n, BigInteger.ONE, recId))
+            assertNull(EvmSignatureRecovery.recoverMessageAddress(hash, BigInteger.ONE, BigInteger.ZERO, recId))
+            assertNull(EvmSignatureRecovery.recoverMessageAddress(hash, BigInteger.ONE, n, recId))
+        }
+    }
+
+    @Test
+    fun recoverMessageAddress_xNotOnCurve_returnsNull() {
+        // r = 5: 5^3 + 7 is a quadratic non-residue mod p, so no curve point has this x and
+        // decompression fails internally; the documented contract is null, not an exception.
+        val hash = EvmSignatureRecovery.personalSignHash("garbage".toByteArray())
+        assertNull(EvmSignatureRecovery.recoverMessageAddress(hash, BigInteger.valueOf(5), BigInteger.ONE, 0))
+    }
+
+    @Test
+    fun recoverSenderAddress_corruptedSignature_returnsNull() {
+        // Same x-not-on-curve failure surfaced through the transaction entry point, which
+        // hardware signers use to verify the device signature before broadcast.
+        val corrupted = Signature(v = 27, r = byteArrayOf(5), s = byteArrayOf(7))
+        assertNull(EvmSignatureRecovery.recoverSenderAddress(legacyTx, corrupted, bscChainId))
     }
 
     @Test

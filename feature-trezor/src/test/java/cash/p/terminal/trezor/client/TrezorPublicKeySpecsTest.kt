@@ -1,5 +1,6 @@
 package cash.p.terminal.trezor.client
 
+import cash.p.terminal.trezor.domain.model.TrezorModel
 import cash.p.terminal.trezorkit.client.TrezorInputScriptType
 import cash.p.terminal.trezorkit.client.TrezorKeyResult
 import cash.p.terminal.trezorkit.client.TrezorPublicKeyRequest
@@ -109,6 +110,22 @@ class TrezorPublicKeySpecsTest {
     }
 
     @Test
+    fun buildQuerySpecs_tron_oneFixedPathRequest_tokenAgnostic() {
+        val specs = TrezorPublicKeySpecs.buildQuerySpecs(
+            listOf(
+                native(BlockchainType.Tron),
+                TokenQuery(BlockchainType.Tron, TokenType.Eip20("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")),
+            )
+        )
+        assertEquals(2, specs.size)
+        assertEquals(1, specs.map { it.request }.distinct().size)
+        assertEquals(
+            TrezorPublicKeyRequest.Tron(TrezorDerivationPath.parse("m/44'/195'/0'/0/0")),
+            specs.first().request
+        )
+    }
+
+    @Test
     fun buildQuerySpecs_unsupported_isSkipped() {
         assertNull(specFor(native(BlockchainType.Ton)))
         // BTC requires an explicit derivation - a Native query is not derivable.
@@ -122,6 +139,10 @@ class TrezorPublicKeySpecsTest {
         assertFalse(TrezorPublicKeySpecs.supports(null, BlockchainType.Litecoin, TokenType.Derived(TokenType.Derivation.Bip86)))
         assertFalse(TrezorPublicKeySpecs.supports(null, BlockchainType.Litecoin, TokenType.Mweb))
         assertFalse(TrezorPublicKeySpecs.supports(null, BlockchainType.Ton, TokenType.Native))
+        // Tron is model-gated: available on Safe models (native and TRC-20 alike), absent on One.
+        assertTrue(TrezorPublicKeySpecs.supports(TrezorModel.Safe5, BlockchainType.Tron, TokenType.Native))
+        assertTrue(TrezorPublicKeySpecs.supports(TrezorModel.Safe5, BlockchainType.Tron, TokenType.Eip20("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")))
+        assertFalse(TrezorPublicKeySpecs.supports(TrezorModel.One, BlockchainType.Tron, TokenType.Native))
     }
 
     @Test

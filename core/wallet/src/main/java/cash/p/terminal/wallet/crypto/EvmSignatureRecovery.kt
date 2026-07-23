@@ -67,7 +67,7 @@ object EvmSignatureRecovery {
     ): Address? {
         val recId = recoveryId(signature.v, chainId, rawTransaction.gasPrice)
         if (recId < 0) return null
-        val publicKey = recoverPublicKey(
+        val publicKey = tryRecoverPublicKey(
             recId = recId,
             r = BigInteger(1, signature.r),
             s = BigInteger(1, signature.s),
@@ -89,7 +89,7 @@ object EvmSignatureRecovery {
 
     /** Recovers the signer address of a message signature, or null if it cannot be recovered. */
     fun recoverMessageAddress(messageHash: ByteArray, r: BigInteger, s: BigInteger, recId: Int): Address? {
-        val publicKey = recoverPublicKey(
+        val publicKey = tryRecoverPublicKey(
             recId = recId,
             r = r,
             s = s,
@@ -150,6 +150,10 @@ object EvmSignatureRecovery {
     ): ByteArray? {
         val n = ECKey.ecParams.n
         val curve = ECKey.ecParams.curve as SecP256K1Curve
+
+        // SEC1: a valid ECDSA signature has r, s in [1, n-1]; anything outside is unrecoverable
+        // (r = 0 or r = n would otherwise throw ArithmeticException from modInverse below).
+        if (r < BigInteger.ONE || r >= n || s < BigInteger.ONE || s >= n) return null
 
         val i = BigInteger.valueOf(recId.toLong() / 2)
         val x = r.add(i.multiply(n))

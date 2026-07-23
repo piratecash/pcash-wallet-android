@@ -11,6 +11,8 @@ import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.storage.HardwarePublicKeyStorage
 import cash.p.terminal.core.utils.TronAddressParser
 import cash.p.terminal.tangem.signer.HardwareWalletTronSigner
+import cash.p.terminal.trezor.signer.TrezorTronSigner
+import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import io.horizontalsystems.core.BackgroundManager
@@ -38,6 +40,7 @@ class TronKitManager(
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val trezorClient: ITrezorClient,
 ) {
 
     private val lifecycleMutex = Mutex()
@@ -85,12 +88,8 @@ class TronKitManager(
                 is AccountType.HardwareCard ->
                     createKitInstance(account)
 
-                is AccountType.TrezorDevice -> {
-                    val key = runBlocking {
-                        hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Tron)
-                    } ?: throw UnsupportedException("Trezor does not have a key for Tron")
-                    createWatchOnlyKitInstance(key.key.value, account)
-                }
+                is AccountType.TrezorDevice ->
+                    createTrezorKitInstance(account)
 
                 else -> throw UnsupportedAccountException()
             }
@@ -128,35 +127,43 @@ class TronKitManager(
     private fun createWatchOnlyKitInstance(
         address: String,
         account: Account
-    ): TronKitWrapper {
-        val kit = TronKit.getInstance(
-            application = App.instance,
-            address = Address.fromBase58(address),
-            network = network,
-            walletId = account.id,
-            tronGridApiKeys = AppConfigProvider.trongridApiKeys,
-            eventListenerFactory = eventListenerFactory(account)
-        )
-
-        return TronKitWrapper(kit, null)
-    }
+    ): TronKitWrapper = createAddressKitInstance(Address.fromBase58(address), account, signer = null)
 
     private fun createKitInstance(
         account: Account
     ): TronKitWrapper {
-        val hardwarePublicKey = runBlocking {
-            hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Tron)
-        } ?: throw UnsupportedException("Hardware card does not have a public key for Tron")
-
+        val hardwarePublicKey = getHardwareKey(account, "Hardware card does not have a public key for Tron")
         val addressAndPublicKey = TronAddressParser.parseXpubToTronAddress(hardwarePublicKey.key.value)
         val signer = HardwareWalletTronSigner(
             hardwarePublicKey = hardwarePublicKey,
             expectedPublicKeyBytes = addressAndPublicKey.publicKey
         )
+        return createAddressKitInstance(addressAndPublicKey.address, account, signer)
+    }
 
+    private fun createTrezorKitInstance(account: Account): TronKitWrapper {
+        val key = getHardwareKey(account, "Trezor does not have a key for Tron")
+        val address = key.key.value
+        val signer = TrezorTronSigner(
+            expectedAddressBase58 = address,
+            derivationPath = key.derivationPath,
+            trezorClient = trezorClient
+        )
+        return createAddressKitInstance(Address.fromBase58(address), account, signer)
+    }
+
+    private fun getHardwareKey(account: Account, missingKeyMessage: String) = runBlocking {
+        hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Tron)
+    } ?: throw UnsupportedException(missingKeyMessage)
+
+    private fun createAddressKitInstance(
+        address: Address,
+        account: Account,
+        signer: Signer?
+    ): TronKitWrapper {
         val kit = TronKit.getInstance(
             application = App.instance,
-            address = addressAndPublicKey.address,
+            address = address,
             network = network,
             walletId = account.id,
             tronGridApiKeys = AppConfigProvider.trongridApiKeys,

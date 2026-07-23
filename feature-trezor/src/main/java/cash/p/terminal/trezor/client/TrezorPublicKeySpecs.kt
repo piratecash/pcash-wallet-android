@@ -78,6 +78,7 @@ object TrezorPublicKeySpecs {
         BlockchainType.Base -> fixedPath(query, TrezorPublicKeyRequest::Ethereum, "m/44'/60'/0'/0/0")
         BlockchainType.Solana -> fixedPath(query, TrezorPublicKeyRequest::Solana, "m/44'/501'/0'/0'")
         BlockchainType.Stellar -> fixedPath(query, TrezorPublicKeyRequest::Stellar, "m/44'/148'/0'")
+        BlockchainType.Tron -> fixedPath(query, TrezorPublicKeyRequest::Tron, "m/44'/195'/0'/0/0")
         else -> null
     }
 
@@ -122,7 +123,7 @@ object TrezorPublicKeySpecs {
         return QuerySpec(query, request, path, purpose)
     }
 
-    /** EVM/Solana/Stellar — one fixed path per chain, independent of the token variant. */
+    /** EVM/Solana/Stellar/Tron — one fixed path per chain, independent of the token variant. */
     private fun fixedPath(
         query: TokenQuery,
         request: (List<Int>) -> TrezorPublicKeyRequest,
