@@ -2105,7 +2105,8 @@
     <string name="paycore_verification_warning_text">يُسمح بتحويل الأموال حصرياً من الحساب العائد لك، مع رقم هاتف وهوية موثقين.</string>
     <string name="paycore_verification_warning_detail">التحويلات من حسابات أخرى لن تُقيد، والأموال المرسلة ستُفقد!</string>
     <string name="paycore_verification_back">رجوع</string>
-    <string name="paycore_verification_error">تعذَّر إتمام تسجيل الدخول. يُرجى المحاولة لاحقاً.</string>
+    <string name="paycore_verification_error">تعذَّر إتمام تسجيل الدخول. تحقَّق من رقم الهاتف وحاول مرة أخرى.</string>
+    <string name="paycore_generic_error">تعذَّر إتمام العملية. يُرجى المحاولة لاحقاً أو التواصل مع الدعم.</string>
     <string name="paycore_verification_retry">إعادة المحاولة</string>
     <string name="paycore_verification_phone_label">رقم الهاتف:</string>
     <string name="paycore_verification_contact_support">فشل الاسترداد التلقائي. يرجى التواصل مع الدعم.</string>

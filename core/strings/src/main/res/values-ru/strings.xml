@@ -2275,7 +2275,8 @@
     <string name="paycore_verification_warning_text">РАЗРЕШЁН ПЕРЕВОД ДЕНЕЖНЫХ СРЕДСТВ ИСКЛЮЧИТЕЛЬНО СО СЧЁТА, ПРИНАДЛЕЖАЩЕГО ВАМ, С ВЕРИФИЦИРОВАННЫМ НОМЕРОМ ТЕЛЕФОНА И ЛИЧНОСТЬЮ.</string>
     <string name="paycore_verification_warning_detail">Переводы с иных счетов не зачислятся, отправленные средства будут утеряны!</string>
     <string name="paycore_verification_back">Назад</string>
-    <string name="paycore_verification_error">Не удалось завершить вход. Попробуйте позже.</string>
+    <string name="paycore_verification_error">Не удалось завершить вход. Проверьте номер телефона и попробуйте снова.</string>
+    <string name="paycore_generic_error">Не удалось выполнить операцию. Попробуйте позже или обратитесь в поддержку.</string>
     <string name="paycore_verification_retry">Повторить</string>
     <string name="paycore_verification_phone_label">Номер телефона:</string>
     <string name="paycore_verification_contact_support">Автоматическое восстановление не удалось. Обратитесь в поддержку.</string>

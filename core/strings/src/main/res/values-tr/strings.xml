@@ -2083,7 +2083,8 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="paycore_verification_warning_text">PARA TRANSFERİ YALNIZCA DOĞRULANMIŞ TELEFON NUMARASI VE KİMLİĞİ OLAN SİZE AİT HESAPTAN İZİN VERİLMEKTEDİR.</string>
     <string name="paycore_verification_warning_detail">Diğer hesaplardan yapılan transferler alınmayacak, gönderilen fonlar kaybolacaktır!</string>
     <string name="paycore_verification_back">Geri</string>
-    <string name="paycore_verification_error">Giriş tamamlanamadı. Lütfen daha sonra tekrar deneyin.</string>
+    <string name="paycore_verification_error">Giriş tamamlanamadı. Telefon numarasını kontrol edip tekrar deneyin.</string>
+    <string name="paycore_generic_error">İşlem tamamlanamadı. Lütfen daha sonra tekrar deneyin veya destek ekibiyle iletişime geçin.</string>
     <string name="paycore_verification_retry">Yeniden dene</string>
     <string name="paycore_verification_phone_label">Telefon numarası:</string>
     <string name="paycore_verification_contact_support">Otomatik kurtarma başarısız oldu. Lütfen destek ile iletişime geçin.</string>

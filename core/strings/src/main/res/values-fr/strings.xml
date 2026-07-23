@@ -2080,7 +2080,8 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="paycore_verification_warning_text">LE TRANSFERT DE FONDS EST AUTORISÉ EXCLUSIVEMENT DEPUIS LE COMPTE VOUS APPARTENANT, AVEC UN NUMÉRO DE TÉLÉPHONE ET UNE IDENTITÉ VÉRIFIÉS.</string>
     <string name="paycore_verification_warning_detail">Les transferts depuis d\'autres comptes ne seront pas crédités, les fonds envoyés seront perdus !</string>
     <string name="paycore_verification_back">Retour</string>
-    <string name="paycore_verification_error">La connexion a échoué. Veuillez réessayer plus tard.</string>
+    <string name="paycore_verification_error">La connexion a échoué. Vérifiez le numéro de téléphone et réessayez.</string>
+    <string name="paycore_generic_error">L\'opération a échoué. Veuillez réessayer plus tard ou contacter le support.</string>
     <string name="paycore_verification_retry">Réessayer</string>
     <string name="paycore_verification_phone_label">Numéro de téléphone :</string>
     <string name="paycore_verification_contact_support">La récupération automatique a échoué. Veuillez contacter l\'assistance.</string>

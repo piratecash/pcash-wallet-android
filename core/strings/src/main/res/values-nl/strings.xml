@@ -2089,7 +2089,8 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="paycore_verification_warning_text">GELDOVERBOEKINGEN ZIJN UITSLUITEND TOEGESTAAN VANAF DE REKENING DIE AAN U TOEBEHOORT, MET GEVERIFIEERD TELEFOONNUMMER EN IDENTITEIT.</string>
     <string name="paycore_verification_warning_detail">Overboekingen van andere rekeningen worden niet bijgeschreven, verzonden gelden gaan verloren!</string>
     <string name="paycore_verification_back">Terug</string>
-    <string name="paycore_verification_error">Inloggen mislukt. Probeer het later opnieuw.</string>
+    <string name="paycore_verification_error">Inloggen mislukt. Controleer het telefoonnummer en probeer het opnieuw.</string>
+    <string name="paycore_generic_error">Bewerking mislukt. Probeer het later opnieuw of neem contact op met de klantenservice.</string>
     <string name="paycore_verification_retry">Opnieuw proberen</string>
     <string name="paycore_verification_phone_label">Telefoonnummer:</string>
     <string name="paycore_verification_contact_support">Automatisch herstel is mislukt. Neem contact op met de ondersteuning.</string>

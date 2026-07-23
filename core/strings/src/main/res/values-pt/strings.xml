@@ -2082,7 +2082,8 @@
     <string name="paycore_verification_warning_text">A TRANSFERÊNCIA DE FUNDOS É PERMITIDA EXCLUSIVAMENTE DA CONTA QUE LHE PERTENCE, COM NÚMERO DE TELEFONE E IDENTIDADE VERIFICADOS.</string>
     <string name="paycore_verification_warning_detail">Transferências de outras contas não serão creditadas, os fundos enviados serão perdidos!</string>
     <string name="paycore_verification_back">Voltar</string>
-    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Tente mais tarde.</string>
+    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Verifique o número de telefone e tente novamente.</string>
+    <string name="paycore_generic_error">Não foi possível concluir a operação. Tente mais tarde ou contacte o suporte.</string>
     <string name="paycore_verification_retry">Tentar novamente</string>
     <string name="paycore_verification_phone_label">Número de telefone:</string>
     <string name="paycore_verification_contact_support">A recuperação automática falhou. Por favor, contacte o suporte.</string>

@@ -2086,7 +2086,8 @@
     <string name="paycore_verification_warning_text">انتقال وجوه فقط از حساب متعلق به شما، با شماره تلفن و هویت تأیید شده مجاز است.</string>
     <string name="paycore_verification_warning_detail">انتقال از حساب‌های دیگر اعتبار نخواهد داشت، وجوه ارسالی از بین خواهد رفت!</string>
     <string name="paycore_verification_back">بازگشت</string>
-    <string name="paycore_verification_error">ورود ناموفق بود. لطفاً بعداً دوباره امتحان کنید.</string>
+    <string name="paycore_verification_error">ورود ناموفق بود. شماره تلفن را بررسی کنید و دوباره تلاش کنید.</string>
+    <string name="paycore_generic_error">انجام عملیات ناموفق بود. لطفاً بعداً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</string>
     <string name="paycore_verification_retry">تلاش مجدد</string>
     <string name="paycore_verification_phone_label">شماره تلفن:</string>
     <string name="paycore_verification_contact_support">بازیابی خودکار ناموفق بود. لطفاً با پشتیبانی تماس بگیرید.</string>
