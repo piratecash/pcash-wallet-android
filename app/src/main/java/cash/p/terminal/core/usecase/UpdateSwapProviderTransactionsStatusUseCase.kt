@@ -6,6 +6,7 @@ import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.entity.toStatus
 import cash.p.terminal.network.data.EncodedSecrets.getKoin
 import cash.p.terminal.network.swaprepository.SwapProvider
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import cash.p.terminal.wallet.Token
@@ -120,13 +121,18 @@ class UpdateSwapProviderTransactionsStatusUseCase(
     private suspend fun getTransactionStatus(
         transaction: SwapProviderTransaction
     ): SwapProviderTransactionStatusResult? = try {
-        getSwapProviderTransactionStatusRepository(transaction.provider)
-            ?.getTransactionStatus(
-                transactionId = transaction.transactionId,
-                destinationAddress = transaction.addressOut
-            ) ?: run {
+        val repository = getSwapProviderTransactionStatusRepository(transaction.provider)
+        if (repository == null) {
             Timber.d("Transaction status repository not found for provider: ${transaction.provider}")
             null
+        } else {
+            repository.getTransactionStatus(
+                SwapProviderStatusRequest(
+                    transactionId = transaction.transactionId,
+                    destinationAddress = transaction.addressOut,
+                    inboundTxHash = transaction.depositTransactionHash,
+                )
+            )
         }
     } catch (e: Throwable) {
         Timber.d("Failed to get transaction status for id: ${transaction.transactionId}")

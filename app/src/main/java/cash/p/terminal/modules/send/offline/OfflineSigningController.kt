@@ -12,6 +12,7 @@ import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -23,13 +24,6 @@ class OfflineSigningController<T>(
     private val cautionFactory: (Throwable) -> HSCaution,
     private val isSilentCancellation: (Throwable) -> Boolean,
 ) {
-    private data class SignedDraft(
-        val draft: OfflineSignedTransactionDraft,
-        val payload: String,
-        val transaction: OfflineSignedTransaction,
-        val transferFormat: OfflineTransactionFormat,
-    )
-
     var signState by mutableStateOf<OfflineSignState>(OfflineSignState.Idle)
         private set
 
@@ -69,25 +63,34 @@ class OfflineSigningController<T>(
     ) {
         try {
             signedTransaction = null
-            val signed = withContext(dispatcherProvider.io) {
-                val draft = draftBuilder(producer())
-                val payload = payloadEncoder.encode(draft)
-                val transaction = OfflineSignedTransaction(
-                    rawHex = draft.rawHex,
-                    pcashPayload = payload,
-                    txHash = draft.txHash,
-                    createdAt = draft.createdAt,
-                )
-                SignedDraft(
-                    draft = draft,
-                    payload = payload,
-                    transaction = transaction,
-                    transferFormat = format.preferredTransferFormat(transaction),
-                )
+            withContext(dispatcherProvider.io) {
+                val result = producer()
+                val signingJob = coroutineContext[Job]
+                // A producer returning normally means the signature must be preserved —
+                // for TON the one-shot seqno is already consumed by now. Finish encoding
+                // and persisting non-cancellably so a cancellation landing after signing
+                // (the UI still shows "signing…" until the save completes) cannot burn
+                // the seqno while dropping the transaction.
+                withContext(NonCancellable) {
+                    val draft = draftBuilder(result)
+                    val payload = payloadEncoder.encode(draft)
+                    val transaction = OfflineSignedTransaction(
+                        rawHex = draft.rawHex,
+                        pcashPayload = payload,
+                        txHash = draft.txHash,
+                        createdAt = draft.createdAt,
+                    )
+                    repository.save(draft, payload)
+                    // Persist unconditionally, but surface the result only while this
+                    // attempt is still current: once the user has reset (which cancels
+                    // this job), publishing Signed would resurrect an abandoned transfer
+                    // and auto-navigate into it on the next entry.
+                    if (signingJob?.isCancelled != true) {
+                        signedTransaction = transaction
+                        signState = OfflineSignState.Signed(format.preferredTransferFormat(transaction))
+                    }
+                }
             }
-            signedTransaction = signed.transaction
-            repository.save(signed.draft, signed.payload)
-            signState = OfflineSignState.Signed(signed.transferFormat)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Throwable) {

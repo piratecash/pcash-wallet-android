@@ -7,8 +7,11 @@ import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
 import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
 import cash.p.terminal.core.usecase.GenerateMoneroWalletUseCase
 import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
+import cash.p.terminal.core.usecase.GetRestoreHeightForWalletUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
+import cash.p.terminal.core.usecase.RescanMoneroUseCase
+import cash.p.terminal.core.usecase.RescanZcashUseCase
 import cash.p.terminal.core.usecase.ResolvePayCoreNavigationUseCase
 import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
 import cash.p.terminal.core.usecase.SyncPendingMultiSwapUseCase
@@ -45,6 +48,9 @@ val useCaseModule = module {
     factoryOf(::CheckGooglePlayUpdateUseCase)
     factoryOf(::MoneroWalletUseCase)
     factoryOf(::GenerateMoneroWalletUseCase)
+    factoryOf(::GetRestoreHeightForWalletUseCase)
+    factoryOf(::RescanMoneroUseCase)
+    factoryOf(::RescanZcashUseCase)
     factoryOf(::CreateHardwareWalletUseCase) bind ICreateHardwareWalletUseCase::class
     factoryOf(::CreateTrezorWalletUseCase) bind ICreateTrezorWalletUseCase::class
     factoryOf(::GetMoneroWalletFilesNameUseCase) bind IGetMoneroWalletFilesNameUseCase::class

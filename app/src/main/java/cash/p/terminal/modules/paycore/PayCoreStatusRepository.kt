@@ -3,6 +3,7 @@ package cash.p.terminal.modules.paycore
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import timber.log.Timber
@@ -17,10 +18,9 @@ class PayCoreStatusRepository(
     }
 
     override suspend fun getTransactionStatus(
-        transactionId: String,
-        destinationAddress: String,
+        request: SwapProviderStatusRequest,
     ): SwapProviderTransactionStatusResult {
-        val transaction = storage.getTransaction(transactionId)
+        val transaction = storage.getTransaction(request.transactionId)
             ?: return SwapProviderTransactionStatusResult(status = TransactionStatusEnum.WAITING)
 
         val isPayment = PayCoreAssets.isRub(transaction.coinUidIn)

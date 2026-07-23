@@ -83,19 +83,9 @@ class ZcashConfigureViewModel(
                 birthdayHeight?.let { heightInput ->
                     val detectedDate = getLocalDate(heightInput)
                     if (detectedDate != null) {
-                        when (val result = getZcashHeightUseCase(detectedDate)) {
-                            is ZcashHeightResult.Success -> result.height.toString()
-                            ZcashHeightResult.NotFound -> {
-                                errorMessage = Translator.getString(R.string.invalid_height)
-                                null
-                            }
-                            ZcashHeightResult.NetworkError -> {
-                                errorMessage = Translator.getString(
-                                    R.string.blockchair_height_by_date_connection_error
-                                )
-                                null
-                            }
-                        }
+                        val (height, error) = resolveHeightForDate(detectedDate)
+                        errorMessage = error
+                        height
                     } else {
                         heightInput.toLongOrNull()?.toString().also {
                             if (it == null) {
@@ -119,6 +109,30 @@ class ZcashConfigureViewModel(
                     errorMessage ?: Translator.getString(R.string.invalid_height)
                 },
                 loading = false
+            )
+        }
+    }
+
+    fun onDatePicked(date: LocalDate) {
+        viewModelScope.launch {
+            uiState = uiState.copy(loading = true)
+
+            val (height, error) = resolveHeightForDate(date)
+            uiState = uiState.copy(
+                birthdayHeight = height ?: uiState.birthdayHeight,
+                doneButtonEnabled = height != null,
+                errorHeight = error,
+                loading = false
+            )
+        }
+    }
+
+    private suspend fun resolveHeightForDate(date: LocalDate): Pair<String?, String?> {
+        return when (val result = getZcashHeightUseCase(date)) {
+            is ZcashHeightResult.Success -> result.height.toString() to null
+            ZcashHeightResult.NotFound -> null to Translator.getString(R.string.invalid_height)
+            ZcashHeightResult.NetworkError -> null to Translator.getString(
+                R.string.blockchair_height_by_date_connection_error
             )
         }
     }

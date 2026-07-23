@@ -178,14 +178,14 @@ class DeniableEncryptionManagerTest {
     fun `dual container - wrong password for either returns null`() {
         val message1 = "Public".toByteArray()
         val message2 = "Hidden".toByteArray()
-        val salt = DeniableEncryptionManager.generateSalt()
 
+        // Retry overload (as the app uses it) so a random password-offset collision is resolved
+        // internally instead of surfacing as a flaky failure.
         val container = DeniableEncryptionManager.createContainerBytes(
             message1 = message1,
             password1 = "pass1",
             message2 = message2,
-            password2 = "pass2",
-            salt = salt
+            password2 = "pass2"
         )
 
         val wrongExtract = DeniableEncryptionManager.extractMessageFromBytes(container, "wrongPassword")
@@ -592,21 +592,36 @@ class DeniableEncryptionManagerTest {
 
     @Test
     fun `containers with same size bucket are indistinguishable`() {
-        val salt = DeniableEncryptionManager.generateSalt()
+        // Both containers must share one salt (the indistinguishability property under test).
+        // Only the dual container can hit a password-offset collision, so retry fresh salts until
+        // it builds — keeping the test deterministic without weakening the shared-salt assertion.
+        lateinit var salt: ByteArray
+        lateinit var dualContainer: ByteArray
+        var built = false
+        repeat(DeniableEncryptionManager.RECOMMENDED_MAX_RETRIES) {
+            if (built) return@repeat
+            val candidate = DeniableEncryptionManager.generateSalt()
+            try {
+                dualContainer = DeniableEncryptionManager.createContainerBytes(
+                    message1 = "public".toByteArray(),
+                    password1 = "pass1",
+                    message2 = "secret".toByteArray(),
+                    password2 = "pass2",
+                    salt = candidate
+                )
+                salt = candidate
+                built = true
+            } catch (e: DeniableEncryptionManager.PasswordCollisionException) {
+                // Retry with a different salt
+            }
+        }
+        assertTrue("Could not build a collision-free dual container", built)
 
         val singleContainer = DeniableEncryptionManager.createContainerBytes(
             message1 = "public".toByteArray(),
             password1 = "pass1",
             message2 = null,
             password2 = null,
-            salt = salt
-        )
-
-        val dualContainer = DeniableEncryptionManager.createContainerBytes(
-            message1 = "public".toByteArray(),
-            password1 = "pass1",
-            message2 = "secret".toByteArray(),
-            password2 = "pass2",
             salt = salt
         )
 
@@ -896,14 +911,14 @@ class DeniableEncryptionManagerTest {
     fun `dual container with different sized messages`() {
         val smallMessage = "small".toByteArray()
         val largerMessage = ByteArray(500) { 'X'.code.toByte() }
-        val salt = DeniableEncryptionManager.generateSalt()
 
+        // Retry overload (as the app uses it) so a random password-offset collision is resolved
+        // internally instead of surfacing as a flaky failure.
         val container = DeniableEncryptionManager.createContainerBytes(
             message1 = smallMessage,
             password1 = "pass1",
             message2 = largerMessage,
-            password2 = "pass2",
-            salt = salt
+            password2 = "pass2"
         )
 
         val extracted1 = DeniableEncryptionManager.extractMessageFromBytes(container, "pass1")

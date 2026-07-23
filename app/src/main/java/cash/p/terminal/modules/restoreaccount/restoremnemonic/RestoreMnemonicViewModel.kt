@@ -29,6 +29,7 @@ import io.horizontalsystems.hdwalletkit.Language
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import io.horizontalsystems.hdwalletkit.MnemonicWordList
 import io.horizontalsystems.hdwalletkit.WordList
+import java.time.LocalDate
 import kotlinx.coroutines.launch
 
 class RestoreMnemonicViewModel(
@@ -161,6 +162,19 @@ class RestoreMnemonicViewModel(
     fun onChangeHeightText(text: String) {
         error = null
         this.height = text
+
+        emitState()
+    }
+
+    fun onDatePicked(date: LocalDate) {
+        error = null
+        val pickedHeight = validateMoneroHeightUseCase.getHeight(date)
+        if (pickedHeight == -1L) {
+            errorHeight = Translator.getString(R.string.invalid_height_format)
+        } else {
+            height = pickedHeight.toString()
+            errorHeight = null
+        }
 
         emitState()
     }

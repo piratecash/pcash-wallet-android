@@ -125,6 +125,13 @@
     <string name="restoreheight_title">Startblock für Wiederherstellung</string>
     <string name="restoreheight_hint">Block oder Datum eingeben (JJJJ-MM-TT)</string>
     <string name="restoreheight_hint_block_only">Blocknummer eingeben</string>
+    <string name="select_date_title">Datum auswählen</string>
+    <string name="select_date_description">Wählen Sie das ungefähre Erstellungsdatum des Wallets aus. Die Blockhöhe wird automatisch berechnet.</string>
+    <string name="birthday_height_description">Sie können die Blockhöhe ändern oder ein ungefähres Datum auswählen, um den Transaktionsverlauf erneut zu scannen.</string>
+    <string name="birthday_height_date_label">Blockdatum:</string>
+    <string name="birthday_height_rescan">Erneut scannen</string>
+    <string name="birthday_height_rescan_confirm_title">Wallet erneut scannen?</string>
+    <string name="birthday_height_rescan_confirm_text">Die lokalen Wallet-Daten werden gelöscht und die Synchronisierung beginnt ab der neuen Höhe. Dies kann Zeit und Datenverkehr in Anspruch nehmen.</string>
     <string name="invalid_height_format">Ungültige Höhe, bitte stellen Sie sicher, dass Sie JJJJ-MM-TT oder Geburtshöhe eingegeben haben</string>
     <string name="invalid_qr_code">Ungültiger QR-Code</string>
     <string name="blockchair_height_by_date_connection_error">Keine Verbindung zu Blockchair möglich, um die Höhe nach Datum zu finden</string>
@@ -1005,6 +1012,7 @@
     <string name="offline_broadcast_error_send_failed">Fehler beim Senden</string>
     <string name="offline_broadcast_error_timeout">Zeitüberschreitung der Anfrage. Versuche es später erneut.</string>
     <string name="offline_broadcast_error_already_sent">Diese Transaktion ist dem Netzwerk bereits bekannt.</string>
+    <string name="offline_broadcast_error_seqno_consumed">Die Transaktionsnummer (seqno) wurde bereits verwendet. Diese Transaktion wurde möglicherweise bereits gesendet – prüfen Sie den Transaktionsverlauf, bevor Sie erneut signieren.</string>
     <string name="offline_broadcast_error_nonce_used">Die Nonce dieser Transaktion wurde bereits verwendet. Sie wurde möglicherweise gesendet oder ersetzt.</string>
     <string name="offline_broadcast_error_low_fee">Die Netzwerkgebühr ist zu niedrig. Erstelle eine Transaktion mit einer höheren Gebühr.</string>
     <string name="offline_broadcast_error_rejected">Das Netzwerk hat diese signierte Transaktion abgelehnt.</string>
@@ -1020,6 +1028,7 @@
     <string name="offline_signed_status_broadcasted">An Netzwerk gesendet</string>
     <string name="offline_send_no_connection_description">Die Transaktion kann derzeit nicht gesendet werden. Sie können sie offline signieren, damit eine andere Person sie später überträgt.</string>
     <string name="offline_transaction_anchor_required">Stellen Sie einmal eine Internetverbindung her, um diese Transaktion vorzubereiten – danach können Sie sie offline signieren.</string>
+    <string name="offline_sign_error_wallet_not_deployed">Die Wallet ist im TON-Netzwerk noch nicht aktiviert. Senden Sie die erste Transaktion online.</string>
     <string name="offline_send_sync_error_description">Daten konnten nicht von der aktuellen Quelle geladen werden.\n\nSie können:\n• es später erneut versuchen\n• VPN aktivieren und die Synchronisierung erneut versuchen\n• die Transaktion offline signieren und den HEX-Wert zur manuellen Übertragung teilen\n\nWenn Sie einen 403-Fehler erhalten haben, ist Ihre IP-Adresse möglicherweise blockiert. Ein VPN behebt dieses Problem normalerweise.\nSie können eine signierte Transaktion erstellen und sie an ein anderes Gerät oder eine andere Person senden, damit sie im Netzwerk übertragen wird.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Wählen Sie die Datenquelle für die Wiederherstellung des Wallets mit Transaktionen aus.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Ein-/Ausgänge</string>
@@ -2072,7 +2081,8 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="paycore_verification_warning_text">GELDÜBERWEISUNGEN SIND AUSSCHLIESSLICH VOM KONTO GESTATTET, DAS IHNEN GEHÖRT, MIT VERIFIZIERTER TELEFONNUMMER UND IDENTITÄT.</string>
     <string name="paycore_verification_warning_detail">Überweisungen von anderen Konten werden nicht gutgeschrieben, gesendete Gelder gehen verloren!</string>
     <string name="paycore_verification_back">Zurück</string>
-    <string name="paycore_verification_error">Anmeldung fehlgeschlagen. Bitte versuchen Sie es später.</string>
+    <string name="paycore_verification_error">Anmeldung fehlgeschlagen. Überprüfen Sie die Telefonnummer und versuchen Sie es erneut.</string>
+    <string name="paycore_generic_error">Der Vorgang konnte nicht abgeschlossen werden. Bitte versuchen Sie es später erneut oder wenden Sie sich an den Support.</string>
     <string name="paycore_verification_retry">Wiederholen</string>
     <string name="paycore_verification_phone_label">Telefonnummer:</string>
     <string name="paycore_verification_contact_support">Automatische Wiederherstellung fehlgeschlagen. Bitte kontaktieren Sie den Support.</string>
@@ -2108,4 +2118,31 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="send_trezor_time_lock_not_supported">Trezor unterstützt zeitgesperrte Transaktionen nicht.</string>
     <string name="send_failed_offline_prompt_title">Transaktion nicht gesendet</string>
     <string name="send_failed_offline_prompt_message">Transaktion offline signieren und später senden?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software-Updates</string>
+    <string name="version_history_title">Versionsverlauf</string>
+    <string name="auto_check_updates">Automatisch nach Updates suchen</string>
+    <string name="update_interval_day">1T</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Letzte Prüfung war: %1$s</string>
+    <string name="update_available_title">Neues Update verfügbar</string>
+    <string name="update_up_to_date">Update ist aktuell</string>
+    <string name="update_now">Jetzt aktualisieren</string>
+    <string name="update_source">Quelle: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Aktuelle Version</string>
+    <string name="update_old_versions_section">ALTE VERSIONEN</string>
+    <string name="update_checking">Suche nach Updates…</string>
+    <string name="update_improvements_fixes">Dieses Update: %1$d Verbesserungen, %2$d Fehlerbehebungen</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="update_interval_day_full">1 Tag</string>
+    <string name="update_interval_week_full">1 Woche</string>
+    <string name="update_interval_month_full">1 Monat</string>
 </resources>

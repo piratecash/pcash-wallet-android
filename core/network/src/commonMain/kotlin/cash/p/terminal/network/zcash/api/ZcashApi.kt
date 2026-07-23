@@ -35,4 +35,15 @@ internal class ZcashApi(
         date = LocalDate.now(),
         sorting = SORTING_LAST
     )
+
+    suspend fun getBlockDate(height: Long): LocalDate? = withContext(Dispatchers.IO) {
+        httpClient.get {
+            url(BASE_URL)
+            parameter("q", "id(${height})")
+            parameter("limit", 1)
+        }.parseResponse<ZcashBlocksResponse>()
+            .data.firstOrNull()
+            ?.timestamp
+            ?.let { LocalDate.parse(it.substringBefore(' ')) }
+    }
 }

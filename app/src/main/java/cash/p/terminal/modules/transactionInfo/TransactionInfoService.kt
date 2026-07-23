@@ -450,6 +450,7 @@ class TransactionInfoService(
                 swapCoinUidOut = swapTransaction.coinUidOut,
                 swapCoinUidIn = swapTransaction.coinUidIn,
                 swapProvider = swapTransaction.provider,
+                swapUnstoppableSubProviderId = swapTransaction.unstoppableSubProviderId,
                 swapTransactionId = swapTransaction.transactionId,
                 swapTransactionStatus = swapStatus,
                 externalStatus = swapStatus.toUniversalStatus(),

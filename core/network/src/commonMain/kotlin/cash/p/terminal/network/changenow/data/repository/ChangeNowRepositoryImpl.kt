@@ -5,6 +5,7 @@ import cash.p.terminal.network.changenow.data.entity.request.NewTransactionReque
 import cash.p.terminal.network.changenow.data.mapper.ChangeNowMapper
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.repository.ChangeNowRepository
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import cash.p.terminal.network.swaprepository.parseIsoTimestamp
@@ -45,10 +46,9 @@ internal class ChangeNowRepositoryImpl(
     }
 
     override suspend fun getTransactionStatus(
-        transactionId: String,
-        destinationAddress: String
+        request: SwapProviderStatusRequest,
     ): SwapProviderTransactionStatusResult = withContext(Dispatchers.IO) {
-        val status = changeNowApi.getTransactionStatus(transactionId)
+        val status = changeNowApi.getTransactionStatus(request.transactionId)
             .let(changeNowMapper::mapTransactionStatusDto)
 
         val finishedAt = if (status.status == TransactionStatusEnum.FINISHED) {

@@ -66,11 +66,7 @@ fun BottomSheetsElementsInput(onValueChange: (String) -> Unit) {
             hint = stringResource(R.string.Restore_ZCash_Birthday_Hint),
             pasteEnabled = false,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textPreprocessor = object : TextPreprocessor {
-                override fun process(text: String): String {
-                    return text.replace("[^0-9]".toRegex(), "")
-                }
-            },
+            textPreprocessor = DigitsOnlyTextPreprocessor,
             onValueChange = onValueChange
         )
     }

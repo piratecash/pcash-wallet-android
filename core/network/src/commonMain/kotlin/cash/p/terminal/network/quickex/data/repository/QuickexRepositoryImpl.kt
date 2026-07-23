@@ -6,6 +6,7 @@ import cash.p.terminal.network.quickex.data.entity.request.NewTransactionQuickex
 import cash.p.terminal.network.quickex.data.mapper.QuickexMapper
 import cash.p.terminal.network.quickex.domain.entity.OrderEventKind
 import cash.p.terminal.network.quickex.domain.repository.QuickexRepository
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import cash.p.terminal.network.swaprepository.parseIsoTimestamp
@@ -53,12 +54,11 @@ internal class QuickexRepositoryImpl(
     }
 
     override suspend fun getTransactionStatus(
-        transactionId: String,
-        destinationAddress: String
+        request: SwapProviderStatusRequest,
     ): SwapProviderTransactionStatusResult {
         val transactionStatus = getTransactionStatusFromApi(
-            destinationAddress = destinationAddress,
-            orderId = transactionId,
+            destinationAddress = request.destinationAddress,
+            orderId = request.transactionId,
         )
         val status = if (transactionStatus.completed) {
             TransactionStatusEnum.FINISHED

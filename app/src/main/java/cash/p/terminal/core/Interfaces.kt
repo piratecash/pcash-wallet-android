@@ -236,7 +236,7 @@ data class BroadcastRawTransactionResult(
 )
 
 enum class BroadcastRawTransactionStatus {
-    Submitted, Queued, AlreadyKnown
+    Submitted, Queued, AlreadyKnown, SeqnoConsumed
 }
 
 sealed interface OfflineBroadcastMetadata {
@@ -314,7 +314,15 @@ data class OfflineTonSignRequest(
     val amount: BigDecimal,
     val address: FriendlyAddress,
     val memo: String?,
+    val seqno: Int,
+    val validUntil: Long, // unix seconds
+    val fee: BigDecimal,
 ) : OfflineSignRequest
+
+data class TonOfflineAnchor(
+    val seqno: Int,
+    val unixTimeSeconds: Long,
+)
 
 data class SignedOfflineTonTransaction(
     val rawHex: String,
@@ -412,6 +420,7 @@ interface ISendTonAdapter : IBalanceAdapter {
     suspend fun send(amount: BigDecimal, address: FriendlyAddress, memo: String?)
     suspend fun sendWithPayload(amount: BigInteger, address: String, payload: String)
     suspend fun estimateFee(amount: BigDecimal, address: FriendlyAddress, memo: String?) : BigDecimal
+    suspend fun fetchOfflineAnchor(): TonOfflineAnchor
 }
 
 interface ISendStellarAdapter : IBalanceAdapter {

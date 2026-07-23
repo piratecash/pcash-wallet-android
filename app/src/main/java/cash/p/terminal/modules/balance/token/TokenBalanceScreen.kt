@@ -7,6 +7,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,9 +20,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,9 +36,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -57,8 +57,11 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -67,14 +70,14 @@ import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.App
-import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.core.premiumAction
+import cash.p.terminal.featureStacking.ui.staking.StackingType
 import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
-import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
-import cash.p.terminal.modules.balance.SyncingProgress
-import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.balance.BalanceViewModel
+import cash.p.terminal.modules.balance.SyncingProgress
+import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
+import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendFragment
@@ -107,10 +110,8 @@ import cash.p.terminal.ui_compose.ScreenSecurityState
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
 import cash.p.terminal.ui_compose.components.ButtonPrimaryDefault
-import cash.p.terminal.ui_compose.components.ButtonPrimaryTransparent
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.ButtonSecondary
-import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults
 import cash.p.terminal.ui_compose.components.HSCircularProgressIndicator
 import cash.p.terminal.ui_compose.components.HSSwipeRefresh
 import cash.p.terminal.ui_compose.components.HSpacer
@@ -121,6 +122,7 @@ import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
+import cash.p.terminal.ui_compose.components.SecondaryButtonDefaults
 import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.TextImportant
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -136,6 +138,7 @@ import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isStakingWallet
 
 private const val HEADER_CONTENT_TYPE = "token_balance_sticky_header"
+private const val PLACEHOLDER_CONTENT_TYPE = "token_balance_empty_placeholder"
 
 // Distinct type for the sticky header's Lazy key so it can never collide with the
 // transaction rows' String uid keys (an enum never equals a String).
@@ -185,7 +188,11 @@ fun TokenBalanceScreen(
         },
         onDismissAmlPromo = {
             viewModel.dismissAmlPromo()
-            HudHelper.showPremiumMessage(view, R.string.aml_promo_dismiss_hud, SnackbarDuration.LONG)
+            HudHelper.showPremiumMessage(
+                view,
+                R.string.aml_promo_dismiss_hud,
+                SnackbarDuration.LONG
+            )
         },
         onDismissNetworkFeeWarning = viewModel::dismissNetworkFeeWarning,
         onReceiveClick = { onReceiveClicked(viewModel, navController) },
@@ -237,7 +244,11 @@ private fun TokenBalanceScreenContent(
 
     LaunchedEffect(failedIconVisible) {
         val viewItem = uiState.balanceViewItem
-        if (viewItem != null && shouldAutoShowSyncError(failedIconVisible, ScreenSecurityState.isAppLocked)) {
+        if (viewItem != null && shouldAutoShowSyncError(
+                failedIconVisible,
+                ScreenSecurityState.isAppLocked
+            )
+        ) {
             onSyncErrorClick(viewItem)
         }
     }
@@ -267,7 +278,8 @@ private fun TokenBalanceScreenContent(
                                 title = TranslatableString.ResString(R.string.Coin_Info),
                                 icon = R.drawable.ic_chart_24,
                                 onClick = {
-                                    val coinUid = uiState.balanceViewItem?.wallet?.coin?.uid ?: return@MenuItem
+                                    val coinUid = uiState.balanceViewItem?.wallet?.coin?.uid
+                                        ?: return@MenuItem
                                     val arguments = CoinFragmentInput(coinUid)
                                     navController.slideFromRight(R.id.coinFragment, arguments)
                                 }
@@ -373,8 +385,16 @@ private fun TokenBalanceScreenContent(
         val currentStickyDate by remember(listState, uidToDate) {
             derivedStateOf { stickyTransactionDate(listState, uidToDate) }
         }
+        // Live top offset of the empty/loading placeholder relative to the viewport top. It
+        // shrinks as the balance header scrolls away, letting the placeholder's centered content
+        // follow the visible gap below the pinned panel instead of drifting up behind it.
+        val placeholderTopPx by remember(listState) {
+            derivedStateOf {
+                listState.layoutInfo.visibleItemsInfo
+                    .firstOrNull { it.contentType == PLACEHOLDER_CONTENT_TYPE }?.offset ?: 0
+            }
+        }
         var headerHeightPx by remember { mutableIntStateOf(0) }
-        var balanceHeaderHeightPx by remember { mutableIntStateOf(0) }
         // Opening search auto-focuses the field and shows the keyboard
         val searchHeaderIndex = 1 +
             (if (failedIconVisible) 1 else 0) +
@@ -394,23 +414,21 @@ private fun TokenBalanceScreenContent(
                 // list) but not the date overlay (drawn outside it), opening a gap between them.
                 LazyColumn(state = listState, overscrollEffect = null) {
                     item {
-                        Box(modifier = Modifier.onSizeChanged { balanceHeaderHeightPx = it.height }) {
-                            uiState.balanceViewItem?.let {
-                                TokenBalanceHeader(
-                                    balanceViewItem = it,
-                                    navController = navController,
-                                    uiState = uiState,
-                                    secondaryValue = secondaryValue,
-                                    onStackingClicked = onStackingClicked,
-                                    onClickSubtitle = onClickSubtitle,
-                                    onToggleBalanceVisibility = onToggleBalanceVisibility,
-                                    onReceiveClick = onReceiveClick,
-                                    onShieldClick = onShieldClick,
-                                    onSyncErrorClick = onSyncErrorClick,
-                                    onDismissNetworkFeeWarning = onDismissNetworkFeeWarning,
-                                    isShowShieldFunds = uiState.isShowShieldFunds
-                                )
-                            }
+                        uiState.balanceViewItem?.let {
+                            TokenBalanceHeader(
+                                balanceViewItem = it,
+                                navController = navController,
+                                uiState = uiState,
+                                secondaryValue = secondaryValue,
+                                onStackingClicked = onStackingClicked,
+                                onClickSubtitle = onClickSubtitle,
+                                onToggleBalanceVisibility = onToggleBalanceVisibility,
+                                onReceiveClick = onReceiveClick,
+                                onShieldClick = onShieldClick,
+                                onSyncErrorClick = onSyncErrorClick,
+                                onDismissNetworkFeeWarning = onDismissNetworkFeeWarning,
+                                isShowShieldFunds = uiState.isShowShieldFunds
+                            )
                         }
                     }
 
@@ -419,7 +437,10 @@ private fun TokenBalanceScreenContent(
                             TokenNotSyncedSection(
                                 onBlockchainStatusClick = {
                                     uiState.balanceViewItem?.wallet?.token?.blockchain?.let { blockchain ->
-                                        navController.slideFromRight(R.id.blockchainStatusFragment, blockchain)
+                                        navController.slideFromRight(
+                                            R.id.blockchainStatusFragment,
+                                            blockchain
+                                        )
                                     }
                                 },
                                 onRetry = onRefresh,
@@ -446,7 +467,10 @@ private fun TokenBalanceScreenContent(
                     // Stable key so the pinned search/filter header keeps its slot (and the
                     // search field's internal TextFieldValue state) across recompositions
                     // instead of being recreated — Samsung problem.
-                    stickyHeader(key = TokenBalanceLazyKey.SearchHeader, contentType = HEADER_CONTENT_TYPE) {
+                    stickyHeader(
+                        key = TokenBalanceLazyKey.SearchHeader,
+                        contentType = HEADER_CONTENT_TYPE
+                    ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -496,16 +520,27 @@ private fun TokenBalanceScreenContent(
                     ) {
                         // Placeholder fills the viewport so switching to an empty filter keeps the
                         // sticky header pinned at the same scroll position instead of snapping the list.
-                        item {
+                        item(contentType = PLACEHOLDER_CONTENT_TYPE) {
                             Box(modifier = Modifier.fillParentMaxSize()) {
-                                // The placeholder fills the viewport (to keep the scroll extent),
-                                // so its vertically centered content would otherwise land below the
-                                // fold, hidden under the balance header and the sticky header.
-                                // Shrinking the centering region by their combined height re-centers
-                                // the content in the visible gap below the sticky header.
+                                // The placeholder fills the viewport (to keep the scroll extent), so its
+                                // centered content is re-centered into the visible gap below the pinned
+                                // panel. Paddings derive from placeholderTopPx (the live top offset of
+                                // this item), so the centering tracks the scroll and the content no longer
+                                // drifts up behind the panel as the header collapses. The keyboard overlap
+                                // (IME height minus the navigation-bar inset the Scaffold already applied)
+                                // is added to the bottom so, in search mode, the content stays centered
+                                // above the keyboard instead of sliding under it.
+                                val density = LocalDensity.current
+                                val keyboardOverlapPx = (
+                                    WindowInsets.ime.getBottom(density) -
+                                        WindowInsets.navigationBars.getBottom(density)
+                                    ).coerceAtLeast(0)
                                 val paddingValues = PaddingValues(
-                                    bottom = with(LocalDensity.current) {
-                                        (balanceHeaderHeightPx + headerHeightPx).toDp()
+                                    top = with(density) {
+                                        (headerHeightPx - placeholderTopPx).coerceAtLeast(0).toDp()
+                                    },
+                                    bottom = with(density) {
+                                        (placeholderTopPx.coerceAtLeast(0) + keyboardOverlapPx).toDp()
                                     }
                                 )
                                 if (uiState.searchScanning) {
@@ -583,8 +618,9 @@ private fun stickyTransactionDate(
     val header = visibleItems.firstOrNull { it.contentType == HEADER_CONTENT_TYPE } ?: return null
     if (header.offset > 0) return null
     val headerBottom = header.offset + header.size
-    val anchor = visibleItems.firstOrNull { it.key in uidToDate && it.offset + it.size > headerBottom }
-        ?: return null
+    val anchor =
+        visibleItems.firstOrNull { it.key in uidToDate && it.offset + it.size > headerBottom }
+            ?: return null
     return uidToDate[anchor.key]
 }
 
@@ -741,7 +777,8 @@ private fun TokenBalanceHeader(
         VSpacer(height = 6.dp)
         if (balanceViewItem.syncingTextValue != null) {
             body_grey(
-                text = balanceViewItem.syncingTextValue + (balanceViewItem.syncedUntilTextValue?.let { " - $it" } ?: ""),
+                text = balanceViewItem.syncingTextValue + (balanceViewItem.syncedUntilTextValue?.let { " - $it" }
+                    ?: ""),
                 maxLines = 1,
             )
         } else {
@@ -832,7 +869,11 @@ private fun TokenBalanceHeader(
             ) {
                 val hours = nextAccrualHours ?: return@AnimatedVisibility
                 subhead2_jacob(
-                    text = pluralStringResource(R.plurals.staking_next_accrual_in_hours, hours, hours)
+                    text = pluralStringResource(
+                        R.plurals.staking_next_accrual_in_hours,
+                        hours,
+                        hours
+                    )
                 )
             }
 
@@ -1034,6 +1075,7 @@ private fun onSyncErrorClicked(
 
             navController.showSyncErrorDialog(wallet, errorMessage)
         }
+
         is BalanceViewModel.SyncError.NetworkNotAvailable -> Unit // We already show this at bottom panel
     }
 }
@@ -1182,6 +1224,7 @@ private fun StakingStatusBadge(status: TokenBalanceModule.StakingStatus) {
     val (textRes, color) = when (status) {
         TokenBalanceModule.StakingStatus.ACTIVE ->
             R.string.staking_active to ComposeAppTheme.colors.remus
+
         TokenBalanceModule.StakingStatus.INACTIVE ->
             R.string.staking_inactive to ComposeAppTheme.colors.lucian
     }

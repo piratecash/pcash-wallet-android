@@ -3,6 +3,7 @@ package cash.p.terminal.core.managers
 import cash.p.terminal.core.App
 import cash.p.terminal.core.onPollingStartedSuspend
 import cash.p.terminal.core.onPollingStoppedSuspend
+import cash.p.terminal.core.MoneroRescanException
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.adapters.MoneroAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
@@ -72,6 +73,8 @@ class MoneroKitManager(
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val connectivityManager: ConnectivityManager,
     private val dispatcherProvider: DispatcherProvider,
+    private val moneroFileDao: MoneroFileDao,
+    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase,
     private val networkErrorTracker: NetworkErrorTracker,
 ) {
     // Serializes account-lifecycle mutations (activate / unlink / stop) so the process-global
@@ -156,6 +159,30 @@ class MoneroKitManager(
             if (useCount.decrementAndGet() < 1) {
                 stopKit()
             }
+        }
+    }
+
+    /**
+     * Rescans [account] from [newHeight]. Operates only on the already-active wrapper
+     * (never calls [getMoneroKitWrapper], which would bump [useCount] without a matching
+     * [unlink] and leak it). For an inactive account, the wallet files are removed and the
+     * new height persisted so the next [getMoneroKitWrapper] re-derives the wallet from it.
+     */
+    suspend fun rescan(account: Account, newHeight: Long) {
+        if (currentAccount?.id == account.id) {
+            moneroKitWrapper?.rescan(newHeight)
+        } else {
+            // Same fail-loud ordering as MoneroKitWrapper.resetWalletAndRestart: require the old
+            // files to be gone before deleting the DAO record and committing the new height, so a
+            // failed removal can never leave a stale wallet file behind a claimed new height.
+            val removed = removeMoneroWalletFilesUseCase(account)
+            if (!removed) {
+                throw MoneroRescanException("Failed to remove Monero wallet files for account ${account.id}")
+            }
+            moneroFileDao.deleteAssociatedRecord(account.id)
+            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+            restoreSettings.birthdayHeight = newHeight
+            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
         }
     }
 
@@ -331,7 +358,7 @@ class MoneroKitWrapper(
                                 logger.info("start: wallet file does not exist, restoring from mnemonic")
                                 moneroWalletUseCase.restore(
                                     words = accountType.words,
-                                    height = accountType.height,
+                                    height = getBirthdayHeight(account) ?: accountType.height,
                                     crazyPassExisting = walletPassword,
                                     walletInnerNameExisting = walletFileName
                                 )
@@ -516,25 +543,43 @@ class MoneroKitWrapper(
         resetWalletAndRestart(validateMoneroHeightUseCase("2025-08-13"))
     }
 
+    /**
+     * Destructive rescan entry point exposed to callers that need to trigger it directly
+     * (as opposed to the automatic corruption-recovery paths below, which call
+     * [resetWalletAndRestart] from within a context that already holds [lifecycleMutex]).
+     */
+    suspend fun rescan(newHeight: Long) = lifecycleMutex.withLock {
+        resetWalletAndRestart(newHeight)
+    }
+
     private suspend fun resetWalletAndRestart(birthdayHeight: Long) {
         logger.info("resetWalletAndRestart: requested with birthdayHeight=$birthdayHeight")
+        val fileName = getMoneroWalletFilesNameUseCase(account)
+            ?: throw MoneroRescanException("No Monero wallet file found for account ${account.id}")
+
         stopInternal(false)
-        getMoneroWalletFilesNameUseCase(account)?.also {
-            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
-            val heightNeedToUpdate = restoreSettings.birthdayHeight != birthdayHeight
-            logger.info("resetWalletAndRestart: delete walletFile=$it heightNeedsUpdate=$heightNeedToUpdate")
-            if (heightNeedToUpdate) {
-                restoreSettings.birthdayHeight = birthdayHeight
-            }
 
-            removeMoneroWalletFilesUseCase(it)
-            moneroFileDao.deleteAssociatedRecord(account.id)
-
-            if (heightNeedToUpdate) {
-                restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
-            }
+        val removed = removeMoneroWalletFilesUseCase(fileName)
+        if (!removed) {
+            logger.info("resetWalletAndRestart: failed to remove walletFile=$fileName, rolling back")
+            startInternal(fixIfCorruptedFile = false)
+            throw MoneroRescanException("Failed to remove Monero wallet file $fileName")
         }
+
+        moneroFileDao.deleteAssociatedRecord(account.id)
+
+        val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+        restoreSettings.birthdayHeight = birthdayHeight
+        restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+
         startInternal(fixIfCorruptedFile = false)
+        // startInternal swallows startup/derive failures into AdapterState.NotSynced and leaves
+        // isStarted=false. Surface that as a hard rescan failure so callers don't report success
+        // after the destructive reset failed to restart the wallet. (Transient "not synced yet"
+        // still has isStarted=true, so a normal offline start is not treated as a failure.)
+        if (!isStarted) {
+            throw MoneroRescanException("Failed to restart Monero wallet after rescan for account ${account.id}")
+        }
         logger.info("resetWalletAndRestart: restart complete")
     }
 

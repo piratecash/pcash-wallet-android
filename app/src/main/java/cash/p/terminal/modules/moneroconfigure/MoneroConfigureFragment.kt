@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,6 +55,10 @@ import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui.compose.components.FormsInput
+import cash.p.terminal.ui.compose.components.RestoreHeightInput
+import cash.p.terminal.ui.compose.components.SelectDateBottomSheet
+import cash.p.terminal.ui.compose.components.restoreGenesisDateMillis
+import cash.p.terminal.ui.compose.components.restoreMaxDateMillis
 import cash.p.terminal.ui_compose.BaseComposeFragment
 import cash.p.terminal.ui_compose.getInput
 import cash.p.terminal.ui_compose.components.AppBar
@@ -71,6 +76,7 @@ import io.horizontalsystems.chartview.rememberAsyncImagePainterWithFallback
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.imageUrl
 import cash.p.terminal.navigation.setNavigationResultX
+import java.time.LocalDate
 import kotlinx.parcelize.Parcelize
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -98,6 +104,7 @@ class MoneroConfigureFragment : BaseComposeFragment() {
             onCloseClick = { close(navController) },
             onRestoreNew = viewModel::onRestoreNew,
             onSetBirthdayHeight = viewModel::setBirthdayHeight,
+            onDatePick = viewModel::onDatePicked,
             onDoneClick = viewModel::onDoneClick,
             uiState = viewModel.uiState,
         )
@@ -132,7 +139,8 @@ fun MoneroConfigureScreen(
     title: String? = null,
     blockchainType: BlockchainType = BlockchainType.Monero,
     @StringRes heightHintRes: Int = R.string.restoreheight_hint,
-    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets
+    windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
+    onDatePick: ((LocalDate) -> Unit)? = null,
 ) {
 
     val focusManager = LocalFocusManager.current
@@ -149,17 +157,49 @@ fun MoneroConfigureScreen(
         mutableStateOf(TextFieldValue(""))
     }
 
-    Scaffold(
-        containerColor = ComposeAppTheme.colors.tyler,
+    MoneroConfigureBody(
+        windowInsets = windowInsets,
+        uiState = uiState,
+        onDoneClick = onDoneClick,
+        onOptionClick = { isNew ->
+            onRestoreNew(isNew)
+            textState = textState.copy(text = "", selection = TextRange(0))
+            focusManager.clearFocus()
+        },
         topBar = {
             BirthdayHeightAppBar(
                 title = title ?: stringResource(R.string.restore_monero),
                 blockchainType = blockchainType,
                 onCloseClick = onCloseClick
             )
-        }
-    ) {
-        Column(modifier = Modifier.padding(it)) {
+        },
+        heightSection = {
+            if (!uiState.restoreAsNew) {
+                BirthdayHeightSection(
+                    uiState = uiState,
+                    heightHintRes = heightHintRes,
+                    onSetBirthdayHeight = onSetBirthdayHeight,
+                    onDatePick = onDatePick,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun MoneroConfigureBody(
+    windowInsets: WindowInsets,
+    uiState: BirthdayHeightConfigUiState,
+    onDoneClick: () -> Unit,
+    onOptionClick: (Boolean) -> Unit,
+    topBar: @Composable () -> Unit,
+    heightSection: @Composable () -> Unit,
+) {
+    Scaffold(
+        containerColor = ComposeAppTheme.colors.tyler,
+        topBar = topBar,
+    ) { padding ->
+        Column(modifier = Modifier.padding(padding)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -168,60 +208,11 @@ fun MoneroConfigureScreen(
                     .verticalScroll(rememberScrollState()),
             ) {
                 Spacer(Modifier.height(12.dp))
-                CellMultilineLawrenceSection(
-                    listOf(
-                        {
-                            OptionCell(
-                                title = stringResource(R.string.Restore_ZCash_NewWallet),
-                                subtitle = stringResource(R.string.Restore_ZCash_NewWallet_Description),
-                                checked = uiState.restoreAsNew,
-                                onClick = {
-                                    onRestoreNew(true)
-                                    textState =
-                                        textState.copy(text = "", selection = TextRange(0))
-                                    focusManager.clearFocus()
-                                }
-                            )
-                        },
-                        {
-                            OptionCell(
-                                title = stringResource(R.string.Restore_ZCash_OldWallet),
-                                subtitle = stringResource(R.string.Restore_ZCash_OldWallet_Description),
-                                checked = !uiState.restoreAsNew,
-                                onClick = {
-                                    onRestoreNew(false)
-                                    textState =
-                                        textState.copy(text = "", selection = TextRange(0))
-                                    focusManager.clearFocus()
-                                }
-                            )
-                        },
-                    )
+                MoneroRestoreOptions(
+                    uiState = uiState,
+                    onOptionClick = onOptionClick,
                 )
-                if (!uiState.restoreAsNew) {
-                    Spacer(Modifier.height(16.dp))
-                    HeaderText(stringResource(id = R.string.restoreheight_title))
-                    FormsInput(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        initial = uiState.birthdayHeight,
-                        pasteEnabled = false,
-                        singleLine = true,
-                        hint = stringResource(heightHintRes),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Ascii,
-                            imeAction = ImeAction.Done
-                        ),
-                        onValueChange = onSetBirthdayHeight
-                    )
-                    uiState.errorHeight?.let { errorText ->
-                        Spacer(Modifier.height(8.dp))
-                        caption_lucian(
-                            modifier = Modifier.padding(horizontal = 32.dp),
-                            text = errorText
-                        )
-                    }
-                    Spacer(Modifier.height(24.dp))
-                }
+                heightSection()
             }
 
             ButtonsGroupWithShade {
@@ -234,6 +225,89 @@ fun MoneroConfigureScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun MoneroRestoreOptions(
+    uiState: BirthdayHeightConfigUiState,
+    onOptionClick: (Boolean) -> Unit,
+) {
+    CellMultilineLawrenceSection(
+        listOf(
+            {
+                OptionCell(
+                    title = stringResource(R.string.Restore_ZCash_NewWallet),
+                    subtitle = stringResource(R.string.Restore_ZCash_NewWallet_Description),
+                    checked = uiState.restoreAsNew,
+                    onClick = { onOptionClick(true) }
+                )
+            },
+            {
+                OptionCell(
+                    title = stringResource(R.string.Restore_ZCash_OldWallet),
+                    subtitle = stringResource(R.string.Restore_ZCash_OldWallet_Description),
+                    checked = !uiState.restoreAsNew,
+                    onClick = { onOptionClick(false) }
+                )
+            },
+        )
+    )
+}
+
+@Composable
+private fun BirthdayHeightSection(
+    uiState: BirthdayHeightConfigUiState,
+    @StringRes heightHintRes: Int,
+    onSetBirthdayHeight: (String) -> Unit,
+    onDatePick: ((LocalDate) -> Unit)?,
+) {
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    Column {
+        if (showDatePicker && onDatePick != null) {
+            SelectDateBottomSheet(
+                initialDateMillis = null,
+                minDateMillis = restoreGenesisDateMillis(BlockchainType.Monero),
+                maxDateMillis = restoreMaxDateMillis(),
+                onDateSelect = onDatePick,
+                onDismiss = { showDatePicker = false }
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        HeaderText(stringResource(id = R.string.restoreheight_title))
+        if (onDatePick != null) {
+            RestoreHeightInput(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                initial = uiState.birthdayHeight,
+                hint = stringResource(heightHintRes),
+                error = uiState.errorHeight,
+                pasteEnabled = false,
+                onValueChange = onSetBirthdayHeight,
+                onCalendarClick = { showDatePicker = true },
+            )
+        } else {
+            FormsInput(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                initial = uiState.birthdayHeight,
+                pasteEnabled = false,
+                singleLine = true,
+                hint = stringResource(heightHintRes),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Ascii,
+                    imeAction = ImeAction.Done
+                ),
+                onValueChange = onSetBirthdayHeight
+            )
+            uiState.errorHeight?.let { errorText ->
+                Spacer(Modifier.height(8.dp))
+                caption_lucian(
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    text = errorText
+                )
+            }
+        }
+        Spacer(Modifier.height(24.dp))
     }
 }
 

@@ -11,6 +11,7 @@ import cash.p.terminal.core.adapters.SolanaAdapter
 import cash.p.terminal.core.adapters.TronAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.domain.usecase.ClearZCashWalletDataUseCase
+import cash.p.terminal.domain.usecase.ZcashEraseResult
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -64,7 +65,7 @@ class AccountCleanerTest {
         pinDbStorage = mockk(relaxed = true)
         locallyCreatedTransactionRepository = mockk(relaxed = true)
 
-        coEvery { clearZCashWalletDataUseCase.invoke(any()) } returns Unit
+        coEvery { clearZCashWalletDataUseCase.invoke(any()) } returns ZcashEraseResult.ALL
         coEvery { removeMoneroWalletFilesUseCase.invoke(any<Account>()) } returns true
         coEvery { adapterManager.stopAdapters(any()) } returns Unit
         coEvery { adapterManager.stopAdapters(any(), any()) } returns Unit

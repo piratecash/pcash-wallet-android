@@ -25,6 +25,7 @@ class SendTonFeeService(
     private var amount: BigDecimal? = null
 
     private var fee: FeeStatus? = null
+    private var quote: TonFeeQuote? = null
     private var inProgress = false
     private val _stateFlow = MutableStateFlow(
         State(
@@ -50,7 +51,9 @@ class SendTonFeeService(
                 delay(1000)
                 ensureActive()
                 try {
-                    fee = FeeStatus.Success(adapter.estimateFee(amount, address, memo))
+                    val estimated = adapter.estimateFee(amount, address, memo)
+                    fee = FeeStatus.Success(estimated)
+                    quote = TonFeeQuote(estimated, amount, address, memo)
                 } catch (e: Throwable) {
                     if (e is ClientException) {
                         fee = FeeStatus.NoEnoughBalance
@@ -61,6 +64,7 @@ class SendTonFeeService(
                 }
             } else {
                 fee = null
+                quote = null
             }
 
             inProgress = false
@@ -90,7 +94,8 @@ class SendTonFeeService(
         _stateFlow.update {
             State(
                 feeStatus = fee,
-                inProgress = inProgress
+                inProgress = inProgress,
+                quote = quote
             )
         }
     }
@@ -98,7 +103,8 @@ class SendTonFeeService(
 
     data class State(
         val feeStatus: FeeStatus?,
-        val inProgress: Boolean
+        val inProgress: Boolean,
+        val quote: TonFeeQuote? = null
     )
 
     override fun close() {
@@ -106,3 +112,24 @@ class SendTonFeeService(
         coroutineScope.cancel()
     }
 }
+
+/**
+ * A successful fee estimate together with the exact inputs it was computed for.
+ * Offline signing reuses the fee only when the current inputs still match.
+ */
+data class TonFeeQuote(
+    val fee: BigDecimal,
+    val amount: BigDecimal,
+    val address: FriendlyAddress,
+    val memo: String?,
+) {
+    fun matches(amount: BigDecimal, address: FriendlyAddress, memo: String?): Boolean =
+        this.amount.compareTo(amount) == 0 &&
+                this.address.matches(address) &&
+                this.memo == memo
+}
+
+// FriendlyAddress has no equals; compare the canonical raw form plus bounceability.
+private fun FriendlyAddress.matches(other: FriendlyAddress): Boolean =
+    isBounceable == other.isBounceable &&
+            addrStd.toString(userFriendly = false) == other.addrStd.toString(userFriendly = false)
