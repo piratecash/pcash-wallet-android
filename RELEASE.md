@@ -33,12 +33,22 @@ Initial coins dump `json` file should be updated to latest state of backend.
 
 * Create tag for current version.
 
-### 6. Build apk file
+### 6. Build and sign apk file
 
 Build the release APK from the tagged commit:
 
 ```
 ./gradlew clean :app:assembleRelease
+```
+
+The `release` build type has no signing configuration, so the output is
+`app/build/outputs/apk/release/app-release-unsigned.apk`. Sign it with the release keystore
+(`apksigner` ships with Android SDK build-tools; zipalign is already done by Gradle):
+
+```
+apksigner sign --ks <path-to-keystore> \
+    --out p.cash-<version>.apk \
+    app/build/outputs/apk/release/app-release-unsigned.apk
 ```
 
 For F-Droid reproducible builds (including building in F-Droid's exact environment) see [FDROID.md](FDROID.md).
