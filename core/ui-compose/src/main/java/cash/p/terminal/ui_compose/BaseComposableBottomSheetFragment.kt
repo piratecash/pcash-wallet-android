@@ -78,7 +78,10 @@ fun TransparentModalBottomSheet(
         sheetState = sheetState,
         containerColor = ComposeAppTheme.colors.transparent,
         scrimColor = ComposeAppTheme.colors.modalOverlay,
-        contentWindowInsets = { WindowInsets(0) },
+        // Only the top inset: it keeps a fully expanded sheet below the status bar and is consumed
+        // by the sheet itself while it stays lower. The bottom one is handled by BottomSheetHeader,
+        // so that the sheet background reaches under the navigation bar.
+        contentWindowInsets = { WindowInsets.safeDrawing.only(WindowInsetsSides.Top) },
     ) {
         // Runs in the modal's own window: report its focus so the main screen keeps the content
         // behind it visible while foreground, yet hides it once the window loses focus for recents.
