@@ -57,7 +57,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
@@ -81,6 +80,10 @@ import cash.p.terminal.ui.compose.Keyboard
 import cash.p.terminal.ui.compose.components.BoxTyler44
 import cash.p.terminal.ui.compose.components.CustomKeyboardWarningDialog
 import cash.p.terminal.ui.compose.components.FormsInput
+import cash.p.terminal.ui.compose.components.RestoreHeightInput
+import cash.p.terminal.ui.compose.components.SelectDateBottomSheet
+import cash.p.terminal.ui.compose.components.restoreGenesisDateMillis
+import cash.p.terminal.ui.compose.components.restoreMaxDateMillis
 import cash.p.terminal.ui.compose.observeKeyboardState
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonSecondary
@@ -93,6 +96,7 @@ import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsBackButton
 import cash.p.terminal.ui_compose.components.HsSwitch
 import cash.p.terminal.ui_compose.components.HudHelper
+import cash.p.terminal.ui_compose.components.InfoText
 import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.TextImportantWarning
@@ -104,6 +108,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.ui_compose.theme.ColoredTextStyle
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.AccountType
+import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -170,6 +175,7 @@ fun RestorePhrase(
     @OptIn(ExperimentalComposeUiApi::class)
     val keyboardController = LocalSoftwareKeyboardController.current
     var showLanguageSelectorDialog by remember { mutableStateOf(false) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     if (showLanguageSelectorDialog) {
         MnemonicLanguageSelectorDialog(
@@ -183,6 +189,16 @@ fun RestorePhrase(
                 }
             },
             onSelectLanguage = viewModel::setMnemonicLanguage
+        )
+    }
+
+    if (showDatePicker) {
+        SelectDateBottomSheet(
+            initialDateMillis = null,
+            minDateMillis = restoreGenesisDateMillis(BlockchainType.Monero),
+            maxDateMillis = restoreMaxDateMillis(),
+            onDateSelect = viewModel::onDatePicked,
+            onDismiss = { showDatePicker = false }
         )
     }
 
@@ -421,25 +437,16 @@ fun RestorePhrase(
                     if (uiState.isMoneroMnemonic) {
                         Spacer(Modifier.height(16.dp))
                         HeaderText(stringResource(id = R.string.restoreheight_title))
-                        FormsInput(
+                        RestoreHeightInput(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             initial = uiState.height,
-                            pasteEnabled = false,
-                            singleLine = true,
                             hint = stringResource(R.string.restoreheight_hint),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Ascii,
-                                imeAction = ImeAction.Done
-                            ),
-                            onValueChange = viewModel::onChangeHeightText
+                            error = uiState.errorHeight,
+                            pasteEnabled = false,
+                            onValueChange = viewModel::onChangeHeightText,
+                            onCalendarClick = { showDatePicker = true },
                         )
-                        uiState.errorHeight?.let { errorText ->
-                            Spacer(Modifier.height(8.dp))
-                            caption_lucian(
-                                modifier = Modifier.padding(horizontal = 32.dp),
-                                text = errorText
-                            )
-                        }
+                        InfoText(text = stringResource(R.string.select_date_description))
                     }
                 }
                 Spacer(Modifier.height(32.dp))

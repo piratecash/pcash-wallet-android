@@ -39,7 +39,11 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.getMaxSendableBalance
 import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.DispatcherProvider
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.net.UnknownHostException
@@ -87,6 +91,11 @@ class SendMoneroViewModel(
     private var amountState = amountService.stateFlow.value
     private var addressState = addressService.stateFlow.value
 
+    // Monero needs the daemon (ring decoys) to BUILD the transaction, so build+sign it up front while
+    // online and cache it to be returned when signing offline. Rebuilt on every input change.
+    private var offlineSignJob: Job? = null
+    private var offlineSignResult: OfflineSignResult? = null
+
     override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
@@ -129,6 +138,15 @@ class SendMoneroViewModel(
         }
         xRateService.getRateFlow(sendToken.coin.uid).collectWith(viewModelScope) {
             feeCoinRate = it
+        }
+        // Reconnecting must re-prepare the offline transaction even if the inputs did not change,
+        // otherwise the "prepare online, then sign offline" instruction never takes effect.
+        isConnectedFlow.collectWith(viewModelScope) { connected ->
+            // StateFlow only re-emits on a real transition, so a reconnect drives a fresh prepare;
+            // prepareOfflineSignedTransaction cancels any in-flight (superseded) build safely.
+            if (connected && offlineSignResult == null) {
+                prepareOfflineSignedTransaction()
+            }
         }
         viewModelScope.launch {
             addressService.setAddress(address)
@@ -228,7 +246,31 @@ class SendMoneroViewModel(
         )
     }
 
-    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+    // Reactively build+sign while online (needs the daemon for ring decoys) so an offline sign just
+    // returns the cached result. Rebuilds on every input change; a Monero tx has no expiration, so no
+    // block/sync invalidation is needed.
+    private fun prepareOfflineSignedTransaction() {
+        offlineSignJob?.cancel()
+        offlineSignResult = null
+        if (!offlineSignSupported) return
+        val amount = amountState.amount
+        if (amount == null || amount <= BigDecimal.ZERO || addressState.address == null || !hasConnection()) return
+        offlineSignJob = viewModelScope.launch {
+            delay(OFFLINE_BUILD_DEBOUNCE_MS)
+            val result = try {
+                buildOfflineSignedTransaction()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                null
+            }
+            // cancel() is cooperative: a superseded build must not overwrite a newer result.
+            ensureActive()
+            offlineSignResult = result
+        }
+    }
+
+    private suspend fun buildOfflineSignedTransaction(): OfflineSignResult {
         val confirmationData = getConfirmationData()
         val signingAdapter = offlineSignAdapter
             ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
@@ -242,6 +284,12 @@ class SendMoneroViewModel(
             ),
             confirmationData = confirmationData,
         )
+    }
+
+    private suspend fun signedOfflineTransaction(): OfflineSignResult {
+        offlineSignJob?.join()
+        return offlineSignResult
+            ?: throw LocalizedException(R.string.offline_transaction_anchor_required)
     }
 
     private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
@@ -259,6 +307,7 @@ class SendMoneroViewModel(
     }
 
     private fun recalculateFee() {
+        prepareOfflineSignedTransaction()
         val address = addressState.address?.hex
         val amount = amountState.amount
         if (address == null || amount == null || amount == BigDecimal.ZERO) {
@@ -302,3 +351,5 @@ class SendMoneroViewModel(
     }
 
 }
+
+private const val OFFLINE_BUILD_DEBOUNCE_MS = 600L

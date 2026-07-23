@@ -22,6 +22,7 @@ import io.horizontalsystems.tronkit.models.RawTransactionBroadcastStatus
 import io.horizontalsystems.tronkit.models.RawTransactionRetryMetadata
 import io.horizontalsystems.tronkit.network.CreatedTransaction
 import io.horizontalsystems.tronkit.network.Network
+import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.horizontalsystems.tronkit.transaction.Signer
 import kotlinx.coroutines.Dispatchers
@@ -91,17 +92,32 @@ abstract class BaseTronAdapter(
     override suspend fun signOffline(request: OfflineSignRequest): SignedOfflineTronTransaction {
         require(request is OfflineTronSignRequest) { "OfflineTronSignRequest is required" }
         val signer = signer ?: throw TronSignerNotInitializedException()
-        val signed = tronKit.signedTransaction(
-            contract = transferContract(request.amount, request.address),
-            signer = signer,
-            feeLimit = request.feeLimit,
-        )
+        val signed = tronKit.signedTransaction(request.createdTransaction, signer)
         return SignedOfflineTronTransaction(
             rawHex = signed.raw.toRawHexString(),
             txHash = signed.txId.canonicalTransactionHash(),
             expiration = signed.expiration,
         )
     }
+
+    override suspend fun getNowBlock(): NowBlock = withContext(Dispatchers.IO) {
+        tronKit.getNowBlock()
+    }
+
+    override fun buildOfflineTransaction(
+        amount: BigDecimal,
+        to: Address,
+        feeLimit: Long?,
+        block: NowBlock,
+        timestamp: Long,
+        expiration: Long,
+    ): CreatedTransaction = tronKit.buildOfflineTransaction(
+        contract = transferContract(amount, to),
+        block = block,
+        timestamp = timestamp,
+        expiration = expiration,
+        feeLimit = feeLimit,
+    )
 
     override suspend fun broadcastRawTransaction(
         rawTransactionHex: String,

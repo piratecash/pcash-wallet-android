@@ -17,6 +17,7 @@ import cash.p.terminal.network.data.buildNetworkClient
 import cash.p.terminal.network.data.isAppDebuggable
 import cash.p.terminal.network.exolix.data.repository.ExolixRepositoryImpl
 import cash.p.terminal.network.exolix.di.networkExolixModule
+import cash.p.terminal.network.github.di.networkGithubModule
 import cash.p.terminal.network.pirate.di.networkPirateModule
 import cash.p.terminal.network.piratenews.di.networkPirateNewsModule
 import cash.p.terminal.network.quickex.data.repository.QuickexRepositoryImpl
@@ -24,6 +25,8 @@ import cash.p.terminal.network.quickex.di.networkQuickexModule
 import cash.p.terminal.network.stonfi.di.networkStonFiModule
 import cash.p.terminal.network.swaprepository.SwapProvider
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
+import cash.p.terminal.network.unstoppable.data.repository.UnstoppableRepositoryImpl
+import cash.p.terminal.network.unstoppable.di.networkUnstoppableModule
 import cash.p.terminal.network.zcash.di.networkZcashModule
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.qualifier.named
@@ -49,15 +52,20 @@ val networkModule = module {
     single<SwapProviderTransactionStatusRepository>(named(SwapProvider.EXOLIX)) {
         get<ExolixRepositoryImpl>()
     }
+    single<SwapProviderTransactionStatusRepository>(named(SwapProvider.UNSTOPPABLE)) {
+        get<UnstoppableRepositoryImpl>()
+    }
 
     includes(
         networkPirateModule,
         networkChangeNowModule,
         networkQuickexModule,
         networkExolixModule,
+        networkUnstoppableModule,
         networkPirateNewsModule,
         networkStonFiModule,
         networkZcashModule,
+        networkGithubModule,
         databaseModule,
         decoderModule
     )

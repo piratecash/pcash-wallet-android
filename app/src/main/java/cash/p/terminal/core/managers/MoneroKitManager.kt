@@ -3,6 +3,7 @@ package cash.p.terminal.core.managers
 import cash.p.terminal.core.App
 import cash.p.terminal.core.onPollingStartedSuspend
 import cash.p.terminal.core.onPollingStoppedSuspend
+import cash.p.terminal.core.MoneroRescanException
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.adapters.MoneroAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
@@ -19,6 +20,7 @@ import cash.p.terminal.wallet.data.MnemonicKind
 import cash.p.terminal.wallet.entities.SecretString
 import cash.p.terminal.wallet.useCases.IGetMoneroWalletFilesNameUseCase
 import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
+import com.m2049r.levin.util.NetCipherHelper
 import com.m2049r.xmrwallet.data.DefaultNodes
 import com.m2049r.xmrwallet.data.NodeInfo
 import com.m2049r.xmrwallet.data.TxData
@@ -45,6 +47,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -70,7 +73,13 @@ class MoneroKitManager(
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
     private val connectivityManager: ConnectivityManager,
     private val dispatcherProvider: DispatcherProvider,
+    private val moneroFileDao: MoneroFileDao,
+    private val removeMoneroWalletFilesUseCase: RemoveMoneroWalletFilesUseCase,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
+    // Serializes account-lifecycle mutations (activate / unlink / stop) so the process-global
+    // NetCipherHelper observer factory is set/cleared without racing a concurrent teardown.
+    private val accountMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
     private val coroutineScope =
         CoroutineScope(dispatcherProvider.io + CoroutineExceptionHandler { _, throwable ->
@@ -87,10 +96,9 @@ class MoneroKitManager(
     val kitStoppedObservable: Observable<Unit>
         get() = moneroKitStoppedSubject
 
-    suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper {
+    suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper = accountMutex.withLock {
         if (this.moneroKitWrapper != null && currentAccount != account) {
-            stopKit()
-            moneroKitWrapper = null
+            stopKit() // also nulls moneroKitWrapper and clears the factory
         }
 
         if (this.moneroKitWrapper == null) {
@@ -102,14 +110,36 @@ class MoneroKitManager(
 
                 else -> throw UnsupportedAccountException()
             }
-            startKit()
-            subscribeToEvents()
+            // Install the passive network observer for THIS account before startKit triggers
+            // node-selection pings, so transport errors are attributed to the active account.
+            NetCipherHelper.setEventListenerFactory(
+                NetworkErrorEventListener.Factory(BlockchainType.Monero, account.id, networkErrorTracker)
+            )
+            try {
+                startKit()
+                subscribeToEvents()
+            } catch (e: Throwable) {
+                // Activation failed or was cancelled before publishing currentAccount: roll back the
+                // process-global factory and stop/discard the partial wrapper so no stale state survives.
+                // Preserve the original cause: a cleanup-stop failure is suppressed, never rethrown.
+                NetCipherHelper.setEventListenerFactory(null)
+                val partial = moneroKitWrapper
+                moneroKitWrapper = null
+                withContext(NonCancellable) {
+                    try {
+                        partial?.stop()
+                    } catch (stopError: Throwable) {
+                        e.addSuppressed(stopError)
+                    }
+                }
+                throw e
+            }
             useCount.set(0)
             currentAccount = account
         }
 
         useCount.incrementAndGet()
-        return this.moneroKitWrapper!!
+        requireNotNull(moneroKitWrapper)
     }
 
     private fun createKitInstance(
@@ -120,14 +150,39 @@ class MoneroKitManager(
             restoreSettingsManager = restoreSettingsManager,
             account = account,
             dispatcherProvider = dispatcherProvider,
+            networkErrorTracker = networkErrorTracker,
         )
     }
 
-    suspend fun unlink(account: Account) {
+    suspend fun unlink(account: Account) = accountMutex.withLock {
         if (account == currentAccount) {
             if (useCount.decrementAndGet() < 1) {
                 stopKit()
             }
+        }
+    }
+
+    /**
+     * Rescans [account] from [newHeight]. Operates only on the already-active wrapper
+     * (never calls [getMoneroKitWrapper], which would bump [useCount] without a matching
+     * [unlink] and leak it). For an inactive account, the wallet files are removed and the
+     * new height persisted so the next [getMoneroKitWrapper] re-derives the wallet from it.
+     */
+    suspend fun rescan(account: Account, newHeight: Long) {
+        if (currentAccount?.id == account.id) {
+            moneroKitWrapper?.rescan(newHeight)
+        } else {
+            // Same fail-loud ordering as MoneroKitWrapper.resetWalletAndRestart: require the old
+            // files to be gone before deleting the DAO record and committing the new height, so a
+            // failed removal can never leave a stale wallet file behind a claimed new height.
+            val removed = removeMoneroWalletFilesUseCase(account)
+            if (!removed) {
+                throw MoneroRescanException("Failed to remove Monero wallet files for account ${account.id}")
+            }
+            moneroFileDao.deleteAssociatedRecord(account.id)
+            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+            restoreSettings.birthdayHeight = newHeight
+            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
         }
     }
 
@@ -147,7 +202,15 @@ class MoneroKitManager(
         lifecycleJobs.forEach { it.cancel() }
         lifecycleJobs.clear()
         currentAccount = null
-        moneroKitWrapper?.stop()
+        // Clear the observer AND invalidate wrapper ownership before the suspending stop, so a
+        // concurrent poller restart cannot reuse the stopped wrapper with a null factory, and a
+        // stopped account's factory never lingers on the process-global NetCipherHelper.
+        NetCipherHelper.setEventListenerFactory(null)
+        val wrapper = moneroKitWrapper
+        moneroKitWrapper = null
+        // Complete the stop under NonCancellable: ownership is already invalidated, so a cancellation
+        // here would otherwise orphan a still-open native wallet while the next account starts.
+        withContext(NonCancellable) { wrapper?.stop() }
     }
 
     private suspend fun startKit() {
@@ -205,6 +268,7 @@ class MoneroKitWrapper(
     private val restoreSettingsManager: RestoreSettingsManager,
     private val account: Account,
     private val dispatcherProvider: DispatcherProvider,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) : MoneroWalletService.Observer {
     private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
@@ -218,6 +282,7 @@ class MoneroKitWrapper(
         IGetMoneroWalletFilesNameUseCase::class.java
     )
     private val logger = AppLogger("monero-kit").getScoped(account.id)
+    @Volatile
     private var lastLoggedConnectionStatus: ConnectionStatus? = null
     private var lastLoggedSyncProgress: Int = -1
 
@@ -293,7 +358,7 @@ class MoneroKitWrapper(
                                 logger.info("start: wallet file does not exist, restoring from mnemonic")
                                 moneroWalletUseCase.restore(
                                     words = accountType.words,
-                                    height = accountType.height,
+                                    height = getBirthdayHeight(account) ?: accountType.height,
                                     crazyPassExisting = walletPassword,
                                     walletInnerNameExisting = walletFileName
                                 )
@@ -373,6 +438,9 @@ class MoneroKitWrapper(
             logger.info(
                 "startService: initial status=${walletStatus?.toString()} isOk=${walletStatus?.isOk} connection=${walletStatus?.connectionStatus}"
             )
+            // Route EVERY start() result through the self-gated helper (incl. a successful Connected
+            // start, which arms lastLoggedConnectionStatus so the first onRefreshed is not a "new" transition).
+            recordNativeConnectionError(walletStatus?.connectionStatus, walletStatus?.errorString)
             if (walletStatus?.isOk != true) {
                 logger.info("startService: wallet status not ok, scheduling retry")
                 Timber.d("Monero wallet start error: $walletStatus, restarting")
@@ -385,11 +453,7 @@ class MoneroKitWrapper(
                         resetWalletAndRestart(it)
                     }
                 } else {
-                    delay(3_000)
-                    val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
-                    logger.info(
-                        "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} connection=${retryStatus?.connectionStatus}"
-                    )
+                    retryStart(walletFileName, walletPassword)
                 }
             }
         } catch (e: WalletCorruptedException) {
@@ -424,6 +488,15 @@ class MoneroKitWrapper(
             logger.warning("startService: unexpected exception", e)
             throw e
         }
+    }
+
+    private suspend fun retryStart(walletFileName: String, walletPassword: String) {
+        delay(3_000)
+        val retryStatus = moneroWalletService.start(walletFileName, walletPassword)
+        logger.info(
+            "startService: retry status=${retryStatus?.toString()} isOk=${retryStatus?.isOk} connection=${retryStatus?.connectionStatus}"
+        )
+        recordNativeConnectionError(retryStatus?.connectionStatus, retryStatus?.errorString)
     }
 
     private fun getBirthdayHeight(account: Account): Long? {
@@ -470,25 +543,43 @@ class MoneroKitWrapper(
         resetWalletAndRestart(validateMoneroHeightUseCase("2025-08-13"))
     }
 
+    /**
+     * Destructive rescan entry point exposed to callers that need to trigger it directly
+     * (as opposed to the automatic corruption-recovery paths below, which call
+     * [resetWalletAndRestart] from within a context that already holds [lifecycleMutex]).
+     */
+    suspend fun rescan(newHeight: Long) = lifecycleMutex.withLock {
+        resetWalletAndRestart(newHeight)
+    }
+
     private suspend fun resetWalletAndRestart(birthdayHeight: Long) {
         logger.info("resetWalletAndRestart: requested with birthdayHeight=$birthdayHeight")
+        val fileName = getMoneroWalletFilesNameUseCase(account)
+            ?: throw MoneroRescanException("No Monero wallet file found for account ${account.id}")
+
         stopInternal(false)
-        getMoneroWalletFilesNameUseCase(account)?.also {
-            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
-            val heightNeedToUpdate = restoreSettings.birthdayHeight != birthdayHeight
-            logger.info("resetWalletAndRestart: delete walletFile=$it heightNeedsUpdate=$heightNeedToUpdate")
-            if (heightNeedToUpdate) {
-                restoreSettings.birthdayHeight = birthdayHeight
-            }
 
-            removeMoneroWalletFilesUseCase(it)
-            moneroFileDao.deleteAssociatedRecord(account.id)
-
-            if (heightNeedToUpdate) {
-                restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
-            }
+        val removed = removeMoneroWalletFilesUseCase(fileName)
+        if (!removed) {
+            logger.info("resetWalletAndRestart: failed to remove walletFile=$fileName, rolling back")
+            startInternal(fixIfCorruptedFile = false)
+            throw MoneroRescanException("Failed to remove Monero wallet file $fileName")
         }
+
+        moneroFileDao.deleteAssociatedRecord(account.id)
+
+        val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
+        restoreSettings.birthdayHeight = birthdayHeight
+        restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+
         startInternal(fixIfCorruptedFile = false)
+        // startInternal swallows startup/derive failures into AdapterState.NotSynced and leaves
+        // isStarted=false. Surface that as a hard rescan failure so callers don't report success
+        // after the destructive reset failed to restart the wallet. (Transient "not synced yet"
+        // still has isStarted=true, so a normal offline start is not treated as a failure.)
+        if (!isStarted) {
+            throw MoneroRescanException("Failed to restart Monero wallet after rescan for account ${account.id}")
+        }
         logger.info("resetWalletAndRestart: restart complete")
     }
 
@@ -707,13 +798,43 @@ class MoneroKitWrapper(
         logger.info(
             "statusInfo: connection=${moneroWalletService.connectionStatus} wallet=${moneroWalletService.wallet?.status} isStarted=$isStarted restoreHeight=${moneroWalletService.wallet?.restoreHeight}"
         )
-        return mapOf(
+        val base = mapOf<String, Any>(
             "connectionStatus" to moneroWalletService.connectionStatus,
             "walletStatus" to moneroWalletService.wallet?.status?.toString().orEmpty(),
             "isStarted" to isStarted,
             "Birthday Height" to (getBirthdayHeight(account) ?: "Not set"),
             "Cache file size" to (tryOrNull { getCacheFile().sizeInMb() } ?: "")
         )
+        return networkErrorTracker.appendNetworkErrors(base, BlockchainType.Monero, account.id)
+    }
+
+    /**
+     * Records a native (non-OkHttp) connection error into the shared tracker. Self-gated on
+     * [lastLoggedConnectionStatus] so repeated same-status callbacks record once; ignores null and
+     * Connected. Passive: never throws into the caller.
+     */
+    private fun recordNativeConnectionError(status: ConnectionStatus?, errorString: String?) {
+        val s = status ?: return
+        if (s == lastLoggedConnectionStatus) return
+        lastLoggedConnectionStatus = s
+        if (s == ConnectionStatus.ConnectionStatus_Connected) return
+        tryOrNull {
+            val addr = tryOrNull { WalletManager.getInstance().getDaemonAddress() }.orEmpty()
+            networkErrorTracker.record(
+                BlockchainType.Monero,
+                account.id,
+                NetworkErrorInfo(
+                    source = "Monero",
+                    method = s.name,
+                    url = addr,
+                    host = addr,
+                    resolvedIps = emptyList(),
+                    throwable = IllegalStateException(
+                        errorString?.takeIf { it.isNotBlank() } ?: "Not connected"
+                    ),
+                )
+            )
+        }
     }
 
     private fun getCacheFile(): File? {
@@ -800,13 +921,18 @@ class MoneroKitWrapper(
 
         val connectionStatus = tryOrNull { moneroWalletService.connectionStatus }
             ?: ConnectionStatus.ConnectionStatus_Disconnected
+        // Native status can additionally report WrongVersion, which the service status never carries.
+        val observed = tryOrNull { wallet?.connectionStatus } ?: connectionStatus
 
-        if (connectionStatus != lastLoggedConnectionStatus) {
+        if (observed != lastLoggedConnectionStatus) {
             logger.info(
-                "onRefreshed: connection=$connectionStatus full=$full isSynchronized=${wallet?.isSynchronized} daemonHeight=${moneroWalletService.daemonHeight} walletHeight=${wallet?.blockChainHeight}"
+                "onRefreshed: connection=$observed full=$full " +
+                    "isSynchronized=${wallet?.isSynchronized} " +
+                    "daemonHeight=${moneroWalletService.daemonHeight} " +
+                    "walletHeight=${wallet?.blockChainHeight}"
             )
-            lastLoggedConnectionStatus = connectionStatus
         }
+        recordNativeConnectionError(observed, tryOrNull { wallet?.status?.errorString })
 
         if (connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
             _lastBlockInfoFlow.value = if (moneroWalletService.daemonHeight != 0L) {

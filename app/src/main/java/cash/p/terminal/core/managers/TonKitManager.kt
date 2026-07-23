@@ -51,7 +51,8 @@ import java.util.concurrent.atomic.AtomicInteger
 class TonKitManager(
     private val backgroundManager: BackgroundManager,
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
-    private val backgroundKeepAliveManager: BackgroundKeepAliveManager
+    private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
@@ -72,7 +73,11 @@ class TonKitManager(
         private set
 
     val statusInfo: Map<String, Any>?
-        get() = tonKitWrapper?.tonKit?.statusInfo()
+        get() = networkErrorTracker.mergedStatusInfo(
+            tonKitWrapper?.tonKit?.statusInfo(),
+            BlockchainType.Ton,
+            currentAccount?.id,
+        )
 
     suspend fun getTonKitWrapper(
         account: Account,
@@ -119,6 +124,9 @@ class TonKitManager(
         ), account
     )
 
+    private fun eventListenerFactory(account: Account): NetworkErrorEventListener.Factory =
+        NetworkErrorEventListener.Factory(BlockchainType.Ton, account.id, networkErrorTracker)
+
     private fun createKitInstance(
         tonWallet: TonWallet,
         account: Account,
@@ -128,7 +136,8 @@ class TonKitManager(
                 tonWallet,
                 Network.MainNet,
                 App.instance,
-                account.id
+                account.id,
+                eventListenerFactory = eventListenerFactory(account),
             ),
             tonWallet
         )

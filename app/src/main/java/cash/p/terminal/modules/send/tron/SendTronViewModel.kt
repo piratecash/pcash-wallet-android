@@ -12,8 +12,8 @@ import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTronSignRequest
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.SignedOfflineTronTransaction
-import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.RecentAddressManager
@@ -40,8 +40,11 @@ import cash.p.terminal.wallet.entities.TokenType
 import io.horizontalsystems.core.DispatcherProvider
 import com.tangem.common.extensions.isZero
 import io.horizontalsystems.core.entities.BlockchainType
+import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
@@ -60,7 +63,6 @@ class SendTronViewModel(
     override val coinMaxAllowedDecimals: Int,
     private val contactsRepo: ContactsRepository,
     private val showAddressInput: Boolean,
-    private val connectivityManager: ConnectivityManager,
     private val address: Address?,
     adapterManager: IAdapterManager,
     private val dispatcherProvider: DispatcherProvider,
@@ -101,6 +103,14 @@ class SendTronViewModel(
     private var currentFee: BigDecimal? = null
     private var feeLoading: Boolean = false
     private var feeEstimationJob: Job? = null
+
+    // TAPOS anchor captured while online; reused to build the transaction locally when signing offline.
+    private var offlineAnchor: OfflineAnchor? = null
+
+    // Fee limit from the last successful online estimate, bound to the inputs it was computed for so a
+    // late/stale estimate can't be reused for a changed recipient/amount; for offline TRC20 signing.
+    private var estimatedFeeLimit: Long? = null
+    private var estimatedFeeLimitInputs: Pair<BigDecimal, String>? = null
 
     override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
@@ -148,6 +158,15 @@ class SendTronViewModel(
         }
         viewModelScope.launch {
             addressService.setAddress(address)
+        }
+        if (offlineSignSupported) {
+            viewModelScope.launch {
+                // Keep the TAPOS anchor filled whenever online: fetch on connect/reconnect and retry
+                // transient failures, so a screen opened offline (or a failed RPC) recovers on its own.
+                isConnectedFlow.collect { connected ->
+                    if (connected) ensureOfflineAnchor()
+                }
+            }
         }
     }
 
@@ -232,6 +251,7 @@ class SendTronViewModel(
             emitState()
 
             val amount = decimalAmount
+            val addressHex = destinationAddress.hex
             val fees = adapter.estimateFee(amount, destinationTronAddress)
 
             var activationFee: BigDecimal? = null
@@ -262,6 +282,7 @@ class SendTronViewModel(
             }
 
             feeState = FeeState.Success(fees)
+            rememberEstimatedFeeLimit(fees.feeLimit, amount, addressHex)
             emitState()
 
             val fee = fees.totalFee(feeToken.decimals)
@@ -289,10 +310,6 @@ class SendTronViewModel(
         viewModelScope.launch {
             send()
         }
-    }
-
-    fun hasConnection(): Boolean {
-        return connectivityManager.isConnected.value
     }
 
     private suspend fun send() = withContext(dispatcherProvider.io) {
@@ -343,18 +360,52 @@ class SendTronViewModel(
         )
     }
 
+    // Fetches a fresh TAPOS anchor once per online/reconnect, replacing any existing one so it never
+    // goes stale past the ~54h ref-block window. Retries transient failures while still connected, which
+    // also recovers from a StateFlow connectivity blip conflated away during a failed fetch.
+    private suspend fun ensureOfflineAnchor() {
+        while (isConnectedFlow.value) {
+            val block = try {
+                adapter.getNowBlock()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                null
+            }
+            if (block != null) {
+                offlineAnchor = OfflineAnchor(block, elapsedRealtimeMs)
+                return
+            }
+            delay(ANCHOR_RETRY_DELAY_MS)
+        }
+    }
+
     private suspend fun signedOfflineTransaction(): OfflineSignResult {
         val confirmationData = getConfirmationData()
         val signingAdapter = offlineSignAdapter
             ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
+        // Reject an anchor too old to still fall inside the ~54h TAPOS ref-block window (e.g. reconnect
+        // refresh never completed). Fail closed to the "prepare online" error instead of building a
+        // transaction the network would reject; a reconnect then refreshes the anchor.
+        val anchor = offlineAnchor?.takeIf { elapsedRealtimeMs - it.elapsedAtFetch < OFFLINE_ANCHOR_MAX_AGE_MS }
+            ?: throw LocalizedException(R.string.offline_transaction_anchor_required)
+        val feeLimit = offlineFeeLimit
+        if (sendToken.type != TokenType.Native && feeLimit == null) {
+            throw LocalizedException(R.string.send_error_fee_rate_unavailable)
+        }
+        // Derive the transaction time from the anchor's network timestamp advanced by the monotonic
+        // clock, so a skewed wall clock cannot invalidate expiration while offline.
+        val timestamp = anchor.block.timestamp + (elapsedRealtimeMs - anchor.elapsedAtFetch)
+        val createdTransaction = adapter.buildOfflineTransaction(
+            amount = confirmationData.amount,
+            to = destinationTronAddress,
+            feeLimit = feeLimit,
+            block = anchor.block,
+            timestamp = timestamp,
+            expiration = timestamp + OFFLINE_TX_EXPIRATION_MS,
+        )
         return OfflineSignResult(
-            signedTransaction = signingAdapter.signOffline(
-                OfflineTronSignRequest(
-                    amount = confirmationData.amount,
-                    address = destinationTronAddress,
-                    feeLimit = feeLimitForTransaction(),
-                )
-            ),
+            signedTransaction = signingAdapter.signOffline(OfflineTronSignRequest(createdTransaction)),
             confirmationData = confirmationData,
         )
     }
@@ -381,6 +432,22 @@ class SendTronViewModel(
         } else {
             feeState.feeLimit ?: adapter.estimateFee(decimalAmount, destinationTronAddress).feeLimit
                 ?: throw LocalizedException(R.string.send_error_fee_rate_unavailable)
+        }
+
+    private fun rememberEstimatedFeeLimit(feeLimit: Long?, amount: BigDecimal, addressHex: String) {
+        estimatedFeeLimit = feeLimit
+        estimatedFeeLimitInputs = amount to addressHex
+    }
+
+    // Offline signing must not touch the network: reuse the fee limit from the last successful online
+    // estimate, but only if it was computed for the current inputs (else a changed TRC20 recipient
+    // would sign with a stale limit). Native TRX needs no limit.
+    private val offlineFeeLimit: Long?
+        get() {
+            if (sendToken.type == TokenType.Native) return null
+            val amount = amountState.amount ?: return null
+            val addressHex = addressState.address?.hex ?: return null
+            return if (estimatedFeeLimitInputs == (amount to addressHex)) estimatedFeeLimit else null
         }
 
     private fun contact(address: Address) =
@@ -427,6 +494,7 @@ class SendTronViewModel(
                 val fees = adapter.estimateFee(amount, tronAddress)
                 currentFee = fees.totalFee(feeToken.decimals)
                 feeState = FeeState.Success(fees)
+                rememberEstimatedFeeLimit(fees.feeLimit, amount, address.hex)
             } catch (error: Throwable) {
                 currentFee = null
                 feeState = FeeState.Error(error)
@@ -436,6 +504,13 @@ class SendTronViewModel(
         }
     }
 }
+
+private const val OFFLINE_TX_EXPIRATION_MS = 6L * 60 * 60 * 1000
+private const val ANCHOR_RETRY_DELAY_MS = 3_000L
+// Well under the ~54h TAPOS ref-block window (minus the 6h expiration and broadcast latency).
+private const val OFFLINE_ANCHOR_MAX_AGE_MS = 24L * 60 * 60 * 1000
+
+private data class OfflineAnchor(val block: NowBlock, val elapsedAtFetch: Long)
 
 sealed class FeeState {
     object Loading : FeeState()

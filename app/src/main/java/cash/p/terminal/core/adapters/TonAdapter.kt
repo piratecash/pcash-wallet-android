@@ -132,6 +132,9 @@ class TonAdapter(tonKitWrapper: TonKitWrapper) : BaseTonAdapter(tonKitWrapper, 9
             recipient = tonRequest.address,
             amount = getSendAmount(tonRequest.amount),
             comment = tonRequest.memo,
+            seqno = tonRequest.seqno,
+            validUntil = tonRequest.validUntil,
+            fee = tonRequest.fee.movePointRight(decimals).toBigInteger(),
         )
         return SignedOfflineTonTransaction(
             rawHex = signed.raw.toRawHexString(),

@@ -33,6 +33,12 @@ object AppLog {
         }
     }
 
+    fun warning(actionId: String, message: String) {
+        executor.submit {
+            logsDao.insert(LogEntry(System.currentTimeMillis(), Log.WARN, actionId, message))
+        }
+    }
+
     suspend fun getLog(): Map<String, Any> = withContext(Dispatchers.IO) {
         buildLogMap(logsDao.getRecent(500).reversed())
     }

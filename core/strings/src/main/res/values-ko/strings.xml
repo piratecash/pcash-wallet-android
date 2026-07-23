@@ -126,6 +126,13 @@
     <string name="restoreheight_title">복원 시작 블록</string>
     <string name="restoreheight_hint">블록 또는 날짜를 입력하세요(YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">블록 번호 입력</string>
+    <string name="select_date_title">날짜 선택</string>
+    <string name="select_date_description">지갑 생성 예상 날짜를 선택하세요. 블록 높이가 자동으로 계산됩니다.</string>
+    <string name="birthday_height_description">블록 높이를 변경하거나 대략적인 날짜를 선택하여 거래 내역을 다시 스캔할 수 있습니다.</string>
+    <string name="birthday_height_date_label">블록 날짜:</string>
+    <string name="birthday_height_rescan">다시 스캔</string>
+    <string name="birthday_height_rescan_confirm_title">지갑을 다시 스캔하시겠습니까?</string>
+    <string name="birthday_height_rescan_confirm_text">로컬 지갑 데이터가 삭제되고 새 높이부터 동기화가 시작됩니다. 시간과 트래픽이 소요될 수 있습니다.</string>
     <string name="invalid_height_format">잘못된 높이, YYYY-MM-DD 형식이나 출생 높이를 입력했는지 확인하세요</string>
     <string name="invalid_qr_code">잘못된 QR 코드</string>
     <string name="blockchair_height_by_date_connection_error">날짜로 높이를 찾기 위해 Blockchair에 연결할 수 없습니다</string>
@@ -1012,6 +1019,7 @@
     <string name="offline_broadcast_error_send_failed">전송 중 오류가 발생했습니다</string>
     <string name="offline_broadcast_error_timeout">요청 시간이 초과되었습니다. 나중에 다시 시도하세요.</string>
     <string name="offline_broadcast_error_already_sent">이 거래는 이미 네트워크에 알려져 있습니다.</string>
+    <string name="offline_broadcast_error_seqno_consumed">트랜잭션 번호(seqno)가 이미 사용되었습니다. 이 트랜잭션은 이미 전송되었을 수 있습니다. 다시 서명하기 전에 거래 내역을 확인하세요.</string>
     <string name="offline_broadcast_error_nonce_used">이 거래의 논스가 이미 사용되었습니다. 이미 전송되었거나 대체되었을 수 있습니다.</string>
     <string name="offline_broadcast_error_low_fee">네트워크 수수료가 너무 낮습니다. 더 높은 수수료로 거래를 생성하세요.</string>
     <string name="offline_broadcast_error_rejected">네트워크가 이 서명된 거래를 거부했습니다.</string>
@@ -1026,6 +1034,8 @@
     <string name="offline_signed_status_unknown">상태 알 수 없음</string>
     <string name="offline_signed_status_broadcasted">네트워크로 전송됨</string>
     <string name="offline_send_no_connection_description">지금은 트랜잭션을 보낼 수 없습니다. 오프라인으로 서명하면 다른 사람이 나중에 브로드캐스트할 수 있습니다.</string>
+    <string name="offline_transaction_anchor_required">이 트랜잭션을 준비하려면 인터넷에 한 번 연결하세요. 그 후에는 오프라인으로 서명할 수 있습니다.</string>
+    <string name="offline_sign_error_wallet_not_deployed">지갑이 아직 TON 네트워크에서 활성화되지 않았습니다. 첫 번째 트랜잭션은 온라인으로 전송하세요.</string>
     <string name="offline_send_sync_error_description">현재 소스에서 데이터를 가져오지 못했습니다.\n\n다음을 시도할 수 있습니다:\n• 나중에 다시 시도\n• VPN을 켜고 동기화 재시도\n• 트랜잭션을 오프라인으로 서명하고 수동 브로드캐스트를 위해 HEX 공유\n\n403 오류가 발생했다면 IP 주소가 차단되었을 수 있습니다. VPN을 사용하면 보통 이 문제가 해결됩니다.\n서명된 트랜잭션을 생성하여 다른 기기나 사람에게 보내 네트워크에 브로드캐스트할 수 있습니다.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">매매거래로 지갑을 복원 할 데이터 소스를 선택하세요.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">입력/출력</string>
@@ -2073,7 +2083,8 @@
     <string name="paycore_verification_warning_text">인증된 전화번호와 신원이 확인된 본인 명의의 계좌에서만 송금이 허용됩니다.</string>
     <string name="paycore_verification_warning_detail">다른 계좌에서의 송금은 입금되지 않으며, 보낸 자금은 손실됩니다!</string>
     <string name="paycore_verification_back">뒤로</string>
-    <string name="paycore_verification_error">로그인을 완료할 수 없습니다. 나중에 다시 시도하세요.</string>
+    <string name="paycore_verification_error">로그인을 완료할 수 없습니다. 전화번호를 확인하고 다시 시도하세요.</string>
+    <string name="paycore_generic_error">작업을 완료할 수 없습니다. 나중에 다시 시도하거나 고객 지원에 문의하세요.</string>
     <string name="paycore_verification_retry">재시도</string>
     <string name="paycore_verification_phone_label">전화번호:</string>
     <string name="paycore_verification_contact_support">자동 복구에 실패했습니다. 지원팀에 문의하세요.</string>
@@ -2118,4 +2129,31 @@
     <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
     <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
     <string name="manage_accounts_premium_badge_trial">체험판</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">소프트웨어 업데이트</string>
+    <string name="version_history_title">버전 기록</string>
+    <string name="auto_check_updates">자동으로 업데이트 확인</string>
+    <string name="update_interval_day">1일</string>
+    <string name="update_interval_week">1주</string>
+    <string name="update_interval_month">1개월</string>
+    <string name="update_last_check_date">마지막 확인: %1$s</string>
+    <string name="update_available_title">새 업데이트 사용 가능</string>
+    <string name="update_up_to_date">최신 버전입니다</string>
+    <string name="update_now">지금 업데이트</string>
+    <string name="update_source">출처: %1$s</string>
+    <string name="update_details_ellipsis">자세히…</string>
+    <string name="update_details">세부 정보</string>
+    <string name="update_version_label">버전 %1$s</string>
+    <string name="update_current_version_section">현재 버전</string>
+    <string name="update_old_versions_section">이전 버전</string>
+    <string name="update_checking">업데이트 확인 중…</string>
+    <string name="update_improvements_fixes">이번 업데이트: 개선 사항 %1$d개, 수정 사항 %2$d개</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">업데이트</string>
+    <string name="update_interval_day_full">1일</string>
+    <string name="update_interval_week_full">1주일</string>
+    <string name="update_interval_month_full">1개월</string>
 </resources>

@@ -1015,6 +1015,7 @@
     <string name="offline_broadcast_error_send_failed">Помилка під час надсилання</string>
     <string name="offline_broadcast_error_timeout">Час очікування запиту минув. Спробуйте пізніше.</string>
     <string name="offline_broadcast_error_already_sent">Ця транзакція вже відома мережі.</string>
+    <string name="offline_broadcast_error_seqno_consumed">Номер транзакції (seqno) вже використано. Можливо, цю транзакцію вже надіслано — перевірте історію транзакцій, перш ніж підписувати знову.</string>
     <string name="offline_broadcast_error_nonce_used">Nonce цієї транзакції вже використано. Можливо, її вже надіслано або замінено.</string>
     <string name="offline_broadcast_error_low_fee">Комісія мережі занизька. Створіть транзакцію з вищою комісією.</string>
     <string name="offline_broadcast_error_rejected">Мережа відхилила цю підписану транзакцію.</string>
@@ -1029,6 +1030,8 @@
     <string name="offline_signed_status_unknown">Статус невідомий</string>
     <string name="offline_signed_status_broadcasted">Надіслано в мережу</string>
     <string name="offline_send_no_connection_description">Неможливо надіслати транзакцію зараз. Ви можете підписати її офлайн, щоб інша людина надіслала її пізніше.</string>
+    <string name="offline_transaction_anchor_required">Один раз підключіться до інтернету, щоб підготувати транзакцію, — після цього її можна підписати офлайн.</string>
+    <string name="offline_sign_error_wallet_not_deployed">Гаманець ще не активовано в мережі TON. Першу транзакцію надішліть онлайн.</string>
     <string name="offline_send_sync_error_description">Не вдалося отримати дані з поточного джерела.\n\nВи можете:\n• повторити спробу пізніше\n• увімкнути VPN і повторити синхронізацію\n• підписати транзакцію офлайн і передати HEX для ручного надсилання\n\nЯкщо отримано помилку 403, вашу IP-адресу може бути заблоковано. Використання VPN зазвичай вирішує цю проблему.\nВи можете створити підписану транзакцію та надіслати її на інший пристрій або іншій людині для трансляції в мережу.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Виберіть джерело даних для відновлення гаманця. Відновлення з блокчейну займає значно більше часу.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Входи/Виходи</string>
@@ -1862,6 +1865,13 @@
     <string name="restoreheight_title">Початковий блок для відновлення</string>
     <string name="restoreheight_hint">Вкажіть блок або дату (РРРР-ММ-ДД)</string>
     <string name="restoreheight_hint_block_only">Вкажіть номер блоку</string>
+    <string name="select_date_title">Виберіть дату</string>
+    <string name="select_date_description">Виберіть приблизну дату створення гаманця. Висота блоку буде розрахована автоматично.</string>
+    <string name="birthday_height_description">Ви можете змінити висоту блоку або вибрати приблизну дату, щоб повторно сканувати історію транзакцій.</string>
+    <string name="birthday_height_date_label">Дата блоку:</string>
+    <string name="birthday_height_rescan">Повторне сканування</string>
+    <string name="birthday_height_rescan_confirm_title">Пересканувати гаманець?</string>
+    <string name="birthday_height_rescan_confirm_text">Локальні дані гаманця буде видалено, а синхронізація почнеться з нової висоти. Це може зайняти час і трафік.</string>
     <string name="Restore_Error_MnemonicWordCount_monero">Невірна кількість слів. Має бути 25. Ви ввели: %d</string>
     <string name="invalid_height">Невірне значення висоти</string>
     <string name="invalid_height_format">Невірне значення висоти, переконайтесь, що ви ввели РРРР-ММ-ДД або висоту народження</string>
@@ -2241,7 +2251,8 @@
     <string name="paycore_verification_warning_text">ДОЗВОЛЕНО ПЕРЕКАЗ ГРОШОВИХ КОШТІВ ВИКЛЮЧНО З РАХУНКУ, ЩО НАЛЕЖИТЬ ВАМ, З ВЕРИФІКОВАНИМ НОМЕРОМ ТЕЛЕФОНУ ТА ОСОБОЮ.</string>
     <string name="paycore_verification_warning_detail">Перекази з інших рахунків не зараховуються, відправлені кошти будуть втрачені!</string>
     <string name="paycore_verification_back">Назад</string>
-    <string name="paycore_verification_error">Не вдалося завершити вхід. Спробуйте пізніше.</string>
+    <string name="paycore_verification_error">Не вдалося завершити вхід. Перевірте номер телефону та спробуйте ще раз.</string>
+    <string name="paycore_generic_error">Не вдалося виконати операцію. Спробуйте пізніше або зверніться до підтримки.</string>
     <string name="paycore_verification_retry">Повторити</string>
     <string name="paycore_verification_phone_label">Номер телефону:</string>
     <string name="paycore_verification_contact_support">Автоматичне відновлення не вдалося. Зверніться до служби підтримки.</string>
@@ -2276,4 +2287,31 @@
     <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
     <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
     <string name="manage_accounts_premium_badge_trial">Пробний</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Оновлення ПЗ</string>
+    <string name="version_history_title">Історія версій</string>
+    <string name="auto_check_updates">Автоперевірка оновлень</string>
+    <string name="update_interval_day">1Д</string>
+    <string name="update_interval_week">1Т</string>
+    <string name="update_interval_month">1М</string>
+    <string name="update_last_check_date">Остання перевірка: %1$s</string>
+    <string name="update_available_title">Доступне нове оновлення</string>
+    <string name="update_up_to_date">Оновлення актуальне</string>
+    <string name="update_now">Оновити зараз</string>
+    <string name="update_source">Джерело: %1$s</string>
+    <string name="update_details_ellipsis">Детальніше…</string>
+    <string name="update_details">Детальніше</string>
+    <string name="update_version_label">Версія %1$s</string>
+    <string name="update_current_version_section">Поточна версія</string>
+    <string name="update_old_versions_section">СТАРІ ВЕРСІЇ</string>
+    <string name="update_checking">Перевірка оновлень…</string>
+    <string name="update_improvements_fixes">У цьому оновленні: покращень — %1$d, виправлень — %2$d</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Оновлення</string>
+    <string name="update_interval_day_full">1 день</string>
+    <string name="update_interval_week_full">1 тиждень</string>
+    <string name="update_interval_month_full">1 місяць</string>
 </resources>

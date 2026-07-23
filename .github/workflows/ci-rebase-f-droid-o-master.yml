@@ -1,11 +1,6 @@
 name: F-Droid Branch Sync and Build
 on:
-  push:
-    branches:
-      - master
-
-env:
-  ENABLE_FDROID_SYNC: "false"
+  workflow_dispatch:
 
 jobs:
   sync-and-build-fdroid:
@@ -22,7 +17,6 @@ jobs:
           git config user.email "github-actions-bot@users.noreply.github.com"
 
       - name: Update f-droid branch locally
-        if: env.ENABLE_FDROID_SYNC == 'true'
         run: |
           git checkout f-droid 2>/dev/null || git checkout -b f-droid
           
@@ -47,6 +41,5 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Push changes to f-droid branch
-        if: env.ENABLE_FDROID_SYNC == 'true'
         run: |
           git push --force-with-lease origin f-droid

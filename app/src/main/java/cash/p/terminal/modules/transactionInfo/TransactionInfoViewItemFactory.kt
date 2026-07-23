@@ -4,6 +4,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.managers.TonHelper
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.modules.multiswap.providers.UnstoppableProvider
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
@@ -693,7 +694,8 @@ class TransactionInfoViewItemFactory(
                         exchangeAddress = provider.title,
                         valueOut = valueOut,
                         valueIn = valueIn,
-                        providerName = provider.title,
+                        providerName = UnstoppableProvider.displayTitle(transactionItem.swapUnstoppableSubProviderId)
+                            ?: provider.title,
                     )
                 )
             }

@@ -41,6 +41,7 @@ class StellarKitManager(
     private val hardwarePublicKeyStorage: HardwarePublicKeyStorage,
     private val trezorClient: ITrezorClient,
     private val backgroundKeepAliveManager: BackgroundKeepAliveManager,
+    private val networkErrorTracker: NetworkErrorTracker,
 ) {
     private val lifecycleMutex = Mutex()
     private val pollingSessionCount = AtomicInteger(0)
@@ -61,7 +62,11 @@ class StellarKitManager(
         private set
 
     val statusInfo: Map<String, Any>?
-        get() = stellarKitWrapper?.stellarKit?.statusInfo()
+        get() = networkErrorTracker.mergedStatusInfo(
+            stellarKitWrapper?.stellarKit?.statusInfo(),
+            BlockchainType.Stellar,
+            currentAccount?.id,
+        )
 
     suspend fun getStellarKitWrapper(account: Account): StellarKitWrapper =
         lifecycleMutex.withLock {
@@ -104,6 +109,9 @@ class StellarKitManager(
             requireNotNull(this.stellarKitWrapper)
         }
 
+    private fun eventListenerFactory(account: Account): NetworkErrorEventListener.Factory =
+        NetworkErrorEventListener.Factory(BlockchainType.Stellar, account.id, networkErrorTracker)
+
     private fun createTrezorKitInstance(account: Account): StellarKitWrapper {
         val key = runBlocking {
             hardwarePublicKeyStorage.getKeyByBlockchain(account.id, BlockchainType.Stellar)
@@ -115,7 +123,13 @@ class StellarKitManager(
             networkPassphrase = org.stellar.sdk.Network.PUBLIC.networkPassphrase,
             trezorClient = trezorClient
         )
-        val kit = StellarKit.getInstance(signer, Network.MainNet, App.instance, account.id)
+        val kit = StellarKit.getInstance(
+            signer,
+            Network.MainNet,
+            App.instance,
+            account.id,
+            eventListenerFactory(account)
+        )
         return StellarKitWrapper(kit)
     }
 
@@ -132,13 +146,20 @@ class StellarKitManager(
             val stellarWallet = HardwareWalletStellarSigner(
                 hardwarePublicKey = hardwarePublicKey
             )
-            StellarKit.getInstance(stellarWallet, Network.MainNet, App.instance, account.id)
+            StellarKit.getInstance(
+                stellarWallet,
+                Network.MainNet,
+                App.instance,
+                account.id,
+                eventListenerFactory(account)
+            )
         } else {
             StellarKit.getInstance(
                 accountType.toStellarWallet(),
                 Network.MainNet,
                 App.instance,
-                account.id
+                account.id,
+                eventListenerFactory(account)
             )
         }
 

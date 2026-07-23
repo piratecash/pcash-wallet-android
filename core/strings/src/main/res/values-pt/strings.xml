@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Bloco inicial de recuperação</string>
     <string name="restoreheight_hint">Introduza o bloco ou a data (AAAA-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Informe o número do bloco</string>
+    <string name="select_date_title">Selecionar data</string>
+    <string name="select_date_description">Selecione a data aproximada de criação da carteira. A altura do bloco será calculada automaticamente.</string>
+    <string name="birthday_height_description">Pode alterar a altura do bloco ou escolher uma data aproximada para voltar a analisar o histórico de transações.</string>
+    <string name="birthday_height_date_label">Data do bloco:</string>
+    <string name="birthday_height_rescan">Reanalisar</string>
+    <string name="birthday_height_rescan_confirm_title">Reanalisar carteira?</string>
+    <string name="birthday_height_rescan_confirm_text">Os dados locais da carteira serão apagados e a sincronização começará a partir da nova altura. Isto pode demorar tempo e consumir dados.</string>
     <string name="invalid_height_format">Altura inválida, certifique-se de que inseriu AAAA-MM-DD ou altura de nascimento</string>
     <string name="invalid_qr_code">Código QR inválido</string>
     <string name="blockchair_height_by_date_connection_error">Não foi possível conectar ao Blockchair para encontrar a altura pela data</string>
@@ -1013,6 +1020,7 @@
     <string name="offline_broadcast_error_send_failed">Erro ao enviar</string>
     <string name="offline_broadcast_error_timeout">A solicitação expirou. Tente novamente mais tarde.</string>
     <string name="offline_broadcast_error_already_sent">Esta transação já é conhecida pela rede.</string>
+    <string name="offline_broadcast_error_seqno_consumed">O número da transação (seqno) já foi utilizado. Esta transação pode já ter sido enviada — verifique o histórico de transações antes de assinar novamente.</string>
     <string name="offline_broadcast_error_nonce_used">O nonce desta transação já foi usado. Ela pode já ter sido enviada ou substituída.</string>
     <string name="offline_broadcast_error_low_fee">A taxa de rede está muito baixa. Crie uma transação com uma taxa mais alta.</string>
     <string name="offline_broadcast_error_rejected">A rede rejeitou esta transação assinada.</string>
@@ -1027,6 +1035,8 @@
     <string name="offline_signed_status_unknown">Estado desconhecido</string>
     <string name="offline_signed_status_broadcasted">Enviada para a rede</string>
     <string name="offline_send_no_connection_description">A transação não pode ser enviada agora. Pode assiná-la offline para que outra pessoa a transmita mais tarde.</string>
+    <string name="offline_transaction_anchor_required">Ligue-se à internet uma vez para preparar esta transação; depois pode assiná-la offline.</string>
+    <string name="offline_sign_error_wallet_not_deployed">A carteira ainda não está ativada na rede TON. Envie a primeira transação online.</string>
     <string name="offline_send_sync_error_description">Não foi possível obter dados da fonte atual.\n\nPode:\n• tentar novamente mais tarde\n• ativar a VPN e tentar sincronizar novamente\n• assinar a transação offline e partilhar o HEX para transmissão manual\n\nSe recebeu um erro 403, o seu endereço IP pode estar bloqueado. Usar uma VPN normalmente resolve este problema.\nPode criar uma transação assinada e enviá-la para outro dispositivo ou pessoa para a transmitir para a rede.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Selecione uma fonte de dados para restauração de carteira. Restaurar da blockchain leva consideravelmente mais tempo.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entrada/Saída</string>
@@ -2079,7 +2089,8 @@
     <string name="paycore_verification_warning_text">A TRANSFERÊNCIA DE FUNDOS É PERMITIDA EXCLUSIVAMENTE DA CONTA QUE LHE PERTENCE, COM NÚMERO DE TELEFONE E IDENTIDADE VERIFICADOS.</string>
     <string name="paycore_verification_warning_detail">Transferências de outras contas não serão creditadas, os fundos enviados serão perdidos!</string>
     <string name="paycore_verification_back">Voltar</string>
-    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Tente mais tarde.</string>
+    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Verifique o número de telefone e tente novamente.</string>
+    <string name="paycore_generic_error">Não foi possível concluir a operação. Tente mais tarde ou contacte o suporte.</string>
     <string name="paycore_verification_retry">Tentar novamente</string>
     <string name="paycore_verification_phone_label">Número de telefone:</string>
     <string name="paycore_verification_contact_support">A recuperação automática falhou. Por favor, contacte o suporte.</string>
@@ -2124,4 +2135,31 @@
     <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
     <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
     <string name="manage_accounts_premium_badge_trial">Teste</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Atualizações de software</string>
+    <string name="version_history_title">Histórico de versões</string>
+    <string name="auto_check_updates">Verificar atualizações automaticamente</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1S</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Última verificação: %1$s</string>
+    <string name="update_available_title">Nova atualização disponível</string>
+    <string name="update_up_to_date">A atualização está atualizada</string>
+    <string name="update_now">Atualizar agora</string>
+    <string name="update_source">Fonte: %1$s</string>
+    <string name="update_details_ellipsis">Detalhes…</string>
+    <string name="update_details">Detalhes</string>
+    <string name="update_version_label">Versão %1$s</string>
+    <string name="update_current_version_section">Versão atual</string>
+    <string name="update_old_versions_section">VERSÕES ANTIGAS</string>
+    <string name="update_checking">A verificar atualizações…</string>
+    <string name="update_improvements_fixes">Esta atualização: %1$d melhorias, %2$d correções</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Atualizações</string>
+    <string name="update_interval_day_full">1 dia</string>
+    <string name="update_interval_week_full">1 semana</string>
+    <string name="update_interval_month_full">1 mês</string>
 </resources>

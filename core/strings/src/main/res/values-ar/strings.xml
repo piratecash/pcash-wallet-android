@@ -126,6 +126,13 @@
     <string name="restoreheight_title">كتلة البدء للاستعادة</string>
     <string name="restoreheight_hint">أدخل الكتلة أو التاريخ (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">أدخل رقم الكتلة</string>
+    <string name="select_date_title">اختر التاريخ</string>
+    <string name="select_date_description">اختر التاريخ التقريبي لإنشاء المحفظة. سيتم احتساب ارتفاع الكتلة تلقائيًا.</string>
+    <string name="birthday_height_description">يمكنك تغيير ارتفاع الكتلة أو اختيار تاريخ تقريبي لإعادة مسح سجل المعاملات.</string>
+    <string name="birthday_height_date_label">تاريخ الكتلة:</string>
+    <string name="birthday_height_rescan">إعادة المسح</string>
+    <string name="birthday_height_rescan_confirm_title">إعادة مسح المحفظة؟</string>
+    <string name="birthday_height_rescan_confirm_text">سيتم مسح بيانات المحفظة المحلية وستبدأ المزامنة من الارتفاع الجديد. قد يستغرق ذلك وقتًا واستهلاك بيانات.</string>
     <string name="invalid_height_format">ارتفاع غير صالح، تأكد من إدخال YYYY-MM-DD أو ارتفاع الولادة</string>
     <string name="invalid_qr_code">رمز QR غير صالح</string>
     <string name="blockchair_height_by_date_connection_error">لا يمكن الاتصال بـ Blockchair للعثور على الارتفاع حسب التاريخ</string>
@@ -1012,6 +1019,7 @@
     <string name="offline_broadcast_error_send_failed">حدث خطأ أثناء الإرسال</string>
     <string name="offline_broadcast_error_timeout">انتهت مهلة الطلب. حاول مرة أخرى لاحقًا.</string>
     <string name="offline_broadcast_error_already_sent">هذه المعاملة معروفة بالفعل لدى الشبكة.</string>
+    <string name="offline_broadcast_error_seqno_consumed">رقم المعاملة (seqno) مستخدم بالفعل. ربما تم إرسال هذه المعاملة من قبل — تحقق من سجل المعاملات قبل التوقيع مرة أخرى.</string>
     <string name="offline_broadcast_error_nonce_used">تم استخدام قيمة nonce لهذه المعاملة بالفعل. ربما تم إرسالها أو استبدالها.</string>
     <string name="offline_broadcast_error_low_fee">رسوم الشبكة منخفضة جدًا. أنشئ معاملة برسوم أعلى.</string>
     <string name="offline_broadcast_error_rejected">رفضت الشبكة هذه المعاملة الموقعة.</string>
@@ -1026,6 +1034,8 @@
     <string name="offline_signed_status_unknown">الحالة غير معروفة</string>
     <string name="offline_signed_status_broadcasted">أُرسلت إلى الشبكة</string>
     <string name="offline_send_no_connection_description">لا يمكن إرسال المعاملة الآن. يمكنك توقيعها دون اتصال ليبثها شخص آخر لاحقًا.</string>
+    <string name="offline_transaction_anchor_required">اتصل بالإنترنت مرة واحدة لتجهيز هذه المعاملة، ثم يمكنك توقيعها دون اتصال.</string>
+    <string name="offline_sign_error_wallet_not_deployed">المحفظة غير مفعّلة بعد على شبكة TON. أرسل المعاملة الأولى وأنت متصل بالإنترنت.</string>
     <string name="offline_send_sync_error_description">فشل جلب البيانات من المصدر الحالي.\n\nيمكنك:\n• المحاولة مرة أخرى لاحقًا\n• تفعيل VPN وإعادة المزامنة\n• توقيع المعاملة دون اتصال ومشاركة HEX للبث اليدوي\n\nإذا تلقيت خطأ 403، فقد يكون عنوان IP الخاص بك محظورًا. استخدام VPN يحل هذه المشكلة عادةً.\nيمكنك إنشاء معاملة موقّعة وإرسالها إلى جهاز آخر أو شخص آخر لبثها إلى الشبكة.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
@@ -2102,7 +2112,8 @@
     <string name="paycore_verification_warning_text">يُسمح بتحويل الأموال حصرياً من الحساب العائد لك، مع رقم هاتف وهوية موثقين.</string>
     <string name="paycore_verification_warning_detail">التحويلات من حسابات أخرى لن تُقيد، والأموال المرسلة ستُفقد!</string>
     <string name="paycore_verification_back">رجوع</string>
-    <string name="paycore_verification_error">تعذَّر إتمام تسجيل الدخول. يُرجى المحاولة لاحقاً.</string>
+    <string name="paycore_verification_error">تعذَّر إتمام تسجيل الدخول. تحقَّق من رقم الهاتف وحاول مرة أخرى.</string>
+    <string name="paycore_generic_error">تعذَّر إتمام العملية. يُرجى المحاولة لاحقاً أو التواصل مع الدعم.</string>
     <string name="paycore_verification_retry">إعادة المحاولة</string>
     <string name="paycore_verification_phone_label">رقم الهاتف:</string>
     <string name="paycore_verification_contact_support">فشل الاسترداد التلقائي. يرجى التواصل مع الدعم.</string>
@@ -2147,4 +2158,31 @@
     <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
     <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
     <string name="manage_accounts_premium_badge_trial">تجريبي</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">تحديثات البرنامج</string>
+    <string name="version_history_title">سجل الإصدارات</string>
+    <string name="auto_check_updates">التحقق التلقائي من التحديثات</string>
+    <string name="update_interval_day">1ي</string>
+    <string name="update_interval_week">1أ</string>
+    <string name="update_interval_month">1ش</string>
+    <string name="update_last_check_date">آخر تحقق كان: %1$s</string>
+    <string name="update_available_title">يتوفر تحديث جديد</string>
+    <string name="update_up_to_date">التحديث محدث</string>
+    <string name="update_now">تحديث الآن</string>
+    <string name="update_source">المصدر: %1$s</string>
+    <string name="update_details_ellipsis">التفاصيل…</string>
+    <string name="update_details">التفاصيل</string>
+    <string name="update_version_label">الإصدار %1$s</string>
+    <string name="update_current_version_section">الإصدار الحالي</string>
+    <string name="update_old_versions_section">الإصدارات القديمة</string>
+    <string name="update_checking">جارٍ التحقق من التحديثات…</string>
+    <string name="update_improvements_fixes">هذا التحديث: %1$d تحسينات، %2$d إصلاحات</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">التحديثات</string>
+    <string name="update_interval_day_full">يوم واحد</string>
+    <string name="update_interval_week_full">أسبوع واحد</string>
+    <string name="update_interval_month_full">شهر واحد</string>
 </resources>

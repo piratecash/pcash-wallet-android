@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Startblok voor herstel</string>
     <string name="restoreheight_hint">Voer blok of datum in (JJJJ-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Voer het bloknummer in</string>
+    <string name="select_date_title">Datum selecteren</string>
+    <string name="select_date_description">Selecteer de geschatte aanmaakdatum van de wallet. De blokhoogte wordt automatisch berekend.</string>
+    <string name="birthday_height_description">U kunt de blokhoogte wijzigen of een geschatte datum kiezen om de transactiegeschiedenis opnieuw te scannen.</string>
+    <string name="birthday_height_date_label">Blokdatum:</string>
+    <string name="birthday_height_rescan">Opnieuw scannen</string>
+    <string name="birthday_height_rescan_confirm_title">Wallet opnieuw scannen?</string>
+    <string name="birthday_height_rescan_confirm_text">Lokale walletgegevens worden gewist en de synchronisatie begint vanaf de nieuwe hoogte. Dit kan tijd en dataverkeer kosten.</string>
     <string name="invalid_height_format">Ongeldige hoogte, zorg ervoor dat u JJJJ-MM-DD of geboortehoogte hebt ingevoerd</string>
     <string name="invalid_qr_code">Ongeldige QR-code</string>
     <string name="blockchair_height_by_date_connection_error">Kan geen verbinding maken met Blockchair om de hoogte op basis van de datum te vinden</string>
@@ -1014,6 +1021,7 @@
     <string name="offline_broadcast_error_send_failed">Fout bij verzenden</string>
     <string name="offline_broadcast_error_timeout">Time-out van aanvraag. Probeer het later opnieuw.</string>
     <string name="offline_broadcast_error_already_sent">Deze transactie is al bekend bij het netwerk.</string>
+    <string name="offline_broadcast_error_seqno_consumed">Het transactienummer (seqno) is al gebruikt. Deze transactie is mogelijk al verzonden — controleer de transactiegeschiedenis voordat u opnieuw ondertekent.</string>
     <string name="offline_broadcast_error_nonce_used">De nonce van deze transactie is al gebruikt. Mogelijk is deze al verzonden of vervangen.</string>
     <string name="offline_broadcast_error_low_fee">De netwerkkosten zijn te laag. Maak een transactie met hogere kosten.</string>
     <string name="offline_broadcast_error_rejected">Het netwerk heeft deze ondertekende transactie geweigerd.</string>
@@ -1028,6 +1036,8 @@
     <string name="offline_signed_status_unknown">Status onbekend</string>
     <string name="offline_signed_status_broadcasted">Naar netwerk verzonden</string>
     <string name="offline_send_no_connection_description">De transactie kan nu niet worden verzonden. U kunt deze offline ondertekenen zodat iemand anders deze later kan uitzenden.</string>
+    <string name="offline_transaction_anchor_required">Maak eenmalig verbinding met internet om deze transactie voor te bereiden; daarna kunt u deze offline ondertekenen.</string>
+    <string name="offline_sign_error_wallet_not_deployed">De wallet is nog niet geactiveerd op het TON-netwerk. Verstuur de eerste transactie online.</string>
     <string name="offline_send_sync_error_description">Kon geen gegevens ophalen uit de huidige bron.\n\nU kunt:\n• het later opnieuw proberen\n• VPN inschakelen en opnieuw synchroniseren\n• de transactie offline ondertekenen en de HEX delen voor handmatige uitzending\n\nAls u een 403-fout hebt ontvangen, is uw IP-adres mogelijk geblokkeerd. Een VPN lost dit probleem meestal op.\nU kunt een ondertekende transactie maken en deze naar een ander apparaat of persoon sturen om deze naar het netwerk uit te zenden.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
@@ -2086,7 +2096,8 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="paycore_verification_warning_text">GELDOVERBOEKINGEN ZIJN UITSLUITEND TOEGESTAAN VANAF DE REKENING DIE AAN U TOEBEHOORT, MET GEVERIFIEERD TELEFOONNUMMER EN IDENTITEIT.</string>
     <string name="paycore_verification_warning_detail">Overboekingen van andere rekeningen worden niet bijgeschreven, verzonden gelden gaan verloren!</string>
     <string name="paycore_verification_back">Terug</string>
-    <string name="paycore_verification_error">Inloggen mislukt. Probeer het later opnieuw.</string>
+    <string name="paycore_verification_error">Inloggen mislukt. Controleer het telefoonnummer en probeer het opnieuw.</string>
+    <string name="paycore_generic_error">Bewerking mislukt. Probeer het later opnieuw of neem contact op met de klantenservice.</string>
     <string name="paycore_verification_retry">Opnieuw proberen</string>
     <string name="paycore_verification_phone_label">Telefoonnummer:</string>
     <string name="paycore_verification_contact_support">Automatisch herstel is mislukt. Neem contact op met de ondersteuning.</string>
@@ -2131,4 +2142,31 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
     <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
     <string name="manage_accounts_premium_badge_trial">Proefversie</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software-updates</string>
+    <string name="version_history_title">Versiegeschiedenis</string>
+    <string name="auto_check_updates">Automatisch controleren op updates</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Laatste controle was: %1$s</string>
+    <string name="update_available_title">Nieuwe update beschikbaar</string>
+    <string name="update_up_to_date">Update is up-to-date</string>
+    <string name="update_now">Nu updaten</string>
+    <string name="update_source">Bron: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Versie %1$s</string>
+    <string name="update_current_version_section">Huidige versie</string>
+    <string name="update_old_versions_section">OUDE VERSIES</string>
+    <string name="update_checking">Controleren op updates…</string>
+    <string name="update_improvements_fixes">Deze update: %1$d verbeteringen, %2$d oplossingen</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="update_interval_day_full">1 dag</string>
+    <string name="update_interval_week_full">1 week</string>
+    <string name="update_interval_month_full">1 maand</string>
 </resources>

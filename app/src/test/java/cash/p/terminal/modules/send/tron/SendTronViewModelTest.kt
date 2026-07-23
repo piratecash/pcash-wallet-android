@@ -5,7 +5,6 @@ import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTronSignRequest
 import cash.p.terminal.core.SignedOfflineTronTransaction
 import cash.p.terminal.core.TestDispatcherProvider
-import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
@@ -33,6 +32,7 @@ import cash.p.terminal.wallet.policy.HardwareWalletTokenPolicy
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
+import io.horizontalsystems.tronkit.network.NowBlock
 import io.horizontalsystems.tronkit.transaction.Fee
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -40,6 +40,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.unmockkAll
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -53,6 +54,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
@@ -73,11 +75,11 @@ class SendTronViewModelTest : KoinTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private val adapter = mockk<TestSendTronAdapter>(relaxed = true)
+    private val nowBlock = NowBlock(number = 100L, blockId = "00".repeat(32), timestamp = 1_700_000_000_000L)
     private val xRateService = mockk<XRateService>(relaxed = true)
     private val amountService = mockk<SendAmountService>(relaxed = true)
     private val addressService = mockk<SendTronAddressService>(relaxed = true)
     private val contactsRepository = mockk<ContactsRepository>(relaxed = true)
-    private val connectivityManager = mockk<ConnectivityManager>(relaxed = true)
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val payloadEncoder = mockk<OfflineTransactionPayloadEncoder>()
     private val offlineSignedTransactionRepository = mockk<OfflineSignedTransactionRepository>(relaxed = true)
@@ -142,6 +144,7 @@ class SendTronViewModelTest : KoinTest {
         every { payloadEncoder.encode(any()) } returns "payload"
         coEvery { offlineSignedTransactionRepository.save(any(), any()) } returns Unit
         coEvery { adapter.estimateFee(any(), any()) } returns listOf(Fee.Energy(required = 10, price = 2))
+        coEvery { adapter.getNowBlock() } returns nowBlock
         coEvery { adapter.signOffline(any()) } returns SignedOfflineTronTransaction(
             rawHex = "deadbeef",
             txHash = TRON_TX_HASH,
@@ -193,14 +196,15 @@ class SendTronViewModelTest : KoinTest {
         assertEquals(amount, draft.amount)
         assertEquals(address.hex, draft.toAddress)
         assertEquals(EXPIRATION, draft.tronRetryMetadata?.expiration)
-        coVerify {
-            adapter.signOffline(
-                match {
-                    it is OfflineTronSignRequest &&
-                        it.amount == amount &&
-                        it.address.base58 == TRON_ADDRESS &&
-                        it.feeLimit == null
-                }
+        coVerify { adapter.signOffline(match { it is OfflineTronSignRequest }) }
+        verify {
+            adapter.buildOfflineTransaction(
+                amount = amount,
+                to = match { it.base58 == TRON_ADDRESS },
+                feeLimit = null,
+                block = nowBlock,
+                timestamp = any(),
+                expiration = any(),
             )
         }
         coVerify { offlineSignedTransactionRepository.save(draft, "payload") }
@@ -226,15 +230,39 @@ class SendTronViewModelTest : KoinTest {
         assertEquals(usdtToken, draft.wallet.token)
         assertEquals(trxToken, draft.feeToken)
         assertEquals(EXPIRATION, draft.tronRetryMetadata?.expiration)
-        coVerify {
-            adapter.signOffline(
-                match {
-                    it is OfflineTronSignRequest &&
-                        it.amount == amount &&
-                        it.address.base58 == TRON_ADDRESS &&
-                        it.feeLimit == 20L
-                }
+        verify {
+            adapter.buildOfflineTransaction(
+                amount = amount,
+                to = match { it.base58 == TRON_ADDRESS },
+                feeLimit = 20L,
+                block = nowBlock,
+                timestamp = any(),
+                expiration = any(),
             )
+        }
+    }
+
+    @Test
+    fun onClickSignOffline_trc20AmountChangedWithoutReestimate_failsClosed() = runTest(dispatcher) {
+        val viewModel = createViewModel(wallet = createWallet(trc20Token()))
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        // Going offline: the recipient/amount changes but the fee estimate can no longer be refreshed,
+        // so the previously captured fee limit no longer matches the inputs being signed.
+        coEvery { adapter.estimateFee(any(), any()) } throws RuntimeException("offline")
+        viewModel.onEnterAmount(BigDecimal("2.5"))
+        advanceUntilIdle()
+        viewModel.onNavigateToConfirmation()
+        advanceUntilIdle()
+
+        viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.offlineSignState is OfflineSignState.Failed)
+        verify(exactly = 0) {
+            adapter.buildOfflineTransaction(any(), any(), any(), any(), any(), any())
         }
     }
 
@@ -261,7 +289,6 @@ class SendTronViewModelTest : KoinTest {
         coinMaxAllowedDecimals = wallet.token.decimals,
         contactsRepo = contactsRepository,
         showAddressInput = true,
-        connectivityManager = connectivityManager,
         address = null,
         adapterManager = adapterManager,
         dispatcherProvider = TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),

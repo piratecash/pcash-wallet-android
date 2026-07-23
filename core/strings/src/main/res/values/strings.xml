@@ -123,6 +123,13 @@
     <string name="restoreheight_title">Restore Height</string>
     <string name="restoreheight_hint">Restore Height or Date (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Enter block number</string>
+    <string name="select_date_title">Select date</string>
+    <string name="select_date_description">Select the approximate wallet creation date. The block height will be calculated automatically.</string>
+    <string name="birthday_height_description">You can change the block height or pick an approximate date to rescan the transaction history.</string>
+    <string name="birthday_height_date_label">Block date:</string>
+    <string name="birthday_height_rescan">Rescan</string>
+    <string name="birthday_height_rescan_confirm_title">Rescan wallet?</string>
+    <string name="birthday_height_rescan_confirm_text">Local wallet data will be cleared and synchronization will start from the new height. This may take time and traffic.</string>
     <string name="create_wallet_n_words_monero">%s words (Monero only)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Please use only supported symbols: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>
@@ -1353,6 +1360,7 @@ Proceed only if you\'re sure.</string>
     <string name="offline_broadcast_error_send_failed">Error while sending</string>
     <string name="offline_broadcast_error_timeout">Request timed out. Try again later.</string>
     <string name="offline_broadcast_error_already_sent">This transaction is already known to the network.</string>
+    <string name="offline_broadcast_error_seqno_consumed">The transaction number (seqno) has already been used. This transaction may have already been sent — check the transaction history before signing again.</string>
     <string name="offline_broadcast_error_nonce_used">This transaction nonce has already been used. It may have been sent or replaced.</string>
     <string name="offline_broadcast_error_low_fee">The network fee is too low. Create a transaction with a higher fee.</string>
     <string name="offline_broadcast_error_rejected">The network rejected this signed transaction.</string>
@@ -1367,6 +1375,8 @@ Proceed only if you\'re sure.</string>
     <string name="offline_signed_status_unknown">Status unknown</string>
     <string name="offline_signed_status_broadcasted">Sent to network</string>
     <string name="offline_send_no_connection_description">The transaction cannot be sent right now. You can sign it offline so another person can broadcast it later.</string>
+    <string name="offline_transaction_anchor_required">Connect to the internet once to prepare this transaction, then you can sign it offline.</string>
+    <string name="offline_sign_error_wallet_not_deployed">The wallet is not yet activated on the TON network. Send the first transaction while online.</string>
     <string name="offline_send_sync_error_description">Failed to fetch data from current source.\n\nYou can:\n• Try again later\n• Enable VPN and retry sync\n• Sign the transaction offline and share HEX for manual broadcast\n\nIf you received a 403 error, your IP address may be blocked. Using a VPN usually resolves this issue.\nYou can create a signed transaction and send it to another device or person to broadcast it to the network.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
@@ -2536,7 +2546,8 @@ Proceed only if you\'re sure.</string>
     <string name="paycore_verification_warning_text">FUND TRANSFERS ARE PERMITTED EXCLUSIVELY FROM THE ACCOUNT BELONGING TO YOU, WITH A VERIFIED PHONE NUMBER AND IDENTITY.</string>
     <string name="paycore_verification_warning_detail">Transfers from other accounts will not be credited, sent funds will be lost!</string>
     <string name="paycore_verification_back">Back</string>
-    <string name="paycore_verification_error">Failed to complete login. Try again later.</string>
+    <string name="paycore_verification_error">Failed to complete login. Check the phone number and try again.</string>
+    <string name="paycore_generic_error">Failed to complete the operation. Please try again later or contact support.</string>
     <string name="paycore_verification_retry">Retry</string>
     <string name="paycore_verification_phone_label">Phone number:</string>
     <string name="paycore_verification_contact_support">Automatic recovery failed. Please contact support.</string>
@@ -2566,4 +2577,31 @@ Proceed only if you\'re sure.</string>
     <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
     <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
     <string name="manage_accounts_premium_badge_trial">Trial</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software Updates</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="version_history_title">Version History</string>
+    <string name="auto_check_updates">Auto-check for updates</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_interval_day_full">1 day</string>
+    <string name="update_interval_week_full">1 week</string>
+    <string name="update_interval_month_full">1 month</string>
+    <string name="update_last_check_date">Last check was: %1$s</string>
+    <string name="update_available_title">New update available</string>
+    <string name="update_up_to_date">Update is up to date</string>
+    <string name="update_now">Update now</string>
+    <string name="update_source">Source: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Current version</string>
+    <string name="update_old_versions_section">OLD VERSIONS</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_improvements_fixes">This update: %1$d improvements, %2$d fixes</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
 </resources>

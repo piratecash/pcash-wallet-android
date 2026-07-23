@@ -69,6 +69,7 @@ import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.SilentCameraManager
+import cash.p.terminal.core.managers.NetworkErrorTracker
 import cash.p.terminal.core.managers.SolanaKitManager
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
 import cash.p.terminal.core.managers.SolanaWalletManager
@@ -90,6 +91,16 @@ import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.INetworkManager
 import cash.p.terminal.core.managers.NetworkManager
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
+import cash.p.terminal.modules.softwareupdate.domain.CheckAppUpdateUseCase
+import cash.p.terminal.modules.softwareupdate.domain.GetReleaseChangelogUseCase
+import cash.p.terminal.modules.softwareupdate.domain.GetVersionHistoryUseCase
+import cash.p.terminal.modules.softwareupdate.domain.InstallSourceProvider
+import cash.p.terminal.modules.softwareupdate.domain.InstallSourceProviderImpl
+import cash.p.terminal.modules.softwareupdate.domain.ShouldAutoCheckUseCase
+import cash.p.terminal.modules.softwareupdate.domain.SystemTimeProvider
+import cash.p.terminal.modules.softwareupdate.domain.TimeProvider
+import cash.p.terminal.network.github.data.GithubApiConfig
 import cash.p.terminal.core.providers.CompositeFallbackAddressProvider
 import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
@@ -235,6 +246,7 @@ val managerModule = module {
     singleOf(::EvmSignerFactory)
     singleOf(::BtcBlockchainManager)
     singleOf(::OfflineBroadcastTokenResolver)
+    singleOf(::NetworkErrorTracker)
     singleOf(::SolanaKitManager)
     singleOf(::StellarKitManager)
     singleOf(::TonKitManager)
@@ -339,6 +351,23 @@ val managerModule = module {
     }
     single(named(PREMIUM_API_BASE_URL_QUALIFIER)) { AppConfigProvider.premiumApiBaseUrl }
     single(named(PREMIUM_IS_DEBUG_QUALIFIER)) { AppConfigProvider.isDebug }
+
+    // Software update (MOBILE-378)
+    single {
+        GithubApiConfig(
+            apiBaseUrl = AppConfigProvider.githubApiBaseUrl,
+            rawBaseUrl = AppConfigProvider.githubRawBaseUrl,
+            apiProxyBaseUrl = AppConfigProvider.githubApiProxyBaseUrl,
+            rawProxyBaseUrl = AppConfigProvider.githubRawProxyBaseUrl,
+        )
+    }
+    singleOf(::SystemTimeProvider) bind TimeProvider::class
+    singleOf(::InstallSourceProviderImpl) bind InstallSourceProvider::class
+    singleOf(::AppUpdateChecker)
+    singleOf(::CheckAppUpdateUseCase)
+    singleOf(::ShouldAutoCheckUseCase)
+    singleOf(::GetVersionHistoryUseCase)
+    singleOf(::GetReleaseChangelogUseCase)
 
     // Market favorites
     singleOf(::MarketWidgetManager)

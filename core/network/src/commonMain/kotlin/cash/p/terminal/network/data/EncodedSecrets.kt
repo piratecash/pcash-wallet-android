@@ -62,4 +62,7 @@ object EncodedSecrets : KoinComponent {
     val EXOLIX_API_KEY = decoder.decode(listOf(
         "HSAjJytsBTgMBCFRdDkJFToUORwOCVYeNToxMFk2Ty05DkUJFAsjfiI7CRwwEF0eETcATiEXEwRZPCcRKiJaOg=="
     ))
+    val UNSTOPPABLE_DEX_API_KEY = decoder.decode(listOf(
+        "Q1YHQVBOFE1RVAhTGEFXF0BBDEMABFdYCRRVTBoSHF5AWUVUU0VRFEQXVVkKBhRIVEASQA4XVwdaDV9KA0QXSQ=="
+    ))
 }

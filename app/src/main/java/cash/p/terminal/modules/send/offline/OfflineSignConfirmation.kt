@@ -19,15 +19,14 @@ import org.koin.compose.koinInject
 
 /**
  * Whether the confirmation screen must replace the normal "Send" flow with the
- * offline-sign blocker ([OfflineSendSyncErrorScreen]): only on a real network loss
- * ([isConnected] is false) that has outlasted the sync grace window. A sync problem
- * while the network is present (kit resyncing / bad node) stays on the confirm screen.
+ * offline-sign blocker ([OfflineSendSyncErrorScreen]): on a real network loss
+ * ([isConnected] is false). A sync problem while the network is present
+ * (kit resyncing / bad node) stays on the confirm screen.
  */
 internal fun shouldShowOfflineSyncBlocker(
     offlineSignSupported: Boolean,
     isConnected: Boolean,
-    withinSyncGrace: Boolean,
-): Boolean = offlineSignSupported && !isConnected && !withinSyncGrace
+): Boolean = offlineSignSupported && !isConnected
 
 /**
  * Whether the wallet was in a good ([isSynced] && connected) state within the grace window.
@@ -111,7 +110,6 @@ private fun OfflineSignableConfirmationContent(
     val showSyncBlocker = shouldShowOfflineSyncBlocker(
         offlineSignSupported = sendViewModel.offlineSignSupported,
         isConnected = isConnected,
-        withinSyncGrace = sendViewModel.syncGraceActive,
     )
     val retryInProgress = isOfflineRetryInProgress(
         retrying = retrying,

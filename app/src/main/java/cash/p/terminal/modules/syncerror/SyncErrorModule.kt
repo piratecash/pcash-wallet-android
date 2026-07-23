@@ -6,7 +6,7 @@ import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
-import cash.p.terminal.core.managers.SolanaKitManager
+import cash.p.terminal.core.managers.NetworkErrorTracker
 import cash.p.terminal.wallet.IAdapterManager
 import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.entities.Blockchain
@@ -22,7 +22,7 @@ object SyncErrorModule {
                 AppConfigProvider.reportEmail,
                 getKoinInstance<BtcBlockchainManager>(),
                 getKoinInstance<EvmBlockchainManager>(),
-                getKoinInstance<SolanaKitManager>(),
+                getKoinInstance<NetworkErrorTracker>(),
                 getKoinInstance<ISystemInfoManager>()
             )
             return SyncErrorViewModel(service) as T

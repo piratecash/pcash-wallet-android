@@ -50,7 +50,6 @@ internal interface OfflineSignCapableViewModel {
     val isSynced: Boolean
     val hasAdapterError: Boolean
     val syncRetrying: Boolean
-    val syncGraceActive: Boolean
     val isEffectivelySynced: Boolean
     fun retryAdapterSync()
 
