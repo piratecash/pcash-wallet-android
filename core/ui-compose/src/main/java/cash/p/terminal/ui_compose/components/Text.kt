@@ -1843,6 +1843,27 @@ fun micro_grey(
 }
 
 @Composable
+fun micro_grey50(
+    text: String,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null,
+    overflow: TextOverflow = TextOverflow.Clip,
+    maxLines: Int = Int.MAX_VALUE,
+    onTextLayout: (TextLayoutResult) -> Unit = {}
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        textAlign = textAlign,
+        overflow = overflow,
+        maxLines = maxLines,
+        onTextLayout = onTextLayout,
+        style = ComposeAppTheme.typography.micro,
+        color = ComposeAppTheme.colors.grey50,
+    )
+}
+
+@Composable
 fun E1(
     text: String,
     modifier: Modifier = Modifier,

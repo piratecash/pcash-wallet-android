@@ -126,6 +126,13 @@
     <string name="restoreheight_title">بلوک شروع برای بازیابی</string>
     <string name="restoreheight_hint">بلوک یا تاریخ را وارد کنید (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">شماره بلوک را وارد کنید</string>
+    <string name="select_date_title">انتخاب تاریخ</string>
+    <string name="select_date_description">تاریخ تقریبی ایجاد کیف پول را انتخاب کنید. ارتفاع بلوک به‌طور خودکار محاسبه خواهد شد.</string>
+    <string name="birthday_height_description">می‌توانید ارتفاع بلوک را تغییر دهید یا تاریخی تقریبی برای اسکن مجدد تاریخچه تراکنش‌ها انتخاب کنید.</string>
+    <string name="birthday_height_date_label">تاریخ بلوک:</string>
+    <string name="birthday_height_rescan">اسکن مجدد</string>
+    <string name="birthday_height_rescan_confirm_title">کیف پول دوباره اسکن شود؟</string>
+    <string name="birthday_height_rescan_confirm_text">داده‌های محلی کیف پول پاک خواهد شد و همگام‌سازی از ارتفاع جدید آغاز می‌شود. این ممکن است زمان و ترافیک مصرف کند.</string>
     <string name="invalid_height_format">ارتفاع نامعتبر، مطمئن شوید که تاریخ را به صورت YYYY-MM-DD یا ارتفاع تولد وارد کرده‌اید</string>
     <string name="invalid_qr_code">کد QR نامعتبر</string>
     <string name="blockchair_height_by_date_connection_error">امکان اتصال به Blockchair برای یافتن ارتفاع بر اساس تاریخ وجود ندارد</string>
@@ -1012,6 +1019,7 @@
     <string name="offline_broadcast_error_send_failed">خطا هنگام ارسال</string>
     <string name="offline_broadcast_error_timeout">زمان درخواست به پایان رسید. بعداً دوباره تلاش کنید.</string>
     <string name="offline_broadcast_error_already_sent">این تراکنش از قبل برای شبکه شناخته شده است.</string>
+    <string name="offline_broadcast_error_seqno_consumed">شماره تراکنش (seqno) قبلاً استفاده شده است. این تراکنش ممکن است قبلاً ارسال شده باشد؛ پیش از امضای دوباره، تاریخچه تراکنش‌ها را بررسی کنید.</string>
     <string name="offline_broadcast_error_nonce_used">نانس این تراکنش قبلاً استفاده شده است. ممکن است ارسال یا جایگزین شده باشد.</string>
     <string name="offline_broadcast_error_low_fee">کارمزد شبکه خیلی کم است. تراکنشی با کارمزد بالاتر ایجاد کنید.</string>
     <string name="offline_broadcast_error_rejected">شبکه این تراکنش امضاشده را رد کرد.</string>
@@ -1027,6 +1035,7 @@
     <string name="offline_signed_status_broadcasted">به شبکه ارسال شد</string>
     <string name="offline_send_no_connection_description">در حال حاضر امکان ارسال تراکنش وجود ندارد. می‌توانید آن را آفلاین امضا کنید تا شخص دیگری بعداً آن را منتشر کند.</string>
     <string name="offline_transaction_anchor_required">یک بار به اینترنت متصل شوید تا این تراکنش آماده شود؛ سپس می‌توانید آن را آفلاین امضا کنید.</string>
+    <string name="offline_sign_error_wallet_not_deployed">کیف پول هنوز در شبکه TON فعال نشده است. اولین تراکنش را به‌صورت آنلاین ارسال کنید.</string>
     <string name="offline_send_sync_error_description">دریافت داده از منبع فعلی ناموفق بود.\n\nمی‌توانید:\n• بعداً دوباره تلاش کنید\n• VPN را فعال کنید و همگام‌سازی را دوباره انجام دهید\n• تراکنش را آفلاین امضا کنید و HEX را برای انتشار دستی به اشتراک بگذارید\n\nاگر خطای 403 دریافت کردید، ممکن است نشانی IP شما مسدود شده باشد. استفاده از VPN معمولاً این مشکل را برطرف می‌کند.\nمی‌توانید یک تراکنش امضاشده ایجاد کنید و آن را برای پخش در شبکه به دستگاه یا شخص دیگری بفرستید.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Choose the source P.CASH app should use for synchronizing wallet(s).</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Inputs/Outputs</string>
@@ -2084,7 +2093,8 @@
     <string name="paycore_verification_warning_text">انتقال وجوه فقط از حساب متعلق به شما، با شماره تلفن و هویت تأیید شده مجاز است.</string>
     <string name="paycore_verification_warning_detail">انتقال از حساب‌های دیگر اعتبار نخواهد داشت، وجوه ارسالی از بین خواهد رفت!</string>
     <string name="paycore_verification_back">بازگشت</string>
-    <string name="paycore_verification_error">ورود ناموفق بود. لطفاً بعداً دوباره امتحان کنید.</string>
+    <string name="paycore_verification_error">ورود ناموفق بود. شماره تلفن را بررسی کنید و دوباره تلاش کنید.</string>
+    <string name="paycore_generic_error">انجام عملیات ناموفق بود. لطفاً بعداً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.</string>
     <string name="paycore_verification_retry">تلاش مجدد</string>
     <string name="paycore_verification_phone_label">شماره تلفن:</string>
     <string name="paycore_verification_contact_support">بازیابی خودکار ناموفق بود. لطفاً با پشتیبانی تماس بگیرید.</string>
@@ -2120,4 +2130,31 @@
     <string name="send_trezor_time_lock_not_supported">Trezor از تراکنش‌های زمان‌قفل پشتیبانی نمی‌کند.</string>
     <string name="send_failed_offline_prompt_title">تراکنش ارسال نشد</string>
     <string name="send_failed_offline_prompt_message">تراکنش را آفلاین امضا کرده و بعداً ارسال کنید؟</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">به‌روزرسانی‌های نرم‌افزار</string>
+    <string name="version_history_title">تاریخچه نسخه‌ها</string>
+    <string name="auto_check_updates">بررسی خودکار به‌روزرسانی‌ها</string>
+    <string name="update_interval_day">1روز</string>
+    <string name="update_interval_week">1هفته</string>
+    <string name="update_interval_month">1ماه</string>
+    <string name="update_last_check_date">آخرین بررسی: %1$s</string>
+    <string name="update_available_title">به‌روزرسانی جدید موجود است</string>
+    <string name="update_up_to_date">برنامه به‌روز است</string>
+    <string name="update_now">اکنون به‌روزرسانی کنید</string>
+    <string name="update_source">منبع: %1$s</string>
+    <string name="update_details_ellipsis">جزئیات…</string>
+    <string name="update_details">جزئیات</string>
+    <string name="update_version_label">نسخه %1$s</string>
+    <string name="update_current_version_section">نسخه فعلی</string>
+    <string name="update_old_versions_section">نسخه‌های قدیمی</string>
+    <string name="update_checking">در حال بررسی به‌روزرسانی‌ها…</string>
+    <string name="update_improvements_fixes">این به‌روزرسانی: %1$d بهبود، %2$d رفع اشکال</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">به‌روزرسانی‌ها</string>
+    <string name="update_interval_day_full">1 روز</string>
+    <string name="update_interval_week_full">1 هفته</string>
+    <string name="update_interval_month_full">1 ماه</string>
 </resources>

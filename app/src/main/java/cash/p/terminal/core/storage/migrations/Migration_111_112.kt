@@ -3,15 +3,17 @@ package cash.p.terminal.core.storage.migrations
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Suppress("ClassName")
 object Migration_111_112 : Migration(111, 112) {
     override fun migrate(db: SupportSQLiteDatabase) {
-        // Byte-equivalent to the statement Room generates for WalletConnectV2PairingMetadata, so
-        // Room's TableInfo validation on open (exportSchema=false) passes after the upgrade.
+        // Canonical inbound (deposit/burn) tx hash — required by the Unstoppable /track call for EVM
+        // sub-providers; nullable, harmless for existing providers.
         db.execSQL(
-            "CREATE TABLE IF NOT EXISTS `WalletConnectV2PairingMetadata` " +
-                "(`topic` TEXT NOT NULL, `name` TEXT NOT NULL, `url` TEXT NOT NULL, " +
-                "`icon` TEXT, PRIMARY KEY(`topic`))"
+            "ALTER TABLE SwapProviderTransaction ADD COLUMN depositTransactionHash TEXT"
+        )
+        // Unstoppable sub-provider api id — drives the per-sub-provider display name in history for the
+        // single SwapProvider.UNSTOPPABLE backend; null for all non-Unstoppable rows.
+        db.execSQL(
+            "ALTER TABLE SwapProviderTransaction ADD COLUMN unstoppableSubProviderId TEXT"
         )
     }
 }

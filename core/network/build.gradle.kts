@@ -47,6 +47,7 @@ kotlin {
                 implementation(libs.junit)
                 implementation(libs.mockk)
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.client.mock)
                 implementation(kotlin("test"))
             }
         }

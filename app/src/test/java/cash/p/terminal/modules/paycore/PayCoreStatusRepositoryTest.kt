@@ -4,6 +4,7 @@ import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.SwapProvider
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -47,7 +48,7 @@ class PayCoreStatusRepositoryTest {
         coEvery { storage.getTransaction(payoutId) } returns transaction
         coEvery { apiService.getTransactionStatus(payoutId, PayCoreTicker.USDT_ERC20) } returns statusResponse("Completed")
 
-        val result = repository.getTransactionStatus(payoutId, "")
+        val result = repository.getTransactionStatus(SwapProviderStatusRequest(payoutId, ""))
 
         coVerify { apiService.getTransactionStatus(payoutId, PayCoreTicker.USDT_ERC20) }
         assertEquals(TransactionStatusEnum.FINISHED, result.status)
@@ -65,7 +66,7 @@ class PayCoreStatusRepositoryTest {
         coEvery { storage.getTransaction(transactionId) } returns transaction
         coEvery { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT) } returns statusResponse("Pending")
 
-        repository.getTransactionStatus(transactionId, "")
+        repository.getTransactionStatus(SwapProviderStatusRequest(transactionId, ""))
 
         coVerify { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT) }
     }
@@ -75,7 +76,7 @@ class PayCoreStatusRepositoryTest {
         val transactionId = "missing"
         coEvery { storage.getTransaction(transactionId) } returns null
 
-        val result = repository.getTransactionStatus(transactionId, "")
+        val result = repository.getTransactionStatus(SwapProviderStatusRequest(transactionId, ""))
 
         assertEquals(TransactionStatusEnum.WAITING, result.status)
         coVerify(exactly = 0) { apiService.getTransactionStatus(any(), any()) }
@@ -129,7 +130,7 @@ class PayCoreStatusRepositoryTest {
         coEvery { storage.getTransaction(transactionId) } returns createTransaction(transactionId = transactionId)
         coEvery { apiService.getTransactionStatus(transactionId, PayCoreTicker.USDT_ERC20) } returns statusResponse(payCoreStatus)
 
-        val result = repository.getTransactionStatus(transactionId, "")
+        val result = repository.getTransactionStatus(SwapProviderStatusRequest(transactionId, ""))
 
         assertEquals(expectedStatus, result.status)
     }

@@ -25,7 +25,9 @@ data class SwapFinalQuoteEvm(
     override val tokenOut: Token,
     override val amountIn: BigDecimal,
     override val amountOut: BigDecimal,
-    override val amountOutMin: BigDecimal,
+    // Nullable: a null minimum means the route is a floating estimate with no guaranteed floor
+    // (Unstoppable P2P routes with no minBuyAmount). The confirm UI already treats it as optional.
+    override val amountOutMin: BigDecimal?,
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,

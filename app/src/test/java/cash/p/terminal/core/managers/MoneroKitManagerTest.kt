@@ -83,6 +83,8 @@ class MoneroKitManagerTest {
             backgroundKeepAliveManager = backgroundKeepAliveManager,
             connectivityManager = connectivityManager,
             dispatcherProvider = dispatcherProvider,
+            moneroFileDao = mockk(relaxed = true),
+            removeMoneroWalletFilesUseCase = mockk(relaxed = true),
             networkErrorTracker = mockk(relaxed = true),
         ).apply {
             moneroKitWrapper = mockWrapper

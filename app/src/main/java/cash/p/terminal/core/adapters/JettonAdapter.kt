@@ -110,6 +110,9 @@ class JettonAdapter(
             recipient = tonRequest.address,
             amount = tonRequest.amount.movePointRight(decimals).toBigInteger(),
             comment = tonRequest.memo,
+            seqno = tonRequest.seqno,
+            validUntil = tonRequest.validUntil,
+            fee = tonRequest.fee.movePointRight(nativeToken.decimals).toBigInteger(),
         )
         return SignedOfflineTonTransaction(
             rawHex = signed.raw.toRawHexString(),

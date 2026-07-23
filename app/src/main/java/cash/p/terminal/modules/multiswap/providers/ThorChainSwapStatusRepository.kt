@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.multiswap.providers
 
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
+import cash.p.terminal.network.swaprepository.SwapProviderStatusRequest
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusRepository
 import cash.p.terminal.network.swaprepository.SwapProviderTransactionStatusResult
 import kotlinx.coroutines.Dispatchers
@@ -16,10 +17,9 @@ class ThorChainSwapStatusRepository(
 ) : SwapProviderTransactionStatusRepository {
 
     override suspend fun getTransactionStatus(
-        transactionId: String,
-        destinationAddress: String,
+        request: SwapProviderStatusRequest,
     ): SwapProviderTransactionStatusResult = withContext(Dispatchers.IO) {
-        mapTxStatus(api.txStatus(transactionId), destinationAddress)
+        mapTxStatus(api.txStatus(request.transactionId), request.destinationAddress)
     }
 }
 
