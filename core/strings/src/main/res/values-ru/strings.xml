@@ -2297,4 +2297,31 @@
     <string name="send_trezor_time_lock_not_supported">Trezor не поддерживает транзакции с временной блокировкой.</string>
     <string name="send_failed_offline_prompt_title">Транзакция не отправлена</string>
     <string name="send_failed_offline_prompt_message">Подписать транзакцию офлайн и отправить позже?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Обновления ПО</string>
+    <string name="update_screen_title">Обновление</string>
+    <string name="version_history_title">История версий</string>
+    <string name="auto_check_updates">Автопроверка обновлений</string>
+    <string name="update_interval_day">1Д</string>
+    <string name="update_interval_week">1Н</string>
+    <string name="update_interval_month">1М</string>
+    <string name="update_interval_day_full">1 день</string>
+    <string name="update_interval_week_full">1 неделя</string>
+    <string name="update_interval_month_full">1 месяц</string>
+    <string name="update_last_check_date">Дата последней проверки была: %1$s</string>
+    <string name="update_available_title">Доступно новое обновление</string>
+    <string name="update_up_to_date">Обновление актуально</string>
+    <string name="update_now">Обновить сейчас</string>
+    <string name="update_source">Источник: %1$s</string>
+    <string name="update_details_ellipsis">Подробнее…</string>
+    <string name="update_details">Подробнее</string>
+    <string name="update_version_label">Версия %1$s</string>
+    <string name="update_current_version_section">Актуальная версия</string>
+    <string name="update_old_versions_section">СТАРЫЕ ВЕРСИИ</string>
+    <string name="update_checking">Проверка обновлений…</string>
+    <string name="update_improvements_fixes">В этом обновлении: улучшений — %1$d, исправлений — %2$d</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
 </resources>

@@ -2120,4 +2120,31 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="send_trezor_time_lock_not_supported">Trezor zaman kilitli işlemleri desteklemiyor.</string>
     <string name="send_failed_offline_prompt_title">İşlem gönderilmedi</string>
     <string name="send_failed_offline_prompt_message">İşlemi çevrimdışı imzalayıp daha sonra göndermek ister misiniz?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Yazılım Güncellemeleri</string>
+    <string name="version_history_title">Sürüm Geçmişi</string>
+    <string name="auto_check_updates">Güncellemeleri otomatik denetle</string>
+    <string name="update_interval_day">1G</string>
+    <string name="update_interval_week">1H</string>
+    <string name="update_interval_month">1A</string>
+    <string name="update_last_check_date">Son kontrol: %1$s</string>
+    <string name="update_available_title">Yeni güncelleme mevcut</string>
+    <string name="update_up_to_date">Güncelleme güncel</string>
+    <string name="update_now">Şimdi güncelle</string>
+    <string name="update_source">Kaynak: %1$s</string>
+    <string name="update_details_ellipsis">Ayrıntılar…</string>
+    <string name="update_details">Ayrıntılar</string>
+    <string name="update_version_label">Sürüm %1$s</string>
+    <string name="update_current_version_section">Mevcut sürüm</string>
+    <string name="update_old_versions_section">ESKİ SÜRÜMLER</string>
+    <string name="update_checking">Güncellemeler kontrol ediliyor…</string>
+    <string name="update_improvements_fixes">Bu güncelleme: %1$d iyileştirme, %2$d düzeltme</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Güncellemeler</string>
+    <string name="update_interval_day_full">1 gün</string>
+    <string name="update_interval_week_full">1 hafta</string>
+    <string name="update_interval_month_full">1 ay</string>
 </resources>

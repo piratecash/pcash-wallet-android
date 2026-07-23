@@ -6,8 +6,7 @@ import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.LanguageManager
 import cash.p.terminal.core.providers.AppConfigProvider
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
-import cash.p.terminal.core.usecase.UpdateResult
+import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
 import cash.p.terminal.modules.paycore.PayCoreFeatureToggle
 import cash.p.terminal.modules.settings.main.MainSettingsModule.CounterType
@@ -20,10 +19,7 @@ import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ISystemInfoManager
 import io.horizontalsystems.core.ViewModelUiState
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.rx2.asFlow
@@ -38,7 +34,7 @@ class MainSettingsViewModel(
     private val accountManager: IAccountManager,
     private val languageManager: LanguageManager,
     private val currencyManager: CurrencyManager,
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase,
+    appUpdateChecker: AppUpdateChecker,
     private val localStorage: ILocalStorage,
     private val logLoginAttemptUseCase: LogLoginAttemptUseCase,
     private val payCoreFeatureToggle: PayCoreFeatureToggle,
@@ -75,14 +71,7 @@ class MainSettingsViewModel(
     val currentAccountSupportsTonConnect: Boolean
         get() = accountManager.activeAccount?.supportsTonConnect() == true
 
-    private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
-        .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
-
+    private val updateAvailable: StateFlow<Boolean> = appUpdateChecker.updateAvailable
 
     private var wcCounterType: CounterType? = null
     private var wcSessionsCount = walletConnectSessionCount
@@ -124,9 +113,7 @@ class MainSettingsViewModel(
             }
         }
         updateAvailable.collectWith(viewModelScope) {
-            if (it) {
-                emitState()
-            }
+            emitState()
         }
 
         syncCounter()

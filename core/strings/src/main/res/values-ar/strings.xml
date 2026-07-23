@@ -2142,4 +2142,31 @@
     <string name="send_trezor_time_lock_not_supported">لا يدعم Trezor المعاملات المقفلة زمنيًا.</string>
     <string name="send_failed_offline_prompt_title">لم يتم إرسال المعاملة</string>
     <string name="send_failed_offline_prompt_message">توقيع المعاملة دون اتصال وإرسالها لاحقًا؟</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">تحديثات البرنامج</string>
+    <string name="version_history_title">سجل الإصدارات</string>
+    <string name="auto_check_updates">التحقق التلقائي من التحديثات</string>
+    <string name="update_interval_day">1ي</string>
+    <string name="update_interval_week">1أ</string>
+    <string name="update_interval_month">1ش</string>
+    <string name="update_last_check_date">آخر تحقق كان: %1$s</string>
+    <string name="update_available_title">يتوفر تحديث جديد</string>
+    <string name="update_up_to_date">التحديث محدث</string>
+    <string name="update_now">تحديث الآن</string>
+    <string name="update_source">المصدر: %1$s</string>
+    <string name="update_details_ellipsis">التفاصيل…</string>
+    <string name="update_details">التفاصيل</string>
+    <string name="update_version_label">الإصدار %1$s</string>
+    <string name="update_current_version_section">الإصدار الحالي</string>
+    <string name="update_old_versions_section">الإصدارات القديمة</string>
+    <string name="update_checking">جارٍ التحقق من التحديثات…</string>
+    <string name="update_improvements_fixes">هذا التحديث: %1$d تحسينات، %2$d إصلاحات</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">التحديثات</string>
+    <string name="update_interval_day_full">يوم واحد</string>
+    <string name="update_interval_week_full">أسبوع واحد</string>
+    <string name="update_interval_month_full">شهر واحد</string>
 </resources>

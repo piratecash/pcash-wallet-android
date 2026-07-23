@@ -19,6 +19,9 @@ import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.market.favorites.MarketFavoritesViewModel
 import cash.p.terminal.modules.manageaccount.backupkey.BackupKeyViewModel
 import cash.p.terminal.modules.main.MainViewModel
+import cash.p.terminal.modules.softwareupdate.SoftwareUpdateViewModel
+import cash.p.terminal.modules.softwareupdate.changelog.VersionChangelogViewModel
+import cash.p.terminal.modules.softwareupdate.history.VersionHistoryViewModel
 import cash.p.terminal.modules.pin.unlock.PinUnlockViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.mwebconfigure.MwebConfigureViewModel
@@ -81,6 +84,9 @@ val viewModelModule = module {
     viewModelOf(::MarketFavoritesViewModel)
     viewModelOf(::MainViewModel)
     viewModelOf(::MainActivityViewModel)
+    viewModelOf(::SoftwareUpdateViewModel)
+    viewModelOf(::VersionHistoryViewModel)
+    viewModel { params -> VersionChangelogViewModel(params.get(), params.get(), get(), get()) }
     viewModelOf(::DisplayTransactionsViewModel)
     viewModelOf(::OfflineBroadcastViewModel)
     viewModelOf(::OfflineSignedTransactionsViewModel)

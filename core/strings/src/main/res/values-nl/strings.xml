@@ -2126,4 +2126,31 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="send_trezor_time_lock_not_supported">Trezor ondersteunt tijdvergrendelde transacties niet.</string>
     <string name="send_failed_offline_prompt_title">Transactie niet verzonden</string>
     <string name="send_failed_offline_prompt_message">De transactie offline ondertekenen en later verzenden?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software-updates</string>
+    <string name="version_history_title">Versiegeschiedenis</string>
+    <string name="auto_check_updates">Automatisch controleren op updates</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Laatste controle was: %1$s</string>
+    <string name="update_available_title">Nieuwe update beschikbaar</string>
+    <string name="update_up_to_date">Update is up-to-date</string>
+    <string name="update_now">Nu updaten</string>
+    <string name="update_source">Bron: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Versie %1$s</string>
+    <string name="update_current_version_section">Huidige versie</string>
+    <string name="update_old_versions_section">OUDE VERSIES</string>
+    <string name="update_checking">Controleren op updates…</string>
+    <string name="update_improvements_fixes">Deze update: %1$d verbeteringen, %2$d oplossingen</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="update_interval_day_full">1 dag</string>
+    <string name="update_interval_week_full">1 week</string>
+    <string name="update_interval_month_full">1 maand</string>
 </resources>

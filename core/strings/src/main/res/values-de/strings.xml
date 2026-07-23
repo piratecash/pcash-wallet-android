@@ -2111,4 +2111,31 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="send_trezor_time_lock_not_supported">Trezor unterstützt zeitgesperrte Transaktionen nicht.</string>
     <string name="send_failed_offline_prompt_title">Transaktion nicht gesendet</string>
     <string name="send_failed_offline_prompt_message">Transaktion offline signieren und später senden?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software-Updates</string>
+    <string name="version_history_title">Versionsverlauf</string>
+    <string name="auto_check_updates">Automatisch nach Updates suchen</string>
+    <string name="update_interval_day">1T</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Letzte Prüfung war: %1$s</string>
+    <string name="update_available_title">Neues Update verfügbar</string>
+    <string name="update_up_to_date">Update ist aktuell</string>
+    <string name="update_now">Jetzt aktualisieren</string>
+    <string name="update_source">Quelle: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Aktuelle Version</string>
+    <string name="update_old_versions_section">ALTE VERSIONEN</string>
+    <string name="update_checking">Suche nach Updates…</string>
+    <string name="update_improvements_fixes">Dieses Update: %1$d Verbesserungen, %2$d Fehlerbehebungen</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="update_interval_day_full">1 Tag</string>
+    <string name="update_interval_week_full">1 Woche</string>
+    <string name="update_interval_month_full">1 Monat</string>
 </resources>

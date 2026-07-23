@@ -2104,4 +2104,31 @@
     <string name="send_trezor_time_lock_not_supported">Trezor 不支持时间锁定交易。</string>
     <string name="send_failed_offline_prompt_title">交易未发送</string>
     <string name="send_failed_offline_prompt_message">离线签署交易并稍后发送？</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">软件更新</string>
+    <string name="version_history_title">版本历史</string>
+    <string name="auto_check_updates">自动检查更新</string>
+    <string name="update_interval_day">1天</string>
+    <string name="update_interval_week">1周</string>
+    <string name="update_interval_month">1月</string>
+    <string name="update_last_check_date">上次检查时间：%1$s</string>
+    <string name="update_available_title">有可用的新更新</string>
+    <string name="update_up_to_date">已是最新版本</string>
+    <string name="update_now">立即更新</string>
+    <string name="update_source">来源：%1$s</string>
+    <string name="update_details_ellipsis">详情…</string>
+    <string name="update_details">详情</string>
+    <string name="update_version_label">版本 %1$s</string>
+    <string name="update_current_version_section">当前版本</string>
+    <string name="update_old_versions_section">旧版本</string>
+    <string name="update_checking">正在检查更新…</string>
+    <string name="update_improvements_fixes">本次更新：%1$d 项改进，%2$d 项修复</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">更新</string>
+    <string name="update_interval_day_full">1天</string>
+    <string name="update_interval_week_full">1周</string>
+    <string name="update_interval_month_full">1个月</string>
 </resources>

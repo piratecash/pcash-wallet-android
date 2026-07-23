@@ -2111,4 +2111,31 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="send_trezor_time_lock_not_supported">Trezor no admite transacciones con bloqueo temporal.</string>
     <string name="send_failed_offline_prompt_title">Transacción no enviada</string>
     <string name="send_failed_offline_prompt_message">¿Firmar la transacción sin conexión y enviarla más tarde?</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Actualizaciones de software</string>
+    <string name="version_history_title">Historial de versiones</string>
+    <string name="auto_check_updates">Buscar actualizaciones automáticamente</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1S</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Última comprobación: %1$s</string>
+    <string name="update_available_title">Nueva actualización disponible</string>
+    <string name="update_up_to_date">La actualización está al día</string>
+    <string name="update_now">Actualizar ahora</string>
+    <string name="update_source">Fuente: %1$s</string>
+    <string name="update_details_ellipsis">Detalles…</string>
+    <string name="update_details">Detalles</string>
+    <string name="update_version_label">Versión %1$s</string>
+    <string name="update_current_version_section">Versión actual</string>
+    <string name="update_old_versions_section">VERSIONES ANTERIORES</string>
+    <string name="update_checking">Buscando actualizaciones…</string>
+    <string name="update_improvements_fixes">Esta actualización: %1$d mejoras, %2$d correcciones</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Actualizaciones</string>
+    <string name="update_interval_day_full">1 día</string>
+    <string name="update_interval_week_full">1 semana</string>
+    <string name="update_interval_month_full">1 mes</string>
 </resources>

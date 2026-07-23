@@ -194,6 +194,9 @@
         android:id="@+id/aboutAppFragment"
         android:name="cash.p.terminal.modules.settings.about.AboutFragment"/>
     <fragment
+        android:id="@+id/softwareUpdateFragment"
+        android:name="cash.p.terminal.modules.softwareupdate.SoftwareUpdateFragment"/>
+    <fragment
         android:id="@+id/donateAddressesFragment"
         android:name="cash.p.terminal.modules.settings.donate.DonateAddressesFragment"/>
     <fragment

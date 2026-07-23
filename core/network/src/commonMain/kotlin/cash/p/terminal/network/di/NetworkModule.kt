@@ -17,6 +17,7 @@ import cash.p.terminal.network.data.buildNetworkClient
 import cash.p.terminal.network.data.isAppDebuggable
 import cash.p.terminal.network.exolix.data.repository.ExolixRepositoryImpl
 import cash.p.terminal.network.exolix.di.networkExolixModule
+import cash.p.terminal.network.github.di.networkGithubModule
 import cash.p.terminal.network.pirate.di.networkPirateModule
 import cash.p.terminal.network.piratenews.di.networkPirateNewsModule
 import cash.p.terminal.network.quickex.data.repository.QuickexRepositoryImpl
@@ -58,6 +59,7 @@ val networkModule = module {
         networkPirateNewsModule,
         networkStonFiModule,
         networkZcashModule,
+        networkGithubModule,
         databaseModule,
         decoderModule
     )
