@@ -9,7 +9,6 @@ import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.managers.CoinHistoricalPriceManager
 import cash.p.terminal.wallet.managers.CoinPriceManager
 import cash.p.terminal.wallet.managers.CoinPriceSyncManager
-import cash.p.terminal.wallet.managers.DumpManager
 import cash.p.terminal.wallet.managers.GlobalMarketInfoManager
 import cash.p.terminal.wallet.managers.MarketOverviewManager
 import cash.p.terminal.wallet.managers.NftManager
@@ -81,7 +80,6 @@ class MarketKit(
     private val globalMarketInfoManager: GlobalMarketInfoManager,
     private val hsProvider: HsProvider,
     private val hsDataSyncer: HsDataSyncer,
-    private val dumpManager: DumpManager,
 ) {
     private val coinsMap by lazy { coinManager.allCoins().associateBy { it.uid } }
 
@@ -580,10 +578,6 @@ class MarketKit(
         return coinSyncer.syncInfo()
     }
 
-    fun getInitialDump(): String {
-        return dumpManager.getInitialDump()
-    }
-
     //ETF
 
     fun etfSingle(currencyCode: String): Single<List<Etf>> {
@@ -625,7 +619,6 @@ class MarketKit(
             }
 
             val marketDatabase: MarketDatabase = get(MarketDatabase::class.java)
-            val dumpManager = DumpManager(marketDatabase)
             val hsProvider = HsProvider(hsApiBaseUrl, hsApiKey)
             val hsNftProvider = HsNftProvider(hsApiBaseUrl, hsApiKey)
             val coinStorage = CoinStorage(marketDatabase)
@@ -661,7 +654,6 @@ class MarketKit(
                 globalMarketInfoManager,
                 hsProvider,
                 hsDataSyncer,
-                dumpManager,
             )
         }
     }
