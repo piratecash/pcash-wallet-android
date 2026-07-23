@@ -6,8 +6,8 @@ import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.deeplink.DeeplinkParser
 import cash.p.terminal.core.managers.ReleaseNotesManager
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.feature.logging.domain.usecase.LogLoginAttemptUseCase
+import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
 import cash.p.terminal.modules.walletconnect.WCManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
@@ -52,7 +52,7 @@ class MainViewModelTest {
     private val wcManager = mockk<WCManager>(relaxed = true)
     private val logLoginAttemptUseCase = mockk<LogLoginAttemptUseCase>(relaxed = true)
     private val deeplinkParser = mockk<DeeplinkParser>(relaxed = true)
-    private val checkGooglePlayUpdateUseCase = mockk<CheckGooglePlayUpdateUseCase>(relaxed = true)
+    private val appUpdateChecker = mockk<AppUpdateChecker>(relaxed = true)
     private val checkPremiumUseCase = mockk<CheckPremiumUseCase>(relaxed = true)
 
     private var currentAccounts: List<Account> = emptyList()
@@ -79,13 +79,13 @@ class MainViewModelTest {
         every { accountManager.isAccountsEmpty } returns false
         every { accountManager.accounts } answers { currentAccounts }
         coEvery { logLoginAttemptUseCase.selfieEnabledAndHasProblem() } returns false
-        every { checkGooglePlayUpdateUseCase() } returns emptyFlow()
+        every { appUpdateChecker.updateAvailable } returns MutableStateFlow(false)
         every { checkPremiumUseCase.premiumTypesFlow } returns premiumTypesFlow
 
         startKoin {
             modules(
                 module {
-                    single { checkGooglePlayUpdateUseCase }
+                    single { appUpdateChecker }
                     single { checkPremiumUseCase }
                 }
             )
