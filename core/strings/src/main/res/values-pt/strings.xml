@@ -1013,6 +1013,7 @@
     <string name="offline_broadcast_error_send_failed">Erro ao enviar</string>
     <string name="offline_broadcast_error_timeout">A solicitação expirou. Tente novamente mais tarde.</string>
     <string name="offline_broadcast_error_already_sent">Esta transação já é conhecida pela rede.</string>
+    <string name="offline_broadcast_error_seqno_consumed">O número da transação (seqno) já foi utilizado. Esta transação pode já ter sido enviada — verifique o histórico de transações antes de assinar novamente.</string>
     <string name="offline_broadcast_error_nonce_used">O nonce desta transação já foi usado. Ela pode já ter sido enviada ou substituída.</string>
     <string name="offline_broadcast_error_low_fee">A taxa de rede está muito baixa. Crie uma transação com uma taxa mais alta.</string>
     <string name="offline_broadcast_error_rejected">A rede rejeitou esta transação assinada.</string>
@@ -1028,6 +1029,7 @@
     <string name="offline_signed_status_broadcasted">Enviada para a rede</string>
     <string name="offline_send_no_connection_description">A transação não pode ser enviada agora. Pode assiná-la offline para que outra pessoa a transmita mais tarde.</string>
     <string name="offline_transaction_anchor_required">Ligue-se à internet uma vez para preparar esta transação; depois pode assiná-la offline.</string>
+    <string name="offline_sign_error_wallet_not_deployed">A carteira ainda não está ativada na rede TON. Envie a primeira transação online.</string>
     <string name="offline_send_sync_error_description">Não foi possível obter dados da fonte atual.\n\nPode:\n• tentar novamente mais tarde\n• ativar a VPN e tentar sincronizar novamente\n• assinar a transação offline e partilhar o HEX para transmissão manual\n\nSe recebeu um erro 403, o seu endereço IP pode estar bloqueado. Usar uma VPN normalmente resolve este problema.\nPode criar uma transação assinada e enviá-la para outro dispositivo ou pessoa para a transmitir para a rede.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Selecione uma fonte de dados para restauração de carteira. Restaurar da blockchain leva consideravelmente mais tempo.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entrada/Saída</string>
@@ -2080,7 +2082,8 @@
     <string name="paycore_verification_warning_text">A TRANSFERÊNCIA DE FUNDOS É PERMITIDA EXCLUSIVAMENTE DA CONTA QUE LHE PERTENCE, COM NÚMERO DE TELEFONE E IDENTIDADE VERIFICADOS.</string>
     <string name="paycore_verification_warning_detail">Transferências de outras contas não serão creditadas, os fundos enviados serão perdidos!</string>
     <string name="paycore_verification_back">Voltar</string>
-    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Tente mais tarde.</string>
+    <string name="paycore_verification_error">Não foi possível concluir o início de sessão. Verifique o número de telefone e tente novamente.</string>
+    <string name="paycore_generic_error">Não foi possível concluir a operação. Tente mais tarde ou contacte o suporte.</string>
     <string name="paycore_verification_retry">Tentar novamente</string>
     <string name="paycore_verification_phone_label">Número de telefone:</string>
     <string name="paycore_verification_contact_support">A recuperação automática falhou. Por favor, contacte o suporte.</string>

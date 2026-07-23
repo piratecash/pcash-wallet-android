@@ -1009,6 +1009,7 @@
     <string name="offline_broadcast_error_send_failed">Erreur lors de l’envoi</string>
     <string name="offline_broadcast_error_timeout">La requête a expiré. Réessayez plus tard.</string>
     <string name="offline_broadcast_error_already_sent">Cette transaction est déjà connue du réseau.</string>
+    <string name="offline_broadcast_error_seqno_consumed">Le numéro de transaction (seqno) a déjà été utilisé. Cette transaction a peut-être déjà été envoyée — vérifiez l\'historique des transactions avant de signer à nouveau.</string>
     <string name="offline_broadcast_error_nonce_used">Le nonce de cette transaction a déjà été utilisé. Elle a peut-être été envoyée ou remplacée.</string>
     <string name="offline_broadcast_error_low_fee">Les frais réseau sont trop faibles. Créez une transaction avec des frais plus élevés.</string>
     <string name="offline_broadcast_error_rejected">Le réseau a rejeté cette transaction signée.</string>
@@ -1024,6 +1025,7 @@
     <string name="offline_signed_status_broadcasted">Envoyée au réseau</string>
     <string name="offline_send_no_connection_description">La transaction ne peut pas être envoyée pour le moment. Vous pouvez la signer hors ligne afin qu’une autre personne la diffuse plus tard.</string>
     <string name="offline_transaction_anchor_required">Connectez-vous une fois à Internet pour préparer cette transaction, puis vous pourrez la signer hors ligne.</string>
+    <string name="offline_sign_error_wallet_not_deployed">Le portefeuille n\'est pas encore activé sur le réseau TON. Envoyez la première transaction en ligne.</string>
     <string name="offline_send_sync_error_description">Impossible de récupérer les données depuis la source actuelle.\n\nVous pouvez:\n• réessayer plus tard\n• activer un VPN et relancer la synchronisation\n• signer la transaction hors ligne et partager le HEX pour une diffusion manuelle\n\nSi vous avez reçu une erreur 403, votre adresse IP est peut-être bloquée. L’utilisation d’un VPN résout généralement ce problème.\nVous pouvez créer une transaction signée et l’envoyer à un autre appareil ou à une autre personne pour la diffuser sur le réseau.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Sélectionnez la source de données pour restaurer le portefeuille avec les transactions.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Entrées/Sorties</string>
@@ -2078,7 +2080,8 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="paycore_verification_warning_text">LE TRANSFERT DE FONDS EST AUTORISÉ EXCLUSIVEMENT DEPUIS LE COMPTE VOUS APPARTENANT, AVEC UN NUMÉRO DE TÉLÉPHONE ET UNE IDENTITÉ VÉRIFIÉS.</string>
     <string name="paycore_verification_warning_detail">Les transferts depuis d\'autres comptes ne seront pas crédités, les fonds envoyés seront perdus !</string>
     <string name="paycore_verification_back">Retour</string>
-    <string name="paycore_verification_error">La connexion a échoué. Veuillez réessayer plus tard.</string>
+    <string name="paycore_verification_error">La connexion a échoué. Vérifiez le numéro de téléphone et réessayez.</string>
+    <string name="paycore_generic_error">L\'opération a échoué. Veuillez réessayer plus tard ou contacter le support.</string>
     <string name="paycore_verification_retry">Réessayer</string>
     <string name="paycore_verification_phone_label">Numéro de téléphone :</string>
     <string name="paycore_verification_contact_support">La récupération automatique a échoué. Veuillez contacter l\'assistance.</string>

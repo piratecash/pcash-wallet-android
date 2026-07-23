@@ -266,6 +266,17 @@ class OfflineBroadcastViewModel(
             )
         }
 
+        // The account seqno moved past this transaction's, but its hash was not found on-chain —
+        // it may still be the one that consumed the seqno (hash not indexed yet). Report the
+        // ambiguity and, like AlreadyKnown, leave the record to the Signed-offline reconciliation.
+        if (broadcastResult.status == BroadcastRawTransactionStatus.SeqnoConsumed) {
+            return OfflineBroadcastResult.Error(
+                networkName = networkName,
+                rawHex = rawHex,
+                message = Translator.getString(R.string.offline_broadcast_error_seqno_consumed),
+            )
+        }
+
         recordBroadcastAttempt()
 
         val queued = broadcastResult.status == BroadcastRawTransactionStatus.Queued

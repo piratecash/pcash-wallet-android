@@ -1035,6 +1035,7 @@
     <string name="offline_broadcast_error_send_failed">Ошибка при отправке</string>
     <string name="offline_broadcast_error_timeout">Время ожидания запроса истекло. Попробуйте позже.</string>
     <string name="offline_broadcast_error_already_sent">Эта транзакция уже известна сети.</string>
+    <string name="offline_broadcast_error_seqno_consumed">Номер транзакции (seqno) уже использован. Возможно, эта транзакция уже отправлена — проверьте историю транзакций, прежде чем подписывать заново.</string>
     <string name="offline_broadcast_error_nonce_used">Nonce этой транзакции уже использован. Возможно, она уже отправлена или заменена.</string>
     <string name="offline_broadcast_error_low_fee">Комиссия сети слишком низкая. Создайте транзакцию с более высокой комиссией.</string>
     <string name="offline_broadcast_error_rejected">Сеть отклонила эту подписанную транзакцию.</string>
@@ -1050,6 +1051,7 @@
     <string name="offline_signed_status_broadcasted">Отправлено в сеть</string>
     <string name="offline_send_no_connection_description">Отправить транзакцию сейчас не получится. Вы можете подписать её офлайн — другой человек отправит её позже.</string>
     <string name="offline_transaction_anchor_required">Один раз подключитесь к интернету, чтобы подготовить транзакцию, — после этого её можно подписать офлайн.</string>
+    <string name="offline_sign_error_wallet_not_deployed">Кошелёк ещё не активирован в сети TON. Первую транзакцию отправьте онлайн.</string>
     <string name="offline_send_sync_error_description">Не удалось получить данные из текущего источника.\n\nВы можете:\n• повторить попытку позже\n• включить VPN и повторить синхронизацию\n• подписать транзакцию офлайн и передать HEX для ручной отправки\n\nЕсли при запросе был получен код 403, ваш IP-адрес может быть заблокирован. Использование VPN обычно решает эту проблему.\nВы можете создать подписанную транзакцию и отправить её на другое устройство или другому человеку для трансляции в сеть.</string>
     <string name="BtcBlockchainSettings_RestoreSourceSettingsDescription">Выберите источник данных для восстановления кошелька. Восстановление из блокчейна занимает значительно больше времени.</string>
     <string name="BtcBlockchainSettings_InputsOutputs">Вводы/Выводы</string>
@@ -2273,7 +2275,8 @@
     <string name="paycore_verification_warning_text">РАЗРЕШЁН ПЕРЕВОД ДЕНЕЖНЫХ СРЕДСТВ ИСКЛЮЧИТЕЛЬНО СО СЧЁТА, ПРИНАДЛЕЖАЩЕГО ВАМ, С ВЕРИФИЦИРОВАННЫМ НОМЕРОМ ТЕЛЕФОНА И ЛИЧНОСТЬЮ.</string>
     <string name="paycore_verification_warning_detail">Переводы с иных счетов не зачислятся, отправленные средства будут утеряны!</string>
     <string name="paycore_verification_back">Назад</string>
-    <string name="paycore_verification_error">Не удалось завершить вход. Попробуйте позже.</string>
+    <string name="paycore_verification_error">Не удалось завершить вход. Проверьте номер телефона и попробуйте снова.</string>
+    <string name="paycore_generic_error">Не удалось выполнить операцию. Попробуйте позже или обратитесь в поддержку.</string>
     <string name="paycore_verification_retry">Повторить</string>
     <string name="paycore_verification_phone_label">Номер телефона:</string>
     <string name="paycore_verification_contact_support">Автоматическое восстановление не удалось. Обратитесь в поддержку.</string>

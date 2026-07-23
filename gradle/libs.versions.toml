@@ -64,7 +64,7 @@ swiperefreshlayout = "1.2.0"
 timber = "5.0.1"
 
 tonKotlin = "0.5.0" # updated for ktor 3.x compatibility
-piratecash-ton = "v1.0.0-pcash.5"
+piratecash-ton = "v1.0.0-pcash.6"
 piratecash-bitcoin = "v0.1.0-pcash.25"
 stellar-kit = "v1.0.0-pcash.3"
 trezor-kit = "1.1.1"
