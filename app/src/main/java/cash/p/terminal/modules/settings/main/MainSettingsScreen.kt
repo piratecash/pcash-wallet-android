@@ -96,24 +96,6 @@ private fun SettingSections(
     val walletConnectTitle = stringResource(R.string.WalletConnect_Title)
     val tonConnectTitle = stringResource(R.string.TonConnect_Title)
 
-    if (uiState.isUpdateAvailable) {
-        CellUniversalLawrenceSection(
-            listOf {
-                HsSettingCell(
-                    title = R.string.update_app,
-                    icon = R.drawable.ic_refresh,
-                    iconTint = ComposeAppTheme.colors.jacob,
-                    showAlert = true,
-                    onClick = {
-                        RateAppManager.openPlayMarket(context)
-                    }
-                )
-            }
-        )
-
-        VSpacer(32.dp)
-    }
-
     CellUniversalLawrenceSection(
         listOf {
             HsSettingCell(
