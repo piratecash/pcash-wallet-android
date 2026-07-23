@@ -5,6 +5,7 @@ import java.time.LocalDate
 interface GetZcashHeightUseCase {
     suspend operator fun invoke(date: LocalDate): ZcashHeightResult
     suspend fun getCurrentBlockHeight(): Long?
+    suspend fun getDateForHeight(height: Long): LocalDate?
 }
 
 sealed class ZcashHeightResult {

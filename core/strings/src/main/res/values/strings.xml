@@ -123,6 +123,13 @@
     <string name="restoreheight_title">Restore Height</string>
     <string name="restoreheight_hint">Restore Height or Date (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Enter block number</string>
+    <string name="select_date_title">Select date</string>
+    <string name="select_date_description">Select the approximate wallet creation date. The block height will be calculated automatically.</string>
+    <string name="birthday_height_description">You can change the block height or pick an approximate date to rescan the transaction history.</string>
+    <string name="birthday_height_date_label">Block date:</string>
+    <string name="birthday_height_rescan">Rescan</string>
+    <string name="birthday_height_rescan_confirm_title">Rescan wallet?</string>
+    <string name="birthday_height_rescan_confirm_text">Local wallet data will be cleared and synchronization will start from the new height. This may take time and traffic.</string>
     <string name="create_wallet_n_words_monero">%s words (Monero only)</string>
     <string name="CreateWallet_Error_EmptyPassphrase">Passphrase cannot be empty</string>
     <string name="CreateWallet_Error_PassphraseForbiddenSymbols">Please use only supported symbols: <![CDATA[A-Z a-z 0-9 \' " ` & / ? ! : ; . , ~ * $ = + - [ ](){} <> \ _ # @ | % ]]></string>

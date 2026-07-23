@@ -1,6 +1,9 @@
 package cash.p.terminal.modules.balance.token
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.fragment.app.viewModels
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -28,6 +31,12 @@ import cash.p.terminal.ui_compose.findNavController
 import cash.p.terminal.wallet.isPirateCash
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewScreen
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewModel
+import cash.p.terminal.modules.balance.token.creationblock.CreationBlockScreen
+import cash.p.terminal.modules.balance.token.creationblock.CreationBlockViewModel
+import cash.p.terminal.core.getKoinInstance
+import cash.p.terminal.core.usecase.GetRestoreHeightForWalletUseCase
+import cash.p.terminal.wallet.AccountOrigin
+import io.horizontalsystems.core.entities.BlockchainType
 import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -41,6 +50,9 @@ private sealed class TokenBalanceRoute {
 
     @Serializable
     data object AddressPoisoningView : TokenBalanceRoute()
+
+    @Serializable
+    data object CreationBlock : TokenBalanceRoute()
 }
 
 class TokenBalanceFragment : BaseComposeFragment() {
@@ -148,6 +160,15 @@ private fun TokenBalanceNavHost(
             )
         }
         composablePage<TokenBalanceRoute.Settings> {
+            // Zcash created-in-app wallets have no history before their creation checkpoint, so
+            // editing the birthday height is meaningful only for restored (imported) Zcash wallets.
+            val creationBlockVisible = wallet.token.blockchainType == BlockchainType.Monero ||
+                (wallet.token.blockchainType == BlockchainType.Zcash &&
+                    wallet.account.origin == AccountOrigin.Restored)
+            val getRestoreHeight = remember { getKoinInstance<GetRestoreHeightForWalletUseCase>() }
+            val currentHeightText by produceState<String?>(null, wallet, creationBlockVisible) {
+                value = if (creationBlockVisible) getRestoreHeight(wallet)?.toString() else null
+            }
             AssetSettingsScreen(
                 amlCheckEnabled = viewModel.uiState.amlCheckEnabled,
                 onAmlCheckChange = { enabled ->
@@ -172,6 +193,21 @@ private fun TokenBalanceNavHost(
                 onTransactionFiltersChange = viewModel::setTransactionFiltersEnabled,
                 navController = fragmentNavController,
                 onBack = navController::popBackStackSafely,
+                creationBlockVisible = creationBlockVisible,
+                currentHeightText = currentHeightText,
+                onCreationBlockClick = { navController.navigate(TokenBalanceRoute.CreationBlock) },
+            )
+        }
+        composablePage<TokenBalanceRoute.CreationBlock> {
+            val creationBlockViewModel: CreationBlockViewModel =
+                koinViewModel { parametersOf(wallet) }
+            CreationBlockScreen(
+                uiState = creationBlockViewModel.uiState,
+                onHeightChange = creationBlockViewModel::onHeightChange,
+                onDatePick = creationBlockViewModel::onDatePicked,
+                onRescanConfirm = creationBlockViewModel::onRescanConfirmed,
+                onClose = navController::navigateUpSafely,
+                onRescanComplete = navController::navigateUp,
             )
         }
         composablePage<TokenBalanceRoute.AddressPoisoningView> {

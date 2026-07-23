@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.restoreaccount.restoremnemonic
 
+import cash.p.terminal.R
 import cash.p.terminal.core.IAccountFactory
 import cash.p.terminal.core.managers.SeedPhraseQrCrypto
 import cash.p.terminal.core.managers.WalletActivator
@@ -7,6 +8,7 @@ import cash.p.terminal.core.utils.Bip39LanguageDetector
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.usecase.ValidateMoneroMnemonicUseCase
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.IAccountManager
 import io.horizontalsystems.core.IThirdKeyboard
 import io.horizontalsystems.hdwalletkit.Language
@@ -22,8 +24,10 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.time.LocalDate
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -293,6 +297,38 @@ class RestoreMnemonicViewModelTest {
 
             assertEquals(Language.Japanese, viewModel.uiState.language)
             assertTrue(viewModel.uiState.invalidWordRanges.isEmpty())
+        }
+
+    // ==================== Restore height from picked date ====================
+
+    @Test
+    fun onDatePicked_validDate_updatesHeightState() =
+        runTest(dispatcher) {
+            val viewModel = createViewModel()
+            val date = LocalDate.of(2020, 1, 1)
+            every { validateMoneroHeightUseCase.getHeight(date) } returns 111_222L
+
+            viewModel.onDatePicked(date)
+            advanceUntilIdle()
+
+            assertEquals("111222", viewModel.uiState.height)
+            assertNull(viewModel.uiState.errorHeight)
+        }
+
+    @Test
+    fun onDatePicked_useCaseReturnsInvalidHeight_setsErrorHeight() =
+        runTest(dispatcher) {
+            val viewModel = createViewModel()
+            val date = LocalDate.of(2020, 1, 1)
+            every { validateMoneroHeightUseCase.getHeight(date) } returns -1L
+
+            viewModel.onDatePicked(date)
+            advanceUntilIdle()
+
+            assertEquals(
+                Translator.getString(R.string.invalid_height_format),
+                viewModel.uiState.errorHeight
+            )
         }
 
     private fun createViewModel() = RestoreMnemonicViewModel(

@@ -73,6 +73,9 @@ fun FormsInput(
     qrScannerEnabled: Boolean = false,
     qrScannerTitle: String? = null,
     pasteEnabled: Boolean = true,
+    trailingIcon: Int? = null,
+    onTrailingIconClick: (() -> Unit)? = null,
+    showDeleteButton: Boolean = true,
     maxLength: Int? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -206,7 +209,15 @@ fun FormsInput(
                 }
             }
 
-            if (textState.text.isNotEmpty()) {
+            trailingIcon?.let { icon ->
+                ButtonSecondaryCircle(
+                    modifier = Modifier.padding(end = if (pasteEnabled) 8.dp else 16.dp),
+                    icon = icon,
+                    onClick = { onTrailingIconClick?.invoke() }
+                )
+            }
+
+            if (textState.text.isNotEmpty() && showDeleteButton) {
                 ButtonSecondaryCircle(
                     modifier = Modifier.padding(end = 16.dp),
                     icon = R.drawable.ic_delete_20,
@@ -507,4 +518,10 @@ interface TextPreprocessor {
 
 object TextPreprocessorImpl : TextPreprocessor {
     override fun process(text: String) = text
+}
+
+/** Strips every non-digit character. Applied to typed, pasted and scanned text alike, so letters
+ *  can never reach a digits-only field regardless of input method. */
+object DigitsOnlyTextPreprocessor : TextPreprocessor {
+    override fun process(text: String) = text.replace("[^0-9]".toRegex(), "")
 }

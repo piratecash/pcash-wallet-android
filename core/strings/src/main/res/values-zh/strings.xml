@@ -126,6 +126,13 @@
     <string name="restoreheight_title">恢复起始区块</string>
     <string name="restoreheight_hint">输入区块或日期 (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">输入区块编号</string>
+    <string name="select_date_title">选择日期</string>
+    <string name="select_date_description">选择钱包的大致创建日期,区块高度将自动计算。</string>
+    <string name="birthday_height_description">您可以更改区块高度或选择大致日期以重新扫描交易历史记录。</string>
+    <string name="birthday_height_date_label">区块日期:</string>
+    <string name="birthday_height_rescan">重新扫描</string>
+    <string name="birthday_height_rescan_confirm_title">重新扫描钱包?</string>
+    <string name="birthday_height_rescan_confirm_text">本地钱包数据将被清除,同步将从新的高度开始。这可能需要时间和流量。</string>
     <string name="invalid_height_format">无效高度，请确保您输入的是 YYYY-MM-DD 格式或出生高度</string>
     <string name="invalid_qr_code">无效的二维码</string>
     <string name="blockchair_height_by_date_connection_error">无法连接到 Blockchair 以按日期查找高度</string>

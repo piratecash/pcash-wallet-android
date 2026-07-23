@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Bloco inicial de recuperação</string>
     <string name="restoreheight_hint">Informe o bloco ou a data (AAAA-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Informe o número do bloco</string>
+    <string name="select_date_title">Selecionar data</string>
+    <string name="select_date_description">Selecione a data aproximada de criação da carteira. A altura do bloco será calculada automaticamente.</string>
+    <string name="birthday_height_description">Você pode alterar a altura do bloco ou escolher uma data aproximada para reescanear o histórico de transações.</string>
+    <string name="birthday_height_date_label">Data do bloco:</string>
+    <string name="birthday_height_rescan">Reescanear</string>
+    <string name="birthday_height_rescan_confirm_title">Reescanear carteira?</string>
+    <string name="birthday_height_rescan_confirm_text">Os dados locais da carteira serão apagados e a sincronização começará a partir da nova altura. Isso pode levar tempo e consumir dados.</string>
     <string name="invalid_height_format">Altura inválida, certifique-se de que inseriu AAAA-MM-DD ou altura de nascimento</string>
     <string name="invalid_qr_code">Código QR inválido</string>
     <string name="blockchair_height_by_date_connection_error">Não foi possível conectar ao Blockchair para encontrar a altura pela data</string>

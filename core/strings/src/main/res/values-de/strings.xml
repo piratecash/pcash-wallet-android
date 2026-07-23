@@ -125,6 +125,13 @@
     <string name="restoreheight_title">Startblock für Wiederherstellung</string>
     <string name="restoreheight_hint">Block oder Datum eingeben (JJJJ-MM-TT)</string>
     <string name="restoreheight_hint_block_only">Blocknummer eingeben</string>
+    <string name="select_date_title">Datum auswählen</string>
+    <string name="select_date_description">Wählen Sie das ungefähre Erstellungsdatum des Wallets aus. Die Blockhöhe wird automatisch berechnet.</string>
+    <string name="birthday_height_description">Sie können die Blockhöhe ändern oder ein ungefähres Datum auswählen, um den Transaktionsverlauf erneut zu scannen.</string>
+    <string name="birthday_height_date_label">Blockdatum:</string>
+    <string name="birthday_height_rescan">Erneut scannen</string>
+    <string name="birthday_height_rescan_confirm_title">Wallet erneut scannen?</string>
+    <string name="birthday_height_rescan_confirm_text">Die lokalen Wallet-Daten werden gelöscht und die Synchronisierung beginnt ab der neuen Höhe. Dies kann Zeit und Datenverkehr in Anspruch nehmen.</string>
     <string name="invalid_height_format">Ungültige Höhe, bitte stellen Sie sicher, dass Sie JJJJ-MM-TT oder Geburtshöhe eingegeben haben</string>
     <string name="invalid_qr_code">Ungültiger QR-Code</string>
     <string name="blockchair_height_by_date_connection_error">Keine Verbindung zu Blockchair möglich, um die Höhe nach Datum zu finden</string>

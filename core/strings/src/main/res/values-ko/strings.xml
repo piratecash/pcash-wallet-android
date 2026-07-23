@@ -126,6 +126,13 @@
     <string name="restoreheight_title">복원 시작 블록</string>
     <string name="restoreheight_hint">블록 또는 날짜를 입력하세요(YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">블록 번호 입력</string>
+    <string name="select_date_title">날짜 선택</string>
+    <string name="select_date_description">지갑 생성 예상 날짜를 선택하세요. 블록 높이가 자동으로 계산됩니다.</string>
+    <string name="birthday_height_description">블록 높이를 변경하거나 대략적인 날짜를 선택하여 거래 내역을 다시 스캔할 수 있습니다.</string>
+    <string name="birthday_height_date_label">블록 날짜:</string>
+    <string name="birthday_height_rescan">다시 스캔</string>
+    <string name="birthday_height_rescan_confirm_title">지갑을 다시 스캔하시겠습니까?</string>
+    <string name="birthday_height_rescan_confirm_text">로컬 지갑 데이터가 삭제되고 새 높이부터 동기화가 시작됩니다. 시간과 트래픽이 소요될 수 있습니다.</string>
     <string name="invalid_height_format">잘못된 높이, YYYY-MM-DD 형식이나 출생 높이를 입력했는지 확인하세요</string>
     <string name="invalid_qr_code">잘못된 QR 코드</string>
     <string name="blockchair_height_by_date_connection_error">날짜로 높이를 찾기 위해 Blockchair에 연결할 수 없습니다</string>

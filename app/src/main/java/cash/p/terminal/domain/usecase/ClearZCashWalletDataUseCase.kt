@@ -10,6 +10,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
+enum class ZcashEraseResult { ALL, PARTIAL, NONE }
+
 class ClearZCashWalletDataUseCase(
     private val zcashSingleUseAddressStorage: ZcashSingleUseAddressStorage
 ) {
@@ -22,17 +24,30 @@ class ClearZCashWalletDataUseCase(
 
     private val mutex = Mutex()
 
-    suspend operator fun invoke(accountId: String) {
-        mutex.withLock {
-            eraseWithRetry(getValidAliasFromAccountId(accountId, null))
-            AddressSpecType.entries.forEach {
-                eraseWithRetry(getValidAliasFromAccountId(accountId, it))
-            }
+    /**
+     * Erases every Zcash alias belonging to [accountId]. Erases are per-alias and irreversible,
+     * so the caller must distinguish [ZcashEraseResult.NONE] (a true unchanged no-op that is safe
+     * to roll back) from [ZcashEraseResult.PARTIAL]/[ZcashEraseResult.ALL] (the account has already
+     * lost data and must be treated as committed to a fresh restore, never resumed as-is).
+     */
+    suspend operator fun invoke(accountId: String): ZcashEraseResult = mutex.withLock {
+        val aliases = listOf(getValidAliasFromAccountId(accountId, null)) +
+            AddressSpecType.entries.map { getValidAliasFromAccountId(accountId, it) }
+        val erasedCount = aliases.count { eraseWithRetry(it) }
+        val result = when (erasedCount) {
+            0 -> ZcashEraseResult.NONE
+            aliases.size -> ZcashEraseResult.ALL
+            else -> ZcashEraseResult.PARTIAL
+        }
+        // Only a clean no-op leaves the account unchanged; any erase commits it to a restore, so
+        // drop the single-use addresses too.
+        if (result != ZcashEraseResult.NONE) {
             zcashSingleUseAddressStorage.deleteAccountAddresses(accountId)
         }
+        result
     }
 
-    private suspend fun eraseWithRetry(alias: String) {
+    private suspend fun eraseWithRetry(alias: String): Boolean {
         repeat(MAX_ERASE_RETRIES) { attempt ->
             try {
                 Synchronizer.erase(
@@ -40,7 +55,7 @@ class ClearZCashWalletDataUseCase(
                     network = ZcashNetwork.Mainnet,
                     alias = alias
                 )
-                return
+                return true
             } catch (e: IllegalStateException) {
                 // Another synchronizer with the same key is still active
                 // This can happen due to race condition when adapter is being stopped
@@ -53,6 +68,7 @@ class ClearZCashWalletDataUseCase(
                 }
             }
         }
+        return false
     }
 
     fun getValidAliasFromAccountId(
