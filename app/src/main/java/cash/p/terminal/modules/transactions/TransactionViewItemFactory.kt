@@ -25,6 +25,7 @@ import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
 import cash.p.terminal.modules.contacts.model.Contact
+import cash.p.terminal.modules.multiswap.providers.UnstoppableProvider
 import cash.p.terminal.modules.paycore.PayCoreAssetResolver
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.changenow.domain.entity.toStatus
@@ -1555,7 +1556,8 @@ class TransactionViewItemFactory(
                 (status.ordinal + 1) * (1f / (TransactionStatusEnum.FINISHED.ordinal + 1))
             },
             title = Translator.getString(titleStringRes),
-            subtitle = transaction.provider.title,
+            subtitle = UnstoppableProvider.displayTitle(transaction.unstoppableSubProviderId)
+                ?: transaction.provider.title,
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
             showAmount = showAmount,

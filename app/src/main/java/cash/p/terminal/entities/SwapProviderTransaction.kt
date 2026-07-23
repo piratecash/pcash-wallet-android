@@ -37,6 +37,12 @@ data class SwapProviderTransaction(
     val incomingRecordUid: String? = null,
     @ColumnInfo(defaultValue = "''")
     val accountId: String = "",
+    // Canonical inbound (deposit/burn) tx hash. Supplies inboundTxHash to the Unstoppable /track call
+    // (required for EVM sub-providers). Null for providers that track purely by their order id.
+    val depositTransactionHash: String? = null,
+    // Unstoppable sub-provider api id (e.g. "LETSEXCHANGE"). Non-null only for SwapProvider.UNSTOPPABLE
+    // rows; drives the per-sub-provider display name in history.
+    val unstoppableSubProviderId: String? = null,
 ) {
     fun isFinished() = status in FINISHED_STATUSES
 
@@ -46,7 +52,8 @@ data class SwapProviderTransaction(
         SwapProvider.PAYCORE -> Translator.getString(R.string.paycore_support) to AppConfigProvider.payCoreSupportUrl
         SwapProvider.EXOLIX -> ExolixHelper.EXOLIX_URL to ExolixHelper.getViewTransactionUrl(transactionId)
         SwapProvider.THORCHAIN,
-        SwapProvider.MAYA -> null
+        SwapProvider.MAYA,
+        SwapProvider.UNSTOPPABLE -> null
     }
 
     companion object {
