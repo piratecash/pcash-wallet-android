@@ -1047,6 +1047,58 @@ class TokenBalanceViewModelTest : KoinTest {
     }
 
     @Test
+    fun transactionItems_incomingFilterProviderSwap_excludesSwap() = runTest(dispatcher) {
+        coEvery {
+            transactionViewItemFactory.convertToViewItemCached(any(), any(), any())
+        } answers {
+            val uid = firstArg<TransactionItem>().record.uid
+            createMockTransactionViewItem(
+                uid = uid,
+                swapTransactionId = "swap-id".takeIf { uid == "swap" },
+            )
+        }
+        val viewModel = createViewModel()
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("swap"),
+            createTransactionItem("receive"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("receive"),
+            viewModel.uiState.transactions?.values?.flatten()?.map { it.uid },
+        )
+    }
+
+    @Test
+    fun transactionItems_outgoingFilterOnChainSwap_excludesSwap() = runTest(dispatcher) {
+        coEvery {
+            transactionViewItemFactory.convertToViewItemCached(any(), any(), any())
+        } answers {
+            val uid = firstArg<TransactionItem>().record.uid
+            createMockTransactionViewItem(
+                uid = uid,
+                isSwap = uid == "pancake-swap",
+            )
+        }
+        val viewModel = createViewModel()
+        viewModel.setTransactionType(FilterTransactionType.Outgoing)
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("pancake-swap"),
+            createTransactionItem("send"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("send"),
+            viewModel.uiState.transactions?.values?.flatten()?.map { it.uid },
+        )
+    }
+
+    @Test
     fun setTransactionType_sameTypeAsCurrent_doesNotCallService() = runTest(dispatcher) {
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -1314,9 +1366,15 @@ class TokenBalanceViewModelTest : KoinTest {
         )
     }
 
-    private fun createMockTransactionViewItem(uid: String) = mockk<TransactionViewItem>(relaxed = true) {
+    private fun createMockTransactionViewItem(
+        uid: String,
+        swapTransactionId: String? = null,
+        isSwap: Boolean = swapTransactionId != null,
+    ) = mockk<TransactionViewItem>(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { formattedDate } returns "DATE"
+        every { this@mockk.isSwap } returns isSwap
+        every { changeNowTransactionId } returns swapTransactionId
     }
 
     private fun createBalanceViewItem(

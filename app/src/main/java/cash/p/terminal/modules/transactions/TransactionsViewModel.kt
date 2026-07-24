@@ -412,7 +412,7 @@ class TransactionsViewModel(
                     transactionItem = item,
                     matchedSwap = matchedSwap
                 ).let { viewItem -> amlStatusManager.applyStatus(viewItem) }
-            }
+            }.filter { it.isVisibleFor(currentFilterType) }
 
             ensureActive()
 
@@ -692,6 +692,7 @@ data class TransactionViewItem(
     val spam: Boolean = false,
     val locked: Boolean? = null,
     val icon: Icon,
+    val isSwap: Boolean = false,
     val changeNowTransactionId: String? = null,
     val transactionStatusUrl: Pair<String, String>? = null,
     val amlStatus: AmlStatus? = null,
@@ -754,6 +755,13 @@ data class TransactionViewItem(
 
         return DateHelper.shortDate(date, "MMMM d", "MMMM d, yyyy")
     }
+}
+
+internal fun TransactionViewItem.isVisibleFor(type: FilterTransactionType) = when (type) {
+    FilterTransactionType.Incoming,
+    FilterTransactionType.Outgoing -> !isSwap
+
+    else -> true
 }
 
 enum class FilterTransactionType {

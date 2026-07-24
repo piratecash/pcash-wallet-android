@@ -47,6 +47,7 @@ import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.transactions.TransactionSearchController
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
+import cash.p.terminal.modules.transactions.isVisibleFor
 import cash.p.terminal.modules.transactions.withClearedAmlStatus
 import cash.p.terminal.modules.transactions.withUpdatedAmlStatus
 import cash.p.terminal.premium.domain.PremiumSettings
@@ -573,6 +574,7 @@ class TokenBalanceViewModel(
                         matchedSwap = matchedSwap
                     )
                 }
+                .filter { it.isVisibleFor(selectedTransactionType) }
                 .map { amlStatusManager.applyStatus(it) }
                 .groupBy { it.formattedDate }
 
