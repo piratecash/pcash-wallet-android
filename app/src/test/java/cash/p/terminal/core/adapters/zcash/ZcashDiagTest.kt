@@ -88,7 +88,7 @@ class ZcashDiagTest {
         assertEquals("Shielded", poolLabel(AddressSpecType.Shielded))
         assertEquals("Transparent", poolLabel(AddressSpecType.Transparent))
         assertEquals("Unified", poolLabel(AddressSpecType.Unified))
-        assertEquals("Combined", poolLabel(null))
+        assertEquals("Sapling", poolLabel(null))
     }
 
     // ---- privacy ----

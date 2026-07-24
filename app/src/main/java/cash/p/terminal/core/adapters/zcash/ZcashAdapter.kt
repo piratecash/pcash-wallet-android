@@ -588,7 +588,9 @@ class ZcashAdapter(
     // Privacy-safe diagnostic line for the stuck-pending investigation; only coarse
     // booleans/buckets and public block heights are logged, never amounts/keys/addresses.
     private fun logDiag() {
-        Log.d(DIAG_TAG, diagFields(readDiagSnapshot()).toString())
+        // Best-effort: a diagnostic must never propagate into the flow collectors
+        // (onStatus/onProcessorInfo/onBalance) and kill sync or self-heal restart.
+        tryOrNull { Log.d(DIAG_TAG, diagFields(readDiagSnapshot()).toString()) }
     }
 
     override val explorerTitle: String

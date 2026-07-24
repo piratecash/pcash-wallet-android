@@ -126,12 +126,16 @@ internal fun diagFields(s: ZcashDiagSnapshot): Map<String, String> {
     )
 }
 
-/** Pool label shared by the adapter's `poolName` (DRY). */
+/**
+ * Pool label shared by the adapter's `poolName` (DRY). `null` is the legacy Native-Zcash path,
+ * whose balance is read from the Sapling pool (see `poolWalletBalanceOrNull`), so it is labeled
+ * "Sapling" — never "Combined", which would misreport which pool the amounts belong to.
+ */
 internal fun poolLabel(spec: AddressSpecType?): String = when (spec) {
     AddressSpecType.Shielded -> "Shielded"
     AddressSpecType.Transparent -> "Transparent"
     AddressSpecType.Unified -> "Unified"
-    null -> "Combined"
+    null -> "Sapling"
 }
 
 private fun renderRange(s: ZcashDiagSnapshot): String = when (s.overallSyncRangeState) {
