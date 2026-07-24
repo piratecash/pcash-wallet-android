@@ -3,7 +3,6 @@ package cash.p.terminal.core.deeplink
 import android.net.Uri
 import cash.p.terminal.R
 import cash.p.terminal.core.ICoinManager
-import cash.p.terminal.feature.miniapp.ui.connect.ConnectMiniAppDeeplinkInput
 import cash.p.terminal.modules.main.DeeplinkPage
 import cash.p.terminal.modules.multiswap.SwapDeeplinkInput
 import cash.p.terminal.wallet.entities.TokenQuery
@@ -36,24 +35,17 @@ class DeeplinkParser(
                 DeeplinkPage(R.id.multiswap, SwapDeeplinkInput(token))
             }
 
-            "auth" -> {
-                val jwt = uri.getQueryParameter("token") ?: return null
-                val endpoint = when (uri.getQueryParameter("env")) {
-                    "stage" -> "https://anubis.pirate.place/"
-                    "dev" -> "https://cash.p.cash/"
-                    else -> "https://p.cash/"
-                }
-                DeeplinkPage(
-                    R.id.connectMiniAppFragment, ConnectMiniAppDeeplinkInput(
-                        jwt = jwt,
-                        endpoint = endpoint
-                    )
-                )
-            }
-
             else -> null
         }
     }
+
+    /**
+     * True for a pcash://auth mini-app connect link. The connect flow is hidden until SWAP6,
+     * so scanned auth links must be swallowed instead of surfaced to the caller: they carry a
+     * JWT that must never leak into unrelated features as generic scanner text.
+     */
+    fun isHiddenAuthLink(uri: Uri): Boolean =
+        uri.scheme == "pcash" && uri.host == "auth"
 
     fun parse(text: String): DeeplinkPage? {
         return try {
