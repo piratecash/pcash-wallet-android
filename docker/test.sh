@@ -136,7 +136,7 @@ for more details."
 testPCASH() {
   repo=https://github.com/piratecash/pcash-wallet-android
   tag=$versionName
-  builtApk=$workDir/app/app/build/outputs/apk/release/app-release-unsigned.apk
+  builtApk=$workDir/app/app/build/outputs/apk/release/p.cash.apk
 
   prepare
 

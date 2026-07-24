@@ -28,7 +28,7 @@ TAG=$1
 KEYSTORE=$2
 KEYSTORE_FILENAME="$(basename -- $KEYSTORE)"
 KEYSTORE_PASSWORD=$3
-BUILT_APK_FILE="app/app/build/outputs/apk/release/app-release-unsigned.apk"
+BUILT_APK_FILE="app/app/build/outputs/apk/release/p.cash.apk"
 ####################################
 
 function init() {
@@ -65,7 +65,7 @@ function signApk () {
 }
 
 function end () {
-    cp $BUILT_APK_FILE "${PWD}/app-release-signed.apk"
+    cp $BUILT_APK_FILE "${PWD}/p.cash.apk"
 }
 
 #############################################
@@ -89,6 +89,5 @@ end
 echo "--------------------"
 echo "Successfully created apk !!! "
 echo "--------END --------"
-
 
 

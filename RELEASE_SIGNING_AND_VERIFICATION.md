@@ -6,18 +6,14 @@ This document explains how PirateCash Android Wallet releases are named, signed 
 
 For each release we publish the following artifacts:
 
-- `p.cash-<version>.apk` - release APK
-- `p.cash-<version>.apk.asc` - detached GPG signature of the APK (ASCII armored)
-- `p.cash-<version>.apk.sha256` - SHA-256 checksum file for the APK
-- `p.cash-<version>.apk.sha256.asc` - detached GPG signature of the checksum file
+- `p.cash.apk` - release APK
+- `p.cash.apk.asc` - detached GPG signature of the APK (ASCII armored)
+- `p.cash.apk.sha256` - SHA-256 checksum file for the APK
+- `p.cash.apk.sha256.asc` - detached GPG signature of the checksum file
 - `piratecash-release-public-key.asc` - maintainer public GPG key (for verification)
 
-Example (v0.55.0):
-
-- `p.cash-0.55.0.apk`
-- `p.cash-0.55.0.apk.asc`
-- `p.cash-0.55.0.apk.sha256`
-- `p.cash-0.55.0.apk.sha256.asc`
+The release version is recorded in the Git tag and GitHub Release metadata, not
+in the artifact filenames.
 
 ## Maintainer public key
 
@@ -44,17 +40,14 @@ Or attach it to every GitHub Release as an asset.
 
 ## APK naming (Gradle)
 
-To ensure predictable file names (independent of signing), the release APK can be renamed during build:
+To ensure a predictable file name (independent of signing), the release APK is
+renamed during the build:
 
 ```gradle
-android {
-    applicationVariants.all { variant ->
-        if (variant.buildType.name == "release") {
-            variant.outputs.all { output ->
-                def versionName = variant.versionName
-                def newApkName = "p.cash-${versionName}.apk"
-                output.outputFileName = newApkName
-            }
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("p.cash.apk")
         }
     }
 }
@@ -67,7 +60,7 @@ This only changes the output filename. It does not require GPG and is safe for o
 > Signing is performed on the release machine or in CI where the maintainer GPG key is available.
 
 Use [`tools/sign-release-apk.sh`](tools/sign-release-apk.sh) to generate all
-release signing artifacts for the version currently defined in `app/build.gradle`.
+release signing artifacts.
 
 ### Script usage
 
@@ -83,17 +76,17 @@ Then run the signing script from the project root:
 tools/sign-release-apk.sh
 ```
 
-The script reads `versionName` from `app/build.gradle`, expects the release APK
-at `app/build/outputs/apk/release/p.cash-<version>.apk`, then creates:
+The script expects the release APK at
+`app/build/outputs/apk/release/p.cash.apk`, then creates:
 
-- `p.cash-<version>.apk.asc`
-- `p.cash-<version>.apk.sha256`
-- `p.cash-<version>.apk.sha256.asc`
+- `p.cash.apk.asc`
+- `p.cash.apk.sha256`
+- `p.cash.apk.sha256.asc`
 
-For the current release, `versionName` is `0.55.0`, so the expected APK is:
+The expected APK is:
 
 ```bash
-app/build/outputs/apk/release/p.cash-0.55.0.apk
+app/build/outputs/apk/release/p.cash.apk
 ```
 
 Useful options:
@@ -113,24 +106,24 @@ tools/sign-release-apk.sh --apk-dir /path/to/release
 tools/sign-release-apk.sh --help
 ```
 
-Manual equivalent for release `0.55.0`:
+Manual equivalent:
 
 ```bash
 # 1) Sign APK (detached signature)
 gpg --local-user A6F0CB1BB25FFE99 \
   --armor --detach-sign \
-  --output app/build/outputs/apk/release/p.cash-0.55.0.apk.asc \
-  app/build/outputs/apk/release/p.cash-0.55.0.apk
+  --output app/build/outputs/apk/release/p.cash.apk.asc \
+  app/build/outputs/apk/release/p.cash.apk
 
 # 2) Create SHA-256 checksum file
 cd app/build/outputs/apk/release
-shasum -a 256 p.cash-0.55.0.apk > p.cash-0.55.0.apk.sha256
+shasum -a 256 p.cash.apk > p.cash.apk.sha256
 
 # 3) Sign checksum file (detached signature)
 gpg --local-user A6F0CB1BB25FFE99 \
   --armor --detach-sign \
-  --output p.cash-0.55.0.apk.sha256.asc \
-  p.cash-0.55.0.apk.sha256
+  --output p.cash.apk.sha256.asc \
+  p.cash.apk.sha256
 ```
 
 ## How to verify a release (users)
@@ -139,10 +132,10 @@ gpg --local-user A6F0CB1BB25FFE99 \
 
 Download the APK and its signature files from the GitHub Release page:
 
-- `p.cash-<version>.apk`
-- `p.cash-<version>.apk.asc`
-- `p.cash-<version>.apk.sha256`
-- `p.cash-<version>.apk.sha256.asc`
+- `p.cash.apk`
+- `p.cash.apk.asc`
+- `p.cash.apk.sha256`
+- `p.cash.apk.sha256.asc`
 - `piratecash-release-public-key.asc` (or get it from the repo path above)
 
 ### 2) Import the public key
@@ -161,7 +154,7 @@ Expected fingerprint:
 ### 3) Verify the APK signature
 
 ```bash
-gpg --verify p.cash-0.55.0.apk.asc p.cash-0.55.0.apk
+gpg --verify p.cash.apk.asc p.cash.apk
 ```
 
 You should see a message like:
@@ -173,14 +166,14 @@ Good signature from "Dmitriy Korniychuk <dmitriy@korniychuk.org.ua>"
 ### 4) Verify the SHA-256 checksum (optional, recommended)
 
 ```bash
-gpg --verify p.cash-0.55.0.apk.sha256.asc p.cash-0.55.0.apk.sha256
-shasum -a 256 -c p.cash-0.55.0.apk.sha256
+gpg --verify p.cash.apk.sha256.asc p.cash.apk.sha256
+shasum -a 256 -c p.cash.apk.sha256
 ```
 
 Expected output:
 
 ```
-p.cash-0.55.0.apk: OK
+p.cash.apk: OK
 ```
 
 If these checks pass, the APK is authentic and has not been tampered with.

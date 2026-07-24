@@ -62,6 +62,9 @@ Example:
 ./build-apk.sh 0.18.0 ~/Documents/Keystore/Apk_HorSys/horsys Keystore_Psw
 ```
 
+The signed output file is `p.cash.apk` in the directory from which the script
+was started.
+
 #### 7.2 Verify apk file is reproducible from source code
 
 Run command:
@@ -79,8 +82,9 @@ APK-FILE-NAME: Name of the apk file<br>
 
 ### 9. Create Release in GitHub Repository
 
-* Create new `Release`, add changelog and upload apk file. Make note in changelog if the 'Supported Android Versions' was changed
-* Compute the sha256 and md5 checksums of the apk file and attach them as separate files, named unstoppable-wallet-[version].apk.sha256 and unstoppable-wallet-[version].apk.md5 respectively, under the 'Assets' section.
+* Create a new `Release`, add the changelog and upload `p.cash.apk`. Make a note in the changelog if the 'Supported Android Versions' value changed.
+* Sign the APK and its SHA-256 checksum as described in [RELEASE_SIGNING_AND_VERIFICATION.md](RELEASE_SIGNING_AND_VERIFICATION.md).
+* Upload `p.cash.apk.asc`, `p.cash.apk.sha256`, and `p.cash.apk.sha256.asc` under the release's `Assets` section.
 
 ### 10. Make sure P.CASH Wallet is 'Reproducible'
 

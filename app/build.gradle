@@ -301,7 +301,7 @@ android {
 androidComponents {
     onVariants(selector().withBuildType("release")) { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set("p.cash-${output.versionName.get()}.apk")
+            output.outputFileName.set("p.cash.apk")
         }
     }
 }
