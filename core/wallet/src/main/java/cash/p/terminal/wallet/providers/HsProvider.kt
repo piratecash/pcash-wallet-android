@@ -66,7 +66,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
 
     // TODO Remove old base URL https://api-dev.blocksdecoded.com/v1 and switch it to new servers
     private val pirateService by lazy {
-        retrofitUtils.build("https://pirate.cash/s1/", mapOf("apikey" to apiKey))
+        retrofitUtils.build(COINS_API_BASE_URL, mapOf("apikey" to apiKey))
             .create(MarketService::class.java)
     }
 
@@ -519,7 +519,7 @@ class HsProvider(baseUrl: String, apiKey: String) {
         return service.getEtfPoints(currencyCode)
     }
 
-    private interface MarketService {
+    internal interface MarketService {
         @GET("coins")
         fun getMarketInfos(
             @Query("limit") top: Int,
@@ -831,6 +831,10 @@ class HsProvider(baseUrl: String, apiKey: String) {
             private const val advancedMarketFields =
                 "all_platforms,price,market_cap,total_volume,price_change_1d,price_change_24h,price_change_7d,price_change_14d,price_change_30d,price_change_200d,price_change_1y,ath_percentage,atl_percentage"
         }
+    }
+
+    companion object {
+        internal const val COINS_API_BASE_URL = "https://pirate.cash/s1/"
     }
 }
 
