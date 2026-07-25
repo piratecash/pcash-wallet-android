@@ -14,6 +14,7 @@ import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.nft.NftAssetBriefMetadata
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
+import cash.p.terminal.entities.transactionrecords.TransactionRecord
 import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.bitcoin.BitcoinTransactionRecord
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
@@ -118,14 +119,24 @@ class TransactionViewItemFactory(
             }
         }
 
-        val transactionViewItem = convertToViewItem(transactionItem, matchedSwap).copy(
+        val convertedViewItem = convertToViewItem(transactionItem, matchedSwap)
+        val transactionViewItem = convertedViewItem.copy(
             showAmount = perItemShowAmount,
             addressPoisoningViewMode = addressPoisoningViewMode,
             poisonStatus = poisonAddressManager.getPoisonStatus(transactionItem.record),
+            isSwap = transactionItem.record.isSwap() || convertedViewItem.changeNowTransactionId != null,
         )
         cache[transactionItem.record.uid] = mapOf(cacheKey to transactionViewItem)
 
         return transactionViewItem
+    }
+
+    private fun TransactionRecord.isSwap() = when (transactionRecordType) {
+        TransactionRecordType.EVM_SWAP,
+        TransactionRecordType.EVM_UNKNOWN_SWAP -> true
+
+        else -> this is TonTransactionRecord &&
+            actions.singleOrNull()?.type is TonTransactionRecord.Action.Type.Swap
     }
 
     private fun singleValueIconType(
