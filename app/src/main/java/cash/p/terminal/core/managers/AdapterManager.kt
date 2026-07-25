@@ -1,6 +1,7 @@
 package cash.p.terminal.core.managers
 
 import android.os.HandlerThread
+import cash.p.terminal.core.ZcashRescanException
 import cash.p.terminal.core.factories.AdapterFactory
 import cash.p.terminal.wallet.FallbackAddressProvider
 import cash.p.terminal.wallet.IAdapter
@@ -318,6 +319,66 @@ class AdapterManager(
                 adaptersReadySubject.onNext(HashMap(adaptersMap))
             }
         }
+    }
+
+    /**
+     * Rescans every Zcash wallet of [accountId] from a new birthday height. Unlike
+     * [refreshAdapters], the whole operation (stop, unlink, [clearData], reconstruct, start)
+     * is awaited inside the single [mutex] hold — no fire-and-forget unlink — so no adapter
+     * init can observe the account half torn down.
+     *
+     * If [clearData] throws, the group is reconstructed unchanged and the exception is
+     * rethrown. If reconstruction itself fails for part of the group (adapter creation never
+     * throws, it returns null), the reduced map is published, a full adapter re-init is
+     * requested as a self-heal, and [ZcashRescanException] is thrown.
+     */
+    suspend fun rescanZcashAccount(accountId: String, clearData: suspend () -> Unit) {
+        mutex.withLock {
+            val group = walletManager.activeWallets.filter {
+                it.account.id == accountId && it.token.blockchainType == BlockchainType.Zcash
+            }
+            if (group.isEmpty()) return@withLock
+
+            stopAndUnlinkGroup(group)
+
+            try {
+                clearData()
+            } catch (e: Exception) {
+                reconstructAndStartGroup(group)
+                throw e
+            }
+
+            val reconstructedCount = reconstructAndStartGroup(group)
+            if (reconstructedCount != group.size) {
+                requestInitAdapters(walletManager.activeWallets)
+                throw ZcashRescanException("Failed to reconstruct all Zcash wallets for account $accountId")
+            }
+        }
+    }
+
+    private suspend fun stopAndUnlinkGroup(group: List<Wallet>) {
+        group.forEach { wallet ->
+            balanceSubscriptionJobs.remove(wallet)?.cancel()
+            adaptersMap[wallet]?.stop()
+            adapterFactory.unlinkAdapter(wallet)
+            adaptersMap.remove(wallet)
+        }
+    }
+
+    private suspend fun reconstructAndStartGroup(group: List<Wallet>): Int {
+        // Zcash-only group: getAdapterOrNull's activeLitecoinMwebAccounts argument is read only by
+        // the factory's Litecoin branch, so it is left at its default here (the factory derives it
+        // itself if ever needed).
+        val constructed = group.mapNotNull { wallet ->
+            adapterFactory.getAdapterOrNull(wallet)?.let { wallet to it }
+        }
+        constructed.forEach { (wallet, adapter) ->
+            adaptersMap[wallet] = adapter
+            adapter.start()
+            (adapter as? IBalanceAdapter)?.let { subscribeToBalanceUpdates(wallet, it) }
+        }
+        adaptersReadySubject.onNext(HashMap(adaptersMap))
+        return constructed.size
     }
 
     override fun refreshByWallet(wallet: Wallet) {

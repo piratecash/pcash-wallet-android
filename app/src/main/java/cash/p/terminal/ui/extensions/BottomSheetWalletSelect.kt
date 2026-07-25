@@ -7,15 +7,21 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
+import cash.p.terminal.modules.manageaccounts.PremiumBadge
+import cash.p.terminal.modules.manageaccounts.groupByPremium
+import cash.p.terminal.modules.manageaccounts.resolvedPremiumType
+import cash.p.terminal.premium.domain.usecase.PremiumType
 import cash.p.terminal.ui_compose.BottomSheetHeader
 import cash.p.terminal.ui_compose.TransparentModalBottomSheet
-import cash.p.terminal.ui_compose.components.HeaderText
+import cash.p.terminal.ui_compose.components.PremiumHeader
+import cash.p.terminal.ui_compose.components.SectionHeaderWithIcon
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -23,6 +29,7 @@ import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
+import cash.p.terminal.ui_compose.components.HeaderText
 import cash.p.terminal.ui_compose.components.HsRadioButton
 import cash.p.terminal.ui_compose.components.RowUniversal
 import kotlinx.coroutines.launch
@@ -39,6 +46,7 @@ fun WalletSwitchBottomSheet(
     selectedAccount: Account?,
     onSelectListener: (Account) -> Unit,
     onDismiss: () -> Unit,
+    premiumTypes: Map<String, PremiumType>? = null,
     title: String = stringResource(R.string.ManageAccount_SwitchWallet_Title)
 ) {
     val scope = rememberCoroutineScope()
@@ -52,6 +60,7 @@ fun WalletSwitchBottomSheet(
             wallets = wallets,
             watchingAddresses = watchingAddresses,
             selectedAccount = selectedAccount,
+            premiumTypes = premiumTypes,
             onSelectListener = { account ->
                 scope.launch { sheetState.hide() }.invokeOnCompletion {
                     onSelectListener(account)
@@ -68,62 +77,170 @@ fun WalletSwitchBottomSheet(
     }
 }
 
+/**
+ * @param premiumTypes premium type per account id, or `null` to render the legacy flat layout (Wallets +
+ * Watch addresses, no premium grouping/badges) for callers that do not resolve premium — otherwise a
+ * premium wallet would be silently mislabeled under "Other Wallets".
+ */
 @Composable
 private fun WalletSwitchContent(
     wallets: List<Account>,
     watchingAddresses: List<Account>,
     selectedAccount: Account?,
+    premiumTypes: Map<String, PremiumType>?,
     onSelectListener: (Account) -> Unit,
     onCloseClick: () -> Unit,
     title: String
 ) {
-    val comparator = compareBy<Account> { it.name.lowercase() }
-
     BottomSheetHeader(
         iconPainter = painterResource(R.drawable.icon_24_lock),
         iconTint = ColorFilter.tint(ComposeAppTheme.colors.jacob),
         title = title,
         onCloseClick = onCloseClick,
+        // Keep the sheet header below the system status bar when fully expanded.
+        modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
     ) {
-
         Spacer(Modifier.height(12.dp))
 
-        if (wallets.isNotEmpty()) {
-            HeaderText(
-                text = stringResource(R.string.ManageAccount_Wallets)
-            )
-            Section(
-                items = wallets.sortedWith(comparator),
-                selectedItem = selectedAccount,
+        if (premiumTypes == null) {
+            LegacyWalletSwitchBody(wallets, watchingAddresses, selectedAccount, onSelectListener)
+        } else {
+            PremiumWalletSwitchBody(
+                wallets = wallets,
+                watchingAddresses = watchingAddresses,
+                selectedAccount = selectedAccount,
+                premiumTypes = premiumTypes,
                 onSelectListener = onSelectListener,
             )
         }
-
-        if (watchingAddresses.isNotEmpty()) {
-            if (wallets.isNotEmpty()) {
-                Spacer(Modifier.height(24.dp))
-            }
-            HeaderText(
-                text = stringResource(R.string.ManageAccount_WatchAddresses)
-            )
-            Section(
-                items = watchingAddresses.sortedWith(comparator),
-                selectedItem = selectedAccount,
-                onSelectListener = onSelectListener,
-            )
-        }
-
-        Spacer(Modifier.height(44.dp))
     }
+}
+
+@Composable
+private fun ColumnScope.PremiumWalletSwitchBody(
+    wallets: List<Account>,
+    watchingAddresses: List<Account>,
+    selectedAccount: Account?,
+    premiumTypes: Map<String, PremiumType>,
+    onSelectListener: (Account) -> Unit,
+) {
+    val groups = (wallets + watchingAddresses).groupByPremium(premiumTypes)
+
+    WalletSwitchSection(
+        header = { PremiumHeader(text = stringResource(R.string.manage_accounts_premium_active)) },
+        accounts = groups.premium,
+        selectedAccount = selectedAccount,
+        premiumTypes = premiumTypes,
+        onSelectListener = onSelectListener,
+        frameColor = ComposeAppTheme.colors.jacob,
+    )
+    WalletSwitchSection(
+        header = {
+            SectionHeaderWithIcon(
+                iconRes = R.drawable.ic_switch_wallet_24,
+                text = stringResource(R.string.manage_accounts_section_other)
+            )
+        },
+        accounts = groups.other,
+        selectedAccount = selectedAccount,
+        premiumTypes = premiumTypes,
+        onSelectListener = onSelectListener,
+    )
+    WalletSwitchSection(
+        header = {
+            SectionHeaderWithIcon(
+                iconRes = R.drawable.icon_binocule_20,
+                text = stringResource(R.string.manage_accounts_section_watch)
+            )
+        },
+        accounts = groups.watch,
+        selectedAccount = selectedAccount,
+        premiumTypes = premiumTypes,
+        onSelectListener = onSelectListener,
+    )
+    WalletSwitchSection(
+        header = {
+            SectionHeaderWithIcon(
+                iconRes = R.drawable.ic_card,
+                text = stringResource(R.string.manage_accounts_section_hardware)
+            )
+        },
+        accounts = groups.hardware,
+        selectedAccount = selectedAccount,
+        premiumTypes = premiumTypes,
+        onSelectListener = onSelectListener,
+    )
+
+    Spacer(Modifier.height(20.dp))
+}
+
+@Composable
+private fun ColumnScope.LegacyWalletSwitchBody(
+    wallets: List<Account>,
+    watchingAddresses: List<Account>,
+    selectedAccount: Account?,
+    onSelectListener: (Account) -> Unit,
+) {
+    val comparator = compareBy<Account> { it.name.lowercase() }
+
+    if (wallets.isNotEmpty()) {
+        HeaderText(text = stringResource(R.string.ManageAccount_Wallets))
+        Section(
+            items = wallets.sortedWith(comparator),
+            selectedItem = selectedAccount,
+            premiumTypes = emptyMap(),
+            frameColor = ComposeAppTheme.colors.steel20,
+            onSelectListener = onSelectListener,
+        )
+    }
+
+    if (watchingAddresses.isNotEmpty()) {
+        if (wallets.isNotEmpty()) {
+            Spacer(Modifier.height(24.dp))
+        }
+        HeaderText(text = stringResource(R.string.ManageAccount_WatchAddresses))
+        Section(
+            items = watchingAddresses.sortedWith(comparator),
+            selectedItem = selectedAccount,
+            premiumTypes = emptyMap(),
+            frameColor = ComposeAppTheme.colors.steel20,
+            onSelectListener = onSelectListener,
+        )
+    }
+
+    Spacer(Modifier.height(44.dp))
+}
+
+@Composable
+private fun WalletSwitchSection(
+    header: @Composable () -> Unit,
+    accounts: List<Account>,
+    selectedAccount: Account?,
+    premiumTypes: Map<String, PremiumType>,
+    onSelectListener: (Account) -> Unit,
+    frameColor: Color = ComposeAppTheme.colors.steel20,
+) {
+    if (accounts.isEmpty()) return
+    header()
+    Section(
+        items = accounts,
+        selectedItem = selectedAccount,
+        premiumTypes = premiumTypes,
+        frameColor = frameColor,
+        onSelectListener = onSelectListener,
+    )
+    Spacer(Modifier.height(24.dp))
 }
 
 @Composable
 private fun Section(
     items: List<Account>,
     selectedItem: Account?,
+    premiumTypes: Map<String, PremiumType>,
+    frameColor: Color,
     onSelectListener: (Account) -> Unit,
 ) {
-    CellUniversalLawrenceSection(items, showFrame = true) { item ->
+    CellUniversalLawrenceSection(items = items, frameColor = frameColor) { item ->
         RowUniversal(
             modifier = Modifier.padding(horizontal = 16.dp),
             onClick = {
@@ -141,6 +258,10 @@ private fun Section(
                 body_leah(text = item.name)
                 subhead2_grey(text = item.type.detailedDescription)
             }
+            PremiumBadge(
+                premiumType = item.resolvedPremiumType(premiumTypes),
+                modifier = Modifier.padding(start = 8.dp)
+            )
             if (item.isWatchAccount) {
                 Icon(
                     modifier = Modifier.padding(start = 16.dp),
@@ -187,6 +308,7 @@ private fun WalletSwitchContentPreview() {
             wallets = wallets,
             watchingAddresses = watchingAddresses,
             selectedAccount = wallets.first(),
+            premiumTypes = mapOf("1" to PremiumType.PIRATE),
             onSelectListener = {},
             onCloseClick = {},
             title = "Switch Wallet"

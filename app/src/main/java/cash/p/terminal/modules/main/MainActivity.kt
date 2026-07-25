@@ -35,6 +35,7 @@ import cash.p.terminal.modules.intro.IntroActivity
 import cash.p.terminal.modules.keystore.KeyStoreActivity
 import cash.p.terminal.modules.pin.ui.PinUnlock
 import cash.p.terminal.modules.settings.appearance.AppIconService
+import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
 import cash.p.terminal.modules.tonconnect.TonConnectNewFragment
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromBottomForResult
@@ -56,6 +57,7 @@ open class MainActivity : BaseActivity() {
     private val appIconService: AppIconService by inject()
     private val localStorage: ILocalStorage by inject()
     private val pinComponent: IPinComponent by inject()
+    private val appUpdateChecker: AppUpdateChecker by inject()
     private var pinLockComposeView: ComposeView? = null
     private var showPinLockScreen by mutableStateOf(false)
 
@@ -76,6 +78,7 @@ open class MainActivity : BaseActivity() {
             closeWindowsAboveLockScreen()
         }
         validate()
+        appUpdateChecker.checkIfNeeded()
     }
 
     override fun onPause() {

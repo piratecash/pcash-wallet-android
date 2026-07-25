@@ -126,6 +126,13 @@
     <string name="restoreheight_title">恢复起始区块</string>
     <string name="restoreheight_hint">输入区块或日期 (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">输入区块编号</string>
+    <string name="select_date_title">选择日期</string>
+    <string name="select_date_description">选择钱包的大致创建日期,区块高度将自动计算。</string>
+    <string name="birthday_height_description">您可以更改区块高度或选择大致日期以重新扫描交易历史记录。</string>
+    <string name="birthday_height_date_label">区块日期:</string>
+    <string name="birthday_height_rescan">重新扫描</string>
+    <string name="birthday_height_rescan_confirm_title">重新扫描钱包?</string>
+    <string name="birthday_height_rescan_confirm_text">本地钱包数据将被清除,同步将从新的高度开始。这可能需要时间和流量。</string>
     <string name="invalid_height_format">无效高度，请确保您输入的是 YYYY-MM-DD 格式或出生高度</string>
     <string name="invalid_qr_code">无效的二维码</string>
     <string name="blockchair_height_by_date_connection_error">无法连接到 Blockchair 以按日期查找高度</string>
@@ -2104,4 +2111,40 @@
     <string name="send_trezor_time_lock_not_supported">Trezor 不支持时间锁定交易。</string>
     <string name="send_failed_offline_prompt_title">交易未发送</string>
     <string name="send_failed_offline_prompt_message">离线签署交易并稍后发送？</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">高级版已激活</string>
+    <string name="manage_accounts_section_other">其他钱包</string>
+    <string name="manage_accounts_section_watch">只读钱包</string>
+    <string name="manage_accounts_section_hardware">硬件钱包</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">试用</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">软件更新</string>
+    <string name="version_history_title">版本历史</string>
+    <string name="auto_check_updates">自动检查更新</string>
+    <string name="update_interval_day">1天</string>
+    <string name="update_interval_week">1周</string>
+    <string name="update_interval_month">1月</string>
+    <string name="update_last_check_date">上次检查时间：%1$s</string>
+    <string name="update_available_title">有可用的新更新</string>
+    <string name="update_up_to_date">已是最新版本</string>
+    <string name="update_now">立即更新</string>
+    <string name="update_source">来源：%1$s</string>
+    <string name="update_details_ellipsis">详情…</string>
+    <string name="update_details">详情</string>
+    <string name="update_version_label">版本 %1$s</string>
+    <string name="update_current_version_section">当前版本</string>
+    <string name="update_old_versions_section">旧版本</string>
+    <string name="update_checking">正在检查更新…</string>
+    <string name="update_improvements_fixes">本次更新：%1$d 项改进，%2$d 项修复</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">更新</string>
+    <string name="update_interval_day_full">1天</string>
+    <string name="update_interval_week_full">1周</string>
+    <string name="update_interval_month_full">1个月</string>
 </resources>

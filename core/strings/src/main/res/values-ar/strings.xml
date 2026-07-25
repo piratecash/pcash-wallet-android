@@ -126,6 +126,13 @@
     <string name="restoreheight_title">كتلة البدء للاستعادة</string>
     <string name="restoreheight_hint">أدخل الكتلة أو التاريخ (YYYY-MM-DD)</string>
     <string name="restoreheight_hint_block_only">أدخل رقم الكتلة</string>
+    <string name="select_date_title">اختر التاريخ</string>
+    <string name="select_date_description">اختر التاريخ التقريبي لإنشاء المحفظة. سيتم احتساب ارتفاع الكتلة تلقائيًا.</string>
+    <string name="birthday_height_description">يمكنك تغيير ارتفاع الكتلة أو اختيار تاريخ تقريبي لإعادة مسح سجل المعاملات.</string>
+    <string name="birthday_height_date_label">تاريخ الكتلة:</string>
+    <string name="birthday_height_rescan">إعادة المسح</string>
+    <string name="birthday_height_rescan_confirm_title">إعادة مسح المحفظة؟</string>
+    <string name="birthday_height_rescan_confirm_text">سيتم مسح بيانات المحفظة المحلية وستبدأ المزامنة من الارتفاع الجديد. قد يستغرق ذلك وقتًا واستهلاك بيانات.</string>
     <string name="invalid_height_format">ارتفاع غير صالح، تأكد من إدخال YYYY-MM-DD أو ارتفاع الولادة</string>
     <string name="invalid_qr_code">رمز QR غير صالح</string>
     <string name="blockchair_height_by_date_connection_error">لا يمكن الاتصال بـ Blockchair للعثور على الارتفاع حسب التاريخ</string>
@@ -2142,4 +2149,40 @@
     <string name="send_trezor_time_lock_not_supported">لا يدعم Trezor المعاملات المقفلة زمنيًا.</string>
     <string name="send_failed_offline_prompt_title">لم يتم إرسال المعاملة</string>
     <string name="send_failed_offline_prompt_message">توقيع المعاملة دون اتصال وإرسالها لاحقًا؟</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">بريميوم مفعّل</string>
+    <string name="manage_accounts_section_other">محافظ أخرى</string>
+    <string name="manage_accounts_section_watch">محافظ العرض فقط</string>
+    <string name="manage_accounts_section_hardware">محافظ الأجهزة</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">تجريبي</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">تحديثات البرنامج</string>
+    <string name="version_history_title">سجل الإصدارات</string>
+    <string name="auto_check_updates">التحقق التلقائي من التحديثات</string>
+    <string name="update_interval_day">1ي</string>
+    <string name="update_interval_week">1أ</string>
+    <string name="update_interval_month">1ش</string>
+    <string name="update_last_check_date">آخر تحقق كان: %1$s</string>
+    <string name="update_available_title">يتوفر تحديث جديد</string>
+    <string name="update_up_to_date">التحديث محدث</string>
+    <string name="update_now">تحديث الآن</string>
+    <string name="update_source">المصدر: %1$s</string>
+    <string name="update_details_ellipsis">التفاصيل…</string>
+    <string name="update_details">التفاصيل</string>
+    <string name="update_version_label">الإصدار %1$s</string>
+    <string name="update_current_version_section">الإصدار الحالي</string>
+    <string name="update_old_versions_section">الإصدارات القديمة</string>
+    <string name="update_checking">جارٍ التحقق من التحديثات…</string>
+    <string name="update_improvements_fixes">هذا التحديث: %1$d تحسينات، %2$d إصلاحات</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">التحديثات</string>
+    <string name="update_interval_day_full">يوم واحد</string>
+    <string name="update_interval_week_full">أسبوع واحد</string>
+    <string name="update_interval_month_full">شهر واحد</string>
 </resources>

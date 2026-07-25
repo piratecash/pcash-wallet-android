@@ -93,6 +93,10 @@ android {
         resValue "string", "appWebPageLink", "https://p.cash/#MOBILE_APPS"
         resValue "string", "analyticsLink", "https://p.cash/"
         resValue "string", "appGithubLink", "https://github.com/piratecash/pcash-wallet-android"
+        resValue "string", "githubApiBaseUrl", "https://api.github.com/repos/piratecash/pcash-wallet-android"
+        resValue "string", "githubRawBaseUrl", "https://raw.githubusercontent.com/piratecash/pcash-wallet-android/master"
+        resValue "string", "githubApiProxyBaseUrl", "https://p.cash/api/github"
+        resValue "string", "githubRawProxyBaseUrl", "https://p.cash/api/github-raw"
         resValue "string", "appTwitterLink", "https://twitter.com/PirateCash_NET"
         resValue "string", "appTelegramLink", "https://t.me/pcash"
         resValue "string", "appRedditLink", "https://www.reddit.com/r/PirateCash/"
@@ -270,7 +274,7 @@ android {
 androidComponents {
     onVariants(selector().withBuildType("release")) { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set("p.cash-${output.versionName.get()}.apk")
+            output.outputFileName.set("p.cash.apk")
         }
     }
 }

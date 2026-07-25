@@ -42,13 +42,12 @@ Build the release APK from the tagged commit:
 ```
 
 The `release` build type has no signing configuration, so the output is
-`app/build/outputs/apk/release/app-release-unsigned.apk`. Sign it with the release keystore
+`app/build/outputs/apk/release/p.cash.apk`. Sign it with the release keystore
 (`apksigner` ships with Android SDK build-tools; zipalign is already done by Gradle):
 
 ```
 apksigner sign --ks <path-to-keystore> \
-    --out p.cash-<version>.apk \
-    app/build/outputs/apk/release/app-release-unsigned.apk
+    app/build/outputs/apk/release/p.cash.apk
 ```
 
 For F-Droid reproducible builds (including building in F-Droid's exact environment) see [FDROID.md](FDROID.md).
@@ -59,8 +58,9 @@ For F-Droid reproducible builds (including building in F-Droid's exact environme
 
 ### 8. Create Release in GitHub Repository
 
-* Create new `Release`, add changelog and upload apk file. Make note in changelog if the 'Supported Android Versions' was changed
-* Sign the APK artifacts and attach the checksum and signature files (`p.cash-<version>.apk.sha256`, `.asc`) under the 'Assets' section — see [RELEASE_SIGNING_AND_VERIFICATION.md](RELEASE_SIGNING_AND_VERIFICATION.md) and `tools/sign-release-apk.sh`.
+* Create a new `Release`, add the changelog and upload `p.cash.apk`. Make a note in the changelog if the 'Supported Android Versions' value changed.
+* Sign the APK and its SHA-256 checksum as described in [RELEASE_SIGNING_AND_VERIFICATION.md](RELEASE_SIGNING_AND_VERIFICATION.md).
+* Upload `p.cash.apk.asc`, `p.cash.apk.sha256`, and `p.cash.apk.sha256.asc` under the release's `Assets` section.
 
 ### 9. Make sure P.CASH Wallet is 'Reproducible'
 

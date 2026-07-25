@@ -1,6 +1,7 @@
 package cash.p.terminal.di
 
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewModel
+import cash.p.terminal.modules.balance.token.creationblock.CreationBlockViewModel
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusViewModel
 import cash.p.terminal.modules.configuredtoken.ConfiguredTokenInfoViewModel
 import cash.p.terminal.modules.addtoken.AddTokenViewModel
@@ -8,6 +9,8 @@ import cash.p.terminal.modules.createaccount.CreateAdvancedAccountViewModel
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesModule
 import cash.p.terminal.modules.manageaccount.safetyrules.SafetyRulesViewModel
+import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
+import cash.p.terminal.modules.manageaccounts.ManageAccountsViewModel
 import cash.p.terminal.modules.multiswap.TimerService
 import cash.p.terminal.modules.multiswap.exchange.MultiSwapExchangeViewModel
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesViewModel
@@ -19,6 +22,9 @@ import cash.p.terminal.modules.main.MainActivityViewModel
 import cash.p.terminal.modules.market.favorites.MarketFavoritesViewModel
 import cash.p.terminal.modules.manageaccount.backupkey.BackupKeyViewModel
 import cash.p.terminal.modules.main.MainViewModel
+import cash.p.terminal.modules.softwareupdate.SoftwareUpdateViewModel
+import cash.p.terminal.modules.softwareupdate.changelog.VersionChangelogViewModel
+import cash.p.terminal.modules.softwareupdate.history.VersionHistoryViewModel
 import cash.p.terminal.modules.pin.unlock.PinUnlockViewModel
 import cash.p.terminal.modules.moneroconfigure.MoneroConfigureViewModel
 import cash.p.terminal.modules.mwebconfigure.MwebConfigureViewModel
@@ -81,6 +87,9 @@ val viewModelModule = module {
     viewModelOf(::MarketFavoritesViewModel)
     viewModelOf(::MainViewModel)
     viewModelOf(::MainActivityViewModel)
+    viewModelOf(::SoftwareUpdateViewModel)
+    viewModelOf(::VersionHistoryViewModel)
+    viewModel { params -> VersionChangelogViewModel(params.get(), params.get(), get(), get()) }
     viewModelOf(::DisplayTransactionsViewModel)
     viewModelOf(::OfflineBroadcastViewModel)
     viewModelOf(::OfflineSignedTransactionsViewModel)
@@ -99,6 +108,7 @@ val viewModelModule = module {
     viewModelOf(::RestoreMnemonicViewModel)
     viewModelOf(::AppStatusViewModel)
     viewModel { params -> AddressPoisoningViewModel(params[0], params[1], params[2], get(), get(), get(), get()) }
+    viewModel { params -> CreationBlockViewModel(params[0], get(), get(), get(), get(), get()) }
     viewModel { params -> BlockchainStatusViewModel(provider = params.get(), dispatcherProvider = get()) }
     viewModelOf(::AppCacheViewModel)
     viewModelOf(::MoneroConfigureViewModel)
@@ -139,6 +149,9 @@ val viewModelModule = module {
     }
     viewModel { (accountId: String) ->
         BackupKeyViewModel(accountId = accountId, accountManager = get())
+    }
+    viewModel { (mode: ManageAccountsModule.Mode) ->
+        ManageAccountsViewModel(get(), get(), mode)
     }
     viewModelOf(::AdvancedSecurityViewModel)
     viewModelOf(::CalculatorPinSettingsViewModel)

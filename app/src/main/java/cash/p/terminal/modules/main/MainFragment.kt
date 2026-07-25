@@ -305,8 +305,11 @@ private fun MainScreen(
             wallets = viewModel.wallets,
             watchingAddresses = viewModel.watchWallets,
             selectedAccount = uiState.activeWallet,
+            premiumTypes = uiState.walletSwitchPremiumTypes,
             onSelectListener = { viewModel.onSelect(it) },
-            onDismiss = { showWalletSheet = false }
+            onDismiss = {
+                showWalletSheet = false
+            }
         )
     }
 

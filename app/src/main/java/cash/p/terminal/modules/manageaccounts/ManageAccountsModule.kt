@@ -3,10 +3,8 @@ package cash.p.terminal.modules.manageaccounts
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import cash.p.terminal.core.App
 import cash.p.terminal.core.tryOrNull
+import cash.p.terminal.premium.domain.usecase.PremiumType
 import io.horizontalsystems.hdwalletkit.Language
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
@@ -29,13 +27,6 @@ object ManageAccountsModule {
             get() = prefillMnemonicLanguageName?.let { tryOrNull { Language.valueOf(it) } }
     }
 
-    class Factory(private val mode: Mode) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ManageAccountsViewModel(App.accountManager, mode) as T
-        }
-    }
-
     data class AccountViewItem(
         val accountId: String,
         val title: String,
@@ -47,6 +38,7 @@ object ManageAccountsModule {
         val isHardwareWallet: Boolean,
         val showNfcIcon: Boolean,
         val migrationRequired: Boolean,
+        val premiumType: PremiumType = PremiumType.NONE,
     )
 
     data class ActionViewItem(

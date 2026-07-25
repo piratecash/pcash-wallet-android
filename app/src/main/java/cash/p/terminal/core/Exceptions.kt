@@ -30,6 +30,8 @@ class NotEnoughData() : Exception()
 class UnsupportedException(override val message: String?) : Exception()
 class UnsupportedAccountException : Exception()
 class LocalizedException(val errorTextRes: Int, vararg val formatArgs: Any) : Exception()
+class MoneroRescanException(override val message: String?) : Exception()
+class ZcashRescanException(override val message: String?) : Exception()
 
 fun LocalizedException.toResString(): TranslatableString =
     TranslatableString.ResString(errorTextRes, *formatArgs)

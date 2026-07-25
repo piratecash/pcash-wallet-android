@@ -10,6 +10,7 @@ import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningVi
 import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.market.TimeDuration
 import cash.p.terminal.modules.premium.settings.PollingInterval
+import cash.p.terminal.modules.softwareupdate.domain.UpdateCheckInterval
 import cash.p.terminal.modules.market.favorites.WatchlistSorting
 import cash.p.terminal.modules.calculator.domain.CalculatorAutoLockOption
 import cash.p.terminal.modules.settings.appearance.AppIcon
@@ -108,6 +109,10 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var shareCrashDataEnabled: Boolean
     var showChangelogAfterUpdate: Boolean
     var selectBalanceTabOnNextLaunch: Boolean
+
+    var updateCheckInterval: UpdateCheckInterval
+    var lastUpdateCheckTimestamp: Long
+    var latestKnownVersion: String?
 
     var customDashPeers: String
 

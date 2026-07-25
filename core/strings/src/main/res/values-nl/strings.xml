@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Startblok voor herstel</string>
     <string name="restoreheight_hint">Voer blok of datum in (JJJJ-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Voer het bloknummer in</string>
+    <string name="select_date_title">Datum selecteren</string>
+    <string name="select_date_description">Selecteer de geschatte aanmaakdatum van de wallet. De blokhoogte wordt automatisch berekend.</string>
+    <string name="birthday_height_description">U kunt de blokhoogte wijzigen of een geschatte datum kiezen om de transactiegeschiedenis opnieuw te scannen.</string>
+    <string name="birthday_height_date_label">Blokdatum:</string>
+    <string name="birthday_height_rescan">Opnieuw scannen</string>
+    <string name="birthday_height_rescan_confirm_title">Wallet opnieuw scannen?</string>
+    <string name="birthday_height_rescan_confirm_text">Lokale walletgegevens worden gewist en de synchronisatie begint vanaf de nieuwe hoogte. Dit kan tijd en dataverkeer kosten.</string>
     <string name="invalid_height_format">Ongeldige hoogte, zorg ervoor dat u JJJJ-MM-DD of geboortehoogte hebt ingevoerd</string>
     <string name="invalid_qr_code">Ongeldige QR-code</string>
     <string name="blockchair_height_by_date_connection_error">Kan geen verbinding maken met Blockchair om de hoogte op basis van de datum te vinden</string>
@@ -2126,4 +2133,40 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="send_trezor_time_lock_not_supported">Trezor ondersteunt tijdvergrendelde transacties niet.</string>
     <string name="send_failed_offline_prompt_title">Transactie niet verzonden</string>
     <string name="send_failed_offline_prompt_message">De transactie offline ondertekenen en later verzenden?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium actief</string>
+    <string name="manage_accounts_section_other">Andere portemonnees</string>
+    <string name="manage_accounts_section_watch">Watch-only portemonnees</string>
+    <string name="manage_accounts_section_hardware">Hardware-portemonnees</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Proefversie</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software-updates</string>
+    <string name="version_history_title">Versiegeschiedenis</string>
+    <string name="auto_check_updates">Automatisch controleren op updates</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Laatste controle was: %1$s</string>
+    <string name="update_available_title">Nieuwe update beschikbaar</string>
+    <string name="update_up_to_date">Update is up-to-date</string>
+    <string name="update_now">Nu updaten</string>
+    <string name="update_source">Bron: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Versie %1$s</string>
+    <string name="update_current_version_section">Huidige versie</string>
+    <string name="update_old_versions_section">OUDE VERSIES</string>
+    <string name="update_checking">Controleren op updates…</string>
+    <string name="update_improvements_fixes">Deze update: %1$d verbeteringen, %2$d oplossingen</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="update_interval_day_full">1 dag</string>
+    <string name="update_interval_week_full">1 week</string>
+    <string name="update_interval_month_full">1 maand</string>
 </resources>

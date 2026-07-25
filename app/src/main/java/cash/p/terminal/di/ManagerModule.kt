@@ -91,6 +91,16 @@ import cash.p.terminal.core.managers.WordsManager
 import cash.p.terminal.core.INetworkManager
 import cash.p.terminal.core.managers.NetworkManager
 import cash.p.terminal.core.providers.AppConfigProvider
+import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
+import cash.p.terminal.modules.softwareupdate.domain.CheckAppUpdateUseCase
+import cash.p.terminal.modules.softwareupdate.domain.GetReleaseChangelogUseCase
+import cash.p.terminal.modules.softwareupdate.domain.GetVersionHistoryUseCase
+import cash.p.terminal.modules.softwareupdate.domain.InstallSourceProvider
+import cash.p.terminal.modules.softwareupdate.domain.InstallSourceProviderImpl
+import cash.p.terminal.modules.softwareupdate.domain.ShouldAutoCheckUseCase
+import cash.p.terminal.modules.softwareupdate.domain.SystemTimeProvider
+import cash.p.terminal.modules.softwareupdate.domain.TimeProvider
+import cash.p.terminal.network.github.data.GithubApiConfig
 import cash.p.terminal.core.providers.CompositeFallbackAddressProvider
 import cash.p.terminal.core.providers.PendingAccountProvider
 import cash.p.terminal.core.providers.PendingAccountProviderImpl
@@ -128,6 +138,7 @@ import cash.p.terminal.widgets.MarketWidgetManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.handler.WCHandlerEvm
 import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
+import cash.p.terminal.modules.walletconnect.storage.WCPairingMetadataStorage
 import cash.p.terminal.modules.walletconnect.storage.WCSessionStorage
 import cash.p.terminal.network.alphaaml.api.AlphaAmlApi
 import cash.p.terminal.network.data.AppHeadersProvider
@@ -268,6 +279,7 @@ val managerModule = module {
     singleOf(::TermsManager) bind ITermsManager::class
     singleOf(::ReleaseNotesManager)
     singleOf(::WCSessionStorage)
+    singleOf(::WCPairingMetadataStorage)
     single {
         WCManager(accountManager = get()).also {
             it.addWcHandler(WCHandlerEvm(get(), get()))
@@ -341,6 +353,23 @@ val managerModule = module {
     }
     single(named(PREMIUM_API_BASE_URL_QUALIFIER)) { AppConfigProvider.premiumApiBaseUrl }
     single(named(PREMIUM_IS_DEBUG_QUALIFIER)) { AppConfigProvider.isDebug }
+
+    // Software update (MOBILE-378)
+    single {
+        GithubApiConfig(
+            apiBaseUrl = AppConfigProvider.githubApiBaseUrl,
+            rawBaseUrl = AppConfigProvider.githubRawBaseUrl,
+            apiProxyBaseUrl = AppConfigProvider.githubApiProxyBaseUrl,
+            rawProxyBaseUrl = AppConfigProvider.githubRawProxyBaseUrl,
+        )
+    }
+    singleOf(::SystemTimeProvider) bind TimeProvider::class
+    singleOf(::InstallSourceProviderImpl) bind InstallSourceProvider::class
+    singleOf(::AppUpdateChecker)
+    singleOf(::CheckAppUpdateUseCase)
+    singleOf(::ShouldAutoCheckUseCase)
+    singleOf(::GetVersionHistoryUseCase)
+    singleOf(::GetReleaseChangelogUseCase)
 
     // Market favorites
     singleOf(::MarketWidgetManager)

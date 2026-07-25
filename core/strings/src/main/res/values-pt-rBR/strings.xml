@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Bloco inicial de recuperação</string>
     <string name="restoreheight_hint">Informe o bloco ou a data (AAAA-MM-DD)</string>
     <string name="restoreheight_hint_block_only">Informe o número do bloco</string>
+    <string name="select_date_title">Selecionar data</string>
+    <string name="select_date_description">Selecione a data aproximada de criação da carteira. A altura do bloco será calculada automaticamente.</string>
+    <string name="birthday_height_description">Você pode alterar a altura do bloco ou escolher uma data aproximada para reescanear o histórico de transações.</string>
+    <string name="birthday_height_date_label">Data do bloco:</string>
+    <string name="birthday_height_rescan">Reescanear</string>
+    <string name="birthday_height_rescan_confirm_title">Reescanear carteira?</string>
+    <string name="birthday_height_rescan_confirm_text">Os dados locais da carteira serão apagados e a sincronização começará a partir da nova altura. Isso pode levar tempo e consumir dados.</string>
     <string name="invalid_height_format">Altura inválida, certifique-se de que inseriu AAAA-MM-DD ou altura de nascimento</string>
     <string name="invalid_qr_code">Código QR inválido</string>
     <string name="blockchair_height_by_date_connection_error">Não foi possível conectar ao Blockchair para encontrar a altura pela data</string>
@@ -2119,4 +2126,40 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="send_trezor_time_lock_not_supported">A Trezor não é compatível com transações com bloqueio de tempo.</string>
     <string name="send_failed_offline_prompt_title">Transação não enviada</string>
     <string name="send_failed_offline_prompt_message">Assinar a transação off-line e enviá-la mais tarde?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium ativo</string>
+    <string name="manage_accounts_section_other">Outras carteiras</string>
+    <string name="manage_accounts_section_watch">Carteiras somente leitura</string>
+    <string name="manage_accounts_section_hardware">Carteiras de hardware</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Teste</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Atualizações de software</string>
+    <string name="version_history_title">Histórico de versões</string>
+    <string name="auto_check_updates">Verificar atualizações automaticamente</string>
+    <string name="update_interval_day">1D</string>
+    <string name="update_interval_week">1S</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Última verificação: %1$s</string>
+    <string name="update_available_title">Nova atualização disponível</string>
+    <string name="update_up_to_date">A atualização está atualizada</string>
+    <string name="update_now">Atualizar agora</string>
+    <string name="update_source">Fonte: %1$s</string>
+    <string name="update_details_ellipsis">Detalhes…</string>
+    <string name="update_details">Detalhes</string>
+    <string name="update_version_label">Versão %1$s</string>
+    <string name="update_current_version_section">Versão atual</string>
+    <string name="update_old_versions_section">VERSÕES ANTIGAS</string>
+    <string name="update_checking">Verificando atualizações…</string>
+    <string name="update_improvements_fixes">Nesta atualização: %1$d melhorias, %2$d correções</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Atualizações</string>
+    <string name="update_interval_day_full">1 dia</string>
+    <string name="update_interval_week_full">1 semana</string>
+    <string name="update_interval_month_full">1 mês</string>
 </resources>

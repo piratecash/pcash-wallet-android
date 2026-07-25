@@ -10,8 +10,9 @@ import cash.p.terminal.core.IRateAppManager
 import cash.p.terminal.core.ITermsManager
 import cash.p.terminal.core.managers.ReleaseNotesManager
 import cash.p.terminal.core.managers.isTonConnectDeeplink
-import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
-import cash.p.terminal.core.usecase.UpdateResult
+import cash.p.terminal.premium.domain.usecase.CheckPremiumUseCase
+import cash.p.terminal.premium.domain.usecase.PremiumType
+import cash.p.terminal.modules.softwareupdate.AppUpdateChecker
 import cash.p.terminal.core.utils.AddressUriParser
 import cash.p.terminal.entities.AddressUri
 import cash.p.terminal.entities.LaunchPage
@@ -33,10 +34,8 @@ import cash.z.ecc.android.sdk.ext.collectWith
 import io.horizontalsystems.core.IPinComponent
 import io.horizontalsystems.core.ViewModelUiState
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import org.koin.java.KoinJavaComponent.inject
@@ -55,9 +54,13 @@ class MainViewModel(
     private val deeplinkParser: DeeplinkParser
 ) : ViewModelUiState<MainModule.UiState>() {
 
-    private val checkGooglePlayUpdateUseCase: CheckGooglePlayUpdateUseCase by inject(
-        CheckGooglePlayUpdateUseCase::class.java
+    private val appUpdateChecker: AppUpdateChecker by inject(AppUpdateChecker::class.java)
+
+    private val checkPremiumUseCase: CheckPremiumUseCase by inject(
+        CheckPremiumUseCase::class.java
     )
+
+    private var walletSwitchPremiumTypes: Map<String, PremiumType> = emptyMap()
 
     private var wcPendingRequestsCount = 0
     private var marketsTabEnabled = localStorage.marketsTabEnabledFlow.value
@@ -104,13 +107,7 @@ class MainViewModel(
     private var wcSupportState: WCManager.SupportState? = null
     private var torEnabled = localStorage.torEnabled
     private var openSendTokenSelect: OpenSendTokenSelect? = null
-    private val updateAvailable: StateFlow<Boolean> = checkGooglePlayUpdateUseCase()
-        .map { it is UpdateResult.ImmediateUpdateAvailable || it is UpdateResult.FlexibleUpdateAvailable }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
+    private val updateAvailable: StateFlow<Boolean> = appUpdateChecker.updateAvailable
 
     val wallets: List<Account>
         get() = accountManager.accounts.filter { !it.isWatchAccount }
@@ -176,8 +173,15 @@ class MainViewModel(
         }
 
         updateAvailable.collectWith(viewModelScope) {
-            if (it) {
-                updateSettingsBadge()
+            updateSettingsBadge()
+        }
+
+        viewModelScope.launch {
+            // Keep the wallet-switch sheet's premium badges in sync from the persisted+refreshed cache, so
+            // opening the sheet shows the hydrated type immediately and updates as the re-scan completes.
+            checkPremiumUseCase.premiumTypesFlow.collect {
+                walletSwitchPremiumTypes = it
+                emitState()
             }
         }
 
@@ -196,6 +200,7 @@ class MainViewModel(
         wcSupportState = wcSupportState,
         torEnabled = torEnabled,
         openSend = openSendTokenSelect,
+        walletSwitchPremiumTypes = walletSwitchPremiumTypes,
     )
 
     private fun isTransactionsTabEnabled(): Boolean =

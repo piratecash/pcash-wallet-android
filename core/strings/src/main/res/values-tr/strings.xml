@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Geri yükleme başlangıç bloğu</string>
     <string name="restoreheight_hint">Blok veya tarih girin (YYYY-AA-GG)</string>
     <string name="restoreheight_hint_block_only">Blok numarasını girin</string>
+    <string name="select_date_title">Tarih seç</string>
+    <string name="select_date_description">Cüzdanın yaklaşık oluşturulma tarihini seçin. Blok yüksekliği otomatik olarak hesaplanacaktır.</string>
+    <string name="birthday_height_description">Blok yüksekliğini değiştirebilir veya işlem geçmişini yeniden taramak için yaklaşık bir tarih seçebilirsiniz.</string>
+    <string name="birthday_height_date_label">Blok tarihi:</string>
+    <string name="birthday_height_rescan">Yeniden tara</string>
+    <string name="birthday_height_rescan_confirm_title">Cüzdan yeniden taransın mı?</string>
+    <string name="birthday_height_rescan_confirm_text">Yerel cüzdan verileri silinecek ve senkronizasyon yeni yükseklikten başlayacaktır. Bu işlem zaman ve veri kullanımı gerektirebilir.</string>
     <string name="invalid_height_format">Geçersiz yükseklik, YYYY-AA-GG veya doğum yüksekliği girdiğinizden emin olun</string>
     <string name="invalid_qr_code">Geçersiz QR Kodu</string>
     <string name="blockchair_height_by_date_connection_error">Tarihe göre yüksekliği bulmak için Blockchair\'a bağlanılamıyor</string>
@@ -2120,4 +2127,40 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="send_trezor_time_lock_not_supported">Trezor zaman kilitli işlemleri desteklemiyor.</string>
     <string name="send_failed_offline_prompt_title">İşlem gönderilmedi</string>
     <string name="send_failed_offline_prompt_message">İşlemi çevrimdışı imzalayıp daha sonra göndermek ister misiniz?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium etkin</string>
+    <string name="manage_accounts_section_other">Diğer cüzdanlar</string>
+    <string name="manage_accounts_section_watch">Yalnızca izleme cüzdanları</string>
+    <string name="manage_accounts_section_hardware">Donanım cüzdanları</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Deneme</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Yazılım Güncellemeleri</string>
+    <string name="version_history_title">Sürüm Geçmişi</string>
+    <string name="auto_check_updates">Güncellemeleri otomatik denetle</string>
+    <string name="update_interval_day">1G</string>
+    <string name="update_interval_week">1H</string>
+    <string name="update_interval_month">1A</string>
+    <string name="update_last_check_date">Son kontrol: %1$s</string>
+    <string name="update_available_title">Yeni güncelleme mevcut</string>
+    <string name="update_up_to_date">Güncelleme güncel</string>
+    <string name="update_now">Şimdi güncelle</string>
+    <string name="update_source">Kaynak: %1$s</string>
+    <string name="update_details_ellipsis">Ayrıntılar…</string>
+    <string name="update_details">Ayrıntılar</string>
+    <string name="update_version_label">Sürüm %1$s</string>
+    <string name="update_current_version_section">Mevcut sürüm</string>
+    <string name="update_old_versions_section">ESKİ SÜRÜMLER</string>
+    <string name="update_checking">Güncellemeler kontrol ediliyor…</string>
+    <string name="update_improvements_fixes">Bu güncelleme: %1$d iyileştirme, %2$d düzeltme</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Güncellemeler</string>
+    <string name="update_interval_day_full">1 gün</string>
+    <string name="update_interval_week_full">1 hafta</string>
+    <string name="update_interval_month_full">1 ay</string>
 </resources>

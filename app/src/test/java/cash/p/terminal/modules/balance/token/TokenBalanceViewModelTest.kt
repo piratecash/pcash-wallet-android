@@ -1047,6 +1047,58 @@ class TokenBalanceViewModelTest : KoinTest {
     }
 
     @Test
+    fun transactionItems_incomingFilterProviderSwap_excludesSwap() = runTest(dispatcher) {
+        coEvery {
+            transactionViewItemFactory.convertToViewItemCached(any(), any(), any())
+        } answers {
+            val uid = firstArg<TransactionItem>().record.uid
+            createMockTransactionViewItem(
+                uid = uid,
+                swapTransactionId = "swap-id".takeIf { uid == "swap" },
+            )
+        }
+        val viewModel = createViewModel()
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("swap"),
+            createTransactionItem("receive"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("receive"),
+            viewModel.uiState.transactions?.values?.flatten()?.map { it.uid },
+        )
+    }
+
+    @Test
+    fun transactionItems_outgoingFilterOnChainSwap_excludesSwap() = runTest(dispatcher) {
+        coEvery {
+            transactionViewItemFactory.convertToViewItemCached(any(), any(), any())
+        } answers {
+            val uid = firstArg<TransactionItem>().record.uid
+            createMockTransactionViewItem(
+                uid = uid,
+                isSwap = uid == "pancake-swap",
+            )
+        }
+        val viewModel = createViewModel()
+        viewModel.setTransactionType(FilterTransactionType.Outgoing)
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("pancake-swap"),
+            createTransactionItem("send"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("send"),
+            viewModel.uiState.transactions?.values?.flatten()?.map { it.uid },
+        )
+    }
+
+    @Test
     fun setTransactionType_sameTypeAsCurrent_doesNotCallService() = runTest(dispatcher) {
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -1232,7 +1284,85 @@ class TokenBalanceViewModelTest : KoinTest {
 
     // endregion
 
+    // region Swap Filter & Pagination (PR #438)
+
+    @Test
+    fun updateTransactions_allSwapsOnIncomingFilter_requestsNextPage() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        // Incoming/Outgoing hide swaps, so a page of only swaps yields no visible row.
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+        markSwapsByUidPrefix()
+        clearMocks(transactionsService, answers = false)
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("swap-1"),
+            createTransactionItem("swap-2"),
+            createTransactionItem("swap-3")
+        )
+        advanceUntilIdle()
+
+        // No visible row can reach the list bottom, so paging must be requested to keep loading.
+        verify(exactly = 1) { transactionsService.loadNext() }
+        assertEquals(emptyMap<String, List<TransactionViewItem>>(), viewModel.uiState.transactions)
+    }
+
+    @Test
+    fun updateTransactions_visibleTransferOnIncomingFilter_doesNotRequestNextPage() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+        markSwapsByUidPrefix()
+        clearMocks(transactionsService, answers = false)
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("swap-1"),
+            createTransactionItem("real-1")
+        )
+        advanceUntilIdle()
+
+        // A visible transfer is present, so the list can page on its own - no forced load.
+        verify(exactly = 0) { transactionsService.loadNext() }
+        assertEquals(1, viewModel.uiState.transactions?.values?.flatten()?.size)
+    }
+
+    @Test
+    fun updateTransactions_hiddenLimitWithSwaps_countsOnlyVisibleTransfers() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.setTransactionType(FilterTransactionType.Incoming)
+        markSwapsByUidPrefix()
+        transactionHiddenFlow.value = createHiddenState(
+            hidden = true,
+            level = TransactionDisplayLevel.LAST_1_TRANSACTION
+        )
+
+        // Newest first: the leading swap must not consume the "last 1" quota.
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("swap-1"),
+            createTransactionItem("real-1"),
+            createTransactionItem("real-2")
+        )
+        advanceUntilIdle()
+
+        val shown = viewModel.uiState.transactions?.values?.flatten().orEmpty()
+        assertEquals(1, shown.size)
+        // The kept row is the newest visible transfer, not the filtered-out swap.
+        assertEquals("real-1", shown.single().uid)
+        // Two transfers are visible but only one is shown, so more are hidden.
+        assertEquals(true, viewModel.uiState.hasHiddenTransactions)
+    }
+
+    // endregion
+
     // region Helper Methods
+
+    private fun markSwapsByUidPrefix() {
+        coEvery { transactionViewItemFactory.convertToViewItemCached(any(), any(), any()) } answers {
+            val uid = firstArg<TransactionItem>().record.uid
+            createMockTransactionViewItem(uid = uid, isSwap = uid.startsWith("swap-"))
+        }
+    }
 
     private fun createViewModel(): TokenBalanceViewModel = TokenBalanceViewModel(
         totalBalance = totalBalance,
@@ -1314,9 +1444,15 @@ class TokenBalanceViewModelTest : KoinTest {
         )
     }
 
-    private fun createMockTransactionViewItem(uid: String) = mockk<TransactionViewItem>(relaxed = true) {
+    private fun createMockTransactionViewItem(
+        uid: String,
+        swapTransactionId: String? = null,
+        isSwap: Boolean = swapTransactionId != null,
+    ) = mockk<TransactionViewItem>(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { formattedDate } returns "DATE"
+        every { this@mockk.isSwap } returns isSwap
+        every { changeNowTransactionId } returns swapTransactionId
     }
 
     private fun createBalanceViewItem(

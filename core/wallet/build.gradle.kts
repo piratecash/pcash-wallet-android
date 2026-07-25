@@ -5,6 +5,8 @@ plugins {
     id(libs.plugins.devtools.ksp.get().pluginId)
 }
 
+val marketApiKey = "IQf1uAjkthZp1i2pYzkXFDom"
+
 android {
     namespace = "cash.p.terminal.wallet"
     compileSdk = 36
@@ -20,11 +22,11 @@ android {
     buildTypes {
         debug {
             resValue("string", "marketApiBaseUrl", "https://api-dev.blocksdecoded.com")
-            resValue("string", "marketApiKey", "IQf1uAjkthZp1i2pYzkXFDom")
+            resValue("string", "marketApiKey", marketApiKey)
         }
         release {
             resValue("string", "marketApiBaseUrl", "https://api.blocksdecoded.com")
-            resValue("string", "marketApiKey", "IQf1uAjkthZp1i2pYzkXFDom")
+            resValue("string", "marketApiKey", marketApiKey)
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -92,6 +94,10 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            all { test ->
+                test.systemProperty("marketApiKey", marketApiKey)
+                test.systemProperty("updateCoinsList", (project.findProperty("updateCoinsList") ?: "false").toString())
+            }
         }
     }
 }

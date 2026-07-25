@@ -125,6 +125,13 @@
     <string name="restoreheight_title">Startblock für Wiederherstellung</string>
     <string name="restoreheight_hint">Block oder Datum eingeben (JJJJ-MM-TT)</string>
     <string name="restoreheight_hint_block_only">Blocknummer eingeben</string>
+    <string name="select_date_title">Datum auswählen</string>
+    <string name="select_date_description">Wählen Sie das ungefähre Erstellungsdatum des Wallets aus. Die Blockhöhe wird automatisch berechnet.</string>
+    <string name="birthday_height_description">Sie können die Blockhöhe ändern oder ein ungefähres Datum auswählen, um den Transaktionsverlauf erneut zu scannen.</string>
+    <string name="birthday_height_date_label">Blockdatum:</string>
+    <string name="birthday_height_rescan">Erneut scannen</string>
+    <string name="birthday_height_rescan_confirm_title">Wallet erneut scannen?</string>
+    <string name="birthday_height_rescan_confirm_text">Die lokalen Wallet-Daten werden gelöscht und die Synchronisierung beginnt ab der neuen Höhe. Dies kann Zeit und Datenverkehr in Anspruch nehmen.</string>
     <string name="invalid_height_format">Ungültige Höhe, bitte stellen Sie sicher, dass Sie JJJJ-MM-TT oder Geburtshöhe eingegeben haben</string>
     <string name="invalid_qr_code">Ungültiger QR-Code</string>
     <string name="blockchair_height_by_date_connection_error">Keine Verbindung zu Blockchair möglich, um die Höhe nach Datum zu finden</string>
@@ -2111,4 +2118,40 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="send_trezor_time_lock_not_supported">Trezor unterstützt zeitgesperrte Transaktionen nicht.</string>
     <string name="send_failed_offline_prompt_title">Transaktion nicht gesendet</string>
     <string name="send_failed_offline_prompt_message">Transaktion offline signieren und später senden?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium aktiv</string>
+    <string name="manage_accounts_section_other">Andere Wallets</string>
+    <string name="manage_accounts_section_watch">Watch-Wallets</string>
+    <string name="manage_accounts_section_hardware">Hardware-Wallets</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Testversion</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Software-Updates</string>
+    <string name="version_history_title">Versionsverlauf</string>
+    <string name="auto_check_updates">Automatisch nach Updates suchen</string>
+    <string name="update_interval_day">1T</string>
+    <string name="update_interval_week">1W</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Letzte Prüfung war: %1$s</string>
+    <string name="update_available_title">Neues Update verfügbar</string>
+    <string name="update_up_to_date">Update ist aktuell</string>
+    <string name="update_now">Jetzt aktualisieren</string>
+    <string name="update_source">Quelle: %1$s</string>
+    <string name="update_details_ellipsis">Details…</string>
+    <string name="update_details">Details</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Aktuelle Version</string>
+    <string name="update_old_versions_section">ALTE VERSIONEN</string>
+    <string name="update_checking">Suche nach Updates…</string>
+    <string name="update_improvements_fixes">Dieses Update: %1$d Verbesserungen, %2$d Fehlerbehebungen</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Updates</string>
+    <string name="update_interval_day_full">1 Tag</string>
+    <string name="update_interval_week_full">1 Woche</string>
+    <string name="update_interval_month_full">1 Monat</string>
 </resources>

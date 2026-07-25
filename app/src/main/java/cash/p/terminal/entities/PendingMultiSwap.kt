@@ -53,7 +53,8 @@ data class PendingMultiSwap(
             "exolix" -> SwapProvider.EXOLIX
             "thorchain" -> SwapProvider.THORCHAIN
             "mayachain" -> SwapProvider.MAYA
-            else -> null
+            // Every Unstoppable sub-provider (id "u_<apiId>") tracks through the single UNSTOPPABLE backend.
+            else -> if (providerId.startsWith("u_")) SwapProvider.UNSTOPPABLE else null
         }
     }
 }

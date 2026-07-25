@@ -126,6 +126,13 @@
     <string name="restoreheight_title">Bloc initial de restauration</string>
     <string name="restoreheight_hint">Indiquez le bloc ou la date (AAAA-MM-JJ)</string>
     <string name="restoreheight_hint_block_only">Saisissez le numéro de bloc</string>
+    <string name="select_date_title">Sélectionner une date</string>
+    <string name="select_date_description">Sélectionnez la date de création approximative du portefeuille. La hauteur du bloc sera calculée automatiquement.</string>
+    <string name="birthday_height_description">Vous pouvez modifier la hauteur du bloc ou choisir une date approximative pour rescanner l\'historique des transactions.</string>
+    <string name="birthday_height_date_label">Date du bloc :</string>
+    <string name="birthday_height_rescan">Rescanner</string>
+    <string name="birthday_height_rescan_confirm_title">Rescanner le portefeuille ?</string>
+    <string name="birthday_height_rescan_confirm_text">Les données locales du portefeuille seront effacées et la synchronisation commencera à partir de la nouvelle hauteur. Cela peut prendre du temps et consommer des données.</string>
     <string name="invalid_height_format">Hauteur invalide, assurez-vous d\'avoir entré AAAA-MM-JJ ou la hauteur de naissance</string>
     <string name="invalid_qr_code">Code QR invalide</string>
     <string name="blockchair_height_by_date_connection_error">Impossible de se connecter à Blockchair pour trouver la hauteur par date</string>
@@ -2117,4 +2124,40 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="send_trezor_time_lock_not_supported">Trezor ne prend pas en charge les transactions à verrouillage temporel.</string>
     <string name="send_failed_offline_prompt_title">Transaction non envoyée</string>
     <string name="send_failed_offline_prompt_message">Signer la transaction hors ligne et envoyer plus tard ?</string>
+
+    <!-- Wallet list premium grouping -->
+    <string name="manage_accounts_premium_active">Premium actif</string>
+    <string name="manage_accounts_section_other">Autres portefeuilles</string>
+    <string name="manage_accounts_section_watch">Portefeuilles en lecture seule</string>
+    <string name="manage_accounts_section_hardware">Portefeuilles matériels</string>
+    <string name="manage_accounts_premium_badge_pirate">PIRATE 10k+</string>
+    <string name="manage_accounts_premium_badge_cosa">COSA 100+</string>
+    <string name="manage_accounts_premium_badge_trial">Essai</string>
+
+    <!-- Software update (MOBILE-378) -->
+    <string name="software_update_title">Mises à jour du logiciel</string>
+    <string name="version_history_title">Historique des versions</string>
+    <string name="auto_check_updates">Vérifier automatiquement les mises à jour</string>
+    <string name="update_interval_day">1J</string>
+    <string name="update_interval_week">1S</string>
+    <string name="update_interval_month">1M</string>
+    <string name="update_last_check_date">Dernière vérification : %1$s</string>
+    <string name="update_available_title">Nouvelle mise à jour disponible</string>
+    <string name="update_up_to_date">La mise à jour est à jour</string>
+    <string name="update_now">Mettre à jour maintenant</string>
+    <string name="update_source">Source : %1$s</string>
+    <string name="update_details_ellipsis">Détails…</string>
+    <string name="update_details">Détails</string>
+    <string name="update_version_label">Version %1$s</string>
+    <string name="update_current_version_section">Version actuelle</string>
+    <string name="update_old_versions_section">ANCIENNES VERSIONS</string>
+    <string name="update_checking">Recherche de mises à jour…</string>
+    <string name="update_improvements_fixes">Cette mise à jour : %1$d améliorations, %2$d corrections</string>
+    <string name="update_source_google_play">Play Market</string>
+    <string name="update_source_fdroid">F-Droid</string>
+    <string name="update_source_github">GitHub</string>
+    <string name="update_screen_title">Mises à jour</string>
+    <string name="update_interval_day_full">1 jour</string>
+    <string name="update_interval_week_full">1 semaine</string>
+    <string name="update_interval_month_full">1 mois</string>
 </resources>
