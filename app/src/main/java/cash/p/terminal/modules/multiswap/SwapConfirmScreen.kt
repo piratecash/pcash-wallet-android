@@ -158,6 +158,7 @@ fun SwapConfirmScreen(
         },
         onClickClose = null,
         buttonsSlot = {
+            val hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error }
             if (uiState.loading) {
                 ButtonPrimaryYellow(
                     modifier = Modifier.fillMaxWidth(),
@@ -183,7 +184,12 @@ fun SwapConfirmScreen(
                     onClick = viewModel::refresh
                 )
                 VSpacer(height = 12.dp)
-                subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteIsInvalid))
+                // A concrete estimation error is already shown by Cautions in the scrollable
+                // content; fall back to the generic text only when there is none, so the user is
+                // not shown a vague "quote invalid" line on top of the real, specific reason.
+                if (!hasErrorCaution) {
+                    subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteIsInvalid))
+                }
             } else if (uiState.expired) {
                 ButtonPrimaryDefault(
                     modifier = Modifier.fillMaxWidth(),
@@ -227,7 +233,7 @@ fun SwapConfirmScreen(
                         swapInProgress = swapInProgress,
                         hasRequiredQuoteData = uiState.amountOut != null && uiState.networkFee != null,
                         hasBlockingFeeState = hasFeeProblem,
-                        hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error },
+                        hasErrorCaution = hasErrorCaution,
                     ),
                     onClick = viewModel::onClickSendWithWarningCheck,
                 )
