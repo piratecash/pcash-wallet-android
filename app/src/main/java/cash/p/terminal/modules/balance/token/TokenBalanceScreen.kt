@@ -395,6 +395,15 @@ private fun TokenBalanceScreenContent(
             }
         }
         var headerHeightPx by remember { mutableIntStateOf(0) }
+        // Opening search auto-focuses the field and shows the keyboard
+        val searchHeaderIndex = 1 +
+            (if (failedIconVisible) 1 else 0) +
+            (if (uiState.showAmlPromo) 1 else 0)
+        LaunchedEffect(uiState.searchActive, searchHeaderIndex) {
+            if (uiState.searchActive && listState.firstVisibleItemIndex < searchHeaderIndex) {
+                listState.animateScrollToItem(searchHeaderIndex)
+            }
+        }
         HSSwipeRefresh(
             refreshing = refreshing,
             modifier = Modifier.padding(paddingValues),
