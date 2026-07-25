@@ -48,6 +48,7 @@ import cash.p.terminal.modules.transactions.TransactionSearchController
 import cash.p.terminal.modules.transactions.TransactionViewItem
 import cash.p.terminal.modules.transactions.TransactionViewItemFactory
 import cash.p.terminal.modules.transactions.isVisibleFor
+import cash.p.terminal.modules.transactions.requestNextPageIfAllFilteredOut
 import cash.p.terminal.modules.transactions.withClearedAmlStatus
 import cash.p.terminal.modules.transactions.withUpdatedAmlStatus
 import cash.p.terminal.premium.domain.PremiumSettings
@@ -555,33 +556,42 @@ class TokenBalanceViewModel(
         // still syncing. Once syncing finishes, allow empty items through so coins with
         // zero transactions show "no transactions" instead of "wait for sync" forever.
         if (items.isEmpty() && transactions == null && syncing) return
-        transactions =
-            if (transactionHiddenManager.transactionHiddenFlow.value.transactionHidden) {
-                when (transactionHiddenManager.transactionHiddenFlow.value.transactionDisplayLevel) {
-                    TransactionDisplayLevel.NOTHING -> emptyList()
-                    TransactionDisplayLevel.LAST_1_TRANSACTION -> items.take(1)
-                    TransactionDisplayLevel.LAST_2_TRANSACTIONS -> items.take(2)
-                    TransactionDisplayLevel.LAST_4_TRANSACTIONS -> items.take(4)
-                }.also { hasHiddenTransactions = items.size != it.size }
-            } else {
-                items.also { hasHiddenTransactions = false }
-            }.distinctBy { it.record.uid }
-                .map { item ->
-                    val matchedSwap = swapStatusMap[item.record.uid]
-                    transactionViewItem2Factory.convertToViewItemCached(
-                        transactionItem = item,
-                        walletUid = wallet.tokenQueryId,
-                        matchedSwap = matchedSwap
-                    )
-                }
-                .filter { it.isVisibleFor(selectedTransactionType) }
-                .map { amlStatusManager.applyStatus(it) }
-                .groupBy { it.formattedDate }
+
+        // Filter swaps out before the privacy truncation, so the "last N" limit counts only
+        // visible transfers - otherwise the newest swaps would consume the quota and hide real ones.
+        val visibleViewItems = items
+            .distinctBy { it.record.uid }
+            .map { item ->
+                val matchedSwap = swapStatusMap[item.record.uid]
+                transactionViewItem2Factory.convertToViewItemCached(
+                    transactionItem = item,
+                    walletUid = wallet.tokenQueryId,
+                    matchedSwap = matchedSwap
+                )
+            }
+            .filter { it.isVisibleFor(selectedTransactionType) }
+            .map { amlStatusManager.applyStatus(it) }
+
+        val hiddenState = transactionHiddenManager.transactionHiddenFlow.value
+        transactions = if (hiddenState.transactionHidden) {
+            when (hiddenState.transactionDisplayLevel) {
+                TransactionDisplayLevel.NOTHING -> emptyList()
+                TransactionDisplayLevel.LAST_1_TRANSACTION -> visibleViewItems.take(1)
+                TransactionDisplayLevel.LAST_2_TRANSACTIONS -> visibleViewItems.take(2)
+                TransactionDisplayLevel.LAST_4_TRANSACTIONS -> visibleViewItems.take(4)
+            }.also { hasHiddenTransactions = visibleViewItems.size != it.size }
+        } else {
+            visibleViewItems.also { hasHiddenTransactions = false }
+        }.groupBy { it.formattedDate }
 
         // Only a non-search load reflects the real wallet history; a search filters the list and
         // must not flip the AML promo banner (see walletHasTransactions).
         if (appliedSearchQuery.isEmpty()) {
             walletHasTransactions = transactions?.values?.flatten()?.isNotEmpty() == true
+            // A page whose transfers are all swaps filters to nothing; with no visible row the list
+            // can't reach its bottom to page further, so request the next page until a visible row
+            // appears or the source is exhausted (loadNext is a no-op once exhausted).
+            requestNextPageIfAllFilteredOut(items.size, visibleViewItems.size, transactionsService::loadNext)
         }
 
         emitState()

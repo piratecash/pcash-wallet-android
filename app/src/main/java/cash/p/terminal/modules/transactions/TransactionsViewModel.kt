@@ -420,6 +420,12 @@ class TransactionsViewModel(
             if (capturedVersion == accountVersion && capturedFilterVersion == filterVersion) {
                 cachedConvertedItems = allViewItems
                 applyHiddenFilter(scanState)
+                // A page whose transfers are all swaps filters to nothing; with no visible row the
+                // list can't reach its bottom to page further, so request the next page until a
+                // visible row appears or the source is exhausted (loadNext is a no-op once exhausted).
+                if (appliedSearchQuery.isEmpty()) {
+                    requestNextPageIfAllFilteredOut(items.size, allViewItems.size, service::loadNext)
+                }
             }
         }
     }
@@ -762,6 +768,23 @@ internal fun TransactionViewItem.isVisibleFor(type: FilterTransactionType) = whe
     FilterTransactionType.Outgoing -> !isSwap
 
     else -> true
+}
+
+/**
+ * A page whose transfers are all hidden by [isVisibleFor] (e.g. only swaps on the Incoming/Outgoing
+ * filter) yields no visible row. The list requests paging from a rendered row, so an all-filtered
+ * page would stall pagination and older matching transfers would never load. Mirror the
+ * all-spam-page behavior and request the next page; [loadNext] is a no-op once the source is
+ * exhausted, so a genuinely empty result terminates instead of looping.
+ */
+internal inline fun requestNextPageIfAllFilteredOut(
+    rawItemCount: Int,
+    visibleItemCount: Int,
+    loadNext: () -> Unit,
+) {
+    if (rawItemCount > 0 && visibleItemCount == 0) {
+        loadNext()
+    }
 }
 
 enum class FilterTransactionType {
