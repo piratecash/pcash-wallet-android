@@ -10,6 +10,7 @@ import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import cash.p.terminal.R
 import cash.p.terminal.core.App
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,18 +38,21 @@ class MarketWidgetManager {
         }
     }
 
-    fun refresh(glanceId: GlanceId) {
-        coroutineScope.launch {
-            refreshSync(glanceId)
-        }
-    }
-
-    suspend fun refreshSync(glanceId: GlanceId) = withContext(Dispatchers.IO) {
+    suspend fun refreshSync(
+        glanceId: GlanceId,
+        showLoading: Boolean = false
+    ) = withContext(Dispatchers.IO) {
         val context = App.instance
         try {
+            if (showLoading) {
+                val state = getAppWidgetState(context, MarketWidgetStateDefinition, glanceId)
+                setWidgetState(context, glanceId, state.copy(loading = true))
+            }
             executeWithRetry {
                 updateData(glanceId)
             }
+        } catch (exception: CancellationException) {
+            throw exception
         } catch (exception: Exception) {
             var state = getAppWidgetState(context, MarketWidgetStateDefinition, glanceId)
 
@@ -141,6 +145,8 @@ class MarketWidgetManager {
             try {
                 call.invoke()
                 break
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 delay(2000)
 

@@ -25,7 +25,6 @@ import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
-import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
@@ -328,12 +327,7 @@ class UpdateMarketAction : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        updateAppWidgetState(context, MarketWidgetStateDefinition, glanceId) { state ->
-            state.copy(loading = true)
-        }
-        MarketWidget().update(context, glanceId)
-
-        App.marketWidgetManager.refresh(glanceId)
+        MarketWidgetWorker.enqueueRefresh(context, glanceId)
     }
 }
 

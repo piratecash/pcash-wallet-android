@@ -35,7 +35,6 @@ import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import cash.p.terminal.R
-import cash.p.terminal.core.App
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellSingleLineLawrenceSection
@@ -144,8 +143,8 @@ class MarketWidgetConfigurationActivity : AppCompatActivity() {
                     it.copy(widgetId = appWidgetId, type = selectedType)
                 }
                 MarketWidget().update(context, glanceId)
-                App.marketWidgetManager.refresh(glanceId)
-                MarketWidgetWorker.enqueueWork(App.instance)
+                MarketWidgetWorker.enqueueRefresh(context, glanceId)
+                MarketWidgetWorker.enqueuePeriodicRefresh(context)
             }
 
             val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
