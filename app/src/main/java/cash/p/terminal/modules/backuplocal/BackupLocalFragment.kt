@@ -16,7 +16,7 @@ import cash.p.terminal.modules.backuplocal.password.LocalBackupPasswordScreen
 import cash.p.terminal.modules.backuplocal.terms.LocalBackupTermsScreen
 import cash.p.terminal.ui_compose.getInput
 
-class BackupLocalFragment : BaseComposeFragment() {
+class BackupLocalFragment : BaseComposeFragment(screenshotEnabled = false) {
 
     @Composable
     override fun GetContent(navController: NavController) {
