@@ -37,6 +37,13 @@ class QRScannerFragment : BaseComposeFragment() {
     private val tonConnectManager: TonConnectManager by inject()
     private val cardSdkConfigRepository: CardSdkConfigRepository by inject()
 
+    override fun onStart() {
+        super.onStart()
+        // Samsung can silently disable reader mode when CameraX starts. Disable it explicitly first
+        // so Tangem's internal state stays in sync with Android.
+        cardSdkConfigRepository.disableReaderModeForQrScanner()
+    }
+
     @Composable
     override fun GetContent(navController: NavController) {
         // Cache input to survive configuration changes and returning from gallery picker
@@ -118,8 +125,6 @@ class QRScannerFragment : BaseComposeFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Using the camera can silently disable NFC reader mode outside the Activity lifecycle on
-        // some devices (e.g. Samsung), leaving a Tangem card unreadable on the next sign. Restore it.
-        cardSdkConfigRepository.forceEnableReaderMode()
+        cardSdkConfigRepository.restoreReaderModeAfterQrScanner()
     }
 }
