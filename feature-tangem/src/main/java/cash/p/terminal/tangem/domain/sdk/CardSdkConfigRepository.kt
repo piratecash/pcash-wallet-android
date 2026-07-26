@@ -10,6 +10,8 @@ import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
 class CardSdkConfigRepository(
@@ -18,7 +20,8 @@ class CardSdkConfigRepository(
     private val accountManager: IAccountManager
 ) {
 
-    private var readerModeRestoreJob: Job? = null
+    private val readerModeTransitionMutex = Mutex()
+    private var readerModeTransitionJob: Job? = null
 
     val sdk: TangemSdk
         get() = cardSdkProvider.sdk
@@ -44,26 +47,43 @@ class CardSdkConfigRepository(
     }
 
     fun disableReaderModeForQrScanner() {
-        cancelReaderModeRestore()
+        val transitionWasActive = cancelReaderModeTransition()
         runIfHardwareCardPresent {
-            updateReaderMode("forceDisableReaderMode", TangemSdk::forceDisableReaderMode)
-        }
-    }
-
-    fun restoreReaderModeAfterQrScanner() {
-        cancelReaderModeRestore()
-        runIfHardwareCardPresent {
-            readerModeRestoreJob = dispatcherProvider.applicationScope.launch {
-                // Some devices cannot enable reader mode until CameraX teardown and navigation finish.
-                delay(READER_MODE_RESTORE_DELAY)
-                updateReaderMode("forceEnableReaderMode", TangemSdk::forceEnableReaderMode)
+            disableReaderMode()
+            if (transitionWasActive) {
+                readerModeTransitionJob = dispatcherProvider.applicationScope.launch {
+                    readerModeTransitionMutex.withLock {
+                        // SDK enable is blocking, so cancellation may need a final disable afterward.
+                        disableReaderMode()
+                    }
+                }
             }
         }
     }
 
-    private fun cancelReaderModeRestore() {
-        readerModeRestoreJob?.cancel()
-        readerModeRestoreJob = null
+    fun restoreReaderModeAfterQrScanner() {
+        cancelReaderModeTransition()
+        runIfHardwareCardPresent {
+            readerModeTransitionJob = dispatcherProvider.applicationScope.launch {
+                // Some devices cannot enable reader mode until CameraX teardown and navigation finish.
+                delay(READER_MODE_RESTORE_DELAY)
+                readerModeTransitionMutex.withLock {
+                    updateReaderMode("forceEnableReaderMode", TangemSdk::forceEnableReaderMode)
+                }
+            }
+        }
+    }
+
+    private fun cancelReaderModeTransition(): Boolean {
+        val transitionJob = readerModeTransitionJob ?: return false
+        val wasActive = transitionJob.isActive
+        transitionJob.cancel()
+        readerModeTransitionJob = null
+        return wasActive
+    }
+
+    private fun disableReaderMode() {
+        updateReaderMode("forceDisableReaderMode", TangemSdk::forceDisableReaderMode)
     }
 
     private inline fun runIfHardwareCardPresent(action: () -> Unit) {
