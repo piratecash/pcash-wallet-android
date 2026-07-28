@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import cash.z.ecc.android.sdk.ext.collectWith
 import cash.p.terminal.R
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.trezor.domain.TrezorCancelledException
 import cash.p.terminal.core.EvmError
 import cash.p.terminal.core.HSCaution
@@ -91,7 +92,7 @@ class SendSolanaViewModel(
             payloadEncoder = offlineTransactionPayloadEncoder,
             repository = offlineSignedTransactionRepository,
             cautionFactory = ::createCaution,
-            isSilentCancellation = { it is TrezorCancelledException || it.isHardwareWalletUserCancelled() },
+            isSilentCancellation = { it.isHardwareWalletCancelled() },
         )
     }
 

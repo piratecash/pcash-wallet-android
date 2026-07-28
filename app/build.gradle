@@ -127,16 +127,6 @@ android {
         }
     }
 
-    signingConfigs {
-        appCenter {
-            storeFile file("./test.keystore")
-            storePassword "testKeystore123"
-
-            keyAlias "testKeystore"
-            keyPassword "testKeystore123"
-        }
-    }
-
     dependenciesInfo {
         // Disables dependency metadata when building APKs.
         includeInApk = false
@@ -166,14 +156,6 @@ android {
             resValue "string", "alphaAmlBaseUrl", "https://api.alpha-aml.com"
         }
 
-        appcenterdebug {
-            initWith debug
-            defaultConfig.versionCode System.getenv("BUILD_NUMBER")?.toInteger() ?: defaultConfig.versionCode
-            applicationIdSuffix ".dev.appcenter"
-            signingConfig signingConfigs.appCenter
-            matchingFallbacks = ['debug']
-        }
-
         release {
             debuggable false
             minifyEnabled false
@@ -195,15 +177,6 @@ android {
             resValue "string", "chainalysisBaseUrl", "https://public.chainalysis.com/api/v1/"
             resValue "string", "hashDitBaseUrl", "https://service.hashdit.io/v2/hashdit/"
             resValue "string", "alphaAmlBaseUrl", "https://api.alpha-aml.com"
-        }
-
-        appcenterrelease {
-            initWith release
-            defaultConfig.versionCode System.getenv("BUILD_NUMBER")?.toInteger() ?: defaultConfig.versionCode
-            applicationIdSuffix ".appcenter"
-            buildConfigField "String", "PREMIUM_API_BASE_URL", "\"https://cash.p.cash/api/\""
-            signingConfig signingConfigs.appCenter
-            matchingFallbacks = ['release']
         }
 
         // Local-only, DISPOSABLE sandbox for baseline-profile generation.
@@ -421,7 +394,6 @@ dependencies {
     implementation libs.androidx.work.rxjava2
 
     def leakCanary = libs.leakcanary.android
-    appcenterdebugImplementation leakCanary
     debugImplementation leakCanary
 
     // Wallet kits

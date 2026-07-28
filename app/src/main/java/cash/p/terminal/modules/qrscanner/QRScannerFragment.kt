@@ -37,6 +37,13 @@ class QRScannerFragment : BaseComposeFragment() {
     private val tonConnectManager: TonConnectManager by inject()
     private val cardSdkConfigRepository: CardSdkConfigRepository by inject()
 
+    override fun onStart() {
+        super.onStart()
+        // Samsung can silently disable reader mode when CameraX starts. Disable it explicitly first
+        // so Tangem's internal state stays in sync with Android.
+        cardSdkConfigRepository.disableReaderModeForQrScanner()
+    }
+
     @Composable
     override fun GetContent(navController: NavController) {
         // Cache input to survive configuration changes and returning from gallery picker
@@ -80,7 +87,8 @@ class QRScannerFragment : BaseComposeFragment() {
     }
 
     private fun navigateForScanResult(decoded: String, navController: NavController) {
-        if (decoded.toUri().isTonConnectDeeplink()) {
+        val uri = decoded.toUri()
+        if (uri.isTonConnectDeeplink()) {
             // TonConnectManager.handle emits to dappRequestFlow, which MainActivity
             // observes and opens tcNewFragment on this nav controller.
             // Launch on the activity scope so the suspending network call survives
@@ -94,18 +102,27 @@ class QRScannerFragment : BaseComposeFragment() {
 
         val deeplinkPage = deeplinkParser.parse(decoded)
 
-        if (deeplinkPage != null) {
-            // Pop QR scanner first, then navigate to deeplink destination
-            navController.popBackStack()
-            if (deeplinkPage.navigationId == R.id.connectMiniAppFragment) {
-                navController.slideFromBottom(deeplinkPage.navigationId, deeplinkPage.input)
-            } else {
-                navController.slideFromRight(deeplinkPage.navigationId, deeplinkPage.input)
+        when {
+            deeplinkPage != null -> {
+                // Pop QR scanner first, then navigate to deeplink destination
+                navController.popBackStack()
+                if (deeplinkPage.navigationId == R.id.connectMiniAppFragment) {
+                    navController.slideFromBottom(deeplinkPage.navigationId, deeplinkPage.input)
+                } else {
+                    navController.slideFromRight(deeplinkPage.navigationId, deeplinkPage.input)
+                }
             }
-        } else {
-            // Return result to caller as before
-            navController.setNavigationResultX(QrScannerResult(decoded))
-            navController.popBackStack()
+
+            deeplinkParser.isHiddenAuthLink(uri) -> {
+                // pcash://auth carries a mini-app connect JWT; that flow is hidden until SWAP6.
+                // Swallow it so the credential never reaches the caller as generic scanner text.
+                navController.popBackStack()
+            }
+
+            else -> {
+                navController.setNavigationResultX(QrScannerResult(decoded))
+                navController.popBackStack()
+            }
         }
     }
 
@@ -118,8 +135,6 @@ class QRScannerFragment : BaseComposeFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Using the camera can silently disable NFC reader mode outside the Activity lifecycle on
-        // some devices (e.g. Samsung), leaving a Tangem card unreadable on the next sign. Restore it.
-        cardSdkConfigRepository.forceEnableReaderMode()
+        cardSdkConfigRepository.restoreReaderModeAfterQrScanner()
     }
 }

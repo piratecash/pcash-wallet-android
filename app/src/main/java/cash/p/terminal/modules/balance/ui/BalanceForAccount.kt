@@ -45,6 +45,7 @@ import cash.p.terminal.modules.balance.AccountViewItem
 import cash.p.terminal.modules.balance.BalanceModule
 import cash.p.terminal.modules.balance.BalanceViewItem2
 import cash.p.terminal.modules.balance.BalanceViewModel
+import cash.p.terminal.modules.balance.TotalUIState
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.transactions.TransactionItem
@@ -106,7 +107,12 @@ fun BalanceForAccount(
         topBar = {
             AppBar(
                 title = {
-                    BalanceTitleRow(navController, accountViewItem.name)
+                    val walletName = if (viewModel.totalUiState is TotalUIState.Hidden) {
+                        "*****"
+                    } else {
+                        accountViewItem.name
+                    }
+                    BalanceTitleRow(navController, walletName)
                 },
                 menuItems = buildList {
                     if (accountViewItem.isCoinManagerEnabled) {

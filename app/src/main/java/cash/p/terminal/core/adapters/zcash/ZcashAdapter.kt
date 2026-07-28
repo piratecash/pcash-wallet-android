@@ -2,6 +2,7 @@ package cash.p.terminal.core.adapters.zcash
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabaseCorruptException
+import android.util.Log
 import cash.p.terminal.core.App
 import cash.p.terminal.core.BroadcastRawTransactionResult
 import cash.p.terminal.core.BroadcastRawTransactionStatus
@@ -171,6 +172,10 @@ class ZcashAdapter(
 
     private var balanceCheckJob: Job? = null
     private val balanceCheckMutex = Mutex()
+
+    val poolName: String
+        get() = poolLabel(addressSpecTyped)
+
     private var importUfvkError : Throwable? = null
 
     private val feeLock = Any()
@@ -189,6 +194,9 @@ class ZcashAdapter(
         // NU6.3 (Ironwood) activation heights
         private const val IRONWOOD_ACTIVATION_HEIGHT_MAINNET = 3_428_143L
         private const val IRONWOOD_ACTIVATION_HEIGHT_TESTNET = 4_134_000L
+
+        // logcat tag for the stuck-pending diagnostic; filter with `adb logcat -s ZcashDiag`.
+        private const val DIAG_TAG = "ZcashDiag"
         private val DATABASE_CORRUPTION_MESSAGES = listOf(
             "database disk image is malformed",
             "file is not a database",
@@ -540,7 +548,7 @@ class ZcashAdapter(
         get() {
             val statusInfo = LinkedHashMap<String, Any>()
             statusInfo["Last Block Info"] = lastBlockInfo ?: ""
-            statusInfo["Sync State"] = syncState
+            statusInfo["Sync State"] = safeSyncStateLabel(syncState)
             statusInfo["Birthday Height"] = accountBirthday
             return statusInfo
         }
@@ -549,36 +557,77 @@ class ZcashAdapter(
         get() = synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)
 
     private val walletBalance: WalletBalance
-        get() {
-            return when (addressSpecTyped) {
-                null,
-                AddressSpecType.Shielded -> accountBalance?.sapling
-                    ?: WalletBalance(Zatoshi(0), Zatoshi(0), Zatoshi(0))
+        get() = poolWalletBalanceOrNull(synchronizer)
+            ?: WalletBalance(Zatoshi(0), Zatoshi(0), Zatoshi(0))
 
-                AddressSpecType.Transparent -> WalletBalance(
-                    available = accountBalance?.unshielded ?: Zatoshi(0),
-                    changePending = Zatoshi(0),
-                    valuePending = Zatoshi(0)
-                )
+    /**
+     * The pool's balance, or `null` when the SDK has not published any balances for this account yet.
+     * `null` is kept distinct from a real zero so the diagnostic never reports "not loaded" as empty;
+     * the UI-facing [walletBalance] still substitutes zero as before.
+     */
+    private fun poolWalletBalanceOrNull(sync: Synchronizer): WalletBalance? {
+        val accountBalance = sync.walletBalances.value?.get(zcashAccount?.accountUuid) ?: return null
+        return when (addressSpecTyped) {
+            null,
+            AddressSpecType.Shielded -> accountBalance.sapling
 
-                // After NU6.3 activation the turnstile forbids adding value to Orchard, so change
-                // and payments to Orchard recipients are built in an Ironwood bundle. A unified
-                // address therefore holds funds in both pools and its balance is their sum.
-                AddressSpecType.Unified -> accountBalance
-                    ?.let { balance ->
-                        WalletBalance(
-                            available = balance.orchard.available + balance.ironwood.available,
-                            changePending = balance.orchard.changePending +
-                                balance.ironwood.changePending,
-                            valuePending = balance.orchard.valuePending + balance.ironwood.valuePending
-                        )
-                    }
-                    ?: WalletBalance(Zatoshi(0), Zatoshi(0), Zatoshi(0))
-            }
+            AddressSpecType.Transparent -> WalletBalance(
+                available = accountBalance.unshielded,
+                changePending = Zatoshi(0),
+                valuePending = Zatoshi(0)
+            )
+
+            // After NU6.3 activation the turnstile forbids adding value to Orchard, so change
+            // and payments to Orchard recipients are built in an Ironwood bundle. A unified
+            // address therefore holds funds in both pools and its balance is their sum.
+            AddressSpecType.Unified -> WalletBalance(
+                available = accountBalance.orchard.available + accountBalance.ironwood.available,
+                changePending = accountBalance.orchard.changePending +
+                    accountBalance.ironwood.changePending,
+                valuePending = accountBalance.orchard.valuePending + accountBalance.ironwood.valuePending
+            )
         }
+    }
 
     override val balanceUpdatedFlow: Flow<Unit>
         get() = balanceUpdatedSubject.toFlowable(BackpressureStrategy.BUFFER).asFlow()
+
+    private fun readDiagSnapshot(): ZcashDiagSnapshot {
+        // Capture one synchronizer generation so processor and balance fields never mix generations.
+        val sync = synchronizer as SdkSynchronizer
+        val processor = sync.processor
+        val processorInfo = processor.processorInfo.value
+        val range = processorInfo.overallSyncRange
+        val rangeState = when {
+            range == null -> SyncRangeState.Unknown
+            range.isEmpty() -> SyncRangeState.Empty
+            else -> SyncRangeState.NonEmpty
+        }
+        val balance = poolWalletBalanceOrNull(sync)
+        return ZcashDiagSnapshot(
+            pool = poolName,
+            syncStateDiscriminator = syncState::class.simpleName ?: "Unknown",
+            chainTipHeight = processor.networkHeight.value?.value,
+            fullyScannedHeight = processor.fullyScannedHeight.value?.value,
+            scanProgressPercent = processor.scanProgress.value.toPercentage(),
+            recoveryProgressPercent = processor.recoveryProgress.value?.toPercentage(),
+            overallSyncRangeState = rangeState,
+            overallSyncRangeStart = range?.start?.value,
+            overallSyncRangeEnd = range?.endInclusive?.value,
+            firstUnenhancedHeight = processorInfo.firstUnenhancedHeight?.value,
+            available = balance?.available?.convertZatoshiToZec(DECIMAL_COUNT),
+            changePending = balance?.changePending?.convertZatoshiToZec(DECIMAL_COUNT),
+            valuePending = balance?.valuePending?.convertZatoshiToZec(DECIMAL_COUNT),
+        )
+    }
+
+    // Privacy-safe diagnostic line for the stuck-pending investigation; only coarse
+    // booleans/buckets and public block heights are logged, never amounts/keys/addresses.
+    private fun logDiag() {
+        // Best-effort: a diagnostic must never propagate into the flow collectors
+        // (onStatus/onProcessorInfo/onBalance) and kill sync or self-heal restart.
+        tryOrNull { Log.d(DIAG_TAG, diagFields(readDiagSnapshot()).toString()) }
+    }
 
     override val explorerTitle: String
         get() = "blockchair.com"
@@ -1091,6 +1140,7 @@ class ZcashAdapter(
             Synchronizer.Status.SYNCED -> resetRestart()
             else -> {}
         }
+        logDiag()
     }
 
     private fun startOneTimeAddressBalanceCheck() {
@@ -1116,6 +1166,7 @@ class ZcashAdapter(
         processorInfo.networkBlockHeight?.value?.let { lastNetworkHeight = it }
         updateSyncingState()
         lastBlockUpdatedSubject.onNext(Unit)
+        logDiag()
     }
 
     // ZCash SDK 2.4 reports `synchronizer.progress` as a fraction over commitment-tree leaves
@@ -1153,6 +1204,7 @@ class ZcashAdapter(
             scheduleFeeRecalculation()
         }
         startOneTimeAddressBalanceCheck()
+        logDiag()
     }
 
     private suspend fun checkTransparentAddressesBalance() = withContext(dispatcherProvider.io) {

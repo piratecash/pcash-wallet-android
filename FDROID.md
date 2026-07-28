@@ -48,25 +48,7 @@ Builds:
 
 ## Building Locally
 
-### Method 1: Docker Scripts (Recommended)
-
-The docker scripts in this repository automatically pass `-Pfdroid=true`:
-
-```bash
-# Navigate to docker folder
-cd docker
-
-# Build APK
-./build-apk.sh [VERSION_TAG] [KEYSTORE_PATH] [KEYSTORE_PASSWORD]
-
-# Example
-./build-apk.sh 0.51.4 ~/keys/release.keystore mypassword
-
-# Verify reproducibility against downloaded APK
-./test.sh /path/to/downloaded.apk
-```
-
-### Method 2: F-Droid's Docker Image
+### Method 1: F-Droid's Docker Image
 
 Replicates F-Droid's exact build environment:
 
@@ -86,7 +68,7 @@ docker run --rm \
 ls -la app/build/outputs/apk/release/
 ```
 
-### Method 3: Manual Build
+### Method 2: Manual Build
 
 ```bash
 # Clone and checkout version
@@ -115,13 +97,6 @@ unzip -l app/build/outputs/apk/release/*.apk | grep baseline
 ```
 
 ### Compare APKs
-
-Using the test script:
-
-```bash
-cd docker
-./test.sh /path/to/fdroid-downloaded.apk
-```
 
 Manual comparison with apktool:
 

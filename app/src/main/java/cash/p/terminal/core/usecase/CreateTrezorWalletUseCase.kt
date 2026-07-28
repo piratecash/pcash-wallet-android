@@ -32,17 +32,21 @@ internal class CreateTrezorWalletUseCase(
         val read = trezorClient.connect {
             val features = getFeatures()
             val model = TrezorModel.fromInternalModel(features.internalModel)
-            val defaultTokens = TrezorModelSupport.getDefaultTokenQueries(model)
+            val defaultTokens = TrezorModelSupport.filterByFirmwareCapabilities(
+                TrezorModelSupport.getDefaultTokenQueries(model),
+                features
+            )
             val specs = TrezorPublicKeySpecs.buildQuerySpecs(defaultTokens)
             val uniqueRequests = specs.map { it.request }.distinct()
             val results = getPublicKeys(uniqueRequests)
             DeviceRead(features, defaultTokens, specs, uniqueRequests.zip(results).toMap())
         }
 
-        val model = TrezorModel.fromInternalModel(read.features.internalModel)
         val accountType = AccountType.TrezorDevice(
             deviceId = read.features.deviceId ?: "unknown",
-            model = model?.id ?: "unknown",
+            // Persist the raw reported internal model (e.g. "T2B1"/"T3B1"); it round-trips through
+            // TrezorModel.fromInternalModel when the device is offline.
+            model = read.features.internalModel ?: "unknown",
             firmwareVersion = read.features.firmwareVersion,
             walletPublicKey = ""
         )

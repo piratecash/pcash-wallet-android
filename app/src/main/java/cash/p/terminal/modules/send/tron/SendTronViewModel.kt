@@ -30,7 +30,7 @@ import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
 import cash.p.terminal.modules.send.offline.OfflineSigningController
 import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
-import cash.p.terminal.tangem.domain.isHardwareWalletUserCancelled
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.IAdapterManager
@@ -91,7 +91,7 @@ class SendTronViewModel(
             payloadEncoder = offlineTransactionPayloadEncoder,
             repository = offlineSignedTransactionRepository,
             cautionFactory = ::createCaution,
-            isSilentCancellation = { it.isHardwareWalletUserCancelled() },
+            isSilentCancellation = { it.isHardwareWalletCancelled() },
         )
     }
 
@@ -329,7 +329,7 @@ class SendTronViewModel(
 
             recentAddressManager.setRecentAddress(address, BlockchainType.Tron)
         } catch (e: Throwable) {
-            if (e.isHardwareWalletUserCancelled()) {
+            if (e.isHardwareWalletCancelled()) {
                 sendResult = null
                 logger.info("user cancelled")
                 return@withContext

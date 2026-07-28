@@ -142,7 +142,12 @@ internal fun ManageWalletsScreen(
                             icon = R.drawable.ic_add_yellow,
                             onClick = {
                                 navController.slideFromRightForResult<AddTokenFragment.Result>(R.id.addTokenFragment) { result ->
-                                    if (result.success) {
+                                    val tokenToEnable = result.tokenToEnable
+                                    if (tokenToEnable != null) {
+                                        // Hardware wallet: enqueue the token for the scan pipeline
+                                        // (shows "Scan card to add") and stay on this screen.
+                                        manageWalletsCallback.enable(tokenToEnable)
+                                    } else if (result.success) {
                                         navController.popBackStack(R.id.mainFragment, false)
                                     }
                                 }

@@ -519,7 +519,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             AppVersionManager(systemInfoManager, localStorage).apply { storeAppVersion() }
 
             if (MarketWidgetWorker.hasEnabledWidgets(instance)) {
-                MarketWidgetWorker.enqueueWork(instance)
+                MarketWidgetWorker.enqueuePeriodicRefresh(instance)
             } else {
                 MarketWidgetWorker.cancel(instance)
             }
