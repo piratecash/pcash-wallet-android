@@ -2185,4 +2185,13 @@
     <string name="update_interval_day_full">يوم واحد</string>
     <string name="update_interval_week_full">أسبوع واحد</string>
     <string name="update_interval_month_full">شهر واحد</string>
+    <string name="balance_zcash_migration_required">الترحيل مطلوب</string>
+    <string name="balance_zcash_migration_title">الترحيل إلى Ironwood</string>
+    <string name="balance_zcash_migration_description">ترقية شبكة Zcash:\nانقل ZEC الخاص بك من تجمّع Orchard إلى تجمّع Ironwood الجديد. أموالك آمنة.</string>
+    <string name="balance_zcash_migration_migrate">ترحيل</string>
+    <string name="zcash_migration_confirm_title">تأكيد الترحيل</string>
+    <string name="transactions_migrate">ترحيل</string>
+    <string name="transactions_migrate_to_ironwood">إلى Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">مبلغ مرئي للعامة</string>
+    <string name="zcash_migration_publicly_visible_description">يتطلب نقل الأموال بين التجمّعات أن يكون المبلغ المُرحَّل مرئيًا للعامة على البلوكشين. يبقى المُرسِل والمُستلِم وعناوينك خاصة.</string>
 </resources>

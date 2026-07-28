@@ -15,6 +15,9 @@ class ZcashTransaction : Comparable<ZcashTransaction> {
     val minedHeight: Long?
     val timestamp: Long
     val value: Zatoshi
+
+    /** Everything this account received, change included — the moved amount of a self-transfer. */
+    val totalReceived: Zatoshi
     val feePaid: Zatoshi?
     val memo: String?
     val failed: Boolean
@@ -34,6 +37,7 @@ class ZcashTransaction : Comparable<ZcashTransaction> {
                 else -> 0
             }
             value = it.netValue
+            totalReceived = it.totalReceived
             feePaid = it.feePaid
             this.memo = memo
             failed = false

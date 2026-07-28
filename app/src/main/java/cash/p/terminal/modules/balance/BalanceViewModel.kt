@@ -9,6 +9,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ICoinManager
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.adapters.zcash.ZcashAddressValidator
 import cash.p.terminal.core.factories.uriScheme
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
@@ -39,6 +40,7 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import cash.p.terminal.wallet.BalanceSortType
 import cash.p.terminal.wallet.IAccountManager
+import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.balance.BalanceItem
 import cash.p.terminal.wallet.balance.BalanceViewType
@@ -93,8 +95,11 @@ class BalanceViewModel(
     private var openOfflineBroadcast: String? = null
     private var errorMessage: String? = null
     private var balanceTabButtonsEnabled = localStorage.balanceTabButtonsEnabled
+    private var zcashMigrationAlertWallet: Wallet? = null
+    private val zcashMigrationAlertDismissedAccountIds = mutableSetOf<String>()
 
     private val accountManager: IAccountManager by inject(IAccountManager::class.java)
+    private val adapterManager: IAdapterManager by inject(IAdapterManager::class.java)
     private val coinManager: ICoinManager by inject(ICoinManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
     private val seedPhraseQrCrypto: SeedPhraseQrCrypto by inject(SeedPhraseQrCrypto::class.java)
@@ -139,6 +144,9 @@ class BalanceViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             accountManager.activeAccountStateFlow.collect {
                 setupUI()
+                // Retracts a migration offer belonging to the previous account right away instead
+                // of leaving it on screen until some later emission happens to refresh the state.
+                emitState()
             }
         }
 
@@ -153,6 +161,7 @@ class BalanceViewModel(
                         )
                     })
                     detectPirateAndCosanta(items)
+                    checkZcashMigrationRequired(items)
                     refreshViewItems(items)
                 }
         }
@@ -251,6 +260,10 @@ class BalanceViewModel(
         singlePendingSwapId = singlePendingSwapId,
         singlePayCoreSwapDate = singlePayCoreSwapDate,
         singlePayCoreSwapLoading = payCoreNavigationInFlight,
+        // The alert signs and pays a fee from its own account, so it must never be shown for
+        // another one - the account can change while the balance collector is selecting a wallet.
+        zcashMigrationAlertWallet = zcashMigrationAlertWallet
+            ?.takeIf { it.account.id == accountManager.activeAccount?.id },
     )
 
     private fun handleUpdatedBalanceViewType(balanceViewType: BalanceViewType) {
@@ -328,6 +341,39 @@ class BalanceViewModel(
     private fun detectPirateAndCosanta(balanceItems: List<BalanceItem>?) {
         showStackingForWatchAccount =
             balanceItems?.any { it.wallet.isStakingWallet() } ?: false
+    }
+
+    /** Offers the Orchard -> Ironwood migration once per session, and only after a backup. */
+    private fun checkZcashMigrationRequired(balanceItems: List<BalanceItem>?) {
+        val activeAccountId = accountManager.activeAccount?.id ?: return
+        if (activeAccountId in zcashMigrationAlertDismissedAccountIds) return
+        if (zcashMigrationAlertWallet?.account?.id == activeAccountId) return
+
+        zcashMigrationAlertWallet = balanceItems.orEmpty()
+            .map { it.wallet }
+            .filter {
+                it.account.id == activeAccountId && it.token.blockchainType == BlockchainType.Zcash
+            }
+            .firstOrNull {
+                it.account.isBackedUpOrNotRequired() &&
+                        adapterManager.getAdapterForWallet<ZcashAdapter>(it)
+                            ?.ironwoodMigrationRequiredBalance != null
+            } ?: return
+
+        emitState()
+    }
+
+    /**
+     * Takes the wallet whose offer was on screen instead of reading the pending one: the active
+     * account can change between the emission that raised the offer and the tap that closes it,
+     * and dismissing must consume the offer that was shown, never the one that replaced it.
+     */
+    fun zcashMigrationAlertHandled(wallet: Wallet) {
+        zcashMigrationAlertDismissedAccountIds += wallet.account.id
+        if (zcashMigrationAlertWallet?.account?.id == wallet.account.id) {
+            zcashMigrationAlertWallet = null
+        }
+        emitState()
     }
 
     fun onHandleRoute() {
@@ -627,6 +673,7 @@ data class BalanceUiState(
     val singlePendingSwapId: String? = null,
     val singlePayCoreSwapDate: Long? = null,
     val singlePayCoreSwapLoading: Boolean = false,
+    val zcashMigrationAlertWallet: Wallet? = null,
 )
 
 data class OpenSendTokenSelect(

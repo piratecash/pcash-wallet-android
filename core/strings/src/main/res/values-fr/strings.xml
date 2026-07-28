@@ -2160,4 +2160,13 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="update_interval_day_full">1 jour</string>
     <string name="update_interval_week_full">1 semaine</string>
     <string name="update_interval_month_full">1 mois</string>
+    <string name="balance_zcash_migration_required">Migration requise</string>
+    <string name="balance_zcash_migration_title">Migration vers Ironwood</string>
+    <string name="balance_zcash_migration_description">Mise à niveau du réseau Zcash :\nTransférez vos ZEC du pool Orchard vers le nouveau pool Ironwood. Vos fonds sont en sécurité.</string>
+    <string name="balance_zcash_migration_migrate">Migrer</string>
+    <string name="zcash_migration_confirm_title">Confirmer la migration</string>
+    <string name="transactions_migrate">Migrer</string>
+    <string name="transactions_migrate_to_ironwood">vers Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Montant visible publiquement</string>
+    <string name="zcash_migration_publicly_visible_description">Le déplacement de fonds entre les pools nécessite que le montant migré soit visible publiquement sur la blockchain. L\'expéditeur, le destinataire et vos adresses restent privés.</string>
 </resources>

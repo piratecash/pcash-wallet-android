@@ -136,6 +136,7 @@ class TokenBalanceModule {
         val displayDiffOptionType: DisplayDiffOptionType = DisplayDiffOptionType.BOTH,
         val isRoundingAmount: Boolean = false,
         val isShowShieldFunds: Boolean = false,
+        val zcashMigrationRequiredAmount: String? = null,
         val networkFeeWarning: NetworkFeeWarningBannerData? = null,
         val syncing: Boolean = true,
         val transactionFiltersEnabled: Boolean = false,

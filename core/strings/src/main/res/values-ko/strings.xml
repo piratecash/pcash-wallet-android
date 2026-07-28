@@ -2156,4 +2156,13 @@
     <string name="update_interval_day_full">1일</string>
     <string name="update_interval_week_full">1주일</string>
     <string name="update_interval_month_full">1개월</string>
+    <string name="balance_zcash_migration_required">마이그레이션 필요</string>
+    <string name="balance_zcash_migration_title">Ironwood로 마이그레이션</string>
+    <string name="balance_zcash_migration_description">Zcash 네트워크 업그레이드:\nZEC를 Orchard 풀에서 새로운 Ironwood 풀로 이동하세요. 자금은 안전합니다.</string>
+    <string name="balance_zcash_migration_migrate">마이그레이션</string>
+    <string name="zcash_migration_confirm_title">마이그레이션 확인</string>
+    <string name="transactions_migrate">마이그레이션</string>
+    <string name="transactions_migrate_to_ironwood">Ironwood로</string>
+    <string name="zcash_migration_publicly_visible_title">공개적으로 표시되는 금액</string>
+    <string name="zcash_migration_publicly_visible_description">풀 간 자금 이동을 위해서는 마이그레이션된 금액이 블록체인에 공개적으로 표시되어야 합니다. 발신자, 수신자 및 주소는 비공개 상태로 유지됩니다.</string>
 </resources>

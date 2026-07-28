@@ -212,6 +212,8 @@ class TokenBalanceViewModelTest : KoinTest {
             createMockTransactionViewItem(firstArg<TransactionItem>().record.uid)
         }
         coEvery { adapterManager.awaitAdapterForWallet<IReceiveAdapter>(any(), any()) } returns null
+        // The relaxed mock would return a bare Object, which fails the caller's unchecked cast.
+        every { adapterManager.getAdapterForWallet<Any>(any()) } returns null
     }
 
     @After
@@ -847,6 +849,7 @@ class TokenBalanceViewModelTest : KoinTest {
         val txId = FirstClassByteArray(ByteArray(32) { it.toByte() })
         val zcashAdapter = mockk<ZcashAdapter> {
             coEvery { proposeShielding() } returns txId
+            every { ironwoodMigrationRequiredBalance } returns null
         }
         every { adapterManager.getAdapterForWallet<ZcashAdapter>(testWallet) } returns zcashAdapter
 

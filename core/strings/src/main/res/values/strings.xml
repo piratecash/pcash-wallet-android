@@ -2604,4 +2604,13 @@ Proceed only if you\'re sure.</string>
     <string name="update_source_google_play">Play Market</string>
     <string name="update_source_fdroid">F-Droid</string>
     <string name="update_source_github">GitHub</string>
+    <string name="balance_zcash_migration_required">Migration Required</string>
+    <string name="balance_zcash_migration_title">Migration to Ironwood</string>
+    <string name="balance_zcash_migration_description">Zcash network upgrade:\nMove your ZEC from Orchard to the new Ironwood pool. Your funds are safe.</string>
+    <string name="balance_zcash_migration_migrate">Migrate</string>
+    <string name="zcash_migration_confirm_title">Confirm Migration</string>
+    <string name="transactions_migrate">Migrate</string>
+    <string name="transactions_migrate_to_ironwood">to Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Publicly Visible Amount</string>
+    <string name="zcash_migration_publicly_visible_description">Moving funds between pools requires the migrated amount to be publicly visible on the blockchain. The sender, recipient and your addresses remain private.</string>
 </resources>

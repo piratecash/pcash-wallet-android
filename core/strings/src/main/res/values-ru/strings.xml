@@ -2340,4 +2340,13 @@
     <string name="update_source_google_play">Play Market</string>
     <string name="update_source_fdroid">F-Droid</string>
     <string name="update_source_github">GitHub</string>
+    <string name="balance_zcash_migration_required">Миграция обязательна</string>
+    <string name="balance_zcash_migration_title">Миграция на Ironwood</string>
+    <string name="balance_zcash_migration_description">Обновление сети Zcash:\nПереместите свои ZEC из пула Orchard в новый пул Ironwood. Ваши средства в безопасности.</string>
+    <string name="balance_zcash_migration_migrate">Перенести</string>
+    <string name="zcash_migration_confirm_title">Подтвердить миграцию</string>
+    <string name="transactions_migrate">Перенести</string>
+    <string name="transactions_migrate_to_ironwood">на Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Публично видимая сумма</string>
+    <string name="zcash_migration_publicly_visible_description">Перемещение средств между пулами требует, чтобы переносимая сумма была публично видна в блокчейне. Отправитель, получатель и ваши адреса остаются приватными.</string>
 </resources>

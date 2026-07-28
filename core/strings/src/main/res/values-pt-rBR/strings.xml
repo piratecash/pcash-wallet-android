@@ -2162,4 +2162,13 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="update_interval_day_full">1 dia</string>
     <string name="update_interval_week_full">1 semana</string>
     <string name="update_interval_month_full">1 mês</string>
+    <string name="balance_zcash_migration_required">Migração obrigatória</string>
+    <string name="balance_zcash_migration_title">Migração para Ironwood</string>
+    <string name="balance_zcash_migration_description">Atualização da rede Zcash:\nMova seu ZEC do pool Orchard para o novo pool Ironwood. Seus fundos estão seguros.</string>
+    <string name="balance_zcash_migration_migrate">Migrar</string>
+    <string name="zcash_migration_confirm_title">Confirmar migração</string>
+    <string name="transactions_migrate">Migrar</string>
+    <string name="transactions_migrate_to_ironwood">para Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Quantidade visível publicamente</string>
+    <string name="zcash_migration_publicly_visible_description">Mover fundos entre pools requer que o valor migrado seja visível publicamente na blockchain. O remetente, destinatário e seus endereços permanecem privados.</string>
 </resources>

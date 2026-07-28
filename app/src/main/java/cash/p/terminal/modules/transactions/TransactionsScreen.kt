@@ -871,7 +871,14 @@ private fun TransactionIconBox(item: TransactionViewItem) {
                 )
             }
 
-            is TransactionViewItem.Icon.ImageResource -> {}
+            is TransactionViewItem.Icon.ImageResource -> {
+                Icon(
+                    modifier = Modifier.size(32.dp),
+                    painter = painterResource(icon.resourceId),
+                    tint = ComposeAppTheme.colors.leah,
+                    contentDescription = null
+                )
+            }
         }
     }
 }

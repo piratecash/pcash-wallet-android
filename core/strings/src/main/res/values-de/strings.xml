@@ -2154,4 +2154,13 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="update_interval_day_full">1 Tag</string>
     <string name="update_interval_week_full">1 Woche</string>
     <string name="update_interval_month_full">1 Monat</string>
+    <string name="balance_zcash_migration_required">Migration erforderlich</string>
+    <string name="balance_zcash_migration_title">Migration zu Ironwood</string>
+    <string name="balance_zcash_migration_description">Zcash-Netzwerk-Upgrade:\nVerschieben Sie Ihre ZEC vom Orchard-Pool zum neuen Ironwood-Pool. Ihre Gelder sind sicher.</string>
+    <string name="balance_zcash_migration_migrate">Migrieren</string>
+    <string name="zcash_migration_confirm_title">Migration bestätigen</string>
+    <string name="transactions_migrate">Migrieren</string>
+    <string name="transactions_migrate_to_ironwood">zu Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Öffentlich sichtbarer Betrag</string>
+    <string name="zcash_migration_publicly_visible_description">Das Verschieben von Geldern zwischen Pools erfordert, dass der migrierte Betrag öffentlich sichtbar auf der Blockchain ist. Absender, Empfänger und Ihre Adressen bleiben privat.</string>
 </resources>

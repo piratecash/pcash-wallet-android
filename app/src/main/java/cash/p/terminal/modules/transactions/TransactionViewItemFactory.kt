@@ -1345,14 +1345,19 @@ class TransactionViewItemFactory(
         lastBlockTimestamp: Long?,
         icon: TransactionViewItem.Icon?
     ): TransactionViewItem {
-        val subtitle = record.to?.firstOrNull()?.let {
-            Translator.getString(
-                R.string.Transactions_To,
-                mapped(it, record.blockchainType)
-            )
-        } ?: "---"
+        val subtitle = when {
+            record.isIronwoodMigration ->
+                Translator.getString(R.string.transactions_migrate_to_ironwood)
 
-        val primaryValue = if (record.sentToSelf) {
+            record.to?.firstOrNull() != null -> Translator.getString(
+                R.string.Transactions_To,
+                mapped(record.to.first(), record.blockchainType)
+            )
+
+            else -> "---"
+        }
+
+        val primaryValue = if (record.sentToSelf || record.isIronwoodMigration) {
             ColoredValue(getCoinString(record.mainValue, true), ColorName.Leah)
         } else {
             getColoredValue(record.mainValue, ColorName.Lucian)
@@ -1372,7 +1377,13 @@ class TransactionViewItemFactory(
         return TransactionViewItem(
             uid = record.uid,
             progress = progress,
-            title = Translator.getString(R.string.Transactions_Send),
+            title = Translator.getString(
+                if (record.isIronwoodMigration) {
+                    R.string.transactions_migrate
+                } else {
+                    R.string.Transactions_Send
+                }
+            ),
             subtitle = subtitle,
             primaryValue = primaryValue,
             secondaryValue = secondaryValue,
@@ -1383,7 +1394,11 @@ class TransactionViewItemFactory(
             doubleSpend = record.conflictingHash != null,
             locked = locked,
             spam = record.spam,
-            icon = icon ?: singleValueIconType(record.mainValue)
+            icon = icon ?: if (record.isIronwoodMigration) {
+                TransactionViewItem.Icon.ImageResource(R.drawable.ic_migrate_24)
+            } else {
+                singleValueIconType(record.mainValue)
+            }
         )
     }
 

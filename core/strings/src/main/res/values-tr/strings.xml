@@ -2163,4 +2163,13 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="update_interval_day_full">1 gün</string>
     <string name="update_interval_week_full">1 hafta</string>
     <string name="update_interval_month_full">1 ay</string>
+    <string name="balance_zcash_migration_required">Geçiş gerekli</string>
+    <string name="balance_zcash_migration_title">Ironwood\'a Geçiş</string>
+    <string name="balance_zcash_migration_description">Zcash ağı yükseltmesi:\nZEC\'inizi Orchard havuzundan yeni Ironwood havuzuna taşıyın. Fonlarınız güvendedir.</string>
+    <string name="balance_zcash_migration_migrate">Geçir</string>
+    <string name="zcash_migration_confirm_title">Geçişi onaylayın</string>
+    <string name="transactions_migrate">Geçir</string>
+    <string name="transactions_migrate_to_ironwood">Ironwood\'a</string>
+    <string name="zcash_migration_publicly_visible_title">Herkese açık görünür tutar</string>
+    <string name="zcash_migration_publicly_visible_description">Havuzlar arasında para transferi, geçirilen tutarın blokzincirde herkese açık şekilde görünür olmasını gerektirir. Gönderici, alıcı ve adresleriniz özel kalır.</string>
 </resources>

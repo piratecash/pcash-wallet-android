@@ -160,6 +160,12 @@ class LocalStorageManager(
             preferences.edit().putStringSet("zcashAccountIds", value).apply()
         }
 
+    override var zcashIronwoodMigrationTxIds: Set<String>
+        get() = preferences.getStringSet("zcashIronwoodMigrationTxIds", setOf()) ?: setOf()
+        set(value) {
+            preferences.edit().putStringSet("zcashIronwoodMigrationTxIds", value).apply()
+        }
+
     override var baseCurrencyCode: String?
         get() = preferences.getString(BASE_CURRENCY_CODE, null)
         set(value) {

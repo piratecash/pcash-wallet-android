@@ -34,6 +34,8 @@ class BitcoinTransactionRecord(
     val replaceable: Boolean = false,
     override val mainValue: TransactionValue = TransactionValue.CoinValue(token, amount),
     val canonicalTransactionHash: String? = null,
+    /** Zcash Orchard -> Ironwood pool migration: a self-transfer shown with its own label. */
+    val isIronwoodMigration: Boolean = false,
 ) : TransactionRecord(
     uid = uid,
     transactionHash = transactionHash,
@@ -76,6 +78,7 @@ class BitcoinTransactionRecord(
             replaceable = replaceable,
             mainValue = TransactionValue.CoinValue(token, amount),
             canonicalTransactionHash = canonicalTransactionHash,
+            isIronwoodMigration = isIronwoodMigration,
         )
     }
 

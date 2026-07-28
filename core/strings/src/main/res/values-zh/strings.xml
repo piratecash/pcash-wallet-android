@@ -2147,4 +2147,13 @@
     <string name="update_interval_day_full">1天</string>
     <string name="update_interval_week_full">1周</string>
     <string name="update_interval_month_full">1个月</string>
+    <string name="balance_zcash_migration_required">需要迁移</string>
+    <string name="balance_zcash_migration_title">迁移至 Ironwood</string>
+    <string name="balance_zcash_migration_description">Zcash 网络升级：\n将您的 ZEC 从 Orchard 池迁移至新的 Ironwood 池。您的资金是安全的。</string>
+    <string name="balance_zcash_migration_migrate">迁移</string>
+    <string name="zcash_migration_confirm_title">确认迁移</string>
+    <string name="transactions_migrate">迁移</string>
+    <string name="transactions_migrate_to_ironwood">至 Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">公开可见金额</string>
+    <string name="zcash_migration_publicly_visible_description">在池之间转移资金需要迁移金额在区块链上公开可见。发送人、接收人和您的地址保持隐私。</string>
 </resources>

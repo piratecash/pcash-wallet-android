@@ -96,6 +96,7 @@ import cash.p.terminal.modules.transactions.TransactionsViewModel
 import cash.p.terminal.modules.transactions.transactionList
 import cash.p.terminal.modules.transactions.transactionsHiddenBlock
 import cash.p.terminal.navigation.entity.SwapParams
+import cash.p.terminal.modules.zcashmigration.ZcashMigrationFlow
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
@@ -133,6 +134,7 @@ import cash.p.terminal.ui_compose.components.subhead1_leah
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_jacob
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
+import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.balance.DeemedValue
 import cash.p.terminal.wallet.isStakingWallet
@@ -899,6 +901,13 @@ private fun TokenBalanceHeader(
             onStackingClicked = onStackingClicked,
             isShowShieldFunds = isShowShieldFunds
         )
+        uiState.zcashMigrationRequiredAmount?.let { amount ->
+            ZcashMigrationRequiredSection(
+                amount = amount,
+                amountVisible = balanceViewItem.primaryValue.visible,
+                wallet = balanceViewItem.wallet
+            )
+        }
         LockedBalanceSection(balanceViewItem)
         balanceViewItem.warning?.let {
             VSpacer(height = 8.dp)
@@ -930,6 +939,46 @@ private fun TokenBalanceHeader(
             )
         }
         VSpacer(height = 16.dp)
+    }
+}
+
+@Composable
+private fun ZcashMigrationRequiredSection(
+    amount: String,
+    amountVisible: Boolean,
+    wallet: Wallet,
+) {
+    var migrating by remember { mutableStateOf(false) }
+
+    VSpacer(height = 8.dp)
+    RowUniversal(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, ComposeAppTheme.colors.jacob, RoundedCornerShape(12.dp))
+            .padding(horizontal = 16.dp),
+        onClick = { migrating = true }
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_attention_20),
+            contentDescription = null,
+            tint = ComposeAppTheme.colors.jacob
+        )
+        HSpacer(8.dp)
+        subhead2_jacob(
+            text = stringResource(R.string.balance_zcash_migration_required),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Spacer(Modifier.weight(1f))
+        subhead2_jacob(
+            modifier = Modifier.padding(start = 6.dp),
+            text = if (amountVisible) amount else "*****",
+            maxLines = 1
+        )
+    }
+
+    if (migrating) {
+        ZcashMigrationFlow(wallet = wallet, onClose = { migrating = false })
     }
 }
 

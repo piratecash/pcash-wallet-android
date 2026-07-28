@@ -2169,4 +2169,13 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="update_interval_day_full">1 dag</string>
     <string name="update_interval_week_full">1 week</string>
     <string name="update_interval_month_full">1 maand</string>
+    <string name="balance_zcash_migration_required">Migratie vereist</string>
+    <string name="balance_zcash_migration_title">Migratie naar Ironwood</string>
+    <string name="balance_zcash_migration_description">Zcash-netwerkupgrade:\nVerplaats je ZEC van de Orchard-pool naar de nieuwe Ironwood-pool. Je tegoed is veilig.</string>
+    <string name="balance_zcash_migration_migrate">Migreren</string>
+    <string name="zcash_migration_confirm_title">Migratie bevestigen</string>
+    <string name="transactions_migrate">Migreren</string>
+    <string name="transactions_migrate_to_ironwood">naar Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Publiek zichtbaar bedrag</string>
+    <string name="zcash_migration_publicly_visible_description">Het verplaatsen van tegoed tussen pools vereist dat het gemigreerde bedrag publiek zichtbaar is op de blockchain. De afzender, ontvanger en je adressen blijven privé.</string>
 </resources>

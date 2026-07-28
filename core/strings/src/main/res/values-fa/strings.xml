@@ -2166,4 +2166,13 @@
     <string name="update_interval_day_full">1 روز</string>
     <string name="update_interval_week_full">1 هفته</string>
     <string name="update_interval_month_full">1 ماه</string>
+    <string name="balance_zcash_migration_required">مهاجرت الزامی</string>
+    <string name="balance_zcash_migration_title">مهاجرت به Ironwood</string>
+    <string name="balance_zcash_migration_description">ارتقای شبکه Zcash:\nZEC خود را از استخر Orchard به استخر جدید Ironwood منتقل کنید. وجوه شما امن هستند.</string>
+    <string name="balance_zcash_migration_migrate">مهاجرت</string>
+    <string name="zcash_migration_confirm_title">تایید مهاجرت</string>
+    <string name="transactions_migrate">مهاجرت</string>
+    <string name="transactions_migrate_to_ironwood">به Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">مبلغ قابل مشاهده عمومی</string>
+    <string name="zcash_migration_publicly_visible_description">انتقال وجوه بین استخرها نیاز دارد که مبلغ منتقل‌شده بر روی بلاکچین به صورت عمومی قابل مشاهده باشد. فرستنده، گیرنده و آدرس‌های شما خصوصی باقی می‌مانند.</string>
 </resources>

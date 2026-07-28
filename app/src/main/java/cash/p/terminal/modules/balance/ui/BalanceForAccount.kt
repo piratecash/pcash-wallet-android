@@ -49,6 +49,7 @@ import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.transactions.TransactionItem
 import cash.p.terminal.modules.walletconnect.list.WalletConnectListViewModel
+import cash.p.terminal.modules.zcashmigration.ZcashMigrationFlow
 import cash.p.terminal.navigation.slideFromBottom
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -192,6 +193,13 @@ fun BalanceForAccount(
                 }
             },
             onDismiss = { showInvalidUrlSheet = false }
+        )
+    }
+
+    viewModel.uiState.zcashMigrationAlertWallet?.let { wallet ->
+        ZcashMigrationFlow(
+            wallet = wallet,
+            onClose = { viewModel.zcashMigrationAlertHandled(wallet) }
         )
     }
 }

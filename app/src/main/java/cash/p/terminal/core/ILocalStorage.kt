@@ -30,6 +30,9 @@ import java.math.BigDecimal
 interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var marketSearchRecentCoinUids: List<String>
     var zcashAccountIds: Set<String>
+
+    /** Orchard -> Ironwood migration transactions, keyed as `accountId:canonicalTransactionHash`. */
+    var zcashIronwoodMigrationTxIds: Set<String>
     var autoLockInterval: AutoLockInterval
 
     var recipientAddressBaseCheckEnabled: Boolean

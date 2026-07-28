@@ -2314,4 +2314,13 @@
     <string name="update_interval_day_full">1 день</string>
     <string name="update_interval_week_full">1 тиждень</string>
     <string name="update_interval_month_full">1 місяць</string>
+    <string name="balance_zcash_migration_required">Міграція обов\'язкова</string>
+    <string name="balance_zcash_migration_title">Міграція на Ironwood</string>
+    <string name="balance_zcash_migration_description">Оновлення мережі Zcash:\nПеремістіть свої ZEC із пулу Orchard до нового пулу Ironwood. Ваші кошти в безпеці.</string>
+    <string name="balance_zcash_migration_migrate">Перенести</string>
+    <string name="zcash_migration_confirm_title">Підтвердити міграцію</string>
+    <string name="transactions_migrate">Перенести</string>
+    <string name="transactions_migrate_to_ironwood">на Ironwood</string>
+    <string name="zcash_migration_publicly_visible_title">Публічно видима сума</string>
+    <string name="zcash_migration_publicly_visible_description">Переміщення коштів між пулами вимагає, щоб сума, яка переноситься, була публічно видима в блокчейні. Відправник, отримувач і ваші адреси залишаються приватними.</string>
 </resources>

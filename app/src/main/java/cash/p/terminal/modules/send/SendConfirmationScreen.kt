@@ -353,7 +353,13 @@ internal fun SendFailedOfflineSignPrompt(
 }
 
 @Composable
-fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> Unit, enabled: Boolean = true) {
+fun SendButton(
+    modifier: Modifier,
+    sendResult: SendResult?,
+    onClickSend: () -> Unit,
+    enabled: Boolean = true,
+    title: String = stringResource(R.string.Send_Confirmation_Send_Button),
+) {
     when (sendResult) {
         SendResult.Sending -> {
             ButtonPrimaryYellow(
@@ -377,7 +383,7 @@ fun SendButton(modifier: Modifier, sendResult: SendResult?, onClickSend: () -> U
         else -> {
             ButtonPrimaryYellow(
                 modifier = modifier,
-                title = stringResource(R.string.Send_Confirmation_Send_Button),
+                title = title,
                 onClick = onClickSend,
                 enabled = enabled
             )

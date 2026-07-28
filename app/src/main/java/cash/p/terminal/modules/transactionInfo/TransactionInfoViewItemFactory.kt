@@ -496,14 +496,27 @@ class TransactionInfoViewItemFactory(
 
                     TransactionRecordType.BITCOIN_OUTGOING -> {
                         sentToSelf = transaction.sentToSelf
+                        if (transaction.isIronwoodMigration) {
+                            itemSections.add(
+                                listOf(
+                                    Transaction(
+                                        Translator.getString(R.string.transactions_migrate),
+                                        Translator.getString(R.string.transactions_migrate_to_ironwood),
+                                        R.drawable.ic_migrate_24
+                                    )
+                                )
+                            )
+                        }
                         itemSections.add(
                             TransactionViewItemFactoryHelper.getSendSectionItems(
                                 value = transaction.mainValue,
-                                toAddress = transaction.to,
+                                // The migration pays the account's own internal receiver, which
+                                // is not reported as a recipient once the transaction is rescanned.
+                                toAddress = transaction.to.takeIf { !transaction.isIronwoodMigration },
                                 changeAddresses = transaction.changeAddresses,
                                 coinPrice = rates[transaction.mainValue.coinUid],
                                 hideAmount = transactionItem.hideAmount,
-                                sentToSelf = transaction.sentToSelf,
+                                sentToSelf = transaction.sentToSelf || transaction.isIronwoodMigration,
                                 blockchainType = blockchainType,
                                 showCopyWarning = isSuspicious,
                             )

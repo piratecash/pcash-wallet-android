@@ -450,6 +450,7 @@ class TokenBalanceViewModel(
         displayDiffOptionType = displayDiffOptionType,
         isRoundingAmount = isRoundingAmount,
         isShowShieldFunds = isShowShieldFunds(),
+        zcashMigrationRequiredAmount = zcashMigrationRequiredAmount(),
         networkFeeWarning = networkFeeWarning,
         syncing = syncing,
         transactionFiltersEnabled = transactionFiltersEnabled,
@@ -540,6 +541,18 @@ class TokenBalanceViewModel(
         if (!isTransparent || item.balanceData.available <= ZcashAdapter.MINERS_FEE) return false
 
         return hasReachedSyncedState()
+    }
+
+    private fun zcashMigrationRequiredAmount(): String? {
+        // The typed lookup is an unchecked cast, so it must not be reached for other blockchains.
+        if (wallet.token.blockchainType != BlockchainType.Zcash) return null
+        // Same prerequisite as the offer on the balance screen: migrating costs a fee and moves
+        // the whole pool, so it must not be reachable before the account can be recovered.
+        if (!wallet.account.isBackedUpOrNotRequired()) return null
+
+        return adapterManager.getAdapterForWallet<ZcashAdapter>(wallet)
+            ?.ironwoodMigrationRequiredBalance
+            ?.let { numberFormatter.formatCoinShort(it, wallet.coin.code, wallet.decimal) }
     }
 
     private suspend fun updateTransactions(items: List<TransactionItem>, scanState: SearchScanState) {

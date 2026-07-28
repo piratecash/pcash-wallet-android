@@ -95,6 +95,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
@@ -177,8 +178,17 @@ class ZcashAdapter(
     private var lastFeeSnapshot: AccountBalance? = null
     private var feeGeneration = 0L
 
+    @Volatile
+    private var ironwoodMigrationProposal: Proposal? = null
+
+    private val migrationTxKeyPrefix = "${wallet.account.id}:"
+
     companion object {
         private const val DECIMAL_COUNT = 8
+
+        // NU6.3 (Ironwood) activation heights
+        private const val IRONWOOD_ACTIVATION_HEIGHT_MAINNET = 3_428_143L
+        private const val IRONWOOD_ACTIVATION_HEIGHT_TESTNET = 4_134_000L
         private val DATABASE_CORRUPTION_MESSAGES = listOf(
             "database disk image is malformed",
             "file is not a database",
@@ -193,6 +203,9 @@ class ZcashAdapter(
         // 200,000 zat; the probe only runs to the end in the rare case where the whole
         // balance cannot be sent at all.
         private const val FEE_PROBE_ATTEMPTS = 20
+
+        // Every account has its own adapters, but they all update the same stored id set.
+        private val migrationIdsMutex = Mutex()
     }
 
     init {
@@ -532,16 +545,18 @@ class ZcashAdapter(
             return statusInfo
         }
 
+    private val accountBalance: AccountBalance?
+        get() = synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)
+
     private val walletBalance: WalletBalance
         get() {
             return when (addressSpecTyped) {
                 null,
-                AddressSpecType.Shielded -> synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)?.sapling
+                AddressSpecType.Shielded -> accountBalance?.sapling
                     ?: WalletBalance(Zatoshi(0), Zatoshi(0), Zatoshi(0))
 
                 AddressSpecType.Transparent -> WalletBalance(
-                    available = synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)?.unshielded
-                        ?: Zatoshi(0),
+                    available = accountBalance?.unshielded ?: Zatoshi(0),
                     changePending = Zatoshi(0),
                     valuePending = Zatoshi(0)
                 )
@@ -549,13 +564,13 @@ class ZcashAdapter(
                 // After NU6.3 activation the turnstile forbids adding value to Orchard, so change
                 // and payments to Orchard recipients are built in an Ironwood bundle. A unified
                 // address therefore holds funds in both pools and its balance is their sum.
-                AddressSpecType.Unified -> synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)
-                    ?.let { accountBalance ->
+                AddressSpecType.Unified -> accountBalance
+                    ?.let { balance ->
                         WalletBalance(
-                            available = accountBalance.orchard.available + accountBalance.ironwood.available,
-                            changePending = accountBalance.orchard.changePending +
-                                accountBalance.ironwood.changePending,
-                            valuePending = accountBalance.orchard.valuePending + accountBalance.ironwood.valuePending
+                            available = balance.orchard.available + balance.ironwood.available,
+                            changePending = balance.orchard.changePending +
+                                balance.ironwood.changePending,
+                            valuePending = balance.orchard.valuePending + balance.ironwood.valuePending
                         )
                     }
                     ?: WalletBalance(Zatoshi(0), Zatoshi(0), Zatoshi(0))
@@ -649,7 +664,7 @@ class ZcashAdapter(
      */
     private fun scheduleFeeRecalculation() {
         synchronized(feeLock) {
-            val snapshot = synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)
+            val snapshot = accountBalance
             if (snapshot == lastFeeSnapshot && _fee.value != MINERS_FEE) return
             lastFeeSnapshot = snapshot
             val generation = ++feeGeneration
@@ -825,6 +840,91 @@ class ZcashAdapter(
             usk = spendingKey(account)
         ).first().txId
     }
+
+    private val ironwoodActivationHeight: Long
+        get() = when (network) {
+            ZcashNetwork.Testnet -> IRONWOOD_ACTIVATION_HEIGHT_TESTNET
+            else -> IRONWOOD_ACTIVATION_HEIGHT_MAINNET
+        }
+
+    /**
+     * The Orchard balance that has to be moved to Ironwood, or `null` when migration is not
+     * applicable. Orchard and Ironwood are both surfaced by the unified token, so only that
+     * adapter can migrate.
+     */
+    val ironwoodMigrationRequiredBalance: BigDecimal?
+        get() {
+            if (addressSpecTyped != AddressSpecType.Unified) return null
+            if (wallet.account.type !is AccountType.Mnemonic) return null
+            if (syncState !is AdapterState.Synced) return null
+            val tipHeight = synchronizer.latestHeight?.value ?: return null
+            if (tipHeight < ironwoodActivationHeight) return null
+            val orchard = accountBalance?.orchard ?: return null
+            // The migration proposal is all-or-nothing and fails while any Orchard note is
+            // still pending, so offering it before the whole pool is spendable only produces
+            // an error the user cannot act on.
+            if (orchard.available.value <= 0 || orchard.pending.value > 0) return null
+            return orchard.available.convertZatoshiToZec(DECIMAL_COUNT)
+        }
+
+    suspend fun proposeIronwoodMigration(): IronwoodMigrationProposal =
+        withContext(dispatcherProvider.io) {
+            val orchard = checkNotNull(accountBalance?.orchard) { "Orchard balance is not loaded" }
+            check(orchard.available.value > 0) { "No spendable Orchard balance" }
+            val proposal = synchronizer.proposeOrchardToIronwoodMigration(getFirstAccount())
+            ironwoodMigrationProposal = proposal
+            val feePaid = proposal.totalFeeRequired()
+            IronwoodMigrationProposal(
+                amount = Zatoshi((orchard.available.value - feePaid.value).coerceAtLeast(0))
+                    .convertZatoshiToZec(DECIMAL_COUNT),
+                fee = feePaid.convertZatoshiToZec(DECIMAL_COUNT)
+            )
+        }
+
+    suspend fun executeIronwoodMigration(): String = withContext(dispatcherProvider.io) {
+        // Taken once and never reused, whatever happens next: the proposal names the exact notes
+        // to spend, and no failure of the SDK reliably reports whether the transactions were
+        // already stored. A repeat attempt has to ask for a fresh proposal instead, which the
+        // backend builds with MaxSpendMode::Everything and therefore refuses outright when an
+        // earlier attempt has spent part of the pool.
+        val proposal = checkNotNull(ironwoodMigrationProposal) { "Migration was not proposed" }
+        ironwoodMigrationProposal = null
+
+        val usk = spendingKey(getFirstAccount())
+        val results = synchronizer
+            .createProposedTransactions(proposal = proposal, usk = usk)
+            .toList()
+        rememberIronwoodMigration(results.map { it.txIdString() })
+
+        results.firstOrNull { it !is TransactionSubmitResult.Success }
+            ?.let { error("Migration transaction was not submitted: ${it.txIdString()}") }
+        results.firstOrNull()?.txIdString() ?: error("Migration returned no transaction id")
+    }
+
+    /**
+     * Once the transaction is mined and rescanned from chain its outputs are reported as change
+     * and no longer as recipients of this account, so the "transfer to self" heuristic stops
+     * matching. Only the recorded transaction id keeps the migration label.
+     */
+    private suspend fun rememberIronwoodMigration(transactionHashes: List<String>) {
+        if (transactionHashes.isEmpty()) return
+        migrationIdsMutex.withLock {
+            localStorage.zcashIronwoodMigrationTxIds = localStorage.zcashIronwoodMigrationTxIds +
+                transactionHashes.map { migrationTxKey(it) }
+        }
+    }
+
+    /**
+     * Read from storage on every check instead of caching: the same transaction is also listed by
+     * the sibling Zcash adapters of this account, which never write the migration ids themselves.
+     */
+    private fun isIronwoodMigration(transactionHashHex: String) =
+        migrationTxKey(transactionHashHex) in localStorage.zcashIronwoodMigrationTxIds
+
+    private fun migrationTxKey(transactionHashHex: String) =
+        migrationTxKeyPrefix + transactionHashHex.canonicalTransactionHash()
+
+    data class IronwoodMigrationProposal(val amount: BigDecimal, val fee: BigDecimal)
 
     private fun subscribe(synchronizer: SdkSynchronizer) {
         subscriberScope?.cancel()
@@ -1073,58 +1173,74 @@ class ZcashAdapter(
         }
     }
 
-    private fun getTransactionRecord(transaction: ZcashTransaction): TransactionRecord {
-        val transactionHashHex = transaction.transactionHash.toReversedHex()
-
-        return if (transaction.isIncoming) {
-            BitcoinTransactionRecord(
-                token = wallet.token,
-                uid = transactionHashHex,
-                transactionHash = transactionHashHex,
-                transactionIndex = transaction.transactionIndex,
-                blockHeight = transaction.minedHeight?.toInt(),
-                confirmationsThreshold = confirmationsThreshold,
-                timestamp = transaction.timestamp,
-                fee = transaction.feePaid?.convertZatoshiToZec(DECIMAL_COUNT)
-                    ?.let { TransactionValue.CoinValue(wallet.token, it) },
-                failed = transaction.failed,
-                lockInfo = null,
-                conflictingHash = null,
-                showRawTransaction = false,
-                amount = transaction.value.convertZatoshiToZec(DECIMAL_COUNT),
-                from = null,
-                to = transaction.toAddress?.let(::listOf),
-                changeAddresses = null,
-                memo = transaction.memo,
-                source = wallet.transactionSource,
-                transactionRecordType = TransactionRecordType.BITCOIN_INCOMING
-            )
+    private fun getTransactionRecord(transaction: ZcashTransaction): TransactionRecord =
+        if (transaction.isIncoming) {
+            incomingTransactionRecord(transaction)
         } else {
-            BitcoinTransactionRecord(
-                token = wallet.token,
-                uid = transactionHashHex,
-                transactionHash = transactionHashHex,
-                transactionIndex = transaction.transactionIndex,
-                blockHeight = transaction.minedHeight?.toInt(),
-                confirmationsThreshold = confirmationsThreshold,
-                timestamp = transaction.timestamp,
-                fee = transaction.feePaid?.let { it.convertZatoshiToZec(DECIMAL_COUNT) }
-                    ?.let { TransactionValue.CoinValue(wallet.token, it) },
-                failed = transaction.failed,
-                lockInfo = null,
-                conflictingHash = null,
-                showRawTransaction = false,
-                amount = transaction.value.convertZatoshiToZec(DECIMAL_COUNT).negate(),
-                to = transaction.toAddress?.let(::listOf),
-                from = null,
-                changeAddresses = null,
-                sentToSelf = false,
-                memo = transaction.memo,
-                source = wallet.transactionSource,
-                replaceable = false,
-                transactionRecordType = TransactionRecordType.BITCOIN_OUTGOING
-            )
+            outgoingTransactionRecord(transaction)
         }
+
+    private fun incomingTransactionRecord(transaction: ZcashTransaction): TransactionRecord {
+        val transactionHashHex = transaction.transactionHash.toReversedHex()
+        return BitcoinTransactionRecord(
+            token = wallet.token,
+            uid = transactionHashHex,
+            transactionHash = transactionHashHex,
+            transactionIndex = transaction.transactionIndex,
+            blockHeight = transaction.minedHeight?.toInt(),
+            confirmationsThreshold = confirmationsThreshold,
+            timestamp = transaction.timestamp,
+            fee = transaction.feePaid?.convertZatoshiToZec(DECIMAL_COUNT)
+                ?.let { TransactionValue.CoinValue(wallet.token, it) },
+            failed = transaction.failed,
+            lockInfo = null,
+            conflictingHash = null,
+            showRawTransaction = false,
+            amount = transaction.value.convertZatoshiToZec(DECIMAL_COUNT),
+            from = null,
+            to = transaction.toAddress?.let(::listOf),
+            changeAddresses = null,
+            memo = transaction.memo,
+            source = wallet.transactionSource,
+            transactionRecordType = TransactionRecordType.BITCOIN_INCOMING
+        )
+    }
+
+    private fun outgoingTransactionRecord(transaction: ZcashTransaction): TransactionRecord {
+        val transactionHashHex = transaction.transactionHash.toReversedHex()
+        val isIronwoodMigration = isIronwoodMigration(transactionHashHex)
+        // A migration keeps the funds in the wallet, so the moved amount is what was
+        // received back rather than the net change of the balance.
+        val amount = if (isIronwoodMigration) {
+            transaction.totalReceived.convertZatoshiToZec(DECIMAL_COUNT)
+        } else {
+            transaction.value.convertZatoshiToZec(DECIMAL_COUNT).negate()
+        }
+        return BitcoinTransactionRecord(
+            token = wallet.token,
+            uid = transactionHashHex,
+            transactionHash = transactionHashHex,
+            transactionIndex = transaction.transactionIndex,
+            blockHeight = transaction.minedHeight?.toInt(),
+            confirmationsThreshold = confirmationsThreshold,
+            timestamp = transaction.timestamp,
+            fee = transaction.feePaid?.let { it.convertZatoshiToZec(DECIMAL_COUNT) }
+                ?.let { TransactionValue.CoinValue(wallet.token, it) },
+            failed = transaction.failed,
+            lockInfo = null,
+            conflictingHash = null,
+            showRawTransaction = false,
+            amount = amount,
+            to = transaction.toAddress?.let(::listOf),
+            from = null,
+            changeAddresses = null,
+            sentToSelf = false,
+            memo = transaction.memo,
+            source = wallet.transactionSource,
+            replaceable = false,
+            transactionRecordType = TransactionRecordType.BITCOIN_OUTGOING,
+            isIronwoodMigration = isIronwoodMigration
+        )
     }
 
     enum class ZCashAddressType {

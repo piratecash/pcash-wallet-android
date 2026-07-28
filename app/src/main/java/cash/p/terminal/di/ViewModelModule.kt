@@ -66,10 +66,13 @@ import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
 import cash.p.terminal.modules.solananetwork.SolanaNetworkService
 import cash.p.terminal.modules.solananetwork.SolanaNetworkViewModel
 import cash.p.terminal.modules.zcashconfigure.ZcashConfigureViewModel
+import cash.p.terminal.modules.zcashmigration.ZcashMigrationViewModel
 import cash.p.terminal.modules.multiswap.SwapSelectCoinViewModel
+import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.DefaultDispatcherProvider
 import io.horizontalsystems.core.DispatcherProvider
 import org.koin.core.module.dsl.factoryOf
@@ -204,6 +207,15 @@ val viewModelModule = module {
             adapterManager = get(),
             localStorage = get(),
             dispatcherProvider = get()
+        )
+    }
+    viewModel { (wallet: Wallet) ->
+        ZcashMigrationViewModel(
+            wallet = wallet,
+            locallyCreatedTransactionRepository = get(),
+            numberFormatter = get(),
+            adapterManager = get(),
+            xRateService = XRateService(get(), get<CurrencyManager>().baseCurrency)
         )
     }
 }
