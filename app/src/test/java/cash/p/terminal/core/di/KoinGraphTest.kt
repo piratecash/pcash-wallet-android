@@ -30,6 +30,7 @@ import cash.p.terminal.modules.settings.advancedsecurity.terms.HiddenWalletTerms
 import cash.p.terminal.core.notifications.polling.TransactionPollingManager
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedDialog
 import cash.p.terminal.modules.walletconnect.AccountTypeNotSupportedViewModel
+import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.IPinComponent
 import io.ktor.client.engine.HttpClientEngine
@@ -70,7 +71,13 @@ class KoinGraphTest : KoinTest {
         }
 
         val extraTypes =
-            listOf(Application::class, Context::class, HttpClientEngine::class, TimerService::class)
+            listOf(
+                Application::class,
+                Context::class,
+                HttpClientEngine::class,
+                TimerService::class,
+                XRateService::class,
+            )
         val injections = injectedParameters(
             definition<AccountTypeNotSupportedViewModel>(AccountTypeNotSupportedDialog.Input::class),
             definition<HiddenWalletPinPolicy>(IPinComponent::class),
