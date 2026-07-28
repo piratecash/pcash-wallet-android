@@ -31,6 +31,7 @@ import cash.p.terminal.modules.addtoken.blockchainselector.AddTokenBlockchainSel
 import cash.p.terminal.modules.addtoken.blockchainselector.BlockchainSelectorResult
 import cash.p.terminal.modules.walletconnect.session.ui.TitleValueCell
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.Token
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.CellUniversalLawrenceSection
 import cash.p.terminal.ui.compose.components.FormsInput
@@ -59,7 +60,7 @@ class AddTokenFragment : BaseComposeFragment() {
     }
 
     @Parcelize
-    data class Result(val success: Boolean) : Parcelable
+    data class Result(val success: Boolean, val tokenToEnable: Token? = null) : Parcelable
 }
 
 private const val AddTokenPage = "add_token"
@@ -81,7 +82,9 @@ private fun AddTokenNavHost(
                 onBack = { fragmentNavController.popBackStackSafely() },
                 onCompleted = { result ->
                     fragmentNavController.setNavigationResultX(result)
-                    fragmentNavController.popBackStackSafely()
+                    // State-driven one-shot close: use the raw call so it is not dropped by the
+                    // safe wrapper's cooldown/non-RESUMED guard (per CLAUDE.md navigation rules).
+                    fragmentNavController.popBackStack()
                 },
                 viewModel = viewModel
             )
@@ -120,9 +123,14 @@ private fun AddTokenScreen(
 
     LaunchedEffect(uiState.finished) {
         if (uiState.finished) {
-            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done, SnackbarDuration.MEDIUM)
-            delay(300)
-            onCompleted(AddTokenFragment.Result(success = true))
+            val tokenToEnable = uiState.tokenToEnable
+            // Hardware wallets defer creation to the scan pipeline, so nothing is added yet:
+            // skip the "Done" confirmation and hand the token back to the caller.
+            if (tokenToEnable == null) {
+                HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done, SnackbarDuration.MEDIUM)
+                delay(300)
+            }
+            onCompleted(AddTokenFragment.Result(success = true, tokenToEnable = tokenToEnable))
         }
     }
 

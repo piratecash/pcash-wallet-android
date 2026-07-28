@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.Caution
 import cash.p.terminal.strings.helpers.Translator
+import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -24,13 +26,15 @@ class AddTokenViewModel(private val addTokenService: AddTokenService) :
     private var tokenInfo: AddTokenService.TokenInfo? = null
     private var caution: Caution? = null
     private var enteredText = ""
+    private var tokenToEnable: Token? = null
 
     override fun createState() = AddTokenUiState(
         tokenInfo = tokenInfo,
         addButtonEnabled = addButtonEnabled,
         loading = loading,
         finished = finished,
-        caution = caution
+        caution = caution,
+        tokenToEnable = tokenToEnable
     )
 
     val blockchains by addTokenService::blockchains
@@ -81,7 +85,14 @@ class AddTokenViewModel(private val addTokenService: AddTokenService) :
     fun onAddClick() {
         viewModelScope.launch {
             tokenInfo?.let {
-                addTokenService.addToken(it)
+                // Tangem cannot create a wallet without deriving a key from the card.
+                // Hand the validated token back to the caller, which routes it through
+                // the hardware scan pipeline. Software and Trezor add the token directly.
+                if (addTokenService.accountType is AccountType.HardwareCard) {
+                    tokenToEnable = it.token
+                } else {
+                    addTokenService.addToken(it)
+                }
                 finished = true
             }
 
@@ -111,4 +122,5 @@ data class AddTokenUiState(
     val loading: Boolean,
     val finished: Boolean,
     val caution: Caution?,
+    val tokenToEnable: Token? = null,
 )
