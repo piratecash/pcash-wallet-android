@@ -2,19 +2,26 @@ package cash.p.terminal.tangem.domain.sdk
 
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAccountManager
-import com.tangem.Log
 import com.tangem.TangemSdk
 import com.tangem.common.UserCodeType
 import com.tangem.common.core.UserCodeRequestPolicy
 import com.tangem.operations.attestation.AttestationTask
 import io.horizontalsystems.core.DispatcherProvider
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import timber.log.Timber
 
 class CardSdkConfigRepository(
     private val cardSdkProvider: CardSdkProvider,
     private val dispatcherProvider: DispatcherProvider,
     private val accountManager: IAccountManager
 ) {
+
+    private val readerModeTransitionMutex = Mutex()
+    private var readerModeTransitionJob: Job? = null
 
     val sdk: TangemSdk
         get() = cardSdkProvider.sdk
@@ -39,24 +46,59 @@ class CardSdkConfigRepository(
         cardSdkProvider.cancelSession()
     }
 
-    /**
-     * Re-enables NFC reader mode when the OS silently disabled it outside the Activity lifecycle.
-     * Targeted workaround for Samsung devices: opening the camera / QR scanner there turns reader
-     * mode off without any lifecycle callback, leaving a Tangem card unreadable on the next sign
-     * (the scanning sheet shows but the card is never read).
-     *
-     * Skipped unless the user has a hardware card wallet — software wallets never use NFC, so there
-     * is nothing to restore. Fire-and-forget on the application scope (IO) because the underlying SDK
-     * call blocks (~500 ms) and must survive the caller screen being destroyed.
-     */
-    fun forceEnableReaderMode() {
-        if (accountManager.accounts.none { it.type is AccountType.HardwareCard }) return
-        dispatcherProvider.applicationScope.launch {
-            try {
-                sdk.forceEnableReaderMode()
-            } catch (e: Throwable) {
-                Log.error { "forceEnableReaderMode failed: ${e.message}" }
+    fun disableReaderModeForQrScanner() {
+        val transitionWasActive = cancelReaderModeTransition()
+        runIfHardwareCardPresent {
+            disableReaderMode()
+            if (transitionWasActive) {
+                readerModeTransitionJob = dispatcherProvider.applicationScope.launch {
+                    readerModeTransitionMutex.withLock {
+                        // SDK enable is blocking, so cancellation may need a final disable afterward.
+                        disableReaderMode()
+                    }
+                }
             }
         }
+    }
+
+    fun restoreReaderModeAfterQrScanner() {
+        cancelReaderModeTransition()
+        runIfHardwareCardPresent {
+            readerModeTransitionJob = dispatcherProvider.applicationScope.launch {
+                // Some devices cannot enable reader mode until CameraX teardown and navigation finish.
+                delay(READER_MODE_RESTORE_DELAY)
+                readerModeTransitionMutex.withLock {
+                    updateReaderMode("forceEnableReaderMode", TangemSdk::forceEnableReaderMode)
+                }
+            }
+        }
+    }
+
+    private fun cancelReaderModeTransition(): Boolean {
+        val transitionJob = readerModeTransitionJob ?: return false
+        val wasActive = transitionJob.isActive
+        transitionJob.cancel()
+        readerModeTransitionJob = null
+        return wasActive
+    }
+
+    private fun disableReaderMode() {
+        updateReaderMode("forceDisableReaderMode", TangemSdk::forceDisableReaderMode)
+    }
+
+    private inline fun runIfHardwareCardPresent(action: () -> Unit) {
+        if (accountManager.accounts.any { it.type is AccountType.HardwareCard }) action()
+    }
+
+    private fun updateReaderMode(operation: String, action: TangemSdk.() -> Unit) {
+        try {
+            sdk.action()
+        } catch (e: Throwable) {
+            Timber.e(e, "$operation failed")
+        }
+    }
+
+    private companion object {
+        const val READER_MODE_RESTORE_DELAY = 1_000L
     }
 }

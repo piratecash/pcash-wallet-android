@@ -313,6 +313,34 @@ class TransactionsViewModelWalletSwitchTest : KoinTest {
 
     // endregion
 
+    @Test
+    fun transactionItems_outgoingFilterProviderSwap_excludesSwap() = runTest(dispatcher) {
+        filterStateFlow.value = filterStateFlow.value.copy(
+            selectedTransactionType = FilterTransactionType.Outgoing
+        )
+        coEvery {
+            transactionViewItemFactory.convertToViewItemCached(any(), any(), any())
+        } answers {
+            val uid = firstArg<TransactionItem>().record.uid
+            createMockViewItem(
+                uid = uid,
+                swapTransactionId = "swap-id".takeIf { uid == "swap" },
+            )
+        }
+        val viewModel = createViewModel()
+
+        transactionItemsFlow.value = listOf(
+            createTransactionItem("swap"),
+            createTransactionItem("send"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("send"),
+            viewModel.uiState.transactions?.values?.flatten()?.map { it.uid },
+        )
+    }
+
     // region Helpers
 
     private fun CoroutineScope.createViewModel() = TransactionsViewModel(
@@ -368,9 +396,15 @@ class TransactionsViewModelWalletSwitchTest : KoinTest {
         )
     }
 
-    private fun createMockViewItem(uid: String) = mockk<TransactionViewItem>(relaxed = true) {
+    private fun createMockViewItem(
+        uid: String,
+        swapTransactionId: String? = null,
+        isSwap: Boolean = swapTransactionId != null,
+    ) = mockk<TransactionViewItem>(relaxed = true) {
         every { this@mockk.uid } returns uid
         every { formattedDate } returns "DATE"
+        every { this@mockk.isSwap } returns isSwap
+        every { changeNowTransactionId } returns swapTransactionId
     }
 
     // endregion

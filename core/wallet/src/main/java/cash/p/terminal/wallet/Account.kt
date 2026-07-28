@@ -378,7 +378,7 @@ sealed class AccountType : Parcelable {
 
     val canAddTokens: Boolean
         get() = when (this) {
-            is Mnemonic, is EvmPrivateKey, is TrezorDevice -> true
+            is Mnemonic, is EvmPrivateKey, is TrezorDevice, is HardwareCard -> true
             else -> false
         }
 

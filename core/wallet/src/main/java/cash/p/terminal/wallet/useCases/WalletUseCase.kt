@@ -12,6 +12,7 @@ import cash.p.terminal.wallet.OneTimeReceiveAdapter
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
+import cash.p.terminal.wallet.latestAccountOr
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.expandedZcashAddressSpecTokens
 import cash.p.terminal.wallet.tokenQueryId
@@ -107,8 +108,11 @@ class WalletUseCase(
                     token to hardwarePublicKey
                 }
             }
+        // The scan above may have healed a legacy Trezor model; re-read so walletFactory.create
+        // sees the healed model instead of the stale pre-scan snapshot.
+        val refreshedAccount = accountManager.latestAccountOr(account)
         val wallets = hardwarePublicKeys.mapNotNull { (token, hardwarePublicKey) ->
-            walletFactory.create(token, account, hardwarePublicKey)
+            walletFactory.create(token, refreshedAccount, hardwarePublicKey)
         }
         deletedWalletRestorer.unmarkAsDeleted(account.id, wallets.map { it.tokenQueryId })
         walletManager.save(wallets)

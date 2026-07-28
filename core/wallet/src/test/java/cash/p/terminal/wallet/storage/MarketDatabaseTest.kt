@@ -7,7 +7,6 @@ import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class MarketDatabaseTest {
 
@@ -32,15 +31,6 @@ class MarketDatabaseTest {
         val mwebTokenSql = "INSERT OR REPLACE INTO TokenEntity VALUES('litecoin','litecoin','mweb',8,'');"
 
         assertTrue(file.readLines().contains(mwebTokenSql))
-    }
-
-    private fun initialCoinsFile(): File {
-        val moduleRelativeFile = File("src/main/assets/initial_coins_list")
-        if (moduleRelativeFile.exists()) {
-            return moduleRelativeFile
-        }
-
-        return File("core/wallet/src/main/assets/initial_coins_list")
     }
 
 }

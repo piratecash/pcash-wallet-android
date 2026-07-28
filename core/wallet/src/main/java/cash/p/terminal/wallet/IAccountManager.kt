@@ -33,3 +33,11 @@ interface IAccountManager {
     fun updateMaxLevel(level: Int)
     fun accountsAtLevel(level: Int): List<Account>
 }
+
+/**
+ * Returns the latest persisted snapshot of [account], falling back to the given instance when the
+ * cache has no entry. Used after a hardware scan may have healed the account's model (e.g. a legacy
+ * Trezor Safe 3 stored as "unknown") so callers apply the healed model within the same operation
+ * instead of the stale pre-scan snapshot, which would gate out Tron/Solana.
+ */
+fun IAccountManager.latestAccountOr(account: Account): Account = account(account.id) ?: account

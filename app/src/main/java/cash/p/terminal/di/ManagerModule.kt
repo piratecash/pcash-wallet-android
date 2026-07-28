@@ -138,6 +138,7 @@ import cash.p.terminal.widgets.MarketWidgetManager
 import cash.p.terminal.modules.walletconnect.WCSessionManager
 import cash.p.terminal.modules.walletconnect.handler.WCHandlerEvm
 import cash.p.terminal.modules.walletconnect.stellar.WCHandlerStellar
+import cash.p.terminal.modules.walletconnect.storage.WCPairingMetadataStorage
 import cash.p.terminal.modules.walletconnect.storage.WCSessionStorage
 import cash.p.terminal.network.alphaaml.api.AlphaAmlApi
 import cash.p.terminal.network.data.AppHeadersProvider
@@ -278,6 +279,7 @@ val managerModule = module {
     singleOf(::TermsManager) bind ITermsManager::class
     singleOf(::ReleaseNotesManager)
     singleOf(::WCSessionStorage)
+    singleOf(::WCPairingMetadataStorage)
     single {
         WCManager(accountManager = get()).also {
             it.addWcHandler(WCHandlerEvm(get(), get()))

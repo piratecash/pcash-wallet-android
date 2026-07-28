@@ -52,6 +52,7 @@ dependencies {
     implementation(libs.ethereum.kit)
     implementation(libs.solanakt)
     implementation(libs.stellar.kit)
+    implementation(libs.tron.kit)
     implementation(libs.bitcoin.kit)
     // api: app-level code (e.g. CreateTrezorWalletUseCase) references ITrezorClient/DTOs directly.
     api(libs.trezor.kit)

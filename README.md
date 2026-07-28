@@ -53,6 +53,21 @@ Play.
 
 To (re)generate it, see [baselineprofile/README.md](./baselineprofile/README.md).
 
+## Updating the Bundled Coins List
+
+The app ships with a prebuilt token database (`core/wallet/src/main/assets/initial_coins_list`)
+so the first launch works without waiting for a full network sync. To refresh it from the live
+coins API, run from the repository root:
+
+```bash
+tools/update-coins-list.sh
+```
+
+The script regenerates the asset with the same mapping code the in-app sync uses, validates the
+result (non-empty, no record-count regression, all critical tokens present), and prints per-table
+`before → after (±delta)` stats plus a `git diff --stat`. On any validation failure the old asset
+is left untouched. Requires Java 21 (auto-detected on macOS).
+
 ## License
 
 This wallet is open source and available under the terms of the MIT License.

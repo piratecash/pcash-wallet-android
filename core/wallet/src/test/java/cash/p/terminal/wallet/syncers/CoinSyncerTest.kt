@@ -3,28 +3,17 @@ package cash.p.terminal.wallet.syncers
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.managers.VirtualCoinMapper
 import cash.p.terminal.wallet.models.BlockchainEntity
+import cash.p.terminal.wallet.models.BlockchainResponse
+import cash.p.terminal.wallet.models.CoinResponse
 import cash.p.terminal.wallet.models.TokenEntity
-import cash.p.terminal.wallet.providers.HsProvider
-import cash.p.terminal.wallet.storage.CoinStorage
-import cash.p.terminal.wallet.storage.SyncerStateDao
-import io.mockk.mockk
+import cash.p.terminal.wallet.models.TokenResponse
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class CoinSyncerTest {
 
-    private val hsProvider: HsProvider = mockk(relaxed = true)
-    private val coinStorage: CoinStorage = mockk(relaxed = true)
-    private val syncerStateDao: SyncerStateDao = mockk(relaxed = true)
     private val virtualCoinMapper = VirtualCoinMapper()
-
-    private val coinSyncer = CoinSyncer(
-        hsProvider = hsProvider,
-        storage = coinStorage,
-        syncerStateDao = syncerStateDao,
-        virtualCoinMapper = virtualCoinMapper
-    )
 
     private fun createCoin(uid: String, code: String) = Coin(
         uid = uid,
@@ -35,6 +24,60 @@ class CoinSyncerTest {
         image = null,
         priority = 0
     )
+
+    @Test
+    fun mapFetched_duplicatePrimaryKeyTokenRows_keepsLastRow() {
+        val coins = listOf(CoinResponse("dogwifcoin", "dogwifhat", "wif", null, null, null, null))
+        val blockchains = listOf(BlockchainResponse("solana", "Solana", null))
+        val duplicateToken = TokenResponse("dogwifcoin", "solana", "spl", null, "EKpQ", null)
+
+        val result = CoinResponseMapper.mapFetched(
+            coins,
+            blockchains,
+            listOf(duplicateToken, duplicateToken.copy(decimals = 6)),
+            virtualCoinMapper
+        )
+
+        assertEquals(1, result.tokens.size)
+        assertEquals(6, result.tokens.single().decimals)
+    }
+
+    @Test
+    fun tokenPipeline_duplicatePrimaryKeyRows_preservesDuplicates() {
+        val duplicateToken = TokenResponse("dogwifcoin", "solana", "spl", null, "EKpQ", null)
+
+        val result = CoinResponseMapper.tokenPipeline(
+            listOf(createCoin("dogwifcoin", "WIF")),
+            listOf(BlockchainEntity(uid = "solana", name = "Solana", eip3091url = null)),
+            listOf(duplicateToken, duplicateToken.copy(decimals = 6)),
+            virtualCoinMapper
+        )
+
+        // Pre-dedup view relied on by the generator's collision-provenance guard.
+        assertEquals(2, result.size)
+    }
+
+    @Test
+    fun mapFetched_duplicateNativeRowsOnTransformedChain_matchesLiveDatabaseState() {
+        val coins = listOf(CoinResponse("litecoin", "Litecoin", "ltc", null, null, null, null))
+        val blockchains = listOf(BlockchainResponse("litecoin", "Litecoin", null))
+        val nativeToken = TokenResponse("litecoin", "litecoin", "native", null, null, null)
+
+        val result = CoinResponseMapper.mapFetched(
+            coins,
+            blockchains,
+            listOf(nativeToken, nativeToken.copy(decimals = 8)),
+            virtualCoinMapper
+        )
+
+        // Live behavior: transform consumes the first native row (null decimals) into the
+        // derived rows; the second native row survives with its own decimals.
+        val derived = result.tokens.filter { it.type == "derived" }
+        assertEquals(listOf("Bip44", "Bip49", "Bip84", "Bip86"), derived.map { it.reference })
+        assertTrue(derived.all { it.decimals == null })
+        assertEquals(8, result.tokens.single { it.type == "native" }.decimals)
+        assertEquals(5, result.tokens.size)
+    }
 
     // region injectVirtualTokens tests
 
@@ -48,7 +91,7 @@ class CoinSyncerTest {
             createToken("bsc-usd", "binance-smart-chain")
         )
 
-        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+        val result = CoinResponseMapper.injectVirtualTokens(coins, tokens, virtualCoinMapper)
 
         assertEquals(2, result.size)
         assertTrue(result.any { it.coinUid == "bsc-usd" && it.blockchainUid == "binance-smart-chain" })
@@ -64,7 +107,7 @@ class CoinSyncerTest {
             createToken("bsc-usd", "binance-smart-chain")
         )
 
-        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+        val result = CoinResponseMapper.injectVirtualTokens(coins, tokens, virtualCoinMapper)
 
         assertEquals(1, result.size)
         assertEquals("bsc-usd", result[0].coinUid)
@@ -79,7 +122,7 @@ class CoinSyncerTest {
             createToken("some-token", "binance-smart-chain")
         )
 
-        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+        val result = CoinResponseMapper.injectVirtualTokens(coins, tokens, virtualCoinMapper)
 
         assertEquals(1, result.size)
         assertEquals("some-token", result[0].coinUid)
@@ -95,7 +138,7 @@ class CoinSyncerTest {
             createToken("bsc-usd", "ethereum")
         )
 
-        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+        val result = CoinResponseMapper.injectVirtualTokens(coins, tokens, virtualCoinMapper)
 
         assertEquals(1, result.size)
         assertEquals("bsc-usd", result[0].coinUid)
@@ -108,7 +151,7 @@ class CoinSyncerTest {
             createToken("bsc-usd", "binance-smart-chain")
         )
 
-        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+        val result = CoinResponseMapper.injectVirtualTokens(coins, tokens, virtualCoinMapper)
 
         assertEquals(tokens, result)
     }
@@ -121,7 +164,7 @@ class CoinSyncerTest {
         )
         val tokens = emptyList<TokenEntity>()
 
-        val result = coinSyncer.injectVirtualTokens(coins, tokens)
+        val result = CoinResponseMapper.injectVirtualTokens(coins, tokens, virtualCoinMapper)
 
         assertTrue(result.isEmpty())
     }
@@ -132,7 +175,7 @@ class CoinSyncerTest {
 
     @Test
     fun transform_litecoinNativeToken_createsDerivedTokens() {
-        val result = coinSyncer.transform(
+        val result = CoinResponseMapper.transform(
             listOf(createToken(coinUid = "litecoin", blockchainUid = "litecoin", decimals = 8))
         )
 
@@ -150,7 +193,7 @@ class CoinSyncerTest {
 
     @Test
     fun transform_litecoinNativeAndMwebTokens_preservesMwebToken() {
-        val result = coinSyncer.transform(
+        val result = CoinResponseMapper.transform(
             listOf(
                 createToken(coinUid = "litecoin", blockchainUid = "litecoin", decimals = 8),
                 createToken(
@@ -177,7 +220,7 @@ class CoinSyncerTest {
             createToken(coinUid = "btc", blockchainUid = "bitcoin")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
+        val result = CoinResponseMapper.filterValidTokens(tokens, blockchains)
 
         assertEquals(2, result.size)
         assertEquals("eth", result[0].coinUid)
@@ -194,7 +237,7 @@ class CoinSyncerTest {
             createToken(coinUid = "canton-token", blockchainUid = "canton-network")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
+        val result = CoinResponseMapper.filterValidTokens(tokens, blockchains)
 
         assertEquals(1, result.size)
         assertEquals("eth", result[0].coinUid)
@@ -208,7 +251,7 @@ class CoinSyncerTest {
             createToken(coinUid = "btc", blockchainUid = "bitcoin")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
+        val result = CoinResponseMapper.filterValidTokens(tokens, blockchains)
 
         assertTrue(result.isEmpty())
     }
@@ -220,7 +263,7 @@ class CoinSyncerTest {
         )
         val tokens = emptyList<TokenEntity>()
 
-        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
+        val result = CoinResponseMapper.filterValidTokens(tokens, blockchains)
 
         assertTrue(result.isEmpty())
     }
@@ -238,7 +281,7 @@ class CoinSyncerTest {
             createToken(coinUid = "orphan2", blockchainUid = "unknown-chain")
         )
 
-        val result = CoinSyncer.filterValidTokens(tokens, blockchains)
+        val result = CoinResponseMapper.filterValidTokens(tokens, blockchains)
 
         assertEquals(2, result.size)
         assertEquals("eth", result[0].coinUid)

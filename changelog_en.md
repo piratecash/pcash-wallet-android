@@ -1,3 +1,45 @@
+## 🚀 Version 0.58.2 Update
+_Release date: July 28, 2026_
+
+### ✨ Improvements
+
+- **Updated the Zcash SDK to support the Ironwood network upgrade**
+  The wallet is now ready for the latest Zcash network changes, including support for the new shielded pool and improvements to transaction protection and verification.
+
+## 🚀 Version 0.58.1 Update
+_Release date: July 25, 2026_
+
+### ✨ Improvements
+
+- **Added support for encrypted P2P connections with BIP324 v2**
+  Supported for `PirateCash`, `Cosanta`, `Dash`, and `Bitcoin`.
+
+- **Added Unstoppable DEX integration**
+
+- **Added in-app updates**
+
+- **Added support for configuring wallet creation date / Restore Height for Zcash and Monero**
+  These parameters can now be adjusted after wallet initialization as well.
+
+- **Added WalletConnect connection status display**
+
+- **Wallets with active Premium are now highlighted in a separate `Premium Active` section**
+
+- **Improved hiding of the available fee balance when sending tokens**
+
+- **Added automatic scrolling to the transaction search field on the asset page**
+
+### 🐛 Fixes
+
+- **Swap transactions no longer appear under the `Received` and `Sent` tabs**
+
+- **Fixed a PayCore issue during first wallet registration**
+
+- **Fixed a Tangem issue on the first BEP-20 send attempt**
+  Android no longer opens the card's `NDEF URL` instead of starting NFC signing.
+
+- **Fixed the swap provider types info modal overlapping the system header**
+
 ## 🚀 Version 0.58.0 Update
 _Release date: July 22, 2026_
 

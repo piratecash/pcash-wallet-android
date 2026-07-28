@@ -1,6 +1,7 @@
 package cash.p.terminal.trezor.domain
 
 import cash.p.terminal.trezor.domain.model.TrezorModel
+import cash.p.terminal.trezorkit.client.TrezorFeatures
 import cash.p.terminal.wallet.entities.TokenQuery
 import io.horizontalsystems.core.entities.BlockchainType
 
@@ -20,7 +21,6 @@ object TrezorModelSupport {
         BlockchainType.Optimism,
         BlockchainType.Base,
         BlockchainType.Stellar,
-        // Tron: deep link API does not support tronGetAddress yet
     )
 
     fun getSupportedBlockchains(model: TrezorModel?): Set<BlockchainType> {
@@ -33,10 +33,14 @@ object TrezorModelSupport {
                 TrezorModel.ModelT -> {
                     add(BlockchainType.Dash)
                     add(BlockchainType.Solana)
+                    add(BlockchainType.Tron)
                 }
                 TrezorModel.Safe3,
                 TrezorModel.Safe5,
-                TrezorModel.Safe7 -> add(BlockchainType.Solana)
+                TrezorModel.Safe7 -> {
+                    add(BlockchainType.Solana)
+                    add(BlockchainType.Tron)
+                }
             }
         }
     }
@@ -48,4 +52,17 @@ object TrezorModelSupport {
         val supported = getSupportedBlockchains(model)
         return TokenQuery.defaultTokenQueries.filter { it.blockchainType in supported }
     }
+
+    /**
+     * Drops token queries the connected device cannot derive on its current firmware. Model support
+     * advertises Tron for every Safe/Model T, but Tron signing landed only in core firmware 2.11.0;
+     * on older firmware a TronGetAddress is rejected and fails the whole derivation batch, so Tron
+     * must be removed unless the device reports [TrezorFeatures.supportsTron].
+     */
+    fun filterByFirmwareCapabilities(
+        tokenQueries: List<TokenQuery>,
+        features: TrezorFeatures
+    ): List<TokenQuery> =
+        if (features.supportsTron) tokenQueries
+        else tokenQueries.filterNot { it.blockchainType == BlockchainType.Tron }
 }

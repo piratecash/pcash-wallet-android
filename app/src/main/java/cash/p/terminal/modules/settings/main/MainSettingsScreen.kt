@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
 import cash.p.terminal.core.managers.RateAppManager
+import cash.p.terminal.feature.miniapp.ui.TELEGRAM_BOT_START_URL
 import cash.p.terminal.modules.contacts.ContactsFragment
 import cash.p.terminal.modules.contacts.Mode
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -117,7 +118,7 @@ private fun SettingSections(
                 R.string.settings_mini_app,
                 R.drawable.ic_uwt2_24,
                 onClick = {
-                    navController.slideFromRight(R.id.miniAppFragment)
+                    LinkHelper.openLinkInAppBrowser(context, TELEGRAM_BOT_START_URL)
                 }
             )
         }

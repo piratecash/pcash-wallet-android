@@ -6,8 +6,8 @@ DRY_RUN=0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-GRADLE_FILE="${PROJECT_ROOT}/app/build.gradle"
 APK_DIR="${PROJECT_ROOT}/app/build/outputs/apk/release"
+APK_NAME="p.cash.apk"
 
 usage() {
     cat <<USAGE
@@ -19,8 +19,8 @@ Options:
   --dry-run           Print commands without writing signatures/checksum
   -h, --help          Show this help
 
-The script reads versionName from app/build.gradle and expects:
-  app/build/outputs/apk/release/p.cash-<version>.apk
+The script expects:
+  app/build/outputs/apk/release/p.cash.apk
 USAGE
 }
 
@@ -58,19 +58,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ ! -f "${GRADLE_FILE}" ]]; then
-    echo "Error: Gradle file not found: ${GRADLE_FILE}" >&2
-    exit 1
-fi
-
-VERSION="$(awk -F\" '/^[[:space:]]*versionName[[:space:]]+"/ { print $2; exit }' "${GRADLE_FILE}")"
-
-if [[ -z "${VERSION}" ]]; then
-    echo "Error: could not read versionName from ${GRADLE_FILE}" >&2
-    exit 1
-fi
-
-APK_NAME="p.cash-${VERSION}.apk"
 APK_PATH="${APK_DIR}/${APK_NAME}"
 CHECKSUM_NAME="${APK_NAME}.sha256"
 
@@ -104,7 +91,6 @@ run() {
     fi
 }
 
-echo "Release version: ${VERSION}"
 echo "APK: ${APK_PATH}"
 echo "GPG key: ${GPG_KEY_ID}"
 

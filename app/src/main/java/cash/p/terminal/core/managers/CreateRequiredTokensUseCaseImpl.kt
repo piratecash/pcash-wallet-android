@@ -3,22 +3,25 @@ package cash.p.terminal.core.managers
 import cash.p.terminal.feature.miniapp.domain.usecase.CreateRequiredTokensUseCase
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IHardwarePublicKeyStorage
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.expandedZcashAddressSpecQueries
+import cash.p.terminal.wallet.latestAccountOr
 import cash.p.terminal.wallet.useCases.ScanToAddUseCase
 
 class CreateRequiredTokensUseCaseImpl(
     private val walletActivator: WalletActivator,
     private val userDeletedWalletManager: UserDeletedWalletManager,
     private val scanToAddUseCase: ScanToAddUseCase,
-    private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage
+    private val hardwarePublicKeyStorage: IHardwarePublicKeyStorage,
+    private val accountManager: IAccountManager
 ) : CreateRequiredTokensUseCase {
     override suspend fun invoke(account: Account, tokenQueries: List<TokenQuery>) {
         val expandedTokenQueries = tokenQueries.expandedZcashAddressSpecQueries()
         userDeletedWalletManager.unmarkAsDeleted(account.id, expandedTokenQueries.map { it.id })
 
-        if (account.isHardwareWalletAccount) {
+        val refreshedAccount = if (account.isHardwareWalletAccount) {
             val hardwareId = when (val type = account.type) {
                 is AccountType.HardwareCard -> type.cardId
                 is AccountType.TrezorDevice -> type.deviceId
@@ -39,8 +42,13 @@ class CreateRequiredTokensUseCaseImpl(
                     accountId = account.id
                 )
             }
-        }
 
-        walletActivator.activateWalletsSuspended(account, expandedTokenQueries)
+            // The scan may have healed a legacy Trezor model; re-read so the activation
+            // below sees the healed model instead of the stale snapshot.
+            accountManager.latestAccountOr(account)
+        } else {
+            account
+        }
+        walletActivator.activateWalletsSuspended(refreshedAccount, expandedTokenQueries)
     }
 }

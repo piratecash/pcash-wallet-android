@@ -26,6 +26,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -193,6 +194,7 @@ class WalletUseCaseTest {
     fun `createWallets for hardware account scans when keys missing`() = runTest {
         val account = hardwareAccount()
         every { accountManager.activeAccount } returns account
+        every { accountManager.account(account.id) } returns account
 
         val tokenA = token("USDT", BlockchainType.Ethereum)
         val tokenB = token("BTC", BlockchainType.BinanceSmartChain)
@@ -229,9 +231,47 @@ class WalletUseCaseTest {
     }
 
     @Test
+    fun createWallets_hardwareScanHealsAccount_createsWalletWithRefreshedAccount() = runTest {
+        // Same id, different instance: mirrors the scan healing the persisted model.
+        // Account.equals compares only id, so the refreshed account is distinguished by
+        // reference identity, not equality.
+        val staleAccount = hardwareAccount()
+        val healedAccount = hardwareAccount(id = staleAccount.id)
+        every { accountManager.activeAccount } returns staleAccount
+        // Model the heal timing: account(id) yields the stale model until the scan runs and
+        // the healed model afterwards. This makes assertSame enforce post-scan ordering — if
+        // the re-read ever moved before the scan, create would capture the stale account.
+        var scanCompleted = false
+        every { accountManager.account(staleAccount.id) } answers {
+            if (scanCompleted) healedAccount else staleAccount
+        }
+
+        val token = token("USDT", BlockchainType.Ethereum)
+        val key = hardwareKey(staleAccount, token)
+        val createdWallet = wallet(token, healedAccount, key)
+
+        // Key missing before the scan (triggers the scan), present afterwards.
+        coEvery {
+            getHardwarePublicKeyForWalletUseCase(any(), token.blockchainType, token.type)
+        } returnsMany listOf(null, key)
+        coEvery {
+            scanToAddUseCase.addTokensByScan(any(), accountCard(staleAccount).cardId, staleAccount.id)
+        } answers { scanCompleted = true; true }
+
+        val accountSlot = slot<Account>()
+        every { walletFactory.create(token, capture(accountSlot), key) } returns createdWallet
+
+        val result = useCase.createWallets(setOf(token))
+
+        assertTrue(result)
+        assertSame(healedAccount, accountSlot.captured)
+    }
+
+    @Test
     fun `createWallets returns false when scan fails`() = runTest {
         val account = hardwareAccount()
         every { accountManager.activeAccount } returns account
+        every { accountManager.account(account.id) } returns account
 
         val tokenA = token("USDT", BlockchainType.Ethereum)
         val tokenB = token("BTC", BlockchainType.BinanceSmartChain)

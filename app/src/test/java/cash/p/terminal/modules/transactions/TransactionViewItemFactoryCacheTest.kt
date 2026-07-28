@@ -40,6 +40,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
@@ -168,6 +169,19 @@ class TransactionViewItemFactoryCacheTest {
     }
 
     @Test
+    fun convertToViewItemCached_evmSwap_marksAsSwap() = runTest {
+        val record = createUnknownSwapRecord(
+            uid = "pancake-swap-uid",
+            valueOut = null,
+            transactionRecordType = TransactionRecordType.EVM_SWAP,
+        )
+
+        val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
+
+        assertTrue(viewItem.isSwap)
+    }
+
+    @Test
     fun convertToViewItemCached_pendingOutgoingFallbackWithHash_persistsTransactionHash() = runTest {
         val record = createPendingRecord(
             transactionHash = TX_HASH,
@@ -180,6 +194,7 @@ class TransactionViewItemFactoryCacheTest {
         val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
 
         assertEquals(swap.transactionId, viewItem.changeNowTransactionId)
+        assertTrue(viewItem.isSwap)
         verify {
             swapProviderTransactionsStorage.setOutgoingRecordUid(
                 date = swap.date,
@@ -239,6 +254,7 @@ class TransactionViewItemFactoryCacheTest {
     private fun createUnknownSwapRecord(
         uid: String,
         valueOut: TransactionValue?,
+        transactionRecordType: TransactionRecordType = TransactionRecordType.EVM_UNKNOWN_SWAP,
     ): EvmTransactionRecord {
         val transaction = mockk<io.horizontalsystems.ethereumkit.models.Transaction>(relaxed = true) {
             every { hashString } returns uid
@@ -258,7 +274,7 @@ class TransactionViewItemFactoryCacheTest {
             token = mockk<Token>(relaxed = true),
             source = source,
             protected = false,
-            transactionRecordType = TransactionRecordType.EVM_UNKNOWN_SWAP,
+            transactionRecordType = transactionRecordType,
             exchangeAddress = "0xpancakeswap_router",
             valueIn = TransactionValue.TokenValue(
                 tokenName = "BNB",
@@ -338,7 +354,7 @@ class TransactionViewItemFactoryCacheTest {
         } returns swap
     }
 
-    private fun createTransactionItem(record: PendingTransactionRecord) = TransactionItem(
+    private fun createTransactionItem(record: TransactionRecord) = TransactionItem(
         record = record,
         currencyValue = null,
         lastBlockInfo = null,

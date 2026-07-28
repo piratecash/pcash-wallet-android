@@ -324,9 +324,6 @@
     <ID>EmptyFunctionBlock:NetworkManager.kt$APIClient.&lt;no name provided&gt;${ }</ID>
     <ID>EmptyFunctionBlock:ShowExtendedKeyFragment.kt${ }</ID>
     <ID>EmptyFunctionBlock:TorControl.kt$TorControl.TorEventHandler${ }</ID>
-    <ID>EmptyKtFile:BaseSwapConfirmationFragment.kt$.BaseSwapConfirmationFragment.kt</ID>
-    <ID>EmptyKtFile:CustomTokenStorage.kt$.CustomTokenStorage.kt</ID>
-    <ID>EmptyKtFile:SwapApproveConfirmationFragment.kt$.SwapApproveConfirmationFragment.kt</ID>
     <ID>ExplicitItLambdaParameter:BackupConfirmKeyFragment.kt${ index, it -&gt; if (index != 0) { Spacer(modifier = Modifier.height(16.dp)) } val borderColor = if (uiState.currentHiddenWordItemIndex == index) { ComposeAppTheme.colors.yellow50 } else { ComposeAppTheme.colors.steel20 } Row( modifier = Modifier .fillMaxWidth() .height(44.dp) .padding(horizontal = 16.dp) .clip(RoundedCornerShape(12.dp)) .border(1.dp, borderColor, RoundedCornerShape(12.dp)) .padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically ) { body_leah(text = it.toString()) } }</ID>
     <ID>FunctionNaming:AddressCheckerFragment.kt$@Preview @Composable fun Preview_AddressChecker()</ID>
     <ID>FunctionNaming:Badge.kt$@Preview @Composable fun BadgeCircleSignal_Preview()</ID>

@@ -177,6 +177,11 @@ class ZcashAdapter(
 
     private var importUfvkError : Throwable? = null
 
+    private val feeLock = Any()
+    private var feeJob: Job? = null
+    private var lastFeeSnapshot: AccountBalance? = null
+    private var feeGeneration = 0L
+
     companion object {
         private const val DECIMAL_COUNT = 8
 
@@ -189,6 +194,13 @@ class ZcashAdapter(
         )
 
         val MINERS_FEE = ZcashSdk.MINERS_FEE.convertZatoshiToZec(DECIMAL_COUNT)
+
+        // The fee probe steps down by MINERS_FEE (10,000 zat) per attempt. With funds spread
+        // over several pools ZIP-317 charges per bundle and per input, so a near-max send
+        // easily exceeds the former 4 steps (40,000 zat). 20 attempts cover fees up to
+        // 200,000 zat; the probe only runs to the end in the rare case where the whole
+        // balance cannot be sent at all.
+        private const val FEE_PROBE_ATTEMPTS = 20
     }
 
     init {
@@ -429,8 +441,8 @@ class ZcashAdapter(
         statusJob?.cancel()
         statusJob = scope.launch {
             synchronizer.status.collect {
-                if (it == Synchronizer.Status.SYNCED && fee.value == MINERS_FEE) {
-                    calculateFee()
+                if (it == Synchronizer.Status.SYNCED) {
+                    scheduleFeeRecalculation()
                 }
             }
         }
@@ -549,7 +561,15 @@ class ZcashAdapter(
                 valuePending = Zatoshi(0)
             )
 
-            AddressSpecType.Unified -> accountBalance.orchard
+            // After NU6.3 activation the turnstile forbids adding value to Orchard, so change
+            // and payments to Orchard recipients are built in an Ironwood bundle. A unified
+            // address therefore holds funds in both pools and its balance is their sum.
+            AddressSpecType.Unified -> WalletBalance(
+                available = accountBalance.orchard.available + accountBalance.ironwood.available,
+                changePending = accountBalance.orchard.changePending +
+                    accountBalance.ironwood.changePending,
+                valuePending = accountBalance.orchard.valuePending + accountBalance.ironwood.valuePending
+            )
         }
     }
 
@@ -660,22 +680,65 @@ class ZcashAdapter(
     private val _fee: MutableStateFlow<BigDecimal> = MutableStateFlow(MINERS_FEE)
     override val fee: StateFlow<BigDecimal> = _fee.asStateFlow()
 
+    /**
+     * Restarts the fee calculation whenever the account balance changes.
+     *
+     * The marker is the whole [AccountBalance] rather than `available` alone: under ZIP-317 the
+     * fee depends on which pools are involved, and after NU6.3 activation funds can move from
+     * Orchard to Ironwood without changing the total. The snapshot is read under the lock
+     * because this runs both from `onBalance` (main dispatcher) and from the status collector
+     * (IO): otherwise an older call could overwrite the marker and cancel the calculation
+     * started for the fresher balance.
+     *
+     * While the published fee is still the default one the snapshot is not enough to conclude
+     * the fee is current — ZIP-317 also depends on the proposal target height, which changes at
+     * NU6.3 activation without touching any balance field — so the calculation repeats on every
+     * trigger until a real fee is known.
+     */
+    private fun scheduleFeeRecalculation() {
+        synchronized(feeLock) {
+            val snapshot = synchronizer.walletBalances.value?.get(zcashAccount?.accountUuid)
+            if (snapshot == lastFeeSnapshot && _fee.value != MINERS_FEE) return
+            lastFeeSnapshot = snapshot
+            val generation = ++feeGeneration
+            val available = walletBalance.available
+            feeJob?.cancel()
+            feeJob = scope.launch {
+                val calculated = calculateFee(available)
+                synchronized(feeLock) {
+                    // The probe may have passed its last cancellation point and returned after a
+                    // fresher calculation already published its fee. Ownership is checked by
+                    // calculation number rather than by snapshot value: on an A -> B -> A balance
+                    // cycle the stale probe would match the snapshot again and publish an
+                    // outdated fee.
+                    if (feeGeneration != generation) return@launch
+                    if (calculated == null) {
+                        // The probe found no workable fee — clear the marker so the next balance
+                        // tick retries it instead of treating the fee as already calculated.
+                        lastFeeSnapshot = null
+                    } else {
+                        _fee.value = calculated
+                    }
+                }
+            }
+        }
+    }
+
+    /** Returns the discovered fee, or `null` when the probe failed outright. */
     private suspend fun calculateFee(
         balance: Zatoshi = walletBalance.available,
-        tryCounter: Int = 4
-    ): Unit = withContext(dispatcherProvider.io) {
+        tryCounter: Int = FEE_PROBE_ATTEMPTS
+    ): BigDecimal? = withContext(dispatcherProvider.io) {
         try {
             if (balance == Zatoshi(0)) {
-                _fee.value = MINERS_FEE
-                return@withContext
+                return@withContext MINERS_FEE
             }
-            val calculatedFee = synchronizer.proposeTransfer(
+            synchronizer.proposeTransfer(
                 account = getFirstAccount(),
                 recipient = AppConfigProvider.donateAddresses[BlockchainType.Zcash]
                     .orEmpty(),
                 amount = balance
-            ).totalFeeRequired()
-            _fee.value = calculatedFee.convertZatoshiToZec(DECIMAL_COUNT)
+            ).totalFeeRequired().convertZatoshiToZec(DECIMAL_COUNT)
         } catch (ex: Exception) {
             if (ex is TransactionEncoderException.ProposalFromParametersException && tryCounter > 0) {
                 // Not enough money to send with commission
@@ -685,7 +748,10 @@ class ZcashAdapter(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (_: Throwable) {
+                    null
                 }
+            } else {
+                null
             }
         }
     }
@@ -1029,6 +1095,12 @@ class ZcashAdapter(
     private fun onBalance(balance: Map<AccountUuid, AccountBalance>?) {
         balance?.get(zcashAccount?.accountUuid)?.sapling?.let {
             balanceUpdatedSubject.onNext(Unit)
+        }
+        // The pool composition changes at runtime: after NU6.3 activation change arrives in
+        // Ironwood and the available balance no longer matches a fee calculated for a single
+        // pool. Recalculate on every balance change, not only on the first sync.
+        if (syncState is AdapterState.Synced) {
+            scheduleFeeRecalculation()
         }
         startOneTimeAddressBalanceCheck()
         logDiag()

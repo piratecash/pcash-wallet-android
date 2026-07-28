@@ -17,8 +17,8 @@ class GithubReleaseMapperTest {
         val dto = release(
             tagName = "v0.57.2-fdroid",
             assets = listOf(
-                asset("p.cash-0.57.2.apk.sha256", 84),
-                asset("p.cash-0.57.2.apk", 172_337_195),
+                asset("p.cash.apk.sha256", 84),
+                asset("p.cash.apk", 172_337_195),
             ),
         )
 
@@ -27,7 +27,7 @@ class GithubReleaseMapperTest {
         assertEquals("0.57.2", result.version)
         assertEquals("0.57", result.minor)
         assertEquals(172_337_195L, result.apkSizeBytes)
-        assertEquals("https://p.cash-0.57.2.apk", result.apkDownloadUrl)
+        assertEquals("https://p.cash.apk", result.apkDownloadUrl)
     }
 
     @Test
