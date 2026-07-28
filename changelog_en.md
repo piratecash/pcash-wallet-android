@@ -1,3 +1,11 @@
+## 🚀 Version 0.58.2 Update
+_Release date: July 28, 2026_
+
+### ✨ Improvements
+
+- **Updated the Zcash SDK to support the Ironwood network upgrade**
+  The wallet is now ready for the latest Zcash network changes, including support for the new shielded pool and improvements to transaction protection and verification.
+
 ## 🚀 Version 0.58.1 Update
 _Release date: July 25, 2026_
 

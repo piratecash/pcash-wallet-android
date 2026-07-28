@@ -63,8 +63,8 @@ android {
         compileSdk compile_sdk_version
         minSdkVersion min_sdk_version
         targetSdkVersion compile_sdk_version
-        versionCode 249
-        versionName "0.58.1"
+        versionCode 250
+        versionName "0.58.2"
         buildConfigField "String", "GIT_HASH", "\"${getGitVersionSuffix()}\""
         buildConfigField "String", "BITCOIN_KIT_VERSION", "\"${libs.versions.piratecash.bitcoin.get()}\""
         buildConfigField "String", "ETHEREUM_KIT_VERSION", "\"${libs.versions.piratecash.ethereum.get()}\""
