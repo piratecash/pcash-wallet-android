@@ -18,6 +18,7 @@ import cash.p.terminal.wallet.IBalanceAdapter
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
+import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.core.managers.PoisonAddressManager
@@ -127,7 +128,7 @@ abstract class BaseSendViewModel<T>(
     var feeWarningData by mutableStateOf<NetworkFeeWarningData?>(null)
         private set
 
-    var balanceHidden by mutableStateOf(balanceHiddenManager.balanceHiddenFlow.value)
+    var balanceHidden by mutableStateOf(balanceHiddenManager.isWalletBalanceHidden(wallet.tokenQueryId))
         private set
 
     var riskAccepted by mutableStateOf(false)
@@ -157,7 +158,7 @@ abstract class BaseSendViewModel<T>(
 
     fun toggleHideBalance() {
         HudHelper.vibrate(App.instance)
-        balanceHiddenManager.toggleBalanceHidden()
+        balanceHiddenManager.toggleWalletBalanceHidden(wallet.tokenQueryId)
     }
 
     protected open fun getEstimatedFee(): BigDecimal? = null
@@ -295,8 +296,8 @@ abstract class BaseSendViewModel<T>(
         }
 
         viewModelScope.launch {
-            balanceHiddenManager.balanceHiddenFlow.collect {
-                balanceHidden = it
+            balanceHiddenManager.anyWalletVisibilityChangedFlow.collect {
+                balanceHidden = balanceHiddenManager.isWalletBalanceHidden(wallet.tokenQueryId)
             }
         }
     }
