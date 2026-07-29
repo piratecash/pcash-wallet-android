@@ -33,6 +33,7 @@ class MultiSwapRouteResolver(
         tokenOut: Token,
         amountIn: BigDecimal,
         settings: Map<String, Any?>,
+        preferredLeg1Provider: IMultiSwapProvider? = null,
     ): MultiSwapRoute? = withContext(dispatcherProvider.io) {
         if (tokenIn.isRouteNative && tokenOut.isRouteNative) return@withContext null
 
@@ -42,15 +43,14 @@ class MultiSwapRouteResolver(
         val validRoutes = findValidRoutes(providers, candidates, tokenIn, tokenOut)
         if (validRoutes.isEmpty()) return@withContext null
 
-        validRoutes
-            .mapNotNull { validRoute ->
-                buildRoute(
-                    validRoute.intermediate,
-                    validRoute.leg1Providers,
-                    validRoute.leg2Providers,
-                    tokenIn, tokenOut, amountIn, settings,
-                )
-            }
+        val routes = validRoutes.mapNotNull { validRoute ->
+            buildRoute(validRoute, tokenIn, tokenOut, amountIn, settings, preferredLeg1Provider)
+        }
+
+        // A route whose leg 1 is not the preferred provider must not win over one that honors the choice
+        routes
+            .filter { it.selectedLeg1Quote.provider == preferredLeg1Provider }
+            .ifEmpty { routes }
             .maxByOrNull { it.selectedLeg2Quote.amountOut }
     }
 
@@ -117,18 +117,19 @@ class MultiSwapRouteResolver(
     }
 
     private suspend fun buildRoute(
-        intermediate: Token,
-        leg1Providers: List<IMultiSwapProvider>,
-        leg2Providers: List<IMultiSwapProvider>,
+        validRoute: ValidatedRoute,
         tokenIn: Token,
         tokenOut: Token,
         amountIn: BigDecimal,
         settings: Map<String, Any?>,
+        preferredLeg1Provider: IMultiSwapProvider?,
     ): MultiSwapRoute? = coroutineScope {
-        val leg1Quotes = fetchQuotes(leg1Providers, tokenIn, intermediate, amountIn, settings)
+        val intermediate = validRoute.intermediate
+        val leg1Quotes = fetchQuotes(validRoute.leg1Providers, tokenIn, intermediate, amountIn, settings)
         if (leg1Quotes.isEmpty()) return@coroutineScope null
 
-        val bestLeg1 = leg1Quotes.first()
+        val bestLeg1 = leg1Quotes.firstOrNull { it.provider == preferredLeg1Provider }
+            ?: leg1Quotes.first()
         val commissionReserve = commissionReserve(intermediate)
         val leg2Amount = bestLeg1.amountOut - commissionReserve
         if (leg2Amount <= BigDecimal.ZERO) {
@@ -136,7 +137,7 @@ class MultiSwapRouteResolver(
             return@coroutineScope null
         }
 
-        val leg2Quotes = fetchQuotes(leg2Providers, intermediate, tokenOut, leg2Amount, settings)
+        val leg2Quotes = fetchQuotes(validRoute.leg2Providers, intermediate, tokenOut, leg2Amount, settings)
         if (leg2Quotes.isEmpty()) return@coroutineScope null
 
         MultiSwapRoute(
