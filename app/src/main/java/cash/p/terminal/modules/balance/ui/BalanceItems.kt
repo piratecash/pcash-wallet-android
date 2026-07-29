@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Text
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +42,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.NavController
 import cash.p.terminal.MainGraphDirections
 import cash.p.terminal.R
@@ -61,7 +59,6 @@ import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
-import cash.p.terminal.modules.rateapp.RateAppViewModel
 import cash.p.terminal.modules.send.offline.OfflineBroadcastFragment
 import cash.p.terminal.modules.sendtokenselect.SendTokenSelectFragment
 import cash.p.terminal.modules.transactions.TransactionItem
@@ -195,14 +192,6 @@ fun BalanceItems(
     totalState: TotalUIState,
     onOpenTransactionInfo: (TransactionItem) -> Unit,
 ) {
-    val rateAppViewModel = koinViewModel<RateAppViewModel>()
-    DisposableEffect(true) {
-        rateAppViewModel.onBalancePageActive()
-        onDispose {
-            rateAppViewModel.onBalancePageInactive()
-        }
-    }
-
     LaunchedEffect(viewModel) {
         viewModel.payCoreNavigationEvents.collect { event ->
             when (event) {
