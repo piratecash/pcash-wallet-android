@@ -104,7 +104,7 @@ class SendSolanaViewModel(
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
     private val decimalAmount: BigDecimal
         get() = amountState.amount ?: throw LocalizedException(R.string.send_error_amount_unavailable)
@@ -170,6 +170,7 @@ class SendSolanaViewModel(
     }
 
     fun onClickSend() {
+        sendResult = SendResult.Sending
         viewModelScope.launch {
             send()
         }
@@ -194,7 +195,6 @@ class SendSolanaViewModel(
         }
 
         try {
-            sendResult = SendResult.Sending
             val address = addressState.address
                 ?: throw LocalizedException(R.string.send_error_address_unavailable)
             val solanaAddress = addressState.solanaAddress

@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.R
 import cash.p.terminal.manager.IConnectivityManager
+import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.navigation.popBackStackSafely
 import org.koin.compose.koinInject
 
@@ -22,11 +23,17 @@ import org.koin.compose.koinInject
  * offline-sign blocker ([OfflineSendSyncErrorScreen]): on a real network loss
  * ([isConnected] is false). A sync problem while the network is present
  * (kit resyncing / bad node) stays on the confirm screen.
+ *
+ * Once a send has started ([sendResult] is non-null) the confirmation screen must stay:
+ * it owns the send HUD, the failure caution and the auto-close on success. Replacing it
+ * mid-send hides the outcome and offers retry / offline-sign buttons that could broadcast
+ * an already-sent transaction a second time.
  */
 internal fun shouldShowOfflineSyncBlocker(
     offlineSignSupported: Boolean,
     isConnected: Boolean,
-): Boolean = offlineSignSupported && !isConnected
+    sendResult: SendResult?,
+): Boolean = offlineSignSupported && !isConnected && sendResult == null
 
 /**
  * Whether the wallet was in a good ([isSynced] && connected) state within the grace window.
@@ -110,6 +117,7 @@ private fun OfflineSignableConfirmationContent(
     val showSyncBlocker = shouldShowOfflineSyncBlocker(
         offlineSignSupported = sendViewModel.offlineSignSupported,
         isConnected = isConnected,
+        sendResult = sendViewModel.sendResult,
     )
     val retryInProgress = isOfflineRetryInProgress(
         retrying = retrying,

@@ -118,7 +118,7 @@ class SendTronViewModel(
         private set
     var confirmationData by mutableStateOf<SendTronConfirmationData?>(null)
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
@@ -307,15 +307,16 @@ class SendTronViewModel(
     private fun onClickSend() {
         logger.info("click send button")
 
+        val confirmationData = confirmationData ?: return
+        sendResult = SendResult.Sending
+
         viewModelScope.launch {
-            send()
+            send(confirmationData)
         }
     }
 
-    private suspend fun send() = withContext(dispatcherProvider.io) {
+    private suspend fun send(confirmationData: SendTronConfirmationData) = withContext(dispatcherProvider.io) {
         try {
-            val confirmationData = confirmationData ?: return@withContext
-            sendResult = SendResult.Sending
             logger.info("sending tx")
 
             val amount = confirmationData.amount
