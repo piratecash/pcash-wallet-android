@@ -16,11 +16,14 @@ import cash.p.terminal.trezorkit.TrezorUsbShortPacketException
 import cash.p.terminal.trezorkit.TrezorUsbStaleChannelException
 import cash.p.terminal.trezorkit.client.TrezorFeatures
 import cash.p.terminal.trezorkit.client.TrezorSessionId
+import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import com.piratecash.monero.signer.HardwareWalletErrorCode
 import com.piratecash.monero.signer.HardwareWalletOperationException
 
-internal class MoneroTrezorReadiness {
+internal class MoneroTrezorReadiness(
+    private val identityValidator: TrezorAccountIdentityValidator,
+) {
     fun requireLive(
         features: TrezorFeatures,
         accountType: AccountType.TrezorDevice?,
@@ -28,7 +31,7 @@ internal class MoneroTrezorReadiness {
         requireSupported(features)
         if (
             accountType != null &&
-            !TrezorAccountIdentityValidator.matchesDevice(accountType.deviceId, features.deviceId)
+            !identityValidator.matchesDevice(accountType.deviceId, features.deviceId)
         ) {
             throw HardwareWalletOperationException(
                 HardwareWalletErrorCode.WrongDevice,
@@ -47,16 +50,11 @@ internal class MoneroTrezorReadiness {
         }
     }
 
-    fun requireWallet(
-        expectedWalletPublicKey: String,
+    suspend fun requireWallet(
+        account: Account,
         liveWalletPublicKey: String,
     ) {
-        if (
-            !TrezorAccountIdentityValidator.matchesWallet(
-                expectedWalletPublicKey,
-                liveWalletPublicKey,
-            )
-        ) {
+        if (!identityValidator.matchesWallet(account, liveWalletPublicKey)) {
             throw HardwareWalletOperationException(
                 HardwareWalletErrorCode.WrongWallet,
                 "Connected Trezor passphrase wallet does not match the account",

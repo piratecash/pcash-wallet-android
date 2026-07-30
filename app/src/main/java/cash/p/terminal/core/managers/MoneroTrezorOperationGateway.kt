@@ -88,11 +88,8 @@ class MoneroTrezorOperationGateway internal constructor(
         val read = readDevice(channel, deriveWalletIdentity = accountType != null)
         try {
             readiness.requireLive(read.features, accountType)
-            accountType?.walletPublicKey?.takeIf(String::isNotEmpty)?.let { expected ->
-                readiness.requireWallet(
-                    expected,
-                    read.walletPublicKey,
-                )
+            if (account != null) {
+                readiness.requireWallet(account, read.walletPublicKey)
             }
             return VerifiedDevice(
                 walletPublicKey = read.walletPublicKey,

@@ -15,7 +15,8 @@ import cash.p.terminal.wallet.entities.TokenQuery
 
 internal class FetchTrezorPublicKeysUseCaseImpl(
     private val trezorClient: ITrezorClient,
-    private val accountManager: IAccountManager
+    private val accountManager: IAccountManager,
+    private val identityValidator: TrezorAccountIdentityValidator,
 ) : FetchTrezorPublicKeysUseCase {
 
     override suspend fun invoke(
@@ -31,7 +32,6 @@ internal class FetchTrezorPublicKeysUseCaseImpl(
         return trezorClient.connect {
             val features = getFeatures()
             requireExpectedDevice(accountType, features)
-            val healedAccount = healPersistedModel(account, features)
             // Firmware capability is only known from a live device, so gate Tron here rather than at the caller.
             val derivable = TrezorModelSupport.filterByFirmwareCapabilities(tokenQueries, features)
             val specs = TrezorPublicKeySpecs.buildQuerySpecs(derivable)
@@ -45,8 +45,8 @@ internal class FetchTrezorPublicKeysUseCaseImpl(
             val resultByRequest = uniqueRequests.zip(getPublicKeys(uniqueRequests)).toMap()
             val liveWalletPublicKey =
                 resultByRequest[TrezorPublicKeySpecs.walletIdentityRequest]?.key.orEmpty()
-            requireExpectedWallet(accountType, liveWalletPublicKey)
-            persistWalletIdentity(healedAccount, liveWalletPublicKey)
+            requireExpectedWallet(account, liveWalletPublicKey)
+            persistVerifiedIdentity(account, features, liveWalletPublicKey)
 
             specs.mapNotNull { spec ->
                 resultByRequest[spec.request]?.let {
@@ -62,49 +62,54 @@ internal class FetchTrezorPublicKeysUseCaseImpl(
      * account resolves to a null model and Manage Wallets hides Tron/Solana. Fail closed: heal only
      * when the connected device is provably this account's own and reports a model we recognize.
      */
-    private fun healPersistedModel(account: Account, features: TrezorFeatures): Account {
-        val trezorType = account.type as? AccountType.TrezorDevice ?: return account
-        if (TrezorModel.fromInternalModel(trezorType.model) != null) return account
-        val reported = features.internalModel ?: return account
-        if (TrezorModel.fromInternalModel(reported) == null) return account
-        return account.copy(type = trezorType.copy(model = reported))
-            .also(accountManager::update)
-    }
-
-    private fun persistWalletIdentity(account: Account, liveWalletPublicKey: String) {
+    private suspend fun persistVerifiedIdentity(
+        account: Account,
+        features: TrezorFeatures,
+        liveWalletPublicKey: String,
+    ) {
         check(liveWalletPublicKey.isNotEmpty()) {
             "Trezor did not return a wallet identity"
         }
         val latestAccount = accountManager.account(account.id) ?: account
         val accountType = latestAccount.type as? AccountType.TrezorDevice
             ?: error("Trezor public keys require a Trezor account")
-        requireExpectedWallet(accountType, liveWalletPublicKey)
-        if (accountType.walletPublicKey.isEmpty()) {
+        requireExpectedDevice(accountType, features)
+        requireExpectedWallet(latestAccount, liveWalletPublicKey)
+        val updatedType = accountType.copy(
+            model = verifiedModel(accountType.model, features),
+            walletPublicKey = accountType.walletPublicKey.ifEmpty { liveWalletPublicKey },
+        )
+        // TrezorDevice.equals intentionally ignores model, so compare the healed fields directly.
+        if (
+            updatedType.model != accountType.model ||
+            updatedType.walletPublicKey != accountType.walletPublicKey
+        ) {
             accountManager.update(
-                latestAccount.copy(type = accountType.copy(walletPublicKey = liveWalletPublicKey)),
+                latestAccount.copy(type = updatedType),
             )
         }
+    }
+
+    private fun verifiedModel(storedModel: String, features: TrezorFeatures): String {
+        if (TrezorModel.fromInternalModel(storedModel) != null) return storedModel
+        val reportedModel = features.internalModel ?: return storedModel
+        return reportedModel.takeIf { TrezorModel.fromInternalModel(it) != null } ?: storedModel
     }
 
     private fun requireExpectedDevice(
         accountType: AccountType.TrezorDevice,
         features: TrezorFeatures,
     ) {
-        if (!TrezorAccountIdentityValidator.matchesDevice(accountType.deviceId, features.deviceId)) {
+        if (!identityValidator.matchesDevice(accountType.deviceId, features.deviceId)) {
             throw TrezorKeyValidationException("Connected Trezor does not match the account")
         }
     }
 
-    private fun requireExpectedWallet(
-        accountType: AccountType.TrezorDevice,
+    private suspend fun requireExpectedWallet(
+        account: Account,
         liveWalletPublicKey: String,
     ) {
-        if (
-            !TrezorAccountIdentityValidator.matchesWallet(
-                accountType.walletPublicKey,
-                liveWalletPublicKey,
-            )
-        ) {
+        if (!identityValidator.matchesWallet(account, liveWalletPublicKey)) {
             throw TrezorKeyValidationException(
                 "Connected Trezor passphrase wallet does not match the account",
             )

@@ -23,10 +23,10 @@ import com.satoshilabs.trezor.lib.protobuf.TrezorMessageCommon.HDNodeType
 import com.satoshilabs.trezor.lib.protobuf.TrezorMessageManagement.Features
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -140,7 +141,7 @@ class MoneroTrezorOperationGatewayTest {
     }
 
     @Test
-    fun execute_legacyAccount_returnsLiveWalletIdentityForBinding() = runTest {
+    fun execute_legacyAccount_verifiesLiveWalletIdentityBeforeBinding() = runTest {
         val channel = scriptedChannel(LIVE_WALLET_KEY)
         val coordinator = coordinator(channel)
         val sessionId = TrezorSessionId(SESSION_ID)
@@ -156,7 +157,12 @@ class MoneroTrezorOperationGatewayTest {
 
         assertEquals(LIVE_WALLET_KEY, result)
         assertFailsWith<IllegalStateException> { sessionId.toByteArray() }
-        verify(exactly = 0) { readiness.requireWallet(any(), any()) }
+        coVerify(exactly = 1) {
+            readiness.requireWallet(
+                match { it.id == ACCOUNT_ID },
+                LIVE_WALLET_KEY,
+            )
+        }
     }
 
     @Test
@@ -165,8 +171,13 @@ class MoneroTrezorOperationGatewayTest {
         val coordinator = coordinator(channel)
         val sessionId = TrezorSessionId(SESSION_ID)
         val readiness = readiness(sessionId)
-        every {
-            readiness.requireWallet("different-wallet", LIVE_WALLET_KEY)
+        val account = legacyAccount().copy(
+            type = (legacyAccount().type as AccountType.TrezorDevice).copy(
+                walletPublicKey = "different-wallet",
+            ),
+        )
+        coEvery {
+            readiness.requireWallet(account, LIVE_WALLET_KEY)
         } throws HardwareWalletOperationException(
             HardwareWalletErrorCode.WrongWallet,
             "wrong wallet",
@@ -177,18 +188,17 @@ class MoneroTrezorOperationGatewayTest {
             readiness,
             TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
         )
+        var blockInvoked = false
 
         val error = assertFailsWith<HardwareWalletOperationException> {
-            gateway.execute(
-                legacyAccount().copy(
-                    type = (legacyAccount().type as AccountType.TrezorDevice).copy(
-                        walletPublicKey = "different-wallet",
-                    ),
-                ),
-            ) { "unused" }
+            gateway.execute(account) {
+                blockInvoked = true
+                "unused"
+            }
         }
 
         assertEquals(HardwareWalletErrorCode.WrongWallet, error.error)
+        assertFalse(blockInvoked)
         assertFailsWith<IllegalStateException> { sessionId.toByteArray() }
     }
 
@@ -358,7 +368,7 @@ class MoneroTrezorOperationGatewayTest {
     ) = mockk<MoneroTrezorReadiness> {
         every { requireLive(any<TrezorFeatures>(), any()) } answers { firstArg() }
         every { requireSession(any()) } returns sessionId
-        every { requireWallet(any(), any()) } just Runs
+        coEvery { requireWallet(any(), any()) } just Runs
     }
 
     private fun scriptedChannel(walletKey: String): TrezorRawUsbChannel {
