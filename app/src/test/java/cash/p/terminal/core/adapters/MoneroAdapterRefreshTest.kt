@@ -1,10 +1,12 @@
 package cash.p.terminal.core.adapters
 
 import cash.p.terminal.core.BroadcastRawTransactionStatus
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.OfflineBroadcastMetadata
 import cash.p.terminal.core.OfflineMoneroSignRequest
 import cash.p.terminal.core.OfflineSignRequest
 import cash.p.terminal.core.managers.MoneroKitWrapper
+import cash.p.terminal.wallet.AdapterState
 import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import com.m2049r.xmrwallet.offline.SignedRawMoneroTransaction
 import io.mockk.coEvery
@@ -12,6 +14,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -39,6 +42,23 @@ class MoneroAdapterRefreshTest {
 
         assertEquals(0, BigDecimal("10").compareTo(adapter.balanceData.available))
         assertEquals(0, BigDecimal("4").compareTo(adapter.maxSpendableBalance))
+    }
+
+    @Test
+    fun maxSpendableBalance_keyImageSyncRequired_preservesFinancialBalance() {
+        val readiness = MutableStateFlow(MoneroSpendReadiness.Ready)
+        val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true) {
+            every { getUnlockedBalance() } returns 4_000_000_000_000L
+            every { spendReadiness } returns readiness
+            every { syncState } returns MutableStateFlow(AdapterState.Synced)
+        }
+        val adapter = MoneroAdapter(moneroKitWrapper)
+        assertEquals(0, BigDecimal("4").compareTo(adapter.maxSpendableBalance))
+
+        readiness.value = MoneroSpendReadiness.NeedsKeyImageSync
+
+        assertEquals(0, BigDecimal("4").compareTo(adapter.maxSpendableBalance))
+        assertEquals(false, adapter.sendAllowed())
     }
 
     @Test

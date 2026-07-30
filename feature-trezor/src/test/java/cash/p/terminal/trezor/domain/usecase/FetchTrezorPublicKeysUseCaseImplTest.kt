@@ -1,5 +1,6 @@
 package cash.p.terminal.trezor.domain.usecase
 
+import cash.p.terminal.trezor.client.TrezorKeyValidationException
 import cash.p.terminal.trezorkit.client.ITrezorClient
 import cash.p.terminal.trezorkit.client.TrezorClientSession
 import cash.p.terminal.trezorkit.client.TrezorFeatures
@@ -19,6 +20,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class FetchTrezorPublicKeysUseCaseImplTest {
@@ -26,12 +28,24 @@ class FetchTrezorPublicKeysUseCaseImplTest {
     // Fake ITrezorClient whose connect(block) runs the block on a mocked TrezorClientSession, so the
     // use case exercises the real connect() path and we can stub getFeatures/getPublicKeys.
     private val session: TrezorClientSession = mockk()
+    private var connectCount = 0
     private val trezorClient = object : ITrezorClient {
-        override suspend fun <T> connect(block: suspend TrezorClientSession.() -> T): T = session.block()
+        override suspend fun <T> connect(block: suspend TrezorClientSession.() -> T): T {
+            connectCount += 1
+            return session.block()
+        }
     }
     private val accountManager: IAccountManager = mockk(relaxed = true)
 
     private val useCase = FetchTrezorPublicKeysUseCaseImpl(trezorClient, accountManager)
+
+    @Test
+    fun invoke_emptyQueries_skipsUsbSession() {
+        val result = runBlocking { useCase.invoke(emptyList(), ACCOUNT_ID) }
+
+        assertEquals(emptyList<HardwarePublicKey>(), result)
+        assertEquals(0, connectCount)
+    }
 
     @Test
     fun invoke_storedModelUnknownDeviceReportsT2B1SameDevice_updatesAccountModel() {
@@ -77,23 +91,29 @@ class FetchTrezorPublicKeysUseCaseImplTest {
     }
 
     @Test
-    fun invoke_deviceIdMismatch_doesNotUpdate() {
-        runFetch(
-            stored = trezorDevice(model = "unknown"),
-            features = features(deviceId = "other-device", internalModel = "T2B1")
-        )
+    fun invoke_deviceIdMismatch_rejectsDeviceWithoutUpdating() {
+        assertThrows(TrezorKeyValidationException::class.java) {
+            runFetch(
+                stored = trezorDevice(model = "unknown"),
+                features = features(deviceId = "other-device", internalModel = "T2B1")
+            )
+        }
 
         verify(exactly = 0) { accountManager.update(any()) }
+        coVerify(exactly = 0) { session.getPublicKeys(any()) }
     }
 
     @Test
-    fun invoke_liveDeviceIdNull_doesNotUpdate() {
-        runFetch(
-            stored = trezorDevice(model = "unknown"),
-            features = features(deviceId = null, internalModel = "T2B1")
-        )
+    fun invoke_liveDeviceIdNull_rejectsDeviceWithoutUpdating() {
+        assertThrows(TrezorKeyValidationException::class.java) {
+            runFetch(
+                stored = trezorDevice(model = "unknown"),
+                features = features(deviceId = null, internalModel = "T2B1")
+            )
+        }
 
         verify(exactly = 0) { accountManager.update(any()) }
+        coVerify(exactly = 0) { session.getPublicKeys(any()) }
     }
 
     @Test
@@ -102,7 +122,6 @@ class FetchTrezorPublicKeysUseCaseImplTest {
             stored = trezorDevice(model = "T3T1"),
             features = features(internalModel = "T3T1"),
             tokenQueries = listOf(TokenQuery(BlockchainType.Solana, TokenType.Native)),
-            keyResults = listOf(solanaResult())
         )
 
         coVerify(exactly = 1) { session.getFeatures() }
@@ -114,7 +133,6 @@ class FetchTrezorPublicKeysUseCaseImplTest {
             stored = trezorDevice(model = "T3T1"),
             features = features(internalModel = "T3T1"),
             tokenQueries = listOf(TokenQuery(BlockchainType.Solana, TokenType.Native)),
-            keyResults = listOf(solanaResult())
         )
 
         assertEquals(1, result.size)
@@ -123,11 +141,40 @@ class FetchTrezorPublicKeysUseCaseImplTest {
         verify(exactly = 0) { accountManager.update(any()) }
     }
 
+    @Test
+    fun invoke_storedWalletIdentityEmpty_persistsLiveIdentity() {
+        runFetch(
+            stored = trezorDevice(model = "T3T1", walletPublicKey = ""),
+            features = features(internalModel = "T3T1"),
+        )
+
+        verify(exactly = 1) {
+            accountManager.update(
+                match {
+                    (it.type as AccountType.TrezorDevice).walletPublicKey == WALLET_PUBLIC_KEY
+                },
+            )
+        }
+    }
+
+    @Test
+    fun invoke_walletIdentityMismatch_rejectsKeysWithoutUpdating() {
+        assertThrows(TrezorKeyValidationException::class.java) {
+            runFetch(
+                stored = trezorDevice(model = "T3T1", walletPublicKey = "different-wallet"),
+                features = features(internalModel = "T3T1"),
+            )
+        }
+
+        verify(exactly = 0) { accountManager.update(any()) }
+    }
+
     private fun runFetch(
         stored: AccountType.TrezorDevice,
         features: TrezorFeatures,
-        tokenQueries: List<TokenQuery> = emptyList(),
-        keyResults: List<TrezorKeyResult> = emptyList()
+        tokenQueries: List<TokenQuery> =
+            listOf(TokenQuery(BlockchainType.Solana, TokenType.Native)),
+        keyResults: List<TrezorKeyResult> = listOf(solanaResult(), walletIdentityResult()),
     ): List<HardwarePublicKey> {
         every { accountManager.account(ACCOUNT_ID) } returns account(stored)
         coEvery { session.getFeatures() } returns features
@@ -145,11 +192,15 @@ class FetchTrezorPublicKeysUseCaseImplTest {
         level = 0
     )
 
-    private fun trezorDevice(model: String, deviceId: String = DEVICE_ID) = AccountType.TrezorDevice(
+    private fun trezorDevice(
+        model: String,
+        deviceId: String = DEVICE_ID,
+        walletPublicKey: String = WALLET_PUBLIC_KEY,
+    ) = AccountType.TrezorDevice(
         deviceId = deviceId,
         model = model,
         firmwareVersion = "2.8.7",
-        walletPublicKey = "wallet-public-key"
+        walletPublicKey = walletPublicKey,
     )
 
     private fun features(deviceId: String? = DEVICE_ID, internalModel: String?) = TrezorFeatures(
@@ -163,8 +214,16 @@ class FetchTrezorPublicKeysUseCaseImplTest {
     private fun solanaResult() =
         TrezorKeyResult(key = "SolAddr", publicKey = byteArrayOf(1, 2, 3), chainCode = ByteArray(0))
 
+    private fun walletIdentityResult() =
+        TrezorKeyResult(
+            key = WALLET_PUBLIC_KEY,
+            publicKey = byteArrayOf(4, 5, 6),
+            chainCode = ByteArray(0),
+        )
+
     companion object {
         private const val ACCOUNT_ID = "acc-1"
         private const val DEVICE_ID = "dev-1"
+        private const val WALLET_PUBLIC_KEY = "wallet-public-key"
     }
 }

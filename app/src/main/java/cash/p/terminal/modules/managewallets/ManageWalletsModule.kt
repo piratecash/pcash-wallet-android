@@ -7,9 +7,11 @@ import cash.p.terminal.core.managers.LitecoinBirthdayProvider
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.managers.ZcashBirthdayProvider
+import cash.p.terminal.core.usecase.RescanMoneroUseCase
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.modules.receive.FullCoinsProvider
+import cash.p.terminal.wallet.IAccountManager
 import org.koin.java.KoinJavaComponent.inject
 
 object ManageWalletsModule {
@@ -20,6 +22,8 @@ object ManageWalletsModule {
         private val zcashBirthdayProvider: ZcashBirthdayProvider by inject(ZcashBirthdayProvider::class.java)
         private val litecoinBirthdayProvider: LitecoinBirthdayProvider by inject(LitecoinBirthdayProvider::class.java)
         private val userDeletedWalletManager: UserDeletedWalletManager by inject(UserDeletedWalletManager::class.java)
+        private val rescanMoneroUseCase: RescanMoneroUseCase by inject(RescanMoneroUseCase::class.java)
+        private val accountManager: IAccountManager by inject(IAccountManager::class.java)
         private val restoreSettingsService by lazy {
             RestoreSettingsService(restoreSettingsManager, zcashBirthdayProvider, litecoinBirthdayProvider)
         }
@@ -33,7 +37,9 @@ object ManageWalletsModule {
                     FullCoinsProvider(App.marketKit, account)
                 },
                 account = activeAccount,
-                userDeletedWalletManager = userDeletedWalletManager
+                userDeletedWalletManager = userDeletedWalletManager,
+                rescanMoneroUseCase = rescanMoneroUseCase,
+                accountManager = accountManager,
             )
         }
 

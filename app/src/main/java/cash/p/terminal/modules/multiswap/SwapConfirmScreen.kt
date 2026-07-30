@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
@@ -30,6 +31,7 @@ import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
+import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
@@ -176,6 +178,36 @@ fun SwapConfirmScreen(
                         viewModel.refresh()
                     },
                 )
+                VSpacer(height = 12.dp)
+            } else if (
+                uiState.moneroSpendReadiness != null &&
+                uiState.moneroSpendReadiness != MoneroSpendReadiness.Ready
+            ) {
+                val needsKeyImageSync =
+                    uiState.moneroSpendReadiness == MoneroSpendReadiness.NeedsKeyImageSync
+                TextImportantWarning(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(
+                        if (needsKeyImageSync) {
+                            R.string.monero_key_images_required
+                        } else {
+                            R.string.send_confirmation_syncing_warning
+                        },
+                    ),
+                )
+                if (needsKeyImageSync) {
+                    VSpacer(height = 8.dp)
+                    ButtonPrimaryDefault(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.monero_sync_key_images),
+                        onClick = {
+                            fragmentNavController.slideFromRight(
+                                R.id.receiveFragment,
+                                ReceiveFragment.Input(viewModel.wallet),
+                            )
+                        },
+                    )
+                }
                 VSpacer(height = 12.dp)
             } else if (!uiState.validQuote) {
                 ButtonPrimaryDefault(

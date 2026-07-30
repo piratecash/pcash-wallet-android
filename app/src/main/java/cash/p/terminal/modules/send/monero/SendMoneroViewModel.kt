@@ -27,17 +27,21 @@ import cash.p.terminal.modules.send.SendConfirmationData
 import cash.p.terminal.modules.send.SendErrorInsufficientBalance
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.SendUiState
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.modules.send.offline.OfflineSignCapableViewModel
 import cash.p.terminal.modules.send.offline.OfflineSigningController
 import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
+import cash.p.terminal.modules.send.userMessageRes
 import cash.p.terminal.modules.xrate.XRateService
 import cash.p.terminal.strings.helpers.TranslatableString
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.getMaxSendableBalance
 import cash.z.ecc.android.sdk.ext.collectWith
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -119,7 +123,10 @@ class SendMoneroViewModel(
     private val destinationAddress: Address
         get() = addressState.address ?: throw LocalizedException(R.string.send_error_address_unavailable)
 
-    override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
+    override val offlineSignSupported =
+        offlineSignAdapter != null &&
+            !wallet.account.isWatchAccount &&
+            wallet.account.type !is AccountType.TrezorDevice
 
     init {
         amountService.stateFlow.collectWith(viewModelScope) {
@@ -223,7 +230,11 @@ class SendMoneroViewModel(
             onSendSuccess(address)
             sendResult = SendResult.Sent(txId)
         } catch (e: Throwable) {
-            sendResult = SendResult.Failed(createCaution(e))
+            sendResult = if (e.isHardwareWalletCancelled()) {
+                null
+            } else {
+                SendResult.Failed(createCaution(e))
+            }
         }
     }
 
@@ -318,7 +329,11 @@ class SendMoneroViewModel(
         feeInProgress = true
         viewModelScope.launch(dispatcherProvider.default + CoroutineExceptionHandler { _, error ->
             fee = null
-            cautions = listOf(createCaution(error).toCautionViewItem())
+            cautions = if (error.isHardwareWalletCancelled()) {
+                emptyList()
+            } else {
+                listOf(createCaution(error).toCautionViewItem())
+            }
             feeInProgress = false
         }) {
             fee = adapter.estimateFee(amount, address, memo)
@@ -330,6 +345,8 @@ class SendMoneroViewModel(
     private fun createCaution(error: Throwable) = when (error) {
         is UnknownHostException -> HSCaution(TranslatableString.ResString(R.string.Hud_Text_NoInternet))
         is LocalizedException -> HSCaution(TranslatableString.ResString(error.errorTextRes))
+        is HardwareWalletOperationException ->
+            HSCaution(TranslatableString.ResString(error.userMessageRes()))
         is EvmError.InsufficientBalanceWithFee -> SendErrorInsufficientBalance(sendToken.coin.code, amountState.availableBalance.toPlainString())
         else -> HSCaution(
             TranslatableString.PlainString(

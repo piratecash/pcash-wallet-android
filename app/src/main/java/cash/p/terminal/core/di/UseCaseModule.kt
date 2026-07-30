@@ -2,6 +2,7 @@ package cash.p.terminal.core.di
 
 import cash.p.terminal.core.policy.CompositeHardwareWalletTokenPolicy
 import cash.p.terminal.core.policy.CompositeScanToAddUseCase
+import cash.p.terminal.core.usecase.AddMoneroToTrezorAccountUseCase
 import cash.p.terminal.core.usecase.CheckGooglePlayUpdateUseCase
 import cash.p.terminal.core.usecase.CreateHardwareWalletUseCase
 import cash.p.terminal.core.usecase.CreateTrezorWalletUseCase
@@ -44,6 +45,7 @@ val useCaseModule = module {
     factoryOf(::ResolvePayCoreNavigationUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)
     factoryOf(::ValidateMoneroHeightUseCase)
+    singleOf(::AddMoneroToTrezorAccountUseCase)
     factoryOf(::GetLocalizedAssetUseCase)
     factoryOf(::CheckGooglePlayUpdateUseCase)
     factoryOf(::MoneroWalletUseCase)
@@ -61,6 +63,11 @@ val useCaseModule = module {
     singleOf(::SendZecOnDuressUseCase)
     singleOf(::CompositeHardwareWalletTokenPolicy) bind HardwareWalletTokenPolicy::class
     single<ScanToAddUseCase> {
-        CompositeScanToAddUseCase(get(), get(named("tangem")), get(named("trezor")))
+        CompositeScanToAddUseCase(
+            get(),
+            get(named("tangem")),
+            get(named("trezor")),
+            get(),
+        )
     }
 }

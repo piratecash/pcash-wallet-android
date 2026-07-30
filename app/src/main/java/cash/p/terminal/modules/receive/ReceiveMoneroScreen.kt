@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.receive
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.modules.receive.ui.AddressBadgeChip
 import cash.p.terminal.modules.receive.ui.ReceiveAddressScreen
 import cash.p.terminal.modules.receive.viewmodels.AddressBadge
@@ -148,6 +150,13 @@ private fun MoneroBottomContent(
     viewModel: ReceiveMoneroViewModel,
     onShowConfirmDialog: () -> Unit,
 ) {
+    if (uiState.hardwareWallet) {
+        MoneroHardwareWalletActions(
+            uiState = uiState,
+            onSyncKeyImages = viewModel::syncKeyImages,
+            onDisplayAddress = viewModel::displayAddressOnDevice,
+        )
+    }
     if (!uiState.watchAccount) {
         ButtonPrimaryTransparent(
             modifier = Modifier
@@ -162,6 +171,43 @@ private fun MoneroBottomContent(
                     viewModel.createNewAddress()
                 }
             }
+        )
+    }
+}
+
+@Composable
+private fun MoneroHardwareWalletActions(
+    uiState: ReceiveMoneroUiState,
+    onSyncKeyImages: () -> Unit,
+    onDisplayAddress: () -> Unit,
+) {
+    Column(Modifier.padding(horizontal = 16.dp)) {
+        uiState.hardwareOperationError?.let { error ->
+            TextImportantWarning(
+                modifier = Modifier.padding(vertical = 12.dp),
+                text = stringResource(error),
+            )
+        }
+        if (uiState.spendReadiness == MoneroSpendReadiness.NeedsKeyImageSync) {
+            TextImportantWarning(
+                modifier = Modifier.padding(vertical = 12.dp),
+                text = stringResource(R.string.monero_key_images_required),
+            )
+            ButtonPrimaryYellow(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                title = stringResource(R.string.monero_sync_key_images),
+                enabled = !uiState.isHardwareOperationInProgress,
+                onClick = onSyncKeyImages,
+            )
+        }
+        ButtonPrimaryTransparent(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            title = stringResource(R.string.monero_show_address_on_trezor),
+            enabled = !uiState.isHardwareOperationInProgress,
+            onClick = onDisplayAddress,
         )
     }
 }

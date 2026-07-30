@@ -4,14 +4,16 @@ import cash.p.terminal.core.eligibleTokens
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.UserDeletedWalletManager
 import cash.p.terminal.core.restoreSettingTypes
+import cash.p.terminal.core.usecase.RescanMoneroUseCase
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.TokenConfig
 import cash.p.terminal.modules.receive.FullCoinsProvider
 import cash.p.terminal.wallet.Account
-import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.Clearable
+import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
@@ -20,6 +22,8 @@ import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.expandedZcashAddressSpecTokens
 import cash.p.terminal.wallet.isZcashAddressSpec
 import cash.p.terminal.wallet.isLitecoinMweb
+import cash.p.terminal.wallet.isMonero
+import cash.p.terminal.wallet.latestAccountOr
 import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import cash.p.terminal.wallet.zcashDisableTokenQueryIds
@@ -43,7 +47,9 @@ class ManageWalletsService(
     private val restoreSettingsService: RestoreSettingsService,
     private val fullCoinsProvider: FullCoinsProvider?,
     private val account: Account?,
-    private val userDeletedWalletManager: UserDeletedWalletManager
+    private val userDeletedWalletManager: UserDeletedWalletManager,
+    private val rescanMoneroUseCase: RescanMoneroUseCase,
+    private val accountManager: IAccountManager,
 ) : Clearable {
 
     private val getHardwarePublicKeyForWalletUseCase: GetHardwarePublicKeyForWalletUseCase by inject(
@@ -54,6 +60,7 @@ class ManageWalletsService(
 
     private val _itemsFlow = MutableStateFlow<List<Item>>(listOf())
     val itemsFlow = _itemsFlow.asStateFlow()
+    val restoreSettingsRejectedFlow = restoreSettingsService.rejectApproveSettingsObservable.asFlow()
 
     val accountType: AccountType?
         get() = account?.type
@@ -187,11 +194,12 @@ class ManageWalletsService(
     }
 
     private suspend fun enable(token: Token, restoreSettings: RestoreSettings) {
-        val account = this.account ?: return
+        val account = this.account?.let(accountManager::latestAccountOr) ?: return
 
         if (restoreSettings.isNotEmpty()) {
             restoreSettingsService.save(restoreSettings, account, token.blockchainType)
         }
+        applyHardwareMoneroRestoreHeight(token, restoreSettings, account)
 
         val tokensToEnable = getTokensToEnable(token)
 
@@ -209,6 +217,16 @@ class ManageWalletsService(
 
         updateSortedItems(token, true)
         syncState()
+    }
+
+    private suspend fun applyHardwareMoneroRestoreHeight(
+        token: Token,
+        restoreSettings: RestoreSettings,
+        account: Account,
+    ) {
+        if (!token.isMonero() || account.type !is AccountType.TrezorDevice) return
+        val restoreHeight = restoreSettings.birthdayHeight?.takeIf { it >= 0 } ?: return
+        rescanMoneroUseCase(account, restoreHeight)
     }
 
     fun setFilter(filter: String) {

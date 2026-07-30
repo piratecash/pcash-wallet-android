@@ -42,6 +42,8 @@ import cash.p.terminal.core.managers.DefaultCurrencyManager
 import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
+import cash.p.terminal.core.managers.DefaultMoneroDeviceWalletNative
+import cash.p.terminal.core.managers.DefaultMoneroNativeWalletRuntime
 import cash.p.terminal.core.managers.EvmLabelManager
 import cash.p.terminal.core.managers.EvmSignerFactory
 import cash.p.terminal.core.managers.EvmSyncSourceManager
@@ -55,6 +57,12 @@ import cash.p.terminal.core.managers.LocalStorageManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.MoneroKitManager
+import cash.p.terminal.core.managers.MoneroNativeWalletRuntime
+import cash.p.terminal.core.managers.MoneroDeviceWalletNative
+import cash.p.terminal.core.managers.MoneroDeviceWalletFileStore
+import cash.p.terminal.core.managers.MoneroDeviceWalletProvisioner
+import cash.p.terminal.core.managers.MoneroTrezorReadiness
+import cash.p.terminal.core.managers.MoneroTrezorOperationGateway
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.core.managers.PriceManager
 import cash.p.terminal.core.managers.PendingBalanceCalculator
@@ -294,6 +302,12 @@ val managerModule = module {
     factoryOf(::WordsManager)
 
     singleOf(::MoneroKitManager)
+    singleOf(::DefaultMoneroNativeWalletRuntime) bind MoneroNativeWalletRuntime::class
+    singleOf(::MoneroTrezorOperationGateway)
+    singleOf(::MoneroTrezorReadiness)
+    singleOf(::DefaultMoneroDeviceWalletNative) bind MoneroDeviceWalletNative::class
+    single { MoneroDeviceWalletFileStore.create(get()) }
+    singleOf(::MoneroDeviceWalletProvisioner)
     singleOf(::MoneroWalletService)
     singleOf(::SilentCameraManager) bind ISilentPhotoCapture::class
     singleOf(::CurrentDateProvider) bind ICurrentDateProvider::class

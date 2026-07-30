@@ -362,6 +362,12 @@
     <string name="receive_address_badge_used">사용됨</string>
     <string name="receive_address_badge_unused">미사용</string>
     <string name="receive_create_new_address">새 주소 만들기</string>
+    <string name="monero_key_images_required">전송하기 전에 Monero 키 이미지를 Trezor와 동기화하세요.</string>
+    <string name="monero_sync_key_images">키 이미지 동기화</string>
+    <string name="monero_prepare_trezor_title">Monero 전송을 위해 Trezor 준비</string>
+    <string name="monero_prepare_trezor_description">Monero를 전송하려면 Trezor를 연결하고 잠금을 해제한 다음 지갑을 동기화하세요. 이 단계에서는 자금이 전송되지 않습니다.</string>
+    <string name="monero_sync_and_continue">동기화하고 계속</string>
+    <string name="monero_show_address_on_trezor">Trezor에 주소 표시</string>
     <string name="receive_create_another_address_title">다른 주소를 만드시겠습니까?</string>
     <string name="receive_create_another_address_warning">아직 자금을 받지 않은 새 주소가 이미 있습니다. 새 주소를 만들 필요가 없습니다. 계속하시겠습니까?</string>
     <string name="receive_dont_ask_again">다시 묻지 않기 (설정 저장)</string>

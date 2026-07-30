@@ -186,6 +186,9 @@ class AccountManager(
 
         accountsCache.remove(id)
         storage.delete(id)
+        _newAccountBackupRequiredFlow.update { account ->
+            account?.takeUnless { it.id == id }
+        }
 
         _accountsSharedFlow.tryEmit(accounts)
         accountsDeletedSubject.onNext(Unit)

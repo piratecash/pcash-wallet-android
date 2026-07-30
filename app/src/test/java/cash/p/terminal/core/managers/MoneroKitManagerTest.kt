@@ -1,9 +1,11 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.TestDispatcherProvider
+import cash.p.terminal.core.storage.MoneroFileDao
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
+import cash.p.terminal.wallet.useCases.RemoveMoneroWalletFilesUseCase
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
@@ -12,9 +14,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
@@ -22,9 +27,14 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.test.assertFailsWith
 
 /**
  * Regression coverage for the background lifecycle: entering background must stop and
@@ -37,6 +47,9 @@ class MoneroKitManagerTest {
     private val moneroWalletService = mockk<MoneroWalletService>(relaxed = true)
     private val restoreSettingsManager = mockk<RestoreSettingsManager>(relaxed = true)
     private val backgroundKeepAliveManager = mockk<BackgroundKeepAliveManager>(relaxed = true)
+    private val moneroFileDao = mockk<MoneroFileDao>(relaxed = true)
+    private val removeMoneroWalletFilesUseCase =
+        mockk<RemoveMoneroWalletFilesUseCase>(relaxed = true)
     private val connectivityManager = mockk<ConnectivityManager>(relaxed = true) {
         every { networkAvailabilityFlow } returns MutableSharedFlow()
     }
@@ -83,8 +96,8 @@ class MoneroKitManagerTest {
             backgroundKeepAliveManager = backgroundKeepAliveManager,
             connectivityManager = connectivityManager,
             dispatcherProvider = dispatcherProvider,
-            moneroFileDao = mockk(relaxed = true),
-            removeMoneroWalletFilesUseCase = mockk(relaxed = true),
+            moneroFileDao = moneroFileDao,
+            removeMoneroWalletFilesUseCase = removeMoneroWalletFilesUseCase,
             networkErrorTracker = mockk(relaxed = true),
         ).apply {
             moneroKitWrapper = mockWrapper
@@ -159,6 +172,121 @@ class MoneroKitManagerTest {
         // stopKit() must null the wrapper so a later poller restart cannot reuse it with a null factory.
         assertNull(manager.moneroKitWrapper)
         coVerify { mockWrapper.stop(any()) }
+    }
+
+    @Test
+    fun unlink_nativeCloseFails_retainsWrapperOwnershipAndUseCount() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        val closeFailure = IllegalStateException("close failed")
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+        coEvery { mockWrapper.stop(any()) } throws closeFailure
+
+        val actual = assertFailsWith<IllegalStateException> {
+            manager.unlink(account)
+        }
+
+        assertEquals(closeFailure.message, actual.message)
+        assertSame(mockWrapper, manager.moneroKitWrapper)
+        assertSame(account, manager.currentAccount)
+        assertEquals(1, (fieldValue(manager, "useCount") as AtomicInteger).get())
+    }
+
+    @Test
+    fun exclusiveNativeWallet_blocksNormalLifecycleUntilReleased() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        coEvery {
+            mockWrapper.withNativeWalletReleased<String>(any())
+        } coAnswers {
+            firstArg<suspend () -> String>().invoke()
+        }
+
+        val exclusive = async {
+            manager.withExclusiveNativeWallet {
+                entered.complete(Unit)
+                release.await()
+                "created"
+            }
+        }
+        entered.await()
+        val unlink = async { manager.unlink(account) }
+
+        advanceUntilIdle()
+        assertFalse(unlink.isCompleted)
+
+        release.complete(Unit)
+        assertEquals("created", exclusive.await())
+        unlink.await()
+        coVerify(exactly = 1) { mockWrapper.withNativeWalletReleased<String>(any()) }
+    }
+
+    @Test
+    fun rescan_inactiveTrezorAccount_preservesWalletFilesAndUpdatesHeight() =
+        testScope.runTest {
+            val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+            val trezorAccount = account.copy(
+                type = AccountType.TrezorDevice(
+                    deviceId = "device-id",
+                    model = "T3T1",
+                    firmwareVersion = "2.8.10",
+                    walletPublicKey = "wallet-key",
+                ),
+            )
+
+            manager.rescan(trezorAccount, 3_529_956)
+
+            coVerify(exactly = 0) { removeMoneroWalletFilesUseCase(any<Account>()) }
+            coVerify(exactly = 0) { moneroFileDao.deleteAssociatedRecord(any()) }
+            verify(exactly = 1) {
+                restoreSettingsManager.savePendingMoneroRescan(trezorAccount, 3_529_956)
+            }
+        }
+
+    @Test
+    fun rescan_activeAccount_unlinkWaitsUntilRescanCompletes() = testScope.runTest {
+        val manager = createManager(MutableStateFlow(BackgroundManagerState.EnterForeground))
+        val entered = CompletableDeferred<Unit>()
+        val release = CompletableDeferred<Unit>()
+        setField(manager, "currentAccount", account)
+        (fieldValue(manager, "useCount") as AtomicInteger).set(1)
+        coEvery { mockWrapper.rescan(3_529_956) } coAnswers {
+            entered.complete(Unit)
+            release.await()
+        }
+
+        val rescan = async { manager.rescan(account, 3_529_956) }
+        entered.await()
+        val unlink = async { manager.unlink(account) }
+
+        advanceUntilIdle()
+        assertFalse(unlink.isCompleted)
+
+        release.complete(Unit)
+        rescan.await()
+        unlink.await()
+        coVerify(exactly = 1) { mockWrapper.rescan(3_529_956) }
+    }
+
+    @Test
+    fun hardwareRestoreHeight_sameHeight_replaysOnlyPendingRescan() {
+        assertFalse(
+            shouldApplyHardwareRestoreHeight(
+                currentHeight = 3_529_956,
+                targetHeight = 3_529_956,
+                hasPendingRescan = false,
+            ),
+        )
+        assertTrue(
+            shouldApplyHardwareRestoreHeight(
+                currentHeight = 3_529_956,
+                targetHeight = 3_529_956,
+                hasPendingRescan = true,
+            ),
+        )
     }
 
     private fun setField(manager: MoneroKitManager, name: String, value: Any?) {

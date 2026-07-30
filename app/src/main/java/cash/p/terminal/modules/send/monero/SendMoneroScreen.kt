@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -23,6 +24,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -34,6 +36,7 @@ import cash.p.terminal.modules.amount.HSAmountInput
 import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.memo.HSMemoInput
+import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendConfirmationFragment
 import cash.p.terminal.modules.send.SendFragment.ProceedActionData
 import cash.p.terminal.modules.send.SendScreen
@@ -45,12 +48,14 @@ import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
 import cash.p.terminal.navigation.popBackStackSafely
+import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.PoisonAddressRiskSection
 import cash.p.terminal.ui.compose.components.PoisonWarningCell
 import cash.p.terminal.ui.compose.components.TextPreprocessor
 import cash.p.terminal.ui_compose.components.ButtonPrimaryYellow
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
 import cash.p.terminal.ui_compose.components.SwitchWithText
+import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
 import cash.p.terminal.wallet.Token
@@ -69,6 +74,7 @@ fun SendMoneroNavHost(
     onNextClick: (ProceedActionData) -> Unit,
 ) {
     val navController = rememberNavController()
+    val spendReadiness by viewModel.adapter.spendReadiness.collectAsStateWithLifecycle()
     NavHost(
         navController = navController,
         startDestination = SendMoneroPage,
@@ -94,6 +100,7 @@ fun SendMoneroNavHost(
                     feeSecondary = viewModel.formatFeeSecondary(viewModel.fee, viewModel.feeCoinRate),
                     insufficientFeeBalance = viewModel.isInsufficientFeeBalance(viewModel.fee),
                     offlineSignSupported = viewModel.offlineSignSupported,
+                    spendReadiness = spendReadiness,
                 ),
                 callbacks = SendMoneroScreenCallbacks(
                     onDebugOfflineSignClick = { navController.navigate(DebugOfflineMoneroSignPage) },
@@ -104,6 +111,7 @@ fun SendMoneroNavHost(
                     onToggleAmountInputType = amountInputModeViewModel::onToggleInputType,
                     onToggleHideBalance = viewModel::toggleHideBalance,
                     onRiskAcceptedChange = viewModel::onRiskAcceptedChange,
+                    onSyncKeyImages = { openMoneroKeyImageSync(fragmentNavController, viewModel.wallet) },
                 ),
             )
         }
@@ -118,6 +126,16 @@ fun SendMoneroNavHost(
             sendViewModel = viewModel,
         )
     }
+}
+
+private fun openMoneroKeyImageSync(
+    navController: NavController,
+    wallet: Wallet,
+) {
+    navController.slideFromRight(
+        R.id.receiveFragment,
+        ReceiveFragment.Input(wallet),
+    )
 }
 
 private const val SendMoneroPage = "send_monero"
@@ -241,6 +259,7 @@ private data class SendMoneroScreenState(
     val feeSecondary: String,
     val insufficientFeeBalance: Boolean,
     val offlineSignSupported: Boolean,
+    val spendReadiness: MoneroSpendReadiness,
 )
 
 private data class SendMoneroScreenCallbacks(
@@ -252,6 +271,7 @@ private data class SendMoneroScreenCallbacks(
     val onToggleAmountInputType: () -> Unit,
     val onToggleHideBalance: () -> Unit,
     val onRiskAcceptedChange: (Boolean) -> Unit,
+    val onSyncKeyImages: () -> Unit,
 )
 
 @Composable
@@ -383,13 +403,38 @@ private fun MoneroProceedButtons(
     onProceed: () -> Unit,
 ) {
     Column {
+        when (state.spendReadiness) {
+            MoneroSpendReadiness.NeedsKeyImageSync -> {
+                TextImportantWarning(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.monero_key_images_required),
+                )
+                ButtonPrimaryYellow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    title = stringResource(R.string.monero_sync_key_images),
+                    onClick = callbacks.onSyncKeyImages,
+                )
+            }
+
+            MoneroSpendReadiness.Ready -> Unit
+            else -> {
+                TextImportantWarning(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = stringResource(R.string.send_confirmation_syncing_warning),
+                )
+            }
+        }
         ButtonPrimaryYellow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 24.dp),
             title = stringResource(R.string.Send_DialogProceed),
             onClick = onProceed,
-            enabled = state.uiState.canBeSend
+            enabled =
+                state.uiState.canBeSend &&
+                    state.spendReadiness == MoneroSpendReadiness.Ready,
         )
 
         if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {

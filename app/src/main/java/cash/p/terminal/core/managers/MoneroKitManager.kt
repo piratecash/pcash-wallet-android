@@ -4,6 +4,7 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.onPollingStartedSuspend
 import cash.p.terminal.core.onPollingStoppedSuspend
 import cash.p.terminal.core.MoneroRescanException
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.UnsupportedAccountException
 import cash.p.terminal.core.adapters.MoneroAdapter
 import cash.p.terminal.core.storage.MoneroFileDao
@@ -34,6 +35,8 @@ import com.m2049r.xmrwallet.offline.RawMoneroBroadcastResult
 import com.m2049r.xmrwallet.offline.SignedRawMoneroTransaction
 import com.m2049r.xmrwallet.service.MoneroWalletService
 import com.m2049r.xmrwallet.service.WalletCorruptedException
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import com.m2049r.xmrwallet.util.Helper
 import io.horizontalsystems.core.BackgroundManager
 import io.horizontalsystems.core.BackgroundManagerState
@@ -92,9 +95,18 @@ class MoneroKitManager(
     var currentAccount: Account? = null
         private set
     private val moneroKitStoppedSubject = PublishSubject.create<Unit>()
+    private val moneroTrezorGateway: MoneroTrezorOperationGateway by inject(
+        MoneroTrezorOperationGateway::class.java,
+    )
 
     val kitStoppedObservable: Observable<Unit>
         get() = moneroKitStoppedSubject
+
+    internal suspend fun <T> withExclusiveNativeWallet(
+        block: suspend () -> T,
+    ): T = accountMutex.withLock {
+        moneroKitWrapper?.withNativeWalletReleased(block) ?: block()
+    }
 
     suspend fun getMoneroKitWrapper(account: Account): MoneroKitWrapper = accountMutex.withLock {
         if (this.moneroKitWrapper != null && currentAccount != account) {
@@ -105,7 +117,8 @@ class MoneroKitManager(
             val accountType = account.type
             this.moneroKitWrapper = when {
                 accountType is AccountType.MnemonicMonero ||
-                        accountType is AccountType.Mnemonic
+                        accountType is AccountType.Mnemonic ||
+                        accountType is AccountType.TrezorDevice
                     -> createKitInstance(account)
 
                 else -> throw UnsupportedAccountException()
@@ -119,18 +132,19 @@ class MoneroKitManager(
                 startKit()
                 subscribeToEvents()
             } catch (e: Throwable) {
-                // Activation failed or was cancelled before publishing currentAccount: roll back the
-                // process-global factory and stop/discard the partial wrapper so no stale state survives.
-                // Preserve the original cause: a cleanup-stop failure is suppressed, never rethrown.
-                NetCipherHelper.setEventListenerFactory(null)
                 val partial = moneroKitWrapper
-                moneroKitWrapper = null
+                var cleanupSucceeded = partial == null
                 withContext(NonCancellable) {
                     try {
                         partial?.stop()
+                        cleanupSucceeded = true
                     } catch (stopError: Throwable) {
                         e.addSuppressed(stopError)
                     }
+                }
+                if (cleanupSucceeded) {
+                    moneroKitWrapper = null
+                    NetCipherHelper.setEventListenerFactory(null)
                 }
                 throw e
             }
@@ -151,13 +165,19 @@ class MoneroKitManager(
             account = account,
             dispatcherProvider = dispatcherProvider,
             networkErrorTracker = networkErrorTracker,
+            moneroTrezorGateway = moneroTrezorGateway,
         )
     }
 
     suspend fun unlink(account: Account) = accountMutex.withLock {
         if (account == currentAccount) {
             if (useCount.decrementAndGet() < 1) {
-                stopKit()
+                try {
+                    stopKit()
+                } catch (error: Throwable) {
+                    useCount.incrementAndGet()
+                    throw error
+                }
             }
         }
     }
@@ -168,9 +188,11 @@ class MoneroKitManager(
      * [unlink] and leak it). For an inactive account, the wallet files are removed and the
      * new height persisted so the next [getMoneroKitWrapper] re-derives the wallet from it.
      */
-    suspend fun rescan(account: Account, newHeight: Long) {
+    suspend fun rescan(account: Account, newHeight: Long) = accountMutex.withLock {
         if (currentAccount?.id == account.id) {
             moneroKitWrapper?.rescan(newHeight)
+        } else if (account.type is AccountType.TrezorDevice) {
+            restoreSettingsManager.savePendingMoneroRescan(account, newHeight)
         } else {
             // Same fail-loud ordering as MoneroKitWrapper.resetWalletAndRestart: require the old
             // files to be gone before deleting the DAO record and committing the new height, so a
@@ -180,9 +202,7 @@ class MoneroKitManager(
                 throw MoneroRescanException("Failed to remove Monero wallet files for account ${account.id}")
             }
             moneroFileDao.deleteAssociatedRecord(account.id)
-            val restoreSettings = restoreSettingsManager.settings(account, BlockchainType.Monero)
-            restoreSettings.birthdayHeight = newHeight
-            restoreSettingsManager.save(restoreSettings, account, BlockchainType.Monero)
+            restoreSettingsManager.saveMoneroRestoreHeight(account, newHeight)
         }
     }
 
@@ -201,16 +221,16 @@ class MoneroKitManager(
     private suspend fun stopKit() {
         lifecycleJobs.forEach { it.cancel() }
         lifecycleJobs.clear()
-        currentAccount = null
-        // Clear the observer AND invalidate wrapper ownership before the suspending stop, so a
-        // concurrent poller restart cannot reuse the stopped wrapper with a null factory, and a
-        // stopped account's factory never lingers on the process-global NetCipherHelper.
-        NetCipherHelper.setEventListenerFactory(null)
         val wrapper = moneroKitWrapper
+        try {
+            withContext(NonCancellable) { wrapper?.stop() }
+        } catch (error: Throwable) {
+            if (currentAccount != null) subscribeToEvents()
+            throw error
+        }
+        currentAccount = null
         moneroKitWrapper = null
-        // Complete the stop under NonCancellable: ownership is already invalidated, so a cancellation
-        // here would otherwise orphan a still-open native wallet while the next account starts.
-        withContext(NonCancellable) { wrapper?.stop() }
+        NetCipherHelper.setEventListenerFactory(null)
     }
 
     private suspend fun startKit() {
@@ -263,12 +283,40 @@ class MoneroKitManager(
     }
 }
 
+private fun RestoreSettingsManager.saveMoneroRestoreHeight(
+    account: Account,
+    height: Long,
+) {
+    require(height >= 0) { "Monero restore height must be non-negative" }
+    val settings = settings(account, BlockchainType.Monero)
+    settings.birthdayHeight = height
+    save(settings, account, BlockchainType.Monero)
+}
+
+internal interface MoneroNativeWalletRuntime {
+    suspend fun <T> withExclusiveWallet(block: suspend () -> T): T
+}
+
+internal fun shouldApplyHardwareRestoreHeight(
+    currentHeight: Long,
+    targetHeight: Long,
+    hasPendingRescan: Boolean,
+): Boolean = hasPendingRescan || currentHeight != targetHeight
+
+internal class DefaultMoneroNativeWalletRuntime(
+    private val moneroKitManager: MoneroKitManager,
+) : MoneroNativeWalletRuntime {
+    override suspend fun <T> withExclusiveWallet(block: suspend () -> T): T =
+        moneroKitManager.withExclusiveNativeWallet(block)
+}
+
 class MoneroKitWrapper(
     private val moneroWalletService: MoneroWalletService,
     private val restoreSettingsManager: RestoreSettingsManager,
     private val account: Account,
     private val dispatcherProvider: DispatcherProvider,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val moneroTrezorGateway: MoneroTrezorOperationGateway,
 ) : MoneroWalletService.Observer {
     private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
@@ -288,7 +336,17 @@ class MoneroKitWrapper(
 
     private var isStarted = false
     private var isPaused = false
+    private var startInProgress = false
+    private var nativeStoreFaulted = false
     private val lifecycleMutex = Mutex()
+    private val hardwareAccount = account.type is AccountType.TrezorDevice
+    val hardwareWallet: Boolean
+        get() = hardwareAccount
+
+    private val _spendReadiness = MutableStateFlow(
+        if (hardwareAccount) MoneroSpendReadiness.Syncing else MoneroSpendReadiness.Ready,
+    )
+    val spendReadiness = _spendReadiness.asStateFlow()
 
     @Volatile
     private var storedForSync = false
@@ -334,9 +392,13 @@ class MoneroKitWrapper(
         startInternal(fixIfCorruptedFile)
     }
 
-    private suspend fun startInternal(fixIfCorruptedFile: Boolean = true) =
+    private suspend fun startInternal(
+        fixIfCorruptedFile: Boolean = true,
+        applyStoredRestoreHeight: Boolean = true,
+    ) =
         withContext(Dispatchers.IO) {
             if (!isStarted) {
+                startInProgress = true
                 logger.info("start: requested, fixIfCorruptedFile=$fixIfCorruptedFile, isStarted=$isStarted")
                 lastLoggedSyncProgress = -1
                 lastLoggedConnectionStatus = null
@@ -392,6 +454,14 @@ class MoneroKitWrapper(
                             }
                         }
 
+                        is AccountType.TrezorDevice -> {
+                            val record = requireNotNull(
+                                moneroFileDao.getAssociatedRecord(account.id),
+                            ) { "Trezor account has no Monero wallet files" }
+                            walletFileName = record.fileName.value
+                            walletPassword = record.password.value
+                        }
+
                         else -> throw UnsupportedAccountException()
                     }
                     walletFileNameForStatus = walletFileName
@@ -413,19 +483,84 @@ class MoneroKitWrapper(
 
                     moneroWalletService.setObserver(this@MoneroKitWrapper)
                     logger.info("start: invoking startService for walletFileName=$walletFileName")
-                    startService(walletFileName, walletPassword, fixIfCorruptedFile)
+                    startAccountService(walletFileName, walletPassword, fixIfCorruptedFile)
                     isStarted = true
+                    if (applyStoredRestoreHeight) {
+                        applyStoredHardwareRestoreHeight()
+                    }
                     logger.info(
                         "start: completed startService, connection=${moneroWalletService.connectionStatus}, walletStatus=${moneroWalletService.wallet?.status}"
                     )
                     fixWalletHeight()
                 } catch (e: Exception) {
-                    _syncState.value = AdapterState.NotSynced(e)
-                    logger.warning("start: failed with exception", e)
-                    Timber.e(e, "Failed to start Monero wallet")
+                    handleStartFailure(e)
+                } finally {
+                    startInProgress = false
                 }
             }
         }
+
+    private suspend fun startAccountService(
+        walletFileName: String,
+        walletPassword: String,
+        fixIfCorruptedFile: Boolean,
+    ) {
+        if (hardwareAccount) {
+            moneroTrezorGateway.execute(account) {
+                startHardwareService(walletFileName, walletPassword)
+            }
+        } else {
+            startService(walletFileName, walletPassword, fixIfCorruptedFile)
+        }
+    }
+
+    private fun handleStartFailure(error: Exception) {
+        if (hardwareAccount) {
+            val walletClosed = closeHardwareWalletAfterFailedStart(error)
+            isStarted = !walletClosed
+            isPaused = !walletClosed
+            _spendReadiness.value = MoneroSpendReadiness.Syncing
+        }
+        _syncState.value = AdapterState.NotSynced(error)
+        logger.warning("start: failed with exception", error)
+        Timber.e(error, "Failed to start Monero wallet")
+        if (hardwareAccount) throw error
+    }
+
+    private fun closeHardwareWalletAfterFailedStart(operationError: Throwable): Boolean {
+        val wallet = moneroWalletService.wallet ?: return true
+        return try {
+            val closed = moneroWalletService.stop(false)
+            if (!closed) {
+                operationError.addSuppressed(
+                    wallet.status.toHardwareWalletCloseFailure(
+                        "Failed to close Monero hardware wallet after start failure",
+                    ),
+                )
+            }
+            closed
+        } catch (cleanupError: Throwable) {
+            operationError.addSuppressed(cleanupError)
+            false
+        }
+    }
+
+    private fun startHardwareService(
+        walletFileName: String,
+        walletPassword: String,
+    ) {
+        val status = moneroWalletService.start(walletFileName, walletPassword)
+        recordNativeConnectionError(status?.connectionStatus, status?.errorString)
+        if (status?.isOk == true) return
+        val error = status?.hardwareWalletError ?: if (
+            status?.connectionStatus == ConnectionStatus.ConnectionStatus_Disconnected
+        ) {
+            HardwareWalletErrorCode.Network
+        } else {
+            HardwareWalletErrorCode.Protocol
+        }
+        throw HardwareWalletOperationException(error, status?.errorString)
+    }
 
     private suspend fun startService(
         walletFileName: String,
@@ -549,21 +684,60 @@ class MoneroKitWrapper(
      * [resetWalletAndRestart] from within a context that already holds [lifecycleMutex]).
      */
     suspend fun rescan(newHeight: Long) = lifecycleMutex.withLock {
-        resetWalletAndRestart(newHeight)
+        if (hardwareAccount) {
+            rescanHardwareWallet(newHeight)
+        } else {
+            resetWalletAndRestart(newHeight)
+        }
+    }
+
+    private suspend fun rescanHardwareWallet(newHeight: Long) {
+        require(newHeight >= 0) { "Monero restore height must be non-negative" }
+        val wallet = moneroWalletService.wallet
+            ?: throw MoneroRescanException("Monero wallet is not initialized")
+        restoreSettingsManager.savePendingMoneroRescan(account, newHeight)
+        applyHardwareRestoreHeight(wallet, newHeight)
+    }
+
+    private suspend fun applyStoredHardwareRestoreHeight() {
+        if (!hardwareAccount) return
+        val wallet = moneroWalletService.wallet ?: return
+        val pendingHeight = restoreSettingsManager.pendingMoneroRescanHeight(account)
+        val storedHeight = pendingHeight ?: restoreSettingsManager
+            .settings(account, BlockchainType.Monero)
+            .birthdayHeight
+            ?: return
+        if (
+            shouldApplyHardwareRestoreHeight(
+                currentHeight = wallet.restoreHeight,
+                targetHeight = storedHeight,
+                hasPendingRescan = pendingHeight != null,
+            )
+        ) {
+            applyHardwareRestoreHeight(wallet, storedHeight)
+        }
+    }
+
+    private suspend fun applyHardwareRestoreHeight(wallet: Wallet, restoreHeight: Long) {
+        storedForSync = false
+        withPausedHardwareWallet(wallet, block = {
+            wallet.setRestoreHeight(restoreHeight)
+            storeHardwareWallet(wallet, "Failed to store Monero restore height")
+            _syncState.value = AdapterState.Syncing()
+            _spendReadiness.value = MoneroSpendReadiness.Syncing
+            wallet.rescanBlockchainAsync()
+        })
     }
 
     private suspend fun resetWalletAndRestart(birthdayHeight: Long) {
         logger.info("resetWalletAndRestart: requested with birthdayHeight=$birthdayHeight")
-        val fileName = getMoneroWalletFilesNameUseCase(account)
-            ?: throw MoneroRescanException("No Monero wallet file found for account ${account.id}")
+        val fileName = requireMoneroWalletFileName()
 
         stopInternal(false)
 
         val removed = removeMoneroWalletFilesUseCase(fileName)
         if (!removed) {
-            logger.info("resetWalletAndRestart: failed to remove walletFile=$fileName, rolling back")
-            startInternal(fixIfCorruptedFile = false)
-            throw MoneroRescanException("Failed to remove Monero wallet file $fileName")
+            failRescanAfterRemoval(fileName)
         }
 
         moneroFileDao.deleteAssociatedRecord(account.id)
@@ -578,21 +752,79 @@ class MoneroKitWrapper(
         // after the destructive reset failed to restart the wallet. (Transient "not synced yet"
         // still has isStarted=true, so a normal offline start is not treated as a failure.)
         if (!isStarted) {
-            throw MoneroRescanException("Failed to restart Monero wallet after rescan for account ${account.id}")
+            failRescanAfterRestart()
         }
         logger.info("resetWalletAndRestart: restart complete")
+    }
+
+    private suspend fun requireMoneroWalletFileName(): String =
+        getMoneroWalletFilesNameUseCase(account)
+            ?: throw MoneroRescanException("No Monero wallet file found for account ${account.id}")
+
+    private suspend fun failRescanAfterRemoval(fileName: String): Nothing {
+        logger.info("resetWalletAndRestart: failed to remove walletFile=$fileName, rolling back")
+        startInternal(fixIfCorruptedFile = false)
+        throw MoneroRescanException("Failed to remove Monero wallet file $fileName")
+    }
+
+    private fun failRescanAfterRestart(): Nothing {
+        throw MoneroRescanException(
+            "Failed to restart Monero wallet after rescan for account ${account.id}",
+        )
     }
 
     suspend fun stop(saveWallet: Boolean = true) = lifecycleMutex.withLock {
         stopInternal(saveWallet)
     }
 
+    internal suspend fun <T> withNativeWalletReleased(
+        block: suspend () -> T,
+    ): T = lifecycleMutex.withLock {
+        val restart = isStarted
+        if (restart) {
+            withContext(NonCancellable) { stopInternal() }
+        }
+        val result = try {
+            block()
+        } catch (error: Throwable) {
+            if (restart) {
+                restoreNativeWalletFailure()?.let(error::addSuppressed)
+            }
+            throw error
+        }
+        if (restart) {
+            restoreNativeWalletFailure()?.let { throw it }
+        }
+        result
+    }
+
+    private suspend fun restoreNativeWalletFailure(): Throwable? =
+        try {
+            withContext(NonCancellable) {
+                startInternal()
+                check(isStarted) { "Failed to restore the active Monero wallet" }
+            }
+            null
+        } catch (error: Throwable) {
+            error
+        }
+
     private suspend fun stopInternal(saveWallet: Boolean = true) = withContext(Dispatchers.IO) {
         if (isStarted) {
             logger.info("stop: stopping service saveWallet=$saveWallet")
+            if (hardwareAccount) {
+                val wallet = moneroWalletService.wallet
+                if (!moneroWalletService.stop(saveWallet)) {
+                    isPaused = true
+                    throw wallet?.status.toHardwareWalletCloseFailure(
+                        "Failed to close Monero hardware wallet",
+                    )
+                }
+            } else {
+                moneroWalletService.stop(saveWallet)
+            }
             isStarted = false
             isPaused = false
-            moneroWalletService.stop(saveWallet)
             lastLoggedSyncProgress = -1
             lastLoggedConnectionStatus = null
             logger.info("stop: service stopped")
@@ -641,7 +873,9 @@ class MoneroKitWrapper(
      */
     suspend fun saveSynced(): Boolean = lifecycleMutex.withLock {
         withContext(dispatcherProvider.io) {
-            if (!isStarted || isPaused || storedForSync) return@withContext storedForSync
+            if (!shouldSaveSyncedWallet()) {
+                return@withContext storedForSync
+            }
             var status = -1
             try {
                 moneroWalletService.pause()
@@ -654,26 +888,30 @@ class MoneroKitWrapper(
                     delay(200)
                 }
                 when (status) {
-                    0 -> {
+                    MONERO_STORE_OK -> {
+                        if (hardwareAccount) {
+                            restoreSettingsManager.clearPendingMoneroRescan(account)
+                        }
                         storedForSync = true
                         logger.info("saveSynced: stored at height=${moneroWalletService.wallet?.blockChainHeight}")
                     }
 
-                    2 -> logger.warning(
-                        "saveSynced: SIGSEGV, wallet abandoned",
-                        IllegalStateException("storeSafe faulted with SIGSEGV")
-                    )
+                    MONERO_STORE_NATIVE_FAULT -> {
+                        val failure = HardwareWalletOperationException(
+                            HardwareWalletErrorCode.StoreFailed,
+                            "Failed to store synchronized Monero wallet",
+                        )
+                        abandonFaultedWallet(failure)
+                        logger.warning("saveSynced: SIGSEGV, wallet abandoned", failure)
+                    }
 
                     else -> logger.info("saveSynced: storeSafe status=$status")
                 }
             } finally {
-                if (status == 2) {
-                    // storeSafe zeroed the native handle; clear ownership by identity
-                    // (no native calls on the dead wallet), then reopen fresh with
-                    // corruption recovery enabled (post-fault file state uncertain).
-                    moneroWalletService.abandonFaultedWallet()
-                    isStarted = false
-                    startInternal(fixIfCorruptedFile = true)
+                if (status == MONERO_STORE_NATIVE_FAULT) {
+                    recoverFaultedWallet()?.let {
+                        logger.warning("saveSynced: failed to reopen faulted wallet", it)
+                    }
                 } else {
                     moneroWalletService.resume(this@MoneroKitWrapper)
                 }
@@ -681,6 +919,12 @@ class MoneroKitWrapper(
             storedForSync
         }
     }
+
+    private fun shouldSaveSyncedWallet(): Boolean =
+        isStarted &&
+            !isPaused &&
+            !storedForSync &&
+            _syncState.value is AdapterState.Synced
 
     suspend fun refresh() = lifecycleMutex.withLock {
         if (_syncState.value is AdapterState.Syncing) {
@@ -737,10 +981,205 @@ class MoneroKitWrapper(
             val wallet = moneroWalletService.wallet
                 ?: throw IllegalStateException("Monero wallet not initialized")
             val txData = buildTxData(amount, address, memo, wallet)
-            moneroWalletService.prepareTransaction(txData)
-            moneroWalletService.sendTransaction(memo)
+            if (hardwareAccount) {
+                sendHardware(wallet, txData, memo)
+            } else {
+                moneroWalletService.prepareTransaction(txData)
+                moneroWalletService.sendTransaction(memo)
+            }
         }
     }
+
+    private suspend fun sendHardware(
+        wallet: Wallet,
+        txData: TxData,
+        memo: String?,
+    ): String {
+        check(_spendReadiness.value == MoneroSpendReadiness.Ready) {
+            "Monero hardware wallet is not ready to send"
+        }
+        return withPausedHardwareWallet(
+            wallet = wallet,
+            block = {
+                var prepared = false
+                try {
+                    moneroTrezorGateway.execute(account) {
+                        moneroWalletService.prepareTransaction(txData)
+                        prepared = true
+                    }
+                    moneroWalletService.sendTransaction(memo)
+                } catch (error: Throwable) {
+                    if (prepared) {
+                        try {
+                            wallet.disposePendingTransaction()
+                        } catch (cleanupError: Throwable) {
+                            error.addSuppressed(cleanupError)
+                        }
+                    }
+                    throw error
+                }
+            },
+            preserveResultOnResumeFailure = true,
+        )
+    }
+
+    suspend fun syncKeyImages() = lifecycleMutex.withLock {
+        withContext(dispatcherProvider.io) {
+            check(hardwareAccount) { "Key image sync requires a hardware wallet" }
+            val wallet = moneroWalletService.wallet
+                ?: throw IllegalStateException("Monero wallet not initialized")
+            withPausedHardwareWallet(wallet, block = {
+                _spendReadiness.value = MoneroSpendReadiness.CheckingKeyImages
+                try {
+                    moneroTrezorGateway.execute(account) { wallet.coldKeyImageSync() }
+                    storeHardwareWallet(
+                        wallet,
+                        "Failed to store synchronized Monero key images",
+                    )
+                    updateKeyImageReadiness(wallet)
+                } catch (error: Throwable) {
+                    _spendReadiness.value = MoneroSpendReadiness.NeedsKeyImageSync
+                    throw error
+                }
+            })
+        }
+    }
+
+    suspend fun displayAddressOnDevice(addressIndex: Int) = lifecycleMutex.withLock {
+        withContext(dispatcherProvider.io) {
+            require(addressIndex >= 0) { "Monero address index must be non-negative" }
+            check(hardwareAccount) { "Address display requires a hardware wallet" }
+            val wallet = moneroWalletService.wallet
+                ?: throw IllegalStateException("Monero wallet not initialized")
+            withPausedHardwareWallet(wallet, block = {
+                moneroTrezorGateway.execute(account) {
+                    wallet.deviceShowAddress(0, addressIndex, "")
+                }
+            })
+        }
+    }
+
+    private fun pauseAndDrain(wallet: Wallet) {
+        moneroWalletService.pause()
+        isPaused = true
+        try {
+            check(wallet.pauseRefreshAndDrain()) { "Failed to drain Monero refresh" }
+        } catch (error: Throwable) {
+            if (!moneroWalletService.resume(this)) {
+                error.addSuppressed(
+                    IllegalStateException("Failed to resume Monero wallet after drain failure"),
+                )
+            } else {
+                isPaused = false
+            }
+            throw error
+        }
+    }
+
+    private fun storeHardwareWallet(wallet: Wallet, failureMessage: String) {
+        storeMoneroWalletSafely(
+            failureMessage = failureMessage,
+            store = wallet::storeSafe,
+            onNativeFault = ::abandonFaultedWallet,
+        )
+    }
+
+    private fun abandonFaultedWallet(failure: HardwareWalletOperationException) {
+        moneroWalletService.abandonFaultedWallet()
+        isStarted = false
+        isPaused = false
+        nativeStoreFaulted = true
+        _syncState.value = AdapterState.NotSynced(failure)
+        if (hardwareAccount) {
+            _spendReadiness.value = MoneroSpendReadiness.Syncing
+        }
+    }
+
+    private suspend fun recoverFaultedWallet(): Throwable? {
+        nativeStoreFaulted = false
+        return try {
+            startInternal(fixIfCorruptedFile = true, applyStoredRestoreHeight = false)
+            null
+        } catch (error: Throwable) {
+            error
+        }
+    }
+
+    private fun resumeAfterHardwareOperation() {
+        if (!isStarted) return
+        check(moneroWalletService.resume(this)) {
+            "Failed to resume Monero wallet after hardware operation"
+        }
+        isPaused = false
+    }
+
+    private suspend fun <T> withPausedHardwareWallet(
+        wallet: Wallet,
+        block: suspend () -> T,
+        preserveResultOnResumeFailure: Boolean = false,
+    ): T {
+        try {
+            pauseAndDrain(wallet)
+        } catch (error: Throwable) {
+            failHardwarePause(error)
+        }
+        val result = try {
+            block()
+        } catch (error: Throwable) {
+            failHardwareOperation(error)
+        }
+        resumeHardwareWalletFailure()?.let { resumeFailure ->
+            handleHardwareResumeFailure(resumeFailure, preserveResultOnResumeFailure)
+        }
+        return result
+    }
+
+    private fun failHardwarePause(error: Throwable): Nothing {
+        if (isPaused) {
+            recordHardwareRecoveryFailure(error)
+        }
+        throw error
+    }
+
+    private suspend fun failHardwareOperation(error: Throwable): Nothing {
+        if (nativeStoreFaulted) {
+            if (startInProgress) {
+                nativeStoreFaulted = false
+            } else {
+                recoverFaultedWallet()?.let(error::addSuppressed)
+            }
+            throw error
+        }
+        resumeHardwareWalletFailure()?.let { resumeFailure ->
+            recordHardwareRecoveryFailure(resumeFailure)
+            error.addSuppressed(resumeFailure)
+        }
+        throw error
+    }
+
+    private fun handleHardwareResumeFailure(
+        error: Throwable,
+        preserveResult: Boolean,
+    ) {
+        recordHardwareRecoveryFailure(error)
+        if (!preserveResult) {
+            throw error
+        }
+    }
+
+    private fun recordHardwareRecoveryFailure(error: Throwable) {
+        _syncState.value = AdapterState.NotSynced(error)
+        _spendReadiness.value = MoneroSpendReadiness.Syncing
+        Timber.e(error, "Failed to recover Monero wallet after hardware operation")
+    }
+
+    private fun resumeHardwareWalletFailure(): Throwable? =
+        try {
+            resumeAfterHardwareOperation()
+            null
+        } catch (error: Throwable) {
+            error
+        }
 
     // Held under lifecycleMutex so a background stop()/saveSynced() cannot race a raw-tx sign/submit.
     suspend fun createSignedRawTransaction(
@@ -749,6 +1188,7 @@ class MoneroKitWrapper(
         memo: String?,
     ): SignedRawMoneroTransaction = lifecycleMutex.withLock {
         withContext(Dispatchers.IO) {
+            check(!hardwareAccount) { "Offline signing is unavailable for Trezor Monero wallets" }
             val wallet = moneroWalletService.wallet
                 ?: throw IllegalStateException("Monero wallet not initialized")
             moneroWalletService.createSignedRawTransaction(buildTxData(amount, address, memo, wallet))
@@ -997,6 +1437,7 @@ class MoneroKitWrapper(
                     blocksRemained = blocksRemained
                 )
             }
+        updateHardwareReadiness(wallet)
         Timber
             .d("onRefreshed, isSynchronized = ${wallet?.isSynchronized}, connectionStatus = ${wallet?.connectionStatus}, full = $full, restoreHeight = ${moneroWalletService.wallet?.restoreHeight?.toString()}")
         return true
@@ -1022,6 +1463,29 @@ class MoneroKitWrapper(
         if (moneroWalletService.wallet?.isSynchronized == true) {
             println("MoneroKitWrapper: Synced")
             _syncState.value = AdapterState.Synced
+            updateHardwareReadiness(moneroWalletService.wallet)
+        }
+    }
+
+    private fun updateHardwareReadiness(wallet: Wallet?) {
+        if (!hardwareAccount) return
+        if (_syncState.value !is AdapterState.Synced || wallet == null) {
+            _spendReadiness.value = MoneroSpendReadiness.Syncing
+            return
+        }
+        try {
+            updateKeyImageReadiness(wallet)
+        } catch (error: Throwable) {
+            Timber.e(error, "Failed to check Monero key-image readiness")
+            _spendReadiness.value = MoneroSpendReadiness.NeedsKeyImageSync
+        }
+    }
+
+    private fun updateKeyImageReadiness(wallet: Wallet) {
+        _spendReadiness.value = if (wallet.hasUnknownKeyImages()) {
+            MoneroSpendReadiness.NeedsKeyImageSync
+        } else {
+            MoneroSpendReadiness.Ready
         }
     }
 

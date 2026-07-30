@@ -362,6 +362,12 @@
     <string name="receive_address_badge_used">Gebruikt</string>
     <string name="receive_address_badge_unused">Niet gebruikt</string>
     <string name="receive_create_new_address">Nieuw adres aanmaken</string>
+    <string name="monero_key_images_required">Synchroniseer de Monero-key images met Trezor voordat u verzendt.</string>
+    <string name="monero_sync_key_images">Key images synchroniseren</string>
+    <string name="monero_prepare_trezor_title">Trezor voorbereiden om Monero te verzenden</string>
+    <string name="monero_prepare_trezor_description">Verbind en ontgrendel uw Trezor en synchroniseer daarna de wallet om Monero te verzenden. Tijdens deze stap wordt geen geld verzonden.</string>
+    <string name="monero_sync_and_continue">Synchroniseren en doorgaan</string>
+    <string name="monero_show_address_on_trezor">Adres op Trezor tonen</string>
     <string name="receive_create_another_address_title">Nog een adres aanmaken?</string>
     <string name="receive_create_another_address_warning">U heeft al een nieuw adres dat nog geen geld heeft ontvangen. Het aanmaken van een nieuw adres is niet nodig. Wilt u doorgaan?</string>
     <string name="receive_dont_ask_again">Niet meer vragen (instelling opslaan)</string>

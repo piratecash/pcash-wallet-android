@@ -352,6 +352,12 @@
     <string name="receive_address_badge_used">Використовувався</string>
     <string name="receive_address_badge_unused">Не використовувався</string>
     <string name="receive_create_new_address">Створити нову адресу</string>
+    <string name="monero_key_images_required">Перед надсиланням синхронізуйте образи ключів Monero з Trezor.</string>
+    <string name="monero_sync_key_images">Синхронізувати образи ключів</string>
+    <string name="monero_prepare_trezor_title">Підготуйте Trezor до надсилання Monero</string>
+    <string name="monero_prepare_trezor_description">Щоб надіслати Monero, підключіть і розблокуйте Trezor, а потім синхронізуйте гаманець. На цьому етапі кошти не надсилаються.</string>
+    <string name="monero_sync_and_continue">Синхронізувати й продовжити</string>
+    <string name="monero_show_address_on_trezor">Показати адресу на Trezor</string>
     <string name="receive_create_another_address_title">Створити ще одну адресу?</string>
     <string name="receive_create_another_address_warning">У вас вже є нова адреса, на яку ще не надходили кошти. Створення нової адреси не обов\'язкове. Бажаєте продовжити?</string>
     <string name="receive_dont_ask_again">Більше не запитувати (зберегти налаштування)</string>
