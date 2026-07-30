@@ -1,6 +1,7 @@
 package cash.p.terminal.modules.restoreaccount.restoreblockchains
 
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.TokenAutoEnableManager
 import cash.p.terminal.modules.enablecoin.blockchaintokens.BlockchainTokensService
@@ -29,6 +30,8 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.verify
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -56,6 +59,14 @@ class RestoreBlockchainsServiceTest : KoinTest {
 
     private val account = account()
     private val zcashTokens = zcashTokens()
+
+    // Unconfined dispatcher makes the service subscribe to the settings observable inside its
+    // constructor, so emissions below are never dropped by the PublishSubject.
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val dispatcherProvider = TestDispatcherProvider(
+        dispatcher = testDispatcher,
+        applicationScope = CoroutineScope(testDispatcher)
+    )
 
     @get:Rule
     val koinRule = KoinTestRule.create {
@@ -97,7 +108,6 @@ class RestoreBlockchainsServiceTest : KoinTest {
     @Test
     fun restore_zcashAfterBirthdayApproval_savesHeightOnceAndCreatesFullGroup() {
         val service = service()
-        val canRestoreObserver = service.canRestore.test()
         val unifiedToken = zcashTokens.first {
             it.type == TokenType.AddressSpecTyped(TokenType.AddressSpecType.Unified)
         }
@@ -107,7 +117,6 @@ class RestoreBlockchainsServiceTest : KoinTest {
         approveSettingsSubject.onNext(
             RestoreSettingsService.TokenWithSettings(unifiedToken, restoreSettings)
         )
-        canRestoreObserver.awaitCount(2)
 
         service.restore()
 
@@ -153,7 +162,8 @@ class RestoreBlockchainsServiceTest : KoinTest {
             marketKit = marketKit,
             tokenAutoEnableManager = tokenAutoEnableManager,
             blockchainTokensService = blockchainTokensService,
-            restoreSettingsService = restoreSettingsService
+            restoreSettingsService = restoreSettingsService,
+            dispatcherProvider = dispatcherProvider
         )
     }
 
