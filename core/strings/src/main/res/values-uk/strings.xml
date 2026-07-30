@@ -2323,4 +2323,11 @@
     <string name="transactions_migrate_to_ironwood">на Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Публічно видима сума</string>
     <string name="zcash_migration_publicly_visible_description">Переміщення коштів між пулами вимагає, щоб сума, яка переноситься, була публічно видима в блокчейні. Відправник, отримувач і ваші адреси залишаються приватними.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Приховування перевертанням</string>
+    <string name="balance_hide_on_flip_description">Переверніть екран пристрою вниз, щоб швидко приховати та показати баланс.</string>
+    <string name="balance_hide_on_flip_info_title">Баланс приховано</string>
+    <string name="balance_hide_on_flip_info_description">Щоб приховати або показати свій баланс, просто переверніть екран пристрою вниз або вимкніть його в налаштуваннях безпеки.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Більше не показувати</string>
+    <string name="badge_new">Нове</string>
 </resources>

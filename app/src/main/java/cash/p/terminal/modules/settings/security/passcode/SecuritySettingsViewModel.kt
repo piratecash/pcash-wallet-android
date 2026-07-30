@@ -3,6 +3,7 @@ package cash.p.terminal.modules.settings.security.passcode
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BalanceHiddenManager
+import cash.p.terminal.core.managers.BalanceHideOnFlipManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.modules.calculator.domain.CalculatorModeService
 import cash.p.terminal.tangem.domain.sdk.CardSdkConfigRepository
@@ -18,6 +19,7 @@ class SecuritySettingsViewModel(
     private val systemInfoManager: ISystemInfoManager,
     private val pinComponent: IPinComponent,
     private val balanceHiddenManager: BalanceHiddenManager,
+    private val balanceHideOnFlipManager: BalanceHideOnFlipManager,
     private val localStorage: ILocalStorage,
     private val transactionHiddenManager: TransactionHiddenManager,
     private val calculatorModeService: CalculatorModeService,
@@ -28,8 +30,15 @@ class SecuritySettingsViewModel(
     private var pinEnabled = pinComponent.isPinSet
     private var duressPinEnabled = pinComponent.isDuressPinSet()
     private var balanceAutoHideEnabled = balanceHiddenManager.balanceAutoHidden
+    private var balanceHideOnFlipEnabled = localStorage.balanceHideOnFlipEnabled
+
+    // Snapshot at VM creation so the "New" pill stays visible during the session that first
+    // opens Security, then never reappears (securityFlipFeatureSeen is set true below).
+    private val showFlipNewDot = !localStorage.securityFlipFeatureSeen
 
     init {
+        localStorage.securityFlipFeatureSeen = true
+
         viewModelScope.launch {
             pinComponent.pinSetFlowable.asFlow().collect {
                 pinEnabled = pinComponent.isPinSet
@@ -44,6 +53,8 @@ class SecuritySettingsViewModel(
         biometricsEnabled = pinComponent.isBiometricAuthEnabled,
         duressPinEnabled = duressPinEnabled,
         balanceAutoHideEnabled = balanceAutoHideEnabled,
+        balanceHideOnFlipEnabled = balanceHideOnFlipEnabled,
+        showFlipNewDot = showFlipNewDot,
         transactionAutoHideEnabled = transactionHiddenManager.transactionHiddenFlow.value.transactionHidden,
         displayLevel = transactionHiddenManager.transactionHiddenFlow.value.transactionDisplayLevel,
         transactionAutoHideSeparatePinExists =
@@ -113,6 +124,12 @@ class SecuritySettingsViewModel(
         balanceHiddenManager.setBalanceAutoHidden(enabled)
     }
 
+    fun onSetBalanceHideOnFlip(enabled: Boolean) {
+        balanceHideOnFlipEnabled = enabled
+        emitState()
+        balanceHideOnFlipManager.setEnabled(enabled)
+    }
+
     fun update() {
         emitState()
     }
@@ -133,6 +150,8 @@ data class SecuritySettingsUiState(
     val biometricsEnabled: Boolean,
     val duressPinEnabled: Boolean,
     val balanceAutoHideEnabled: Boolean,
+    val balanceHideOnFlipEnabled: Boolean,
+    val showFlipNewDot: Boolean,
     val transactionAutoHideEnabled: Boolean,
     val displayLevel: TransactionDisplayLevel,
     val transactionAutoHideSeparatePinExists: Boolean,

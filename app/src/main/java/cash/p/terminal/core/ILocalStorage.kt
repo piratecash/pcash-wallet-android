@@ -62,6 +62,9 @@ interface ILocalStorage : ILoggingSettings, ISmsNotificationSettings {
     var rateAppLastRequestTime: Long
     var balanceHidden: Boolean
     var balanceAutoHideEnabled: Boolean
+    var balanceHideOnFlipEnabled: Boolean
+    var balanceHideOnFlipInfoSuppressed: Boolean
+    var securityFlipFeatureSeen: Boolean
     var swapMevProtectionEnabled: Boolean
 
     var transactionHideEnabled: Boolean
