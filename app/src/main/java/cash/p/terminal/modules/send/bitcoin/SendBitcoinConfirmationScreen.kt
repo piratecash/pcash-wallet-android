@@ -20,7 +20,6 @@ import cash.p.terminal.navigation.slideFromBottom
 private const val BitcoinConfirmationPage = "bitcoin_confirmation"
 private const val OfflineBitcoinSignPage = "offline_bitcoin_sign"
 private const val OfflineTransactionTransferPage = "offline_transaction_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendBitcoinConfirmationScreen(
@@ -38,7 +37,6 @@ fun SendBitcoinConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineBitcoinSignPage,
             transferRoute = OfflineTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = syncErrorViewModel.sourceChangeable,
         onChangeSourceClick = {

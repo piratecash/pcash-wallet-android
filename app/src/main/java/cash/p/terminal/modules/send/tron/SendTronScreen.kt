@@ -19,7 +19,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -35,6 +34,7 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -71,15 +71,14 @@ fun SendTronNavHost(
                 amountInputModeViewModel = amountInputModeViewModel,
                 prefilledData = prefilledData,
                 addressCheckerControl = addressCheckerControl,
-                onDebugOfflineSignClick = { navController.navigate(DebugOfflineTronSignPage) },
+                onOfflineSignClick = { navController.navigate(OfflineTronSignPage) },
                 onNextClick = onNextClick,
             )
         }
         offlineSignFlowRoutes(
             routes = OfflineSignFlowRoutes(
-                signRoute = DebugOfflineTronSignPage,
-                transferRoute = DebugOfflineTronTransactionTransferPage,
-                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+                signRoute = OfflineTronSignPage,
+                transferRoute = OfflineTronTransactionTransferPage,
             ),
             navController = navController,
             fragmentNavController = fragmentNavController,
@@ -89,9 +88,8 @@ fun SendTronNavHost(
 }
 
 private const val SendTronPage = "send_tron"
-private const val DebugOfflineTronSignPage = "debug_offline_tron_sign"
-private const val DebugOfflineTronTransactionTransferPage = "debug_offline_tron_transaction_transfer"
-private const val DebugOfflineTransactionTransferFormatArg = "format"
+private const val OfflineTronSignPage = "offline_tron_sign"
+private const val OfflineTronTransactionTransferPage = "offline_tron_transaction_transfer"
 
 @Composable
 @Suppress("LongMethod", "LongParameterList")
@@ -102,7 +100,7 @@ fun SendTronScreen(
     amountInputModeViewModel: AmountInputModeViewModel,
     prefilledData: PrefilledData?,
     addressCheckerControl: AddressCheckerControl,
-    onDebugOfflineSignClick: () -> Unit,
+    onOfflineSignClick: () -> Unit,
     onNextClick: (ProceedActionData) -> Unit,
 ) {
     val wallet = viewModel.wallet
@@ -232,6 +230,12 @@ fun SendTronScreen(
                 onRiskAcceptedChange = { viewModel.onRiskAcceptedChange(it) },
             )
 
+            OfflineSignActionCell(
+                supported = viewModel.offlineSignSupported,
+                enabled = proceedEnabled && uiState.sendEnabled,
+                onClick = onOfflineSignClick,
+            )
+
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,16 +244,6 @@ fun SendTronScreen(
                 onClick = onProceed,
                 enabled = proceedEnabled
             )
-            if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
-                ButtonPrimaryYellow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    title = stringResource(R.string.offline_transaction_sign_title),
-                    onClick = onDebugOfflineSignClick,
-                    enabled = viewModel.offlineSignSupported && uiState.sendEnabled,
-                )
-            }
         }
     }
 

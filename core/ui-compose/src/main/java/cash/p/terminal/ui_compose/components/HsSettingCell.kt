@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,11 +23,13 @@ fun HsSettingCell(
     @DrawableRes icon: Int? = null,
     iconTint: Color? = null,
     value: String? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
 ) {
     RowUniversal(
         modifier = Modifier.padding(horizontal = 16.dp),
-        onClick = onClick
+        onClick = onClick,
+        enabled = enabled,
     ) {
         icon?.let {
             Icon(
