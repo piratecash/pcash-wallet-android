@@ -527,8 +527,8 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
             }
 
             addressLabelManager.initialize()
-            evmLabelManager.sync()
             contactsRepository.initialize()
+            evmLabelManager.sync()
             AppLog.cleanupOldLogs()
         }
     }
