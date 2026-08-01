@@ -69,6 +69,7 @@ class SwapSelectProviderViewModelTest {
                 quote(providerId = "null", amount = "100", eta = null),
                 quote(providerId = "fast", amount = "100", eta = 120L),
             ),
+            SwapAmountDirection.In,
             assetFiatRateService
         )
 
@@ -85,6 +86,7 @@ class SwapSelectProviderViewModelTest {
                 quote(providerId = "fastSameAmount", amount = "100", eta = 120L),
                 quote(providerId = "bestAmount", amount = "200", eta = null),
             ),
+            SwapAmountDirection.In,
             assetFiatRateService
         )
 
@@ -103,6 +105,7 @@ class SwapSelectProviderViewModelTest {
                 quote(providerId = "null", amount = "100", eta = null),
                 quote(providerId = "fast", amount = "100", eta = 120L),
             ),
+            SwapAmountDirection.In,
             assetFiatRateService
         )
         viewModel.setSortType(ProviderSortType.BestTime)
@@ -114,17 +117,41 @@ class SwapSelectProviderViewModelTest {
         assertEquals(listOf("fast", "slow", "null"), viewModel.providerIds())
     }
 
+    @Test
+    fun sorted_exactOut_ordersByAmountInAscendingAndUsesNegativeDiffForWorseQuote() {
+        val viewModel = SwapSelectProviderViewModel(
+            listOf(
+                quote(providerId = "expensive", amount = "100", amountIn = "12", eta = 100L),
+                quote(providerId = "best", amount = "100", amountIn = "10", eta = 200L),
+            ),
+            SwapAmountDirection.Out,
+            assetFiatRateService,
+        )
+
+        assertEquals(listOf("best", "expensive"), viewModel.providerIds())
+        assertEquals(null, viewModel.uiState.quoteViewItems[0].diffWithFirst)
+        assertEquals(
+            0,
+            viewModel.uiState.quoteViewItems[1].diffWithFirst?.compareTo(BigDecimal("-20")),
+        )
+    }
+
     private fun SwapSelectProviderViewModel.providerIds(): List<String> =
         uiState.quoteViewItems.map { it.quote.provider.id }
 
-    private fun quote(providerId: String, amount: String, eta: Long?): SwapProviderQuote {
+    private fun quote(
+        providerId: String,
+        amount: String,
+        eta: Long?,
+        amountIn: String = "1",
+    ): SwapProviderQuote {
         val provider = mockk<IMultiSwapProvider> {
             every { id } returns providerId
         }
         val swapQuote = mockk<ISwapQuote> {
             every { tokenIn } returns testToken
             every { tokenOut } returns testToken
-            every { amountIn } returns BigDecimal.ONE
+            every { this@mockk.amountIn } returns BigDecimal(amountIn)
             every { amountOut } returns BigDecimal(amount)
             every { estimationTime } returns eta
         }

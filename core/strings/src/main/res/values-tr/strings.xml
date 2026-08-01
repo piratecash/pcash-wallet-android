@@ -647,6 +647,9 @@
     <string name="swap_providers_title">Takas sağlayıcıları</string>
     <string name="swap_providers_mandatory_toast">Bu sağlayıcı devre dışı bırakılamaz</string>
     <string name="swap_no_enabled_providers">Etkin sağlayıcı yok</string>
+    <string name="swap_estimated_amount_warning">Alınacak tutar tahminidir ve değişebilir.</string>
+    <string name="swap_reapprove_required">Onaylanan limit artık yeterli değil. Güncellenen tutarı onaylayın.</string>
+    <string name="swap_reapprove_action">Güncellenen limiti onayla</string>
     <string name="swap_no_providers_for_this_amount">Bu miktar için sağlayıcı yok</string>
 
     <!--Approve-->

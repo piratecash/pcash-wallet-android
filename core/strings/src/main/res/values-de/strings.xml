@@ -641,6 +641,9 @@
     <string name="swap_providers_title">Tausch-Anbieter</string>
     <string name="swap_providers_mandatory_toast">Dieser Anbieter kann nicht deaktiviert werden</string>
     <string name="swap_no_enabled_providers">Keine aktiven Anbieter</string>
+    <string name="swap_estimated_amount_warning">Der Empfangsbetrag ist geschätzt und kann sich ändern.</string>
+    <string name="swap_reapprove_required">Das genehmigte Limit reicht nicht mehr aus. Genehmige den aktualisierten Betrag.</string>
+    <string name="swap_reapprove_action">Aktualisiertes Limit genehmigen</string>
     <string name="swap_no_providers_for_this_amount">Keine Anbieter für diesen Betrag</string>
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Sie können %s tauschen, oder Sie müssen den neuen Betrag widerrufen und genehmigen</string>

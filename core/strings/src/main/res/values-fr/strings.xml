@@ -643,6 +643,9 @@
     <string name="swap_providers_title">Fournisseurs de swap</string>
     <string name="swap_providers_mandatory_toast">Ce fournisseur ne peut pas être désactivé</string>
     <string name="swap_no_enabled_providers">Aucun fournisseur actif</string>
+    <string name="swap_estimated_amount_warning">Le montant reçu est estimé et peut changer.</string>
+    <string name="swap_reapprove_required">La limite approuvée n’est plus suffisante. Approuvez le montant mis à jour.</string>
+    <string name="swap_reapprove_action">Approuver la limite mise à jour</string>
     <string name="swap_no_providers_for_this_amount">Aucun fournisseur pour ce montant</string>
 
     <!--Approve-->

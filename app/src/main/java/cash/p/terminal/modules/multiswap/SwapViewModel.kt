@@ -51,7 +51,9 @@ class SwapViewModel(
 
     private var fiatAmountIn: BigDecimal? = null
     private var fiatAmountOut: BigDecimal? = null
-    private var fiatAmountInputEnabled = false
+    private var fiatAmountInInputEnabled = false
+    private var fiatAmountOutInputEnabled = false
+    private var fiatInputDirection: SwapAmountDirection? = null
     private val currency = currencyManager.baseCurrency
     private val balanceHiddenManager: IBalanceHiddenManager by inject(IBalanceHiddenManager::class.java)
     private val walletUseCase: WalletUseCase by inject(WalletUseCase::class.java)
@@ -91,21 +93,12 @@ class SwapViewModel(
         }
         viewModelScope.launch {
             fiatServiceIn.stateFlow.collect {
-                fiatAmountInputEnabled = it.rate != null
-                fiatAmountIn = it.fiatAmount
-                quoteService.setAmount(it.amount)
-                priceImpactService.setFiatAmountIn(fiatAmountIn)
-
-                emitState()
+                handleUpdatedFiatState(it, SwapAmountDirection.In)
             }
         }
         viewModelScope.launch {
             fiatServiceOut.stateFlow.collect {
-                fiatAmountOut = it.fiatAmount
-
-                priceImpactService.setFiatAmountOut(fiatAmountOut)
-
-                emitState()
+                handleUpdatedFiatState(it, SwapAmountDirection.Out)
             }
         }
         viewModelScope.launch {
@@ -147,6 +140,7 @@ class SwapViewModel(
 
         return SwapUiState(
             amountIn = quoteState.amountIn,
+            displayAmountOut = displayAmountOut,
             tokenIn = quoteState.tokenIn,
             tokenOut = quoteState.tokenOut,
             quoting = quoteState.quoting,
@@ -173,10 +167,16 @@ class SwapViewModel(
             fiatAmountOut = fiatAmountOut,
             fiatPriceImpact = priceImpactState.fiatPriceImpact,
             currency = currency,
-            fiatAmountInputEnabled = fiatAmountInputEnabled,
+            fiatAmountInInputEnabled = fiatAmountInInputEnabled,
+            fiatAmountOutInputEnabled = fiatAmountOutInputEnabled,
             fiatPriceImpactLevel = priceImpactState.fiatPriceImpactLevel,
             timeout = timerState.timeout,
             multiSwapRoute = quoteState.multiSwapRoute,
+            direction = quoteState.direction,
+            requestedAmountOut = quoteState.requestedAmountOut,
+            amountInMax = quoteState.amountInMax,
+            amountOutAccuracy = quoteState.quote?.amountOutAccuracy ?: SwapAmountAccuracy.Exact,
+            quoteCautions = quoteState.quote?.cautions.orEmpty(),
         )
     }
 
@@ -207,7 +207,7 @@ class SwapViewModel(
         this.quoteState = quoteState
 
         balanceService.setToken(quoteState.tokenIn)
-        balanceService.setAmount(quoteState.amountIn)
+        balanceService.setAmount(quoteState.amountInMax ?: quoteState.amountIn)
 
         priceImpactService.setPriceImpact(
             quoteState.quote?.priceImpact?.negate(),
@@ -217,9 +217,7 @@ class SwapViewModel(
         fiatServiceIn.setToken(quoteState.tokenIn)
         fiatServiceIn.setAmount(quoteState.amountIn)
         fiatServiceOut.setToken(quoteState.tokenOut)
-        val finalAmountOut = quoteState.multiSwapRoute?.selectedLeg2Quote?.amountOut
-            ?: quoteState.quote?.amountOut
-        fiatServiceOut.setAmount(finalAmountOut)
+        fiatServiceOut.setAmount(displayAmountOut)
 
         emitState() // Emit immediately so UI updates without waiting for warning
         fetchWarningMessageAsync()
@@ -239,11 +237,39 @@ class SwapViewModel(
         emitState()
     }
 
+    private fun handleUpdatedFiatState(
+        state: FiatService.State,
+        direction: SwapAmountDirection,
+    ) {
+        when (direction) {
+            SwapAmountDirection.In -> {
+                fiatAmountInInputEnabled = state.rate != null
+                fiatAmountIn = state.fiatAmount
+                priceImpactService.setFiatAmountIn(state.fiatAmount)
+            }
+            SwapAmountDirection.Out -> {
+                fiatAmountOutInputEnabled = state.rate != null
+                fiatAmountOut = state.fiatAmount
+                priceImpactService.setFiatAmountOut(state.fiatAmount)
+            }
+        }
+        if (state.inputSource == FiatService.InputSource.Fiat &&
+            fiatInputDirection == direction
+        ) {
+            setQuoteAmount(state.amount, direction)
+        }
+        emitState()
+    }
+
     fun onSelectQuote(quote: SwapProviderQuote) {
         quoteService.selectQuote(quote)
     }
 
-    fun onEnterAmount(v: BigDecimal?) = quoteService.setAmount(v)
+    fun onEnterAmount(v: BigDecimal?) = setTokenAmount(v, SwapAmountDirection.In)
+    fun onEnterAmountOut(v: BigDecimal?) = setTokenAmount(v, SwapAmountDirection.Out)
+    fun onEnterFiatAmount(v: BigDecimal?) = setFiatAmount(v, SwapAmountDirection.In)
+    fun onEnterFiatAmountOut(v: BigDecimal?) = setFiatAmount(v, SwapAmountDirection.Out)
+
     fun onEnterAmountPercentage(percentage: Int) {
         val tokenIn = quoteState.tokenIn ?: return
         val availableBalance = balanceState.balance ?: return
@@ -253,7 +279,7 @@ class SwapViewModel(
             .setScale(tokenIn.decimals, RoundingMode.DOWN)
             .stripTrailingZeros()
 
-        quoteService.setAmount(amount)
+        setTokenAmount(amount, SwapAmountDirection.In)
     }
 
     fun onSelectTokenIn(token: Token) {
@@ -265,6 +291,9 @@ class SwapViewModel(
     }
 
     fun onSwitchPairs() {
+        fiatInputDirection = null
+        fiatServiceIn.useTokenAmount()
+        fiatServiceOut.useTokenAmount()
         quoteService.switchPairs()
     }
 
@@ -282,18 +311,58 @@ class SwapViewModel(
     fun createMissingTokens(tokens: Set<Token>) {
         viewModelScope.launch {
             walletUseCase.awaitWallets(tokens)
-            reQuote()
+            quoteService.invalidateAndReQuote()
         }
     }
 
     fun onUpdateSettings(settings: Map<String, Any?>) = quoteService.setSwapSettings(settings)
-    fun onEnterFiatAmount(v: BigDecimal?) = fiatServiceIn.setFiatAmount(v)
     fun reQuote() = quoteService.reQuote()
     fun onActionStarted() = quoteService.onActionStarted()
     fun onActionCompleted() = quoteService.onActionCompleted()
 
     fun getCurrentQuote() = quoteState.quote
-    fun getSettings() = quoteService.getSwapSettings()
+    fun getSettings() = quoteService.swapSettings
+
+    private fun setTokenAmount(value: BigDecimal?, direction: SwapAmountDirection) {
+        fiatInputDirection = null
+        deactivateOtherFiatInput(direction)
+        fiatService(direction).setInputAmount(value)
+        setQuoteAmount(value, direction)
+    }
+
+    private fun setFiatAmount(value: BigDecimal?, direction: SwapAmountDirection) {
+        fiatInputDirection = direction
+        deactivateOtherFiatInput(direction)
+        fiatService(direction).setFiatAmount(value)
+    }
+
+    private fun deactivateOtherFiatInput(direction: SwapAmountDirection) {
+        fiatService(
+            when (direction) {
+                SwapAmountDirection.In -> SwapAmountDirection.Out
+                SwapAmountDirection.Out -> SwapAmountDirection.In
+            }
+        ).useTokenAmount()
+    }
+
+    private fun fiatService(direction: SwapAmountDirection) = when (direction) {
+        SwapAmountDirection.In -> fiatServiceIn
+        SwapAmountDirection.Out -> fiatServiceOut
+    }
+
+    private fun setQuoteAmount(value: BigDecimal?, direction: SwapAmountDirection) {
+        when (direction) {
+            SwapAmountDirection.In -> quoteService.setAmountIn(value)
+            SwapAmountDirection.Out -> quoteService.setAmountOut(value)
+        }
+    }
+
+    private val displayAmountOut: BigDecimal?
+        get() = when (quoteState.direction) {
+            SwapAmountDirection.In ->
+                quoteState.multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quoteState.quote?.amountOut
+            SwapAmountDirection.Out -> quoteState.requestedAmountOut
+        }
 
     private suspend fun obtainWarningMessage(): TranslatableString? {
         val quote = quoteState.quote ?: return null
@@ -335,6 +404,7 @@ class SwapViewModel(
 
 data class SwapUiState(
     val amountIn: BigDecimal?,
+    val displayAmountOut: BigDecimal?,
     val tokenIn: Token?,
     val tokenOut: Token?,
     val quoting: Boolean,
@@ -358,23 +428,39 @@ data class SwapUiState(
     val fiatAmountOut: BigDecimal?,
     val fiatPriceImpact: BigDecimal?,
     val currency: Currency,
-    val fiatAmountInputEnabled: Boolean,
+    val fiatAmountInInputEnabled: Boolean,
+    val fiatAmountOutInputEnabled: Boolean,
     val fiatPriceImpactLevel: PriceImpactLevel?,
     val timeout: Boolean,
     val multiSwapRoute: MultiSwapRoute?,
+    val direction: SwapAmountDirection,
+    val requestedAmountOut: BigDecimal?,
+    val amountInMax: BigDecimal?,
+    val amountOutAccuracy: SwapAmountAccuracy,
+    val quoteCautions: List<HSCaution>,
 ) {
-    val currentStep: SwapStep = when {
-        error != null -> SwapStep.Error(error)
-        tokenIn == null -> SwapStep.InputRequired(InputType.TokenIn)
-        tokenOut == null -> SwapStep.InputRequired(InputType.TokenOut)
-        amountIn == null || amountIn.compareTo(BigDecimal.ZERO) == 0 -> SwapStep.InputRequired(
-            InputType.Amount
-        )
-        // No fresh quote for the current input yet (fetching or pending debounce) - keep loading
-        quoting || quote == null -> SwapStep.Quoting
-        quote.actionRequired != null -> SwapStep.ActionRequired(requireNotNull(quote.actionRequired))
-        else -> SwapStep.Proceed
-    }
+    private val requestedAmount: BigDecimal?
+        get() = when (direction) {
+            SwapAmountDirection.In -> amountIn
+            SwapAmountDirection.Out -> requestedAmountOut
+        }
+
+    val currentStep: SwapStep
+        get() {
+            val amount = requestedAmount
+            return when {
+                error != null -> SwapStep.Error(error)
+                tokenIn == null -> SwapStep.InputRequired(InputType.TokenIn)
+                tokenOut == null -> SwapStep.InputRequired(InputType.TokenOut)
+                amount == null || amount <= BigDecimal.ZERO ->
+                    SwapStep.InputRequired(InputType.Amount)
+                // No fresh quote for the current input yet (fetching or pending debounce) - keep loading
+                quoting || quote == null -> SwapStep.Quoting
+                quote.actionRequired != null ->
+                    SwapStep.ActionRequired(requireNotNull(quote.actionRequired))
+                else -> SwapStep.Proceed
+            }
+        }
 }
 
 sealed class SwapStep {

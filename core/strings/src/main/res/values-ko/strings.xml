@@ -647,6 +647,9 @@
     <string name="swap_providers_title">스왑 제공자</string>
     <string name="swap_providers_mandatory_toast">이 제공자는 비활성화할 수 없습니다</string>
     <string name="swap_no_enabled_providers">활성화된 제공자 없음</string>
+    <string name="swap_estimated_amount_warning">받을 금액은 예상치이며 변경될 수 있습니다.</string>
+    <string name="swap_reapprove_required">승인된 한도가 더 이상 충분하지 않습니다. 변경된 금액을 다시 승인하세요.</string>
+    <string name="swap_reapprove_action">변경된 한도 승인</string>
     <string name="swap_no_providers_for_this_amount">이 금액에 대한 제공자가 없습니다</string>
 
     <!--Approve-->

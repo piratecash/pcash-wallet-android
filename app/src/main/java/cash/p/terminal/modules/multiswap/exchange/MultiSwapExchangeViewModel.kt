@@ -12,6 +12,7 @@ import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.modules.multiswap.MultiSwapOnChainMonitor
 import cash.p.terminal.modules.multiswap.PriceImpactLevel
 import cash.p.terminal.modules.multiswap.AssetFiatRateService
+import cash.p.terminal.modules.multiswap.SwapAmountDirection
 import cash.p.terminal.modules.multiswap.SwapProviderQuote
 import cash.p.terminal.modules.multiswap.SwapQuoteService
 import cash.p.terminal.modules.multiswap.TimerService
@@ -202,7 +203,8 @@ class MultiSwapExchangeViewModel(
                     providers = enabledProviders,
                     tokenIn = tokenIn,
                     tokenOut = tokenOut,
-                    amountIn = amountIn,
+                    amount = amountIn,
+                    direction = SwapAmountDirection.In,
                 )
                 leg2Quoting = false
                 leg2Quotes = quotes

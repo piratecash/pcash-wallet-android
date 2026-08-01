@@ -18,9 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +58,7 @@ import cash.p.terminal.ui_compose.components.MenuItem
 import cash.p.terminal.ui_compose.components.RowUniversal
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
+import cash.p.terminal.ui_compose.components.micro_grey
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
@@ -247,6 +248,7 @@ private fun ProviderItem(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ProviderRiskBadge(riskType = provider.riskType)
+                    AccuracyBadge(viewItem.quote.amountOutAccuracy)
                     HFillSpacer(minWidth = 8.dp)
                     viewItem.fiatAmount?.let { fiatAmount ->
                         subhead2_grey(text = fiatAmount, textAlign = TextAlign.End)
@@ -284,6 +286,17 @@ private fun ProviderItem(
             }
         }
     }
+}
+
+@Composable
+private fun AccuracyBadge(accuracy: SwapAmountAccuracy) {
+    val symbol = when (accuracy) {
+        SwapAmountAccuracy.Exact -> return
+        SwapAmountAccuracy.AtLeast -> "≥"
+        SwapAmountAccuracy.Estimated -> "≈"
+    }
+    HSpacer(width = 6.dp)
+    micro_grey(text = symbol)
 }
 
 @Composable

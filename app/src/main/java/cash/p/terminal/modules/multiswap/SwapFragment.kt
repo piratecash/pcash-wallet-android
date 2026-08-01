@@ -15,14 +15,15 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,10 +40,14 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +60,7 @@ import androidx.navigation.NavController
 import cash.p.terminal.R
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.action.ActionCreate
+import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.fee.QuoteInfoRow
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
@@ -82,7 +88,6 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_grey
 import cash.p.terminal.ui_compose.components.headline1_grey
-import cash.p.terminal.ui_compose.components.headline1_leah
 import cash.p.terminal.ui_compose.components.micro_grey
 import cash.p.terminal.ui_compose.components.subhead1_jacob
 import cash.p.terminal.ui_compose.components.subhead1_leah
@@ -101,9 +106,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import cash.p.terminal.core.App
+import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.modules.multiswap.providers.SwapProvidersRepository
+import cash.p.terminal.modules.evmfee.Cautions
 import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsScreen
 import cash.p.terminal.modules.multiswap.providersettings.SwapProvidersSettingsViewModel
 import cash.p.terminal.strings.helpers.TranslatableString
@@ -179,7 +186,7 @@ private data class PayCoreVerificationPage(
 )
 
 @Serializable
-private data class PayCorePaymentPage(
+internal data class PayCorePaymentPage(
     val amountIn: String,
     val amountOut: String,
     val serviceFee: String,
@@ -188,10 +195,14 @@ private data class PayCorePaymentPage(
     val tokenOutUid: String,
     val blockchainTypeIn: String,
     val blockchainTypeOut: String,
+    val direction: SwapAmountDirection,
+    val requestedAmountOut: String?,
 )
 
 @Serializable
 private enum class SwapCoinDirection { From, To }
+
+private enum class SwapInputFocus { None, AmountIn, FiatAmountIn, AmountOut, FiatAmountOut }
 
 @Composable
 fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) {
@@ -214,14 +225,8 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
         composablePopup<SwapSelectCoinPage> { backStackEntry ->
             val args = backStackEntry.toRoute<SwapSelectCoinPage>()
             val direction = args.direction
-            val otherToken = when (direction) {
-                SwapCoinDirection.From -> viewModel.uiState.tokenOut
-                SwapCoinDirection.To -> viewModel.uiState.tokenIn
-            }
-            val titleResId = when (direction) {
-                SwapCoinDirection.From -> R.string.Swap_YouPay
-                SwapCoinDirection.To -> R.string.Swap_YouGet
-            }
+            val otherToken = viewModel.uiState.otherToken(direction)
+            val titleResId = direction.titleResId()
 
             SwapSelectCoinScreen(
                 navController = swapNavController,
@@ -245,7 +250,7 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             }
             val selectProviderViewModel = viewModel<SwapSelectProviderViewModel>(
                 viewModelStoreOwner = backStackEntry,
-                factory = SwapSelectProviderViewModel.Factory(quotes)
+                factory = SwapSelectProviderViewModel.Factory(quotes, viewModel.uiState.direction)
             )
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
@@ -276,18 +281,26 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             }
             val settings = remember { viewModel.getSettings() }
             SwapConfirmScreen(
-                fragmentNavController = navController,
-                swapNavController = swapNavController,
-                quote = quote,
-                settings = settings,
-                provider = viewModel.uiState.quote?.provider,
-                displayBalance = viewModel.uiState.displayBalance,
-                balanceHidden = viewModel.uiState.balanceHidden,
-                feeToken = viewModel.uiState.feeToken,
-                feeCoinBalance = viewModel.uiState.feeCoinBalance,
+                navigation = SwapConfirmNavigation(navController, swapNavController),
+                quoteParams = SwapConfirmQuoteParams(
+                    quote = quote,
+                    settings = settings,
+                    direction = viewModel.uiState.direction,
+                    requestedAmountOut = viewModel.uiState.requestedAmountOut,
+                    multiSwapLegInfo = multiSwapLegInfo,
+                ),
+                balanceParams = SwapConfirmBalanceParams(
+                    provider = viewModel.uiState.quote?.provider,
+                    displayBalance = viewModel.uiState.displayBalance,
+                    balanceHidden = viewModel.uiState.balanceHidden,
+                    feeToken = viewModel.uiState.feeToken,
+                    feeCoinBalance = viewModel.uiState.feeCoinBalance,
+                ),
                 onToggleHideBalance = viewModel::toggleHideBalance,
+                onReapprove = {
+                    if (swapNavController.navigateUpSafely()) viewModel.reQuote()
+                },
                 onOpenSettings = { swapNavController.navigate(SwapTransactionSettingsPage) },
-                multiSwapLegInfo = multiSwapLegInfo,
             )
         }
         composablePage<SwapSettingsPage> {
@@ -331,19 +344,20 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
                 return@composablePage
             }
             val paymentParams = remember(args, tokenOut) {
-                PayCorePaymentParams(
-                    amountIn = args.amountIn.toBigDecimal(),
-                    amountOut = args.amountOut.toBigDecimal(),
-                    networkType = args.networkType,
-                    tokenInUid = args.tokenInUid,
-                    tokenOutUid = args.tokenOutUid,
-                    blockchainTypeIn = args.blockchainTypeIn,
-                    blockchainTypeOut = args.blockchainTypeOut,
-                    addressOut = tryOrNull { getKoinInstance<WalletUseCase>().getReceiveAddress(tokenOut) }.orEmpty(),
+                args.toPaymentParams(
+                    addressOut = tryOrNull {
+                        getKoinInstance<WalletUseCase>().getReceiveAddress(tokenOut)
+                    }.orEmpty(),
                 )
             }
             val paymentViewModel = koinViewModel<PayCorePaymentViewModel>(
-                key = args.amountIn + args.networkType
+                key = listOf(
+                    args.amountIn,
+                    args.amountOut,
+                    args.direction,
+                    args.requestedAmountOut,
+                    args.networkType,
+                ).joinToString("|"),
             ) { parametersOf(paymentParams) }
             PayCorePaymentScreen(
                 uiState = paymentViewModel.uiState,
@@ -370,7 +384,7 @@ private fun buildNextPage(viewModel: SwapViewModel): Any {
     return buildPayCorePaymentPage(viewModel.uiState) ?: SwapConfirmPage
 }
 
-private fun buildPayCorePaymentPage(uiState: SwapUiState): PayCorePaymentPage? {
+internal fun buildPayCorePaymentPage(uiState: SwapUiState): PayCorePaymentPage? {
     val quote = uiState.quote
     val tokenIn = uiState.tokenIn
     if (quote == null || tokenIn == null) return null
@@ -390,12 +404,37 @@ private fun buildPayCorePaymentPage(uiState: SwapUiState): PayCorePaymentPage? {
         tokenInUid = tokenIn.coin.uid,
         tokenOutUid = tokenOut.coin.uid,
         blockchainTypeIn = tokenIn.blockchainType.uid,
-        blockchainTypeOut = tokenOut.blockchainType.uid
+        blockchainTypeOut = tokenOut.blockchainType.uid,
+        direction = uiState.direction,
+        requestedAmountOut = uiState.requestedAmountOut?.toPlainString(),
     )
 }
 
+internal fun PayCorePaymentPage.toPaymentParams(addressOut: String) = PayCorePaymentParams(
+    amountIn = amountIn.toBigDecimal(),
+    amountOut = amountOut.toBigDecimal(),
+    networkType = networkType,
+    tokenInUid = tokenInUid,
+    tokenOutUid = tokenOutUid,
+    blockchainTypeIn = blockchainTypeIn,
+    blockchainTypeOut = blockchainTypeOut,
+    addressOut = addressOut,
+    direction = direction,
+    requestedAmountOut = requestedAmountOut?.toBigDecimal(),
+)
+
 private fun payCoreQuoteServiceFee(quote: SwapProviderQuote): BigDecimal {
     return (quote.swapQuote as? PayCoreQuote)?.serviceFee ?: BigDecimal.ZERO
+}
+
+private fun SwapUiState.otherToken(direction: SwapCoinDirection): Token? = when (direction) {
+    SwapCoinDirection.From -> tokenOut
+    SwapCoinDirection.To -> tokenIn
+}
+
+private fun SwapCoinDirection.titleResId(): Int = when (this) {
+    SwapCoinDirection.From -> R.string.Swap_YouPay
+    SwapCoinDirection.To -> R.string.Swap_YouGet
 }
 
 private fun buildMultiSwapLeg1Info(viewModel: SwapViewModel): MultiSwapLegInfo? {
@@ -444,49 +483,11 @@ private fun SwapMainScreen(
         }
     }
 
-    SwapScreenInner(
-        uiState = uiState,
-        timeRemainingProgress = { viewModel.timeRemainingProgress },
-        onClickClose = fragmentNavController::navigateUpSafely,
-        onClickCoinFrom = {
-            swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From))
-        },
-        onClickCoinTo = {
-            swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.To))
-        },
-        onSwitchPairs = viewModel::onSwitchPairs,
-        onEnterAmount = viewModel::onEnterAmount,
-        onEnterAmountPercentage = viewModel::onEnterAmountPercentage,
-        onEnterFiatAmount = viewModel::onEnterFiatAmount,
-        onClickProvider = {
-            swapNavController.navigate(SwapSelectProviderPage)
-        },
-        onClickProviderSettings = {
-            swapNavController.navigate(SwapSettingsPage)
-        },
-        onTimeout = viewModel::reQuote,
-        onClickNext = {
-            val nextPage = buildNextPage(viewModel)
-            swapNavController.navigate(nextPage)
-        },
-        onCreateMissingTokens = { tokens ->
-            tokens.forEach { token ->
-                manageWalletsViewModel.enable(token)
-            }
-            if (manageWalletsViewModel.showScanToAddButton) {
-                manageWalletsViewModel.requestScanToAddTokens(false)
-            }
-            viewModel.createMissingTokens(tokens)
-        },
-        onActionStarted = {
-            viewModel.onActionStarted()
-        },
-        onActionCompleted = {
-            viewModel.onActionCompleted()
-        },
-        navController = fragmentNavController,
-        onBalanceClicked = viewModel::toggleHideBalance,
-        onOpenVerification = {
+    val openSettings = remember(swapNavController) {
+        { swapNavController.navigate(SwapSettingsPage) }
+    }
+    val openVerification = remember(swapNavController) {
+        {
             val tokenIn = viewModel.uiState.tokenIn
             val tokenOut = viewModel.uiState.tokenOut
             val usdtToken = if (tokenIn != null && PayCoreAssets.isRub(tokenIn)) tokenOut else tokenIn
@@ -497,303 +498,393 @@ private fun SwapMainScreen(
             if (networkType != null && !walletAddress.isNullOrBlank()) {
                 swapNavController.navigate(PayCoreVerificationPage(networkType, walletAddress))
             }
-        },
+        }
+    }
+    val controller = remember(viewModel, fragmentNavController, swapNavController, manageWalletsViewModel) {
+        SwapScreenController(
+            input = SwapInputController(
+                enterAmount = viewModel::onEnterAmount,
+                enterAmountOut = viewModel::onEnterAmountOut,
+                enterFiatAmount = viewModel::onEnterFiatAmount,
+                enterFiatAmountOut = viewModel::onEnterFiatAmountOut,
+                enterAmountPercentage = viewModel::onEnterAmountPercentage,
+            ),
+            navigation = SwapNavigationController(
+                close = fragmentNavController::navigateUpSafely,
+                selectCoinFrom = { swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.From)) },
+                selectCoinTo = { swapNavController.navigate(SwapSelectCoinPage(SwapCoinDirection.To)) },
+                openProvider = { swapNavController.navigate(SwapSelectProviderPage) },
+                openSettings = openSettings,
+            ),
+            operations = SwapOperationsController(
+                timeRemainingProgress = { viewModel.timeRemainingProgress },
+                switchPairs = viewModel::onSwitchPairs,
+                refreshQuote = viewModel::reQuote,
+                proceed = { swapNavController.navigate(buildNextPage(viewModel)) },
+                toggleBalance = viewModel::toggleHideBalance,
+                executeAction = { action, navController ->
+                    viewModel.onActionStarted()
+                    when (action) {
+                        is ActionCreate -> {
+                            action.tokensToAdd.forEach(manageWalletsViewModel::enable)
+                            if (manageWalletsViewModel.showScanToAddButton) {
+                                manageWalletsViewModel.requestScanToAddTokens(false)
+                            }
+                            viewModel.createMissingTokens(action.tokensToAdd)
+                        }
+                        is PayCoreSelectBankAction -> openSettings()
+                        is PayCoreVerificationAction -> openVerification()
+                        else -> action.execute(navController, viewModel::onActionCompleted)
+                    }
+                },
+            ),
+        )
+    }
+
+    SwapScreenInner(
+        uiState = uiState,
+        controller = controller,
+        navController = fragmentNavController,
     )
 }
+
+private class SwapScreenController(
+    private val input: SwapInputController,
+    private val navigation: SwapNavigationController,
+    private val operations: SwapOperationsController,
+) {
+    val timeRemainingProgress: Float?
+        get() = operations.timeRemainingProgress()
+
+    fun close() = navigation.close()
+    fun selectCoinFrom() = navigation.selectCoinFrom()
+    fun selectCoinTo() = navigation.selectCoinTo()
+    fun switchPairs() = operations.switchPairs()
+    fun enterAmount(amount: BigDecimal?) = input.enterAmount(amount)
+    fun enterAmountOut(amount: BigDecimal?) = input.enterAmountOut(amount)
+    fun enterFiatAmount(amount: BigDecimal?) = input.enterFiatAmount(amount)
+    fun enterFiatAmountOut(amount: BigDecimal?) = input.enterFiatAmountOut(amount)
+    fun enterAmountPercentage(percentage: Int) = input.enterAmountPercentage(percentage)
+    fun openProvider() = navigation.openProvider()
+    fun openSettings() = navigation.openSettings()
+    val refreshQuote: () -> Unit
+        get() = operations.refreshQuote
+    fun proceed() = operations.proceed()
+    fun toggleBalance() = operations.toggleBalance()
+
+    fun executeAction(action: ISwapProviderAction, navController: NavController) {
+        operations.executeAction(action, navController)
+    }
+}
+
+private data class SwapInputController(
+    val enterAmount: (BigDecimal?) -> Unit,
+    val enterAmountOut: (BigDecimal?) -> Unit,
+    val enterFiatAmount: (BigDecimal?) -> Unit,
+    val enterFiatAmountOut: (BigDecimal?) -> Unit,
+    val enterAmountPercentage: (Int) -> Unit,
+)
+
+private data class SwapNavigationController(
+    val close: () -> Unit,
+    val selectCoinFrom: () -> Unit,
+    val selectCoinTo: () -> Unit,
+    val openProvider: () -> Unit,
+    val openSettings: () -> Unit,
+)
+
+private data class SwapOperationsController(
+    val timeRemainingProgress: () -> Float?,
+    val switchPairs: () -> Unit,
+    val refreshQuote: () -> Unit,
+    val proceed: () -> Unit,
+    val toggleBalance: () -> Unit,
+    val executeAction: (ISwapProviderAction, NavController) -> Unit,
+)
 
 @Composable
 private fun SwapScreenInner(
     uiState: SwapUiState,
-    timeRemainingProgress: () -> Float?,
-    onClickClose: () -> Unit,
-    onClickCoinFrom: () -> Unit,
-    onClickCoinTo: () -> Unit,
-    onSwitchPairs: () -> Unit,
-    onEnterAmount: (BigDecimal?) -> Unit,
-    onEnterFiatAmount: (BigDecimal?) -> Unit,
-    onEnterAmountPercentage: (Int) -> Unit,
-    onClickProvider: () -> Unit,
-    onClickProviderSettings: () -> Unit,
-    onTimeout: () -> Unit,
-    onClickNext: () -> Unit,
-    onCreateMissingTokens: (Set<Token>) -> Unit,
-    onActionStarted: () -> Unit,
-    onActionCompleted: () -> Unit,
-    onBalanceClicked: () -> Unit,
+    controller: SwapScreenController,
     navController: NavController,
-    onOpenVerification: () -> Unit
 ) {
     LifecycleResumeEffect(uiState.timeout) {
         if (uiState.timeout) {
-            onTimeout.invoke()
+            controller.refreshQuote()
         }
 
         onPauseOrDispose { }
     }
 
-    val quote = uiState.quote
-
     Scaffold(
-        topBar = {
-            AppBar(
-                title = stringResource(R.string.Swap),
-                navigationIcon = {
-                    HsBackButton(onClick = onClickClose)
-                },
-                menuItems = buildList {
-                    timeRemainingProgress()?.let { progress ->
-                        add(MenuItemTimeoutIndicator(progress))
-                    }
-                    if (quote?.swapQuote?.settings?.isNotEmpty() == true) {
-                        add(
-                            MenuItem(
-                                title = TranslatableString.ResString(R.string.SwapSettings_Title),
-                                icon = R.drawable.ic_manage_2_24,
-                                onClick = onClickProviderSettings,
-                            )
-                        )
-                    }
-                }
-            )
-        },
+        topBar = { SwapAppBar(uiState, controller) },
         containerColor = ComposeAppTheme.colors.tyler,
-    ) {
-        val focusManager = LocalFocusManager.current
+    ) { contentPadding ->
         val keyboardState by observeKeyboardState()
-        var amountInputHasFocus by remember { mutableStateOf(false) }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(it)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                VSpacer(height = 12.dp)
-                SwapInput(
-                    amountIn = uiState.amountIn,
-                    fiatAmountIn = uiState.fiatAmountIn,
-                    fiatAmountInputEnabled = uiState.fiatAmountInputEnabled,
-                    onSwitchPairs = onSwitchPairs,
-                    amountOut = uiState.multiSwapRoute?.selectedLeg2Quote?.amountOut
-                        ?: quote?.amountOut,
-                    fiatAmountOut = uiState.fiatAmountOut,
-                    fiatPriceImpact = uiState.fiatPriceImpact,
-                    fiatPriceImpactLevel = uiState.fiatPriceImpactLevel,
-                    onValueChange = onEnterAmount,
-                    onFiatValueChange = onEnterFiatAmount,
-                    onClickCoinFrom = onClickCoinFrom,
-                    onClickCoinTo = onClickCoinTo,
-                    tokenIn = uiState.tokenIn,
-                    tokenOut = uiState.tokenOut,
-                    currency = uiState.currency,
-                    intermediateToken = uiState.multiSwapRoute?.intermediateCoin,
-                    onFocusChanged = {
-                        amountInputHasFocus = it.hasFocus
-                    },
-                )
-
-                VSpacer(height = 12.dp)
-
-                when (val currentStep = uiState.currentStep) {
-                    is SwapStep.InputRequired -> {
-                        val title = when (currentStep.inputType) {
-                            InputType.TokenIn -> stringResource(R.string.Swap_SelectTokenIn)
-                            InputType.TokenOut -> stringResource(R.string.Swap_SelectTokenOut)
-                            InputType.Amount -> stringResource(R.string.Swap_EnterAmount)
-                        }
-
-                        ButtonPrimaryYellow(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            title = title,
-                            enabled = false,
-                            onClick = {}
-                        )
-                    }
-
-                    SwapStep.Quoting -> {
-                        ButtonPrimaryYellow(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            title = stringResource(R.string.Swap_Quoting),
-                            enabled = false,
-                            loadingIndicator = true,
-                            onClick = {}
-                        )
-                    }
-
-                    is SwapStep.Error -> {
-                        val errorText = when (val error = currentStep.error) {
-                            SwapError.InsufficientBalanceFrom -> stringResource(id = R.string.Swap_ErrorInsufficientBalance)
-                            is NoSupportedSwapProvider -> stringResource(id = R.string.Swap_ErrorNoProviders)
-                            is NoEnabledSwapProvider -> stringResource(id = R.string.swap_no_enabled_providers)
-                            is SwapRouteNotFound -> stringResource(id = R.string.Swap_ErrorNoQuote)
-                            is SwapDepositTooSmall -> stringResource(
-                                id = R.string.swap_out_of_min_amount,
-                                error.minValue.toPlainString()
-                            )
-                            is SwapAmountOutOfRange -> stringResource(id = R.string.swap_no_providers_for_this_amount)
-
-                            is PriceImpactTooHigh -> stringResource(id = R.string.Swap_ErrorHighPriceImpact)
-                            is UnknownHostException -> stringResource(id = R.string.Hud_Text_NoInternet)
-                            is WalletSyncing -> stringResource(id = R.string.Swap_ErrorWalletSyncing)
-                            is WalletNotSynced -> stringResource(id = R.string.Swap_ErrorWalletNotSynced)
-                            else -> error.message ?: error.javaClass.simpleName
-                        }
-
-                        ButtonPrimaryYellow(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            title = errorText,
-                            enabled = false,
-                            onClick = {}
-                        )
-                    }
-
-                    is SwapStep.ActionRequired -> {
-                        val action = currentStep.action
-                        val title = if (action.inProgress) {
-                            action.getTitleInProgress()
-                        } else {
-                            action.getTitle()
-                        }
-
-                        ButtonPrimaryDefault(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            title = title,
-                            enabled = !action.inProgress,
-                            onClick = {
-                                onActionStarted.invoke()
-                                when (action) {
-                                    is ActionCreate -> onCreateMissingTokens(action.tokensToAdd)
-                                    is PayCoreSelectBankAction -> onClickProviderSettings()
-                                    is PayCoreVerificationAction -> onOpenVerification()
-                                    else -> action.execute(navController, onActionCompleted)
-                                }
-                            }
-                        )
-                    }
-
-                    SwapStep.Proceed -> {
-                        ButtonPrimaryYellow(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp)
-                                .fillMaxWidth(),
-                            title = stringResource(R.string.Swap_Proceed),
-                            enabled = !uiState.insufficientFeeBalance,
-                            onClick = onClickNext
-                        )
-                    }
-                }
-
-                VSpacer(height = 12.dp)
-
-                val feeToken = uiState.feeToken
-                val networkFee = uiState.networkFee
-                FeeInfoSection(
-                    tokenIn = uiState.tokenIn,
-                    displayBalance = uiState.displayBalance,
-                    balanceHidden = uiState.balanceHidden,
-                    feeToken = feeToken,
-                    feeCoinBalance = uiState.feeCoinBalance,
-                    feePrimary = if (feeToken != null && networkFee != null) {
-                        CoinValue(feeToken, networkFee).getFormattedFull()
-                    } else {
-                        "---"
-                    },
-                    feeSecondary = uiState.networkFeeFiatAmount?.let {
-                        App.numberFormatter.formatFiatFull(it, uiState.currency.symbol)
-                    } ?: "",
-                    insufficientFeeBalance = uiState.insufficientFeeBalance,
-                    onBalanceClicked = onBalanceClicked,
-                    feeTitle = stringResource(R.string.estimated_fee),
-                )
-
-                VSpacer(height = 12.dp)
-                if (quote != null) {
-                    CardsSwapInfo {
-                        ProviderField(
-                            swapProvider = quote.provider,
-                            estimationTime = quote.estimationTime,
-                            onClickProvider = onClickProvider,
-                        )
-                        val finalTokenOut = uiState.tokenOut ?: quote.tokenOut
-                        val finalAmountOut = uiState.multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quote.amountOut
-                        PriceField(quote.tokenIn, finalTokenOut, quote.amountIn, finalAmountOut)
-                        PriceImpactField(
-                            uiState.priceImpact,
-                            uiState.priceImpactLevel,
-                        )
-                        quote.fields.forEach {
-                            it.GetContent(navController, true)
-                        }
-                    }
-                }
-
-                uiState.warningMessage?.let { warning ->
-                    VSpacer(height = 12.dp)
-                    TextImportantWarning(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        text = warning.getString(),
-                        icon = R.drawable.ic_attention_20
-                    )
-                }
-
-                if (uiState.error is PriceImpactTooHigh) {
-                    VSpacer(height = 12.dp)
-                    TextImportantError(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        icon = R.drawable.ic_attention_20,
-                        title = stringResource(id = R.string.Swap_PriceImpact),
-                        text = stringResource(
-                            id = R.string.Swap_PriceImpactTooHigh,
-                            uiState.error.providerTitle ?: ""
-                        )
-                    )
-                } else if (uiState.currentStep is SwapStep.ActionRequired) {
-                    uiState.currentStep.action.getDescription()?.let { actionDescription ->
-                        VSpacer(height = 12.dp)
-                        TextImportantWarning(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            text = actionDescription
-                        )
-                    }
-                }
-
-                VSpacer(height = 32.dp)
-            }
-
-
-            if (amountInputHasFocus && keyboardState == Keyboard.Opened) {
-                val hasNonZeroBalance =
-                    uiState.availableBalance != null && uiState.availableBalance > BigDecimal.ZERO
-
-                SuggestionsBar(
-                    modifier = Modifier
-                        .imePadding()
-                        .align(Alignment.BottomCenter),
-                    onDelete = {
-                        onEnterAmount.invoke(null)
-                    },
-                    onSelect = {
-                        focusManager.clearFocus()
-                        onEnterAmountPercentage(it)
-                    },
-                    selectEnabled = hasNonZeroBalance,
-                    deleteEnabled = uiState.amountIn != null,
-                )
-            }
+        var inputFocus by remember { mutableStateOf(SwapInputFocus.None) }
+        Box(modifier = Modifier.fillMaxSize()) {
+            SwapScreenContent(
+                uiState = uiState,
+                controller = controller,
+                navController = navController,
+                modifier = Modifier.padding(contentPadding),
+                onFocusChange = { focus, state ->
+                    inputFocus = if (state.isFocused) focus else SwapInputFocus.None
+                },
+            )
+            SwapSuggestions(
+                uiState = uiState,
+                controller = controller,
+                inputFocus = inputFocus,
+                keyboardOpen = keyboardState == Keyboard.Opened,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
     }
+}
+
+@Composable
+private fun SwapAppBar(uiState: SwapUiState, controller: SwapScreenController) {
+    AppBar(
+        title = stringResource(R.string.Swap),
+        navigationIcon = { HsBackButton(onClick = controller::close) },
+        menuItems = buildList {
+            controller.timeRemainingProgress?.let { add(MenuItemTimeoutIndicator(it)) }
+            if (uiState.quote?.swapQuote?.settings?.isNotEmpty() == true) {
+                add(
+                    MenuItem(
+                        title = TranslatableString.ResString(R.string.SwapSettings_Title),
+                        icon = R.drawable.ic_manage_2_24,
+                        onClick = controller::openSettings,
+                    )
+                )
+            }
+        },
+    )
+}
+
+@Composable
+private fun SwapScreenContent(
+    uiState: SwapUiState,
+    controller: SwapScreenController,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    onFocusChange: (SwapInputFocus, FocusState) -> Unit = { _, _ -> },
+) {
+    Column(
+        modifier = modifier
+            .imePadding()
+            .verticalScroll(rememberScrollState())
+    ) {
+        VSpacer(height = 12.dp)
+        SwapInput(uiState, controller, onFocusChange)
+        VSpacer(height = 12.dp)
+        SwapStepButton(uiState, controller, navController)
+        VSpacer(height = 12.dp)
+        SwapFeeInfo(uiState, controller)
+        VSpacer(height = 12.dp)
+        SwapQuoteInfo(uiState, controller, navController)
+        SwapWarnings(uiState)
+        VSpacer(height = 32.dp)
+    }
+}
+
+@Composable
+private fun SwapStepButton(
+    uiState: SwapUiState,
+    controller: SwapScreenController,
+    navController: NavController,
+) {
+    when (val currentStep = uiState.currentStep) {
+        is SwapStep.InputRequired -> DisabledSwapButton(inputRequiredTitle(currentStep.inputType))
+        SwapStep.Quoting -> DisabledSwapButton(stringResource(R.string.Swap_Quoting), loading = true)
+        is SwapStep.Error -> DisabledSwapButton(swapErrorText(currentStep.error))
+        is SwapStep.ActionRequired -> {
+            val action = currentStep.action
+            ButtonPrimaryDefault(
+                modifier = swapButtonModifier(),
+                title = if (action.inProgress) action.getTitleInProgress() else action.getTitle(),
+                enabled = !action.inProgress,
+                onClick = { controller.executeAction(action, navController) },
+            )
+        }
+        SwapStep.Proceed -> ButtonPrimaryYellow(
+            modifier = swapButtonModifier(),
+            title = stringResource(R.string.Swap_Proceed),
+            enabled = !uiState.insufficientFeeBalance,
+            onClick = controller::proceed,
+        )
+    }
+}
+
+@Composable
+private fun DisabledSwapButton(title: String, loading: Boolean = false) {
+    ButtonPrimaryYellow(
+        modifier = swapButtonModifier(),
+        title = title,
+        enabled = false,
+        loadingIndicator = loading,
+        onClick = {},
+    )
+}
+
+private fun swapButtonModifier(): Modifier =
+    Modifier.padding(horizontal = 16.dp).fillMaxWidth()
+
+@Composable
+private fun inputRequiredTitle(inputType: InputType): String = stringResource(
+    when (inputType) {
+        InputType.TokenIn -> R.string.Swap_SelectTokenIn
+        InputType.TokenOut -> R.string.Swap_SelectTokenOut
+        InputType.Amount -> R.string.Swap_EnterAmount
+    }
+)
+
+@Composable
+private fun swapErrorText(error: Throwable): String = when (error) {
+    SwapError.InsufficientBalanceFrom -> stringResource(R.string.Swap_ErrorInsufficientBalance)
+    is NoSupportedSwapProvider -> stringResource(R.string.Swap_ErrorNoProviders)
+    is NoEnabledSwapProvider -> stringResource(R.string.swap_no_enabled_providers)
+    is NoExactOutSwapProvider -> stringResource(R.string.Swap_ErrorNoQuote)
+    is SwapRouteNotFound -> stringResource(R.string.Swap_ErrorNoQuote)
+    is SwapDepositTooSmall -> stringResource(R.string.swap_out_of_min_amount, error.minValue.toPlainString())
+    is SwapAmountOutOfRange -> stringResource(R.string.swap_no_providers_for_this_amount)
+    is PriceImpactTooHigh -> stringResource(R.string.Swap_ErrorHighPriceImpact)
+    is UnknownHostException -> stringResource(R.string.Hud_Text_NoInternet)
+    is WalletSyncing -> stringResource(R.string.Swap_ErrorWalletSyncing)
+    is WalletNotSynced -> stringResource(R.string.Swap_ErrorWalletNotSynced)
+    else -> error.message ?: error.javaClass.simpleName
+}
+
+@Composable
+private fun SwapFeeInfo(uiState: SwapUiState, controller: SwapScreenController) {
+    val feeToken = uiState.feeToken
+    val networkFee = uiState.networkFee
+    FeeInfoSection(
+        tokenIn = uiState.tokenIn,
+        displayBalance = uiState.displayBalance,
+        balanceHidden = uiState.balanceHidden,
+        feeToken = feeToken,
+        feeCoinBalance = uiState.feeCoinBalance,
+        feePrimary = if (feeToken != null && networkFee != null) {
+            CoinValue(feeToken, networkFee).getFormattedFull()
+        } else {
+            "---"
+        },
+        feeSecondary = uiState.networkFeeFiatAmount?.let {
+            App.numberFormatter.formatFiatFull(it, uiState.currency.symbol)
+        }.orEmpty(),
+        insufficientFeeBalance = uiState.insufficientFeeBalance,
+        onBalanceClicked = controller::toggleBalance,
+        feeTitle = stringResource(R.string.estimated_fee),
+    )
+}
+
+@Composable
+private fun SwapQuoteInfo(
+    uiState: SwapUiState,
+    controller: SwapScreenController,
+    navController: NavController,
+) {
+    val quote = uiState.quote ?: return
+    CardsSwapInfo {
+        ProviderField(quote.provider, quote.estimationTime, controller::openProvider)
+        val finalTokenOut = uiState.tokenOut ?: quote.tokenOut
+        val finalAmountOut = uiState.multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quote.amountOut
+        PriceField(quote.tokenIn, finalTokenOut, quote.amountIn, finalAmountOut)
+        PriceImpactField(uiState.priceImpact, uiState.priceImpactLevel)
+        quote.fields.forEach { it.GetContent(navController, true) }
+    }
+}
+
+@Composable
+private fun SwapWarnings(uiState: SwapUiState) {
+    Column {
+        uiState.warningMessage?.let {
+            VSpacer(height = 12.dp)
+            TextImportantWarning(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = it.getString(),
+                icon = R.drawable.ic_attention_20,
+            )
+        }
+        if (uiState.quoteCautions.isNotEmpty()) {
+            Cautions(uiState.quoteCautions.map { it.toCautionViewItem() })
+        }
+        if (uiState.direction == SwapAmountDirection.Out &&
+            uiState.amountOutAccuracy == SwapAmountAccuracy.Estimated
+        ) {
+            VSpacer(height = 12.dp)
+            TextImportantWarning(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(R.string.swap_estimated_amount_warning),
+                icon = R.drawable.ic_attention_20,
+            )
+        }
+        SwapStepWarning(uiState)
+    }
+}
+
+@Composable
+private fun SwapStepWarning(uiState: SwapUiState) {
+    val action = (uiState.currentStep as? SwapStep.ActionRequired)?.action
+    if (uiState.error is PriceImpactTooHigh) {
+        VSpacer(height = 12.dp)
+        TextImportantError(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            icon = R.drawable.ic_attention_20,
+            title = stringResource(R.string.Swap_PriceImpact),
+            text = stringResource(R.string.Swap_PriceImpactTooHigh, uiState.error.providerTitle.orEmpty()),
+        )
+    } else {
+        action?.getDescription()?.let {
+            VSpacer(height = 12.dp)
+            TextImportantWarning(modifier = Modifier.padding(horizontal = 16.dp), text = it)
+        }
+    }
+}
+
+@Composable
+private fun SwapSuggestions(
+    uiState: SwapUiState,
+    controller: SwapScreenController,
+    inputFocus: SwapInputFocus,
+    keyboardOpen: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    if (inputFocus == SwapInputFocus.None || !keyboardOpen) return
+    val focusManager = LocalFocusManager.current
+    val hasBalance = uiState.availableBalance?.signum() == 1
+    val percentagesEnabled = inputFocus == SwapInputFocus.AmountIn
+    SuggestionsBar(
+        modifier = modifier.imePadding(),
+        onDelete = { inputFocus.clear(controller) },
+        onSelect = {
+            focusManager.clearFocus()
+            controller.enterAmountPercentage(it)
+        },
+        percents = if (percentagesEnabled) listOf(25, 50, 75, 100) else emptyList(),
+        selectEnabled = hasBalance && percentagesEnabled,
+        deleteEnabled = inputFocus.hasValue(uiState),
+    )
+}
+
+private fun SwapInputFocus.clear(controller: SwapScreenController) {
+    when (this) {
+        SwapInputFocus.None -> Unit
+        SwapInputFocus.AmountIn -> controller.enterAmount(null)
+        SwapInputFocus.FiatAmountIn -> controller.enterFiatAmount(null)
+        SwapInputFocus.AmountOut -> controller.enterAmountOut(null)
+        SwapInputFocus.FiatAmountOut -> controller.enterFiatAmountOut(null)
+    }
+}
+
+private fun SwapInputFocus.hasValue(uiState: SwapUiState): Boolean = when (this) {
+    SwapInputFocus.None -> false
+    SwapInputFocus.AmountIn -> uiState.amountIn != null
+    SwapInputFocus.FiatAmountIn -> uiState.fiatAmountIn != null
+    SwapInputFocus.AmountOut -> uiState.displayAmountOut != null
+    SwapInputFocus.FiatAmountOut -> uiState.fiatAmountOut != null
 }
 
 @Composable
@@ -938,23 +1029,9 @@ fun PriceField(tokenIn: Token, tokenOut: Token, amountIn: BigDecimal, amountOut:
 
 @Composable
 private fun SwapInput(
-    amountIn: BigDecimal?,
-    fiatAmountIn: BigDecimal?,
-    fiatAmountInputEnabled: Boolean,
-    onSwitchPairs: () -> Unit,
-    amountOut: BigDecimal?,
-    fiatAmountOut: BigDecimal?,
-    fiatPriceImpact: BigDecimal?,
-    fiatPriceImpactLevel: PriceImpactLevel?,
-    onValueChange: (BigDecimal?) -> Unit,
-    onFiatValueChange: (BigDecimal?) -> Unit,
-    onClickCoinFrom: () -> Unit,
-    onClickCoinTo: () -> Unit,
-    tokenIn: Token?,
-    tokenOut: Token?,
-    currency: Currency,
-    intermediateToken: Token? = null,
-    onFocusChanged: (FocusState) -> Unit,
+    uiState: SwapUiState,
+    controller: SwapScreenController,
+    onFocusChange: (SwapInputFocus, FocusState) -> Unit,
 ) {
     Box(
         modifier = Modifier.padding(horizontal = 16.dp)
@@ -966,84 +1043,70 @@ private fun SwapInput(
                 .background(ComposeAppTheme.colors.lawrence)
         ) {
             SwapCoinInputIn(
-                coinAmount = amountIn,
-                fiatAmount = fiatAmountIn,
-                currency = currency,
-                onValueChange = onValueChange,
-                onFiatValueChange = onFiatValueChange,
-                fiatAmountInputEnabled = fiatAmountInputEnabled,
-                token = tokenIn,
-                onClickCoin = onClickCoinFrom,
-                onFocusChanged = onFocusChanged
+                uiState = uiState,
+                controller = controller,
+                onFocusChange = onFocusChange,
             )
             SwapCoinInputTo(
-                coinAmount = amountOut,
-                fiatAmount = fiatAmountOut,
-                fiatPriceImpact = fiatPriceImpact,
-                fiatPriceImpactLevel = fiatPriceImpactLevel,
-                currency = currency,
-                token = tokenOut,
-                onClickCoin = onClickCoinTo
+                state = SwapOutputInputState.from(uiState),
+                onAmountChange = controller::enterAmountOut,
+                onFiatAmountChange = controller::enterFiatAmountOut,
+                onSelectCoin = controller::selectCoinTo,
+                onFocusChange = onFocusChange,
             )
         }
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.align(Alignment.Center),
             thickness = 1.dp,
             color = ComposeAppTheme.colors.steel10
         )
         SwapDirectionIndicator(
             modifier = Modifier.align(Alignment.Center),
-            intermediateToken = intermediateToken,
-            onClick = onSwitchPairs
+            intermediateToken = uiState.multiSwapRoute?.intermediateCoin,
+            onClick = controller::switchPairs
         )
     }
 }
 
 @Composable
 private fun SwapCoinInputIn(
-    coinAmount: BigDecimal?,
-    fiatAmount: BigDecimal?,
-    currency: Currency,
-    onValueChange: (BigDecimal?) -> Unit,
-    onFiatValueChange: (BigDecimal?) -> Unit,
-    fiatAmountInputEnabled: Boolean,
-    token: Token?,
-    onClickCoin: () -> Unit,
-    onFocusChanged: (FocusState) -> Unit,
+    uiState: SwapUiState,
+    controller: SwapScreenController,
+    onFocusChange: (SwapInputFocus, FocusState) -> Unit,
 ) {
     Row(
         modifier = Modifier
-            .onFocusChanged(onFocusChanged)
             .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             AmountInput(
-                value = coinAmount,
-                onValueChange = onValueChange
+                value = uiState.amountIn,
+                accessibilityLabel = stringResource(R.string.Swap_YouPay),
+                onValueChange = controller::enterAmount,
+                onFocusChange = { onFocusChange(SwapInputFocus.AmountIn, it) },
             )
             VSpacer(height = 3.dp)
             FiatAmountInput(
-                value = fiatAmount,
-                currency = currency,
-                onValueChange = onFiatValueChange,
-                enabled = fiatAmountInputEnabled
+                value = uiState.fiatAmountIn,
+                currency = uiState.currency,
+                onValueChange = controller::enterFiatAmount,
+                enabled = uiState.fiatAmountInInputEnabled,
+                onFocusChange = { onFocusChange(SwapInputFocus.FiatAmountIn, it) },
             )
         }
         HSpacer(width = 8.dp)
-        CoinSelector(token, onClickCoin)
+        CoinSelector(uiState.tokenIn, controller::selectCoinFrom)
     }
 }
 
 @Composable
 private fun SwapCoinInputTo(
-    coinAmount: BigDecimal?,
-    fiatAmount: BigDecimal?,
-    fiatPriceImpact: BigDecimal?,
-    fiatPriceImpactLevel: PriceImpactLevel?,
-    currency: Currency,
-    token: Token?,
-    onClickCoin: () -> Unit,
+    state: SwapOutputInputState,
+    onAmountChange: (BigDecimal?) -> Unit,
+    onFiatAmountChange: (BigDecimal?) -> Unit,
+    onSelectCoin: () -> Unit,
+    onFocusChange: (SwapInputFocus, FocusState) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -1051,39 +1114,117 @@ private fun SwapCoinInputTo(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            if (coinAmount == null) {
-                headline1_grey(text = "0")
-            } else {
-                headline1_leah(
-                    text = coinAmount.toPlainString(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            AmountInput(
+                value = state.amount,
+                accessibilityLabel = stringResource(R.string.Swap_YouGet),
+                onValueChange = onAmountChange,
+                onFocusChange = { onFocusChange(SwapInputFocus.AmountOut, it) },
+            )
             VSpacer(height = 3.dp)
-            if (fiatAmount == null) {
-                body_grey(text = "${currency.symbol}0")
-            } else {
-                Row {
-                    body_grey(text = "${currency.symbol}${fiatAmount.toPlainString()}")
-                    fiatPriceImpact?.let { diff ->
-                        HSpacer(width = 4.dp)
-                        Text(
-                            text = stringResource(
-                                R.string.Swap_FiatPriceImpact,
-                                diff.toPlainString()
-                            ),
-                            style = ComposeAppTheme.typography.body,
-                            color = getPriceImpactColor(fiatPriceImpactLevel),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+            Row {
+                FiatAmountInput(
+                    value = state.fiatAmount,
+                    currency = state.currency,
+                    onValueChange = onFiatAmountChange,
+                    enabled = state.fiatAmountInputEnabled,
+                    onFocusChange = { onFocusChange(SwapInputFocus.FiatAmountOut, it) },
+                    modifier = Modifier.weight(1f, fill = false),
+                    fillWidth = state.fiatPriceImpact == null,
+                )
+                state.fiatPriceImpact?.let { diff ->
+                    HSpacer(width = 4.dp)
+                    Text(
+                        text = stringResource(
+                            R.string.Swap_FiatPriceImpact,
+                            diff.toPlainString()
+                        ),
+                        style = ComposeAppTheme.typography.body,
+                        color = getPriceImpactColor(state.fiatPriceImpactLevel),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
         HSpacer(width = 8.dp)
-        CoinSelector(token, onClickCoin)
+        CoinSelector(state.token, onSelectCoin)
+    }
+}
+
+private data class SwapOutputInputState(
+    val amount: BigDecimal?,
+    val fiatAmount: BigDecimal?,
+    val fiatPriceImpact: BigDecimal?,
+    val currency: Currency,
+    val token: Token?,
+    val fiatAmountInputEnabled: Boolean,
+    val fiatPriceImpactLevel: PriceImpactLevel?,
+) {
+    companion object {
+        fun from(uiState: SwapUiState) = SwapOutputInputState(
+            amount = uiState.displayAmountOut,
+            fiatAmount = uiState.fiatAmountOut,
+            fiatPriceImpact = uiState.fiatPriceImpact,
+            currency = uiState.currency,
+            token = uiState.tokenOut,
+            fiatAmountInputEnabled = uiState.fiatAmountOutInputEnabled,
+            fiatPriceImpactLevel = uiState.fiatPriceImpactLevel,
+        )
+    }
+}
+
+@Preview(name = "Exact in", showBackground = true)
+@Composable
+internal fun SwapOutputInputExactInPreview() {
+    SwapOutputInputPreview(
+        amount = BigDecimal("0.12345678"),
+        fiatAmount = BigDecimal("20"),
+        fiatPriceImpact = BigDecimal("-1.62"),
+    )
+}
+
+@Preview(name = "Exact out", showBackground = true)
+@Composable
+internal fun SwapOutputInputExactOutPreview() {
+    SwapOutputInputPreview(
+        amount = BigDecimal("100"),
+        fiatAmount = BigDecimal("123456789.12"),
+        fiatPriceImpact = BigDecimal("1.23"),
+    )
+}
+
+@Preview(name = "No price impact", showBackground = true)
+@Composable
+internal fun SwapOutputInputNoPriceImpactPreview() {
+    SwapOutputInputPreview(
+        amount = BigDecimal("100"),
+        fiatAmount = null,
+        fiatPriceImpact = null,
+    )
+}
+
+@Composable
+private fun SwapOutputInputPreview(
+    amount: BigDecimal,
+    fiatAmount: BigDecimal?,
+    fiatPriceImpact: BigDecimal?,
+) {
+    ComposeAppTheme {
+        SwapCoinInputTo(
+            state = SwapOutputInputState(
+                amount = amount,
+                fiatAmount = fiatAmount,
+                fiatPriceImpact = fiatPriceImpact,
+                currency = Currency("usd", "$", 6, 0),
+                token = null,
+                fiatAmountInputEnabled = true,
+                fiatPriceImpactLevel = PriceImpactLevel.Normal,
+            ),
+            onAmountChange = {},
+            onFiatAmountChange = {},
+            onSelectCoin = {},
+            onFocusChange = { _, _ -> },
+        )
     }
 }
 
@@ -1122,33 +1263,44 @@ private fun FiatAmountInput(
     currency: Currency,
     onValueChange: (BigDecimal?) -> Unit,
     enabled: Boolean,
+    onFocusChange: (FocusState) -> Unit,
+    modifier: Modifier = Modifier,
+    fillWidth: Boolean = true,
 ) {
     var text by remember(value) {
         mutableStateOf(value?.toPlainString() ?: "")
     }
-    Row {
+    val textStyle = ColoredTextStyle(
+        color = ComposeAppTheme.colors.grey,
+        textStyle = ComposeAppTheme.typography.body
+    )
+    val inputModifier = if (fillWidth) {
+        Modifier.fillMaxWidth()
+    } else {
+        val textWidth = with(LocalDensity.current) {
+            rememberTextMeasurer()
+                .measure(text.ifEmpty { "0" }, textStyle, maxLines = 1)
+                .size.width
+                .toDp()
+        }
+        Modifier.width(textWidth)
+    }
+    Row(modifier = modifier) {
         body_grey(text = currency.symbol)
         BasicTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = inputModifier.onFocusChanged(onFocusChange),
             value = text,
-            onValueChange = {
-                try {
-                    val amount = if (it.isBlank()) {
-                        null
-                    } else {
-                        it.toBigDecimalOrNullExt()
-                    }
-                    text = it
-                    onValueChange.invoke(amount)
-                } catch (e: Exception) {
-
+            onValueChange = onTextChange@{ updatedText ->
+                val amount = if (updatedText.isBlank()) {
+                    null
+                } else {
+                    parseAmount(updatedText) ?: return@onTextChange
                 }
+                text = updatedText
+                onValueChange(amount)
             },
             enabled = enabled,
-            textStyle = ColoredTextStyle(
-                color = ComposeAppTheme.colors.grey,
-                textStyle = ComposeAppTheme.typography.body
-            ),
+            textStyle = textStyle,
             singleLine = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Decimal
@@ -1193,59 +1345,49 @@ private fun Selector(
 @Composable
 private fun AmountInput(
     value: BigDecimal?,
+    accessibilityLabel: String,
     onValueChange: (BigDecimal?) -> Unit,
+    onFocusChange: (FocusState) -> Unit,
 ) {
-    var amount by rememberSaveable {
-        mutableStateOf(value)
-    }
-
+    var amount by rememberSaveable { mutableStateOf(value) }
     var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(text = amount?.toPlainString() ?: ""))
     }
-
     LaunchedEffect(value) {
         if (value?.stripTrailingZeros() != amount?.stripTrailingZeros()) {
             amount = value
-
             textFieldValue = TextFieldValue(text = amount?.toPlainString() ?: "")
         }
     }
-
-    var setCursorToEndOnFocused by remember {
-        mutableStateOf(false)
-    }
-
+    var setCursorToEndOnFocused by remember { mutableStateOf(false) }
     BasicTextField(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics { contentDescription = accessibilityLabel }
             .onFocusChanged {
+                onFocusChange(it)
                 setCursorToEndOnFocused = it.isFocused
-
                 if (!it.isFocused) {
                     textFieldValue = textFieldValue.copy(selection = TextRange.Zero)
                 }
             },
         value = textFieldValue,
         onValueChange = { newValue ->
-            try {
-                val text = newValue.text
-                amount = if (text.isBlank()) {
-                    null
-                } else {
-                    text.toBigDecimalOrNullExt()
-                }
+            val text = newValue.text
+            val parsedAmount = parseAmount(text)
+            val negative = parsedAmount?.let { it < BigDecimal.ZERO } == true
+            amount = parsedAmount?.takeUnless { negative }
 
-                if (!setCursorToEndOnFocused) {
-                    textFieldValue = newValue
-                } else {
-                    textFieldValue = newValue.copy(selection = TextRange(text.length))
-                    setCursorToEndOnFocused = false
-                }
-
-                onValueChange.invoke(amount)
-            } catch (e: Exception) {
-
+            if (negative) {
+                textFieldValue = TextFieldValue()
+            } else if (!setCursorToEndOnFocused) {
+                textFieldValue = newValue
+            } else {
+                textFieldValue = newValue.copy(selection = TextRange(text.length))
+                setCursorToEndOnFocused = false
             }
+
+            onValueChange(amount)
         },
         textStyle = ColoredTextStyle(
             color = ComposeAppTheme.colors.leah,
@@ -1264,6 +1406,9 @@ private fun AmountInput(
         },
     )
 }
+
+private fun parseAmount(value: String): BigDecimal? =
+    value.takeUnless(String::isBlank)?.let { tryOrNull { it.toBigDecimalOrNullExt() } }
 
 @Composable
 private fun MultiSwapLegCard(
@@ -1332,41 +1477,5 @@ fun getPriceImpactColor(priceImpactLevel: PriceImpactLevel?): Color {
         PriceImpactLevel.Warning -> ComposeAppTheme.colors.lucian
         PriceImpactLevel.Good -> ComposeAppTheme.colors.remus
         else -> ComposeAppTheme.colors.grey
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun SwapCoinInputToPreview() {
-    ComposeAppTheme {
-        Column {
-            SwapCoinInputTo(
-                coinAmount = BigDecimal("0.12345678"),
-                fiatAmount = BigDecimal("1234.56"),
-                fiatPriceImpact = BigDecimal("1.23"),
-                fiatPriceImpactLevel = PriceImpactLevel.Normal,
-                currency = Currency("usd", "$", 6, 0),
-                token = null,
-                onClickCoin = {}
-            )
-            SwapCoinInputTo(
-                coinAmount = BigDecimal("0.12345678"),
-                fiatAmount = BigDecimal("1234.56"),
-                fiatPriceImpact = BigDecimal("1.23"),
-                fiatPriceImpactLevel = PriceImpactLevel.Good,
-                currency = Currency("usd", "$", 6, 0),
-                token = null,
-                onClickCoin = {}
-            )
-            SwapCoinInputTo(
-                coinAmount = BigDecimal("0.12345678"),
-                fiatAmount = BigDecimal("1234.56"),
-                fiatPriceImpact = BigDecimal("1.23"),
-                fiatPriceImpactLevel = PriceImpactLevel.Warning,
-                currency = Currency("usd", "$", 6, 0),
-                token = null,
-                onClickCoin = {}
-            )
-        }
     }
 }

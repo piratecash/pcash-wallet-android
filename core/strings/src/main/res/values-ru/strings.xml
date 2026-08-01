@@ -655,6 +655,9 @@
     <string name="swap_providers_title">Провайдеры обмена</string>
     <string name="swap_providers_mandatory_toast">Этот провайдер нельзя отключить</string>
     <string name="swap_no_enabled_providers">Нет включённых провайдеров</string>
+    <string name="swap_estimated_amount_warning">Сумма получения рассчитана приблизительно и может измениться.</string>
+    <string name="swap_reapprove_required">Одобренного лимита больше недостаточно. Одобрите обновлённую сумму.</string>
+    <string name="swap_reapprove_action">Одобрить лимит повторно</string>
     <string name="swap_no_providers_for_this_amount">Нет провайдеров для этой суммы</string>
 
     <!-- Swap Confirmation -->

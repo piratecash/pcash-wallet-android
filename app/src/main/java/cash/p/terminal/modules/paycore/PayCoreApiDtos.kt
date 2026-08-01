@@ -129,6 +129,22 @@ object PayCoreAmountType {
     const val RUB = "Rub"
 }
 
+internal fun validatePayCoreExactOutTarget(
+    requestedAmount: BigDecimal,
+    amountType: String,
+    amountCrypto: BigDecimal,
+    fullAmountRub: BigDecimal,
+) {
+    val actualAmount = when (amountType) {
+        PayCoreAmountType.CRYPTO -> amountCrypto
+        PayCoreAmountType.RUB -> fullAmountRub
+        else -> error("Unsupported PayCore amount type")
+    }
+    check(actualAmount.compareTo(requestedAmount) == 0) {
+        "PayCore exact-out target mismatch"
+    }
+}
+
 @Serializable
 data class PayCorePaymentCalculationRequest(
     @Serializable(with = PayCoreBigDecimalSerializer::class) val amount: BigDecimal,

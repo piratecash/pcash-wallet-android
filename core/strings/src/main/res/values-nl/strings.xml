@@ -648,6 +648,9 @@
     <string name="swap_providers_title">Swap-aanbieders</string>
     <string name="swap_providers_mandatory_toast">Deze aanbieder kan niet worden uitgeschakeld</string>
     <string name="swap_no_enabled_providers">Geen actieve aanbieders</string>
+    <string name="swap_estimated_amount_warning">Het te ontvangen bedrag is een schatting en kan veranderen.</string>
+    <string name="swap_reapprove_required">De goedgekeurde limiet is niet meer voldoende. Keur het bijgewerkte bedrag goed.</string>
+    <string name="swap_reapprove_action">Bijgewerkte limiet goedkeuren</string>
     <string name="swap_no_providers_for_this_amount">Geen aanbieders voor dit bedrag</string>
 
     <!--Approve-->
