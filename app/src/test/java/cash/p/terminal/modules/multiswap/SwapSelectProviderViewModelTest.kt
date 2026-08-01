@@ -13,9 +13,12 @@ import io.mockk.mockkObject
 import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -134,6 +137,24 @@ class SwapSelectProviderViewModelTest {
             0,
             viewModel.uiState.quoteViewItems[1].diffWithFirst?.compareTo(BigDecimal("-20")),
         )
+    }
+
+    @Test
+    fun quoteUpdates_newProviderAdded_rebuildsItems() = runTest(dispatcher) {
+        val initialQuote = quote(providerId = "initial", amount = "100", eta = 100L)
+        val newQuote = quote(providerId = "new", amount = "110", eta = 200L)
+        val quoteUpdates = MutableStateFlow(listOf(initialQuote))
+        val viewModel = SwapSelectProviderViewModel(
+            quotes = quoteUpdates.value,
+            direction = SwapAmountDirection.Out,
+            assetFiatRateService = assetFiatRateService,
+            quoteUpdates = quoteUpdates,
+        )
+
+        quoteUpdates.value = listOf(initialQuote, newQuote)
+        advanceUntilIdle()
+
+        assertEquals(listOf("initial", "new"), viewModel.providerIds())
     }
 
     private fun SwapSelectProviderViewModel.providerIds(): List<String> =

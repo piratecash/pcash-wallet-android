@@ -12,14 +12,17 @@ import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.CurrencyValue
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class SwapSelectProviderViewModel(
-    private val quotes: List<SwapProviderQuote>,
+    private var quotes: List<SwapProviderQuote>,
     private val direction: SwapAmountDirection,
-    private val assetFiatRateService: AssetFiatRateService = getKoinInstance()
+    private val assetFiatRateService: AssetFiatRateService = getKoinInstance(),
+    quoteUpdates: Flow<List<SwapProviderQuote>> = emptyFlow(),
 ) : ViewModelUiState<SwapSelectProviderUiState>() {
     private val currencyManager = App.currencyManager
 
@@ -40,6 +43,13 @@ class SwapSelectProviderViewModel(
                     rate = it
                     rebuildViewItems()
                 }
+        }
+        viewModelScope.launch {
+            quoteUpdates.collect {
+                if (quotes == it) return@collect
+                quotes = it
+                rebuildViewItems()
+            }
         }
     }
 
@@ -184,10 +194,15 @@ class SwapSelectProviderViewModel(
     class Factory(
         private val quotes: List<SwapProviderQuote>,
         private val direction: SwapAmountDirection,
+        private val quoteUpdates: Flow<List<SwapProviderQuote>> = emptyFlow(),
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SwapSelectProviderViewModel(quotes, direction) as T
+            return SwapSelectProviderViewModel(
+                quotes = quotes,
+                direction = direction,
+                quoteUpdates = quoteUpdates,
+            ) as T
         }
     }
 }

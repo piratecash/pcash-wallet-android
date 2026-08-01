@@ -250,7 +250,11 @@ fun SwapScreen(navController: NavController, tokenIn: Token?, tokenOut: Token?) 
             }
             val selectProviderViewModel = viewModel<SwapSelectProviderViewModel>(
                 viewModelStoreOwner = backStackEntry,
-                factory = SwapSelectProviderViewModel.Factory(quotes, viewModel.uiState.direction)
+                factory = SwapSelectProviderViewModel.Factory(
+                    quotes = quotes,
+                    direction = viewModel.uiState.direction,
+                    quoteUpdates = viewModel.quotesFlow,
+                )
             )
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()

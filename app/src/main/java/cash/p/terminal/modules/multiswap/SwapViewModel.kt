@@ -19,6 +19,7 @@ import cash.p.terminal.wallet.useCases.WalletUseCase
 import io.horizontalsystems.core.CurrencyManager
 import io.horizontalsystems.core.ViewModelUiState
 import io.horizontalsystems.core.entities.Currency
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import java.math.BigDecimal
@@ -39,6 +40,7 @@ class SwapViewModel(
 ) : ViewModelUiState<SwapUiState>() {
 
     private val quoteLifetime = 20
+    internal val quotesFlow = quoteService.stateFlow.map { it.quotes }
 
     private var networkState = networkAvailabilityService.stateFlow.value
     private var quoteState = quoteService.stateFlow.value
