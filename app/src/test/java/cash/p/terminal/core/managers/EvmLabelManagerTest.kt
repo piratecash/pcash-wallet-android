@@ -1,10 +1,8 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.providers.EvmLabelProvider
-import cash.p.terminal.core.storage.EvmAddressLabelDao
 import cash.p.terminal.core.storage.EvmMethodLabelDao
 import cash.p.terminal.core.storage.SyncerStateDao
-import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.SyncerState
 import io.mockk.coEvery
@@ -12,13 +10,11 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 
 class EvmLabelManagerTest {
 
@@ -29,7 +25,7 @@ class EvmLabelManagerTest {
     }
 
     private val provider = mockk<EvmLabelProvider>()
-    private val addressLabelDao = mockk<EvmAddressLabelDao>(relaxed = true)
+    private val addressLabelManager = mockk<AddressLabelManager>(relaxed = true)
     private val methodLabelDao = mockk<EvmMethodLabelDao>(relaxed = true)
     private val syncerStateStorage = mockk<SyncerStateDao>(relaxed = true)
 
@@ -39,34 +35,10 @@ class EvmLabelManagerTest {
     fun setUp() {
         manager = EvmLabelManager(
             provider = provider,
-            addressLabelDao = addressLabelDao,
+            addressLabelManager = addressLabelManager,
             methodLabelDao = methodLabelDao,
             syncerStateStorage = syncerStateStorage,
         )
-    }
-
-    @Test
-    fun mapped_mixedCaseAddress_queriesLowercaseAndReturnsLabel() {
-        every { addressLabelDao.get(BRIDGE_ADDRESS.lowercase()) } returns EvmAddressLabel(
-            address = BRIDGE_ADDRESS.lowercase(),
-            label = "Token Bridge",
-        )
-
-        val result = manager.mapped(BRIDGE_ADDRESS)
-
-        assertEquals("Token Bridge", result)
-        verify(exactly = 1) { addressLabelDao.get(BRIDGE_ADDRESS.lowercase()) }
-    }
-
-    @Test
-    fun mapped_unknownAddress_returnsShortenedOriginalAddress() {
-        val address = "0x123456789ABC"
-        every { addressLabelDao.get(address.lowercase()) } returns null
-
-        val result = manager.mapped(address)
-
-        assertEquals("0x1234...9ABC", result)
-        verify(exactly = 1) { addressLabelDao.get(address.lowercase()) }
     }
 
     @Test
@@ -100,14 +72,8 @@ class EvmLabelManagerTest {
     }
 
     @Test
-    fun sync_changedTimestamps_normalizesAndPersistsBothLabelSets() {
-        val completed = CountDownLatch(1)
+    fun sync_changedTimestamps_persistsBothLabelSetsAndTimestamps() = runTest {
         every { syncerStateStorage.get(any()) } returns null
-        every { syncerStateStorage.insert(any()) } answers {
-            if (firstArg<SyncerState>().key == ADDRESS_TIMESTAMP_KEY) {
-                completed.countDown()
-            }
-        }
         coEvery { provider.updatesStatus() } returns EvmLabelProvider.UpdatesStatus(
             addressLabels = 11,
             evmMethodLabels = 22,
@@ -119,48 +85,50 @@ class EvmLabelManagerTest {
             EvmLabelProvider.EvmAddressLabel(BRIDGE_ADDRESS, "Token Bridge"),
         )
 
-        syncAndAwait(completed)
-        verify(exactly = 1) {
+        manager.sync()
+
+        verify {
             methodLabelDao.update(listOf(EvmMethodLabel("0xaabbccdd", "Transfer")))
-            addressLabelDao.update(
-                listOf(EvmAddressLabel(BRIDGE_ADDRESS.lowercase(), "Token Bridge"))
-            )
             syncerStateStorage.insert(SyncerState(METHOD_TIMESTAMP_KEY, "22"))
             syncerStateStorage.insert(SyncerState(ADDRESS_TIMESTAMP_KEY, "11"))
+        }
+        coVerify(exactly = 1) {
+            addressLabelManager.replaceLegacy(
+                listOf(LegacyAddressLabel(BRIDGE_ADDRESS, "Token Bridge"))
+            )
         }
     }
 
     @Test
-    fun sync_unchangedTimestamps_skipsLabelDownloadsAndDatabaseUpdates() {
-        val completed = CountDownLatch(1)
+    fun sync_unchangedTimestamps_skipsDownloadsAndDatabaseUpdates() = runTest {
         every { syncerStateStorage.get(METHOD_TIMESTAMP_KEY) } returns SyncerState(
             METHOD_TIMESTAMP_KEY,
             "22",
         )
-        every { syncerStateStorage.get(ADDRESS_TIMESTAMP_KEY) } answers {
-            completed.countDown()
-            SyncerState(ADDRESS_TIMESTAMP_KEY, "11")
-        }
+        every { syncerStateStorage.get(ADDRESS_TIMESTAMP_KEY) } returns SyncerState(
+            ADDRESS_TIMESTAMP_KEY,
+            "11",
+        )
         coEvery { provider.updatesStatus() } returns EvmLabelProvider.UpdatesStatus(
             addressLabels = 11,
             evmMethodLabels = 22,
         )
 
-        syncAndAwait(completed)
+        manager.sync()
+
         coVerify(exactly = 0) {
             provider.evmMethodLabels()
             provider.evmAddressLabels()
+            addressLabelManager.replaceLegacy(any())
         }
         verify(exactly = 0) {
             methodLabelDao.update(any())
-            addressLabelDao.update(any())
             syncerStateStorage.insert(any())
         }
     }
 
     @Test
-    fun sync_onlyAddressTimestampChanged_updatesOnlyAddressLabels() {
-        val completed = CountDownLatch(1)
+    fun sync_onlyAddressTimestampChanged_updatesOnlyAddressLabels() = runTest {
         every { syncerStateStorage.get(METHOD_TIMESTAMP_KEY) } returns SyncerState(
             METHOD_TIMESTAMP_KEY,
             "22",
@@ -169,11 +137,6 @@ class EvmLabelManagerTest {
             ADDRESS_TIMESTAMP_KEY,
             "10",
         )
-        every { syncerStateStorage.insert(any()) } answers {
-            if (firstArg<SyncerState>().key == ADDRESS_TIMESTAMP_KEY) {
-                completed.countDown()
-            }
-        }
         coEvery { provider.updatesStatus() } returns EvmLabelProvider.UpdatesStatus(
             addressLabels = 11,
             evmMethodLabels = 22,
@@ -182,42 +145,62 @@ class EvmLabelManagerTest {
             EvmLabelProvider.EvmAddressLabel(BRIDGE_ADDRESS, "Token Bridge"),
         )
 
-        syncAndAwait(completed)
+        manager.sync()
+
         coVerify(exactly = 0) { provider.evmMethodLabels() }
         verify(exactly = 0) { methodLabelDao.update(any()) }
-        coVerify(exactly = 1) { provider.evmAddressLabels() }
-        verify(exactly = 1) {
-            addressLabelDao.update(
-                listOf(EvmAddressLabel(BRIDGE_ADDRESS.lowercase(), "Token Bridge"))
+        coVerify(exactly = 1) {
+            addressLabelManager.replaceLegacy(
+                listOf(LegacyAddressLabel(BRIDGE_ADDRESS, "Token Bridge"))
             )
+        }
+        verify(exactly = 1) {
             syncerStateStorage.insert(SyncerState(ADDRESS_TIMESTAMP_KEY, "11"))
         }
     }
 
     @Test
-    fun sync_methodLabelDownloadFails_doesNotContinueWithAddressLabels() {
-        val failed = CountDownLatch(1)
+    fun sync_methodLabelDownloadFails_doesNotContinueWithAddressLabels() = runTest {
         every { syncerStateStorage.get(any()) } returns null
         coEvery { provider.updatesStatus() } returns EvmLabelProvider.UpdatesStatus(
             addressLabels = 11,
             evmMethodLabels = 22,
         )
-        coEvery { provider.evmMethodLabels() } coAnswers {
-            failed.countDown()
-            error("Network error")
-        }
+        coEvery { provider.evmMethodLabels() } throws IllegalStateException("Network error")
 
-        syncAndAwait(failed)
-        coVerify(exactly = 0) { provider.evmAddressLabels() }
+        manager.sync()
+
+        coVerify(exactly = 0) {
+            provider.evmAddressLabels()
+            addressLabelManager.replaceLegacy(any())
+        }
         verify(exactly = 0) {
             methodLabelDao.update(any())
-            addressLabelDao.update(any())
             syncerStateStorage.insert(any())
         }
     }
 
-    private fun syncAndAwait(completion: CountDownLatch) {
+    @Test
+    fun sync_addressPersistenceFails_doesNotStoreAddressTimestamp() = runTest {
+        every { syncerStateStorage.get(METHOD_TIMESTAMP_KEY) } returns SyncerState(
+            METHOD_TIMESTAMP_KEY,
+            "22",
+        )
+        every { syncerStateStorage.get(ADDRESS_TIMESTAMP_KEY) } returns null
+        coEvery { provider.updatesStatus() } returns EvmLabelProvider.UpdatesStatus(
+            addressLabels = 11,
+            evmMethodLabels = 22,
+        )
+        coEvery { provider.evmAddressLabels() } returns listOf(
+            EvmLabelProvider.EvmAddressLabel(BRIDGE_ADDRESS, "Token Bridge"),
+        )
+        coEvery { addressLabelManager.replaceLegacy(any()) } throws
+            IllegalStateException("Database error")
+
         manager.sync()
-        assertTrue(completion.await(5, TimeUnit.SECONDS))
+
+        verify(exactly = 0) {
+            syncerStateStorage.insert(SyncerState(ADDRESS_TIMESTAMP_KEY, "11"))
+        }
     }
 }

@@ -1,8 +1,11 @@
 package cash.p.terminal.modules.transactionInfo
 
-import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.AddressLabelManager
+import cash.p.terminal.core.managers.AddressMetadataManager
+import cash.p.terminal.entities.TransactionValue
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
 import cash.p.terminal.wallet.Account
@@ -14,8 +17,10 @@ import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import io.mockk.verify
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
@@ -33,6 +38,10 @@ import java.math.BigDecimal
 @Config(application = TestCoreApp::class)
 class TransactionInfoViewItemFactoryTest {
 
+    private val addressLabelManager = mockk<AddressLabelManager>(relaxed = true)
+    private val contactsRepository = mockk<ContactsRepository>(relaxed = true)
+    private val numberFormatter = mockk<IAppNumberFormatter>(relaxed = true)
+
     @Before
     fun setUp() {
         stopKoin()
@@ -40,11 +49,20 @@ class TransactionInfoViewItemFactoryTest {
         startKoin {
             modules(
                 module {
-                    single<IAppNumberFormatter> { mockk(relaxed = true) }
-                    single<ContactsRepository> { mockk(relaxed = true) }
-                    single<EvmLabelManager> { mockk(relaxed = true) }
+                    single { numberFormatter }
+                    single { contactsRepository }
+                    single { addressLabelManager }
+                    single {
+                        AddressMetadataManager(
+                            contactsRepository = contactsRepository,
+                            addressLabelManager = addressLabelManager,
+                        )
+                    }
                 }
             )
+        }
+        every { numberFormatter.formatCoinFull(any(), any(), any()) } answers {
+            "${firstArg<BigDecimal>().stripTrailingZeros().toPlainString()} ${secondArg<String>()}"
         }
     }
 
@@ -74,6 +92,114 @@ class TransactionInfoViewItemFactoryTest {
         assertEquals("---", recipient.value)
     }
 
+    @Test
+    fun getReceiveSectionItems_knownAddress_showsLabelInTitleAndKeepsFullAddress() {
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
+
+        val items = TransactionViewItemFactoryHelper.getReceiveSectionItems(
+            value = tokenValue(),
+            fromAddress = BRIDGE_ADDRESS,
+            toAddress = null,
+            coinPrice = null,
+            hideAmount = false,
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        val address = items.filterIsInstance<TransactionInfoViewItem.Address>().single()
+        assertEquals(BRIDGE_ADDRESS, address.value)
+        assertEquals(false, address.showAdd)
+        assertEquals(true, address.title.endsWith(" · Token Bridge"))
+        assertEquals(true, address.collapseAddress)
+    }
+
+    @Test
+    fun getSendSectionItems_knownAddress_showsLabelInTitleAndKeepsFullAddress() {
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
+
+        val items = TransactionViewItemFactoryHelper.getSendSectionItems(
+            value = tokenValue(),
+            toAddress = listOf(BRIDGE_ADDRESS),
+            coinPrice = null,
+            hideAmount = false,
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        val address = items.filterIsInstance<TransactionInfoViewItem.Address>().single()
+        assertEquals(BRIDGE_ADDRESS, address.value)
+        assertEquals(false, address.showAdd)
+        assertEquals(true, address.title.endsWith(" · Token Bridge"))
+    }
+
+    @Test
+    fun getApproveSectionItems_knownSpender_showsLabelInTitle() {
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
+
+        val items = TransactionViewItemFactoryHelper.getApproveSectionItems(
+            value = tokenValue(),
+            coinPrice = null,
+            spenderAddress = BRIDGE_ADDRESS,
+            hideAmount = false,
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        val address = items.filterIsInstance<TransactionInfoViewItem.Address>().single()
+        assertEquals(true, address.title.endsWith(" · Token Bridge"))
+        assertEquals(false, address.showAdd)
+    }
+
+    @Test
+    fun getSendSectionItems_contactAndLabelExist_keepsContactPriority() {
+        val contact = mockk<Contact>(relaxed = true)
+        every {
+            contactsRepository.getContactsFiltered(
+                BlockchainType.BinanceSmartChain,
+                addressQuery = BRIDGE_ADDRESS,
+            )
+        } returns listOf(contact)
+
+        val items = TransactionViewItemFactoryHelper.getSendSectionItems(
+            value = tokenValue(),
+            toAddress = listOf(BRIDGE_ADDRESS),
+            coinPrice = null,
+            hideAmount = false,
+            blockchainType = BlockchainType.BinanceSmartChain,
+        )
+
+        val address = items.filterIsInstance<TransactionInfoViewItem.Address>().single()
+        assertEquals(false, address.title.contains("Token Bridge"))
+        assertEquals(false, address.showAdd)
+        assertEquals(false, address.collapseAddress)
+        assertEquals(
+            contact,
+            items.filterIsInstance<TransactionInfoViewItem.ContactItem>().single().contact,
+        )
+        verify(exactly = 0) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
+    }
+
+    @Test
+    fun getSwapDetailsSectionItems_completeValues_preservesBothPriceDirections() {
+        val items = TransactionViewItemFactoryHelper.getSwapDetailsSectionItems(
+            rates = emptyMap(),
+            exchangeAddress = BRIDGE_ADDRESS,
+            valueOut = tokenValue(code = "OUT", value = BigDecimal.TEN),
+            valueIn = tokenValue(code = "IN", value = BigDecimal("20")),
+            blockchainType = BlockchainType.BinanceSmartChain,
+            providerName = "Provider",
+        )
+
+        val prices = items.filterIsInstance<TransactionInfoViewItem.PriceWithToggle>().single()
+        assertEquals("OUT = 2 IN", prices.valueOne)
+        assertEquals("IN = 0.5 OUT", prices.valueTwo)
+    }
+
     private fun transactionInfoItem(
         record: PendingTransactionRecord,
         offlineStatus: ColoredValue?,
@@ -86,6 +212,16 @@ class TransactionInfoViewItemFactoryTest {
         nftMetadata = emptyMap(),
         hideAmount = false,
         offlineStatus = offlineStatus,
+    )
+
+    private fun tokenValue(
+        code: String = "COSA",
+        value: BigDecimal = BigDecimal.ONE,
+    ) = TransactionValue.TokenValue(
+        tokenName = "COSA",
+        tokenCode = code,
+        tokenDecimals = 18,
+        value = value,
     )
 
     private fun pendingRecord(toAddress: String): PendingTransactionRecord {
@@ -111,6 +247,10 @@ class TransactionInfoViewItemFactoryTest {
             expiresAt = Long.MAX_VALUE,
             memo = null,
         )
+    }
+
+    private companion object {
+        const val BRIDGE_ADDRESS = "0x579fedB9253ccA1b3114d5e2fA44F8158d61e436"
     }
 }
 

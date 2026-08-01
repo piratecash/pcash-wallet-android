@@ -43,6 +43,8 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.AddressLabelManager
+import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.managers.EvmSignerFactory
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
@@ -258,6 +260,8 @@ val managerModule = module {
     singleOf(::RestoreSettingsManager)
     singleOf(::TimePasswordProvider)
     singleOf(::SeedPhraseQrCrypto)
+    singleOf(::AddressLabelManager)
+    singleOf(::AddressMetadataManager)
     singleOf(::EvmLabelManager)
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)

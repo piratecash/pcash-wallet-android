@@ -13,6 +13,7 @@ import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.isCustom
 import cash.p.terminal.core.isNative
 import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.MarketFavoritesManager
@@ -40,6 +41,7 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.fee.getWarningThreshold
 import cash.p.terminal.modules.send.zcash.SendZCashViewModel
 import cash.p.terminal.modules.transactions.AmlStatus
+import cash.p.terminal.modules.transactions.addressMetadataChangesFlow
 import cash.p.terminal.modules.transactions.Filter
 import cash.p.terminal.modules.transactions.FilterTransactionType
 import cash.p.terminal.modules.transactions.SearchScanState
@@ -122,6 +124,7 @@ class TokenBalanceViewModel(
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage = getKoinInstance()
     private val marketKit: MarketKitWrapper = getKoinInstance()
     private val poisonAddressManager: PoisonAddressManager = getKoinInstance()
+    private val addressLabelManager: AddressLabelManager = getKoinInstance()
     private val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository = getKoinInstance()
 
     private val title = wallet.token.coin.name
@@ -277,14 +280,11 @@ class TokenBalanceViewModel(
         }
 
         viewModelScope.launch {
-            contactsRepository.contactsFlow.collect {
-                transactionViewItem2Factory.clearCache()
-                refreshTransactionsFromCache()
-            }
-        }
-
-        viewModelScope.launch {
-            poisonAddressManager.poisonDbChangedFlow.collect {
+            addressMetadataChangesFlow(
+                contactsFlow = contactsRepository.contactsFlow,
+                poisonAddressesChangedFlow = poisonAddressManager.poisonDbChangedFlow,
+                labelsChangedFlow = addressLabelManager.labelsChangedFlow,
+            ).collect {
                 transactionViewItem2Factory.clearCache()
                 refreshTransactionsFromCache()
             }

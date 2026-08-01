@@ -1,41 +1,29 @@
 package cash.p.terminal.core.managers
 
-import android.util.Log
 import cash.p.terminal.core.providers.EvmLabelProvider
-import cash.p.terminal.core.storage.EvmAddressLabelDao
 import cash.p.terminal.core.storage.EvmMethodLabelDao
 import cash.p.terminal.core.storage.SyncerStateDao
 import cash.p.terminal.core.to0xHexString
-import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.SyncerState
-import cash.p.terminal.strings.helpers.shorten
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
-import java.util.concurrent.Executors
+import timber.log.Timber
 
 class EvmLabelManager(
     private val provider: EvmLabelProvider,
-    private val addressLabelDao: EvmAddressLabelDao,
+    private val addressLabelManager: AddressLabelManager,
     private val methodLabelDao: EvmMethodLabelDao,
     private val syncerStateStorage: SyncerStateDao
 ) {
     private val keyMethodLabelsTimestamp = "evm-label-manager-method-labels-timestamp"
     private val keyAddressLabelsTimestamp = "evm-label-manager-address-labels-timestamp"
 
-    private val singleDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
-    private val coroutineScope = CoroutineScope(singleDispatcher)
-
-    fun sync() {
-        coroutineScope.launch {
-            try {
-                val updatesStatus = provider.updatesStatus()
-                syncMethodLabels(updatesStatus.evmMethodLabels)
-                syncAddressLabels(updatesStatus.addressLabels)
-            } catch (e: Exception) {
-                Log.e("EvmLabelManager", "sync() error: ${e.message}", e)
-            }
+    suspend fun sync() {
+        try {
+            val updatesStatus = provider.updatesStatus()
+            syncMethodLabels(updatesStatus.evmMethodLabels)
+            syncAddressLabels(updatesStatus.addressLabels)
+        } catch (e: Exception) {
+            Timber.e(e, "EVM label sync failed")
         }
     }
 
@@ -44,20 +32,14 @@ class EvmLabelManager(
         return methodLabelDao.get(methodId.lowercase())?.label
     }
 
-    private fun addressLabel(address: String): String? {
-        return addressLabelDao.get(address.lowercase())?.label
-    }
-
-    fun mapped(address: String): String {
-        return addressLabel(address) ?: address.shorten()
-    }
-
     private suspend fun syncAddressLabels(timestamp: Long) {
         val lastSyncTimestamp = syncerStateStorage.get(keyAddressLabelsTimestamp)?.value?.toLongOrNull()
         if (lastSyncTimestamp == timestamp) return
 
         val addressLabels = provider.evmAddressLabels()
-        addressLabelDao.update(addressLabels.map { EvmAddressLabel(it.address.lowercase(), it.label) })
+        addressLabelManager.replaceLegacy(
+            addressLabels.map { LegacyAddressLabel(it.address, it.label) }
+        )
 
         syncerStateStorage.insert(SyncerState(keyAddressLabelsTimestamp, timestamp.toString()))
     }
@@ -71,5 +53,4 @@ class EvmLabelManager(
 
         syncerStateStorage.insert(SyncerState(keyMethodLabelsTimestamp, timestamp.toString()))
     }
-
 }

@@ -3,7 +3,8 @@ package cash.p.terminal.modules.transactions
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BalanceHiddenManager
-import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.AddressLabelManager
+import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.utils.SwapTransactionMatcher
@@ -59,7 +60,7 @@ class TransactionViewItemFactoryCacheTest {
         val ZEC_AMOUNT: BigDecimal = BigDecimal("0.01285429")
     }
 
-    private val evmLabelManager = mockk<EvmLabelManager>()
+    private val addressLabelManager = mockk<AddressLabelManager>()
     private val contactsRepository = mockk<ContactsRepository>()
     private val balanceHiddenManager = mockk<BalanceHiddenManager>()
     private val swapProviderTransactionsStorage = mockk<SwapProviderTransactionsStorage>(relaxed = true)
@@ -89,7 +90,7 @@ class TransactionViewItemFactoryCacheTest {
         }
         every { appNumberFormatter.formatFiatShort(any(), any(), any()) } returns "$0"
 
-        every { evmLabelManager.mapped(any()) } answers { firstArg<String>() }
+        every { addressLabelManager.label(any(), any()) } returns null
         every { contactsRepository.getContactsFiltered(any(), addressQuery = any()) } returns emptyList()
         every { balanceHiddenManager.balanceHidden } returns false
         every { balanceHiddenManager.isTransactionInfoHidden(any()) } returns false
@@ -99,8 +100,10 @@ class TransactionViewItemFactoryCacheTest {
         coEvery { poisonAddressManager.getPoisonStatus(any<TransactionRecord>()) } returns PoisonStatus.BLOCKCHAIN
 
         factory = TransactionViewItemFactory(
-            evmLabelManager = evmLabelManager,
-            contactsRepository = contactsRepository,
+            addressMetadataManager = AddressMetadataManager(
+                contactsRepository = contactsRepository,
+                addressLabelManager = addressLabelManager,
+            ),
             balanceHiddenManager = balanceHiddenManager,
             swapProviderTransactionsStorage = swapProviderTransactionsStorage,
             swapTransactionMatcher = swapTransactionMatcher,
@@ -189,7 +192,9 @@ class TransactionViewItemFactoryCacheTest {
 
     @Test
     fun convertToViewItemCached_evmIncoming_usesAddressLabel() = runTest {
-        every { evmLabelManager.mapped(BRIDGE_ADDRESS) } returns "Token Bridge"
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
         stubAddressTranslation("Token Bridge")
         val record = createEvmTransferRecord(
             address = BRIDGE_ADDRESS,
@@ -199,12 +204,16 @@ class TransactionViewItemFactoryCacheTest {
         val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
 
         assertTrue(viewItem.subtitle.contains("Token Bridge"))
-        verify(exactly = 1) { evmLabelManager.mapped(BRIDGE_ADDRESS) }
+        verify(exactly = 1) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
     }
 
     @Test
     fun convertToViewItemCached_evmOutgoing_usesAddressLabel() = runTest {
-        every { evmLabelManager.mapped(BRIDGE_ADDRESS) } returns "Token Bridge"
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
         stubAddressTranslation("Token Bridge")
         val record = createEvmTransferRecord(
             address = BRIDGE_ADDRESS,
@@ -214,7 +223,9 @@ class TransactionViewItemFactoryCacheTest {
         val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
 
         assertTrue(viewItem.subtitle.contains("Token Bridge"))
-        verify(exactly = 1) { evmLabelManager.mapped(BRIDGE_ADDRESS) }
+        verify(exactly = 1) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
     }
 
     @Test
@@ -237,13 +248,15 @@ class TransactionViewItemFactoryCacheTest {
         val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
 
         assertTrue(viewItem.subtitle.contains("Bridge Contact"))
-        verify(exactly = 0) { evmLabelManager.mapped(BRIDGE_ADDRESS) }
+        verify(exactly = 0) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
     }
 
     @Test
     fun convertToViewItemCached_cacheClearedAfterLabelChange_usesUpdatedLabel() = runTest {
         every {
-            evmLabelManager.mapped(BRIDGE_ADDRESS)
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
         } returnsMany listOf("Old Bridge", "Token Bridge")
         stubAddressTranslation("Old Bridge")
         stubAddressTranslation("Token Bridge")
@@ -259,7 +272,9 @@ class TransactionViewItemFactoryCacheTest {
 
         assertTrue(initialViewItem.subtitle.contains("Old Bridge"))
         assertTrue(updatedViewItem.subtitle.contains("Token Bridge"))
-        verify(exactly = 2) { evmLabelManager.mapped(BRIDGE_ADDRESS) }
+        verify(exactly = 2) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
     }
 
     @Test

@@ -1,8 +1,9 @@
 package cash.p.terminal.modules.transactionInfo
 
 import cash.p.terminal.R
-import cash.p.terminal.core.App
+import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.isCustom
+import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.orHide
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.LastBlockInfo
@@ -19,7 +20,6 @@ import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecor
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
-import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.transactions.AmlStatus
 import cash.p.terminal.modules.transactions.TransactionStatus
 import cash.p.terminal.modules.transactions.TransactionViewItem
@@ -28,6 +28,7 @@ import cash.p.terminal.modules.transactions.isIncomingForAmlCheck
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.ColorName
 import cash.p.terminal.ui_compose.ColoredValue
+import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.CurrencyValue
 import io.horizontalsystems.core.helpers.DateHelper
@@ -38,9 +39,10 @@ import kotlin.math.min
 
 object TransactionViewItemFactoryHelper {
     val zeroAddress = "0x0000000000000000000000000000000000000000"
-    private val numberFormatter = App.numberFormatter
-    private val contactsRepo = App.contactsRepository
-    private val evmLabelManager = App.evmLabelManager
+    private val numberFormatter: IAppNumberFormatter
+        get() = getKoinInstance()
+    private val addressMetadataManager: AddressMetadataManager
+        get() = getKoinInstance()
 
     fun getMemoItem(memo: String) =
         TransactionInfoViewItem.Value(
@@ -111,9 +113,28 @@ object TransactionViewItemFactoryHelper {
         return TransactionInfoViewItem.Value(feeTitle, feeAmountString)
     }
 
-    private fun getContact(address: String?, blockchainType: BlockchainType): Contact? {
-        return contactsRepo.getContactsFiltered(blockchainType, addressQuery = address)
-            .firstOrNull()
+    private fun getAddressItems(
+        title: String,
+        address: String,
+        blockchainType: BlockchainType,
+        showCopyWarning: Boolean = false,
+    ): List<TransactionInfoViewItem> {
+        val (contact, label) = addressMetadataManager.get(blockchainType, address)
+        val addressTitle = label?.let { "$title · $it" } ?: title
+
+        return buildList {
+            add(
+                TransactionInfoViewItem.Address(
+                    addressTitle,
+                    address,
+                    contact == null && label == null,
+                    blockchainType,
+                    showCopyWarning = showCopyWarning,
+                    collapseAddress = label != null,
+                )
+            )
+            contact?.let { add(TransactionInfoViewItem.ContactItem(it)) }
+        }
     }
 
     private fun getAmountColor(incoming: Boolean?): ColorName {
@@ -280,21 +301,14 @@ object TransactionViewItemFactoryHelper {
         )
 
         if (!mint && fromAddress != null) {
-            val contact = getContact(fromAddress, blockchainType)
-            items.add(
-                TransactionInfoViewItem.Address(
-                    Translator.getString(R.string.TransactionInfo_From),
-                    fromAddress,
-                    contact == null,
-                    blockchainType,
+            items.addAll(
+                getAddressItems(
+                    title = Translator.getString(R.string.TransactionInfo_From),
+                    address = fromAddress,
+                    blockchainType = blockchainType,
                     showCopyWarning = showCopyWarning,
                 )
             )
-            contact?.let {
-                items.add(
-                    TransactionInfoViewItem.ContactItem(it)
-                )
-            }
         }
 
         toAddress?.forEach { address ->
@@ -375,20 +389,14 @@ object TransactionViewItemFactoryHelper {
 
         if (!burn && toAddress != null) {
             toAddress.forEach { address ->
-                val contact = getContact(address, blockchainType)
-                items.add(
-                    TransactionInfoViewItem.Address(
-                        Translator.getString(R.string.TransactionInfo_To),
-                        address,
-                        contact == null,
-                        blockchainType,
+                items.addAll(
+                    getAddressItems(
+                        title = Translator.getString(R.string.TransactionInfo_To),
+                        address = address,
+                        blockchainType = blockchainType,
                         showCopyWarning = showCopyWarning,
                     )
                 )
-
-                contact?.let {
-                    items.add(TransactionInfoViewItem.ContactItem(it))
-                }
             }
         }
 
@@ -447,61 +455,18 @@ object TransactionViewItemFactoryHelper {
         exchangeAddress: String,
         valueOut: TransactionValue?,
         valueIn: TransactionValue?,
+        blockchainType: BlockchainType,
         providerName: String? = null,
     ): List<TransactionInfoViewItem> {
         val items: MutableList<TransactionInfoViewItem> = mutableListOf(
             TransactionInfoViewItem.Value(
                 Translator.getString(R.string.Swap_SwapProvider_Title),
-                providerName ?: evmLabelManager.mapped(exchangeAddress)
+                providerName ?: addressMetadataManager.mapped(blockchainType, exchangeAddress)
             )
         )
 
-        if (valueIn == null || valueOut == null) {
-            return items
-        }
-
-        val decimalValueIn = valueIn.decimalValue
-        val decimalValueOut = valueOut.decimalValue
-        val valueOutDecimals = valueOut.decimals
-        val valueInDecimals = valueIn.decimals
-
-        if (decimalValueIn == null || decimalValueOut == null || valueInDecimals == null || valueOutDecimals == null) {
-            return items
-        }
-
-        val priceValueOne = if (decimalValueOut.compareTo(BigDecimal.ZERO) == 0) {
-            Translator.getString(R.string.NotAvailable)
-        } else {
-            val price = decimalValueIn.divide(
-                decimalValueOut,
-                min(valueOutDecimals, valueInDecimals),
-                RoundingMode.HALF_EVEN
-            ).abs()
-            val formattedPrice = numberFormatter.formatCoinFull(price, valueIn.coinCode, 8)
-            val formattedFiatPrice = rates[valueIn.coinUid]?.let { rate ->
-                numberFormatter.formatFiatFull(price * rate.value, rate.currency.symbol).let {
-                    " ($it)"
-                }
-            } ?: ""
-            "${valueOut.coinCode} = $formattedPrice$formattedFiatPrice"
-        }
-
-        val priceValueTwo = if (decimalValueIn.compareTo(BigDecimal.ZERO) == 0) {
-            Translator.getString(R.string.NotAvailable)
-        } else {
-            val price = decimalValueOut.divide(
-                decimalValueIn,
-                min(valueInDecimals, valueOutDecimals),
-                RoundingMode.HALF_EVEN
-            ).abs()
-            val formattedPrice = numberFormatter.formatCoinFull(price, valueOut.coinCode, 8)
-            val formattedFiatPrice = rates[valueOut.coinUid]?.let { rate ->
-                numberFormatter.formatFiatFull(price * rate.value, rate.currency.symbol).let {
-                    " ($it)"
-                }
-            } ?: ""
-            "${valueIn.coinCode} = $formattedPrice$formattedFiatPrice"
-        }
+        val (priceValueOne, priceValueTwo) = swapPriceValues(valueIn, valueOut, rates)
+            ?: return items
 
         items.add(
             TransactionInfoViewItem.PriceWithToggle(
@@ -513,6 +478,54 @@ object TransactionViewItemFactoryHelper {
 
         return items
     }
+
+    private fun swapPriceValues(
+        valueIn: TransactionValue?,
+        valueOut: TransactionValue?,
+        rates: Map<String, CurrencyValue>,
+    ): Pair<String, String>? {
+        val input = valueIn?.toSwapValue() ?: return null
+        val output = valueOut?.toSwapValue() ?: return null
+        return formatSwapPrice(output, input, rates[input.coinUid]) to
+            formatSwapPrice(input, output, rates[output.coinUid])
+    }
+
+    private fun TransactionValue.toSwapValue(): SwapValue? {
+        return SwapValue(
+            decimalValue = decimalValue ?: return null,
+            decimals = decimals ?: return null,
+            coinCode = coinCode,
+            coinUid = coinUid,
+        )
+    }
+
+    private fun formatSwapPrice(
+        base: SwapValue,
+        quote: SwapValue,
+        rate: CurrencyValue?,
+    ): String {
+        if (base.decimalValue.compareTo(BigDecimal.ZERO) == 0) {
+            return Translator.getString(R.string.NotAvailable)
+        }
+
+        val price = quote.decimalValue.divide(
+            base.decimalValue,
+            min(base.decimals, quote.decimals),
+            RoundingMode.HALF_EVEN,
+        ).abs()
+        val formattedPrice = numberFormatter.formatCoinFull(price, quote.coinCode, 8)
+        val formattedFiatPrice = rate?.let {
+            " (${numberFormatter.formatFiatFull(price * it.value, it.currency.symbol)})"
+        }.orEmpty()
+        return "${base.coinCode} = $formattedPrice$formattedFiatPrice"
+    }
+
+    private data class SwapValue(
+        val decimalValue: BigDecimal,
+        val decimals: Int,
+        val coinCode: String,
+        val coinUid: String,
+    )
 
     fun getContractCreationItems(transaction: EvmTransactionRecord): List<TransactionInfoViewItem> =
         listOf(
@@ -564,9 +577,7 @@ object TransactionViewItemFactoryHelper {
 
         val fiatAmountColoredValue = ColoredValue(fiatAmountString, ColorName.Grey)
 
-        val contact = getContact(spenderAddress, blockchainType)
-
-        val items = mutableListOf(
+        val items: MutableList<TransactionInfoViewItem> = mutableListOf(
             TransactionInfoViewItem.Amount(
                 coinAmountColoredValue,
                 fiatAmountColoredValue,
@@ -576,18 +587,16 @@ object TransactionViewItemFactoryHelper {
                 value.coin?.uid,
                 value.badge,
                 AmountType.Approved
-            ),
-            TransactionInfoViewItem.Address(
-                Translator.getString(R.string.TransactionInfo_Spender),
-                spenderAddress,
-                contact == null,
-                blockchainType,
             )
         )
 
-        contact?.let {
-            items.add(TransactionInfoViewItem.ContactItem(it))
-        }
+        items.addAll(
+            getAddressItems(
+                title = Translator.getString(R.string.TransactionInfo_Spender),
+                address = spenderAddress,
+                blockchainType = blockchainType,
+            )
+        )
 
         return items
     }
@@ -600,7 +609,7 @@ object TransactionViewItemFactoryHelper {
         TransactionInfoViewItem.Transaction(
             method
                 ?: Translator.getString(R.string.Transactions_ContractCall),
-            evmLabelManager.mapped(contractAddress),
+            addressMetadataManager.mapped(blockchainType, contractAddress),
             TransactionViewItem.Icon.Platform.fromBlockchainType(blockchainType).iconRes
         )
     )
@@ -668,22 +677,13 @@ object TransactionViewItemFactoryHelper {
 
                     val recipient = transaction.recipient
                     if (recipient != null) {
-                        val contact = getContact(recipient, blockchainType)
-
-                        recipientItems.add(
-                            TransactionInfoViewItem.Address(
-                                Translator.getString(R.string.TransactionInfo_RecipientHash),
-                                recipient,
-                                contact == null,
-                                blockchainType,
+                        recipientItems.addAll(
+                            getAddressItems(
+                                title = Translator.getString(R.string.TransactionInfo_RecipientHash),
+                                address = recipient,
+                                blockchainType = blockchainType,
                             )
                         )
-
-                        contact?.let {
-                            recipientItems.add(
-                                TransactionInfoViewItem.ContactItem(it)
-                            )
-                        }
                     }
 
                     items.addAll(0, recipientItems)
