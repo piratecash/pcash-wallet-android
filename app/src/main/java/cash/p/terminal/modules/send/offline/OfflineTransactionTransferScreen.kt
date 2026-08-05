@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
 import cash.p.terminal.entities.OfflineSignedTransaction
+import cash.p.terminal.ui.compose.components.AnimatedQrCode
+import cash.p.terminal.ui.compose.components.animatedQrFrames
 import cash.p.terminal.ui.compose.components.PcashQrCodeDefaults
 import cash.p.terminal.ui.compose.components.PcashQrCodeImage
 import cash.p.terminal.ui.compose.components.createPcashQrCodeBitmap
@@ -144,6 +146,7 @@ private fun TransferContent(
 ) {
     val qrContent = selectedFormat.content(transaction)
     val qrCodePainter = rememberPcashQrCodePainterOrNull(qrContent)
+    val frames = remember(qrContent) { animatedQrFrames(qrContent) }
 
     TransferScrollableContent(
         modifier = modifier.fillMaxSize(),
@@ -151,6 +154,7 @@ private fun TransferContent(
         selectedFormat = selectedFormat,
         qrContent = qrContent,
         qrCodePainter = qrCodePainter,
+        frames = frames,
         qrCodeSaver = qrCodeSaver
     )
 }
@@ -161,6 +165,7 @@ private fun TransferScrollableContent(
     selectedFormat: OfflineTransactionFormat,
     qrContent: String,
     qrCodePainter: Painter?,
+    frames: List<String>?,
     qrCodeSaver: OfflineQrCodeSaver,
     modifier: Modifier = Modifier,
 ) {
@@ -171,13 +176,19 @@ private fun TransferScrollableContent(
         VSpacer(12.dp)
         TransferHeader(selectedFormat)
         VSpacer(16.dp)
-        if (qrCodePainter != null) {
-            QrCodePanel(
-                qrContent = qrContent,
-                qrCodePainter = qrCodePainter,
-            )
-        } else {
-            QrCodeUnavailablePanel()
+        when {
+            qrCodePainter != null -> QrCodePanel {
+                QrCodeImage(
+                    content = qrContent,
+                    qrcodePainter = qrCodePainter,
+                )
+            }
+
+            frames != null -> QrCodePanel {
+                AnimatedQrCode(frames = frames)
+            }
+
+            else -> QrCodeUnavailablePanel()
         }
         VSpacer(20.dp)
         TransferActionButtons(
@@ -210,16 +221,10 @@ private fun TransferHeader(selectedFormat: OfflineTransactionFormat) {
 
 @Composable
 private fun QrCodePanel(
-    qrContent: String,
-    qrCodePainter: Painter,
+    content: @Composable BoxScope.() -> Unit,
 ) {
     QrCodePanelFrame(
-        content = {
-            QrCodeImage(
-                content = qrContent,
-                qrcodePainter = qrCodePainter,
-            )
-        },
+        content = content,
         footer = {
             VSpacer(12.dp)
             subhead2_grey(
@@ -440,10 +445,25 @@ private fun OfflineTransactionTransferScreenPreview() {
 @Suppress("UnusedPrivateMember")
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun OfflineTransactionTransferScreenQrTooLargePreview() {
+private fun OfflineTransactionTransferScreenAnimatedPreview() {
     ComposeAppTheme {
         OfflineTransactionTransferScreen(
             transaction = previewOfflineSignedTransaction.copy(rawHex = "ab".repeat(1_000)),
+            selectedFormat = OfflineTransactionFormat.Raw,
+            qrCodeSaver = OfflineQrCodeSaver(DefaultDispatcherProvider()),
+            onBackClick = {},
+            onDoneClick = {},
+        )
+    }
+}
+
+@Suppress("UnusedPrivateMember")
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun OfflineTransactionTransferScreenQrUnavailablePreview() {
+    ComposeAppTheme {
+        OfflineTransactionTransferScreen(
+            transaction = previewOfflineSignedTransaction.copy(rawHex = "ab".repeat(100_000)),
             selectedFormat = OfflineTransactionFormat.Raw,
             qrCodeSaver = OfflineQrCodeSaver(DefaultDispatcherProvider()),
             onBackClick = {},

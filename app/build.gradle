@@ -442,6 +442,7 @@ dependencies {
     implementation project(':core:wallet')
     implementation project(':core:resources')
     implementation project(':core:network')
+    implementation project(':core:qr-multipart')
     implementation project(':core:navigation')
     implementation project(':components:icons')
     implementation project(':components:chartview')

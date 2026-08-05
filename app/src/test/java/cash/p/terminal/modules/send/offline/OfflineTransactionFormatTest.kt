@@ -4,6 +4,7 @@ import android.util.Base64
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
 import cash.p.terminal.entities.OfflineSignedTransaction
 import cash.p.terminal.entities.OfflineSignedTransactionDraft
+import cash.p.terminal.ui.compose.components.animatedQrFrames
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.entities.Coin
@@ -17,6 +18,8 @@ import io.mockk.unmockkAll
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -86,6 +89,25 @@ class OfflineTransactionFormatTest {
         )
     }
 
+    @Test
+    fun preferredTransferFormat_pcashOverAnimatedBudgetRawFits_returnsRaw() {
+        // rawHex is lowercase hex, so the tape halves it and needs ~134 frames; the pcash payload
+        // is opaque text one byte past the 300-frame budget. Neither fits a single QR, so the
+        // choice is decided purely by which one can be animated at all.
+        val rawHex = deterministicRawHex(HEX_BYTES_FITTING_TAPE)
+        val pcashPayload = "z".repeat(PAYLOAD_SIZE_OVER_ANIMATED_BUDGET)
+        val transaction = transaction(rawHex = rawHex, pcashPayload = pcashPayload)
+
+        assertFalse(pcashPayload.canEncodeAsOfflineQr())
+        assertFalse(rawHex.canEncodeAsOfflineQr())
+        assertNull(animatedQrFrames(pcashPayload))
+        assertNotNull(animatedQrFrames(rawHex))
+        assertEquals(
+            OfflineTransactionFormat.Raw,
+            OfflineTransactionFormat.Pcash.preferredTransferFormat(transaction),
+        )
+    }
+
     private fun transaction(
         rawHex: String = "deadbeefdeadbeef",
         pcashPayload: String,
@@ -130,5 +152,11 @@ class OfflineTransactionFormatTest {
         const val TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         const val LARGE_RAW_BYTES = 5_000
         const val TOO_LARGE_QR_PAYLOAD_SIZE = 1_700
+
+        /** 301 frames at the default fragment size — one past MAX_ANIMATED_FRAMES. */
+        const val PAYLOAD_SIZE_OVER_ANIMATED_BUDGET = 90_001
+
+        /** Halved by the hex transform to 134 frames, comfortably inside the budget. */
+        const val HEX_BYTES_FITTING_TAPE = 40_000
     }
 }
