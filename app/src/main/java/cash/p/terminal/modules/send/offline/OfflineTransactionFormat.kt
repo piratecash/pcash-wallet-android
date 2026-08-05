@@ -2,7 +2,7 @@ package cash.p.terminal.modules.send.offline
 
 import cash.p.terminal.entities.OfflineSignedTransaction
 import cash.p.terminal.ui.compose.components.animatedQrFrames
-import cash.p.terminal.ui.compose.components.canEncodeAsPcashQrCode
+import cash.p.terminal.ui.compose.components.isReadablePcashQrCode
 
 enum class OfflineTransactionFormat {
     Pcash,
@@ -35,4 +35,4 @@ internal fun OfflineTransactionFormat.preferredTransferFormat(transaction: Offli
     }
 
 internal fun String.canEncodeAsOfflineQr(): Boolean =
-    canEncodeAsPcashQrCode(this)
+    isReadablePcashQrCode(this)

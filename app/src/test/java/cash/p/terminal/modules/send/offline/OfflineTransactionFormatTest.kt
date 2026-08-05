@@ -50,8 +50,13 @@ class OfflineTransactionFormatTest {
     }
 
     @Test
-    fun canEncodeAsOfflineQr_tooLargeContent_returnsFalse() {
-        assertFalse("a".repeat(TOO_LARGE_QR_PAYLOAD_SIZE).canEncodeAsOfflineQr())
+    fun canEncodeAsOfflineQr_atReadabilityLimit_returnsTrue() {
+        assertTrue("a".repeat(MAX_READABLE_QR_PAYLOAD_SIZE).canEncodeAsOfflineQr())
+    }
+
+    @Test
+    fun canEncodeAsOfflineQr_pastReadabilityLimit_returnsFalse() {
+        assertFalse("a".repeat(MAX_READABLE_QR_PAYLOAD_SIZE + 1).canEncodeAsOfflineQr())
     }
 
     @Test
@@ -66,7 +71,7 @@ class OfflineTransactionFormatTest {
 
     @Test
     fun preferredTransferFormat_pcashTooLargeRawFits_returnsRaw() {
-        val transaction = transaction(pcashPayload = "a".repeat(TOO_LARGE_QR_PAYLOAD_SIZE))
+        val transaction = transaction(pcashPayload = "a".repeat(MAX_READABLE_QR_PAYLOAD_SIZE + 1))
 
         assertEquals(
             OfflineTransactionFormat.Raw,
@@ -151,7 +156,9 @@ class OfflineTransactionFormatTest {
     private companion object {
         const val TX_HASH = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
         const val LARGE_RAW_BYTES = 5_000
-        const val TOO_LARGE_QR_PAYLOAD_SIZE = 1_700
+
+        /** Longest byte-mode payload that still fits PcashQrCodeDefaults.MaxReadableModules. */
+        const val MAX_READABLE_QR_PAYLOAD_SIZE = 661
 
         /** 301 frames at the default fragment size — one past MAX_ANIMATED_FRAMES. */
         const val PAYLOAD_SIZE_OVER_ANIMATED_BUDGET = 90_001

@@ -48,7 +48,7 @@ import cash.p.terminal.ui.compose.components.animatedQrFrames
 import cash.p.terminal.ui.compose.components.PcashQrCodeDefaults
 import cash.p.terminal.ui.compose.components.PcashQrCodeImage
 import cash.p.terminal.ui.compose.components.createPcashQrCodeBitmap
-import cash.p.terminal.ui.compose.components.rememberPcashQrCodePainterOrNull
+import cash.p.terminal.ui.compose.components.rememberReadablePcashQrCodePainterOrNull
 import cash.p.terminal.ui.helpers.TextHelper
 import cash.p.terminal.ui_compose.components.AppBar
 import cash.p.terminal.ui_compose.components.ButtonPrimaryCircle
@@ -145,7 +145,7 @@ private fun TransferContent(
     modifier: Modifier = Modifier,
 ) {
     val qrContent = selectedFormat.content(transaction)
-    val qrCodePainter = rememberPcashQrCodePainterOrNull(qrContent)
+    val qrCodePainter = rememberReadablePcashQrCodePainterOrNull(qrContent)
     val frames = remember(qrContent) { animatedQrFrames(qrContent) }
 
     TransferScrollableContent(
