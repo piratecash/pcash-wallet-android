@@ -113,6 +113,11 @@ class SwapQuoteService(
             runQuotation()
             return
         }
+        if (multiSwapRoute != null) {
+            // Quotes belong to leg 1 of the route, they cannot be reused as direct quotes
+            runQuotation()
+            return
+        }
 
         val enabledQuotes = quotes.filterNot {
             swapProvidersRepository.isDisabled(it.provider.id)
@@ -228,10 +233,6 @@ class SwapQuoteService(
                     }
                     quotes = newQuotes
 
-                    if (preferredProvider != null && quotes.none { it.provider == preferredProvider }) {
-                        preferredProvider = null
-                    }
-
                     val enabledQuotes = newQuotes.filterNot {
                         swapProvidersRepository.isDisabled(it.provider.id)
                     }
@@ -244,7 +245,11 @@ class SwapQuoteService(
                                 amount,
                                 noDirectProviders = true,
                             )
-                            quote = multiSwapRoute?.leg1Quotes?.firstOrNull()
+                            multiSwapRoute?.let { route ->
+                                // The picker switches the first leg of the route, so it must list leg 1 quotes
+                                quotes = route.leg1Quotes
+                            }
+                            quote = multiSwapRoute?.selectedLeg1Quote
                         } else {
                             multiSwapRoute = null
                             quote = null
@@ -256,6 +261,10 @@ class SwapQuoteService(
                         quote = preferredProvider
                             ?.let { provider -> enabledQuotes.find { it.provider == provider } }
                             ?: enabledQuotes.firstOrNull()
+                    }
+
+                    if (preferredProvider != null && quotes.none { it.provider == preferredProvider }) {
+                        preferredProvider = null
                     }
 
                     quoting = false
@@ -283,7 +292,14 @@ class SwapQuoteService(
         amountIn: BigDecimal,
         noDirectProviders: Boolean,
     ) {
-        val route = routeResolver.findRoute(enabledProviders, tokenIn, tokenOut, amountIn, settings)
+        val route = routeResolver.findRoute(
+            enabledProviders,
+            tokenIn,
+            tokenOut,
+            amountIn,
+            settings,
+            preferredProvider,
+        )
         if (route != null) {
             multiSwapRoute = route
             error = null
@@ -392,9 +408,20 @@ class SwapQuoteService(
 
     fun selectQuote(quote: SwapProviderQuote) {
         preferredProvider = quote.provider
-        this.quote = quote
+        val currentQuote = quotes.find { it.provider == quote.provider }
 
-        emitState()
+        // A route quotes leg 2 for the output of leg 1, so switching leg 1 requires a new route.
+        // A quote missing from the current list comes from an outdated picker snapshot and must
+        // never be published as is - it may be a leg 1 quote whose amountOut is the intermediate token.
+        if (multiSwapRoute != null || currentQuote == null) {
+            // Mark quoting synchronously so the swap button cannot act on the superseded quote
+            quoting = true
+            emitState()
+            runQuotation()
+        } else {
+            this.quote = currentQuote
+            emitState()
+        }
     }
 
     fun reQuote() {
