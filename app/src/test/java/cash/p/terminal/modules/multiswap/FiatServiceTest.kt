@@ -7,6 +7,7 @@ import io.mockk.mockk
 import io.mockk.unmockkAll
 import java.math.BigDecimal
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
@@ -66,6 +67,73 @@ class FiatServiceTest {
         service.setFiatAmount(BigDecimal.ONE)
 
         assertNull(service.stateFlow.value.amount)
+    }
+
+    @Test
+    fun setInputAmount_rateChanges_preservesTokenAmount() = runTest {
+        val rateFlow = MutableStateFlow<BigDecimal?>(BigDecimal("0.25"))
+        every { assetFiatRateService.rateFlow("swap", token, currency) } returns rateFlow
+        val service = createService(StandardTestDispatcher(testScheduler))
+
+        service.setCurrency(currency)
+        service.setToken(token)
+        advanceUntilIdle()
+        service.setInputAmount(BigDecimal("4"))
+        rateFlow.value = BigDecimal("0.50")
+        advanceUntilIdle()
+
+        assertBigDecimalEquals(BigDecimal("4"), service.stateFlow.value.amount)
+        assertBigDecimalEquals(BigDecimal("2"), service.stateFlow.value.fiatAmount)
+    }
+
+    @Test
+    fun setFiatAmount_rateChanges_preservesFiatAmount() = runTest {
+        val rateFlow = MutableStateFlow<BigDecimal?>(BigDecimal("0.25"))
+        every { assetFiatRateService.rateFlow("swap", token, currency) } returns rateFlow
+        val service = createService(StandardTestDispatcher(testScheduler))
+
+        service.setCurrency(currency)
+        service.setToken(token)
+        advanceUntilIdle()
+        service.setFiatAmount(BigDecimal.ONE)
+        rateFlow.value = BigDecimal("0.20")
+        advanceUntilIdle()
+
+        assertBigDecimalEquals(BigDecimal("5"), service.stateFlow.value.amount)
+        assertBigDecimalEquals(BigDecimal.ONE, service.stateFlow.value.fiatAmount)
+    }
+
+    @Test
+    fun setAmount_fiatInputActive_doesNotOverrideConvertedAmount() = runTest {
+        every { assetFiatRateService.rateFlow("swap", token, currency) } returns flowOf(BigDecimal("0.25"))
+        val service = createService(StandardTestDispatcher(testScheduler))
+
+        service.setCurrency(currency)
+        service.setToken(token)
+        advanceUntilIdle()
+        service.setFiatAmount(BigDecimal.ONE)
+        service.setAmount(BigDecimal("100"))
+
+        assertBigDecimalEquals(BigDecimal("4"), service.stateFlow.value.amount)
+        assertBigDecimalEquals(BigDecimal.ONE, service.stateFlow.value.fiatAmount)
+    }
+
+    @Test
+    fun useTokenAmount_afterFiatInput_usesConvertedTokenAsSource() = runTest {
+        val rateFlow = MutableStateFlow<BigDecimal?>(BigDecimal("0.25"))
+        every { assetFiatRateService.rateFlow("swap", token, currency) } returns rateFlow
+        val service = createService(StandardTestDispatcher(testScheduler))
+
+        service.setCurrency(currency)
+        service.setToken(token)
+        advanceUntilIdle()
+        service.setFiatAmount(BigDecimal.ONE)
+        service.useTokenAmount()
+        rateFlow.value = BigDecimal("0.50")
+        advanceUntilIdle()
+
+        assertBigDecimalEquals(BigDecimal("4"), service.stateFlow.value.amount)
+        assertBigDecimalEquals(BigDecimal("2"), service.stateFlow.value.fiatAmount)
     }
 
     private fun createService(dispatcher: TestDispatcher): FiatService {

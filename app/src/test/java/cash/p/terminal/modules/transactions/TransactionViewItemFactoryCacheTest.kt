@@ -3,7 +3,8 @@ package cash.p.terminal.modules.transactions
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BalanceHiddenManager
-import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.AddressLabelManager
+import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.utils.SwapTransactionMatcher
@@ -15,8 +16,10 @@ import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.evm.EvmTransactionRecord
 import cash.p.terminal.modules.balance.token.addresspoisoning.AddressPoisoningViewMode
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.transactions.poison_status.PoisonStatus
 import cash.p.terminal.network.swaprepository.SwapProvider
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -28,6 +31,7 @@ import io.horizontalsystems.core.IAppNumberFormatter
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.helpers.DateHelper
+import io.horizontalsystems.ethereumkit.models.Transaction
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -51,11 +55,12 @@ class TransactionViewItemFactoryCacheTest {
         const val PENDING_UID = "4392cdda-870d-46d7-8cc8-c06ac0be4bd3"
         const val TX_HASH = "0e850ae3cb3963672d2880a4940172732ccab477f0ea3fc93a8914e912c670ad"
         const val PENDING_TIMESTAMP = 1_779_766_789L
+        const val BRIDGE_ADDRESS = "0x579fedB9253ccA1b3114d5e2fA44F8158d61e436"
 
         val ZEC_AMOUNT: BigDecimal = BigDecimal("0.01285429")
     }
 
-    private val evmLabelManager = mockk<EvmLabelManager>()
+    private val addressLabelManager = mockk<AddressLabelManager>()
     private val contactsRepository = mockk<ContactsRepository>()
     private val balanceHiddenManager = mockk<BalanceHiddenManager>()
     private val swapProviderTransactionsStorage = mockk<SwapProviderTransactionsStorage>(relaxed = true)
@@ -73,6 +78,7 @@ class TransactionViewItemFactoryCacheTest {
     fun setUp() {
         mockkObject(App)
         mockkObject(DateHelper)
+        mockkObject(Translator)
 
         every { App.numberFormatter } returns appNumberFormatter
         every { DateHelper.getOnlyTime(any()) } returns "12:00"
@@ -84,17 +90,20 @@ class TransactionViewItemFactoryCacheTest {
         }
         every { appNumberFormatter.formatFiatShort(any(), any(), any()) } returns "$0"
 
-        every { evmLabelManager.mapped(any()) } answers { firstArg<String>() }
+        every { addressLabelManager.label(any(), any()) } returns null
         every { contactsRepository.getContactsFiltered(any(), addressQuery = any()) } returns emptyList()
         every { balanceHiddenManager.balanceHidden } returns false
         every { balanceHiddenManager.isTransactionInfoHidden(any()) } returns false
         every { balanceHiddenManager.isTransactionInfoHiddenForWallet(any(), any()) } returns false
         every { localStorage.addressPoisoningViewMode } returns AddressPoisoningViewMode.COMPACT
+        every { swapTransactionMatcher.findMatchingSwap(any()) } returns null
         coEvery { poisonAddressManager.getPoisonStatus(any<TransactionRecord>()) } returns PoisonStatus.BLOCKCHAIN
 
         factory = TransactionViewItemFactory(
-            evmLabelManager = evmLabelManager,
-            contactsRepository = contactsRepository,
+            addressMetadataManager = AddressMetadataManager(
+                contactsRepository = contactsRepository,
+                addressLabelManager = addressLabelManager,
+            ),
             balanceHiddenManager = balanceHiddenManager,
             swapProviderTransactionsStorage = swapProviderTransactionsStorage,
             swapTransactionMatcher = swapTransactionMatcher,
@@ -182,6 +191,93 @@ class TransactionViewItemFactoryCacheTest {
     }
 
     @Test
+    fun convertToViewItemCached_evmIncoming_usesAddressLabel() = runTest {
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
+        stubAddressTranslation("Token Bridge")
+        val record = createEvmTransferRecord(
+            address = BRIDGE_ADDRESS,
+            transactionRecordType = TransactionRecordType.EVM_INCOMING,
+        )
+
+        val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
+
+        assertTrue(viewItem.subtitle.contains("Token Bridge"))
+        verify(exactly = 1) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
+    }
+
+    @Test
+    fun convertToViewItemCached_evmOutgoing_usesAddressLabel() = runTest {
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returns "Token Bridge"
+        stubAddressTranslation("Token Bridge")
+        val record = createEvmTransferRecord(
+            address = BRIDGE_ADDRESS,
+            transactionRecordType = TransactionRecordType.EVM_OUTGOING,
+        )
+
+        val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
+
+        assertTrue(viewItem.subtitle.contains("Token Bridge"))
+        verify(exactly = 1) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
+    }
+
+    @Test
+    fun convertToViewItemCached_evmAddressMatchesContact_usesContactName() = runTest {
+        val contact = mockk<Contact> {
+            every { name } returns "Bridge Contact"
+        }
+        every {
+            contactsRepository.getContactsFiltered(
+                BlockchainType.BinanceSmartChain,
+                addressQuery = BRIDGE_ADDRESS,
+            )
+        } returns listOf(contact)
+        stubAddressTranslation("Bridge Contact")
+        val record = createEvmTransferRecord(
+            address = BRIDGE_ADDRESS,
+            transactionRecordType = TransactionRecordType.EVM_INCOMING,
+        )
+
+        val viewItem = factory.convertToViewItemCached(createTransactionItem(record))
+
+        assertTrue(viewItem.subtitle.contains("Bridge Contact"))
+        verify(exactly = 0) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
+    }
+
+    @Test
+    fun convertToViewItemCached_cacheClearedAfterLabelChange_usesUpdatedLabel() = runTest {
+        every {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        } returnsMany listOf("Old Bridge", "Token Bridge")
+        stubAddressTranslation("Old Bridge")
+        stubAddressTranslation("Token Bridge")
+        val record = createEvmTransferRecord(
+            address = BRIDGE_ADDRESS,
+            transactionRecordType = TransactionRecordType.EVM_INCOMING,
+        )
+        val transactionItem = createTransactionItem(record)
+
+        val initialViewItem = factory.convertToViewItemCached(transactionItem)
+        factory.clearCache()
+        val updatedViewItem = factory.convertToViewItemCached(transactionItem)
+
+        assertTrue(initialViewItem.subtitle.contains("Old Bridge"))
+        assertTrue(updatedViewItem.subtitle.contains("Token Bridge"))
+        verify(exactly = 2) {
+            addressLabelManager.label(BlockchainType.BinanceSmartChain, BRIDGE_ADDRESS)
+        }
+    }
+
+    @Test
     fun convertToViewItemCached_pendingOutgoingFallbackWithHash_persistsTransactionHash() = runTest {
         val record = createPendingRecord(
             transactionHash = TX_HASH,
@@ -256,23 +352,10 @@ class TransactionViewItemFactoryCacheTest {
         valueOut: TransactionValue?,
         transactionRecordType: TransactionRecordType = TransactionRecordType.EVM_UNKNOWN_SWAP,
     ): EvmTransactionRecord {
-        val transaction = mockk<io.horizontalsystems.ethereumkit.models.Transaction>(relaxed = true) {
-            every { hashString } returns uid
-            every { transactionIndex } returns 0
-            every { blockNumber } returns null
-            every { timestamp } returns 1_000L
-            every { isFailed } returns false
-        }
-        val source = mockk<TransactionSource>(relaxed = true) {
-            every { blockchain } returns mockk(relaxed = true) {
-                every { type } returns BlockchainType.BinanceSmartChain
-            }
-        }
-
         return EvmTransactionRecord(
-            transaction = transaction,
+            transaction = createEvmTransaction(uid),
             token = mockk<Token>(relaxed = true),
-            source = source,
+            source = createBscSource(),
             protected = false,
             transactionRecordType = transactionRecordType,
             exchangeAddress = "0xpancakeswap_router",
@@ -284,6 +367,43 @@ class TransactionViewItemFactoryCacheTest {
             ),
             valueOut = valueOut,
         )
+    }
+
+    private fun createEvmTransferRecord(
+        address: String,
+        transactionRecordType: TransactionRecordType,
+    ): EvmTransactionRecord {
+        val incoming = transactionRecordType == TransactionRecordType.EVM_INCOMING
+
+        return EvmTransactionRecord(
+            from = address.takeIf { incoming },
+            to = address.takeUnless { incoming },
+            transaction = createEvmTransaction("evm-transfer-$transactionRecordType"),
+            token = mockk(relaxed = true),
+            source = createBscSource(),
+            protected = false,
+            transactionRecordType = transactionRecordType,
+            value = TransactionValue.TokenValue(
+                tokenName = "Cosanta",
+                tokenCode = "COSA",
+                tokenDecimals = 8,
+                value = if (incoming) BigDecimal.ONE else BigDecimal.ONE.negate(),
+            ),
+        )
+    }
+
+    private fun createEvmTransaction(uid: String) = mockk<Transaction>(relaxed = true) {
+        every { hashString } returns uid
+        every { transactionIndex } returns 0
+        every { blockNumber } returns null
+        every { timestamp } returns 1_000L
+        every { isFailed } returns false
+    }
+
+    private fun createBscSource() = mockk<TransactionSource>(relaxed = true) {
+        every { blockchain } returns mockk(relaxed = true) {
+            every { type } returns BlockchainType.BinanceSmartChain
+        }
     }
 
     private fun createPendingRecord(
@@ -352,6 +472,10 @@ class TransactionViewItemFactoryCacheTest {
                 timestamp = PENDING_TIMESTAMP * 1_000,
             )
         } returns swap
+    }
+
+    private fun stubAddressTranslation(value: String) {
+        every { Translator.getString(any(), value) } returns value
     }
 
     private fun createTransactionItem(record: TransactionRecord) = TransactionItem(

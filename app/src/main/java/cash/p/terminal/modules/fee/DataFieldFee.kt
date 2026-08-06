@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
+import cash.p.terminal.core.orHide
 import cash.p.terminal.ui_compose.components.InfoBottomSheet
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.subhead2_grey
@@ -31,6 +32,7 @@ fun DataFieldFee(
     borderTop: Boolean = false,
     loading: Boolean = false,
     title: String = stringResource(id = R.string.fee),
+    balanceHidden: Boolean = false,
 ) {
     val infoText = stringResource(id = R.string.FeeSettings_NetworkFee_Info)
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -62,10 +64,10 @@ fun DataFieldFee(
                 )
             } else {
                 Column(horizontalAlignment = Alignment.End) {
-                    subhead2_leah(text = primary)
+                    subhead2_leah(text = primary.orHide(balanceHidden))
                     if (secondary.isNotEmpty()) {
                         VSpacer(height = 1.dp)
-                        subhead2_grey(text = secondary)
+                        subhead2_grey(text = secondary.orHide(balanceHidden))
                     }
                 }
             }

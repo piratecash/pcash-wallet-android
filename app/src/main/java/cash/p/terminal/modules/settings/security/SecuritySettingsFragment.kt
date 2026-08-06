@@ -23,12 +23,14 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.ui.compose.components.NewDot
 import cash.p.terminal.core.authorizedAction
 import cash.p.terminal.core.ensurePinSet
 import cash.p.terminal.core.fullRestart
@@ -306,6 +308,45 @@ private fun SecurityCenterScreen(
                 paddingBottom = 32.dp
             )
 
+            CellUniversalLawrenceSection {
+                SecurityCenterCell(
+                    start = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_off_24),
+                            tint = ComposeAppTheme.colors.grey,
+                            modifier = Modifier.size(24.dp),
+                            contentDescription = null
+                        )
+                    },
+                    center = {
+                        body_leah(
+                            text = stringResource(id = R.string.balance_hide_on_flip_title),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (uiState.showFlipNewDot) {
+                            NewDot(
+                                modifier = Modifier
+                                    .align(Alignment.Top)
+                                    .padding(start = 4.dp, top = 3.dp)
+                            )
+                        }
+                    },
+                    end = {
+                        HsSwitch(
+                            checked = uiState.balanceHideOnFlipEnabled,
+                            onCheckedChange = {
+                                securitySettingsViewModel.onSetBalanceHideOnFlip(it)
+                            }
+                        )
+                    }
+                )
+            }
+            InfoText(
+                text = stringResource(R.string.balance_hide_on_flip_description),
+                paddingBottom = 32.dp
+            )
+
             TransactionAutoHideBlock(
                 transactionAutoHideEnabled = uiState.transactionAutoHideEnabled,
                 displayLevel = uiState.displayLevel,
@@ -397,6 +438,40 @@ fun SecurityCenterCell(
                     .defaultMinSize(minWidth = 8.dp)
             )
             end.invoke(this)
+        }
+    }
+}
+
+@Preview
+@Composable
+private fun SecurityFlipRowPreview() {
+    ComposeAppTheme {
+        CellUniversalLawrenceSection {
+            SecurityCenterCell(
+                start = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_off_24),
+                        tint = ComposeAppTheme.colors.grey,
+                        modifier = Modifier.size(24.dp),
+                        contentDescription = null
+                    )
+                },
+                center = {
+                    body_leah(
+                        text = stringResource(id = R.string.balance_hide_on_flip_title),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    NewDot(
+                        modifier = Modifier
+                            .align(Alignment.Top)
+                            .padding(start = 4.dp, top = 3.dp)
+                    )
+                },
+                end = {
+                    HsSwitch(checked = true, onCheckedChange = {})
+                }
+            )
         }
     }
 }

@@ -208,6 +208,13 @@ fun BalanceForAccount(
             onClose = { viewModel.zcashMigrationAlertHandled(wallet) }
         )
     }
+
+    // AND-out the two in-composition Compose modals (invalid-URL, Zcash migration) so a flip
+    // never opens a second same-window sheet over them; isLocked keeps it off the lock screen.
+    FlipHiddenBalanceInfoHost(
+        canShow = !isLocked && !showInvalidUrlSheet &&
+            viewModel.uiState.zcashMigrationAlertWallet == null
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

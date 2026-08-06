@@ -21,7 +21,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -41,6 +40,7 @@ import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.SendUiState
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -96,7 +96,7 @@ fun SendMoneroNavHost(
                     offlineSignSupported = viewModel.offlineSignSupported,
                 ),
                 callbacks = SendMoneroScreenCallbacks(
-                    onDebugOfflineSignClick = { navController.navigate(DebugOfflineMoneroSignPage) },
+                    onOfflineSignClick = { navController.navigate(OfflineMoneroSignPage) },
                     onNextClick = onNextClick,
                     onEnterAddress = viewModel::onEnterAddress,
                     onEnterAmount = viewModel::onEnterAmount,
@@ -109,9 +109,8 @@ fun SendMoneroNavHost(
         }
         offlineSignFlowRoutes(
             routes = OfflineSignFlowRoutes(
-                signRoute = DebugOfflineMoneroSignPage,
-                transferRoute = DebugOfflineMoneroTransactionTransferPage,
-                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+                signRoute = OfflineMoneroSignPage,
+                transferRoute = OfflineMoneroTransactionTransferPage,
             ),
             navController = navController,
             fragmentNavController = fragmentNavController,
@@ -121,9 +120,8 @@ fun SendMoneroNavHost(
 }
 
 private const val SendMoneroPage = "send_monero"
-private const val DebugOfflineMoneroSignPage = "debug_offline_monero_sign"
-private const val DebugOfflineMoneroTransactionTransferPage = "debug_offline_monero_transaction_transfer"
-private const val DebugOfflineTransactionTransferFormatArg = "format"
+private const val OfflineMoneroSignPage = "offline_monero_sign"
+private const val OfflineMoneroTransactionTransferPage = "offline_monero_transaction_transfer"
 
 @Composable
 private fun SendMoneroScreen(
@@ -244,7 +242,7 @@ private data class SendMoneroScreenState(
 )
 
 private data class SendMoneroScreenCallbacks(
-    val onDebugOfflineSignClick: () -> Unit,
+    val onOfflineSignClick: () -> Unit,
     val onNextClick: (ProceedActionData) -> Unit,
     val onEnterAddress: (Address?) -> Unit,
     val onEnterAmount: (BigDecimal?) -> Unit,
@@ -383,6 +381,12 @@ private fun MoneroProceedButtons(
     onProceed: () -> Unit,
 ) {
     Column {
+        OfflineSignActionCell(
+            supported = state.offlineSignSupported,
+            enabled = state.uiState.canBeSend,
+            onClick = callbacks.onOfflineSignClick,
+        )
+
         ButtonPrimaryYellow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -391,17 +395,6 @@ private fun MoneroProceedButtons(
             onClick = onProceed,
             enabled = state.uiState.canBeSend
         )
-
-        if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
-            ButtonPrimaryYellow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                title = stringResource(R.string.offline_transaction_sign_title),
-                onClick = callbacks.onDebugOfflineSignClick,
-                enabled = state.offlineSignSupported && state.uiState.canBeSend,
-            )
-        }
     }
 }
 

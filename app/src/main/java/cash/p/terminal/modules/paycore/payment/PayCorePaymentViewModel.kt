@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.SwapProviderTransaction
+import cash.p.terminal.modules.multiswap.SwapAmountDirection
 import cash.p.terminal.modules.paycore.PayCoreApiService
 import cash.p.terminal.modules.paycore.PayCoreAmountType
 import cash.p.terminal.modules.paycore.PayCoreTicker
@@ -15,6 +16,7 @@ import cash.p.terminal.modules.paycore.PayCorePaymentCalculationRequest
 import cash.p.terminal.modules.paycore.PayCorePaymentCreateRequest
 import cash.p.terminal.modules.paycore.PayCoreWalletApprovalService
 import cash.p.terminal.modules.paycore.payCoreUserMessage
+import cash.p.terminal.modules.paycore.validatePayCoreExactOutTarget
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
 import cash.p.terminal.network.swaprepository.parseIsoTimestamp
 import cash.p.terminal.network.swaprepository.SwapProvider
@@ -34,6 +36,8 @@ data class PayCorePaymentParams(
     val blockchainTypeIn: String,
     val blockchainTypeOut: String,
     val addressOut: String,
+    val direction: SwapAmountDirection = SwapAmountDirection.In,
+    val requestedAmountOut: BigDecimal? = null,
 )
 
 class PayCorePaymentViewModel(
@@ -144,14 +148,23 @@ class PayCorePaymentViewModel(
                     walletAddress = params.addressOut,
                     networkType = params.networkType,
                 )
+                val (amount, amountType) = calculationAmount()
                 val response = apiService.calculatePayment(
                     request = PayCorePaymentCalculationRequest(
-                        amount = params.amountIn,
-                        amountType = PayCoreAmountType.RUB,
+                        amount = amount,
+                        amountType = amountType,
                         ticker = params.networkType,
                     ),
                     networkType = params.networkType,
                 )
+                if (params.direction == SwapAmountDirection.Out) {
+                    validatePayCoreExactOutTarget(
+                        requestedAmount = amount,
+                        amountType = amountType,
+                        amountCrypto = response.amountCrypto,
+                        fullAmountRub = response.fullAmountRub,
+                    )
+                }
                 calculationCreatedAtMillis = System.currentTimeMillis()
                 uiState = uiState.copy(
                     loading = createPaymentAfterCalculation,
@@ -177,6 +190,13 @@ class PayCorePaymentViewModel(
             }
         }
     }
+
+    private fun calculationAmount(): Pair<BigDecimal, String> =
+        when (params.direction) {
+            SwapAmountDirection.In -> params.amountIn to PayCoreAmountType.RUB
+            SwapAmountDirection.Out ->
+                checkNotNull(params.requestedAmountOut) to PayCoreAmountType.CRYPTO
+        }
 
     private fun hasFreshCalculation(): Boolean {
         val createdAt = calculationCreatedAtMillis ?: return false

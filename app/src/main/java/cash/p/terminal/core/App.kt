@@ -9,6 +9,7 @@ import cash.p.terminal.BuildConfig
 import cash.p.terminal.core.di.appModule
 import cash.p.terminal.core.factories.AccountFactory
 import cash.p.terminal.core.managers.AdapterManager
+import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.notifications.TransactionNotificationCoordinator
 import cash.p.terminal.core.notifications.TransactionNotificationManager
 import cash.p.terminal.core.managers.AppVersionManager
@@ -231,6 +232,7 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val accountCleaner: IAccountCleaner by inject(IAccountCleaner::class.java)
+    private val addressLabelManager: AddressLabelManager by inject(AddressLabelManager::class.java)
     private val locallyCreatedTransactionRepository: LocallyCreatedTransactionRepository by inject(
         LocallyCreatedTransactionRepository::class.java
     )
@@ -524,8 +526,9 @@ class App : CoreApp(), WorkConfiguration.Provider, SingletonImageLoader.Factory 
                 MarketWidgetWorker.cancel(instance)
             }
 
-            evmLabelManager.sync()
+            addressLabelManager.initialize()
             contactsRepository.initialize()
+            evmLabelManager.sync()
             AppLog.cleanupOldLogs()
         }
     }

@@ -207,6 +207,7 @@ class TransactionInfoViewItemFactory(
                                 exchangeAddress = transaction.exchangeAddress!!,
                                 valueOut = transaction.valueOut,
                                 valueIn = transaction.valueIn,
+                                blockchainType = blockchainType,
                             )
                         )
                     }
@@ -229,6 +230,7 @@ class TransactionInfoViewItemFactory(
                                 exchangeAddress = transaction.exchangeAddress!!,
                                 valueOut = transaction.valueOut,
                                 valueIn = transaction.valueIn,
+                                blockchainType = blockchainType,
                             )
                         )
                     }
@@ -707,6 +709,7 @@ class TransactionInfoViewItemFactory(
                         exchangeAddress = provider.title,
                         valueOut = valueOut,
                         valueIn = valueIn,
+                        blockchainType = blockchainType,
                         providerName = UnstoppableProvider.displayTitle(transactionItem.swapUnstoppableSubProviderId)
                             ?: provider.title,
                     )

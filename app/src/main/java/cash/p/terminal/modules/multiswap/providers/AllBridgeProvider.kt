@@ -256,12 +256,7 @@ object AllBridgeProvider : IMultiSwapProvider {
 
         getProxyAddress(bridgeAddress)?.let { proxyAddress ->
             val proxyFee = EvmSwapHelper.getAllBridgeProxyFee(proxyAddress, amountIn)
-
-            resAmountIn - proxyFee
-
-            if (resAmountIn < BigDecimal.ZERO) {
-                throw kotlin.Exception("Amount is less than required fee")
-            }
+            resAmountIn = subtractFee(resAmountIn, proxyFee)
         }
 
         if (feePaymentMethod == FeePaymentMethod.StableCoin) {
@@ -271,12 +266,7 @@ object AllBridgeProvider : IMultiSwapProvider {
             )
 
             val allbridgeFee = gasFee.stablecoin.float
-
-            resAmountIn - allbridgeFee
-
-            if (resAmountIn < BigDecimal.ZERO) {
-                throw kotlin.Exception("Amount is less than required fee")
-            }
+            resAmountIn = subtractFee(resAmountIn, allbridgeFee)
         }
 
         val amount = resAmountIn.movePointRight(tokenPairIn.abToken.decimals).toBigInteger()
@@ -289,6 +279,11 @@ object AllBridgeProvider : IMultiSwapProvider {
         )
 
         return pendingInfo.estimatedAmount.min.float
+    }
+
+    internal fun subtractFee(amount: BigDecimal, fee: BigDecimal): BigDecimal {
+        return amount.subtract(fee).takeIf { it >= BigDecimal.ZERO }
+            ?: throw IllegalArgumentException("Amount is less than required fee")
     }
 
     override suspend fun fetchFinalQuote(

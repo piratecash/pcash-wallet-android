@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +32,8 @@ class SwapQuoteService(
     private val dispatcherProvider: DispatcherProvider,
 ) {
     private companion object {
-        const val DEBOUNCE_INPUT_MSEC: Long = 300
+        const val DEBOUNCE_INPUT_IN_MSEC = 300L
+        const val DEBOUNCE_INPUT_OUT_MSEC = 600L
     }
 
     private var runQuotationJob: Job? = null
@@ -50,7 +52,8 @@ class SwapQuoteService(
     fun findProviderById(id: String): IMultiSwapProvider? =
         swapProvidersRegistry.findById(id)
 
-    private var amountIn: BigDecimal? = null
+    private var amount: BigDecimal? = null
+    private var direction = SwapAmountDirection.In
     private var tokenIn: Token? = null
     private var tokenOut: Token? = null
     private var quoting = false
@@ -62,7 +65,7 @@ class SwapQuoteService(
 
     private val _stateFlow = MutableStateFlow(
         State(
-            amountIn = amountIn,
+            amountIn = null,
             tokenIn = tokenIn,
             tokenOut = tokenOut,
             quoting = quoting,
@@ -71,6 +74,9 @@ class SwapQuoteService(
             quote = quote,
             error = error,
             multiSwapRoute = multiSwapRoute,
+            direction = direction,
+            requestedAmountOut = null,
+            amountInMax = null,
         )
     )
     val stateFlow = _stateFlow.asStateFlow()
@@ -78,6 +84,9 @@ class SwapQuoteService(
     private val coroutineScope = CoroutineScope(dispatcherProvider.io + SupervisorJob())
     private var quotingJob: Job? = null
     private var settings: Map<String, Any?> = mapOf()
+    val swapSettings: Map<String, Any?>
+        get() = settings
+    private var previousDisabledIds = swapProvidersRepository.disabledIds.value
 
     fun clear() {
         coroutineScope.cancel()
@@ -87,13 +96,23 @@ class SwapQuoteService(
         coroutineScope.launch {
             swapProvidersRepository.disabledIds
                 .drop(1)
-                .collect {
-                    onDisabledProvidersChanged()
+                .collect { disabledIds ->
+                    onDisabledProvidersChanged(disabledIds)
                 }
         }
     }
 
-    private fun onDisabledProvidersChanged() {
+    private fun onDisabledProvidersChanged(disabledIds: Set<String>) {
+        val newlyEnabledIds = previousDisabledIds - disabledIds
+        previousDisabledIds = disabledIds
+        if (direction == SwapAmountDirection.Out &&
+            newlyEnabledIds.any { id -> quotes.none { it.provider.id == id } }
+        ) {
+            preferredProvider = quote?.provider
+            runQuotationJob?.cancel()
+            runQuotation()
+            return
+        }
         if (multiSwapRoute != null) {
             // Quotes belong to leg 1 of the route, they cannot be reused as direct quotes
             runQuotation()
@@ -114,6 +133,12 @@ class SwapQuoteService(
                 multiSwapRoute = null
                 emitState()
             }
+            direction == SwapAmountDirection.Out -> {
+                quote = null
+                error = if (quoting) null else NoExactOutSwapProvider()
+                multiSwapRoute = null
+                emitState()
+            }
             else -> runQuotation()
         }
     }
@@ -121,7 +146,10 @@ class SwapQuoteService(
     private fun emitState() {
         _stateFlow.update {
             State(
-                amountIn = amountIn,
+                amountIn = when (direction) {
+                    SwapAmountDirection.In -> amount
+                    SwapAmountDirection.Out -> quote?.amountIn
+                },
                 tokenIn = tokenIn,
                 tokenOut = tokenOut,
                 quoting = quoting,
@@ -130,6 +158,9 @@ class SwapQuoteService(
                 quote = quote,
                 error = error,
                 multiSwapRoute = multiSwapRoute,
+                direction = direction,
+                requestedAmountOut = amount.takeIf { direction == SwapAmountDirection.Out },
+                amountInMax = quote?.amountInMax,
             )
         }
     }
@@ -160,19 +191,25 @@ class SwapQuoteService(
 
         val tokenIn = tokenIn
         val tokenOut = tokenOut
-        val amountIn = amountIn
+        val amount = amount
+        val direction = direction
 
         if (tokenIn != null && tokenOut != null) {
             quotingJob = coroutineScope.launch {
-                if (amountIn != null && amountIn > BigDecimal.ZERO) {
+                if (amount != null && amount > BigDecimal.ZERO) {
                     quoting = true
                     emitState()
 
                     val newQuotes = fetchSwapQuotesUseCase(
-                        providers = allProviders,
+                        providers = if (direction == SwapAmountDirection.Out) {
+                            enabledProviders
+                        } else {
+                            allProviders
+                        },
                         tokenIn = tokenIn,
                         tokenOut = tokenOut,
-                        amountIn = amountIn,
+                        amount = amount,
+                        direction = direction,
                         settings = settings,
                         onProviderError = { _, e ->
                             when (e) {
@@ -191,7 +228,7 @@ class SwapQuoteService(
                             }
                         },
                     )
-                    if (amountIn != this@SwapQuoteService.amountIn) {
+                    if (amount != this@SwapQuoteService.amount || direction != this@SwapQuoteService.direction) {
                         return@launch // ignore outdated quotes
                     }
                     quotes = newQuotes
@@ -201,12 +238,23 @@ class SwapQuoteService(
                     }
 
                     if (enabledQuotes.isEmpty()) {
-                        tryFallbackToMultiSwapRoute(tokenIn, tokenOut, amountIn, noDirectProviders = enabledQuotes.isEmpty())
-                        multiSwapRoute?.let { route ->
-                            // The picker switches the first leg of the route, so it must list leg 1 quotes
-                            quotes = route.leg1Quotes
+                        if (direction == SwapAmountDirection.In) {
+                            tryFallbackToMultiSwapRoute(
+                                tokenIn,
+                                tokenOut,
+                                amount,
+                                noDirectProviders = true,
+                            )
+                            multiSwapRoute?.let { route ->
+                                // The picker switches the first leg of the route, so it must list leg 1 quotes
+                                quotes = route.leg1Quotes
+                            }
+                            quote = multiSwapRoute?.selectedLeg1Quote
+                        } else {
+                            multiSwapRoute = null
+                            quote = null
+                            error = NoExactOutSwapProvider()
                         }
-                        quote = multiSwapRoute?.selectedLeg1Quote
                     } else {
                         error = null
                         multiSwapRoute = null
@@ -257,12 +305,11 @@ class SwapQuoteService(
             error = null
         } else {
             multiSwapRoute = null
-            error = preservedAmountError() ?: resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
+            error = error
+                ?.takeIf { it is SwapDepositTooSmall || it is SwapAmountOutOfRange }
+                ?: resolveEmptyResultError(tokenIn, tokenOut, noDirectProviders)
         }
     }
-
-    private fun preservedAmountError(): Throwable? =
-        error?.takeIf { it is SwapDepositTooSmall || it is SwapAmountOutOfRange }
 
     private suspend fun resolveEmptyResultError(
         tokenIn: Token,
@@ -277,14 +324,22 @@ class SwapQuoteService(
         else -> NoSupportedSwapProvider()
     }
 
+    fun setAmountIn(value: BigDecimal?) {
+        setAmount(value, SwapAmountDirection.In)
+    }
 
-    fun setAmount(v: BigDecimal?) {
-        if (amountIn == v) {
+    fun setAmountOut(value: BigDecimal?) {
+        setAmount(value, SwapAmountDirection.Out)
+    }
+
+    private fun setAmount(value: BigDecimal?, newDirection: SwapAmountDirection) {
+        if (amount == value && direction == newDirection) {
             runQuotationWithDebounce()
             return
         }
 
-        amountIn = v
+        amount = value
+        direction = newDirection
         preferredProvider = null
 
         runQuotationWithDebounce()
@@ -302,7 +357,12 @@ class SwapQuoteService(
         emitState()
 
         runQuotationJob = coroutineScope.launch {
-            delay(DEBOUNCE_INPUT_MSEC)
+            delay(
+                when (direction) {
+                    SwapAmountDirection.In -> DEBOUNCE_INPUT_IN_MSEC
+                    SwapAmountDirection.Out -> DEBOUNCE_INPUT_OUT_MSEC
+                }
+            )
             runQuotation()
         }
     }
@@ -337,7 +397,11 @@ class SwapQuoteService(
         tokenIn = tokenOut
         tokenOut = tmpTokenIn
 
-        amountIn = multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quote?.amountOut
+        amount = when (direction) {
+            SwapAmountDirection.In -> multiSwapRoute?.selectedLeg2Quote?.amountOut ?: quote?.amountOut
+            SwapAmountDirection.Out -> amount
+        }
+        direction = SwapAmountDirection.In
 
         runQuotation(clearQuotes = true)
     }
@@ -364,6 +428,15 @@ class SwapQuoteService(
         runQuotation()
     }
 
+    fun invalidateAndReQuote() {
+        runQuotationJob?.cancel()
+        coroutineScope.launch {
+            quotingJob?.cancelAndJoin()
+            fetchSwapQuotesUseCase.invalidateSearchCache()
+            reQuote()
+        }
+    }
+
     fun setSwapSettings(settings: Map<String, Any?>) {
         this.settings = settings
 
@@ -375,10 +448,8 @@ class SwapQuoteService(
     }
 
     fun onActionCompleted() {
-        reQuote()
+        invalidateAndReQuote()
     }
-
-    fun getSwapSettings() = settings
 
     data class State(
         val amountIn: BigDecimal?,
@@ -390,5 +461,8 @@ class SwapQuoteService(
         val quote: SwapProviderQuote?,
         val error: Throwable?,
         val multiSwapRoute: MultiSwapRoute?,
+        val direction: SwapAmountDirection,
+        val requestedAmountOut: BigDecimal?,
+        val amountInMax: BigDecimal?,
     )
 }

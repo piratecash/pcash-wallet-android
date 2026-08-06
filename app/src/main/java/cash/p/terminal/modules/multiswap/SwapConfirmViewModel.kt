@@ -15,14 +15,18 @@ import cash.p.terminal.core.App
 import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ethereum.CautionViewItem
+import cash.p.terminal.core.ethereum.toCautionViewItem
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.PendingMultiSwap
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.modules.multiswap.providers.IExactOutSwapProvider
+import cash.p.terminal.modules.multiswap.providers.InsufficientAllowanceCaution
 import cash.p.terminal.modules.multiswap.providers.OffChainSwapProvider
 import cash.p.terminal.modules.multiswap.providers.isOffChain
+import cash.p.terminal.modules.multiswap.providers.requiredInput
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
@@ -61,21 +65,26 @@ import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
 
 class SwapConfirmViewModel(
-    private val swapProvider: IMultiSwapProvider,
-    private val swapQuote: ISwapQuote,
-    private val swapSettings: Map<String, Any?>,
+    private val request: SwapConfirmRequest,
     currencyManager: CurrencyManager,
-    private val fiatServiceIn: FiatService,
-    private val fiatServiceOut: FiatService,
-    private val fiatServiceOutMin: FiatService,
+    private val fiatServices: SwapConfirmFiatServices,
     val sendTransactionService: ISendTransactionService<*>,
     private val timerService: TimerService,
     private val priceImpactService: PriceImpactService,
     wallet: Wallet,
     adapterManager: IAdapterManager,
     private val dispatcherProvider: DispatcherProvider,
-    private val multiSwapLegInfo: MultiSwapLegInfo? = null,
 ) : BaseSendViewModel<SwapConfirmUiState>(wallet, adapterManager) {
+    private val swapProvider = request.provider
+    private val swapQuote = request.quote
+    private val swapSettings = request.settings
+    private val fiatServiceIn = fiatServices.input
+    private val fiatServiceOut = fiatServices.output
+    private val fiatServiceOutMin = fiatServices.outputMinimum
+    private val executionMode = request.executionMode
+    private val direction = request.direction
+    private val requestedAmountOut = request.requestedAmountOut
+    private val multiSwapLegInfo = request.multiSwapLegInfo
     private val accountId: String = wallet.account.id
     private val localStorage: ILocalStorage by inject(ILocalStorage::class.java)
     private val pendingMultiSwapStorage: PendingMultiSwapStorage by inject(PendingMultiSwapStorage::class.java)
@@ -107,6 +116,8 @@ class SwapConfirmViewModel(
 
     private var amountOut: BigDecimal? = null
     private var amountOutMin: BigDecimal? = null
+    private var amountInMax: BigDecimal? = swapQuote.amountInMax
+    private var finalQuoteCautions: List<HSCaution> = emptyList()
     private var quoteFields: List<DataField> = listOf()
     private var criticalError: String? = null
     private var swapProviderTransaction: SwapProviderTransaction? = null
@@ -190,7 +201,11 @@ class SwapConfirmViewModel(
 
         viewModelScope.launch {
             sendTransactionService.stateFlow.collectLatest {
-                if (it.availableBalance != null && it.availableBalance < amountIn) {
+                if (
+                    direction == SwapAmountDirection.In &&
+                    it.availableBalance != null &&
+                    it.availableBalance < amountIn
+                ) {
                     amountIn = it.availableBalance
                     fiatServiceIn.setAmount(amountIn)
                     refresh()
@@ -199,8 +214,6 @@ class SwapConfirmViewModel(
         }
 
         sendTransactionService.start(viewModelScope)
-
-        fetchFinalQuote()
     }
 
     private fun handleUpdatedPriceImpactState(priceImpactState: PriceImpactService.State) {
@@ -210,22 +223,7 @@ class SwapConfirmViewModel(
     }
 
     override fun createState(): SwapConfirmUiState {
-        var cautions = sendTransactionState.cautions
-
-        if (cautions.isEmpty()) {
-            priceImpactState.priceImpactCaution?.let { hsCaution ->
-                cautions = listOf(
-                    CautionViewItem(
-                        hsCaution.s.toString(),
-                        hsCaution.description.toString(),
-                        when (hsCaution.type) {
-                            HSCaution.Type.Error -> CautionViewItem.Type.Error
-                            HSCaution.Type.Warning -> CautionViewItem.Type.Warning
-                        }
-                    )
-                )
-            }
-        }
+        val cautions = buildCautions()
 
         return SwapConfirmUiState(
             expiresIn = timerState.remaining,
@@ -234,6 +232,7 @@ class SwapConfirmViewModel(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
             amountIn = amountIn,
+            amountInMax = amountInMax,
             amountOut = amountOut,
             amountOutMin = amountOutMin,
             fiatAmountIn = fiatAmountIn,
@@ -243,7 +242,8 @@ class SwapConfirmViewModel(
             networkFee = sendTransactionState.networkFee,
             cautions = cautions,
             feeCaution = sendTransactionState.feeCaution,
-            validQuote = isSendable(),
+            validQuote = isSendable(cautions),
+            reapprovalRequired = finalQuoteCautions.any { it is InsufficientAllowanceCaution },
             priceImpact = priceImpactState.priceImpact,
             priceImpactLevel = priceImpactState.priceImpactLevel,
             quoteFields = quoteFields,
@@ -255,8 +255,32 @@ class SwapConfirmViewModel(
         )
     }
 
-    private fun isSendable(): Boolean {
-        return swapProvider.isOffChain || sendTransactionState.sendable
+    private fun buildCautions(): List<CautionViewItem> {
+        val quoteCautions = finalQuoteCautions.map(HSCaution::toCautionViewItem)
+        val priceImpactCaution = listOfNotNull(
+            priceImpactState.priceImpactCaution?.toCautionViewItem()
+        )
+        val balanceCaution = if (hasInsufficientInputBalance()) {
+            listOf(
+                HSCaution(
+                    TranslatableString.ResString(R.string.Swap_ErrorInsufficientBalance),
+                    HSCaution.Type.Error,
+                ).toCautionViewItem()
+            )
+        } else {
+            emptyList()
+        }
+        return sendTransactionState.cautions + quoteCautions + priceImpactCaution + balanceCaution
+    }
+
+    private fun isSendable(cautions: List<CautionViewItem> = buildCautions()): Boolean {
+        val transactionSendable = swapProvider.isOffChain || sendTransactionState.sendable
+        return transactionSendable && cautions.none { it.type == CautionViewItem.Type.Error }
+    }
+
+    private fun hasInsufficientInputBalance(): Boolean {
+        val availableBalance = sendTransactionState.availableBalance ?: return false
+        return requiredInput(amountIn, amountInMax) > availableBalance
     }
 
     private fun needUseTimer() =
@@ -277,19 +301,14 @@ class SwapConfirmViewModel(
         fetchJob?.cancel()
         fetchJob = viewModelScope.launch(dispatcherProvider.io) {
             try {
-                val finalQuote = swapProvider.fetchFinalQuote(
-                    tokenIn = tokenIn,
-                    tokenOut = tokenOut,
-                    amountIn = amountIn,
-                    swapSettings = swapSettings,
-                    sendTransactionSettings = sendTransactionSettings,
-                    swapQuote = swapQuote
-                )
+                val finalQuote = fetchFinalQuoteByExecutionMode()
 
                 amountIn = finalQuote.amountIn
+                amountInMax = finalQuote.amountInMax
                 amountOut = finalQuote.amountOut
                 amountOutMin = finalQuote.amountOutMin
                 quoteFields = finalQuote.fields
+                finalQuoteCautions = finalQuote.cautions
                 criticalError = null
                 swapProviderTransaction = finalQuote.swapProviderTransaction
 
@@ -313,6 +332,30 @@ class SwapConfirmViewModel(
             }
         }
     }
+
+    private suspend fun fetchFinalQuoteByExecutionMode(): ISwapFinalQuote =
+        when (executionMode) {
+            SwapExecutionMode.ExactIn -> swapProvider.fetchFinalQuote(
+                tokenIn = tokenIn,
+                tokenOut = tokenOut,
+                amountIn = amountIn,
+                swapSettings = swapSettings,
+                sendTransactionSettings = sendTransactionSettings,
+                swapQuote = swapQuote,
+            )
+
+            SwapExecutionMode.NativeExactOut -> {
+                val exactOutProvider = swapProvider as IExactOutSwapProvider
+                exactOutProvider.fetchFinalQuoteExactOut(
+                    tokenIn = tokenIn,
+                    tokenOut = tokenOut,
+                    amountOut = checkNotNull(requestedAmountOut),
+                    swapSettings = swapSettings,
+                    sendTransactionSettings = sendTransactionSettings,
+                    swapQuote = swapQuote,
+                )
+            }
+        }
 
     private val BackendChangeNowResponseError.changeNowCriticalError: String
         get() = when (error) {
@@ -465,6 +508,8 @@ class SwapConfirmViewModel(
             quote: SwapProviderQuote,
             settings: Map<String, Any?>,
             navController: NavController,
+            direction: SwapAmountDirection = SwapAmountDirection.In,
+            requestedAmountOut: BigDecimal? = null,
             multiSwapLegInfo: MultiSwapLegInfo? = null,
         ) = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -474,71 +519,97 @@ class SwapConfirmViewModel(
             ): T {
                 val wallet = App.walletManager.activeWallets
                     .find { it.token == quote.tokenIn }
-
-                val sendTransactionService = try {
-                    checkNotNull(wallet) { "Wallet not found for ${quote.tokenIn}" }
-                    SwapTransactionServiceFactory.create(quote.tokenIn, quote.provider)
-                } catch (e: Exception) {
-                    Toast.makeText(App.instance, R.string.unsupported_token, Toast.LENGTH_SHORT)
-                        .show()
-                    navController.popBackStack()
-
-                    // Build a dummy service (sendable=false) so the ViewModel is
-                    // inoperable while the screen navigates back.
-                    object : ISendTransactionService<Nothing>(quote.tokenIn) {
-                        override fun start(coroutineScope: CoroutineScope) = Unit
-                        override suspend fun setSendTransactionData(data: SendTransactionData) =
-                            Unit
-
-                        override fun hasSettings(): Boolean = false
-
-                        @Composable
-                        override fun GetSettingsContent(navController: NavController) = Unit
-                        override suspend fun sendTransaction(mevProtectionEnabled: Boolean): SendTransactionResult =
-                            SendTransactionResult.Solana(SendResult.Sending)
-
-                        override val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
-                            get() = MutableStateFlow<SendTransactionSettings>(
-                                SendTransactionSettings.Common
-                            )
-
-                        override fun createState(): SendTransactionServiceState =
-                            SendTransactionServiceState(
-                                availableBalance = null,
-                                networkFee = null,
-                                cautions = listOf(),
-                                sendable = false,
-                                loading = false,
-                                fields = listOf(),
-                                extraFees = mapOf()
-                            )
-                    }
-                }
+                val sendTransactionService = createSendTransactionService(quote, wallet, navController)
 
                 // When wallet is null the dummy service above (sendable=false)
                 // prevents any swap execution while the screen navigates back.
                 val assetFiatRateService: AssetFiatRateService = getKoinInstance()
                 val dispatcherProvider: DispatcherProvider = getKoinInstance()
                 return SwapConfirmViewModel(
-                    swapProvider = quote.provider,
-                    swapQuote = quote.swapQuote,
-                    swapSettings = settings,
+                    request = SwapConfirmRequest(
+                        provider = quote.provider,
+                        quote = quote.swapQuote,
+                        settings = settings,
+                        executionMode = quote.executionMode,
+                        direction = direction,
+                        requestedAmountOut = requestedAmountOut,
+                        multiSwapLegInfo = multiSwapLegInfo,
+                    ),
                     currencyManager = App.currencyManager,
-                    fiatServiceIn = FiatService(assetFiatRateService),
-                    fiatServiceOut = FiatService(assetFiatRateService),
-                    fiatServiceOutMin = FiatService(assetFiatRateService),
+                    fiatServices = SwapConfirmFiatServices(
+                        input = FiatService(assetFiatRateService),
+                        output = FiatService(assetFiatRateService),
+                        outputMinimum = FiatService(assetFiatRateService),
+                    ),
                     sendTransactionService = sendTransactionService,
                     timerService = TimerService(),
                     priceImpactService = PriceImpactService(),
                     wallet = wallet ?: App.walletManager.activeWallets.first(),
                     adapterManager = App.adapterManager,
                     dispatcherProvider = dispatcherProvider,
-                    multiSwapLegInfo = multiSwapLegInfo,
                 ) as T
             }
         }
+
+        private fun createSendTransactionService(
+            quote: SwapProviderQuote,
+            wallet: Wallet?,
+            navController: NavController,
+        ): ISendTransactionService<*> = try {
+            checkNotNull(wallet) { "Wallet not found for ${quote.tokenIn}" }
+            SwapTransactionServiceFactory.create(quote.tokenIn, quote.provider)
+        } catch (e: Exception) {
+            Toast.makeText(App.instance, R.string.unsupported_token, Toast.LENGTH_SHORT).show()
+            navController.popBackStack()
+            unavailableSendTransactionService(quote.tokenIn)
+        }
+
+        // The dummy service keeps the ViewModel inoperable while the screen navigates back after
+        // a missing or unsupported wallet is detected.
+        private fun unavailableSendTransactionService(token: Token) =
+            object : ISendTransactionService<Nothing>(token) {
+                override fun start(coroutineScope: CoroutineScope) = Unit
+                override suspend fun setSendTransactionData(data: SendTransactionData) = Unit
+                override fun hasSettings(): Boolean = false
+
+                @Composable
+                override fun GetSettingsContent(navController: NavController) = Unit
+
+                override suspend fun sendTransaction(
+                    mevProtectionEnabled: Boolean,
+                ): SendTransactionResult = SendTransactionResult.Solana(SendResult.Sending)
+
+                override val sendTransactionSettingsFlow: StateFlow<SendTransactionSettings>
+                    get() = MutableStateFlow(SendTransactionSettings.Common)
+
+                override fun createState() = SendTransactionServiceState(
+                    availableBalance = null,
+                    networkFee = null,
+                    cautions = emptyList(),
+                    sendable = false,
+                    loading = false,
+                    fields = emptyList(),
+                    extraFees = emptyMap(),
+                )
+            }
     }
 }
+
+data class SwapConfirmRequest(
+    val provider: IMultiSwapProvider,
+    val quote: ISwapQuote,
+    val settings: Map<String, Any?>,
+    val executionMode: SwapExecutionMode = SwapExecutionMode.ExactIn,
+    val direction: SwapAmountDirection = SwapAmountDirection.In,
+    val requestedAmountOut: BigDecimal? = null,
+    val multiSwapLegInfo: MultiSwapLegInfo? = null,
+)
+
+data class SwapConfirmFiatServices(
+    val input: FiatService,
+    val output: FiatService,
+    val outputMinimum: FiatService,
+)
 
 sealed class MultiSwapLegInfo {
     data class Leg1(
@@ -567,6 +638,7 @@ data class SwapConfirmUiState(
     val tokenIn: Token,
     val tokenOut: Token,
     val amountIn: BigDecimal,
+    val amountInMax: BigDecimal?,
     val amountOut: BigDecimal?,
     val amountOutMin: BigDecimal?,
     val fiatAmountIn: BigDecimal?,
@@ -575,13 +647,14 @@ data class SwapConfirmUiState(
     val currency: Currency,
     val networkFee: SendModule.AmountData?,
     val cautions: List<CautionViewItem>,
-    val feeCaution: CautionViewItem? = null,
+    val feeCaution: CautionViewItem?,
     val validQuote: Boolean,
+    val reapprovalRequired: Boolean,
     val priceImpact: BigDecimal?,
     val priceImpactLevel: PriceImpactLevel?,
     val quoteFields: List<DataField>,
     val transactionFields: List<DataField>,
-    val criticalError: String? = null,
+    val criticalError: String?,
     var isAdvancedSettingsAvailable: Boolean,
     val mevProtectionAvailable: Boolean,
     val mevProtectionEnabled: Boolean,

@@ -28,6 +28,17 @@ interface StonFiRepository {
         dexVersion: Int? = null
     ): SimulateSwap
 
+    suspend fun reverseSimulateSwap(
+        offerAddress: String,
+        askAddress: String,
+        units: String,
+        slippageTolerance: BigDecimal,
+        poolAddress: String? = null,
+        referralAddress: String? = null,
+        referralFeeBps: Int? = null,
+        dexVersion: Int? = null
+    ): SimulateSwap
+
     suspend fun getSwapStatus(
         routerAddress: String,
         ownerAddress: String,

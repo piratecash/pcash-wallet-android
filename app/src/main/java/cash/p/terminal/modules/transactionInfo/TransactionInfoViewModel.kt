@@ -5,14 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.PendingTransactionRepository
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.entities.transactionrecords.PendingTransactionRecord
 import cash.p.terminal.modules.contacts.ContactsRepository
+import cash.p.terminal.modules.transactions.addressMetadataChangesFlow
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.transaction.TransactionSource
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 class TransactionInfoViewModel(
@@ -22,6 +23,7 @@ class TransactionInfoViewModel(
     private val balanceHiddenManager: IBalanceHiddenManager,
     private val pendingTransactionRepository: PendingTransactionRepository,
     private val poisonAddressManager: PoisonAddressManager,
+    private val addressLabelManager: AddressLabelManager,
 ) : ViewModel() {
 
     val balanceHidden: Boolean
@@ -36,10 +38,13 @@ class TransactionInfoViewModel(
     init {
         viewModelScope.launch {
             combine(
-                contactsRepository.contactsFlow,
                 service.transactionInfoItemFlow,
-                poisonAddressManager.poisonDbChangedFlow.onStart { emit(Unit) },
-            ) { _, transactionInfoItem, _ ->
+                addressMetadataChangesFlow(
+                    contactsFlow = contactsRepository.contactsFlow,
+                    poisonAddressesChangedFlow = poisonAddressManager.poisonDbChangedFlow,
+                    labelsChangedFlow = addressLabelManager.labelsChangedFlow,
+                ),
+            ) { transactionInfoItem, _ ->
                 val updatedItem = transactionInfoItem.copy(
                     poisonStatus = service.computePoisonStatus(transactionInfoItem.record)
                 )

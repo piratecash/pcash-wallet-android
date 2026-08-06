@@ -14,7 +14,6 @@ import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 private const val StellarConfirmationPage = "stellar_confirmation"
 private const val OfflineStellarSignPage = "offline_stellar_confirmation_sign"
 private const val OfflineStellarTransactionTransferPage = "offline_stellar_confirmation_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendStellarConfirmationScreen(
@@ -29,7 +28,6 @@ fun SendStellarConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineStellarSignPage,
             transferRoute = OfflineStellarTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},

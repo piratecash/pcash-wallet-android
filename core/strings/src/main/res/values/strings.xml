@@ -865,6 +865,9 @@ Proceed only if you\'re sure.</string>
     <string name="swap_providers_title">Swap Providers</string>
     <string name="swap_providers_mandatory_toast">This provider cannot be disabled</string>
     <string name="swap_no_enabled_providers">No enabled providers</string>
+    <string name="swap_estimated_amount_warning">The received amount is estimated and may change.</string>
+    <string name="swap_reapprove_required">The approved limit is no longer sufficient. Approve the updated amount.</string>
+    <string name="swap_reapprove_action">Approve updated limit</string>
     <string name="swap_no_providers_for_this_amount">No providers for this amount</string>
 
     <!-- Swap Confirmation -->
@@ -2613,4 +2616,11 @@ Proceed only if you\'re sure.</string>
     <string name="transactions_migrate_to_ironwood">to Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Publicly Visible Amount</string>
     <string name="zcash_migration_publicly_visible_description">Moving funds between pools requires the migrated amount to be publicly visible on the blockchain. The sender, recipient and your addresses remain private.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Hide on flip</string>
+    <string name="balance_hide_on_flip_description">Flip the device screen face down to quickly hide and show your balance.</string>
+    <string name="balance_hide_on_flip_info_title">Balance hidden</string>
+    <string name="balance_hide_on_flip_info_description">To hide or show your balance, just flip the device screen face down, or turn it off in the security settings.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Don\'t show again</string>
+    <string name="badge_new">New</string>
 </resources>

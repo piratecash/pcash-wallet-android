@@ -11,6 +11,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,8 +20,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -34,13 +37,7 @@ import org.junit.Test
 import java.math.BigDecimal
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SwapQuoteServiceTest {
-
-    private val mainDispatcher = UnconfinedTestDispatcher()
-
-    private val tokenIn = mockk<Token>()
-    private val tokenOut = mockk<Token>()
-
+class SwapQuoteServiceTest : SwapQuoteServiceTestFixture() {
     private val leg1ProviderA = mockk<IMultiSwapProvider>(relaxed = true) {
         every { id } returns "leg1a"
     }
@@ -49,42 +46,6 @@ class SwapQuoteServiceTest {
     }
     private val leg1QuoteA = routeQuote(leg1ProviderA)
     private val leg1QuoteB = routeQuote(leg1ProviderB)
-
-    private fun noRouteResolver(): MultiSwapRouteResolver = mockk(relaxed = true) {
-        coEvery { findRoute(any(), any(), any(), any(), any(), any()) } returns null
-    }
-
-    private fun mockProvider(
-        providerId: String,
-        quoteAmountOut: BigDecimal = BigDecimal.ONE,
-        supports: Boolean = true,
-    ): IMultiSwapProvider {
-        val expectedTokenIn = tokenIn
-        val expectedTokenOut = tokenOut
-
-        return mockk(relaxed = true) {
-            every { id } returns providerId
-            coEvery { supports(expectedTokenIn, expectedTokenOut) } returns supports
-            coEvery { fetchQuote(expectedTokenIn, expectedTokenOut, BigDecimal.ONE, any()) } returns mockk(relaxed = true) {
-                every { amountOut } returns quoteAmountOut
-                every { tokenIn } returns expectedTokenIn
-                every { tokenOut } returns expectedTokenOut
-                every { amountIn } returns BigDecimal.ONE
-            }
-        }
-    }
-
-    @Before
-    fun setUp() {
-        // Set Main dispatcher to absorb any leaked exceptions from other test classes
-        Dispatchers.setMain(mainDispatcher)
-    }
-
-    @After
-    fun tearDown() {
-        Dispatchers.resetMain()
-        unmockkAll()
-    }
 
     @Test
     fun setTokens_allProvidersSlow_noSupportedSwapProviderError() = runTest {
@@ -99,7 +60,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(slowProvider), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -155,7 +116,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(failingProvider), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -172,7 +133,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(unsupported), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -222,7 +183,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(lowerQuoteProvider, higherQuoteProvider), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -242,7 +203,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -276,7 +237,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         assertEquals("higher", service.stateFlow.value.quote?.provider?.id)
@@ -302,7 +263,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(provider), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -325,7 +286,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(succeeding, failing), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -349,7 +310,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(networkFailing, amountFailing), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -375,7 +336,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(amountOutOfRange, depositTooSmall), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -398,7 +359,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         disabledIdsFlow.value = setOf("higher")
@@ -427,7 +388,7 @@ class SwapQuoteServiceTest {
         // Both tokens chosen but no amount yet -> not quoting.
         assertFalse(service.stateFlow.value.quoting)
 
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
 
         // Changing the amount flips quoting=true immediately, before the debounced fetch
         // runs, so the swap button shows the spinner and cannot act on a stale quote.
@@ -443,7 +404,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val state = service.stateFlow.value
@@ -463,7 +424,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         service.selectQuote(leg1QuoteB)
@@ -484,7 +445,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         disabledIdsFlow.value = setOf("leg1a")
@@ -503,7 +464,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(higher, lower), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         val worseQuote = service.stateFlow.value.quotes.first { it.provider.id == "lower" }
@@ -525,7 +486,7 @@ class SwapQuoteServiceTest {
         )
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         service.selectQuote(leg1QuoteB)
@@ -541,7 +502,7 @@ class SwapQuoteServiceTest {
         val service = createService(listOf(direct), testScheduler)
         service.setTokenIn(tokenIn)
         service.setTokenOut(tokenOut)
-        service.setAmount(BigDecimal.ONE)
+        service.setAmountIn(BigDecimal.ONE)
         advanceUntilIdle()
 
         // The picker may hold a snapshot taken while a 2-step route was active. Publishing such a
@@ -572,25 +533,363 @@ class SwapQuoteServiceTest {
             every { provider } returns quoteProvider
         }
 
-    private fun createService(
+    @Test
+    fun switchPairs_exactIn_movesQuotedOutputToInput() = runTest {
+        val provider = mockProvider("provider", quoteAmountOut = BigDecimal("5"))
+        val service = createService(listOf(provider), testScheduler)
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        service.switchPairs()
+
+        val state = service.stateFlow.value
+        assertEquals(tokenOut, state.tokenIn)
+        assertEquals(tokenIn, state.tokenOut)
+        assertEquals(BigDecimal("5"), state.amountIn)
+        assertEquals(SwapAmountDirection.In, state.direction)
+        assertNull(state.requestedAmountOut)
+        assertNull(state.amountInMax)
+    }
+
+    @Test
+    fun switchPairs_multiSwap_movesFinalLegOutputToInput() = runTest {
+        val provider = mockProvider("provider")
+        val leg1 = providerQuote(provider, BigDecimal.ONE, BigDecimal("2"))
+        val leg2 = providerQuote(provider, BigDecimal("2"), BigDecimal("9"))
+        val route = MultiSwapRoute(
+            intermediateCoin = mockk(),
+            leg1Quotes = listOf(leg1),
+            leg2Quotes = listOf(leg2),
+            commissionReserve = BigDecimal.ZERO,
+            selectedLeg1Quote = leg1,
+            selectedLeg2Quote = leg2,
+        )
+        val fetch = mockk<FetchSwapQuotesUseCase> {
+            coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any()) } returns emptyList()
+        }
+        val resolver = mockk<MultiSwapRouteResolver> {
+            coEvery { findRoute(any(), any(), any(), any(), any(), any()) } returns route
+        }
+        val service = createService(
+            providers = listOf(provider),
+            scheduler = testScheduler,
+            fetchSwapQuotesUseCase = fetch,
+            routeResolver = resolver,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountIn(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        service.switchPairs()
+
+        assertEquals(BigDecimal("9"), service.stateFlow.value.amountIn)
+    }
+
+    @Test
+    fun switchPairs_exactOut_movesRequestedOutputToInputAndClearsExactOutState() = runTest {
+        val provider = mockProvider("provider")
+        val exactOutQuote = providerQuote(
+            provider,
+            amountIn = BigDecimal("3"),
+            amountOut = BigDecimal("7"),
+            amountInMax = BigDecimal("4"),
+        )
+        val fetch = mockk<FetchSwapQuotesUseCase> {
+            coEvery { this@mockk(any(), any(), any(), any(), any(), any(), any()) } returns
+                listOf(exactOutQuote)
+        }
+        val service = createService(
+            providers = listOf(provider),
+            scheduler = testScheduler,
+            fetchSwapQuotesUseCase = fetch,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountOut(BigDecimal("7"))
+        advanceUntilIdle()
+
+        assertEquals(BigDecimal("7"), service.stateFlow.value.requestedAmountOut)
+        assertEquals(BigDecimal("4"), service.stateFlow.value.amountInMax)
+
+        service.switchPairs()
+
+        val state = service.stateFlow.value
+        assertEquals(BigDecimal("7"), state.amountIn)
+        assertEquals(SwapAmountDirection.In, state.direction)
+        assertNull(state.requestedAmountOut)
+        assertNull(state.amountInMax)
+    }
+
+    @Test
+    fun setAmountOut_disabledProvider_isNotRequested() = runTest {
+        val enabled = mockProvider("enabled")
+        val disabled = mockProvider("disabled")
+        val fetch = mockk<FetchSwapQuotesUseCase>(relaxed = true)
+        val service = createService(
+            providers = listOf(enabled, disabled),
+            scheduler = testScheduler,
+            disabledIds = setOf("disabled"),
+            fetchSwapQuotesUseCase = fetch,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountOut(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            fetch(
+                match { it == listOf(enabled) },
+                tokenIn,
+                tokenOut,
+                BigDecimal.ONE,
+                SwapAmountDirection.Out,
+                any(),
+                any(),
+            )
+        }
+    }
+
+    @Test
+    fun disabledIdsChange_exactOutProviderReEnabled_requotesOnceAndKeepsSelection() = runTest {
+        val selected = mockProvider("selected")
+        val reEnabled = mockProvider("re-enabled")
+        val selectedQuote = providerQuote(selected, BigDecimal("2"), BigDecimal.ONE)
+        val reEnabledQuote = providerQuote(reEnabled, BigDecimal("3"), BigDecimal.ONE)
+        val disabledIdsFlow = MutableStateFlow(setOf("re-enabled"))
+        val fetch = mockk<FetchSwapQuotesUseCase> {
+            coEvery {
+                this@mockk(any(), any(), any(), any(), any(), any(), any())
+            } coAnswers {
+                firstArg<List<IMultiSwapProvider>>().mapNotNull { provider ->
+                    when (provider.id) {
+                        "selected" -> selectedQuote
+                        "re-enabled" -> reEnabledQuote
+                        else -> null
+                    }
+                }
+            }
+        }
+        val service = createService(
+            providers = listOf(selected, reEnabled),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+            fetchSwapQuotesUseCase = fetch,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountOut(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        disabledIdsFlow.value = emptySet()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) {
+            fetch(any(), any(), any(), any(), any(), any(), any())
+        }
+        assertEquals("selected", service.stateFlow.value.quote?.provider?.id)
+    }
+
+    @Test
+    fun disabledIdsChange_exactOutProviderDisabled_doesNotRequote() = runTest {
+        val provider = mockProvider("selected")
+        val quote = providerQuote(provider, BigDecimal("2"), BigDecimal.ONE)
+        val disabledIdsFlow = MutableStateFlow(emptySet<String>())
+        val fetch = mockk<FetchSwapQuotesUseCase> {
+            coEvery {
+                this@mockk(any(), any(), any(), any(), any(), any(), any())
+            } returns listOf(quote)
+        }
+        val service = createService(
+            providers = listOf(provider),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+            fetchSwapQuotesUseCase = fetch,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountOut(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        disabledIdsFlow.value = setOf(provider.id)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            fetch(any(), any(), any(), any(), any(), any(), any())
+        }
+        assertNull(service.stateFlow.value.quote)
+        assertTrue(service.stateFlow.value.error is NoExactOutSwapProvider)
+    }
+
+    @Test
+    fun disabledIdsChange_duringExactOutQuotation_keepsLoadingUntilSuccess() = runTest {
+        val selected = mockProvider("selected")
+        val other = mockProvider("other")
+        val selectedQuote = providerQuote(selected, BigDecimal("2"), BigDecimal.ONE)
+        val otherQuote = providerQuote(other, BigDecimal("3"), BigDecimal("2"))
+        val disabledIdsFlow = MutableStateFlow(emptySet<String>())
+        val fetchStarted = CompletableDeferred<Unit>()
+        val fetchResult = CompletableDeferred<List<SwapProviderQuote>>()
+        var fetchCount = 0
+        val fetch = mockk<FetchSwapQuotesUseCase> {
+            coEvery {
+                this@mockk(any(), any(), any(), any(), any(), any(), any())
+            } coAnswers {
+                fetchCount++
+                if (fetchCount == 1) {
+                    listOf(selectedQuote)
+                } else {
+                    fetchStarted.complete(Unit)
+                    fetchResult.await()
+                }
+            }
+        }
+        val service = createService(
+            providers = listOf(selected, other),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+            fetchSwapQuotesUseCase = fetch,
+        )
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountOut(BigDecimal.ONE)
+        advanceUntilIdle()
+
+        service.setAmountOut(BigDecimal("2"))
+        advanceTimeBy(601)
+        runCurrent()
+        assertTrue(fetchStarted.isCompleted)
+
+        disabledIdsFlow.value = setOf(selected.id)
+        runCurrent()
+
+        assertTrue(service.stateFlow.value.quoting)
+        assertNull(service.stateFlow.value.quote)
+        assertNull(service.stateFlow.value.error)
+
+        fetchResult.complete(listOf(otherQuote))
+        advanceUntilIdle()
+
+        assertFalse(service.stateFlow.value.quoting)
+        assertEquals(other.id, service.stateFlow.value.quote?.provider?.id)
+        assertNull(service.stateFlow.value.error)
+    }
+
+    @Test
+    fun disabledIdsChange_exactOutProviderReEnabledDuringDebounce_quotesOnce() = runTest {
+        val provider = mockProvider("re-enabled")
+        val quote = providerQuote(provider, BigDecimal("2"), BigDecimal.ONE)
+        val disabledIdsFlow = MutableStateFlow(setOf(provider.id))
+        val fetch = mockk<FetchSwapQuotesUseCase> {
+            coEvery {
+                this@mockk(any(), any(), any(), any(), any(), any(), any())
+            } returns listOf(quote)
+        }
+        val service = createService(
+            providers = listOf(provider),
+            scheduler = testScheduler,
+            disabledIdsFlow = disabledIdsFlow,
+            fetchSwapQuotesUseCase = fetch,
+        )
+        advanceUntilIdle()
+        service.setTokenIn(tokenIn)
+        service.setTokenOut(tokenOut)
+        service.setAmountOut(BigDecimal.ONE)
+
+        disabledIdsFlow.value = emptySet()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            fetch(any(), any(), any(), any(), any(), any(), any())
+        }
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+abstract class SwapQuoteServiceTestFixture {
+
+    private val mainDispatcher = UnconfinedTestDispatcher()
+
+    protected val tokenIn = mockk<Token>()
+    protected val tokenOut = mockk<Token>()
+
+    protected fun mockProvider(
+        providerId: String,
+        quoteAmountOut: BigDecimal = BigDecimal.ONE,
+        supports: Boolean = true,
+    ): IMultiSwapProvider {
+        val expectedTokenIn = tokenIn
+        val expectedTokenOut = tokenOut
+
+        return mockk(relaxed = true) {
+            every { id } returns providerId
+            coEvery { supports(expectedTokenIn, expectedTokenOut) } returns supports
+            coEvery {
+                fetchQuote(expectedTokenIn, expectedTokenOut, BigDecimal.ONE, any())
+            } returns mockk(relaxed = true) {
+                every { amountOut } returns quoteAmountOut
+                every { tokenIn } returns expectedTokenIn
+                every { tokenOut } returns expectedTokenOut
+                every { amountIn } returns BigDecimal.ONE
+            }
+        }
+    }
+
+    @Before
+    fun setUp() {
+        // Set Main dispatcher to absorb any leaked exceptions from other test classes
+        Dispatchers.setMain(mainDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+        unmockkAll()
+    }
+
+    protected fun providerQuote(
+        provider: IMultiSwapProvider,
+        amountIn: BigDecimal,
+        amountOut: BigDecimal,
+        amountInMax: BigDecimal? = null,
+    ): SwapProviderQuote = SwapProviderQuote(
+        provider = provider,
+        swapQuote = mockk(relaxed = true) {
+            every { this@mockk.tokenIn } returns this@SwapQuoteServiceTestFixture.tokenIn
+            every { this@mockk.tokenOut } returns this@SwapQuoteServiceTestFixture.tokenOut
+            every { this@mockk.amountIn } returns amountIn
+            every { this@mockk.amountOut } returns amountOut
+            every { this@mockk.amountInMax } returns amountInMax
+        },
+    )
+
+    protected fun createService(
         providers: List<IMultiSwapProvider>,
         scheduler: TestCoroutineScheduler,
         disabledIds: Set<String> = emptySet(),
-        routeResolver: MultiSwapRouteResolver = noRouteResolver(),
+        fetchSwapQuotesUseCase: FetchSwapQuotesUseCase? = null,
+        routeResolver: MultiSwapRouteResolver? = null,
     ): SwapQuoteService = createService(
         providers = providers,
         scheduler = scheduler,
         disabledIdsFlow = MutableStateFlow(disabledIds),
+        fetchSwapQuotesUseCase = fetchSwapQuotesUseCase,
         routeResolver = routeResolver,
     )
 
-    private fun createService(
+    protected fun createService(
         providers: List<IMultiSwapProvider>,
         scheduler: TestCoroutineScheduler,
         disabledIdsFlow: MutableStateFlow<Set<String>>,
-        routeResolver: MultiSwapRouteResolver = noRouteResolver(),
+        fetchSwapQuotesUseCase: FetchSwapQuotesUseCase? = null,
+        routeResolver: MultiSwapRouteResolver? = null,
     ): SwapQuoteService {
         val dispatcher = StandardTestDispatcher(scheduler)
+        val resolvedRouteResolver = routeResolver ?: mockk<MultiSwapRouteResolver>(relaxed = true) {
+            coEvery { findRoute(any(), any(), any(), any(), any(), any()) } returns null
+        }
         val repository = mockk<SwapProvidersRepository>(relaxed = true) {
             every { this@mockk.disabledIds } returns disabledIdsFlow
             every { isDisabled(any()) } answers {
@@ -605,8 +904,8 @@ class SwapQuoteServiceTest {
             }
         }
         return SwapQuoteService(
-            routeResolver,
-            FetchSwapQuotesUseCase(),
+            resolvedRouteResolver,
+            fetchSwapQuotesUseCase ?: FetchSwapQuotesUseCase(mockk(relaxed = true)),
             repository,
             registry,
             TestDispatcherProvider(dispatcher, CoroutineScope(dispatcher)),
