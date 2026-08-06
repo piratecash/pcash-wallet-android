@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import org.koin.compose.koinInject
 
 private const val RetryProgressMinVisibleMillis = 1200L
+private const val OfflineTransactionTransferFormatArgument = "format"
 
 internal data class OfflineSignRouteState(
     val confirmationData: SendConfirmationData,
@@ -33,7 +34,7 @@ internal data class OfflineSignRouteState(
 internal data class OfflineSignFlowRoutes(
     val signRoute: String,
     val transferRoute: String,
-    val transferFormatArgument: String,
+    val transferFormatArgument: String = OfflineTransactionTransferFormatArgument,
 )
 
 internal interface OfflineSignCapableViewModel {

@@ -14,7 +14,6 @@ import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 private const val MoneroConfirmationPage = "monero_confirmation"
 private const val OfflineMoneroSignPage = "offline_monero_confirmation_sign"
 private const val OfflineMoneroTransactionTransferPage = "offline_monero_confirmation_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendMoneroConfirmationScreen(
@@ -29,7 +28,6 @@ fun SendMoneroConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineMoneroSignPage,
             transferRoute = OfflineMoneroTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},
