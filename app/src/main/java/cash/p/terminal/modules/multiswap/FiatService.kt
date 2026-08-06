@@ -1,7 +1,6 @@
 package cash.p.terminal.modules.multiswap
 
 import cash.p.terminal.core.ServiceState
-import cash.p.terminal.wallet.Clearable
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.entities.Currency
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,6 +23,7 @@ class FiatService(
     private var rate: BigDecimal? = null
 
     private var fiatAmount: BigDecimal? = null
+    private var inputSource = InputSource.Token
     private var rateUpdatesJob: Job? = null
 
     private val job = SupervisorJob()
@@ -32,7 +32,8 @@ class FiatService(
     override fun createState() = State(
         rate = rate,
         amount = amount,
-        fiatAmount = fiatAmount
+        fiatAmount = fiatAmount,
+        inputSource = inputSource,
     )
 
     private fun refreshRate() {
@@ -60,6 +61,13 @@ class FiatService(
         }
     }
 
+    private fun refreshConvertedAmount() {
+        when (inputSource) {
+            InputSource.Token -> refreshFiatAmount()
+            InputSource.Fiat -> refreshAmount()
+        }
+    }
+
     private fun resubscribeForRate() {
         rateUpdatesJob?.cancel()
         val currency = currency ?: return
@@ -67,9 +75,11 @@ class FiatService(
         token?.let { token ->
             rateUpdatesJob = coroutineScope.launch {
                 assetFiatRateService.rateFlow("swap", token, currency)
-                    .collect {
-                        rate = it
-                        refreshFiatAmount()
+                    .collect { updatedRate ->
+                        if (rate == updatedRate) return@collect
+
+                        rate = updatedRate
+                        refreshConvertedAmount()
                         emitState()
                     }
             }
@@ -82,7 +92,7 @@ class FiatService(
         this.currency = currency
 
         refreshRate()
-        refreshFiatAmount()
+        refreshConvertedAmount()
 
         emitState()
     }
@@ -93,12 +103,13 @@ class FiatService(
         this.token = token
 
         refreshRate()
-        refreshFiatAmount()
+        refreshConvertedAmount()
 
         emitState()
     }
 
     fun setAmount(amount: BigDecimal?) {
+        if (inputSource == InputSource.Fiat) return
         if (this.amount == amount) return
 
         this.amount = amount
@@ -107,11 +118,31 @@ class FiatService(
         emitState()
     }
 
-    fun setFiatAmount(fiatAmount: BigDecimal?) {
-        if (this.fiatAmount == fiatAmount) return
+    fun setInputAmount(amount: BigDecimal?) {
+        if (inputSource == InputSource.Token && this.amount == amount) return
 
+        inputSource = InputSource.Token
+        this.amount = amount
+        refreshFiatAmount()
+
+        emitState()
+    }
+
+    fun setFiatAmount(fiatAmount: BigDecimal?) {
+        if (inputSource == InputSource.Fiat && this.fiatAmount == fiatAmount) return
+
+        inputSource = InputSource.Fiat
         this.fiatAmount = fiatAmount
         refreshAmount()
+
+        emitState()
+    }
+
+    fun useTokenAmount() {
+        if (inputSource == InputSource.Token) return
+
+        inputSource = InputSource.Token
+        refreshFiatAmount()
 
         emitState()
     }
@@ -123,6 +154,12 @@ class FiatService(
     data class State(
         val amount: BigDecimal?,
         val fiatAmount: BigDecimal?,
-        val rate: BigDecimal?
+        val rate: BigDecimal?,
+        val inputSource: InputSource,
     )
+
+    enum class InputSource {
+        Token,
+        Fiat,
+    }
 }

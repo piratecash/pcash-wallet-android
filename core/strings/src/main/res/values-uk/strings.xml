@@ -635,6 +635,9 @@
     <string name="swap_providers_title">Провайдери обміну</string>
     <string name="swap_providers_mandatory_toast">Цього провайдера не можна вимкнути</string>
     <string name="swap_no_enabled_providers">Немає увімкнених провайдерів</string>
+    <string name="swap_estimated_amount_warning">Сума отримання є орієнтовною та може змінитися.</string>
+    <string name="swap_reapprove_required">Схваленого ліміту вже недостатньо. Схваліть оновлену суму.</string>
+    <string name="swap_reapprove_action">Схвалити оновлений ліміт</string>
     <string name="swap_no_providers_for_this_amount">Немає провайдерів для цієї суми</string>
     <!-- Swap Confirmation -->
     <string name="Activate_InsufficientBalance_Description">У вас недостатньо балансу XLM для активації цього токена.</string>
@@ -2337,4 +2340,11 @@
     <string name="declined_tokens_skip_all">Пропустити все</string>
     <string name="declined_tokens_select_title">Виберіть токени</string>
     <string name="declined_tokens_wallet">Гаманець: %s</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Приховування перевертанням</string>
+    <string name="balance_hide_on_flip_description">Переверніть екран пристрою вниз, щоб швидко приховати та показати баланс.</string>
+    <string name="balance_hide_on_flip_info_title">Баланс приховано</string>
+    <string name="balance_hide_on_flip_info_description">Щоб приховати або показати свій баланс, просто переверніть екран пристрою вниз або вимкніть його в налаштуваннях безпеки.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Більше не показувати</string>
+    <string name="badge_new">Нове</string>
 </resources>

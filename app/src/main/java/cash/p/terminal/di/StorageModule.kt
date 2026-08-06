@@ -89,7 +89,7 @@ val storageModule = module {
     factory<BalanceService>(named("wallet")) {
         DefaultBalanceService.getInstance("wallet")
     }
-    single { get<AppDatabase>().evmAddressLabelDao() }
+    single { get<AppDatabase>().addressLabelDao() }
     single { get<AppDatabase>().evmMethodLabelDao() }
     single { get<AppDatabase>().syncerStateDao() }
     single { get<AppDatabase>().recentAddressDao() }

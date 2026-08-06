@@ -87,11 +87,12 @@ import cash.p.terminal.core.storage.migrations.Migration_109_110
 import cash.p.terminal.core.storage.migrations.Migration_110_111
 import cash.p.terminal.core.storage.migrations.Migration_111_112
 import cash.p.terminal.core.storage.migrations.Migration_112_113
+import cash.p.terminal.core.storage.migrations.Migration_113_114
 import cash.p.terminal.core.storage.typeconverter.DatabaseConverters
 import cash.p.terminal.entities.ActiveAccount
+import cash.p.terminal.entities.AddressLabel
 import cash.p.terminal.entities.BlockchainSettingRecord
 import cash.p.terminal.entities.EnabledWalletCache
-import cash.p.terminal.entities.EvmAddressLabel
 import cash.p.terminal.entities.PoisonAddress
 import cash.p.terminal.entities.EvmMethodLabel
 import cash.p.terminal.entities.EvmSyncSourceRecord
@@ -128,7 +129,7 @@ import io.horizontalsystems.core.storage.LogEntry
 import io.horizontalsystems.core.storage.LogsDao
 
 @Database(
-    version = 113,
+    version = 114,
     exportSchema = false,
     entities = [
         EnabledWallet::class,
@@ -146,7 +147,7 @@ import io.horizontalsystems.core.storage.LogsDao
         NftAssetRecord::class,
         NftMetadataSyncRecord::class,
         NftAssetBriefMetadataRecord::class,
-        EvmAddressLabel::class,
+        AddressLabel::class,
         EvmMethodLabel::class,
         SyncerState::class,
         TokenAutoEnabledBlockchain::class,
@@ -182,7 +183,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun wcSessionDao(): WCSessionDao
     abstract fun wcPairingMetadataDao(): WCPairingMetadataDao
     abstract fun nftDao(): NftDao
-    abstract fun evmAddressLabelDao(): EvmAddressLabelDao
+    abstract fun addressLabelDao(): AddressLabelDao
     abstract fun evmMethodLabelDao(): EvmMethodLabelDao
     abstract fun syncerStateDao(): SyncerStateDao
     abstract fun tokenAutoEnabledBlockchainDao(): TokenAutoEnabledBlockchainDao
@@ -297,6 +298,7 @@ abstract class AppDatabase : RoomDatabase() {
                     Migration_110_111,
                     Migration_111_112,
                     Migration_112_113,
+                    Migration_113_114,
                 )
                 .build()
         }

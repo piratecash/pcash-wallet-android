@@ -4,17 +4,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
-import androidx.compose.material.Text
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -31,8 +27,10 @@ import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.SendResultHud
 import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
+import cash.p.terminal.modules.send.fee.NetworkFeeWarningData
 import cash.p.terminal.navigation.navigateUpSafely
 import cash.p.terminal.navigation.slideFromRight
 import cash.p.terminal.ui.compose.components.CoinImage
@@ -44,10 +42,7 @@ import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsImageCircle
 import cash.p.terminal.ui_compose.components.HsSwitch
-import cash.p.terminal.ui_compose.components.CustomSnackbar
-import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.caption_grey
@@ -64,93 +59,65 @@ import io.horizontalsystems.core.entities.CurrencyValue
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
 
+data class SwapConfirmNavigation(
+    val fragment: NavController,
+    val swap: NavController,
+)
+
+data class SwapConfirmQuoteParams(
+    val quote: SwapProviderQuote,
+    val settings: Map<String, Any?>,
+    val direction: SwapAmountDirection,
+    val requestedAmountOut: BigDecimal?,
+    val multiSwapLegInfo: MultiSwapLegInfo?,
+)
+
+data class SwapConfirmBalanceParams(
+    val provider: IMultiSwapProvider?,
+    val displayBalance: BigDecimal?,
+    val balanceHidden: Boolean,
+    val feeToken: Token?,
+    val feeCoinBalance: BigDecimal?,
+)
+
 @Composable
 fun SwapConfirmScreen(
-    fragmentNavController: NavController,
-    swapNavController: NavController,
-    quote: SwapProviderQuote,
-    settings: Map<String, Any?>,
-    provider: IMultiSwapProvider?,
-    displayBalance: BigDecimal?,
-    balanceHidden: Boolean,
-    feeToken: Token?,
-    feeCoinBalance: BigDecimal?,
+    navigation: SwapConfirmNavigation,
+    quoteParams: SwapConfirmQuoteParams,
+    balanceParams: SwapConfirmBalanceParams,
     onToggleHideBalance: () -> Unit,
+    onReapprove: () -> Unit,
     onOpenSettings: (() -> Unit)? = null,
-    multiSwapLegInfo: MultiSwapLegInfo? = null,
 ) {
-    val view = LocalView.current
-
-    val currentBackStackEntry = remember { swapNavController.currentBackStackEntry }
-    val viewModel = viewModel<SwapConfirmViewModel>(
-        viewModelStoreOwner = requireNotNull(currentBackStackEntry),
-        factory = SwapConfirmViewModel.provideFactory(
-            quote, settings, fragmentNavController, multiSwapLegInfo
-        )
-    )
-
+    val viewModel = swapConfirmViewModel(navigation, quoteParams)
     val uiState = viewModel.uiState
-    val sendResult = viewModel.sendResult
-    var currentSnackbar by remember { mutableStateOf<CustomSnackbar?>(null) }
     val hasInsufficientFeeBalance = hasInsufficientFeeTokenBalance(
         token = uiState.tokenIn,
         fee = uiState.networkFee?.primary?.value,
-        feeTokenBalance = feeCoinBalance,
+        feeTokenBalance = balanceParams.feeCoinBalance,
     ) || viewModel.isInsufficientFeeBalance(uiState.networkFee?.primary?.value)
     val hasFeeProblem = hasSwapConfirmFeeProblem(
         hasInsufficientFeeBalance = hasInsufficientFeeBalance,
         hasFeeCaution = uiState.feeCaution != null,
     )
+    val actions = SwapConfirmActions(
+        refresh = viewModel::refresh,
+        reapprove = onReapprove,
+        retryAdapter = viewModel::retryAdapterSync,
+        send = viewModel::onClickSendWithWarningCheck,
+        toggleMevProtection = viewModel::toggleMevProtection,
+    )
+    val runtime = SwapConfirmRuntime(
+        isSynced = viewModel.isSynced,
+        hasAdapterError = viewModel.hasAdapterError,
+        sendResult = viewModel.sendResult,
+        inlineFeeWarningData = viewModel.inlineFeeWarningData,
+    )
 
-    // Handle send result UI - must be in Composable context for getString()
-    currentSnackbar = when (sendResult) {
-        SendResult.Sending -> {
-            HudHelper.showInProcessMessage(
-                view,
-                R.string.Swap_Swapping,
-                SnackbarDuration.INDEFINITE
-            )
-        }
-
-        is SendResult.Sent -> {
-            HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-        }
-
-        is SendResult.SentButQueued -> {
-            HudHelper.showWarningMessage(view, R.string.send_success_queued)
-        }
-
-        is SendResult.Failed -> {
-            HudHelper.showErrorMessage(view, sendResult.caution.getString())
-        }
-
-        null -> {
-            currentSnackbar?.dismiss()
-            null
-        }
-    }
-
-    // Handle navigation after success
-    LaunchedEffect(sendResult) {
-        if (sendResult is SendResult.Sent || sendResult is SendResult.SentButQueued) {
-            delay(1200)
-            val multiSwapId = viewModel.completedMultiSwapId
-            if (multiSwapId != null && multiSwapLegInfo is MultiSwapLegInfo.Leg1) {
-                fragmentNavController.popBackStack(R.id.multiswap, inclusive = true)
-                fragmentNavController.slideFromRight(
-                    R.id.multiSwapExchanges,
-                    MultiSwapExchangesFragment.ARG_PENDING_MULTI_SWAP_ID to multiSwapId,
-                )
-            } else if (multiSwapLegInfo is MultiSwapLegInfo.Leg2) {
-                fragmentNavController.popBackStack(R.id.multiSwapExchanges, inclusive = true)
-            } else {
-                fragmentNavController.navigateUp()
-            }
-        }
-    }
+    SwapResultEffects(viewModel, navigation, quoteParams.multiSwapLegInfo)
 
     ConfirmTransactionScreen(
-        onClickBack = swapNavController::navigateUpSafely,
+        onClickBack = navigation.swap::navigateUpSafely,
         onClickSettings = if (uiState.isAdvancedSettingsAvailable && onOpenSettings != null) {
             { onOpenSettings.invoke() }
         } else {
@@ -158,199 +125,18 @@ fun SwapConfirmScreen(
         },
         onClickClose = null,
         buttonsSlot = {
-            val hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error }
-            if (uiState.loading) {
-                ButtonPrimaryYellow(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.Alert_Loading),
-                    enabled = false,
-                    onClick = { },
-                )
-                VSpacer(height = 12.dp)
-                subhead1_leah(text = stringResource(id = R.string.SwapConfirm_FetchingFinalQuote))
-            } else if (uiState.criticalError != null) {
-                ButtonPrimaryDefault(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = uiState.criticalError,
-                    onClick = {
-                        viewModel.refresh()
-                    },
-                )
-                VSpacer(height = 12.dp)
-            } else if (!uiState.validQuote) {
-                ButtonPrimaryDefault(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.Button_Refresh),
-                    onClick = viewModel::refresh
-                )
-                VSpacer(height = 12.dp)
-                // A concrete estimation error is already shown by Cautions in the scrollable
-                // content; fall back to the generic text only when there is none, so the user is
-                // not shown a vague "quote invalid" line on top of the real, specific reason.
-                if (!hasErrorCaution) {
-                    subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteIsInvalid))
-                }
-            } else if (uiState.expired) {
-                ButtonPrimaryDefault(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.Button_Refresh),
-                    onClick = {
-                        viewModel.refresh()
-                    },
-                )
-                VSpacer(height = 12.dp)
-                subhead1_leah(text = stringResource(id = R.string.SwapConfirm_QuoteExpired))
-            } else {
-                when {
-                    viewModel.hasAdapterError -> {
-                        TextImportantWarning(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.send_confirmation_sync_error_warning)
-                        )
-                        VSpacer(height = 8.dp)
-                        ButtonPrimaryDefault(
-                            modifier = Modifier.fillMaxWidth(),
-                            title = stringResource(R.string.Button_Retry),
-                            onClick = viewModel::retryAdapterSync
-                        )
-                        VSpacer(height = 12.dp)
-                    }
-                    !viewModel.isSynced -> {
-                        TextImportantWarning(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(R.string.send_confirmation_syncing_warning)
-                        )
-                        VSpacer(height = 12.dp)
-                    }
-                }
-                // Disable button during swap and navigation delay (allow retry only on Failed)
-                val swapInProgress = sendResult != null && sendResult !is SendResult.Failed
-                ButtonPrimaryYellow(
-                    modifier = Modifier.fillMaxWidth(),
-                    title = stringResource(R.string.Swap),
-                    enabled = isSwapConfirmButtonEnabled(
-                        isSynced = viewModel.isSynced,
-                        swapInProgress = swapInProgress,
-                        hasRequiredQuoteData = uiState.amountOut != null && uiState.networkFee != null,
-                        hasBlockingFeeState = hasFeeProblem,
-                        hasErrorCaution = hasErrorCaution,
-                    ),
-                    onClick = viewModel::onClickSendWithWarningCheck,
-                )
-                if (uiState.expiresIn != null) {
-                    VSpacer(height = 12.dp)
-                    subhead1_leah(text = stringResource(R.string.SwapConfirm_QuoteExpiresIn, uiState.expiresIn))
-                }
-            }
+            SwapConfirmButtons(uiState, runtime, actions, hasFeeProblem)
         }
     ) {
-        SectionUniversalLawrence {
-            TokenRow(
-                token = uiState.tokenIn,
-                amount = uiState.amountIn,
-                fiatAmount = uiState.fiatAmountIn,
-                currency = uiState.currency,
-                borderTop = false,
-                title = stringResource(R.string.Send_Confirmation_YouSend),
-                amountColor = ComposeAppTheme.colors.leah,
-            )
-            TokenRow(
-                token = uiState.tokenOut,
-                amount = uiState.amountOut,
-                fiatAmount = uiState.fiatAmountOut,
-                currency = uiState.currency,
-                title = stringResource(R.string.Swap_ToAmountTitle),
-                amountColor = ComposeAppTheme.colors.remus,
-            )
-        }
-        uiState.amountOut?.let { amountOut ->
-            VSpacer(height = 16.dp)
-            SectionUniversalLawrence {
-                PriceField(
-                    uiState.tokenIn,
-                    uiState.tokenOut,
-                    uiState.amountIn,
-                    amountOut
-                )
-                PriceImpactField(
-                    uiState.priceImpact,
-                    uiState.priceImpactLevel,
-                )
-                uiState.amountOutMin?.let { amountOutMin ->
-                    val subvalue = uiState.fiatAmountOutMin?.let { fiatAmountOutMin ->
-                        CurrencyValue(uiState.currency, fiatAmountOutMin).getFormattedFull()
-                    } ?: "---"
-
-                    SwapInfoRow(
-                        borderTop = true,
-                        title = stringResource(id = R.string.Swap_MinimumReceived),
-                        value = CoinValue(uiState.tokenOut, amountOutMin).getFormattedFull(),
-                        subvalue = subvalue
-                    )
-                }
-                provider?.let { p ->
-                    SwapProviderField(
-                        title = p.title,
-                        iconId = p.icon
-                    )
-                }
-                uiState.quoteFields.forEach {
-                    it.GetContent(fragmentNavController, true)
-                }
-            }
-        }
-
-        val transactionFields = uiState.transactionFields
-        if (transactionFields.isNotEmpty()) {
-            VSpacer(height = 16.dp)
-            SectionUniversalLawrence {
-                transactionFields.forEachIndexed { index, field ->
-                    field.GetContent(fragmentNavController, index != 0)
-                }
-            }
-        }
-
-        VSpacer(height = 16.dp)
-        FeeInfoSection(
-            tokenIn = uiState.tokenIn,
-            displayBalance = displayBalance,
-            balanceHidden = balanceHidden,
-            feeToken = feeToken,
-            feeCoinBalance = feeCoinBalance,
-            feePrimary = uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
-            feeSecondary = uiState.networkFee?.secondary?.getFormattedPlain() ?: "---",
-            insufficientFeeBalance = hasFeeProblem,
-            onBalanceClicked = onToggleHideBalance,
-            feeWarningData = viewModel.inlineFeeWarningData,
+        SwapConfirmContent(
+            uiState,
+            navigation,
+            balanceParams,
+            runtime.inlineFeeWarningData,
+            actions,
+            hasFeeProblem,
+            onToggleHideBalance,
         )
-
-        if (uiState.mevProtectionAvailable) {
-            VSpacer(16.dp)
-            SectionUniversalLawrence {
-                CellUniversal {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = R.drawable.ic_shield_24),
-                        contentDescription = null,
-                        tint = ComposeAppTheme.colors.jacob
-                    )
-                    HSpacer(width = 16.dp)
-                    body_leah(text = stringResource(R.string.mev_protection))
-                    HFillSpacer(minWidth = 8.dp)
-                    HsSwitch(
-                        checked = uiState.mevProtectionEnabled,
-                        onCheckedChange = {
-                            viewModel.toggleMevProtection(it)
-                        }
-                    )
-                }
-            }
-        }
-
-
-        if (uiState.cautions.isNotEmpty()) {
-            Cautions(cautions = uiState.cautions)
-        }
     }
 
     NetworkFeeWarningOverlay(
@@ -359,6 +145,329 @@ fun SwapConfirmScreen(
         onCancel = viewModel::onFeeWarningCancelled,
     )
 }
+
+@Composable
+private fun swapConfirmViewModel(
+    navigation: SwapConfirmNavigation,
+    params: SwapConfirmQuoteParams,
+): SwapConfirmViewModel {
+    val backStackEntry = remember { navigation.swap.currentBackStackEntry }
+    return viewModel(
+        viewModelStoreOwner = requireNotNull(backStackEntry),
+        factory = SwapConfirmViewModel.provideFactory(
+            quote = params.quote,
+            settings = params.settings,
+            navController = navigation.fragment,
+            direction = params.direction,
+            requestedAmountOut = params.requestedAmountOut,
+            multiSwapLegInfo = params.multiSwapLegInfo,
+        ),
+    )
+}
+
+@Composable
+private fun SwapResultEffects(
+    viewModel: SwapConfirmViewModel,
+    navigation: SwapConfirmNavigation,
+    multiSwapLegInfo: MultiSwapLegInfo?,
+) {
+    val sendResult = viewModel.sendResult
+    SendResultHud(
+        sendResult = sendResult,
+        sendingTextRes = R.string.Swap_Swapping,
+        successTextRes = R.string.Hud_Text_Done,
+    )
+
+    // Handle navigation after success
+    LaunchedEffect(sendResult) {
+        if (sendResult !is SendResult.Sent && sendResult !is SendResult.SentButQueued) return@LaunchedEffect
+        delay(1200)
+        val multiSwapId = viewModel.completedMultiSwapId
+        when {
+            multiSwapId != null && multiSwapLegInfo is MultiSwapLegInfo.Leg1 -> {
+                navigation.fragment.popBackStack(R.id.multiswap, inclusive = true)
+                navigation.fragment.slideFromRight(
+                    R.id.multiSwapExchanges,
+                    MultiSwapExchangesFragment.ARG_PENDING_MULTI_SWAP_ID to multiSwapId,
+                )
+            }
+            multiSwapLegInfo is MultiSwapLegInfo.Leg2 ->
+                navigation.fragment.popBackStack(R.id.multiSwapExchanges, inclusive = true)
+            else -> navigation.fragment.navigateUp()
+        }
+    }
+}
+
+@Composable
+private fun SwapConfirmButtons(
+    uiState: SwapConfirmUiState,
+    runtime: SwapConfirmRuntime,
+    actions: SwapConfirmActions,
+    hasFeeProblem: Boolean,
+) {
+    val hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error }
+    when {
+        uiState.loading -> SwapLoadingButton()
+        uiState.criticalError != null -> RefreshSwapButton(uiState.criticalError, actions.refresh)
+        !uiState.validQuote -> InvalidQuoteButton(uiState, hasErrorCaution, actions)
+        uiState.expired -> ExpiredQuoteButton(actions.refresh)
+        else -> ReadySwapButton(uiState, runtime, actions, hasFeeProblem, hasErrorCaution)
+    }
+}
+
+@Composable
+private fun SwapLoadingButton() {
+    ButtonPrimaryYellow(
+        modifier = Modifier.fillMaxWidth(),
+        title = stringResource(R.string.Alert_Loading),
+        enabled = false,
+        onClick = {},
+    )
+    VSpacer(height = 12.dp)
+    subhead1_leah(text = stringResource(R.string.SwapConfirm_FetchingFinalQuote))
+}
+
+@Composable
+private fun RefreshSwapButton(title: String, onRefresh: () -> Unit) {
+    ButtonPrimaryDefault(modifier = Modifier.fillMaxWidth(), title = title, onClick = onRefresh)
+    VSpacer(height = 12.dp)
+}
+
+@Composable
+private fun InvalidQuoteButton(
+    uiState: SwapConfirmUiState,
+    hasErrorCaution: Boolean,
+    actions: SwapConfirmActions,
+) {
+    val title = if (uiState.reapprovalRequired) R.string.swap_reapprove_action else R.string.Button_Refresh
+    ButtonPrimaryDefault(
+        modifier = Modifier.fillMaxWidth(),
+        title = stringResource(title),
+        onClick = if (uiState.reapprovalRequired) actions.reapprove else actions.refresh,
+    )
+    VSpacer(height = 12.dp)
+    // A concrete estimation error is already shown by Cautions in the scrollable content; fall
+    // back to the generic text only when there is none, so the real reason is not obscured.
+    if (!hasErrorCaution) {
+        subhead1_leah(text = stringResource(R.string.SwapConfirm_QuoteIsInvalid))
+    }
+}
+
+@Composable
+private fun ExpiredQuoteButton(onRefresh: () -> Unit) {
+    RefreshSwapButton(stringResource(R.string.Button_Refresh), onRefresh)
+    subhead1_leah(text = stringResource(R.string.SwapConfirm_QuoteExpired))
+}
+
+@Composable
+private fun ReadySwapButton(
+    uiState: SwapConfirmUiState,
+    runtime: SwapConfirmRuntime,
+    actions: SwapConfirmActions,
+    hasFeeProblem: Boolean,
+    hasErrorCaution: Boolean,
+) {
+    Column {
+        AdapterStatus(runtime, actions.retryAdapter)
+        // Disable button during swap and navigation delay (allow retry only on Failed).
+        val swapInProgress = runtime.sendResult?.let { it !is SendResult.Failed } == true
+        ButtonPrimaryYellow(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.Swap),
+            enabled = isSwapConfirmButtonEnabled(
+                isSynced = runtime.isSynced,
+                swapInProgress = swapInProgress,
+                hasRequiredQuoteData = uiState.amountOut != null && uiState.networkFee != null,
+                hasBlockingFeeState = hasFeeProblem,
+                hasErrorCaution = hasErrorCaution,
+            ),
+            onClick = actions.send,
+        )
+        uiState.expiresIn?.let {
+            VSpacer(height = 12.dp)
+            subhead1_leah(text = stringResource(R.string.SwapConfirm_QuoteExpiresIn, it))
+        }
+    }
+}
+
+@Composable
+private fun AdapterStatus(runtime: SwapConfirmRuntime, onRetry: () -> Unit) {
+    Column {
+        when {
+            runtime.hasAdapterError -> {
+                TextImportantWarning(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.send_confirmation_sync_error_warning),
+                )
+                VSpacer(height = 8.dp)
+                ButtonPrimaryDefault(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.Button_Retry),
+                    onClick = onRetry,
+                )
+                VSpacer(height = 12.dp)
+            }
+            !runtime.isSynced -> {
+                TextImportantWarning(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(R.string.send_confirmation_syncing_warning),
+                )
+                VSpacer(height = 12.dp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SwapConfirmContent(
+    uiState: SwapConfirmUiState,
+    navigation: SwapConfirmNavigation,
+    balanceParams: SwapConfirmBalanceParams,
+    inlineFeeWarningData: NetworkFeeWarningData?,
+    actions: SwapConfirmActions,
+    hasFeeProblem: Boolean,
+    onToggleHideBalance: () -> Unit,
+) {
+    Column {
+        SwapAmountsSection(uiState)
+        SwapQuoteSection(uiState, balanceParams.provider, navigation.fragment)
+        SwapTransactionFields(uiState, navigation.fragment)
+        SwapConfirmFeeInfo(
+            uiState,
+            balanceParams,
+            inlineFeeWarningData,
+            hasFeeProblem,
+            onToggleHideBalance,
+        )
+        MevProtectionSection(uiState, actions.toggleMevProtection)
+        if (uiState.cautions.isNotEmpty()) Cautions(cautions = uiState.cautions)
+    }
+}
+
+@Composable
+private fun SwapAmountsSection(uiState: SwapConfirmUiState) {
+    SectionUniversalLawrence {
+        TokenRow(
+            token = uiState.tokenIn,
+            amount = uiState.amountIn,
+            fiatAmount = uiState.fiatAmountIn,
+            currency = uiState.currency,
+            borderTop = false,
+            title = stringResource(R.string.Send_Confirmation_YouSend),
+            amountColor = ComposeAppTheme.colors.leah,
+        )
+        TokenRow(
+            token = uiState.tokenOut,
+            amount = uiState.amountOut,
+            fiatAmount = uiState.fiatAmountOut,
+            currency = uiState.currency,
+            title = stringResource(R.string.Swap_ToAmountTitle),
+            amountColor = ComposeAppTheme.colors.remus,
+        )
+    }
+}
+
+@Composable
+private fun SwapQuoteSection(
+    uiState: SwapConfirmUiState,
+    provider: IMultiSwapProvider?,
+    navController: NavController,
+) {
+    val amountOut = uiState.amountOut ?: return
+    VSpacer(height = 16.dp)
+    SectionUniversalLawrence {
+        PriceField(uiState.tokenIn, uiState.tokenOut, uiState.amountIn, amountOut)
+        PriceImpactField(uiState.priceImpact, uiState.priceImpactLevel)
+        uiState.amountOutMin?.let {
+            val fiat = uiState.fiatAmountOutMin?.let { value ->
+                CurrencyValue(uiState.currency, value).getFormattedFull()
+            } ?: "---"
+            SwapInfoRow(
+                borderTop = true,
+                title = stringResource(R.string.Swap_MinimumReceived),
+                value = CoinValue(uiState.tokenOut, it).getFormattedFull(),
+                subvalue = fiat,
+            )
+        }
+        provider?.let { SwapProviderField(title = it.title, iconId = it.icon) }
+        uiState.quoteFields.forEach { it.GetContent(navController, true) }
+    }
+}
+
+@Composable
+private fun SwapTransactionFields(uiState: SwapConfirmUiState, navController: NavController) {
+    if (uiState.transactionFields.isEmpty()) return
+    VSpacer(height = 16.dp)
+    SectionUniversalLawrence {
+        uiState.transactionFields.forEachIndexed { index, field ->
+            field.GetContent(navController, index != 0)
+        }
+    }
+}
+
+@Composable
+private fun SwapConfirmFeeInfo(
+    uiState: SwapConfirmUiState,
+    balance: SwapConfirmBalanceParams,
+    inlineFeeWarningData: NetworkFeeWarningData?,
+    hasFeeProblem: Boolean,
+    onToggleHideBalance: () -> Unit,
+) {
+    VSpacer(height = 16.dp)
+    FeeInfoSection(
+        tokenIn = uiState.tokenIn,
+        displayBalance = balance.displayBalance,
+        balanceHidden = balance.balanceHidden,
+        feeToken = balance.feeToken,
+        feeCoinBalance = balance.feeCoinBalance,
+        feePrimary = uiState.networkFee?.primary?.getFormattedPlain() ?: "---",
+        feeSecondary = uiState.networkFee?.secondary?.getFormattedPlain() ?: "---",
+        insufficientFeeBalance = hasFeeProblem,
+        onBalanceClicked = onToggleHideBalance,
+        feeWarningData = inlineFeeWarningData,
+    )
+}
+
+@Composable
+private fun MevProtectionSection(
+    uiState: SwapConfirmUiState,
+    onToggleMevProtection: (Boolean) -> Unit,
+) {
+    if (!uiState.mevProtectionAvailable) return
+    VSpacer(16.dp)
+    SectionUniversalLawrence {
+        CellUniversal {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(R.drawable.ic_shield_24),
+                contentDescription = null,
+                tint = ComposeAppTheme.colors.jacob,
+            )
+            HSpacer(width = 16.dp)
+            body_leah(text = stringResource(R.string.mev_protection))
+            HFillSpacer(minWidth = 8.dp)
+            HsSwitch(
+                checked = uiState.mevProtectionEnabled,
+                onCheckedChange = onToggleMevProtection,
+            )
+        }
+    }
+}
+
+private data class SwapConfirmActions(
+    val refresh: () -> Unit,
+    val reapprove: () -> Unit,
+    val retryAdapter: () -> Unit,
+    val send: () -> Unit,
+    val toggleMevProtection: (Boolean) -> Unit,
+)
+
+private data class SwapConfirmRuntime(
+    val isSynced: Boolean,
+    val hasAdapterError: Boolean,
+    val sendResult: SendResult?,
+    val inlineFeeWarningData: NetworkFeeWarningData?,
+)
 
 internal fun hasSwapConfirmFeeProblem(
     hasInsufficientFeeBalance: Boolean,

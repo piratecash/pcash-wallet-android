@@ -91,6 +91,9 @@ class LocalStorageManager(
     private val RELAUNCH_BY_SETTING_CHANGE = "relaunch_by_setting_change"
     private val MARKETS_TAB_ENABLED = "markets_tab_enabled"
     private val BALANCE_AUTO_HIDE_ENABLED = "balance_auto_hide_enabled"
+    private val BALANCE_HIDE_ON_FLIP_ENABLED = "balance_hide_on_flip_enabled"
+    private val BALANCE_HIDE_ON_FLIP_INFO_SUPPRESSED = "balance_hide_on_flip_info_suppressed"
+    private val SECURITY_FLIP_FEATURE_SEEN = "security_flip_feature_seen"
     private val TRANSACTION_AUTO_HIDE_ENABLED = "transaction_auto_hide_enabled"
     private val TRANSFER_PASSCODE_ENABLED = "transfer_passcode_enabled"
     private val TRANSACTION_DISPLAY_LEVEL = "transaction_display_level"
@@ -398,6 +401,24 @@ class LocalStorageManager(
         get() = preferences.getBoolean(BALANCE_AUTO_HIDE_ENABLED, false)
         set(value) {
             preferences.edit().putBoolean(BALANCE_AUTO_HIDE_ENABLED, value).commit()
+        }
+
+    override var balanceHideOnFlipEnabled: Boolean
+        get() = preferences.getBoolean(BALANCE_HIDE_ON_FLIP_ENABLED, false)
+        set(value) {
+            preferences.edit { putBoolean(BALANCE_HIDE_ON_FLIP_ENABLED, value) }
+        }
+
+    override var balanceHideOnFlipInfoSuppressed: Boolean
+        get() = preferences.getBoolean(BALANCE_HIDE_ON_FLIP_INFO_SUPPRESSED, false)
+        set(value) {
+            preferences.edit { putBoolean(BALANCE_HIDE_ON_FLIP_INFO_SUPPRESSED, value) }
+        }
+
+    override var securityFlipFeatureSeen: Boolean
+        get() = preferences.getBoolean(SECURITY_FLIP_FEATURE_SEEN, false)
+        set(value) {
+            preferences.edit { putBoolean(SECURITY_FLIP_FEATURE_SEEN, value) }
         }
     override var transactionHideEnabled: Boolean
         get() = preferences.getBoolean(TRANSACTION_AUTO_HIDE_ENABLED, false)

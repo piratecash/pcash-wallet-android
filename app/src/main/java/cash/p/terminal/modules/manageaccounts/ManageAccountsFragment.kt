@@ -256,7 +256,6 @@ private fun AccountRow(
             premiumType = accountViewItem.premiumType,
             modifier = Modifier.padding(start = 8.dp)
         )
-        AccountTypeIcon(accountViewItem)
         AccountMoreButton(accountViewItem, navController)
     }
 }
@@ -276,20 +275,6 @@ private fun AccountSubtitle(accountViewItem: AccountViewItem) {
             maxLines = 1
         )
     }
-}
-
-@Composable
-private fun AccountTypeIcon(accountViewItem: AccountViewItem) {
-    val iconRes = when {
-        accountViewItem.isWatchAccount -> R.drawable.icon_binocule_20
-        accountViewItem.showNfcIcon -> R.drawable.ic_card
-        else -> return
-    }
-    Icon(
-        painter = painterResource(id = iconRes),
-        contentDescription = null,
-        tint = ComposeAppTheme.colors.grey
-    )
 }
 
 @Composable

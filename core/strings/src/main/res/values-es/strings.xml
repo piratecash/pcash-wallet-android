@@ -642,6 +642,9 @@
     <string name="swap_providers_title">Proveedores de intercambio</string>
     <string name="swap_providers_mandatory_toast">Este proveedor no puede desactivarse</string>
     <string name="swap_no_enabled_providers">Sin proveedores activos</string>
+    <string name="swap_estimated_amount_warning">El importe recibido es estimado y puede cambiar.</string>
+    <string name="swap_reapprove_required">El límite aprobado ya no es suficiente. Aprueba el importe actualizado.</string>
+    <string name="swap_reapprove_action">Aprobar límite actualizado</string>
     <string name="swap_no_providers_for_this_amount">Sin proveedores para este importe</string>
 
     <!--Approve-->
@@ -2176,4 +2179,11 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="declined_tokens_skip_all">Omitir todo</string>
     <string name="declined_tokens_select_title">Seleccionar tokens</string>
     <string name="declined_tokens_wallet">Cartera: %s</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Ocultar al voltear</string>
+    <string name="balance_hide_on_flip_description">Gira la pantalla del dispositivo hacia abajo para ocultar y mostrar tu saldo rápidamente.</string>
+    <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
+    <string name="balance_hide_on_flip_info_description">Para ocultar o mostrar tu saldo, simplemente gira la pantalla del dispositivo hacia abajo o desactívalo en los ajustes de seguridad.</string>
+    <string name="balance_hide_on_flip_dont_show_again">No volver a mostrar</string>
+    <string name="badge_new">Nuevo</string>
 </resources>

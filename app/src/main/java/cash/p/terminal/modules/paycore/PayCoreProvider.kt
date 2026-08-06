@@ -8,9 +8,12 @@ import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
+import cash.p.terminal.modules.multiswap.SwapAmountAccuracy
+import cash.p.terminal.modules.multiswap.SwapAmountDirection
 import cash.p.terminal.modules.multiswap.SwapAmountOutOfRange
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.modules.multiswap.providers.IExactOutSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionResult
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionSettings
@@ -47,7 +50,7 @@ class PayCoreProvider(
     private val adapterManager: IAdapterManager,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val dispatcherProvider: DispatcherProvider,
-) : IMultiSwapProvider {
+) : IMultiSwapProvider, IExactOutSwapProvider {
 
     private var swapProviderTransaction: SwapProviderTransaction? = null
 
@@ -55,6 +58,7 @@ class PayCoreProvider(
     override val title = "PayCore"
     override val icon = R.drawable.ic_paycore
     override val mevProtectionAvailable = false
+    override val exactOutAccuracy = SwapAmountAccuracy.Exact
 
     override suspend fun supports(tokenFrom: Token, tokenTo: Token): Boolean {
         if (!featureToggle.isEnabled()) return false
@@ -79,6 +83,36 @@ class PayCoreProvider(
         tokenOut: Token,
         amountIn: BigDecimal,
         settings: Map<String, Any?>
+    ): ISwapQuote = fetchQuote(
+        tokenIn,
+        tokenOut,
+        amountIn,
+        settings,
+        SwapAmountDirection.In,
+    )
+
+    override suspend fun supportsExactOut(tokenIn: Token, tokenOut: Token): Boolean =
+        supports(tokenIn, tokenOut)
+
+    override suspend fun fetchQuoteExactOut(
+        tokenIn: Token,
+        tokenOut: Token,
+        amountOut: BigDecimal,
+        settings: Map<String, Any?>,
+    ): ISwapQuote = fetchQuote(
+        tokenIn,
+        tokenOut,
+        amountOut,
+        settings,
+        SwapAmountDirection.Out,
+    )
+
+    private suspend fun fetchQuote(
+        tokenIn: Token,
+        tokenOut: Token,
+        amount: BigDecimal,
+        settings: Map<String, Any?>,
+        direction: SwapAmountDirection,
     ): ISwapQuote {
         val networkType = resolveNetworkType(tokenIn, tokenOut)
         val ticker = requireTicker(tokenIn, tokenOut)
@@ -88,11 +122,12 @@ class PayCoreProvider(
             throw SwapAmountOutOfRange()
         }
 
-        val amountOut = estimateAmountOut(
+        val (amountIn, amountOut) = estimateAmounts(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
-            amountIn = amountIn,
+            amount = amount,
             rateResponse = rateResponse,
+            direction = direction,
         )
         validateRateLimits(
             tokenIn = tokenIn,
@@ -138,6 +173,38 @@ class PayCoreProvider(
         swapSettings: Map<String, Any?>,
         sendTransactionSettings: SendTransactionSettings?,
         swapQuote: ISwapQuote
+    ): ISwapFinalQuote = fetchFinalQuote(
+        tokenIn,
+        tokenOut,
+        amountIn,
+        swapSettings,
+        swapQuote,
+        SwapAmountDirection.In,
+    )
+
+    override suspend fun fetchFinalQuoteExactOut(
+        tokenIn: Token,
+        tokenOut: Token,
+        amountOut: BigDecimal,
+        swapSettings: Map<String, Any?>,
+        sendTransactionSettings: SendTransactionSettings?,
+        swapQuote: ISwapQuote,
+    ): ISwapFinalQuote = fetchFinalQuote(
+        tokenIn,
+        tokenOut,
+        amountOut,
+        swapSettings,
+        swapQuote,
+        SwapAmountDirection.Out,
+    )
+
+    private suspend fun fetchFinalQuote(
+        tokenIn: Token,
+        tokenOut: Token,
+        amount: BigDecimal,
+        swapSettings: Map<String, Any?>,
+        swapQuote: ISwapQuote,
+        direction: SwapAmountDirection,
     ): ISwapFinalQuote {
         require(isPayout(tokenIn, tokenOut)) {
             "PayCore final quote is only used for Crypto -> RUB flow"
@@ -146,9 +213,18 @@ class PayCoreProvider(
         val payoutCalculation = calculatePayout(
             tokenIn = tokenIn,
             tokenOut = tokenOut,
-            amountIn = amountIn,
+            amount = amount,
             settings = swapSettings,
+            direction = direction,
         )
+        if (direction == SwapAmountDirection.Out) {
+            validatePayCoreExactOutTarget(
+                requestedAmount = amount,
+                amountType = PayCoreAmountType.RUB,
+                amountCrypto = payoutCalculation.amountCrypto,
+                fullAmountRub = payoutCalculation.fullAmountRub,
+            )
+        }
         val payout = createPayout(payoutCalculation, networkType)
 
         val finalAmountIn = payoutCalculation.amountCrypto
@@ -201,6 +277,24 @@ class PayCoreProvider(
         return requireNotNull(usdtToken.toTicker()) {
             "Unsupported PayCore ticker for type: $usdtToken"
         }
+    }
+
+    private fun estimateAmounts(
+        tokenIn: Token,
+        tokenOut: Token,
+        amount: BigDecimal,
+        rateResponse: PayCoreRateResponse,
+        direction: SwapAmountDirection,
+    ): Pair<BigDecimal, BigDecimal> {
+        if (direction == SwapAmountDirection.In) {
+            return amount to estimateAmountOut(tokenIn, tokenOut, amount, rateResponse)
+        }
+        val amountIn = if (PayCoreAssets.isRub(tokenIn)) {
+            amount.multiply(rateResponse.buy).setScale(tokenIn.decimals, RoundingMode.UP)
+        } else {
+            amount.divide(rateResponse.sell, tokenIn.decimals, RoundingMode.UP)
+        }.stripTrailingZeros()
+        return amountIn to amount
     }
 
     private fun estimateAmountOut(
@@ -257,15 +351,20 @@ class PayCoreProvider(
     private suspend fun calculatePayout(
         tokenIn: Token,
         tokenOut: Token,
-        amountIn: BigDecimal,
+        amount: BigDecimal,
         settings: Map<String, Any?>,
+        direction: SwapAmountDirection,
     ): PayCorePayoutCalculationResponse {
         val ticker = requireTicker(tokenIn, tokenOut)
         val networkType = resolveNetworkType(tokenIn, tokenOut)
         val bank = requireSelectedBank(settings, networkType)
         val request = PayCorePayoutCalculationRequest(
-            amount = amountIn,
-            amountType = PayCoreAmountType.CRYPTO,
+            amount = amount,
+            amountType = if (direction == SwapAmountDirection.In) {
+                PayCoreAmountType.CRYPTO
+            } else {
+                PayCoreAmountType.RUB
+            },
             bankId = bank.id,
             ticker = ticker,
         )

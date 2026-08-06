@@ -5,5 +5,6 @@ import java.math.BigDecimal
 class SwapRouteNotFound : Throwable()
 class NoSupportedSwapProvider : Throwable()
 class NoEnabledSwapProvider : Throwable()
+class NoExactOutSwapProvider : Throwable()
 class SwapDepositTooSmall(val minValue: BigDecimal) : Throwable()
 class SwapAmountOutOfRange : Throwable()

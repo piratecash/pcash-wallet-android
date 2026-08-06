@@ -19,7 +19,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -36,6 +35,7 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -73,14 +73,13 @@ fun SendZCashNavHost(
                 prefilledData = prefilledData,
                 addressCheckerControl = addressCheckerControl,
                 onNextClick = onNextClick,
-                onDebugOfflineSignClick = { navController.navigate(DebugOfflineZcashSignPage) },
+                onOfflineSignClick = { navController.navigate(OfflineZcashSignPage) },
             )
         }
         offlineSignFlowRoutes(
             routes = OfflineSignFlowRoutes(
-                signRoute = DebugOfflineZcashSignPage,
-                transferRoute = DebugOfflineZcashTransactionTransferPage,
-                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+                signRoute = OfflineZcashSignPage,
+                transferRoute = OfflineZcashTransactionTransferPage,
             ),
             navController = navController,
             fragmentNavController = fragmentNavController,
@@ -90,9 +89,8 @@ fun SendZCashNavHost(
 }
 
 private const val SendZCashPage = "send_zcash"
-private const val DebugOfflineZcashSignPage = "debug_offline_zcash_sign"
-private const val DebugOfflineZcashTransactionTransferPage = "debug_offline_zcash_transaction_transfer"
-private const val DebugOfflineTransactionTransferFormatArg = "format"
+private const val OfflineZcashSignPage = "offline_zcash_sign"
+private const val OfflineZcashTransactionTransferPage = "offline_zcash_transaction_transfer"
 
 @Composable
 private fun SendZCashScreen(
@@ -103,7 +101,7 @@ private fun SendZCashScreen(
     prefilledData: PrefilledData?,
     addressCheckerControl: AddressCheckerControl,
     onNextClick: (ProceedActionData) -> Unit,
-    onDebugOfflineSignClick: () -> Unit,
+    onOfflineSignClick: () -> Unit,
 ) {
     val wallet = viewModel.wallet
     val uiState = viewModel.uiState
@@ -235,6 +233,12 @@ private fun SendZCashScreen(
                 onRiskAcceptedChange = { viewModel.onRiskAcceptedChange(it) },
             )
 
+            OfflineSignActionCell(
+                supported = viewModel.offlineSignSupported,
+                enabled = proceedEnabled,
+                onClick = onOfflineSignClick,
+            )
+
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -251,17 +255,6 @@ private fun SendZCashScreen(
                 },
                 enabled = proceedEnabled
             )
-
-            if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON && viewModel.offlineSignSupported) {
-                ButtonPrimaryYellow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    title = stringResource(R.string.offline_transaction_sign_title),
-                    onClick = onDebugOfflineSignClick,
-                    enabled = proceedEnabled,
-                )
-            }
         }
     }
 }

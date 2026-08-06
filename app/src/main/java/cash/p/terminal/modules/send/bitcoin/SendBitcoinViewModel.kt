@@ -137,7 +137,7 @@ class SendBitcoinViewModel(
     var customUnspentOutputs: List<UnspentOutputInfo>? = null
         private set
 
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
 
     override var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
@@ -370,6 +370,7 @@ class SendBitcoinViewModel(
     }
 
     fun onClickSend() {
+        sendResult = SendResult.Sending
         viewModelScope.launch {
             send()
         }
@@ -425,7 +426,6 @@ class SendBitcoinViewModel(
         val logger = logger.getScopedUnique()
         logger.info("click")
         try {
-            sendResult = SendResult.Sending
             logger.info("sending tx")
             val request = sendRequest()
             if (isMwebTransaction(request.address)) {

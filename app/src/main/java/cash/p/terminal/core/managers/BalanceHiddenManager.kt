@@ -7,9 +7,12 @@ import io.horizontalsystems.core.BackgroundManagerState
 import io.horizontalsystems.core.DispatcherProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -18,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class BalanceHiddenManager(
     private val localStorage: ILocalStorage,
-    backgroundManager: BackgroundManager,
+    private val backgroundManager: BackgroundManager,
     dispatcherProvider: DispatcherProvider,
 ) : IBalanceHiddenManager {
     override val balanceHidden: Boolean
@@ -32,6 +35,13 @@ class BalanceHiddenManager(
     private val _balanceHiddenFlow = MutableStateFlow(localStorage.balanceHidden)
     override val balanceHiddenFlow = _balanceHiddenFlow.asStateFlow()
     private val scope = CoroutineScope(dispatcherProvider.default)
+
+    // Single-thread scope serializing every unmediated balance-visibility mutation
+    // (background auto-hide + physical flip) through one confined thread.
+    private val mutationScope = CoroutineScope(dispatcherProvider.default.limitedParallelism(1))
+
+    private val _flipHiddenResult = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+    val flipHiddenResult: SharedFlow<Boolean> = _flipHiddenResult.asSharedFlow()
 
     // Cached flows to prevent memory leaks from creating new flows on each call
     private val walletFlowCache = mutableMapOf<String, StateFlow<Boolean>>()
@@ -55,7 +65,7 @@ class BalanceHiddenManager(
     ) { }
 
     init {
-        scope.launch {
+        mutationScope.launch {
             backgroundManager.stateFlow.collect { state ->
                 if (state == BackgroundManagerState.EnterBackground && balanceAutoHide) {
                     setBalanceHidden(true)
@@ -70,6 +80,21 @@ class BalanceHiddenManager(
 
     override fun toggleBalanceHidden() {
         setBalanceHidden(!localStorage.balanceHidden)
+    }
+
+    /**
+     * Serialized flip toggle. Runs on [mutationScope] so it never interleaves with background
+     * auto-hide, and drops a late event delivered after the app has already left the foreground
+     * (synchronous [BackgroundManager.inForeground] recheck), so a flip cannot unhide the balance
+     * in the background. Publishes the post-toggle state for the info-sheet decision.
+     */
+    fun toggleBalanceHiddenOnFlip() {
+        mutationScope.launch {
+            if (!backgroundManager.inForeground) return@launch
+            val newHidden = !localStorage.balanceHidden
+            setBalanceHidden(newHidden)
+            _flipHiddenResult.emit(newHidden)
+        }
     }
 
     override fun setBalanceAutoHidden(enabled: Boolean) {

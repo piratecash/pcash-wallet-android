@@ -8,8 +8,9 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.AmlStatusManager
-import cash.p.terminal.core.managers.PoisonAddressManager
+import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
+import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
 import cash.p.terminal.core.managers.TransactionHiddenManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
@@ -79,6 +80,7 @@ class TransactionsViewModel(
 ) : ViewModelUiState<TransactionsUiState>(), TransactionSearchController.Host {
 
     private val poisonAddressManager: PoisonAddressManager = getKoinInstance()
+    private val addressLabelManager: AddressLabelManager = getKoinInstance()
 
     var tmpItemToShow: TransactionItem? = null
 
@@ -289,14 +291,11 @@ class TransactionsViewModel(
         }
 
         viewModelScope.launch {
-            contactsRepository.contactsFlow.collect {
-                transactionViewItem2Factory.clearCache()
-                reprocessTrigger.tryEmit(Unit)
-            }
-        }
-
-        viewModelScope.launch {
-            poisonAddressManager.poisonDbChangedFlow.collect {
+            addressMetadataChangesFlow(
+                contactsFlow = contactsRepository.contactsFlow,
+                poisonAddressesChangedFlow = poisonAddressManager.poisonDbChangedFlow,
+                labelsChangedFlow = addressLabelManager.labelsChangedFlow,
+            ).collect {
                 transactionViewItem2Factory.clearCache()
                 reprocessTrigger.tryEmit(Unit)
             }

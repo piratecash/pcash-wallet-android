@@ -90,7 +90,7 @@ class SendZCashViewModel(
 
     override var coinRate by mutableStateOf(xRateService.getRate(wallet.coin.uid))
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     private val logger = AppLogger("Send-${wallet.coin.code}")
@@ -211,6 +211,7 @@ class SendZCashViewModel(
     }
 
     fun onClickSend() {
+        sendResult = SendResult.Sending
         viewModelScope.launch {
             send()
         }
@@ -260,7 +261,6 @@ class SendZCashViewModel(
         logger.info("click send button")
 
         try {
-            sendResult = SendResult.Sending
             // 1. Create pending transaction draft BEFORE sending
             val sdkBalance = adapterManager.getZcashSdkBalance(wallet, amountState.availableBalance)
             val amount = decimalAmount

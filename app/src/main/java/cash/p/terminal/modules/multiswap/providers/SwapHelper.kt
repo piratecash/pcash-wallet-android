@@ -1,6 +1,8 @@
 package cash.p.terminal.modules.multiswap.providers
 
 import cash.p.terminal.core.App
+import cash.p.terminal.R
+import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.adapters.BitcoinAdapter
 import cash.p.terminal.core.adapters.BitcoinCashAdapter
 import cash.p.terminal.core.adapters.LitecoinAdapter
@@ -12,6 +14,7 @@ import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.modules.multiswap.action.ActionApprove
 import cash.p.terminal.modules.multiswap.action.ActionRevoke
 import cash.p.terminal.modules.multiswap.action.ISwapProviderAction
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.NoActiveAccount
 import cash.p.terminal.wallet.Token
@@ -140,4 +143,21 @@ object SwapHelper {
                 && tokenType.address.equals("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", ignoreCase = true)
     }
 
+}
+
+class InsufficientAllowanceCaution : HSCaution(
+    TranslatableString.ResString(R.string.swap_reapprove_required),
+    Type.Error,
+)
+
+internal fun requiredInput(amountIn: BigDecimal, amountInMax: BigDecimal?): BigDecimal =
+    amountInMax ?: amountIn
+
+internal fun insufficientAllowanceCaution(
+    allowance: BigDecimal?,
+    requiredInput: BigDecimal,
+): HSCaution? = if (allowance != null && allowance < requiredInput) {
+    InsufficientAllowanceCaution()
+} else {
+    null
 }

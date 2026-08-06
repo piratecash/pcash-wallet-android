@@ -2,6 +2,7 @@ package cash.p.terminal.core.storage.typeconverter
 
 import androidx.room.TypeConverter
 import cash.p.terminal.core.App
+import cash.p.terminal.entities.AddressLabelSource
 import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.wallet.entities.HardwarePublicKeyType
 import cash.p.terminal.wallet.entities.SecretList
@@ -16,6 +17,16 @@ import java.util.Date
 class DatabaseConverters {
 
     private val gson by lazy { Gson() }
+
+    @TypeConverter
+    fun fromAddressLabelSource(value: String): AddressLabelSource {
+        return AddressLabelSource.valueOf(value)
+    }
+
+    @TypeConverter
+    fun toAddressLabelSource(source: AddressLabelSource): String {
+        return source.name
+    }
 
     // TokenType
     @TypeConverter

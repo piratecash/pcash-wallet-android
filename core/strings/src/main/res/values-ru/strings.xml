@@ -655,6 +655,9 @@
     <string name="swap_providers_title">Провайдеры обмена</string>
     <string name="swap_providers_mandatory_toast">Этот провайдер нельзя отключить</string>
     <string name="swap_no_enabled_providers">Нет включённых провайдеров</string>
+    <string name="swap_estimated_amount_warning">Сумма получения рассчитана приблизительно и может измениться.</string>
+    <string name="swap_reapprove_required">Одобренного лимита больше недостаточно. Одобрите обновлённую сумму.</string>
+    <string name="swap_reapprove_action">Одобрить лимит повторно</string>
     <string name="swap_no_providers_for_this_amount">Нет провайдеров для этой суммы</string>
 
     <!-- Swap Confirmation -->
@@ -2363,4 +2366,11 @@
     <string name="declined_tokens_skip_all">Пропустить все</string>
     <string name="declined_tokens_select_title">Выберите токены</string>
     <string name="declined_tokens_wallet">Кошелёк: %s</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Скрытие переворотом</string>
+    <string name="balance_hide_on_flip_description">Переверните экран устройства вниз, чтобы быстро спрятать и отобразить баланс.</string>
+    <string name="balance_hide_on_flip_info_title">Баланс скрыт</string>
+    <string name="balance_hide_on_flip_info_description">Чтобы скрыть или показать свой баланс, просто переверните экран устройства вниз или выключите его в настройках безопасности.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Больше не показывать</string>
+    <string name="badge_new">Новое</string>
 </resources>

@@ -3,6 +3,7 @@ package cash.p.terminal.modules.paycore.payment
 import cash.p.terminal.R
 import cash.p.terminal.entities.SwapProviderTransaction
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
+import cash.p.terminal.modules.multiswap.SwapAmountDirection
 import cash.p.terminal.modules.paycore.PayCoreApiService
 import cash.p.terminal.modules.paycore.PayCoreAmountType
 import cash.p.terminal.modules.paycore.PayCorePaymentCalculationRequest
@@ -414,6 +415,81 @@ class PayCorePaymentViewModelTest {
         assertEquals(PayCoreTicker.USDT, requestSlot.captured.ticker)
     }
 
+    @Test
+    fun init_exactOut_requestsTargetCryptoAmount() = runTest(dispatcher) {
+        val requestSlot = slot<PayCorePaymentCalculationRequest>()
+        coEvery {
+            apiService.calculatePayment(capture(requestSlot), any())
+        } returns PayCorePaymentCalculationResponse(
+            amountCrypto = BigDecimal("12.5"),
+            fullAmountRub = BigDecimal("1000"),
+            ticker = "USDT",
+            uuid = "calculation-uuid",
+            expiresAt = "2026-06-05T00:00:30Z",
+        )
+
+        createViewModel(
+            direction = SwapAmountDirection.Out,
+            requestedAmountOut = BigDecimal("12.5"),
+        )
+        advanceUntilIdle()
+
+        assertEquals(BigDecimal("12.5"), requestSlot.captured.amount)
+        assertEquals(PayCoreAmountType.CRYPTO, requestSlot.captured.amountType)
+    }
+
+    @Test
+    fun onConfirm_expiredExactOutPayment_recalculatesTargetCryptoAmount() = runTest(dispatcher) {
+        givenPaymentCreateResponse(
+            paymentUrl = "https://pirate.paycore.pw/pay/expired",
+            uuid = "expired-payment",
+            expiresAt = pastExpiresAt(),
+        )
+        val targetAmount = BigDecimal("20")
+        val viewModel = createViewModel(
+            direction = SwapAmountDirection.Out,
+            requestedAmountOut = targetAmount,
+        )
+        advanceUntilIdle()
+
+        viewModel.onConfirm()
+        advanceUntilIdle()
+        viewModel.onWebViewClosed()
+        viewModel.onConfirm()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) {
+            apiService.calculatePayment(
+                match {
+                    it.amount.compareTo(targetAmount) == 0 &&
+                        it.amountType == PayCoreAmountType.CRYPTO
+                },
+                PayCoreTicker.USDT,
+            )
+        }
+    }
+
+    @Test
+    fun init_exactOutTargetMismatch_doesNotExposeCalculation() = runTest(dispatcher) {
+        coEvery { apiService.calculatePayment(any(), any()) } returns PayCorePaymentCalculationResponse(
+            amountCrypto = BigDecimal("12.4"),
+            fullAmountRub = BigDecimal("1000"),
+            ticker = "USDT",
+            uuid = "calculation-uuid",
+            expiresAt = "2026-06-05T00:00:30Z",
+        )
+
+        val viewModel = createViewModel(
+            direction = SwapAmountDirection.Out,
+            requestedAmountOut = BigDecimal("12.5"),
+        )
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.calculationUuid)
+        assertEquals(Translator.getString(R.string.paycore_generic_error), viewModel.uiState.error)
+        coVerify(exactly = 0) { apiService.createPayment(any(), any()) }
+    }
+
     private fun givenActiveAccount(id: String = "account-id") {
         val account = mockk<Account>()
         every { account.id } returns id
@@ -444,7 +520,10 @@ class PayCorePaymentViewModelTest {
         return Instant.now().minusSeconds(1).toString()
     }
 
-    private fun createViewModel() = PayCorePaymentViewModel(
+    private fun createViewModel(
+        direction: SwapAmountDirection = SwapAmountDirection.In,
+        requestedAmountOut: BigDecimal? = null,
+    ) = PayCorePaymentViewModel(
         apiService = apiService,
         walletApprovalService = walletApprovalService,
         storage = storage,
@@ -457,7 +536,9 @@ class PayCorePaymentViewModelTest {
             tokenOutUid = "tether",
             blockchainTypeIn = "unsupported",
             blockchainTypeOut = "tron",
-            addressOut = "TUserUsdtAddress"
+            addressOut = "TUserUsdtAddress",
+            direction = direction,
+            requestedAmountOut = requestedAmountOut,
         )
     )
 }

@@ -19,7 +19,9 @@ import cash.p.terminal.core.managers.AppHeadersProviderImpl
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
+import cash.p.terminal.core.managers.BalanceHideOnFlipManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.DeviceFlipDetector
 import cash.p.terminal.modules.send.offline.OfflineBroadcastTokenResolver
 import android.content.Context
 import android.net.ConnectivityManager as AndroidConnectivityManager
@@ -43,6 +45,8 @@ import cash.p.terminal.core.managers.DefaultUserManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
 import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.AddressLabelManager
+import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.managers.EvmSignerFactory
 import cash.p.terminal.core.managers.EvmSyncSourceManager
 import cash.p.terminal.core.managers.GetTonAddressUseCaseImpl
@@ -171,6 +175,7 @@ import io.horizontalsystems.core.security.EncryptionManager
 import io.horizontalsystems.core.security.KeyStoreManager
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
@@ -258,6 +263,8 @@ val managerModule = module {
     singleOf(::RestoreSettingsManager)
     singleOf(::TimePasswordProvider)
     singleOf(::SeedPhraseQrCrypto)
+    singleOf(::AddressLabelManager)
+    singleOf(::AddressMetadataManager)
     singleOf(::EvmLabelManager)
     factoryOf(::SolanaWalletManager)
     singleOf(::RecentAddressManager)
@@ -316,6 +323,8 @@ val managerModule = module {
     singleOf(::TransactionAdapterManager)
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
+    singleOf(::DeviceFlipDetector)
+    singleOf(::BalanceHideOnFlipManager) { createdAtStart() }
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class
     singleOf(::TorManager) bind ITorManager::class
     singleOf(::PredefinedBlockchainSettingsProvider)
