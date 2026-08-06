@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cash.p.terminal.R
+import cash.p.terminal.core.orHide
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningData
 import cash.p.terminal.ui.compose.components.CardsSwapInfo
@@ -73,6 +74,7 @@ fun FeeInfoSection(
             borderTop = feeCoinBalance != null,
             loading = feeLoading,
             title = feeTitle ?: stringResource(R.string.fee),
+            balanceHidden = balanceHidden,
         )
     }
 
@@ -99,7 +101,7 @@ private fun BalanceText(
     isError: Boolean,
     onClick: () -> Unit,
 ) {
-    val displayText = if (!balanceHidden) text else "*****"
+    val displayText = text.orHide(balanceHidden)
     val clickModifier = Modifier.clickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null,
