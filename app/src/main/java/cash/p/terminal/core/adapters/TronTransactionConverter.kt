@@ -22,8 +22,11 @@ import io.horizontalsystems.tronkit.decoration.trc20.OutgoingTrc20Decoration
 import io.horizontalsystems.tronkit.decoration.trc20.Trc20TransferEvent
 import io.horizontalsystems.tronkit.hexStringToByteArrayOrNull
 import io.horizontalsystems.tronkit.models.Address
+import io.horizontalsystems.tronkit.models.Contract
 import io.horizontalsystems.tronkit.models.FullTransaction
 import io.horizontalsystems.tronkit.models.InternalTransaction
+import io.horizontalsystems.tronkit.models.Transaction
+import io.horizontalsystems.tronkit.models.TransferAssetContract
 import io.horizontalsystems.tronkit.models.TransferContract
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -42,46 +45,8 @@ class TronTransactionConverter(
         val transaction = fullTransaction.transaction
 
         val transactionRecord = when (val decoration = fullTransaction.decoration) {
-            is NativeTransactionDecoration -> {
-                when (val contract = decoration.contract) {
-                    is TransferContract -> {
-                        if (contract.ownerAddress != tronKit.address) {
-                            val transactionValue = baseCoinValue(contract.amount, false)
-                            val spam = SpamManager.isSpam(
-                                listOf(
-                                    TransferEvent(
-                                        contract.ownerAddress.base58,
-                                        null,
-                                        transactionValue
-                                    )
-                                )
-                            )
-                            TronTransactionRecord(
-                                transaction = transaction,
-                                token = baseToken,
-                                source = source,
-                                from = contract.ownerAddress.base58,
-                                to = contract.toAddress.base58,
-                                value = baseCoinValue(contract.amount, false),
-                                spam = spam,
-                                transactionRecordType = TransactionRecordType.TRON_INCOMING
-                            )
-                        } else {
-                            TronTransactionRecord(
-                                transaction = transaction,
-                                token = baseToken,
-                                source = source,
-                                to = contract.toAddress.base58,
-                                value = baseCoinValue(contract.amount, true),
-                                sentToSelf = contract.toAddress == tronKit.address,
-                                transactionRecordType = TransactionRecordType.TRON_OUTGOING
-                            )
-                        }
-                    }
-
-                    else -> null
-                }
-            }
+            is NativeTransactionDecoration ->
+                nativeTransferRecord(transaction, decoration.contract)
 
             is OutgoingTrc20Decoration -> {
                 TronTransactionRecord(
@@ -169,6 +134,83 @@ class TronTransactionConverter(
             transactionRecordType = TransactionRecordType.TRON
         )
     }
+
+    private fun nativeTransferRecord(
+        transaction: Transaction,
+        contract: Contract,
+    ): TronTransactionRecord? = when (contract) {
+        is TransferContract -> transferRecord(
+            transaction = transaction,
+            ownerAddress = contract.ownerAddress,
+            recipientAddress = contract.toAddress,
+            value = { negative -> baseCoinValue(contract.amount, negative) },
+            detectIncomingSpam = true,
+        )
+
+        is TransferAssetContract -> transferRecord(
+            transaction = transaction,
+            ownerAddress = contract.ownerAddress,
+            recipientAddress = contract.toAddress,
+            value = { negative ->
+                val amount = if (negative) contract.amount.negate() else contract.amount
+                TransactionValue.RawValue(amount, TokenQuery.trc10(contract.assetName))
+            },
+            detectIncomingSpam = false,
+        )
+
+        else -> null
+    }
+
+    private inline fun transferRecord(
+        transaction: Transaction,
+        ownerAddress: Address,
+        recipientAddress: Address,
+        value: (negative: Boolean) -> TransactionValue,
+        detectIncomingSpam: Boolean,
+    ) = if (ownerAddress == tronKit.address) {
+        outgoingTransferRecord(transaction, recipientAddress, value(true))
+    } else {
+        incomingTransferRecord(
+            transaction,
+            ownerAddress,
+            recipientAddress,
+            value(false),
+            detectIncomingSpam,
+        )
+    }
+
+    private fun incomingTransferRecord(
+        transaction: Transaction,
+        ownerAddress: Address,
+        recipientAddress: Address,
+        value: TransactionValue,
+        detectSpam: Boolean,
+    ) = TronTransactionRecord(
+        transaction = transaction,
+        token = baseToken,
+        source = source,
+        from = ownerAddress.base58,
+        to = recipientAddress.base58,
+        value = value,
+        spam = detectSpam && SpamManager.isSpam(
+            listOf(TransferEvent(ownerAddress.base58, null, value))
+        ),
+        transactionRecordType = TransactionRecordType.TRON_INCOMING,
+    )
+
+    private fun outgoingTransferRecord(
+        transaction: Transaction,
+        recipientAddress: Address,
+        value: TransactionValue,
+    ) = TronTransactionRecord(
+        transaction = transaction,
+        token = baseToken,
+        source = source,
+        to = recipientAddress.base58,
+        value = value,
+        sentToSelf = recipientAddress == tronKit.address,
+        transactionRecordType = TransactionRecordType.TRON_OUTGOING,
+    )
 
     private fun convertAmount(amount: BigInteger, decimal: Int, negative: Boolean): BigDecimal {
         var significandAmount = amount.toBigDecimal().movePointLeft(decimal).stripTrailingZeros()

@@ -81,6 +81,7 @@ class ConfiguredTokenInfoViewModel(
                 else -> null
             }
 
+            is TokenType.Trc10 -> null
             is TokenType.Unsupported -> null
         }
 
