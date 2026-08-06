@@ -652,6 +652,9 @@
     <string name="swap_providers_title">موفرو التبادل</string>
     <string name="swap_providers_mandatory_toast">لا يمكن تعطيل هذا الموفر</string>
     <string name="swap_no_enabled_providers">لا يوجد موفرون مفعَّلون</string>
+    <string name="swap_estimated_amount_warning">المبلغ المستلم تقديري وقد يتغير.</string>
+    <string name="swap_reapprove_required">لم يعد الحد المعتمد كافيًا. اعتمد المبلغ المحدّث.</string>
+    <string name="swap_reapprove_action">اعتماد الحد المحدّث</string>
     <string name="swap_no_providers_for_this_amount">لا يوجد مزودون لهذا المبلغ</string>
     <!-- Swap Confirmation -->
     <!--Approve-->
@@ -2200,4 +2203,11 @@
     <string name="transactions_migrate_to_ironwood">إلى Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">مبلغ مرئي للعامة</string>
     <string name="zcash_migration_publicly_visible_description">يتطلب نقل الأموال بين التجمّعات أن يكون المبلغ المُرحَّل مرئيًا للعامة على البلوكشين. يبقى المُرسِل والمُستلِم وعناوينك خاصة.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">الإخفاء بالقلب</string>
+    <string name="balance_hide_on_flip_description">اقلب شاشة الجهاز إلى الأسفل لإخفاء رصيدك وإظهاره بسرعة.</string>
+    <string name="balance_hide_on_flip_info_title">تم إخفاء الرصيد</string>
+    <string name="balance_hide_on_flip_info_description">لإخفاء رصيدك أو إظهاره، ما عليك سوى قلب شاشة الجهاز إلى الأسفل أو إيقافه من إعدادات الأمان.</string>
+    <string name="balance_hide_on_flip_dont_show_again">عدم الإظهار مرة أخرى</string>
+    <string name="badge_new">جديد</string>
 </resources>

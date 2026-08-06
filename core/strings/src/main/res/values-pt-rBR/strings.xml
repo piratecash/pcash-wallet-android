@@ -653,6 +653,9 @@
     <string name="swap_providers_title">Provedores de swap</string>
     <string name="swap_providers_mandatory_toast">Este provedor não pode ser desativado</string>
     <string name="swap_no_enabled_providers">Nenhum provedor ativo</string>
+    <string name="swap_estimated_amount_warning">O valor recebido é estimado e pode mudar.</string>
+    <string name="swap_reapprove_required">O limite aprovado não é mais suficiente. Aprove o valor atualizado.</string>
+    <string name="swap_reapprove_action">Aprovar limite atualizado</string>
     <string name="swap_no_providers_for_this_amount">Sem provedores para este valor</string>
     <!--Approve-->
     <string name="Approve_RevokeAndApproveInfo">Você pode trocar %s, ou você precisa revogar e aprovar o novo valor</string>
@@ -2177,4 +2180,11 @@ O aplicativo permite que você crie um backup com uma senha simples para sua con
     <string name="transactions_migrate_to_ironwood">para Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Quantidade visível publicamente</string>
     <string name="zcash_migration_publicly_visible_description">Mover fundos entre pools requer que o valor migrado seja visível publicamente na blockchain. O remetente, destinatário e seus endereços permanecem privados.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Ocultar ao virar</string>
+    <string name="balance_hide_on_flip_description">Vire a tela do dispositivo para baixo para ocultar e mostrar rapidamente seu saldo.</string>
+    <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
+    <string name="balance_hide_on_flip_info_description">Para ocultar ou mostrar seu saldo, basta virar a tela do dispositivo para baixo ou desativá-lo nas configurações de segurança.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Não mostrar novamente</string>
+    <string name="badge_new">Novo</string>
 </resources>

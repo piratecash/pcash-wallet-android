@@ -653,6 +653,9 @@
     <string name="swap_providers_title">ارائه‌دهندگان سواپ</string>
     <string name="swap_providers_mandatory_toast">این ارائه‌دهنده را نمی‌توان غیرفعال کرد</string>
     <string name="swap_no_enabled_providers">هیچ ارائه‌دهنده فعالی وجود ندارد</string>
+    <string name="swap_estimated_amount_warning">مبلغ دریافتی تخمینی است و ممکن است تغییر کند.</string>
+    <string name="swap_reapprove_required">سقف تأییدشده دیگر کافی نیست. مبلغ به‌روزشده را تأیید کنید.</string>
+    <string name="swap_reapprove_action">تأیید سقف به‌روزشده</string>
     <string name="swap_no_providers_for_this_amount">هیچ ارائه‌دهنده‌ای برای این مبلغ وجود ندارد</string>
 
     <!--Approve-->
@@ -2181,4 +2184,11 @@
     <string name="transactions_migrate_to_ironwood">به Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">مبلغ قابل مشاهده عمومی</string>
     <string name="zcash_migration_publicly_visible_description">انتقال وجوه بین استخرها نیاز دارد که مبلغ منتقل‌شده بر روی بلاکچین به صورت عمومی قابل مشاهده باشد. فرستنده، گیرنده و آدرس‌های شما خصوصی باقی می‌مانند.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">پنهان‌سازی با برگرداندن</string>
+    <string name="balance_hide_on_flip_description">برای پنهان و نمایش سریع موجودی، صفحه‌نمایش دستگاه را رو به پایین بچرخانید.</string>
+    <string name="balance_hide_on_flip_info_title">موجودی پنهان شد</string>
+    <string name="balance_hide_on_flip_info_description">برای پنهان یا نمایش موجودی خود، کافی است صفحه‌نمایش دستگاه را رو به پایین بچرخانید یا آن را در تنظیمات امنیتی خاموش کنید.</string>
+    <string name="balance_hide_on_flip_dont_show_again">دیگر نمایش داده نشود</string>
+    <string name="badge_new">جدید</string>
 </resources>

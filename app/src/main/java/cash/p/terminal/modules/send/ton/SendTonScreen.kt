@@ -21,7 +21,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -39,6 +38,7 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -94,7 +94,7 @@ fun SendTonNavHost(
                     offlineSignSupported = viewModel.offlineSignSupported,
                 ),
                 callbacks = SendTonScreenCallbacks(
-                    onDebugOfflineSignClick = { navController.navigate(DebugOfflineTonSignPage) },
+                    onOfflineSignClick = { navController.navigate(OfflineTonSignPage) },
                     onNextClick = onNextClick,
                     onEnterAddress = viewModel::onEnterAddress,
                     onEnterAmount = viewModel::onEnterAmount,
@@ -107,9 +107,8 @@ fun SendTonNavHost(
         }
         offlineSignFlowRoutes(
             routes = OfflineSignFlowRoutes(
-                signRoute = DebugOfflineTonSignPage,
-                transferRoute = DebugOfflineTonTransactionTransferPage,
-                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+                signRoute = OfflineTonSignPage,
+                transferRoute = OfflineTonTransactionTransferPage,
             ),
             navController = navController,
             fragmentNavController = fragmentNavController,
@@ -119,9 +118,8 @@ fun SendTonNavHost(
 }
 
 private const val SendTonPage = "send_ton"
-private const val DebugOfflineTonSignPage = "debug_offline_ton_sign"
-private const val DebugOfflineTonTransactionTransferPage = "debug_offline_ton_transaction_transfer"
-private const val DebugOfflineTransactionTransferFormatArg = "format"
+private const val OfflineTonSignPage = "offline_ton_sign"
+private const val OfflineTonTransactionTransferPage = "offline_ton_transaction_transfer"
 
 @Composable
 private fun SendTonScreen(
@@ -235,7 +233,7 @@ private data class SendTonScreenState(
 )
 
 private data class SendTonScreenCallbacks(
-    val onDebugOfflineSignClick: () -> Unit,
+    val onOfflineSignClick: () -> Unit,
     val onNextClick: (ProceedActionData) -> Unit,
     val onEnterAddress: (Address?) -> Unit,
     val onEnterAmount: (BigDecimal?) -> Unit,
@@ -367,6 +365,12 @@ private fun TonProceedButtons(
     callbacks: SendTonScreenCallbacks,
 ) {
     Column {
+        OfflineSignActionCell(
+            supported = state.offlineSignSupported,
+            enabled = state.uiState.canBeSend,
+            onClick = callbacks.onOfflineSignClick,
+        )
+
         ButtonPrimaryYellow(
             modifier = Modifier
                 .fillMaxWidth()
@@ -375,17 +379,6 @@ private fun TonProceedButtons(
             onClick = { callbacks.onNextClick(state.uiState.proceedActionData(state.wallet)) },
             enabled = state.uiState.canBeSend
         )
-
-        if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
-            ButtonPrimaryYellow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                title = stringResource(R.string.offline_transaction_sign_title),
-                onClick = callbacks.onDebugOfflineSignClick,
-                enabled = state.offlineSignSupported && state.uiState.canBeSend,
-            )
-        }
     }
 }
 

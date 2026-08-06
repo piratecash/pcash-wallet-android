@@ -425,12 +425,13 @@ fun RowUniversal(
     verticalPadding: Dp = 12.dp,
     verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
     onClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
     minHeight: Dp = 24.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     val clickableModifier = when (onClick) {
         null -> Modifier
-        else -> Modifier.clickable {
+        else -> Modifier.clickable(enabled = enabled) {
             onClick.invoke()
         }
     }

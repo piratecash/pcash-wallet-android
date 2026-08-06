@@ -1,5 +1,6 @@
 package cash.p.terminal.modules.paycore
 
+import cash.p.terminal.core.ISendEthereumAdapter
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
@@ -41,6 +42,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
+import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PayCoreProviderTest {
@@ -110,6 +112,29 @@ class PayCoreProviderTest {
     fun supports_usdtToRub_returnsTrue() = runTest {
         val provider = createProvider()
         assertTrue(provider.supports(usdtToken, rubToken))
+    }
+
+    @Test
+    fun supportsExactOut_supportedPairs_returnsTrue() = runTest {
+        val provider = createProvider()
+
+        assertTrue(provider.supportsExactOut(rubToken, usdtToken))
+        assertTrue(provider.supportsExactOut(usdtToken, rubToken))
+    }
+
+    @Test
+    fun supportsExactOut_unsupportedPair_returnsFalse() = runTest {
+        val provider = createProvider()
+
+        assertFalse(provider.supportsExactOut(usdtToken, usdtToken))
+    }
+
+    @Test
+    fun supportsExactOut_featureDisabled_returnsFalse() = runTest {
+        every { featureToggle.isEnabled() } returns false
+
+        val provider = createProvider()
+        assertFalse(provider.supportsExactOut(usdtToken, rubToken))
     }
 
     @Test
@@ -218,6 +243,46 @@ class PayCoreProviderTest {
     }
 
     @Test
+    fun fetchQuoteExactOut_rubToUsdt_calculatesRequiredRub() = runTest {
+        every { walletUseCase.getWallet(any<Token>()) } returns mockk<Wallet>()
+        every { secureStorage.getVerificationStatus() } returns VerificationStatus.VERIFIED
+        coEvery { apiService.getRate(any(), any()) } returns rateResponse(
+            buy = BigDecimal("80"),
+            sell = BigDecimal("70"),
+        )
+
+        val quote = createProvider().fetchQuoteExactOut(
+            rubToken,
+            usdtToken,
+            BigDecimal("2"),
+            emptyMap(),
+        )
+
+        assertEquals(0, quote.amountIn.compareTo(BigDecimal("160")))
+        assertEquals(0, quote.amountOut.compareTo(BigDecimal("2")))
+    }
+
+    @Test
+    fun fetchQuoteExactOut_usdtToRub_calculatesRequiredUsdt() = runTest {
+        every { walletUseCase.getWallet(any<Token>()) } returns mockk<Wallet>()
+        every { secureStorage.getVerificationStatus() } returns VerificationStatus.VERIFIED
+        coEvery { apiService.getRate(any(), any()) } returns rateResponse(
+            buy = BigDecimal("80"),
+            sell = BigDecimal("70"),
+        )
+
+        val quote = createProvider().fetchQuoteExactOut(
+            usdtToken,
+            rubToken,
+            BigDecimal("140"),
+            selectedBankSettings,
+        )
+
+        assertEquals(0, quote.amountIn.compareTo(BigDecimal("2")))
+        assertEquals(0, quote.amountOut.compareTo(BigDecimal("140")))
+    }
+
+    @Test
     fun fetchQuote_rateHasWithdrawFee_usesWithdrawFeeAsServiceFee() = runTest {
         every { walletUseCase.getWallet(any<Token>()) } returns mockk<Wallet>()
         every { secureStorage.getVerificationStatus() } returns VerificationStatus.VERIFIED
@@ -253,6 +318,58 @@ class PayCoreProviderTest {
         assertEquals("payout-uuid", finalQuote.swapProviderTransaction?.transactionId)
         assertEquals(BigDecimal.ONE, finalQuote.amountIn)
         assertEquals(BigDecimal("100"), finalQuote.amountOut)
+    }
+
+    @Test
+    fun fetchFinalQuoteExactOut_payoutRequestsTargetRubAmount() = runTest {
+        coEvery { walletUseCase.getReceiveAddress(any()) } returns "0xMyAddr"
+        val adapter = mockk<ISendEthereumAdapter> {
+            every { getTransactionData(any(), any()) } returns mockk()
+        }
+        every { adapterManager.getAdapterForToken<ISendEthereumAdapter>(any()) } returns adapter
+
+        createProvider().fetchFinalQuoteExactOut(
+            tokenIn = usdtToken,
+            tokenOut = rubToken,
+            amountOut = BigDecimal("100"),
+            swapSettings = selectedBankSettings,
+            sendTransactionSettings = null,
+            swapQuote = payCoreQuote(serviceFee = BigDecimal("2")),
+        )
+
+        coVerify(exactly = 1) {
+            apiService.calculatePayout(
+                match {
+                    it.amount == BigDecimal("100") &&
+                        it.amountType == PayCoreAmountType.RUB
+                },
+                PayCoreTicker.USDT_ERC20,
+            )
+        }
+    }
+
+    @Test
+    fun fetchFinalQuoteExactOut_targetMismatch_doesNotCreatePayout() = runTest {
+        coEvery { apiService.calculatePayout(any(), any()) } returns PayCorePayoutCalculationResponse(
+            amountCrypto = BigDecimal.ONE,
+            fullAmountRub = BigDecimal("99"),
+            ticker = "USDT_ERC20",
+            uuid = "calculation-uuid",
+            expiresAt = "2026-06-05T00:00:00Z",
+        )
+
+        assertFailsWith<IllegalStateException> {
+            createProvider().fetchFinalQuoteExactOut(
+                tokenIn = usdtToken,
+                tokenOut = rubToken,
+                amountOut = BigDecimal("100"),
+                swapSettings = selectedBankSettings,
+                sendTransactionSettings = null,
+                swapQuote = payCoreQuote(serviceFee = BigDecimal("2")),
+            )
+        }
+
+        coVerify(exactly = 0) { apiService.createPayout(any(), any()) }
     }
 
     @Test
@@ -364,10 +481,10 @@ class PayCoreProviderTest {
     private suspend fun prepareFinalQuote(provider: PayCoreProvider): ISwapFinalQuote {
         coEvery { walletUseCase.getReceiveAddress(any()) } returns "0xMyAddr"
 
-        val adapter = mockk<cash.p.terminal.core.ISendEthereumAdapter> {
+        val adapter = mockk<ISendEthereumAdapter> {
             every { getTransactionData(any(), any()) } returns mockk()
         }
-        every { adapterManager.getAdapterForToken<cash.p.terminal.core.ISendEthereumAdapter>(any()) } returns adapter
+        every { adapterManager.getAdapterForToken<ISendEthereumAdapter>(any()) } returns adapter
 
         return provider.fetchFinalQuote(
             usdtToken,

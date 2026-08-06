@@ -19,7 +19,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.modules.address.AddressParserModule
 import cash.p.terminal.modules.address.AddressParserViewModel
@@ -35,6 +34,7 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -76,15 +76,14 @@ internal fun SendEvmNavHost(
                 addressCheckerControl = addressCheckerControl,
                 actions = SendEvmScreenActions(
                     onNextClick = onNextClick,
-                    onDebugOfflineSignClick = { navController.navigate(DebugOfflineEvmSignPage) },
+                    onOfflineSignClick = { navController.navigate(OfflineEvmSignPage) },
                 ),
             )
         }
         offlineSignFlowRoutes(
             routes = OfflineSignFlowRoutes(
-                signRoute = DebugOfflineEvmSignPage,
-                transferRoute = DebugOfflineEvmTransactionTransferPage,
-                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+                signRoute = OfflineEvmSignPage,
+                transferRoute = OfflineEvmTransactionTransferPage,
             ),
             navController = navController,
             fragmentNavController = fragmentNavController,
@@ -94,13 +93,12 @@ internal fun SendEvmNavHost(
 }
 
 private const val SendEvmPage = "send_evm"
-private const val DebugOfflineEvmSignPage = "debug_offline_evm_sign"
-private const val DebugOfflineEvmTransactionTransferPage = "debug_offline_evm_transaction_transfer"
-private const val DebugOfflineTransactionTransferFormatArg = "format"
+private const val OfflineEvmSignPage = "offline_evm_sign"
+private const val OfflineEvmTransactionTransferPage = "offline_evm_transaction_transfer"
 
 private data class SendEvmScreenActions(
     val onNextClick: (ProceedActionData) -> Unit,
-    val onDebugOfflineSignClick: () -> Unit,
+    val onOfflineSignClick: () -> Unit,
 )
 
 @Composable
@@ -244,6 +242,12 @@ private fun SendEvmScreen(
                 onRiskAcceptedChange = { viewModel.onRiskAcceptedChange(it) },
             )
 
+            OfflineSignActionCell(
+                supported = viewModel.offlineSignSupported,
+                enabled = proceedEnabled,
+                onClick = actions.onOfflineSignClick,
+            )
+
             ButtonPrimaryYellow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -260,17 +264,6 @@ private fun SendEvmScreen(
                 },
                 enabled = proceedEnabled
             )
-
-            if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
-                ButtonPrimaryYellow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    title = stringResource(R.string.offline_transaction_sign_title),
-                    onClick = actions.onDebugOfflineSignClick,
-                    enabled = viewModel.offlineSignSupported && proceedEnabled,
-                )
-            }
         }
     }
 }

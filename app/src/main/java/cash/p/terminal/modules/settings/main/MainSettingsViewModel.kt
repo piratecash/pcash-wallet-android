@@ -142,11 +142,16 @@ class MainSettingsViewModel(
             walletConnectSessionCount = wcSessionsCount,
             manageWalletShowAlert = !allBackedUp || hasNonStandardAccount,
             securityCenterShowAlert = !isPinSet || !localStorage.isSystemPinRequired,
+            securityCenterShowNewBadge = !localStorage.securityFlipFeatureSeen,
             aboutAppShowAlert = !termsManager.allTermsAccepted,
             wcCounterType = wcCounterType,
             premiumSettingsShowAlert = premiumSettingsShowAlert,
             isPayCoreEnabled = payCoreFeatureToggle.isEnabled()
         )
+    }
+
+    fun refresh() {
+        emitState()
     }
 
     private fun syncCounter() {
@@ -172,6 +177,7 @@ data class MainSettingUiState(
     val walletConnectSessionCount: Int,
     val manageWalletShowAlert: Boolean,
     val securityCenterShowAlert: Boolean,
+    val securityCenterShowNewBadge: Boolean,
     val aboutAppShowAlert: Boolean,
     val wcCounterType: CounterType?,
     val premiumSettingsShowAlert: Boolean,

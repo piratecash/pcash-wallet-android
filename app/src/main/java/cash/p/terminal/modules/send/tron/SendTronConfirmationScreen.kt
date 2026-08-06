@@ -70,7 +70,6 @@ import kotlinx.coroutines.delay
 private const val TronConfirmationPage = "tron_confirmation"
 private const val OfflineTronSignPage = "offline_tron_confirmation_sign"
 private const val OfflineTronTransactionTransferPage = "offline_tron_confirmation_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendTronConfirmationScreen(
@@ -86,7 +85,6 @@ fun SendTronConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineTronSignPage,
             transferRoute = OfflineTronTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},

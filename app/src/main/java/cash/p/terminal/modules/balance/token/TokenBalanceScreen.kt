@@ -80,6 +80,7 @@ import cash.p.terminal.modules.balance.BackupRequiredError
 import cash.p.terminal.modules.balance.BalanceViewItem
 import cash.p.terminal.modules.balance.BalanceViewModel
 import cash.p.terminal.modules.balance.SyncingProgress
+import cash.p.terminal.modules.balance.ui.FlipHiddenBalanceInfoHost
 import cash.p.terminal.modules.blockchainstatus.BlockchainStatusButton
 import cash.p.terminal.modules.displayoptions.DisplayDiffOptionType
 import cash.p.terminal.modules.manageaccount.dialogs.BackupRequiredDialog
@@ -646,6 +647,13 @@ private fun TokenBalanceScreenContent(
             onDismiss = { showAmlInfoSheet = false }
         )
     }
+
+    // Show the flip "balance hidden" info sheet on the asset screen too, so a flip here explains
+    // itself immediately instead of only once the user returns to the balance screen. Gate it off
+    // the lock and the AML sheet so it never stacks over them or leaks above the lock disguise.
+    FlipHiddenBalanceInfoHost(
+        canShow = !ScreenSecurityState.isAppLocked && !showAmlInfoSheet
+    )
 }
 
 

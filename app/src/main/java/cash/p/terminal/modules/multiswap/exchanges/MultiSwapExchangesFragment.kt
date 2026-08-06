@@ -23,6 +23,10 @@ import cash.p.terminal.core.composablePopup
 import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.usecase.ResolveTransactionItemUseCase
 import cash.p.terminal.modules.multiswap.MultiSwapLegInfo
+import cash.p.terminal.modules.multiswap.SwapAmountDirection
+import cash.p.terminal.modules.multiswap.SwapConfirmBalanceParams
+import cash.p.terminal.modules.multiswap.SwapConfirmNavigation
+import cash.p.terminal.modules.multiswap.SwapConfirmQuoteParams
 import cash.p.terminal.modules.multiswap.SwapConfirmScreen
 import cash.p.terminal.modules.multiswap.SwapSelectProviderScreen
 import cash.p.terminal.modules.multiswap.SwapSelectProviderViewModel
@@ -246,7 +250,7 @@ private fun ExchangeDetailContent(
             }
             val selectProviderViewModel = viewModel<SwapSelectProviderViewModel>(
                 viewModelStoreOwner = backStackEntry,
-                factory = SwapSelectProviderViewModel.Factory(quotes)
+                factory = SwapSelectProviderViewModel.Factory(quotes, SwapAmountDirection.In)
             )
             val swapProvidersRepository = remember { getKoinInstance<SwapProvidersRepository>() }
             val disabledIds by swapProvidersRepository.disabledIds.collectAsStateWithLifecycle()
@@ -279,18 +283,24 @@ private fun ExchangeDetailContent(
             }
             val balanceState by viewModel.leg2BalanceStateFlow.collectAsStateWithLifecycle(viewModel.leg2BalanceStateFlow.value)
             SwapConfirmScreen(
-                fragmentNavController = fragmentNavController,
-                swapNavController = detailNavController,
-                quote = quote,
-                settings = emptyMap(),
-                provider = quote.provider,
-                displayBalance = balanceState.displayBalance,
-                balanceHidden = viewModel.leg2BalanceHidden,
-                feeToken = balanceState.feeToken,
-                feeCoinBalance = balanceState.feeCoinBalance,
+                navigation = SwapConfirmNavigation(fragmentNavController, detailNavController),
+                quoteParams = SwapConfirmQuoteParams(
+                    quote = quote,
+                    settings = emptyMap(),
+                    direction = SwapAmountDirection.In,
+                    requestedAmountOut = null,
+                    multiSwapLegInfo = MultiSwapLegInfo.Leg2(swapId),
+                ),
+                balanceParams = SwapConfirmBalanceParams(
+                    provider = quote.provider,
+                    displayBalance = balanceState.displayBalance,
+                    balanceHidden = viewModel.leg2BalanceHidden,
+                    feeToken = balanceState.feeToken,
+                    feeCoinBalance = balanceState.feeCoinBalance,
+                ),
                 onToggleHideBalance = viewModel::toggleLeg2BalanceHidden,
+                onReapprove = {},
                 onOpenSettings = { detailNavController.navigate(Leg2TransactionSettingsRoute) },
-                multiSwapLegInfo = MultiSwapLegInfo.Leg2(swapId),
             )
         }
         composablePage<Leg2TransactionSettingsRoute> {

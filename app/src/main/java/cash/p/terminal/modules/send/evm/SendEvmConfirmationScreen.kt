@@ -15,7 +15,6 @@ import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 private const val EvmConfirmationPage = "evm_confirmation"
 private const val OfflineEvmSignPage = "offline_evm_sign"
 private const val OfflineEvmTransactionTransferPage = "offline_evm_transaction_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 internal fun SendEvmConfirmationScreen(
@@ -30,7 +29,6 @@ internal fun SendEvmConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineEvmSignPage,
             transferRoute = OfflineEvmTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},

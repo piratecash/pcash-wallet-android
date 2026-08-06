@@ -653,6 +653,9 @@
     <string name="swap_providers_title">Takas sağlayıcıları</string>
     <string name="swap_providers_mandatory_toast">Bu sağlayıcı devre dışı bırakılamaz</string>
     <string name="swap_no_enabled_providers">Etkin sağlayıcı yok</string>
+    <string name="swap_estimated_amount_warning">Alınacak tutar tahminidir ve değişebilir.</string>
+    <string name="swap_reapprove_required">Onaylanan limit artık yeterli değil. Güncellenen tutarı onaylayın.</string>
+    <string name="swap_reapprove_action">Güncellenen limiti onayla</string>
     <string name="swap_no_providers_for_this_amount">Bu miktar için sağlayıcı yok</string>
 
     <!--Approve-->
@@ -2178,4 +2181,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="transactions_migrate_to_ironwood">Ironwood\'a</string>
     <string name="zcash_migration_publicly_visible_title">Herkese açık görünür tutar</string>
     <string name="zcash_migration_publicly_visible_description">Havuzlar arasında para transferi, geçirilen tutarın blokzincirde herkese açık şekilde görünür olmasını gerektirir. Gönderici, alıcı ve adresleriniz özel kalır.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Ters çevirince gizle</string>
+    <string name="balance_hide_on_flip_description">Bakiyenizi hızlıca gizlemek ve göstermek için cihazın ekranını aşağı çevirin.</string>
+    <string name="balance_hide_on_flip_info_title">Bakiye gizlendi</string>
+    <string name="balance_hide_on_flip_info_description">Bakiyenizi gizlemek veya göstermek için cihazın ekranını aşağı çevirin ya da güvenlik ayarlarından kapatın.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Tekrar gösterme</string>
+    <string name="badge_new">Yeni</string>
 </resources>

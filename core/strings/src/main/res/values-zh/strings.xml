@@ -649,6 +649,9 @@
     <string name="swap_providers_title">兑换服务商</string>
     <string name="swap_providers_mandatory_toast">此服务商无法禁用</string>
     <string name="swap_no_enabled_providers">没有已启用的服务商</string>
+    <string name="swap_estimated_amount_warning">接收金额为估算值，可能会发生变化。</string>
+    <string name="swap_reapprove_required">已批准的额度不再足够。请批准更新后的金额。</string>
+    <string name="swap_reapprove_action">批准更新后的额度</string>
     <string name="swap_no_providers_for_this_amount">没有适用于此金额的服务商</string>
 
     <!--Approve-->
@@ -2162,4 +2165,11 @@
     <string name="transactions_migrate_to_ironwood">至 Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">公开可见金额</string>
     <string name="zcash_migration_publicly_visible_description">在池之间转移资金需要迁移金额在区块链上公开可见。发送人、接收人和您的地址保持隐私。</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">翻转隐藏</string>
+    <string name="balance_hide_on_flip_description">将设备屏幕朝下翻转，即可快速隐藏和显示余额。</string>
+    <string name="balance_hide_on_flip_info_title">余额已隐藏</string>
+    <string name="balance_hide_on_flip_info_description">若要隐藏或显示余额，只需将设备屏幕朝下翻转，或在安全设置中将其关闭。</string>
+    <string name="balance_hide_on_flip_dont_show_again">不再显示</string>
+    <string name="badge_new">新</string>
 </resources>

@@ -55,6 +55,7 @@ object TransactionInfoModule {
                 balanceHiddenManager = getKoinInstance(),
                 pendingTransactionRepository = getKoinInstance(),
                 poisonAddressManager = getKoinInstance(),
+                addressLabelManager = getKoinInstance(),
             ) as T
         }
 

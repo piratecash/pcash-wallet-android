@@ -14,7 +14,6 @@ import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 private const val ZCashConfirmationPage = "zcash_confirmation"
 private const val OfflineZCashSignPage = "offline_zcash_confirmation_sign"
 private const val OfflineZCashTransactionTransferPage = "offline_zcash_confirmation_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendZCashConfirmationScreen(
@@ -29,7 +28,6 @@ fun SendZCashConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineZCashSignPage,
             transferRoute = OfflineZCashTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},

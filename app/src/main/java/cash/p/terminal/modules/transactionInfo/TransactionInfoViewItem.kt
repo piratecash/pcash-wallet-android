@@ -49,7 +49,8 @@ sealed class TransactionInfoViewItem {
         val value: String,
         val showAdd: Boolean,
         val blockchainType: BlockchainType,
-        val showCopyWarning: Boolean = false
+        val showCopyWarning: Boolean = false,
+        val collapseAddress: Boolean = false,
     ) : TransactionInfoViewItem()
 
     class ContactItem(val contact: Contact) : TransactionInfoViewItem()

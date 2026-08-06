@@ -15,7 +15,6 @@ import cash.p.terminal.modules.send.offline.OfflineSignableConfirmationHost
 private const val SolanaConfirmationPage = "solana_confirmation"
 private const val OfflineSolanaSignPage = "offline_solana_sign"
 private const val OfflineSolanaTransactionTransferPage = "offline_solana_transaction_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendSolanaConfirmationScreen(
@@ -30,7 +29,6 @@ fun SendSolanaConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineSolanaSignPage,
             transferRoute = OfflineSolanaTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},

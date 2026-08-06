@@ -7,6 +7,7 @@ import cash.p.terminal.core.ISendMoneroAdapter
 import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.ConnectivityManager
 import cash.p.terminal.core.managers.LocallyCreatedTransactionRepository
 import cash.p.terminal.core.managers.PoisonAddressManager
@@ -127,6 +128,10 @@ class TokenBalanceViewModelTest : KoinTest {
     private val contactsRepository = mockk<ContactsRepository>(relaxed = true)
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val locallyCreatedTransactionRepository = mockk<LocallyCreatedTransactionRepository>(relaxed = true)
+    private val addressLabelsChangedFlow = MutableSharedFlow<Unit>()
+    private val addressLabelManager = mockk<AddressLabelManager>(relaxed = true) {
+        every { labelsChangedFlow } returns addressLabelsChangedFlow
+    }
 
     // Controllable flows
     private lateinit var transactionHiddenFlow: MutableStateFlow<TransactionHiddenState>
@@ -162,6 +167,7 @@ class TokenBalanceViewModelTest : KoinTest {
                         every { poisonDbChangedFlow } returns MutableSharedFlow()
                     }
                 }
+                single { addressLabelManager }
             }
         )
     }
@@ -267,6 +273,18 @@ class TokenBalanceViewModelTest : KoinTest {
 
         // Then: refreshList() must be called at least twice
         verify(exactly = 2) { transactionsService.refreshList() }
+    }
+
+    @Test
+    fun labelsChangedFlow_emits_clearsTransactionViewItemCache() = runTest(dispatcher) {
+        createViewModel()
+        advanceUntilIdle()
+        clearMocks(transactionViewItemFactory, answers = false)
+
+        addressLabelsChangedFlow.emit(Unit)
+        advanceUntilIdle()
+
+        verify(exactly = 1) { transactionViewItemFactory.clearCache() }
     }
 
     @Test

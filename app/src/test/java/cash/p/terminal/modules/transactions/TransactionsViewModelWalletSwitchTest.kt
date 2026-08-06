@@ -4,6 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.core.managers.AmlStatusManager
+import cash.p.terminal.core.managers.AddressLabelManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.managers.TransactionAdapterManager
@@ -101,6 +102,11 @@ class TransactionsViewModelWalletSwitchTest : KoinTest {
                 single {
                     mockk<PoisonAddressManager>(relaxed = true) {
                         every { poisonDbChangedFlow } returns MutableSharedFlow()
+                    }
+                }
+                single {
+                    mockk<AddressLabelManager>(relaxed = true) {
+                        every { labelsChangedFlow } returns MutableSharedFlow()
                     }
                 }
             }

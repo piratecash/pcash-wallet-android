@@ -87,7 +87,6 @@ class ManageAccountsViewModel(
             selected = account == activeAccount,
             backupRequired = account.supportsBackup && !account.isBackedUp && !account.isFileBackedUp,
             showAlertIcon = account.supportsBackup && (!account.isBackedUp || account.nonStandard || account.nonRecommended),
-            isWatchAccount = account.isWatchAccount,
             isHardwareWallet = account.isHardwareWalletAccount,
             showNfcIcon = account.type is AccountType.HardwareCard,
             migrationRequired = account.nonStandard,
