@@ -214,8 +214,6 @@ class SwapConfirmViewModel(
         }
 
         sendTransactionService.start(viewModelScope)
-
-        fetchFinalQuote()
     }
 
     private fun handleUpdatedPriceImpactState(priceImpactState: PriceImpactService.State) {
