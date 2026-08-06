@@ -26,7 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -51,7 +51,7 @@ import org.koin.dsl.module
 @OptIn(ExperimentalCoroutinesApi::class)
 class BaseSendViewModelBalanceHiddenTest {
 
-    private val dispatcher = UnconfinedTestDispatcher()
+    private val dispatcher = StandardTestDispatcher()
     private val wallet = WalletFactory.previewWallet()
     private val otherWallet = WalletFactory.previewStakingWallet()
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
