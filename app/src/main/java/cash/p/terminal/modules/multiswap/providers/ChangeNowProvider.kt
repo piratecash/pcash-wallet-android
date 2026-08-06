@@ -125,7 +125,7 @@ class ChangeNowProvider(
             )
         } catch (e: BackendChangeNowResponseError) {
             //extract decimal from message
-            if (e.error == BackendChangeNowResponseError.Companion.DEPOSIT_TOO_SMALL) {
+            if (e.error == BackendChangeNowResponseError.DEPOSIT_TOO_SMALL) {
                 val amount = e.message.extractBigDecimal() ?: throw e
                 throw SwapDepositTooSmall(amount)
             } else {
