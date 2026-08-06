@@ -2616,6 +2616,18 @@ Proceed only if you\'re sure.</string>
     <string name="transactions_migrate_to_ironwood">to Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Publicly Visible Amount</string>
     <string name="zcash_migration_publicly_visible_description">Moving funds between pools requires the migrated amount to be publicly visible on the blockchain. The sender, recipient and your addresses remain private.</string>
+    <string name="declined_tokens_title">Custom Tokens Found</string>
+    <string name="declined_tokens_description">These tokens are not in the verified token list: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d token</item>
+        <item quantity="other">%d tokens</item>
+    </plurals>
+    <string name="declined_tokens_warning">Their names, symbols and decimals are unverified. Add only the tokens you recognize.</string>
+    <string name="declined_tokens_select">Select</string>
+    <string name="declined_tokens_add_all">Add All</string>
+    <string name="declined_tokens_skip_all">Skip All</string>
+    <string name="declined_tokens_select_title">Select Tokens</string>
+    <string name="declined_tokens_wallet">Wallet: %s</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Hide on flip</string>
     <string name="balance_hide_on_flip_description">Flip the device screen face down to quickly hide and show your balance.</string>

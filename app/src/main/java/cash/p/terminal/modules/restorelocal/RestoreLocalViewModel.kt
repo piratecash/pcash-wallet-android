@@ -10,12 +10,17 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.backuplocal.BackupLocalModule
 import cash.p.terminal.modules.backuplocal.BackupLocalModule.WalletBackup
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupProvider
+import cash.p.terminal.modules.backuplocal.fullbackup.BackupSource
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupViewItemFactory
 import cash.p.terminal.modules.backuplocal.fullbackup.DecryptedFullBackup
 import cash.p.terminal.modules.backuplocal.fullbackup.FullBackup
 import cash.p.terminal.modules.backuplocal.fullbackup.RestoreException
+import cash.p.terminal.modules.backuplocal.fullbackup.RestoreOutcome
 import cash.p.terminal.modules.backuplocal.fullbackup.SelectBackupItemsViewModel.OtherBackupViewItem
 import cash.p.terminal.modules.backuplocal.fullbackup.SelectBackupItemsViewModel.WalletBackupViewItem
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensReview
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensReviewHost
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensStage
 import cash.p.terminal.modules.restorelocal.RestoreLocalModule.UiState
 import cash.p.terminal.strings.helpers.Translator
 import com.google.gson.JsonParser
@@ -31,7 +36,7 @@ class RestoreLocalViewModel(
     private val backupViewItemFactory: BackupViewItemFactory,
     private val dispatcherProvider: DispatcherProvider,
     fileName: String?,
-) : ViewModelUiState<UiState>() {
+) : ViewModelUiState<UiState>(), DeclinedTokensReviewHost {
 
     private var passphrase = ""
     private var passphraseState: DataState.Error? = null
@@ -44,6 +49,8 @@ class RestoreLocalViewModel(
     private var showSelectCoins: cash.p.terminal.wallet.AccountType? = null
     private var manualBackup = false
     private var restored = false
+    private var pendingReview: DeclinedTokensReview? = null
+    private var pendingRestore: PendingRestore? = null
 
     private var decryptedFullBackup: DecryptedFullBackup? = null
     private var walletBackupViewItems: List<WalletBackupViewItem> = emptyList()
@@ -110,7 +117,8 @@ class RestoreLocalViewModel(
         restored = restored,
         walletBackupViewItems = walletBackupViewItems,
         otherBackupViewItems = otherBackupViewItems,
-        showBackupItems = showBackupItems
+        showBackupItems = showBackupItems,
+        tokenReview = pendingReview,
     )
 
     fun onChangePassphrase(v: String) {
@@ -136,7 +144,7 @@ class RestoreLocalViewModel(
             }
 
             walletBackup != null -> {
-                walletBackup?.let { restoreSingleWallet(it, accountName) }
+                walletBackup?.let { restoreSingleWallet(it, accountName, BackupSource.Legacy) }
             }
         }
     }
@@ -167,8 +175,9 @@ class RestoreLocalViewModel(
                     if (walletItem.enabledWallets.isEmpty()) {
                         showSelectCoins = walletItem.account.type
                     } else {
-                        backupProvider.restoreSingleWalletBackup(walletItem)
-                        restored = true
+                        // isSingleWalletBackup guarantees no watchlist/settings/contacts, so Full's restore is exactly this wallet.
+                        val outcome = backupProvider.restoreSingleWalletBackup(walletItem)
+                        handleOutcome(outcome, PendingRestore.Full(decrypted))
                     }
                 } else {
                     // Full backup - show preview screen
@@ -231,16 +240,7 @@ class RestoreLocalViewModel(
                 }
 
                 if (parsedFullBackup != null) {
-                    // Use cached key to avoid Scrypt calls for each wallet
-                    val decrypted = backupProvider.decryptedFullBackupWithKey(parsedFullBackup, cachedKey, cachedKdfParams, passphrase)
-
-                    val backupItems = backupProvider.fullBackupItems(decrypted)
-                    val backupViewItems = backupViewItemFactory.backupViewItems(backupItems)
-
-                    walletBackupViewItems = backupViewItems.first
-                    otherBackupViewItems = backupViewItems.second
-                    decryptedFullBackup = decrypted
-                    showBackupItems = true
+                    showV3FullBackupItems(parsedFullBackup, cachedKey, cachedKdfParams)
                 } else {
                     // Parse as single wallet backup
                     val parsedWalletBackup = gson.fromJson(innerJson, WalletBackup::class.java)
@@ -255,8 +255,14 @@ class RestoreLocalViewModel(
                         requireNotNull(type) {
                             "This account type is not supported for restoration."
                         }
-                        backupProvider.restoreSingleWalletBackup(type, accountName, parsedWalletBackup)
-                        restored = true
+                        // Same V3 ciphertext as the full-backup branch: decimals are authenticated, but a manually-added row can still need approval.
+                        val outcome = backupProvider.restoreSingleWalletBackup(
+                            type, accountName, parsedWalletBackup, BackupSource.Authenticated
+                        )
+                        handleOutcome(
+                            outcome,
+                            PendingRestore.SingleWallet(parsedWalletBackup, accountName, BackupSource.Authenticated)
+                        )
                     }
                 }
             } catch (keyException: RestoreException.EncryptionKeyException) {
@@ -274,13 +280,34 @@ class RestoreLocalViewModel(
         }
     }
 
+    /** [parsedFullBackup] came from the same MAC'd V3 ciphertext already verified above, hence [BackupSource.Authenticated]. */
+    private suspend fun showV3FullBackupItems(
+        parsedFullBackup: FullBackup,
+        cachedKey: ByteArray,
+        cachedKdfParams: BackupLocalModule.KdfParams
+    ) {
+        // Use cached key to avoid Scrypt calls for each wallet.
+        val decrypted = backupProvider.decryptedFullBackupWithKey(
+            parsedFullBackup, cachedKey, cachedKdfParams, passphrase, BackupSource.Authenticated
+        )
+
+        val backupItems = backupProvider.fullBackupItems(decrypted)
+        val backupViewItems = backupViewItemFactory.backupViewItems(backupItems)
+
+        walletBackupViewItems = backupViewItems.first
+        otherBackupViewItems = backupViewItems.second
+        decryptedFullBackup = decrypted
+        showBackupItems = true
+    }
+
     private fun showFullBackupItems(it: FullBackup): Job {
         showButtonSpinner = true
         emitState()
 
         return viewModelScope.launch(dispatcherProvider.io) {
             try {
-                val decrypted = backupProvider.decryptedFullBackup(it, passphrase)
+                // Raw legacy envelope: enabled_wallets sits outside the MAC'd blob, so its metadata is forgeable.
+                val decrypted = backupProvider.decryptedFullBackup(it, passphrase, BackupSource.Legacy)
                 val backupItems = backupProvider.fullBackupItems(decrypted)
                 val backupViewItems = backupViewItemFactory.backupViewItems(backupItems)
 
@@ -311,14 +338,17 @@ class RestoreLocalViewModel(
         decryptedFullBackup?.let { restoreFullBackup(it) }
     }
 
-    private fun restoreFullBackup(decryptedFullBackup: DecryptedFullBackup) {
+    private fun restoreFullBackup(
+        decryptedFullBackup: DecryptedFullBackup,
+        approved: Map<String, Set<String>>? = null,
+    ) {
         showButtonSpinner = true
         emitState()
 
         viewModelScope.launch(dispatcherProvider.io) {
             try {
-                backupProvider.restoreFullBackup(decryptedFullBackup, passphrase)
-                restored = true
+                val outcome = backupProvider.restoreFullBackup(decryptedFullBackup, passphrase, approved)
+                handleOutcome(outcome, PendingRestore.Full(decryptedFullBackup))
             } catch (keyException: RestoreException.EncryptionKeyException) {
                 parseError = keyException
             } catch (invalidPassword: RestoreException.InvalidPasswordException) {
@@ -335,7 +365,12 @@ class RestoreLocalViewModel(
     }
 
     @Throws
-    private fun restoreSingleWallet(backup: WalletBackup, accountName: String) {
+    private fun restoreSingleWallet(
+        backup: WalletBackup,
+        accountName: String,
+        source: BackupSource,
+        approved: Set<String>? = null,
+    ) {
         showButtonSpinner = true
         emitState()
         viewModelScope.launch(dispatcherProvider.io) {
@@ -347,8 +382,10 @@ class RestoreLocalViewModel(
                     requireNotNull(type) {
                         "This account type is not supported for restoration."
                     }
-                    backupProvider.restoreSingleWalletBackup(type, accountName, backup)
-                    restored = true
+                    val outcome = backupProvider.restoreSingleWalletBackup(
+                        type, accountName, backup, source, approved
+                    )
+                    handleOutcome(outcome, PendingRestore.SingleWallet(backup, accountName, source))
                 }
             } catch (keyException: RestoreException.EncryptionKeyException) {
                 parseError = keyException
@@ -374,4 +411,55 @@ class RestoreLocalViewModel(
         emitState()
     }
 
+    /** Sets `restored`, or parks the declined tokens for review. Returns nothing else. */
+    private fun handleOutcome(outcome: RestoreOutcome, pending: PendingRestore?) {
+        when (outcome) {
+            is RestoreOutcome.Restored -> {
+                restored = true
+                pendingReview = null
+                pendingRestore = null
+            }
+
+            is RestoreOutcome.TokensNeedReview -> {
+                pendingReview = DeclinedTokensReview(outcome.wallets)
+                pendingRestore = pending
+            }
+        }
+    }
+
+    // Reads uiState, not the backing field, so this is what recomposes the sheets.
+    override val tokenReview: DeclinedTokensReview?
+        get() = uiState.tokenReview
+
+    override fun onReviewTokens() {
+        pendingReview = pendingReview?.copy(stage = DeclinedTokensStage.Select)
+        emitState()
+    }
+
+    override fun onApproveTokens(approvals: Map<String, Set<String>>) {
+        val pending = pendingRestore
+        pendingReview = null
+        pendingRestore = null
+        when (pending) {
+            is PendingRestore.SingleWallet -> restoreSingleWallet(
+                pending.backup, pending.accountName, pending.source, approvals.values.firstOrNull().orEmpty()
+            )
+
+            is PendingRestore.Full -> restoreFullBackup(pending.backup, approvals)
+            null -> emitState()
+        }
+    }
+
+    override fun onDismissTokenReview() {
+        pendingReview = null
+        pendingRestore = null
+        showButtonSpinner = false
+        emitState()
+    }
+}
+
+/** Restore call parked while the user reviews declined tokens; every restore path can produce one. */
+private sealed interface PendingRestore {
+    data class SingleWallet(val backup: WalletBackup, val accountName: String, val source: BackupSource) : PendingRestore
+    data class Full(val backup: DecryptedFullBackup) : PendingRestore
 }

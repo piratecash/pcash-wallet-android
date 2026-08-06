@@ -12,6 +12,7 @@ import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsService
 import cash.p.terminal.modules.enablecoin.restoresettings.RestoreSettingsViewModel
 import cash.p.terminal.ui_compose.components.ImageSource
 import cash.p.terminal.wallet.AccountType
+import io.horizontalsystems.core.DispatcherProvider
 import org.koin.java.KoinJavaComponent.inject
 
 object RestoreBlockchainsModule {
@@ -26,6 +27,7 @@ object RestoreBlockchainsModule {
         private val restoreSettingsManager: RestoreSettingsManager by inject(RestoreSettingsManager::class.java)
         private val zcashBirthdayProvider: ZcashBirthdayProvider by inject(ZcashBirthdayProvider::class.java)
         private val litecoinBirthdayProvider: LitecoinBirthdayProvider by inject(LitecoinBirthdayProvider::class.java)
+        private val dispatcherProvider: DispatcherProvider by inject(DispatcherProvider::class.java)
         private val restoreSettingsService by lazy {
             RestoreSettingsService(restoreSettingsManager, zcashBirthdayProvider, litecoinBirthdayProvider)
         }
@@ -45,7 +47,8 @@ object RestoreBlockchainsModule {
                 App.marketKit,
                 App.tokenAutoEnableManager,
                 blockchainTokensService,
-                restoreSettingsService
+                restoreSettingsService,
+                dispatcherProvider
             )
         }
 
