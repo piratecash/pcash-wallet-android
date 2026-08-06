@@ -9,13 +9,17 @@ import java.security.Security
  *
  * Unit tests share a JVM fork (`forkEvery`). A Robolectric test with Conscrypt enabled — the default
  * everywhere except macOS/aarch64, so on Linux CI — replaces the `"BC"` provider with one lacking
- * `ETH-KECCAK-256`. A plain `Security.addProvider` is then a no-op on the name clash, and later EVM
- * tests fail with `NoSuchAlgorithmException`. Force our provider to the front instead.
+ * `ETH-KECCAK-256`, and a plain `Security.addProvider` is a no-op on the name clash, so the old
+ * provider is removed first.
+ *
+ * Appended last, not inserted at front: `Security` is JVM-global, so a front-inserted BouncyCastle
+ * would also back every later `SecureRandom()` in the fork, whose DRBG rejects `nextBytes` calls
+ * above 262144 bits. Lookup order doesn't matter here since JCA scans all providers.
  */
 internal fun installEthereumCryptoProviderForTest() {
     val provider = InternalBouncyCastleProvider.getInstance()
     Security.removeProvider(provider.name)
-    check(Security.insertProviderAt(provider, 1) > 0) {
+    check(Security.addProvider(provider) > 0) {
         "Failed to install ${provider.name} provider for tests"
     }
 }

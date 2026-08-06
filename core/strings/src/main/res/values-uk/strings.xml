@@ -2323,4 +2323,18 @@
     <string name="transactions_migrate_to_ironwood">на Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Публічно видима сума</string>
     <string name="zcash_migration_publicly_visible_description">Переміщення коштів між пулами вимагає, щоб сума, яка переноситься, була публічно видима в блокчейні. Відправник, отримувач і ваші адреси залишаються приватними.</string>
+    <string name="declined_tokens_title">Знайдено користувацькі токени</string>
+    <string name="declined_tokens_description">Цих токенів немає у списку перевірених токенів: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d токен</item>
+        <item quantity="few">%d токени</item>
+        <item quantity="many">%d токенів</item>
+        <item quantity="other">%d токенів</item>
+    </plurals>
+    <string name="declined_tokens_warning">Їхні назви, символи та кількість десяткових знаків не перевірені. Додавайте лише ті токени, які ви впізнаєте.</string>
+    <string name="declined_tokens_select">Вибрати</string>
+    <string name="declined_tokens_add_all">Додати все</string>
+    <string name="declined_tokens_skip_all">Пропустити все</string>
+    <string name="declined_tokens_select_title">Виберіть токени</string>
+    <string name="declined_tokens_wallet">Гаманець: %s</string>
 </resources>

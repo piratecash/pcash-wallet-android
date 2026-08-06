@@ -2163,4 +2163,16 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="transactions_migrate_to_ironwood">zu Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Öffentlich sichtbarer Betrag</string>
     <string name="zcash_migration_publicly_visible_description">Das Verschieben von Geldern zwischen Pools erfordert, dass der migrierte Betrag öffentlich sichtbar auf der Blockchain ist. Absender, Empfänger und Ihre Adressen bleiben privat.</string>
+    <string name="declined_tokens_title">Benutzerdefinierte Tokens gefunden</string>
+    <string name="declined_tokens_description">Diese Tokens sind nicht in der Liste verifizierter Tokens enthalten: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d Token</item>
+        <item quantity="other">%d Tokens</item>
+    </plurals>
+    <string name="declined_tokens_warning">Namen, Symbole und Dezimalstellen sind nicht verifiziert. Fügen Sie nur Tokens hinzu, die Sie kennen.</string>
+    <string name="declined_tokens_select">Auswählen</string>
+    <string name="declined_tokens_add_all">Alle hinzufügen</string>
+    <string name="declined_tokens_skip_all">Alle überspringen</string>
+    <string name="declined_tokens_select_title">Tokens auswählen</string>
+    <string name="declined_tokens_wallet">Wallet: %s</string>
 </resources>

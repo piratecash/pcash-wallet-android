@@ -41,6 +41,7 @@ import cash.p.terminal.core.Caution
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.modules.backuplocal.fullbackup.OtherBackupItems
 import cash.p.terminal.modules.contacts.screen.ConfirmationBottomSheet
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensSheets
 import cash.p.terminal.modules.evmfee.ButtonsGroupWithShade
 import cash.p.terminal.modules.main.MainModule
 import cash.p.terminal.modules.restoreaccount.addRestoreTokenConfigureRoutes
@@ -144,6 +145,9 @@ private fun RestoreLocalNavHost(
         }
         addRestoreTokenConfigureRoutes(navController, mainViewModel)
     }
+
+    // Raised from either destination, so it is rendered once above the graph.
+    DeclinedTokensSheets(viewModel)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -267,6 +271,7 @@ private fun RestoreLocalScreen(
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -403,4 +408,5 @@ private fun BackupFileItems(
             }
         }
     }
+
 }

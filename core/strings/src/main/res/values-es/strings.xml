@@ -2163,4 +2163,17 @@ La aplicación le permite crear una copia de seguridad con una contraseña senci
     <string name="transactions_migrate_to_ironwood">a Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Cantidad visible públicamente</string>
     <string name="zcash_migration_publicly_visible_description">Mover fondos entre pools requiere que la cantidad migrada sea visible públicamente en la cadena de bloques. El remitente, destinatario y sus direcciones permanecen privados.</string>
+    <string name="declined_tokens_title">Tokens personalizados encontrados</string>
+    <string name="declined_tokens_description">Estos tokens no están en la lista de tokens verificados: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d token</item>
+        <item quantity="many">%d tokens</item>
+        <item quantity="other">%d tokens</item>
+    </plurals>
+    <string name="declined_tokens_warning">Sus nombres, símbolos y decimales no están verificados. Añade solo los tokens que reconozcas.</string>
+    <string name="declined_tokens_select">Seleccionar</string>
+    <string name="declined_tokens_add_all">Añadir todo</string>
+    <string name="declined_tokens_skip_all">Omitir todo</string>
+    <string name="declined_tokens_select_title">Seleccionar tokens</string>
+    <string name="declined_tokens_wallet">Cartera: %s</string>
 </resources>

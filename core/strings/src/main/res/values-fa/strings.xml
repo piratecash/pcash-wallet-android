@@ -2175,4 +2175,16 @@
     <string name="transactions_migrate_to_ironwood">به Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">مبلغ قابل مشاهده عمومی</string>
     <string name="zcash_migration_publicly_visible_description">انتقال وجوه بین استخرها نیاز دارد که مبلغ منتقل‌شده بر روی بلاکچین به صورت عمومی قابل مشاهده باشد. فرستنده، گیرنده و آدرس‌های شما خصوصی باقی می‌مانند.</string>
+    <string name="declined_tokens_title">توکن‌های سفارشی یافت شد</string>
+    <string name="declined_tokens_description">این توکن‌ها در فهرست توکن‌های تأیید شده نیستند: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d توکن</item>
+        <item quantity="other">%d توکن</item>
+    </plurals>
+    <string name="declined_tokens_warning">نام‌ها، نمادها و اعشار آن‌ها تأیید نشده است. فقط توکن‌هایی را که می‌شناسید اضافه کنید.</string>
+    <string name="declined_tokens_select">انتخاب</string>
+    <string name="declined_tokens_add_all">افزودن همه</string>
+    <string name="declined_tokens_skip_all">رد کردن همه</string>
+    <string name="declined_tokens_select_title">انتخاب توکن‌ها</string>
+    <string name="declined_tokens_wallet">کیف پول: %s</string>
 </resources>

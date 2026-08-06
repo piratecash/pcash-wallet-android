@@ -159,6 +159,7 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
 compose-material = { module = "androidx.compose.material:material" }
 compose-animation = { module = "androidx.compose.animation:animation" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }

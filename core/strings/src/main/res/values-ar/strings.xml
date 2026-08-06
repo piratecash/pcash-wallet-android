@@ -2194,4 +2194,20 @@
     <string name="transactions_migrate_to_ironwood">إلى Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">مبلغ مرئي للعامة</string>
     <string name="zcash_migration_publicly_visible_description">يتطلب نقل الأموال بين التجمّعات أن يكون المبلغ المُرحَّل مرئيًا للعامة على البلوكشين. يبقى المُرسِل والمُستلِم وعناوينك خاصة.</string>
+    <string name="declined_tokens_title">تم العثور على رموز مخصصة</string>
+    <string name="declined_tokens_description">هذه الرموز غير موجودة في قائمة الرموز الموثّقة: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="zero">لا توجد رموز</item>
+        <item quantity="one">رمز واحد</item>
+        <item quantity="two">رمزان</item>
+        <item quantity="few">%d رموز</item>
+        <item quantity="many">%d رمزًا</item>
+        <item quantity="other">%d رمز</item>
+    </plurals>
+    <string name="declined_tokens_warning">أسماؤها ورموزها وعدد الخانات العشرية غير موثّقة. أضف فقط الرموز التي تعرفها.</string>
+    <string name="declined_tokens_select">اختيار</string>
+    <string name="declined_tokens_add_all">إضافة الكل</string>
+    <string name="declined_tokens_skip_all">تخطي الكل</string>
+    <string name="declined_tokens_select_title">اختر الرموز</string>
+    <string name="declined_tokens_wallet">المحفظة: %s</string>
 </resources>

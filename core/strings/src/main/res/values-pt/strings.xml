@@ -2171,4 +2171,17 @@
     <string name="transactions_migrate_to_ironwood">para Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Montante publicamente visível</string>
     <string name="zcash_migration_publicly_visible_description">Mover fundos entre pools exige que o montante migrado seja publicamente visível na blockchain. O remetente, o destinatário e os seus endereços permanecem privados.</string>
+    <string name="declined_tokens_title">Tokens personalizados encontrados</string>
+    <string name="declined_tokens_description">Estes tokens não estão na lista de tokens verificados: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d token</item>
+        <item quantity="many">%d tokens</item>
+        <item quantity="other">%d tokens</item>
+    </plurals>
+    <string name="declined_tokens_warning">Os nomes, símbolos e casas decimais não estão verificados. Adicione apenas os tokens que reconhece.</string>
+    <string name="declined_tokens_select">Selecionar</string>
+    <string name="declined_tokens_add_all">Adicionar tudo</string>
+    <string name="declined_tokens_skip_all">Ignorar tudo</string>
+    <string name="declined_tokens_select_title">Selecionar tokens</string>
+    <string name="declined_tokens_wallet">Carteira: %s</string>
 </resources>
