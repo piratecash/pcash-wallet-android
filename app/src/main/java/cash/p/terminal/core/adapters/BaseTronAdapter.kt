@@ -137,10 +137,6 @@ abstract class BaseTronAdapter(
         )
     }
 
-    override suspend fun isAddressActive(address: Address): Boolean = withContext(Dispatchers.IO) {
-        tronKit.isAccountActive(address)
-    }
-
     override fun isOwnAddress(address: Address): Boolean {
         return address == tronKit.address
     }

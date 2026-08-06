@@ -156,9 +156,7 @@ class SendTronViewModel(
                 feeCoinRate = it
             }
         }
-        viewModelScope.launch {
-            addressService.setAddress(address)
-        }
+        addressService.setAddress(address)
         if (offlineSignSupported) {
             viewModelScope.launch {
                 // Keep the TAPOS anchor filled whenever online: fetch on connect/reconnect and retry
@@ -196,9 +194,7 @@ class SendTronViewModel(
 
     fun onEnterAddress(address: Address?) {
         resetRiskAccepted()
-        viewModelScope.launch {
-            addressService.setAddress(address)
-        }
+        addressService.setAddress(address)
     }
 
     fun onNavigateToConfirmation() {
@@ -212,8 +208,7 @@ class SendTronViewModel(
             address = address,
             contact = contact(address),
             coin = wallet.coin,
-            feeCoin = feeToken.coin,
-            isInactiveAddress = addressState.isInactiveAddress
+            feeCoin = feeToken.coin
         )
 
         viewModelScope.launch {
