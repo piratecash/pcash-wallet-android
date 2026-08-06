@@ -2175,4 +2175,11 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="transactions_migrate_to_ironwood">Ironwood\'a</string>
     <string name="zcash_migration_publicly_visible_title">Herkese açık görünür tutar</string>
     <string name="zcash_migration_publicly_visible_description">Havuzlar arasında para transferi, geçirilen tutarın blokzincirde herkese açık şekilde görünür olmasını gerektirir. Gönderici, alıcı ve adresleriniz özel kalır.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Ters çevirince gizle</string>
+    <string name="balance_hide_on_flip_description">Bakiyenizi hızlıca gizlemek ve göstermek için cihazın ekranını aşağı çevirin.</string>
+    <string name="balance_hide_on_flip_info_title">Bakiye gizlendi</string>
+    <string name="balance_hide_on_flip_info_description">Bakiyenizi gizlemek veya göstermek için cihazın ekranını aşağı çevirin ya da güvenlik ayarlarından kapatın.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Tekrar gösterme</string>
+    <string name="badge_new">Yeni</string>
 </resources>

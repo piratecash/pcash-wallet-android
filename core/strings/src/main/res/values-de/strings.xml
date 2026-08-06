@@ -2166,4 +2166,11 @@ Die App ermöglicht es Ihnen, aus Bequemlichkeit ein Backup mit einem einfachen 
     <string name="transactions_migrate_to_ironwood">zu Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Öffentlich sichtbarer Betrag</string>
     <string name="zcash_migration_publicly_visible_description">Das Verschieben von Geldern zwischen Pools erfordert, dass der migrierte Betrag öffentlich sichtbar auf der Blockchain ist. Absender, Empfänger und Ihre Adressen bleiben privat.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Verbergen durch Umdrehen</string>
+    <string name="balance_hide_on_flip_description">Drehen Sie das Gerät mit dem Bildschirm nach unten, um Ihren Kontostand schnell aus- und einzublenden.</string>
+    <string name="balance_hide_on_flip_info_title">Kontostand verborgen</string>
+    <string name="balance_hide_on_flip_info_description">Um Ihren Kontostand aus- oder einzublenden, drehen Sie das Gerät einfach mit dem Bildschirm nach unten oder deaktivieren Sie die Funktion in den Sicherheitseinstellungen.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Nicht mehr anzeigen</string>
+    <string name="badge_new">Neu</string>
 </resources>

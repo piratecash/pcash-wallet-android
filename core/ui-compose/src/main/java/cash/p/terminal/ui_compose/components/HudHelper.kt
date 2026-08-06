@@ -136,7 +136,19 @@ object HudHelper {
     }
 
     fun vibrate(context: Context, durationMs: Long = 20L) {
-        val vibratorService = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibrationEffect = VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
+        getVibrator(context)?.vibrate(vibrationEffect)
+    }
+
+    // Two short pulses (Pixel "flip to Shhh" style): buzz, pause, buzz.
+    fun vibrateDouble(context: Context, pulseMs: Long = 30L, gapMs: Long = 90L) {
+        val timings = longArrayOf(0L, pulseMs, gapMs, pulseMs)
+        val vibrationEffect = VibrationEffect.createWaveform(timings, -1)
+        getVibrator(context)?.vibrate(vibrationEffect)
+    }
+
+    private fun getVibrator(context: Context): Vibrator? =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager =
                 context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
             vibratorManager?.defaultVibrator
@@ -144,11 +156,6 @@ object HudHelper {
             @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
-
-        val vibrationEffect = VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE)
-
-        vibratorService?.vibrate(vibrationEffect)
-    }
 
     private fun showHudNotification(
         contentView: View,

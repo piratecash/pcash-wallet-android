@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -86,6 +88,21 @@ fun BadgeText(
     }
 }
 
+/**
+ * Item-level "new" indicator: a small accent dot placed next to an individual row's title.
+ * The category-level counterpart is [BadgeText] with a "New" label. Matches the design spec —
+ * a 6dp circle in the [ComposeAppTheme.colors.laguna] accent (#4A98E9 in dark theme).
+ */
+@Composable
+fun NewDot(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(6.dp)
+            .clip(CircleShape)
+            .background(ComposeAppTheme.colors.laguna)
+    )
+}
+
 @Composable
 fun BadgeBase(
     modifier: Modifier = Modifier,
@@ -120,6 +137,19 @@ fun BadgePreview() {
             contentAlignment = Alignment.Center
         ) {
             Badge(text = "#455")
+        }
+    }
+}
+
+@Preview
+@Composable
+fun NewDotPreview() {
+    ComposeAppTheme {
+        Box(
+            modifier = Modifier.padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            NewDot()
         }
     }
 }

@@ -19,7 +19,9 @@ import cash.p.terminal.core.managers.AppHeadersProviderImpl
 import cash.p.terminal.core.managers.BackgroundKeepAliveManager
 import cash.p.terminal.core.managers.BackupManager
 import cash.p.terminal.core.managers.BalanceHiddenManager
+import cash.p.terminal.core.managers.BalanceHideOnFlipManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.DeviceFlipDetector
 import cash.p.terminal.modules.send.offline.OfflineBroadcastTokenResolver
 import android.content.Context
 import android.net.ConnectivityManager as AndroidConnectivityManager
@@ -173,6 +175,7 @@ import io.horizontalsystems.core.security.EncryptionManager
 import io.horizontalsystems.core.security.KeyStoreManager
 import io.horizontalsystems.hdwalletkit.Mnemonic
 import org.koin.core.module.dsl.bind
+import org.koin.core.module.dsl.createdAtStart
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.qualifier.named
@@ -320,6 +323,8 @@ val managerModule = module {
     singleOf(::TransactionAdapterManager)
     singleOf(::TransactionSyncStateRepository)
     singleOf(::BalanceHiddenManager) bind IBalanceHiddenManager::class
+    singleOf(::DeviceFlipDetector)
+    singleOf(::BalanceHideOnFlipManager) { createdAtStart() }
     singleOf(::TransactionHiddenManager) bind ITransactionHiddenManager::class
     singleOf(::TorManager) bind ITorManager::class
     singleOf(::PredefinedBlockchainSettingsProvider)

@@ -2174,4 +2174,11 @@
     <string name="transactions_migrate_to_ironwood">para Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Montante publicamente visível</string>
     <string name="zcash_migration_publicly_visible_description">Mover fundos entre pools exige que o montante migrado seja publicamente visível na blockchain. O remetente, o destinatário e os seus endereços permanecem privados.</string>
+    <!-- Hide balance on flip -->
+    <string name="balance_hide_on_flip_title">Ocultar ao virar</string>
+    <string name="balance_hide_on_flip_description">Vire o ecrã do dispositivo para baixo para ocultar e mostrar rapidamente o seu saldo.</string>
+    <string name="balance_hide_on_flip_info_title">Saldo oculto</string>
+    <string name="balance_hide_on_flip_info_description">Para ocultar ou mostrar o seu saldo, basta virar o ecrã do dispositivo para baixo ou desativá-lo nas definições de segurança.</string>
+    <string name="balance_hide_on_flip_dont_show_again">Não mostrar novamente</string>
+    <string name="badge_new">Novo</string>
 </resources>
