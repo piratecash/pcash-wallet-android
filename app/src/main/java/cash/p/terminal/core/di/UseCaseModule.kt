@@ -10,6 +10,7 @@ import cash.p.terminal.core.usecase.GetMoneroWalletFilesNameUseCase
 import cash.p.terminal.core.usecase.GetRestoreHeightForWalletUseCase
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
 import cash.p.terminal.core.usecase.FetchSwapQuotesUseCase
+import cash.p.terminal.core.usecase.IterativeExactOutSearch
 import cash.p.terminal.core.usecase.RescanMoneroUseCase
 import cash.p.terminal.core.usecase.RescanZcashUseCase
 import cash.p.terminal.core.usecase.ResolvePayCoreNavigationUseCase
@@ -40,6 +41,7 @@ val useCaseModule = module {
     singleOf(::UpdateSwapProviderTransactionsStatusUseCase)
     singleOf(::SyncPendingMultiSwapUseCase)
     factoryOf(::FetchSwapQuotesUseCase)
+    factoryOf(::IterativeExactOutSearch)
     factoryOf(::ResolveTransactionItemUseCase)
     factoryOf(::ResolvePayCoreNavigationUseCase)
     factoryOf(::ValidateMoneroMnemonicUseCase)

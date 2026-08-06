@@ -27,13 +27,36 @@ internal class StonFiApi(
         askAddress: String,
         units: String,
         slippageTolerance: String,
+        direction: SimulationDirection,
         poolAddress: String? = null,
         referralAddress: String? = null,
         referralFeeBps: Int? = null,
         dexVersion: Int? = null
+    ): SimulateSwapDto = simulateSwap(
+        path = direction.path,
+        offerAddress = offerAddress,
+        askAddress = askAddress,
+        units = units,
+        slippageTolerance = slippageTolerance,
+        poolAddress = poolAddress,
+        referralAddress = referralAddress,
+        referralFeeBps = referralFeeBps,
+        dexVersion = dexVersion,
+    )
+
+    private suspend fun simulateSwap(
+        path: String,
+        offerAddress: String,
+        askAddress: String,
+        units: String,
+        slippageTolerance: String,
+        poolAddress: String?,
+        referralAddress: String?,
+        referralFeeBps: Int?,
+        dexVersion: Int?,
     ): SimulateSwapDto {
         return httpClient.post {
-            url(BASE_URL + "v1/swap/simulate")
+            url(BASE_URL + path)
             parameter("offer_address", offerAddress)
             parameter("ask_address", askAddress)
             parameter("units", units)
@@ -93,4 +116,9 @@ internal class StonFiApi(
             httpClient.get(uri).body()
         }
     }
+}
+
+internal enum class SimulationDirection(val path: String) {
+    Forward("v1/swap/simulate"),
+    Reverse("v1/reverse_swap/simulate"),
 }

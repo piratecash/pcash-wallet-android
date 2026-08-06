@@ -11,6 +11,7 @@ interface ISwapFinalQuote {
     val tokenIn: Token
     val tokenOut: Token
     val amountIn: BigDecimal
+    val amountInMax: BigDecimal? get() = null
     val amountOut: BigDecimal
     val amountOutMin: BigDecimal?
     val sendTransactionData: SendTransactionData
@@ -31,6 +32,7 @@ data class SwapFinalQuoteEvm(
     override val sendTransactionData: SendTransactionData,
     override val priceImpact: BigDecimal?,
     override val fields: List<DataField>,
+    override val amountInMax: BigDecimal? = null,
     override val cautions: List<HSCaution> = listOf(),
     override val swapProviderTransaction: SwapProviderTransaction? = null,
 ) : ISwapFinalQuote

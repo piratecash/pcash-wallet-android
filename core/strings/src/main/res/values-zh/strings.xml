@@ -643,6 +643,9 @@
     <string name="swap_providers_title">兑换服务商</string>
     <string name="swap_providers_mandatory_toast">此服务商无法禁用</string>
     <string name="swap_no_enabled_providers">没有已启用的服务商</string>
+    <string name="swap_estimated_amount_warning">接收金额为估算值，可能会发生变化。</string>
+    <string name="swap_reapprove_required">已批准的额度不再足够。请批准更新后的金额。</string>
+    <string name="swap_reapprove_action">批准更新后的额度</string>
     <string name="swap_no_providers_for_this_amount">没有适用于此金额的服务商</string>
 
     <!--Approve-->
