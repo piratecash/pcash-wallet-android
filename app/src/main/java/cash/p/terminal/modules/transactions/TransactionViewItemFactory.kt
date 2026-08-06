@@ -4,7 +4,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.App
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.managers.BalanceHiddenManager
-import cash.p.terminal.core.managers.EvmLabelManager
+import cash.p.terminal.core.managers.AddressMetadataManager
 import cash.p.terminal.core.managers.PoisonAddressManager
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.core.utils.IncomingTransaction
@@ -24,8 +24,6 @@ import cash.p.terminal.entities.transactionrecords.solana.SolanaTransactionRecor
 import cash.p.terminal.entities.transactionrecords.stellar.StellarTransactionRecord
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.entities.transactionrecords.tron.TronTransactionRecord
-import cash.p.terminal.modules.contacts.ContactsRepository
-import cash.p.terminal.modules.contacts.model.Contact
 import cash.p.terminal.modules.multiswap.providers.UnstoppableProvider
 import cash.p.terminal.modules.paycore.PayCoreAssetResolver
 import cash.p.terminal.network.changenow.domain.entity.TransactionStatusEnum
@@ -50,8 +48,7 @@ import java.util.Date
 import java.util.concurrent.ConcurrentHashMap
 
 class TransactionViewItemFactory(
-    private val evmLabelManager: EvmLabelManager,
-    private val contactsRepository: ContactsRepository,
+    private val addressMetadataManager: AddressMetadataManager,
     private val balanceHiddenManager: BalanceHiddenManager,
     private val swapProviderTransactionsStorage: SwapProviderTransactionsStorage,
     private val swapTransactionMatcher: SwapTransactionMatcher,
@@ -992,13 +989,8 @@ class TransactionViewItemFactory(
         )
     }
 
-    private fun getContact(address: String, blockchainType: BlockchainType): Contact? {
-        return contactsRepository.getContactsFiltered(blockchainType, addressQuery = address)
-            .firstOrNull()
-    }
-
     private fun mapped(address: String, blockchainType: BlockchainType): String {
-        return getContact(address, blockchainType)?.name ?: evmLabelManager.mapped(address)
+        return addressMetadataManager.mapped(blockchainType, address)
     }
 
     private fun createViewItemFromSwapTransactionRecord(

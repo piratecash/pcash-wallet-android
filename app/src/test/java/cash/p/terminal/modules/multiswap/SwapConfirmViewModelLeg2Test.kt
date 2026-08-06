@@ -150,20 +150,24 @@ class SwapConfirmViewModelLeg2Test {
             every { baseCurrency } returns Currency("USD", "$", 2, 0)
         }
         val vm = SwapConfirmViewModel(
-            swapProvider = provider,
-            swapQuote = swapQuote,
-            swapSettings = emptyMap(),
+            request = SwapConfirmRequest(
+                provider = provider,
+                quote = swapQuote,
+                settings = emptyMap(),
+                multiSwapLegInfo = legInfo,
+            ),
             currencyManager = currencyManager,
-            fiatServiceIn = FiatService(assetFiatRateService),
-            fiatServiceOut = FiatService(assetFiatRateService),
-            fiatServiceOutMin = FiatService(assetFiatRateService),
+            fiatServices = SwapConfirmFiatServices(
+                input = FiatService(assetFiatRateService),
+                output = FiatService(assetFiatRateService),
+                outputMinimum = FiatService(assetFiatRateService),
+            ),
             sendTransactionService = sendTransactionService,
             timerService = TimerService(),
             priceImpactService = PriceImpactService(),
             wallet = previewWallet,
             adapterManager = adapterManager,
             dispatcherProvider = dispatcherProvider,
-            multiSwapLegInfo = legInfo,
         )
         viewModelStore.put("test-vm", vm)
         return vm

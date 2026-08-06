@@ -6,6 +6,7 @@ import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.derivation
 import cash.p.terminal.core.managers.APIClient
 import cash.p.terminal.core.nativeTokenQueries
+import cash.p.terminal.core.retryWhen
 import cash.p.terminal.entities.CoinValue
 import cash.p.terminal.modules.multiswap.ISwapFinalQuote
 import cash.p.terminal.modules.multiswap.ISwapQuote
@@ -35,6 +36,7 @@ import io.horizontalsystems.ethereumkit.contracts.ContractMethod
 import io.horizontalsystems.ethereumkit.models.Address
 import io.horizontalsystems.ethereumkit.models.TransactionData
 import org.koin.java.KoinJavaComponent.inject
+import retrofit2.HttpException
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -43,6 +45,9 @@ import java.math.BigInteger
 import java.math.RoundingMode
 import java.util.Date
 import kotlin.getValue
+
+private const val QUOTE_RETRY_ATTEMPTS = 3
+private const val HTTP_SERVER_ERROR = 500
 
 abstract class BaseThorChainProvider(
     baseUrl: String,
@@ -212,17 +217,25 @@ abstract class BaseThorChainProvider(
         val assetOut = assets.first { it.token == tokenOut }
         val destination = recipient?.hex ?: SwapHelper.getReceiveAddressForToken(tokenOut)
 
-        return thornodeAPI.quoteSwap(
-            fromAsset = assetIn.asset,
-            toAsset = assetOut.asset,
-            amount = amountIn.movePointRight(8).toLong(),
-            destination = destination,
-            affiliate = affiliate,
-            affiliateBps = affiliateBps,
-            streamingInterval = 1,
-            streamingQuantity = 0,
-            toleranceBps = slippage?.movePointRight(2)?.toLong()
-        )
+        // Thornode is load-balanced across a pool of nodes. A node caught mid-block-switch answers
+        // 5xx ("invalid height: context did not contain latest block height") to an otherwise valid
+        // request, so a retry lands on a healthy node instead of failing the whole quote.
+        return retryWhen(
+            times = QUOTE_RETRY_ATTEMPTS,
+            predicate = { it is HttpException && it.code() >= HTTP_SERVER_ERROR }
+        ) {
+            thornodeAPI.quoteSwap(
+                fromAsset = assetIn.asset,
+                toAsset = assetOut.asset,
+                amount = amountIn.movePointRight(8).toLong(),
+                destination = destination,
+                affiliate = affiliate,
+                affiliateBps = affiliateBps,
+                streamingInterval = 1,
+                streamingQuantity = 0,
+                toleranceBps = slippage?.movePointRight(2)?.toLong()
+            )
+        }
     }
 
     override suspend fun fetchFinalQuote(

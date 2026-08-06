@@ -1,13 +1,17 @@
 package cash.p.terminal.modules.multiswap
 
 import androidx.lifecycle.ViewModelStore
+import cash.p.terminal.core.HSCaution
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ServiceStateFlow
 import cash.p.terminal.core.TestDispatcherProvider
+import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.storage.PendingMultiSwapStorage
 import cash.p.terminal.core.storage.SwapProviderTransactionsStorage
 import cash.p.terminal.entities.SwapProviderTransaction
+import cash.p.terminal.modules.multiswap.providers.IExactOutSwapProvider
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
+import cash.p.terminal.modules.multiswap.providers.InsufficientAllowanceCaution
 import cash.p.terminal.modules.multiswap.providers.OffChainSwapProvider
 import cash.p.terminal.modules.multiswap.sendtransaction.ISendTransactionService
 import cash.p.terminal.modules.multiswap.sendtransaction.SendTransactionData
@@ -44,7 +48,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.koin.core.context.startKoin
@@ -155,7 +162,13 @@ class SwapConfirmViewModelSaveTest {
         return this
     }
 
-    private fun createViewModel(provider: IMultiSwapProvider): SwapConfirmViewModel {
+    private fun createViewModel(
+        provider: IMultiSwapProvider,
+        transactionState: SendTransactionServiceState = sendTransactionServiceState,
+        executionMode: SwapExecutionMode = SwapExecutionMode.ExactIn,
+        direction: SwapAmountDirection = SwapAmountDirection.In,
+        requestedAmountOut: BigDecimal? = null,
+    ): SwapConfirmViewModel {
         val sendTransactionService = mockk<ISendTransactionService<Nothing>>(relaxed = true) {
             every { hasSettings() } returns false
             every { mevProtectionAvailable } returns false
@@ -163,7 +176,7 @@ class SwapConfirmViewModelSaveTest {
                 MutableSharedFlow<SendTransactionServiceState>(
                     replay = 1,
                     onBufferOverflow = BufferOverflow.DROP_OLDEST
-                ).also { it.tryEmit(sendTransactionServiceState) }.asSharedFlow()
+                ).also { it.tryEmit(transactionState) }.asSharedFlow()
             )
             every { sendTransactionSettingsFlow } returns MutableStateFlow(SendTransactionSettings.Common)
         }
@@ -173,13 +186,20 @@ class SwapConfirmViewModelSaveTest {
             every { baseCurrency } returns Currency("USD", "$", 2, 0)
         }
         val vm = SwapConfirmViewModel(
-            swapProvider = provider,
-            swapQuote = swapQuote,
-            swapSettings = emptyMap(),
+            request = SwapConfirmRequest(
+                provider = provider,
+                quote = swapQuote,
+                settings = emptyMap(),
+                executionMode = executionMode,
+                direction = direction,
+                requestedAmountOut = requestedAmountOut,
+            ),
             currencyManager = currencyManager,
-            fiatServiceIn = FiatService(assetFiatRateService),
-            fiatServiceOut = FiatService(assetFiatRateService),
-            fiatServiceOutMin = FiatService(assetFiatRateService),
+            fiatServices = SwapConfirmFiatServices(
+                input = FiatService(assetFiatRateService),
+                output = FiatService(assetFiatRateService),
+                outputMinimum = FiatService(assetFiatRateService),
+            ),
             sendTransactionService = sendTransactionService,
             timerService = TimerService(),
             priceImpactService = PriceImpactService(),
@@ -190,6 +210,120 @@ class SwapConfirmViewModelSaveTest {
         viewModelStore.put("test-vm", vm)
         return vm
     }
+
+    @Test
+    fun fetchFinalQuote_nativeExactOut_dispatchesRequestedAmountAndSourceQuote() = runTest(dispatcher) {
+        val requestedAmountOut = BigDecimal("5")
+        val finalQuote = finalQuote(amountIn = BigDecimal("2"), amountOut = requestedAmountOut)
+        val provider = mockk<ExactOutProvider>(relaxed = true) {
+            every { mevProtectionAvailable } returns false
+            coEvery {
+                fetchFinalQuoteExactOut(
+                    token,
+                    token,
+                    requestedAmountOut,
+                    any(),
+                    any(),
+                    swapQuote,
+                )
+            } returns finalQuote
+        }
+
+        createViewModel(
+            provider = provider,
+            executionMode = SwapExecutionMode.NativeExactOut,
+            direction = SwapAmountDirection.Out,
+            requestedAmountOut = requestedAmountOut,
+        )
+        advanceUntilIdle()
+
+        coVerify(atLeast = 1) {
+            provider.fetchFinalQuoteExactOut(
+                token,
+                token,
+                requestedAmountOut,
+                any(),
+                any(),
+                swapQuote,
+            )
+        }
+        coVerify(exactly = 0) {
+            provider.fetchFinalQuote(any(), any(), any(), any(), any(), any())
+        }
+    }
+
+    @Test
+    fun createState_exactOutRequiredInputExceedsBalance_blocksQuote() = runTest(dispatcher) {
+        val amountInMax = BigDecimal("2")
+        val provider = mockk<ExactOutProvider>(relaxed = true) {
+            every { mevProtectionAvailable } returns false
+            coEvery {
+                fetchFinalQuoteExactOut(any(), any(), any(), any(), any(), any())
+            } returns finalQuote(
+                amountIn = BigDecimal.ONE,
+                amountOut = BigDecimal.ONE,
+                amountInMax = amountInMax,
+            )
+        }
+        val transactionState = sendTransactionServiceState.copy(
+            availableBalance = BigDecimal.ONE,
+        )
+
+        val viewModel = createViewModel(
+            provider = provider,
+            transactionState = transactionState,
+            executionMode = SwapExecutionMode.NativeExactOut,
+            direction = SwapAmountDirection.Out,
+            requestedAmountOut = BigDecimal.ONE,
+        )
+        advanceUntilIdle()
+
+        assertEquals(amountInMax, viewModel.uiState.amountInMax)
+        assertFalse(viewModel.uiState.validQuote)
+        assertTrue(viewModel.uiState.cautions.any { it.type == CautionViewItem.Type.Error })
+    }
+
+    @Test
+    fun createState_insufficientAllowance_marksReapprovalAndBlocksQuote() = runTest(dispatcher) {
+        val caution = InsufficientAllowanceCaution()
+        val provider = mockk<ExactOutProvider>(relaxed = true) {
+            every { mevProtectionAvailable } returns false
+            coEvery {
+                fetchFinalQuoteExactOut(any(), any(), any(), any(), any(), any())
+            } returns finalQuote(cautions = listOf(caution))
+        }
+
+        val viewModel = createViewModel(
+            provider = provider,
+            executionMode = SwapExecutionMode.NativeExactOut,
+            direction = SwapAmountDirection.Out,
+            requestedAmountOut = BigDecimal.ONE,
+        )
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.reapprovalRequired)
+        assertFalse(viewModel.uiState.validQuote)
+    }
+
+    private fun finalQuote(
+        amountIn: BigDecimal = BigDecimal.ONE,
+        amountOut: BigDecimal = BigDecimal.ONE,
+        amountInMax: BigDecimal? = null,
+        cautions: List<HSCaution> = emptyList(),
+    ): ISwapFinalQuote = SwapFinalQuoteEvm(
+        tokenIn = token,
+        tokenOut = token,
+        amountIn = amountIn,
+        amountOut = amountOut,
+        amountOutMin = amountOut,
+        sendTransactionData = SendTransactionData.Unsupported,
+        priceImpact = null,
+        fields = emptyList(),
+        amountInMax = amountInMax,
+        cautions = cautions,
+    )
+
+    private interface ExactOutProvider : IMultiSwapProvider, IExactOutSwapProvider
 
     @Test
     fun onTransactionCompleted_btcResultOnChainProvider_savesUidAndCanonicalHashSeparately() = runTest(dispatcher) {

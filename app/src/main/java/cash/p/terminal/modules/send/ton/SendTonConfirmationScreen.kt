@@ -24,7 +24,6 @@ import java.math.BigDecimal
 private const val TonConfirmationPage = "ton_confirmation"
 private const val OfflineTonSignPage = "offline_ton_sign"
 private const val OfflineTonTransactionTransferPage = "offline_ton_transaction_transfer"
-private const val OfflineTransactionTransferFormatArg = "format"
 
 @Composable
 fun SendTonConfirmationScreen(
@@ -39,7 +38,6 @@ fun SendTonConfirmationScreen(
         signFlowRoutes = OfflineSignFlowRoutes(
             signRoute = OfflineTonSignPage,
             transferRoute = OfflineTonTransactionTransferPage,
-            transferFormatArgument = OfflineTransactionTransferFormatArg,
         ),
         sourceChangeable = false,
         onChangeSourceClick = {},

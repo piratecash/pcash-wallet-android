@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,7 +82,6 @@ import cash.p.terminal.ui_compose.components.TextImportantWarning
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_jacob
 import cash.p.terminal.ui_compose.components.body_leah
-// import cash.p.terminal.ui_compose.components.body_lucian // MOBILE-593
 import cash.p.terminal.ui_compose.components.caption_grey
 import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead1_jacob
@@ -341,9 +341,66 @@ fun TransactionInfoAddressCell(
     onAddToNew: (() -> Unit)? = null,
     onValueClick: (() -> Unit)? = null,
     showCopyWarning: Boolean = false,
+    collapseAddress: Boolean = false,
 ) {
     val view = LocalView.current
     var dialogState by remember { mutableStateOf<AddressDialogState>(AddressDialogState.Hidden) }
+    val copyAddress: () -> Unit = {
+        TextHelper.copyText(value)
+        HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
+        onCopy?.invoke()
+    }
+
+    TransactionInfoAddressRow(
+        title = title,
+        showAdd = showAdd,
+        onAddClick = {
+            dialogState = if (showCopyWarning) {
+                AddressDialogState.AddWarning
+            } else {
+                AddressDialogState.SaveAddress
+            }
+        },
+        onCopyClick = {
+            if (showCopyWarning) {
+                dialogState = AddressDialogState.CopyWarning
+            } else {
+                copyAddress()
+            }
+        },
+    ) {
+        ExpandableAddressValue(
+            text = value,
+            textAlign = textAlign,
+            onValueClick = onValueClick,
+            collapsible = collapseAddress,
+            modifier = Modifier.weight(1f),
+        )
+    }
+    TransactionInfoAddressDialogs(
+        state = dialogState,
+        onCopyAddress = copyAddress,
+        onStateChange = { dialogState = it },
+    ) {
+        SaveAddressDialog(
+            value = value,
+            blockchainType = blockchainType,
+            navController = navController,
+            onAddToExisting = onAddToExisting,
+            onAddToNew = onAddToNew,
+            onDismiss = { dialogState = AddressDialogState.Hidden },
+        )
+    }
+}
+
+@Composable
+private fun TransactionInfoAddressRow(
+    title: String,
+    showAdd: Boolean,
+    onAddClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    addressContent: @Composable RowScope.() -> Unit,
+) {
     RowUniversal(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -357,61 +414,41 @@ fun TransactionInfoAddressCell(
         subhead2_grey(text = title)
 
         HSpacer(16.dp)
-        subhead1_leah(
-            modifier = Modifier
-                .weight(1f)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = {
-                        onValueClick?.invoke()
-                    }
-                ),
-            text = value,
-            textAlign = textAlign
-        )
+        addressContent()
 
         if (showAdd) {
             HSpacer(16.dp)
             ButtonSecondaryCircle(
                 icon = R.drawable.icon_20_user_plus,
-                onClick = {
-                    dialogState = if (showCopyWarning) {
-                        AddressDialogState.AddWarning
-                    } else {
-                        AddressDialogState.SaveAddress
-                    }
-                }
+                onClick = onAddClick,
             )
         }
 
         HSpacer(16.dp)
         ButtonSecondaryCircle(
             icon = R.drawable.ic_copy_20,
-            onClick = {
-                if (showCopyWarning) {
-                    dialogState = AddressDialogState.CopyWarning
-                } else {
-                    TextHelper.copyText(value)
-                    HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
-                    onCopy?.invoke()
-                }
-            }
+            onClick = onCopyClick,
         )
     }
+}
 
-    when (dialogState) {
+@Composable
+private fun TransactionInfoAddressDialogs(
+    state: AddressDialogState,
+    onCopyAddress: () -> Unit,
+    onStateChange: (AddressDialogState) -> Unit,
+    saveAddressDialog: @Composable () -> Unit,
+) {
+    when (state) {
         AddressDialogState.Hidden -> {}
 
         AddressDialogState.CopyWarning -> {
             CopyWarningBottomSheet(
                 onCopyAnyway = {
-                    dialogState = AddressDialogState.Hidden
-                    TextHelper.copyText(value)
-                    HudHelper.showSuccessMessage(view, R.string.Hud_Text_Copied)
-                    onCopy?.invoke()
+                    onStateChange(AddressDialogState.Hidden)
+                    onCopyAddress()
                 },
-                onDismiss = { dialogState = AddressDialogState.Hidden },
+                onDismiss = { onStateChange(AddressDialogState.Hidden) },
             )
         }
 
@@ -419,49 +456,81 @@ fun TransactionInfoAddressCell(
             CopyWarningBottomSheet(
                 action = SuspiciousAddressAction.ADD_TO_CONTACTS,
                 onCopyAnyway = {
-                    dialogState = AddressDialogState.SaveAddress
+                    onStateChange(AddressDialogState.SaveAddress)
                 },
-                onDismiss = { dialogState = AddressDialogState.Hidden },
+                onDismiss = { onStateChange(AddressDialogState.Hidden) },
             )
         }
 
         AddressDialogState.SaveAddress -> {
-            SelectorDialogCompose(
-                title = stringResource(R.string.Contacts_AddAddress),
-                items = ContactsModule.AddAddressAction.values().map {
-                    SelectorItem(stringResource(it.title), false, it)
-                },
-                onDismissRequest = {
-                    dialogState = AddressDialogState.Hidden
-                },
-                onSelectItem = { action ->
-                    blockchainType?.let {
-                        val args = when (action) {
-                            ContactsModule.AddAddressAction.AddToNewContact -> {
-                                onAddToNew?.invoke()
-                                ContactsFragment.Input(
-                                    Mode.AddAddressToNewContact(
-                                        blockchainType,
-                                        value
-                                    )
-                                )
-                            }
-
-                            ContactsModule.AddAddressAction.AddToExistingContact -> {
-                                onAddToExisting?.invoke()
-                                ContactsFragment.Input(
-                                    Mode.AddAddressToExistingContact(
-                                        blockchainType,
-                                        value
-                                    )
-                                )
-                            }
-                        }
-                        navController?.slideFromRight(R.id.contactsFragment, args)
-                    }
-                })
+            saveAddressDialog()
         }
     }
+}
+
+@Composable
+private fun SaveAddressDialog(
+    value: String,
+    blockchainType: BlockchainType?,
+    navController: NavController?,
+    onAddToExisting: (() -> Unit)?,
+    onAddToNew: (() -> Unit)?,
+    onDismiss: () -> Unit,
+) {
+    SelectorDialogCompose(
+        title = stringResource(R.string.Contacts_AddAddress),
+        items = ContactsModule.AddAddressAction.values().map {
+            SelectorItem(stringResource(it.title), false, it)
+        },
+        onDismissRequest = onDismiss,
+        onSelectItem = { action ->
+            blockchainType?.let {
+                val args = when (action) {
+                    ContactsModule.AddAddressAction.AddToNewContact -> {
+                        onAddToNew?.invoke()
+                        ContactsFragment.Input(
+                            Mode.AddAddressToNewContact(blockchainType, value)
+                        )
+                    }
+
+                    ContactsModule.AddAddressAction.AddToExistingContact -> {
+                        onAddToExisting?.invoke()
+                        ContactsFragment.Input(
+                            Mode.AddAddressToExistingContact(blockchainType, value)
+                        )
+                    }
+                }
+                navController?.slideFromRight(R.id.contactsFragment, args)
+            }
+        },
+    )
+}
+
+@Composable
+private fun ExpandableAddressValue(
+    text: String,
+    textAlign: TextAlign,
+    onValueClick: (() -> Unit)?,
+    collapsible: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    var showFullAddress by remember(text) { mutableStateOf(false) }
+    val expanded = showFullAddress || !collapsible
+    val onClick = onValueClick ?: {
+        showFullAddress = !showFullAddress
+    }
+
+    subhead1_leah(
+        text = text,
+        textAlign = textAlign,
+        overflow = if (expanded) TextOverflow.Clip else TextOverflow.MiddleEllipsis,
+        maxLines = if (expanded) Int.MAX_VALUE else 1,
+        modifier = modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = onClick,
+        ),
+    )
 }
 
 private sealed interface AddressDialogState {
@@ -1053,5 +1122,25 @@ private fun TransactionInfoTransactionHashCellPreview() {
                 TransactionInfoTransactionHashCell("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")
             }
         }
+    }
+}
+
+@Suppress("UnusedPrivateMember")
+@Composable
+@Preview(
+    name = "Known address",
+    locale = "ru",
+    widthDp = 360,
+    showBackground = true,
+)
+private fun TransactionInfoKnownAddressCellPreview() {
+    ComposeAppTheme {
+        TransactionInfoAddressCell(
+            title = "${stringResource(R.string.TransactionInfo_From)} · Token Bridge",
+            value = "0x579fedB9253ccA1b3114d5e2fA44F8158d61e436",
+            showAdd = false,
+            blockchainType = BlockchainType.BinanceSmartChain,
+            collapseAddress = true,
+        )
     }
 }

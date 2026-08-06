@@ -450,8 +450,9 @@ fun TransactionInfoSection(
                                 },
                                 onAddToNew = {
                                 },
-                                onValueClick = onSensitiveValueClick,
+                                onValueClick = onSensitiveValueClick.takeIf { hideSensitiveInfo },
                                 showCopyWarning = viewItem.showCopyWarning,
+                                collapseAddress = viewItem.collapseAddress,
                             )
                         }
                     }

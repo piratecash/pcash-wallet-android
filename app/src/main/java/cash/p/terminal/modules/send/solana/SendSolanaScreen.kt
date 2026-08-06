@@ -19,7 +19,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import cash.p.terminal.BuildConfig
 import cash.p.terminal.R
 import cash.p.terminal.entities.Address
 import cash.p.terminal.modules.address.AddressParserModule
@@ -36,6 +35,7 @@ import cash.p.terminal.modules.send.SendScreen
 import cash.p.terminal.modules.send.SendSuggestionsBar
 import cash.p.terminal.modules.send.address.AddressCheckerControl
 import cash.p.terminal.modules.send.address.SmartContractCheckSection
+import cash.p.terminal.modules.send.offline.OfflineSignActionCell
 import cash.p.terminal.modules.send.offline.OfflineSignFlowRoutes
 import cash.p.terminal.modules.send.offline.offlineSignFlowRoutes
 import cash.p.terminal.modules.sendtokenselect.PrefilledData
@@ -82,16 +82,15 @@ fun SendSolanaNavHost(
                     onToggleInputType = amountInputModeViewModel::onToggleInputType,
                     onRiskAcceptedChange = viewModel::onRiskAcceptedChange,
                     onBalanceClicked = viewModel::toggleHideBalance,
-                    onDebugOfflineSignClick = { navController.navigate(DebugOfflineSolanaSignPage) },
+                    onOfflineSignClick = { navController.navigate(OfflineSolanaSignPage) },
                     onNextClick = onNextClick,
                 ),
             )
         }
         offlineSignFlowRoutes(
             routes = OfflineSignFlowRoutes(
-                signRoute = DebugOfflineSolanaSignPage,
-                transferRoute = DebugOfflineSolanaTransactionTransferPage,
-                transferFormatArgument = DebugOfflineTransactionTransferFormatArg,
+                signRoute = OfflineSolanaSignPage,
+                transferRoute = OfflineSolanaTransactionTransferPage,
             ),
             navController = navController,
             fragmentNavController = fragmentNavController,
@@ -101,9 +100,8 @@ fun SendSolanaNavHost(
 }
 
 private const val SendSolanaPage = "send_solana"
-private const val DebugOfflineSolanaSignPage = "debug_offline_solana_sign"
-private const val DebugOfflineSolanaTransactionTransferPage = "debug_offline_solana_transaction_transfer"
-private const val DebugOfflineTransactionTransferFormatArg = "format"
+private const val OfflineSolanaSignPage = "offline_solana_sign"
+private const val OfflineSolanaTransactionTransferPage = "offline_solana_transaction_transfer"
 
 data class SendSolanaScreenState(
     val wallet: Wallet,
@@ -132,7 +130,7 @@ data class SendSolanaScreenActions(
     val onToggleInputType: () -> Unit,
     val onRiskAcceptedChange: (Boolean) -> Unit,
     val onBalanceClicked: () -> Unit,
-    val onDebugOfflineSignClick: () -> Unit,
+    val onOfflineSignClick: () -> Unit,
     val onNextClick: (ProceedActionData) -> Unit,
 )
 
@@ -385,6 +383,12 @@ private fun SendSolanaButtons(
     formActions: SendSolanaFormActions,
 ) {
     val proceedEnabled = state.uiState.canBeSend
+    OfflineSignActionCell(
+        supported = state.offlineSignSupported,
+        enabled = proceedEnabled,
+        onClick = actions.onOfflineSignClick,
+    )
+
     ButtonPrimaryYellow(
         modifier = Modifier
             .fillMaxWidth()
@@ -393,17 +397,6 @@ private fun SendSolanaButtons(
         onClick = formActions.onProceed,
         enabled = proceedEnabled,
     )
-
-    if (BuildConfig.SHOW_DEBUG_OFFLINE_SIGN_BUTTON) {
-        ButtonPrimaryYellow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            title = stringResource(R.string.offline_transaction_sign_title),
-            onClick = actions.onDebugOfflineSignClick,
-            enabled = state.offlineSignSupported && proceedEnabled,
-        )
-    }
 }
 
 private fun SendSolanaViewModel.toScreenState(amountInputType: AmountInputType) =

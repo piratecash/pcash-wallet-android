@@ -21,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.Text
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -67,6 +69,9 @@ fun SettingsScreen(
     paddingValues: PaddingValues,
     viewModel: MainSettingsViewModel = koinViewModel(),
 ) {
+    LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) {
+        viewModel.refresh()
+    }
     Surface(color = ComposeAppTheme.colors.tyler) {
         Column {
             AppBar(
@@ -227,6 +232,11 @@ private fun SettingSections(
                 HsSettingCell(
                     R.string.Settings_SecurityCenter,
                     R.drawable.ic_security,
+                    newBadgeText = if (uiState.securityCenterShowNewBadge) {
+                        stringResource(R.string.badge_new)
+                    } else {
+                        null
+                    },
                     showAlert = uiState.securityCenterShowAlert,
                     onClick = {
                         navController.slideFromRight(R.id.securitySettingsFragment)
@@ -440,6 +450,7 @@ fun HsSettingCell(
     iconTint: Color? = null,
     value: String? = null,
     counterBadge: String? = null,
+    newBadgeText: String? = null,
     showAlert: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
@@ -476,6 +487,14 @@ fun HsSettingCell(
                     horizontal =
                         if (onClick != null) 8.dp else 0.dp
                 )
+            )
+        }
+
+        if (newBadgeText != null) {
+            BadgeText(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                text = newBadgeText,
+                background = ComposeAppTheme.colors.issykBlue,
             )
         }
 

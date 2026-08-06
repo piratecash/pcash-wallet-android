@@ -1,6 +1,7 @@
 package cash.p.terminal.network.stonfi.data.repository
 
 import cash.p.terminal.network.stonfi.api.StonFiApi
+import cash.p.terminal.network.stonfi.api.SimulationDirection
 import cash.p.terminal.network.stonfi.data.mapper.StonFiMapper
 import cash.p.terminal.network.stonfi.domain.entity.Asset
 import cash.p.terminal.network.stonfi.domain.entity.RouterInfo
@@ -55,12 +56,56 @@ internal class StonFiRepositoryImpl(
         referralAddress: String?,
         referralFeeBps: Int?,
         dexVersion: Int?
+    ): SimulateSwap = simulateSwap(
+        offerAddress,
+        askAddress,
+        units,
+        slippageTolerance,
+        SimulationDirection.Forward,
+        poolAddress,
+        referralAddress,
+        referralFeeBps,
+        dexVersion,
+    )
+
+    override suspend fun reverseSimulateSwap(
+        offerAddress: String,
+        askAddress: String,
+        units: String,
+        slippageTolerance: BigDecimal,
+        poolAddress: String?,
+        referralAddress: String?,
+        referralFeeBps: Int?,
+        dexVersion: Int?
+    ): SimulateSwap = simulateSwap(
+        offerAddress,
+        askAddress,
+        units,
+        slippageTolerance,
+        SimulationDirection.Reverse,
+        poolAddress,
+        referralAddress,
+        referralFeeBps,
+        dexVersion,
+    )
+
+    private suspend fun simulateSwap(
+        offerAddress: String,
+        askAddress: String,
+        units: String,
+        slippageTolerance: BigDecimal,
+        direction: SimulationDirection,
+        poolAddress: String?,
+        referralAddress: String?,
+        referralFeeBps: Int?,
+        dexVersion: Int?,
     ): SimulateSwap = withContext(Dispatchers.IO) {
         stonFiApi.simulateSwap(
             offerAddress = offerAddress,
             askAddress = askAddress,
             units = units,
             slippageTolerance = slippageTolerance.divide(BigDecimal(100)).toString(),
+            direction = direction,
             poolAddress = poolAddress,
             referralAddress = referralAddress,
             referralFeeBps = referralFeeBps,
