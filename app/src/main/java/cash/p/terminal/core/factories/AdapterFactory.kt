@@ -449,6 +449,7 @@ class AdapterFactory(
             is TokenType.Spl -> getSplAdapter(wallet, tokenType.address)
             is TokenType.Jetton -> getJettonAdapter(wallet, tokenType.address)
             is TokenType.Asset -> getStellarAssetAdapter(wallet, tokenType.code, tokenType.issuer)
+            is TokenType.Trc10 -> null
             is TokenType.Unsupported -> null
         }
 

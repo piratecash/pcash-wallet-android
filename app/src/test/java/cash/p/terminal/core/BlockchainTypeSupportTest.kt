@@ -375,4 +375,9 @@ class BlockchainTypeSupportTest {
 
         assertTrue(restoreSettingTypes.isEmpty())
     }
+
+    @Test
+    fun isSupported_tronTrc10_returnsFalse() {
+        assertFalse(TokenQuery.trc10("1005114").isSupported)
+    }
 }
