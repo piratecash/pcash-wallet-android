@@ -7,6 +7,7 @@ import cash.p.terminal.entities.FeePriceScale
 import cash.p.terminal.modules.displayoptions.DisplayPricePeriod
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.trezor.client.TrezorPublicKeySpecs
+import cash.p.terminal.trezor.domain.TrezorMoneroAdmissionPolicy
 import cash.p.terminal.trezor.domain.TrezorModelSupport
 import cash.p.terminal.trezor.domain.model.TrezorModel
 import cash.p.terminal.wallet.AccountType
@@ -493,8 +494,17 @@ fun Token.supports(accountType: AccountType): Boolean {
             accountType.isCompatibleWith(blockchainType, type)
         }
 
-        is AccountType.TrezorDevice ->
-            TrezorPublicKeySpecs.supports(TrezorModel.fromInternalModel(accountType.model), blockchainType, type)
+        is AccountType.TrezorDevice -> {
+            TrezorMoneroAdmissionPolicy.supportsStoredToken(
+                accountType.model,
+                blockchainType,
+                type,
+            ) || TrezorPublicKeySpecs.supports(
+                TrezorModel.fromInternalModel(accountType.model),
+                blockchainType,
+                type,
+            )
+        }
 
         else -> true
     }

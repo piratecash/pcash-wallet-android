@@ -1,7 +1,10 @@
 package cash.p.terminal.modules.balance.token
 
+import cash.p.terminal.R
 import cash.p.terminal.core.INativeBalanceProvider
 import cash.p.terminal.core.ILocalStorage
+import cash.p.terminal.core.ISendMoneroAdapter
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.adapters.zcash.ZcashAdapter
 import cash.p.terminal.core.managers.AmlStatusManager
 import cash.p.terminal.core.managers.AddressLabelManager
@@ -46,6 +49,8 @@ import cash.p.terminal.wallet.managers.IBalanceHiddenManager
 import cash.p.terminal.wallet.managers.TransactionDisplayLevel
 import cash.p.terminal.wallet.managers.TransactionHiddenState
 import cash.p.terminal.wallet.Account
+import cash.p.terminal.wallet.AccountOrigin
+import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IReceiveAdapter
 import cash.p.terminal.wallet.MarketKitWrapper
@@ -53,6 +58,8 @@ import cash.p.terminal.wallet.WalletFactory
 import cash.p.terminal.wallet.tokenQueryId
 import cash.p.terminal.wallet.zcashTransparentWallet
 import cash.z.ecc.android.sdk.model.FirstClassByteArray
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.core.CoreApp
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -66,10 +73,13 @@ import io.mockk.unmockkAll
 import io.mockk.verify
 import java.math.BigDecimal
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -1376,6 +1386,97 @@ class TokenBalanceViewModelTest : KoinTest {
 
     // endregion
 
+    // region Monero Trezor send preparation
+
+    @Test
+    fun moneroReadiness_keyImageSyncRequired_enablesSendEntry() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.moneroKeyImageSyncRequired)
+        assertEquals(true, viewModel.uiState.sendEntryEnabled)
+    }
+
+    @Test
+    fun syncMoneroKeyImages_success_emitsOpenSendEvent() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.syncKeyImages() } answers {
+            readiness.value = MoneroSpendReadiness.Ready
+        }
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        val event = async { viewModel.events.first() }
+
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+
+        assertEquals(TokenBalanceModule.Event.OpenSend(testWallet), event.await())
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        coVerify(exactly = 1) { adapter.syncKeyImages() }
+    }
+
+    @Test
+    fun syncMoneroKeyImages_deviceNotInitialized_exposesSpecificError() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.syncKeyImages() } throws HardwareWalletOperationException(
+            HardwareWalletErrorCode.DeviceNotInitialized,
+            null,
+        )
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(true, viewModel.uiState.moneroKeyImageSyncRequired)
+        viewModel.syncMoneroKeyImages()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { adapter.syncKeyImages() }
+        assertEquals(
+            R.string.trezor_not_initialized_description,
+            viewModel.uiState.moneroKeyImageSyncError,
+        )
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+    }
+
+    @Test
+    fun cancelMoneroKeyImageSync_operationInProgress_stopsLoading() = runTest(dispatcher) {
+        setMoneroWallet()
+        val readiness = MutableStateFlow(MoneroSpendReadiness.NeedsKeyImageSync)
+        val adapter = mockMoneroAdapter(readiness)
+        every {
+            adapterManager.getAdapterForWallet<ISendMoneroAdapter>(testWallet)
+        } returns adapter
+        coEvery { adapter.syncKeyImages() } coAnswers { awaitCancellation() }
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.syncMoneroKeyImages()
+
+        assertEquals(true, viewModel.uiState.moneroKeyImageSyncInProgress)
+        viewModel.cancelMoneroKeyImageSync()
+        advanceUntilIdle()
+        assertEquals(false, viewModel.uiState.moneroKeyImageSyncInProgress)
+        coVerify(exactly = 1) { adapter.syncKeyImages() }
+    }
+
+    // endregion
+
     // region Helper Methods
 
     private fun markSwapsByUidPrefix() {
@@ -1383,6 +1484,32 @@ class TokenBalanceViewModelTest : KoinTest {
             val uid = firstArg<TransactionItem>().record.uid
             createMockTransactionViewItem(uid = uid, isSwap = uid.startsWith("swap-"))
         }
+    }
+
+    private fun mockMoneroAdapter(
+        readiness: MutableStateFlow<MoneroSpendReadiness>,
+    ) = mockk<ISendMoneroAdapter>(relaxed = true) {
+        every { hardwareWallet } returns true
+        every { spendReadiness } returns readiness
+    }
+
+    private fun setMoneroWallet() {
+        val token = Token(
+            coin = Coin(uid = "monero", name = "Monero", code = "XMR"),
+            blockchain = Blockchain(BlockchainType.Monero, "Monero", null),
+            type = TokenType.Native,
+            decimals = 12,
+        )
+        val account = Account(
+            id = "monero-account",
+            name = "Monero",
+            type = AccountType.Mnemonic(emptyList(), ""),
+            origin = AccountOrigin.Created,
+            level = 0,
+        )
+        testWallet = checkNotNull(
+            WalletFactory(mockk(relaxed = true)).create(token, account, null)
+        )
     }
 
     private fun createViewModel(): TokenBalanceViewModel = TokenBalanceViewModel(

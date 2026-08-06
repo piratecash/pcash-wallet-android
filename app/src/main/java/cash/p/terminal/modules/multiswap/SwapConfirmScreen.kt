@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import cash.p.terminal.R
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.ethereum.CautionViewItem
 import cash.p.terminal.core.iconPlaceholder
 import cash.p.terminal.entities.CoinValue
@@ -30,6 +31,7 @@ import cash.p.terminal.modules.fee.FeeInfoSection
 import cash.p.terminal.modules.multiswap.providers.IMultiSwapProvider
 import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
+import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
@@ -111,6 +113,12 @@ fun SwapConfirmScreen(
         reapprove = onReapprove,
         retryAdapter = viewModel::retryAdapterSync,
         send = viewModel::onClickSendWithWarningCheck,
+        syncMoneroKeyImages = {
+            navigation.fragment.slideFromRight(
+                R.id.receiveFragment,
+                ReceiveFragment.Input(viewModel.wallet),
+            )
+        },
         toggleMevProtection = viewModel::toggleMevProtection,
     )
     val runtime = SwapConfirmRuntime(
@@ -225,9 +233,12 @@ private fun SwapConfirmButtons(
     hasFeeProblem: Boolean,
 ) {
     val hasErrorCaution = uiState.cautions.any { it.type == CautionViewItem.Type.Error }
+    val moneroSpendReadiness = uiState.moneroSpendReadiness
     when {
         uiState.loading -> SwapLoadingButton()
         uiState.criticalError != null -> RefreshSwapButton(uiState.criticalError, actions.refresh)
+        moneroSpendReadiness != null && moneroSpendReadiness != MoneroSpendReadiness.Ready ->
+            MoneroSpendReadinessStatus(moneroSpendReadiness, actions.syncMoneroKeyImages)
         !uiState.validQuote -> InvalidQuoteButton(uiState, hasErrorCaution, actions)
         uiState.expired -> ExpiredQuoteButton(actions.refresh)
         else -> ReadySwapButton(uiState, runtime, actions, hasFeeProblem, hasErrorCaution)
@@ -276,6 +287,33 @@ private fun InvalidQuoteButton(
 private fun ExpiredQuoteButton(onRefresh: () -> Unit) {
     RefreshSwapButton(stringResource(R.string.Button_Refresh), onRefresh)
     subhead1_leah(text = stringResource(R.string.SwapConfirm_QuoteExpired))
+}
+
+@Composable
+private fun MoneroSpendReadinessStatus(
+    spendReadiness: MoneroSpendReadiness,
+    onSyncKeyImages: () -> Unit,
+) {
+    val needsKeyImageSync = spendReadiness == MoneroSpendReadiness.NeedsKeyImageSync
+    TextImportantWarning(
+        modifier = Modifier.fillMaxWidth(),
+        text = stringResource(
+            if (needsKeyImageSync) {
+                R.string.monero_key_images_required
+            } else {
+                R.string.send_confirmation_syncing_warning
+            },
+        ),
+    )
+    if (needsKeyImageSync) {
+        VSpacer(height = 8.dp)
+        ButtonPrimaryDefault(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.monero_sync_key_images),
+            onClick = onSyncKeyImages,
+        )
+    }
+    VSpacer(height = 12.dp)
 }
 
 @Composable
@@ -478,6 +516,7 @@ private data class SwapConfirmActions(
     val reapprove: () -> Unit,
     val retryAdapter: () -> Unit,
     val send: () -> Unit,
+    val syncMoneroKeyImages: () -> Unit,
     val toggleMevProtection: (Boolean) -> Unit,
 )
 

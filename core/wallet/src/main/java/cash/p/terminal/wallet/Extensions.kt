@@ -7,8 +7,15 @@ import cash.p.terminal.wallet.entities.ZCashCoinType
 import io.horizontalsystems.core.entities.BlockchainType
 
 fun Token.isMonero() =
-    (tokenQuery.blockchainType == BlockchainType.Monero &&
-            tokenQuery.tokenType == TokenType.Native)
+    tokenQuery.isMonero
+
+val TokenQuery.isMonero: Boolean
+    get() = blockchainType == BlockchainType.Monero && tokenType == TokenType.Native
+
+val TokenQuery.Companion.monero: TokenQuery
+    get() = moneroTokenQuery
+
+private val moneroTokenQuery = TokenQuery(BlockchainType.Monero, TokenType.Native)
 
 val Token.isLitecoinMweb: Boolean
     get() = isLitecoinMweb(blockchainType, type)

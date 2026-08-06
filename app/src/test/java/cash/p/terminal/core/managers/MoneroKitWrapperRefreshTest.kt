@@ -1,5 +1,6 @@
 package cash.p.terminal.core.managers
 
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.TestDispatcherProvider
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
@@ -7,6 +8,8 @@ import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
 import com.m2049r.xmrwallet.model.Wallet.ConnectionStatus
 import com.m2049r.xmrwallet.service.MoneroWalletService
+import com.piratecash.monero.signer.HardwareWalletErrorCode
+import com.piratecash.monero.signer.HardwareWalletOperationException
 import io.horizontalsystems.core.entities.BlockchainType
 import io.mockk.every
 import io.mockk.mockk
@@ -16,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -42,6 +47,14 @@ class MoneroKitWrapperRefreshTest {
     private val unsupportedAccount = account.copy(
         type = AccountType.EvmAddress("0x1234")
     )
+    private val trezorAccount = account.copy(
+        type = AccountType.TrezorDevice(
+            deviceId = "device-id",
+            model = "T3T1",
+            firmwareVersion = "2.8.10",
+            walletPublicKey = "wallet-key",
+        ),
+    )
 
     @Test
     fun refresh_syncingWallet_doesNotStopService() = runTest {
@@ -66,6 +79,42 @@ class MoneroKitWrapperRefreshTest {
 
         verify(exactly = 1) { service.resume(wrapper) }
         verify(exactly = 1) { service.stop(false) }
+    }
+
+    @Test
+    fun saveSynced_syncingAfterQueuedSyncedEvent_doesNotStoreOrClearRescan() = runTest {
+        val service = mockService()
+        val wrapper = createWrapper(service)
+        setStarted(wrapper)
+        setSyncState(wrapper, AdapterState.Syncing())
+
+        val stored = wrapper.saveSynced()
+
+        assertFalse(stored)
+        verify(exactly = 0) { service.pause() }
+        verify(exactly = 0) {
+            restoreSettingsManager.clearPendingMoneroRescan(account)
+        }
+    }
+
+    @Test
+    fun abandonFaultedWallet_readyHardwareWallet_invalidatesStateAndOwnership() {
+        val service = mockService()
+        val wrapper = createWrapper(service, trezorAccount)
+        val failure = HardwareWalletOperationException(
+            HardwareWalletErrorCode.StoreFailed,
+            "store failed",
+        )
+        setStarted(wrapper)
+        setSyncState(wrapper, AdapterState.Synced)
+        setSpendReadiness(wrapper, MoneroSpendReadiness.Ready)
+
+        invokeAbandonFaultedWallet(wrapper, failure)
+
+        verify(exactly = 1) { service.abandonFaultedWallet() }
+        assertSame(failure, (wrapper.syncState.value as AdapterState.NotSynced).error)
+        assertSame(MoneroSpendReadiness.Syncing, wrapper.spendReadiness.value)
+        assertFalse(privateField(wrapper, "isStarted").getBoolean(wrapper))
     }
 
     // recordNativeConnectionError is exercised directly (not through onRefreshed/statusInfo) because
@@ -167,6 +216,7 @@ class MoneroKitWrapperRefreshTest {
             account = account,
             dispatcherProvider = dispatcherProvider,
             networkErrorTracker = tracker,
+            moneroTrezorGateway = mockk(relaxed = true),
         )
     }
 
@@ -180,6 +230,16 @@ class MoneroKitWrapperRefreshTest {
         ).apply { isAccessible = true }.invoke(wrapper, status, errorString)
     }
 
+    private fun invokeAbandonFaultedWallet(
+        wrapper: MoneroKitWrapper,
+        failure: HardwareWalletOperationException,
+    ) {
+        MoneroKitWrapper::class.java.getDeclaredMethod(
+            "abandonFaultedWallet",
+            HardwareWalletOperationException::class.java,
+        ).apply { isAccessible = true }.invoke(wrapper, failure)
+    }
+
     private fun setStarted(wrapper: MoneroKitWrapper) {
         privateField(wrapper, "isStarted").set(wrapper, true)
     }
@@ -189,6 +249,16 @@ class MoneroKitWrapperRefreshTest {
         val syncState = privateField(wrapper, "_syncState")
             .get(wrapper) as MutableStateFlow<AdapterState>
         syncState.value = state
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun setSpendReadiness(
+        wrapper: MoneroKitWrapper,
+        readiness: MoneroSpendReadiness,
+    ) {
+        val spendReadiness = privateField(wrapper, "_spendReadiness")
+            .get(wrapper) as MutableStateFlow<MoneroSpendReadiness>
+        spendReadiness.value = readiness
     }
 
     private fun privateField(wrapper: MoneroKitWrapper, name: String) =

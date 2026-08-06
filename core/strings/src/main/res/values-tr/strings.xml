@@ -362,6 +362,12 @@
     <string name="receive_address_badge_used">Kullanıldı</string>
     <string name="receive_address_badge_unused">Kullanılmadı</string>
     <string name="receive_create_new_address">Yeni adres oluştur</string>
+    <string name="monero_key_images_required">Göndermeden önce Monero anahtar görüntülerini Trezor ile eşitleyin.</string>
+    <string name="monero_sync_key_images">Anahtar görüntülerini eşitle</string>
+    <string name="monero_prepare_trezor_title">Trezor’u Monero göndermeye hazırlayın</string>
+    <string name="monero_prepare_trezor_description">Monero göndermek için Trezor’unuzu bağlayıp kilidini açın, ardından cüzdanı eşitleyin. Bu adımda hiçbir fon gönderilmez.</string>
+    <string name="monero_sync_and_continue">Eşitle ve devam et</string>
+    <string name="monero_show_address_on_trezor">Adresi Trezor’da göster</string>
     <string name="receive_create_another_address_title">Başka bir adres oluşturulsun mu?</string>
     <string name="receive_create_another_address_warning">Henüz fon almamış yeni bir adresiniz zaten var. Yeni bir adres oluşturmak gerekli değil. Devam etmek istiyor musunuz?</string>
     <string name="receive_dont_ask_again">Bir daha sorma (ayarı kaydet)</string>

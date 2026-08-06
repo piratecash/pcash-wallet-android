@@ -45,6 +45,45 @@ class RestoreSettingsManager(
         storage.save(records)
     }
 
+    internal fun savePendingMoneroRescan(account: Account, height: Long) {
+        require(height >= 0) { "Monero restore height must be non-negative" }
+        storage.save(
+            listOf(
+                RestoreSettingRecord(
+                    account.id,
+                    BlockchainType.Monero.uid,
+                    RestoreSettingType.BirthdayHeight.name,
+                    height.toString(),
+                ),
+                RestoreSettingRecord(
+                    account.id,
+                    BlockchainType.Monero.uid,
+                    PENDING_MONERO_RESCAN_HEIGHT,
+                    height.toString(),
+                ),
+            ),
+        )
+    }
+
+    internal fun pendingMoneroRescanHeight(account: Account): Long? =
+        storage.restoreSettings(account.id, BlockchainType.Monero.uid)
+            .firstOrNull { it.key == PENDING_MONERO_RESCAN_HEIGHT }
+            ?.value
+            ?.toLongOrNull()
+
+    internal fun clearPendingMoneroRescan(account: Account) {
+        storage.save(
+            listOf(
+                RestoreSettingRecord(
+                    account.id,
+                    BlockchainType.Monero.uid,
+                    PENDING_MONERO_RESCAN_HEIGHT,
+                    "",
+                ),
+            ),
+        )
+    }
+
     fun getSettingValueForCreatedAccount(settingType: RestoreSettingType, blockchainType: BlockchainType): String? {
         return when (settingType) {
             RestoreSettingType.BirthdayHeight -> {
@@ -64,6 +103,9 @@ class RestoreSettingsManager(
         }
     }
 
+    private companion object {
+        const val PENDING_MONERO_RESCAN_HEIGHT = "monero_hardware_rescan_pending_height"
+    }
 }
 
 enum class RestoreSettingType {

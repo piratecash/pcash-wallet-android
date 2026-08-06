@@ -71,10 +71,23 @@ class TrezorModelSupportTest {
     }
 
     @Test
-    fun allModels_excludeMonero() {
-        TrezorModel.entries.forEach { model ->
+    fun monero_supportedOnlyOnSafe5StoredDescriptor() {
+        assertTrue(TrezorModelSupport.isSupported(TrezorModel.Safe5, BlockchainType.Monero))
+        TrezorModel.entries.filterNot { it == TrezorModel.Safe5 }.forEach { model ->
             assertFalse(TrezorModelSupport.isSupported(model, BlockchainType.Monero))
         }
+    }
+
+    @Test
+    fun safe5DefaultQueries_excludeDeviceStoredMonero() {
+        val queries = TrezorModelSupport.getDefaultTokenQueries(TrezorModel.Safe5)
+
+        assertFalse(
+            queries.any {
+                it.blockchainType == BlockchainType.Monero &&
+                    it.tokenType == TokenType.Native
+            },
+        )
     }
 
     @Test
@@ -86,6 +99,7 @@ class TrezorModelSupportTest {
         assertFalse(supported.contains(BlockchainType.Tron))
         assertFalse(supported.contains(BlockchainType.Solana))
         assertFalse(supported.contains(BlockchainType.Dash))
+        assertFalse(supported.contains(BlockchainType.Monero))
     }
 
     @Test

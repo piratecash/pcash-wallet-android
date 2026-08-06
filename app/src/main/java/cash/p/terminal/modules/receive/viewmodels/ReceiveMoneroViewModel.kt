@@ -1,16 +1,22 @@
 package cash.p.terminal.modules.receive.viewmodels
 
 import android.os.Parcelable
+import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
+import cash.p.terminal.core.IMoneroReceiveAdapter
 import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.adapters.MoneroAdapter
+import cash.p.terminal.core.MoneroSpendReadiness
 import cash.p.terminal.core.managers.MoneroSubaddressInfo
 import cash.p.terminal.modules.receive.ReceiveModule
+import cash.p.terminal.modules.send.hardwareWalletUserMessageRes
+import cash.p.terminal.modules.send.isHardwareWalletCancelled
 import cash.p.terminal.ui_compose.entities.ViewState
 import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.ViewModelUiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.parcelize.Parcelize
@@ -33,10 +39,17 @@ class ReceiveMoneroViewModel(
     private var subaddresses: List<MoneroSubaddressInfo> = emptyList()
     private var amount: BigDecimal? = null
     private var isCreatingAddress = false
+    private var isHardwareOperationInProgress = false
+    @StringRes
+    private var hardwareOperationError: Int? = null
+    private var hardwareWallet = false
+    private var spendReadiness = MoneroSpendReadiness.Ready
     private var isNewInSession = false
     private val watchAccount = wallet.account.isWatchAccount
 
     private var addressUriState = addressUriService.stateFlow.value
+    private var readinessJob: Job? = null
+    private var observedAdapter: IMoneroReceiveAdapter? = null
 
     init {
         viewModelScope.launch {
@@ -55,12 +68,13 @@ class ReceiveMoneroViewModel(
     }
 
     private suspend fun fetchData() {
-        val adapter = adapterManager.getAdapterForWallet<MoneroAdapter>(wallet)
+        val adapter = adapterManager.getAdapterForWallet<IMoneroReceiveAdapter>(wallet)
         if (adapter == null) {
             viewState = ViewState.Loading
             emitState()
             return
         }
+        observeReadiness(adapter)
         val allSubaddresses = adapter.getSubaddresses()
         if (allSubaddresses.isEmpty()) {
             viewState = ViewState.Loading
@@ -87,7 +101,25 @@ class ReceiveMoneroViewModel(
         addressBadge = addressBadge,
         hasAddressHistory = subaddresses.count { it.index != currentAddressIndex } > 0,
         isCreatingAddress = isCreatingAddress,
+        hardwareWallet = hardwareWallet,
+        spendReadiness = spendReadiness,
+        isHardwareOperationInProgress = isHardwareOperationInProgress,
+        hardwareOperationError = hardwareOperationError,
     )
+
+    private fun observeReadiness(adapter: IMoneroReceiveAdapter) {
+        hardwareWallet = adapter.hardwareWallet
+        spendReadiness = adapter.spendReadiness.value
+        if (observedAdapter === adapter) return
+        observedAdapter = adapter
+        readinessJob?.cancel()
+        readinessJob = viewModelScope.launch {
+            adapter.spendReadiness.collect {
+                spendReadiness = it
+                emitState()
+            }
+        }
+    }
 
     fun createNewAddress() {
         if (isCreatingAddress) return
@@ -96,7 +128,7 @@ class ReceiveMoneroViewModel(
 
         viewModelScope.launch {
             try {
-                val adapter = adapterManager.getAdapterForWallet<MoneroAdapter>(wallet)
+                val adapter = adapterManager.getAdapterForWallet<IMoneroReceiveAdapter>(wallet)
                     ?: return@launch
                 val newAddress = adapter.createNewSubaddress()
                 address = newAddress
@@ -109,6 +141,38 @@ class ReceiveMoneroViewModel(
                 Timber.e(e, "Failed to create new Monero subaddress")
             } finally {
                 isCreatingAddress = false
+                emitState()
+            }
+        }
+    }
+
+    fun syncKeyImages() {
+        runHardwareOperation { it.syncKeyImages() }
+    }
+
+    fun displayAddressOnDevice() {
+        runHardwareOperation { it.displayAddressOnDevice(currentAddressIndex) }
+    }
+
+    private fun runHardwareOperation(
+        operation: suspend (IMoneroReceiveAdapter) -> Unit,
+    ) {
+        if (isHardwareOperationInProgress) return
+        isHardwareOperationInProgress = true
+        hardwareOperationError = null
+        emitState()
+        viewModelScope.launch {
+            try {
+                adapterManager.getAdapterForWallet<IMoneroReceiveAdapter>(wallet)
+                    ?.let { operation(it) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (error.isHardwareWalletCancelled()) return@launch
+                Timber.e(error, "Monero hardware wallet operation failed")
+                hardwareOperationError = error.hardwareWalletUserMessageRes()
+            } finally {
+                isHardwareOperationInProgress = false
                 emitState()
             }
         }
@@ -164,6 +228,10 @@ data class ReceiveMoneroUiState(
     val addressBadge: AddressBadge = AddressBadge.UNUSED,
     val hasAddressHistory: Boolean = false,
     val isCreatingAddress: Boolean = false,
+    val hardwareWallet: Boolean = false,
+    val spendReadiness: MoneroSpendReadiness = MoneroSpendReadiness.Ready,
+    val isHardwareOperationInProgress: Boolean = false,
+    @StringRes val hardwareOperationError: Int? = null,
 ) : ReceiveModule.AbstractUiState()
 
 enum class AddressBadge { NEW, UNUSED, USED }

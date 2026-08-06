@@ -1,6 +1,7 @@
 package cash.p.terminal.trezor.domain.policy
 
 import cash.p.terminal.trezor.client.TrezorPublicKeySpecs
+import cash.p.terminal.trezor.domain.TrezorMoneroAdmissionPolicy
 import cash.p.terminal.trezor.domain.model.TrezorModel
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
@@ -15,9 +16,17 @@ class TrezorHardwareWalletTokenPolicy : HardwareWalletTokenPolicy {
     }
 
     override fun isSupported(account: Account, token: Token): Boolean {
-        val model = (account.type as? AccountType.TrezorDevice)?.let {
-            TrezorModel.fromInternalModel(it.model)
+        val accountType = account.type as? AccountType.TrezorDevice ?: return false
+        if (
+            TrezorMoneroAdmissionPolicy.supportsStoredToken(
+                accountType.model,
+                token.blockchainType,
+                token.type,
+            )
+        ) {
+            return true
         }
+        val model = TrezorModel.fromInternalModel(accountType.model)
         return TrezorPublicKeySpecs.supports(model, token.blockchainType, token.type)
     }
 }
