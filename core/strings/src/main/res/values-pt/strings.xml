@@ -2121,6 +2121,7 @@
     <string name="error_hardware_wallet_some_tokens_not_found">Não foi possível adicionar alguns tokens</string>
     <string name="send_error_address_unavailable">Endereço indisponível</string>
     <string name="send_error_amount_unavailable">Montante indisponível</string>
+    <string name="send_error_zcash_params_not_downloaded">O Zcash ainda não descarregou os ficheiros necessários para enviar. Ligue-se à Internet e tente novamente.</string>
     <string name="send_error_fee_rate_unavailable">Taxa de comissão indisponível</string>
     <string name="send_error_balance_unavailable">Saldo indisponível</string>
     <string name="litecoin_mweb_invalid_amount">Montante Litecoin MWEB inválido</string>
