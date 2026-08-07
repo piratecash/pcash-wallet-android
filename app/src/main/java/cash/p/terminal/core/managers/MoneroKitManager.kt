@@ -13,6 +13,7 @@ import cash.p.terminal.core.usecase.ValidateMoneroHeightUseCase
 import cash.p.terminal.core.utils.MoneroConfig
 import cash.p.terminal.entities.LastBlockInfo
 import cash.p.terminal.entities.MoneroFileRecord
+import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.AdapterState
@@ -50,12 +51,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -151,6 +155,7 @@ class MoneroKitManager(
             account = account,
             dispatcherProvider = dispatcherProvider,
             networkErrorTracker = networkErrorTracker,
+            connectivityManager = connectivityManager,
         )
     }
 
@@ -246,11 +251,18 @@ class MoneroKitManager(
             }
         }
         lifecycleJobs += coroutineScope.launch {
-            connectivityManager.networkAvailabilityFlow.collect { connected ->
-                if (connected && backgroundManager.inForeground) {
-                    resumeOrStartKit()
+            connectivityManager.networkAvailabilityFlow
+                .onSubscription { emitConnectivityMissedAtStartup() }
+                .collect { connected ->
+                    if (!connected) {
+                        moneroKitWrapper?.onNetworkLost()
+                    } else if (backgroundManager.inForeground) {
+                        resumeOrStartKit()
+                        // resumeOrStartKit is a no-op for an already running kit, so without an
+                        // explicit refresh the state would stay NotSynced until the next callback.
+                        moneroKitWrapper?.refresh()
+                    }
                 }
-            }
         }
         lifecycleJobs += coroutineScope.launch {
             moneroKitWrapper?.let { w ->
@@ -261,6 +273,18 @@ class MoneroKitManager(
             }
         }
     }
+
+    // startKit() runs before the collector above subscribes and networkAvailabilityFlow has no
+    // replay, so a change inside that window is dropped: re-emit it when the kit disagrees with
+    // the device, and stay silent when they already agree.
+    private suspend fun FlowCollector<Boolean>.emitConnectivityMissedAtStartup() {
+        val connected = connectivityManager.isConnected.value
+        val kitOffline = moneroKitWrapper?.syncState?.value is AdapterState.NotSynced
+        when {
+            !connected && !kitOffline -> emit(false)
+            connected && kitOffline -> emit(true)
+        }
+    }
 }
 
 class MoneroKitWrapper(
@@ -269,6 +293,7 @@ class MoneroKitWrapper(
     private val account: Account,
     private val dispatcherProvider: DispatcherProvider,
     private val networkErrorTracker: NetworkErrorTracker,
+    private val connectivityManager: IConnectivityManager,
 ) : MoneroWalletService.Observer {
     private val moneroFileDao: MoneroFileDao by inject(MoneroFileDao::class.java)
     private val moneroWalletUseCase: MoneroWalletUseCase by inject(MoneroWalletUseCase::class.java)
@@ -341,7 +366,7 @@ class MoneroKitWrapper(
                 lastLoggedSyncProgress = -1
                 lastLoggedConnectionStatus = null
                 storedForSync = false
-                _syncState.value = AdapterState.Connecting
+                publishSyncState(AdapterState.Connecting)
                 try {
                     val walletFileName: String
                     val walletPassword: String
@@ -934,72 +959,110 @@ class MoneroKitWrapper(
         }
         recordNativeConnectionError(observed, tryOrNull { wallet?.status?.errorString })
 
-        if (connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
+        val nativeConnected = connectionStatus == ConnectionStatus.ConnectionStatus_Connected
+        if (nativeConnected) {
             _lastBlockInfoFlow.value = if (moneroWalletService.daemonHeight != 0L) {
                 LastBlockInfo(moneroWalletService.daemonHeight.toInt())
             } else {
                 null
             }
-        }
-
-        if (connectionStatus == ConnectionStatus.ConnectionStatus_Connected) {
             _transactionsStateUpdatedFlow.tryEmit(Unit)
         }
 
-        _syncState.value =
-            if (connectionStatus != ConnectionStatus.ConnectionStatus_Connected) {
-                Timber.d("MoneroKitWrapper: Not connected")
-                logger.info("onRefreshed: connection lost, setting state=NotSynced")
-                lastLoggedSyncProgress = -1
-                AdapterState.NotSynced(IllegalStateException("Not connected"))
-            } else if (moneroWalletService.wallet?.isSynchronized == true) {
-                Timber.d("MoneroKitWrapper: Synced")
-                logger.info(
-                    "onRefreshed: wallet synchronized at height=${moneroWalletService.wallet?.blockChainHeight}"
-                )
-                lastLoggedSyncProgress = 100
-                AdapterState.Synced
-            } else {
-                Timber.d("MoneroKitWrapper: Sync in progress")
-                val currentHeight = tryOrNull { moneroWalletService.wallet?.blockChainHeight } ?: 0
-                val totalHeight = tryOrNull { WalletManager.getInstance().blockchainHeight } ?: 0L
-                if (totalHeight > 0) {
-                    cachedTotalHeight = totalHeight
-                }
-                val heightToUse = if (totalHeight > 0) totalHeight else cachedTotalHeight
-                Timber.d("currentHeight = $currentHeight, totalHeight = $totalHeight")
+        val isSynchronized = nativeConnected && moneroWalletService.wallet?.isSynchronized == true
+        val currentHeight = if (nativeConnected) {
+            tryOrNull { moneroWalletService.wallet?.blockChainHeight } ?: 0
+        } else {
+            0
+        }
+        // Manager-level height is a daemon RPC and nativeConnected lies while offline, so the device
+        // network state gates it too — otherwise losing network mid-sync blocks the native callback.
+        val totalHeight = if (nativeConnected && !isSynchronized && connectivityManager.isConnected.value) {
+            tryOrNull { WalletManager.getInstance().blockchainHeight } ?: 0L
+        } else {
+            0L
+        }
 
-                val progressPercent = if (heightToUse > 0) {
-                    ((currentHeight.toDouble() / heightToUse) * 100).coerceIn(0.0, 100.0).toInt()
-                } else {
-                    0
-                }
-
-                val blocksRemained = if (heightToUse > 0 && currentHeight < heightToUse) {
-                    heightToUse - currentHeight
-                } else {
-                    null
-                }
-
-                if (progressPercent == 0 && lastLoggedSyncProgress != 0) {
-                    logger.info("onRefreshed: sync progress started (0%)")
-                }
-                if (progressPercent >= 100 && lastLoggedSyncProgress < 100) {
-                    logger.info("onRefreshed: sync progress reached 100%")
-                }
-                if (progressPercent - lastLoggedSyncProgress >= 5 && progressPercent in 1..99) {
-                    logger.info("onRefreshed: sync progress=${progressPercent}% blocksRemained=$blocksRemained")
-                }
-                lastLoggedSyncProgress = progressPercent
-
-                AdapterState.Syncing(
-                    progress = progressPercent.toDouble(),
-                    blocksRemained = blocksRemained
-                )
-            }
+        publishSyncState(
+            resolveSyncState(nativeConnected, isSynchronized, currentHeight, totalHeight)
+        )
         Timber
             .d("onRefreshed, isSynchronized = ${wallet?.isSynchronized}, connectionStatus = ${wallet?.connectionStatus}, full = $full, restoreHeight = ${moneroWalletService.wallet?.restoreHeight?.toString()}")
         return true
+    }
+
+    private fun notConnectedState() = AdapterState.NotSynced(IllegalStateException("Not connected"))
+
+    fun onNetworkLost() {
+        publishSyncState(notConnectedState())
+    }
+
+    // `update` and not a plain assignment: the network can drop between computing a state and
+    // storing it, and the CAS retry re-reads isConnected instead of overwriting NotSynced.
+    private fun publishSyncState(state: AdapterState) {
+        _syncState.update { if (connectivityManager.isConnected.value) state else notConnectedState() }
+    }
+
+    private fun resolveSyncState(
+        nativeConnected: Boolean,
+        isSynchronized: Boolean,
+        currentHeight: Long,
+        totalHeight: Long,
+    ): AdapterState = when {
+        !nativeConnected -> {
+            Timber.d("MoneroKitWrapper: Not connected")
+            logger.info("onRefreshed: connection lost, setting state=NotSynced")
+            lastLoggedSyncProgress = -1
+            notConnectedState()
+        }
+
+        isSynchronized -> {
+            Timber.d("MoneroKitWrapper: Synced")
+            logger.info("onRefreshed: wallet synchronized at height=$currentHeight")
+            lastLoggedSyncProgress = 100
+            AdapterState.Synced
+        }
+
+        else -> syncingState(currentHeight, totalHeight)
+    }
+
+    private fun syncingState(currentHeight: Long, totalHeight: Long): AdapterState {
+        Timber.d("MoneroKitWrapper: Sync in progress")
+        if (totalHeight > 0) {
+            cachedTotalHeight = totalHeight
+        }
+        val heightToUse = if (totalHeight > 0) totalHeight else cachedTotalHeight
+        Timber.d("currentHeight = $currentHeight, totalHeight = $totalHeight")
+
+        val progressPercent = if (heightToUse > 0) {
+            ((currentHeight.toDouble() / heightToUse) * 100).coerceIn(0.0, 100.0).toInt()
+        } else {
+            0
+        }
+        val blocksRemained = if (heightToUse > 0 && currentHeight < heightToUse) {
+            heightToUse - currentHeight
+        } else {
+            null
+        }
+        logSyncProgress(progressPercent, blocksRemained)
+
+        return AdapterState.Syncing(
+            progress = progressPercent.toDouble(),
+            blocksRemained = blocksRemained
+        )
+    }
+
+    private fun logSyncProgress(progressPercent: Int, blocksRemained: Long?) {
+        if (progressPercent == 0 && lastLoggedSyncProgress != 0) {
+            logger.info("onRefreshed: sync progress started (0%)")
+        }
+        if (progressPercent >= 100 && lastLoggedSyncProgress < 100) {
+            logger.info("onRefreshed: sync progress reached 100%")
+        }
+        if (progressPercent - lastLoggedSyncProgress >= 5 && progressPercent in 1..99) {
+            logger.info("onRefreshed: sync progress=${progressPercent}% blocksRemained=$blocksRemained")
+        }
+        lastLoggedSyncProgress = progressPercent
     }
 
     override fun onProgress(text: String?) {
@@ -1020,8 +1083,8 @@ class MoneroKitWrapper(
         logger.info("onWalletStarted: status=${walletStatus?.toString()} isSynchronized=${moneroWalletService.wallet?.isSynchronized}")
         Timber.d("onWalletStarted: $walletStatus")
         if (moneroWalletService.wallet?.isSynchronized == true) {
-            println("MoneroKitWrapper: Synced")
-            _syncState.value = AdapterState.Synced
+            Timber.d("MoneroKitWrapper: Synced")
+            publishSyncState(AdapterState.Synced)
         }
     }
 

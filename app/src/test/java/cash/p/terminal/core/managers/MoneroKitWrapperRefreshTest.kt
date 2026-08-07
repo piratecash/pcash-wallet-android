@@ -1,6 +1,7 @@
 package cash.p.terminal.core.managers
 
 import cash.p.terminal.core.TestDispatcherProvider
+import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -129,6 +130,58 @@ class MoneroKitWrapperRefreshTest {
         invokeRecord(wrapper, ConnectionStatus.ConnectionStatus_Disconnected, null)
     }
 
+    // The device is offline while the kit still reports ConnectionStatus_Connected: MoneroWalletService
+    // derives that status from the local chain height and never contacts the daemon.
+
+    @Test
+    fun refreshedStatePath_deviceOfflineWalletReportsSynced_forcesNotSynced() {
+        val wrapper = createWrapper(mockService(), connectivityManager = connectivity(connected = false))
+
+        val state = invokeResolve(wrapper, nativeConnected = true, isSynchronized = true, currentHeight = 0L, totalHeight = 0L)
+        invokePublish(wrapper, state)
+
+        assertTrue(wrapper.syncState.value is AdapterState.NotSynced)
+    }
+
+    @Test
+    fun refreshedStatePath_deviceOfflineNativeConnected_forcesNotSynced() {
+        val wrapper = createWrapper(mockService(), connectivityManager = connectivity(connected = false))
+
+        val state = invokeResolve(wrapper, nativeConnected = true, isSynchronized = false, currentHeight = 0L, totalHeight = 0L)
+        invokePublish(wrapper, state)
+
+        assertTrue(wrapper.syncState.value is AdapterState.NotSynced)
+    }
+
+    @Test
+    fun refreshedStatePath_deviceOnlineNativeConnected_keepsSyncing() {
+        val wrapper = createWrapper(mockService())
+
+        val state = invokeResolve(wrapper, nativeConnected = true, isSynchronized = false, currentHeight = 50L, totalHeight = 100L)
+        invokePublish(wrapper, state)
+
+        assertTrue(wrapper.syncState.value is AdapterState.Syncing)
+    }
+
+    @Test
+    fun resolveSyncState_nativeDisconnected_returnsNotSynced() {
+        val wrapper = createWrapper(mockService())
+
+        val state = invokeResolve(wrapper, nativeConnected = false, isSynchronized = false, currentHeight = 0L, totalHeight = 0L)
+
+        assertTrue(state is AdapterState.NotSynced)
+    }
+
+    @Test
+    fun onNetworkLost_deviceStillReportsConnected_setsNotSynced() {
+        val wrapper = createWrapper(mockService())
+        setSyncState(wrapper, AdapterState.Synced)
+
+        wrapper.onNetworkLost()
+
+        assertTrue(wrapper.syncState.value is AdapterState.NotSynced)
+    }
+
     @Test
     fun appendNetworkErrors_afterRecord_mergesIntoStatus() {
         // Contract that MoneroKitWrapper.statusInfo() relies on: a recorded error surfaces as
@@ -156,10 +209,15 @@ class MoneroKitWrapperRefreshTest {
         return mockk(relaxed = true)
     }
 
+    private fun connectivity(connected: Boolean): IConnectivityManager = mockk {
+        every { isConnected } returns MutableStateFlow(connected)
+    }
+
     private fun createWrapper(
         service: MoneroWalletService,
         account: Account = this.account,
         tracker: NetworkErrorTracker = mockk(relaxed = true),
+        connectivityManager: IConnectivityManager = connectivity(connected = true),
     ): MoneroKitWrapper {
         return MoneroKitWrapper(
             moneroWalletService = service,
@@ -167,7 +225,29 @@ class MoneroKitWrapperRefreshTest {
             account = account,
             dispatcherProvider = dispatcherProvider,
             networkErrorTracker = tracker,
+            connectivityManager = connectivityManager,
         )
+    }
+
+    private fun invokeResolve(
+        wrapper: MoneroKitWrapper,
+        nativeConnected: Boolean,
+        isSynchronized: Boolean,
+        currentHeight: Long,
+        totalHeight: Long,
+    ): AdapterState = MoneroKitWrapper::class.java.getDeclaredMethod(
+        "resolveSyncState",
+        Boolean::class.javaPrimitiveType,
+        Boolean::class.javaPrimitiveType,
+        Long::class.javaPrimitiveType,
+        Long::class.javaPrimitiveType,
+    ).apply { isAccessible = true }
+        .invoke(wrapper, nativeConnected, isSynchronized, currentHeight, totalHeight) as AdapterState
+
+    private fun invokePublish(wrapper: MoneroKitWrapper, state: AdapterState) {
+        MoneroKitWrapper::class.java.getDeclaredMethod("publishSyncState", AdapterState::class.java)
+            .apply { isAccessible = true }
+            .invoke(wrapper, state)
     }
 
     private fun invokeRecord(
