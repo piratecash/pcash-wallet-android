@@ -5,6 +5,9 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
+import cash.p.terminal.qr.multipart.FeedResult
+import cash.p.terminal.qr.multipart.MultipartQrScanSession
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -19,8 +22,21 @@ class QRScannerViewModel(
     private val _uiState = MutableStateFlow(QRScannerUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _scanResult = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    private val _scanResult = MutableSharedFlow<String>(replay = 1)
     val scanResult = _scanResult.asSharedFlow()
+
+    private val scanSession = MultipartQrScanSession()
+    private val resultEmitted = AtomicBoolean(false)
+
+    fun onFrameScanned(frame: String) {
+        when (val result = scanSession.feed(frame)) {
+            is FeedResult.NotMultipart -> emitOnce(result.raw)
+            is FeedResult.Complete -> emitOnce(result.text)
+            is FeedResult.Incomplete -> Unit
+        }
+    }
+
+    fun onTextPasted(text: String) = emitOnce(text)
 
     fun onImagePicked(uri: Uri) {
         viewModelScope.launch {
@@ -28,7 +44,7 @@ class QRScannerViewModel(
 
             qrCodeImageDecoder.decode(uri).onSuccess { decoded ->
                 _uiState.update { state -> state.copy(isDecodingFromImage = false) }
-                _scanResult.emit(decoded)
+                emitOnce(decoded)
             }.onFailure {
                 _uiState.update { state ->
                     state.copy(
@@ -42,6 +58,12 @@ class QRScannerViewModel(
 
     fun onErrorMessageConsumed() {
         _uiState.update { it.copy(errorMessageRes = null) }
+    }
+
+    private fun emitOnce(text: String) {
+        if (resultEmitted.compareAndSet(false, true)) {
+            _scanResult.tryEmit(text)
+        }
     }
 }
 
