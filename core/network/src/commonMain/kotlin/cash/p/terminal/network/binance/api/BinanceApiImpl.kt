@@ -1,9 +1,9 @@
 package cash.p.terminal.network.binance.api
 
 import cash.p.terminal.network.binance.data.TokenBalance
+import cash.p.terminal.network.data.NetworkLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 internal class BinanceApiImpl(
     private val ethereumRpcApi: EthereumRpcApi
@@ -44,7 +44,7 @@ internal class BinanceApiImpl(
                     )
                 }
             } catch (throwable: Throwable) {
-                Timber.tag("BinanceApi").d(throwable, "getTokenBalance error for url: $url")
+                NetworkLogger.debug("BinanceApi getTokenBalance error for url: $url", throwable)
             }
         }
         return@withContext null

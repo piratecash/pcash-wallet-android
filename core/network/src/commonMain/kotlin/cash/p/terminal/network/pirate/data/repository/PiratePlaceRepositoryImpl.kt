@@ -1,6 +1,6 @@
 package cash.p.terminal.network.pirate.data.repository
 
-import android.util.Log
+import cash.p.terminal.network.data.NetworkLogger
 import cash.p.terminal.network.data.entity.ChartPeriod
 import cash.p.terminal.network.pirate.api.PlaceApi
 import cash.p.terminal.network.pirate.data.database.CacheChangeNowCoinAssociationDao
@@ -120,11 +120,7 @@ internal class PiratePlaceRepositoryImpl(
             val response = block(walletAddress)
             response.toPremiumResult()
         } catch (e: Exception) {
-            Log.d(
-                "PiratePlaceRepository",
-                "Error checking premium status for wallet $walletAddress",
-                e
-            )
+            NetworkLogger.debug("Error checking premium status", e)
             null
         }
     }

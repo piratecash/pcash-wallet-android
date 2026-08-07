@@ -28,6 +28,7 @@ grpcApi = "1.80.0"
 kotlin = "2.3.20"
 koin-bom = "4.2.0"
 compose-bom = "2026.05.01"
+composeMultiplatform = "1.10.1"
 leakcanaryAndroid = "3.0-alpha-8"
 material = "1.13.0"
 mockk = "1.14.9"
@@ -57,6 +58,7 @@ rxjava = "2.2.21"
 kotlinx-coroutines-android = "1.10.2"
 kotlinx-coroutines-test = "1.10.2"
 room = "2.8.4"
+sqlite = "2.7.0"
 paging = "3.4.2"
 javax-inject = "1"
 appcompat = "1.7.1"
@@ -159,6 +161,9 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
 compose-material = { module = "androidx.compose.material:material" }
 compose-animation = { module = "androidx.compose.animation:animation" }
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-multiplatform-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-multiplatform-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+compose-multiplatform-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
@@ -194,6 +199,7 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room" }
+sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "sqlite" }
 
 paging-runtime = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
@@ -281,6 +287,7 @@ lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.re
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 kotlin-parcelize = { id = "kotlin-parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 devtools-ksp = { id = "com.google.devtools.ksp" }

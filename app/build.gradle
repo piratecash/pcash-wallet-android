@@ -435,11 +435,11 @@ dependencies {
 
     // UI modules
 
+    implementation project(':shared')
     implementation project(':core:core')
     implementation project(':core:strings')
     implementation project(':core:wallet')
     implementation project(':core:resources')
-    implementation project(':core:network')
     implementation project(':core:navigation')
     implementation project(':components:icons')
     implementation project(':components:chartview')
