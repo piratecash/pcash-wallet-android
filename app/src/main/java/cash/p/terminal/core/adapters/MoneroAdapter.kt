@@ -136,7 +136,7 @@ class MoneroAdapter(
         )
         return SignedOfflineMoneroTransaction(
             rawHex = signed.raw.toRawHexString(),
-            txHash = signed.txId.canonicalTransactionHash(),
+            txHash = signed.txIds.first().canonicalTransactionHash(),
             fee = signed.fee.toBigDecimal().movePointLeft(decimal),
         )
     }

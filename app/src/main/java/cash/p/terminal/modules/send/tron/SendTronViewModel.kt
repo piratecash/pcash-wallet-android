@@ -12,7 +12,6 @@ import cash.p.terminal.core.ISendTronAdapter
 import cash.p.terminal.core.LocalizedException
 import cash.p.terminal.core.OfflineTransactionAdapter
 import cash.p.terminal.core.OfflineTronSignRequest
-import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.core.SignedOfflineTronTransaction
 import cash.p.terminal.core.managers.OfflineSignedTransactionRepository
 import cash.p.terminal.core.managers.OfflineTransactionPayloadEncoder
