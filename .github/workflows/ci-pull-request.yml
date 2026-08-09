@@ -25,17 +25,7 @@ jobs:
             | base64 --decode \
             > "$RUNNER_TEMP/firebase-dev.jks"
       - name: Run Unit tests
-        run: ./gradlew :app:testDebugUnitTest :core:core:testDebugUnitTest :core:wallet:testDebugUnitTest :feature-premium:testDebugUnitTest :feature-logging:testDebugUnitTest :feature-trezor:testDebugUnitTest :feature-tangem:testDebugUnitTest --stacktrace
-      - name: Upload unit test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-unit-test-reports-${{ github.run_attempt }}
-          path: |
-            app/build/test-results/testDebugUnitTest/**
-            app/build/reports/tests/testDebugUnitTest/**
-          if-no-files-found: ignore
-          retention-days: 7
+        run: ./gradlew :app:testDebugUnitTest :core:core:testDebugUnitTest :core:wallet:testDebugUnitTest :feature-premium:testDebugUnitTest :feature-logging:testDebugUnitTest :feature-trezor:testDebugUnitTest :feature-tangem:testDebugUnitTest
       - name: Build with Gradle
         run: ./gradlew assembleDebug
         env:
@@ -45,23 +35,10 @@ jobs:
           FIREBASE_DEV_KEY_ALIAS: ${{ secrets.FIREBASE_DEV_KEY_ALIAS }}
           FIREBASE_DEV_KEY_PASSWORD: ${{ secrets.FIREBASE_DEV_KEY_PASSWORD }}
       - name: Verify Firebase DEV signing certificate
-        env:
-          FIREBASE_DEV_KEYSTORE_PATH: ${{ runner.temp }}/firebase-dev.jks
-          FIREBASE_DEV_STORE_PASSWORD: ${{ secrets.FIREBASE_DEV_STORE_PASSWORD }}
-          FIREBASE_DEV_KEY_ALIAS: ${{ secrets.FIREBASE_DEV_KEY_ALIAS }}
         run: |
           APKSIGNER="$(ls -1 "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
-          KEYSTORE_CERT_SHA256="$(keytool -list -v \
-            -keystore "$FIREBASE_DEV_KEYSTORE_PATH" \
-            -storepass "$FIREBASE_DEV_STORE_PASSWORD" \
-            -alias "$FIREBASE_DEV_KEY_ALIAS" \
-            | sed -n 's/^[[:space:]]*SHA256: //p' \
-            | tr -d ':' \
-            | tr '[:upper:]' '[:lower:]')"
           ACTUAL_CERT_SHA256="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
             | awk '/certificate SHA-256 digest:/ { print $NF; exit }')"
-          echo "Restored keystore certificate SHA-256: $KEYSTORE_CERT_SHA256"
-          echo "APK signer certificate SHA-256: $ACTUAL_CERT_SHA256"
           test "$ACTUAL_CERT_SHA256" = "374992632abe227755163b21d0eec1e109767054ebb956bda9a7b79709a4eec2"
       - name: Upload Crashlytics native symbols
         if: github.ref == 'refs/heads/master'
