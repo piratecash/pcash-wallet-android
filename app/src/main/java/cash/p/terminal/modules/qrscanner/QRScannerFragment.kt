@@ -64,9 +64,8 @@ class QRScannerFragment : BaseComposeFragment() {
             navController = navController,
             showPasteButton = input.showPasteButton,
             allowGalleryWithoutPremium = input.allowGalleryWithoutPremium,
-            onScan = { decoded ->
-                handleScanResult(decoded, navController)
-            },
+            onScan = viewModel::onFrameScanned,
+            onPaste = viewModel::onTextPasted,
             onCloseClick = { navController.popBackStackSafely() },
             onCameraPermissionSettingsClick = ::openCameraPermissionSettings,
             onGalleryImagePicked = viewModel::onImagePicked,

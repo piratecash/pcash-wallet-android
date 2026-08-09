@@ -46,19 +46,38 @@ internal object PcashQrCodeDefaults {
     const val QuietZoneModules = 4f
     const val SavedBitmapSize = 1024
 
+    // Numeric mode at ECC Q tops out at 3993 chars; no denser mode exists, so nothing
+    // longer can be encoded at this ECC level in any mode.
+    const val MaxEncodableChars = 3_993
+
+    // Encodable is not the same as scannable: past this module count the rounded pixel shapes
+    // and the centre logo stop decoding reliably even from the rendered bitmap at full
+    // resolution, long before the camera is involved. Measured against this exact rendering and
+    // the app's scan pipeline, decoding is flawless up to 129 modules and collapses at 133-137.
+    // 113 (QR version 24, 661 chars in byte mode) keeps a margin for the blur, glare and tilt a
+    // real camera adds. Only callers with a fallback may apply this limit — rejecting a dense
+    // payload with nothing to fall back to would show an empty panel instead of a hard-to-scan
+    // but still valid code.
+    const val MaxReadableModules = 113
+
     // QRose MediumHigh maps to QR ECC Q; keep this paired with ZXing Q for capacity checks.
     val PainterErrorCorrectionLevel = QrErrorCorrectionLevel.MediumHigh
     val EncoderErrorCorrectionLevel = ErrorCorrectionLevel.Q
 }
 
+/** Null when the content is too dense to scan — the caller must fall back to the animated tape. */
 @Composable
-internal fun rememberPcashQrCodePainterOrNull(content: String): Painter? {
-    if (!canEncodeAsPcashQrCode(content)) return null
+internal fun rememberReadablePcashQrCodePainterOrNull(content: String): Painter? {
+    val readable = remember(content) { isReadablePcashQrCode(content) }
+    if (!readable) return null
     return rememberPcashQrCodePainter(content)
 }
 
 @Composable
-private fun rememberPcashQrCodePainter(content: String): Painter {
+internal fun rememberPcashQrCodePainter(
+    content: String,
+    withLogo: Boolean = true,
+): Painter {
     val logoPainter = adaptiveIconPainterResource(
         id = R.mipmap.launcher_main,
         fallbackDrawable = R.drawable.launcher_main_preview
@@ -66,11 +85,13 @@ private fun rememberPcashQrCodePainter(content: String): Painter {
 
     return rememberQrCodePainter(content) {
         errorCorrectionLevel = PcashQrCodeDefaults.PainterErrorCorrectionLevel
-        logo {
-            painter = logoPainter
-            padding = QrLogoPadding.Natural(.25f)
-            shape = QrLogoShape.roundCorners(0.8f)
-            size = 0.2f
+        if (withLogo) {
+            logo {
+                painter = logoPainter
+                padding = QrLogoPadding.Natural(.25f)
+                shape = QrLogoShape.roundCorners(0.8f)
+                size = 0.2f
+            }
         }
 
         shapes {
@@ -109,10 +130,11 @@ internal fun PcashQrCodeImage(
     qrCodeSize: Dp = PcashQrCodeDefaults.Size,
     contentScale: ContentScale = ContentScale.FillWidth,
 ) {
-    val qrCodePainter = rememberPcashQrCodePainterOrNull(content) ?: return
+    val encodable = remember(content) { canEncodeAsPcashQrCode(content) }
+    if (!encodable) return
     PcashQrCodeImage(
         content = content,
-        qrCodePainter = qrCodePainter,
+        qrCodePainter = rememberPcashQrCodePainter(content),
         modifier = modifier,
         qrCodeSize = qrCodeSize,
         contentScale = contentScale,
@@ -184,10 +206,16 @@ private fun calculatePcashQrQuietZonePx(content: String, density: Density): Int 
         .roundToInt()
 }
 
-internal fun canEncodeAsPcashQrCode(content: String): Boolean =
-    qrModuleCount(content) != null
+internal fun canEncodeAsPcashQrCode(content: String): Boolean = qrModuleCount(content) != null
 
-private fun qrModuleCount(content: String): Int? =
-    tryOrNull {
+internal fun isReadablePcashQrCode(content: String): Boolean {
+    val modules = qrModuleCount(content) ?: return false
+    return modules <= PcashQrCodeDefaults.MaxReadableModules
+}
+
+private fun qrModuleCount(content: String): Int? {
+    if (content.length > PcashQrCodeDefaults.MaxEncodableChars) return null
+    return tryOrNull {
         Encoder.encode(content, PcashQrCodeDefaults.EncoderErrorCorrectionLevel).matrix?.width?.takeIf { it > 0 }
     }
+}

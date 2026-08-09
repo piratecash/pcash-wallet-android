@@ -74,7 +74,9 @@ private fun MoneroOnlineConfirmation(
         amount = confirmationData.amount,
         address = confirmationData.address,
         contact = confirmationData.contact,
-        fee = confirmationData.fee,
+        // Online send re-estimates and builds a different transaction, so it must not show
+        // the fee of the cached offline-signed one.
+        fee = sendViewModel.fee,
         lockTimeInterval = confirmationData.lockTimeInterval,
         memo = confirmationData.memo,
         rbfEnabled = confirmationData.rbfEnabled,
@@ -89,7 +91,7 @@ private fun MoneroOnlineConfirmation(
         feeToken = sendViewModel.feeToken,
         feeCoinBalance = sendViewModel.feeCoinBalance,
         displayBalance = sendViewModel.displayBalance,
-        insufficientFeeBalance = sendViewModel.isInsufficientFeeBalance(confirmationData.fee),
+        insufficientFeeBalance = sendViewModel.isInsufficientFeeBalance(sendViewModel.fee),
         balanceHidden = sendViewModel.balanceHidden,
         onBalanceClicked = sendViewModel::toggleHideBalance,
     )
