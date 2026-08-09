@@ -45,10 +45,23 @@ jobs:
           FIREBASE_DEV_KEY_ALIAS: ${{ secrets.FIREBASE_DEV_KEY_ALIAS }}
           FIREBASE_DEV_KEY_PASSWORD: ${{ secrets.FIREBASE_DEV_KEY_PASSWORD }}
       - name: Verify Firebase DEV signing certificate
+        env:
+          FIREBASE_DEV_KEYSTORE_PATH: ${{ runner.temp }}/firebase-dev.jks
+          FIREBASE_DEV_STORE_PASSWORD: ${{ secrets.FIREBASE_DEV_STORE_PASSWORD }}
+          FIREBASE_DEV_KEY_ALIAS: ${{ secrets.FIREBASE_DEV_KEY_ALIAS }}
         run: |
           APKSIGNER="$(ls -1 "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+          KEYSTORE_CERT_SHA256="$(keytool -list -v \
+            -keystore "$FIREBASE_DEV_KEYSTORE_PATH" \
+            -storepass "$FIREBASE_DEV_STORE_PASSWORD" \
+            -alias "$FIREBASE_DEV_KEY_ALIAS" \
+            | sed -n 's/^[[:space:]]*SHA256: //p' \
+            | tr -d ':' \
+            | tr '[:upper:]' '[:lower:]')"
           ACTUAL_CERT_SHA256="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
             | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+          echo "Restored keystore certificate SHA-256: $KEYSTORE_CERT_SHA256"
+          echo "APK signer certificate SHA-256: $ACTUAL_CERT_SHA256"
           test "$ACTUAL_CERT_SHA256" = "374992632abe227755163b21d0eec1e109767054ebb956bda9a7b79709a4eec2"
       - name: Upload Crashlytics native symbols
         if: github.ref == 'refs/heads/master'
