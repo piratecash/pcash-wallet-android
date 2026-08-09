@@ -2358,6 +2358,20 @@
     <string name="transactions_migrate_to_ironwood">на Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Публично видимая сумма</string>
     <string name="zcash_migration_publicly_visible_description">Перемещение средств между пулами требует, чтобы переносимая сумма была публично видна в блокчейне. Отправитель, получатель и ваши адреса остаются приватными.</string>
+    <string name="declined_tokens_title">Найдены пользовательские токены</string>
+    <string name="declined_tokens_description">Эти токены отсутствуют в списке проверенных токенов: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d токен</item>
+        <item quantity="few">%d токена</item>
+        <item quantity="many">%d токенов</item>
+        <item quantity="other">%d токенов</item>
+    </plurals>
+    <string name="declined_tokens_warning">Их названия, символы и число десятичных знаков не проверены. Добавляйте только те токены, которые вы узнаёте.</string>
+    <string name="declined_tokens_select">Выбрать</string>
+    <string name="declined_tokens_add_all">Добавить все</string>
+    <string name="declined_tokens_skip_all">Пропустить все</string>
+    <string name="declined_tokens_select_title">Выберите токены</string>
+    <string name="declined_tokens_wallet">Кошелёк: %s</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Скрытие переворотом</string>
     <string name="balance_hide_on_flip_description">Переверните экран устройства вниз, чтобы быстро спрятать и отобразить баланс.</string>

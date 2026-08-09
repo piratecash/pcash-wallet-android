@@ -16,6 +16,7 @@ import cash.p.terminal.R
 import cash.p.terminal.core.composablePage
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsScreen
 import cash.p.terminal.modules.createaccount.passphraseterms.PassphraseTermsViewModel
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensSheets
 import cash.p.terminal.modules.manageaccounts.ManageAccountsModule
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletScreen
 import cash.p.terminal.modules.restoreaccount.duplicatewallet.DuplicateWalletViewModel
@@ -180,6 +181,8 @@ private fun RestoreAccountNavHost(
                 },
                 onFinish = { fragmentNavController.popBackStack(popUpToInclusiveId, inclusive) }
             )
+
+            DeclinedTokensSheets(viewModel)
         }
         composablePage("passphrase_terms") {
             val context = LocalContext.current

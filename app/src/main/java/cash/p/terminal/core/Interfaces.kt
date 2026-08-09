@@ -463,7 +463,6 @@ interface ISendTronAdapter : IBalanceAdapter {
     suspend fun send(amount: BigDecimal, to: TronAddress, feeLimit: Long?): String
     suspend fun send(contract: Contract, feeLimit: Long?): String
     suspend fun send(createdTransaction: CreatedTransaction): String
-    suspend fun isAddressActive(address: TronAddress): Boolean
     fun isOwnAddress(address: TronAddress): Boolean
 
     suspend fun getNowBlock(): NowBlock

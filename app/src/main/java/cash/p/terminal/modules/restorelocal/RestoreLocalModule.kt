@@ -8,6 +8,7 @@ import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.modules.backuplocal.fullbackup.BackupViewItemFactory
 import cash.p.terminal.modules.backuplocal.fullbackup.SelectBackupItemsViewModel.OtherBackupViewItem
 import cash.p.terminal.modules.backuplocal.fullbackup.SelectBackupItemsViewModel.WalletBackupViewItem
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensReview
 
 object RestoreLocalModule {
 
@@ -37,6 +38,7 @@ object RestoreLocalModule {
         val restored: Boolean,
         var walletBackupViewItems: List<WalletBackupViewItem>,
         var otherBackupViewItems: List<OtherBackupViewItem>,
-        val showBackupItems: Boolean
+        val showBackupItems: Boolean,
+        val tokenReview: DeclinedTokensReview?,
     )
 }

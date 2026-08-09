@@ -66,5 +66,8 @@ data class TokenQuery(
 
             return TokenQuery(blockchainType, TokenType.Eip20(normalized))
         }
+
+        fun trc10(assetId: String) =
+            TokenQuery(BlockchainType.Tron, TokenType.Trc10(assetId))
     }
 }

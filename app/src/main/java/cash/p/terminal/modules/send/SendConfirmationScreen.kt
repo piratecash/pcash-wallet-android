@@ -22,12 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -60,13 +58,10 @@ import cash.p.terminal.ui_compose.components.subhead1_grey
 import cash.p.terminal.ui_compose.components.subhead2_grey
 import cash.p.terminal.ui_compose.components.subhead2_leah
 import cash.p.terminal.ui_compose.theme.ComposeAppTheme
-import cash.p.terminal.ui_compose.components.SnackbarDuration
-import cash.p.terminal.ui_compose.components.HudHelper
 import io.horizontalsystems.hodler.LockTimeInterval
 import io.horizontalsystems.core.entities.BlockchainType
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.Coin
-import cash.p.terminal.ui_compose.components.CustomSnackbar
 import cash.p.terminal.ui_compose.components.VSpacer
 import kotlinx.coroutines.delay
 import java.math.BigDecimal
@@ -111,42 +106,11 @@ fun SendConfirmationScreen(
     } else {
         sendEntryPointDestId
     }
-    val view = LocalView.current
-    var currentSnackbar by remember { mutableStateOf<CustomSnackbar?>(null) }
-
-    when (sendResult) {
-        SendResult.Sending -> {
-            currentSnackbar = HudHelper.showInProcessMessage(
-                view,
-                R.string.Send_Sending,
-                SnackbarDuration.INDEFINITE
-            )
-        }
-
-        is SendResult.Sent -> {
-            currentSnackbar = HudHelper.showSuccessMessage(
-                view,
-                R.string.Send_Success,
-                SnackbarDuration.MEDIUM
-            )
-        }
-
-        is SendResult.SentButQueued -> {
-            currentSnackbar = HudHelper.showWarningMessage(
-                view,
-                R.string.send_success_queued,
-                SnackbarDuration.LONG
-            )
-        }
-
-        is SendResult.Failed -> {
-            currentSnackbar = HudHelper.showErrorMessage(view, sendResult.caution.getDescription() ?: sendResult.caution.getString())
-        }
-
-        null -> {
-            currentSnackbar?.dismiss()
-        }
-    }
+    SendResultHud(
+        sendResult = sendResult,
+        sendingTextRes = R.string.Send_Sending,
+        successTextRes = R.string.Send_Success,
+    )
 
     LaunchedEffect(sendResult) {
         if (sendResult is SendResult.Sent || sendResult is SendResult.SentButQueued) {

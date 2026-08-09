@@ -84,7 +84,7 @@ internal class SendEvmViewModel(
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     @Suppress("UNCHECKED_CAST")

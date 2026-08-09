@@ -2181,6 +2181,18 @@ Uygulama, kolaylık sağlaması için basit bir şifreyle yedek oluşturmanıza 
     <string name="transactions_migrate_to_ironwood">Ironwood\'a</string>
     <string name="zcash_migration_publicly_visible_title">Herkese açık görünür tutar</string>
     <string name="zcash_migration_publicly_visible_description">Havuzlar arasında para transferi, geçirilen tutarın blokzincirde herkese açık şekilde görünür olmasını gerektirir. Gönderici, alıcı ve adresleriniz özel kalır.</string>
+    <string name="declined_tokens_title">Özel Tokenler Bulundu</string>
+    <string name="declined_tokens_description">Bu tokenler doğrulanmış token listesinde değil: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d token</item>
+        <item quantity="other">%d token</item>
+    </plurals>
+    <string name="declined_tokens_warning">Adları, sembolleri ve ondalık basamakları doğrulanmamıştır. Yalnızca tanıdığınız tokenleri ekleyin.</string>
+    <string name="declined_tokens_select">Seç</string>
+    <string name="declined_tokens_add_all">Tümünü Ekle</string>
+    <string name="declined_tokens_skip_all">Tümünü Atla</string>
+    <string name="declined_tokens_select_title">Tokenleri Seçin</string>
+    <string name="declined_tokens_wallet">Cüzdan: %s</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Ters çevirince gizle</string>
     <string name="balance_hide_on_flip_description">Bakiyenizi hızlıca gizlemek ve göstermek için cihazın ekranını aşağı çevirin.</string>

@@ -7,14 +7,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,6 +29,7 @@ import cash.p.terminal.modules.multiswap.ui.SwapProviderField
 import cash.p.terminal.modules.multiswap.exchanges.MultiSwapExchangesFragment
 import cash.p.terminal.modules.receive.ReceiveFragment
 import cash.p.terminal.modules.send.SendResult
+import cash.p.terminal.modules.send.SendResultHud
 import cash.p.terminal.modules.send.hasInsufficientFeeTokenBalance
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningOverlay
 import cash.p.terminal.modules.send.fee.NetworkFeeWarningData
@@ -47,10 +44,7 @@ import cash.p.terminal.ui_compose.components.HFillSpacer
 import cash.p.terminal.ui_compose.components.HSpacer
 import cash.p.terminal.ui_compose.components.HsImageCircle
 import cash.p.terminal.ui_compose.components.HsSwitch
-import cash.p.terminal.ui_compose.components.CustomSnackbar
-import cash.p.terminal.ui_compose.components.HudHelper
 import cash.p.terminal.ui_compose.components.SectionUniversalLawrence
-import cash.p.terminal.ui_compose.components.SnackbarDuration
 import cash.p.terminal.ui_compose.components.VSpacer
 import cash.p.terminal.ui_compose.components.body_leah
 import cash.p.terminal.ui_compose.components.caption_grey
@@ -185,25 +179,12 @@ private fun SwapResultEffects(
     navigation: SwapConfirmNavigation,
     multiSwapLegInfo: MultiSwapLegInfo?,
 ) {
-    val view = LocalView.current
     val sendResult = viewModel.sendResult
-    var currentSnackbar by remember { mutableStateOf<CustomSnackbar?>(null) }
-
-    // Handle send result UI - must be in Composable context for getString()
-    currentSnackbar = when (sendResult) {
-        SendResult.Sending -> HudHelper.showInProcessMessage(
-            view,
-            R.string.Swap_Swapping,
-            SnackbarDuration.INDEFINITE,
-        )
-        is SendResult.Sent -> HudHelper.showSuccessMessage(view, R.string.Hud_Text_Done)
-        is SendResult.SentButQueued -> HudHelper.showWarningMessage(view, R.string.send_success_queued)
-        is SendResult.Failed -> HudHelper.showErrorMessage(view, sendResult.caution.getString())
-        null -> {
-            currentSnackbar?.dismiss()
-            null
-        }
-    }
+    SendResultHud(
+        sendResult = sendResult,
+        sendingTextRes = R.string.Swap_Swapping,
+        successTextRes = R.string.Hud_Text_Done,
+    )
 
     // Handle navigation after success
     LaunchedEffect(sendResult) {

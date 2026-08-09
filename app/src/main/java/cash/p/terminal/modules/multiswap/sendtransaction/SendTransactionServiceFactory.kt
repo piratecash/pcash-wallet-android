@@ -114,6 +114,7 @@ object SendTransactionServiceFactory {
             is TokenType.Jetton -> SendTransactionServiceTon(token)
 
             is TokenType.Asset,
+            is TokenType.Trc10,
             is TokenType.Unsupported -> throw UnsupportedException("Unsupported token type: $tokenType")
         }
     } catch (e: Exception) {

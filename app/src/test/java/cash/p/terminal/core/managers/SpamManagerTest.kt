@@ -10,6 +10,7 @@ import cash.p.terminal.entities.transactionrecords.TransactionRecordType
 import cash.p.terminal.entities.transactionrecords.evm.TransferEvent
 import cash.p.terminal.entities.transactionrecords.ton.TonTransactionRecord
 import cash.p.terminal.modules.transactions.TransactionStatus
+import cash.p.terminal.wallet.entities.TokenQuery
 import cash.p.terminal.wallet.transaction.TransactionSource
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
@@ -26,6 +27,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 
@@ -33,6 +35,39 @@ import kotlin.test.assertEquals
 class SpamManagerTest {
 
     private val sender = "0xabc123def456"
+
+    @Test
+    fun shouldHide_unsupportedTypedRawTransferWithSuspiciousFilterDisabled_returnsTrue() = runTest {
+        val spamManager = createSpamManager()
+        val record = rawRecord(TokenQuery.trc10("1005114"))
+
+        assertTrue(spamManager.shouldHide(record))
+    }
+
+    @Test
+    fun shouldHide_unsupportedTypedRawTransferWithSuspiciousFilterEnabled_returnsTrue() = runTest {
+        val spamManager = createSpamManager()
+        spamManager.updateFilterHideSuspiciousTx(true)
+        val record = rawRecord(TokenQuery.trc10("1005114"))
+
+        assertTrue(spamManager.shouldHide(record))
+    }
+
+    @Test
+    fun shouldHide_supportedTypedRawTransferWithSuspiciousFilterDisabled_returnsFalse() = runTest {
+        val spamManager = createSpamManager()
+        val record = rawRecord(TokenQuery.eip20(BlockchainType.Tron, "TContract"))
+
+        assertFalse(spamManager.shouldHide(record))
+    }
+
+    @Test
+    fun shouldHide_untypedRawTransferWithSuspiciousFilterDisabled_returnsFalse() = runTest {
+        val spamManager = createSpamManager()
+        val record = rawRecord()
+
+        assertFalse(spamManager.shouldHide(record))
+    }
 
     // --- subscribeToAdapters — adapter subscription lifecycle ---
 
@@ -93,6 +128,16 @@ class SpamManagerTest {
         )
     }
 
+    private fun TestScope.createSpamManager() =
+        createSpamManager(MutableStateFlow(emptyMap()), backgroundScope)
+
+    private fun rawRecord(tokenQuery: TokenQuery? = null) = mockk<TransactionRecord> {
+        every { mainValue } returns TransactionValue.RawValue(
+            value = BigInteger.ONE,
+            tokenQuery = tokenQuery,
+        )
+    }
+
     // --- isSpam(events) — jetton-based spam detection ---
 
     @Test
@@ -143,6 +188,22 @@ class SpamManagerTest {
     @Test
     fun isSpam_emptyEvents_returnsFalse() {
         assertFalse(SpamManager.isSpam(emptyList()))
+    }
+
+    @Test
+    fun isSpam_typedRawValue_returnsFalse() {
+        val events = listOf(
+            TransferEvent(
+                address = sender,
+                addressForIncomingAddress = null,
+                value = TransactionValue.RawValue(
+                    value = BigInteger.ONE,
+                    tokenQuery = TokenQuery.trc10("1005114"),
+                ),
+            )
+        )
+
+        assertFalse(SpamManager.isSpam(events))
     }
 
     @Test

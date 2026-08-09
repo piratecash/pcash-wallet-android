@@ -98,7 +98,7 @@ class SendTonViewModel(
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(feeToken.coin.uid))
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
@@ -219,6 +219,7 @@ class SendTonViewModel(
 
     private fun onClickSend() {
         logger.info("click send button")
+        sendResult = SendResult.Sending
 
         viewModelScope.launch {
             send()
@@ -243,7 +244,6 @@ class SendTonViewModel(
 
     private suspend fun send() = withContext(dispatcherProvider.io) {
         try {
-            sendResult = SendResult.Sending
             logger.info("sending tx")
 
             // 1. Create pending transaction draft BEFORE sending

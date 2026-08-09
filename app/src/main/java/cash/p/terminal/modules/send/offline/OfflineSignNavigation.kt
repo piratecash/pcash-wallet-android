@@ -13,6 +13,7 @@ import cash.p.terminal.core.composablePage
 import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.OfflineSignedTransaction
 import cash.p.terminal.modules.send.SendConfirmationData
+import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.navigation.popBackStackSafely
 import cash.p.terminal.wallet.Wallet
 import io.horizontalsystems.core.entities.CurrencyValue
@@ -45,9 +46,21 @@ internal interface OfflineSignCapableViewModel {
     val offlineSigningController: OfflineSigningController<*>
 
     // Inputs the shared confirmation gate needs. isSynced/hasAdapterError/syncRetrying/
-    // retryAdapterSync are provided by BaseSendViewModel; offlineSignSupported is a
-    // concrete val on each send view model.
+    // retryAdapterSync are provided by BaseSendViewModel; offlineSignSupported and
+    // sendResult are concrete properties on each send view model.
     val offlineSignSupported: Boolean
+
+    /**
+     * Send progress, which [shouldShowOfflineSyncBlocker] reads to keep the confirmation screen
+     * in place once a send is in flight.
+     *
+     * Implementations MUST publish [SendResult.Sending] synchronously in their click handler,
+     * before launching the send coroutine. Setting it inside the coroutine leaves a window in
+     * which the send is already under way while this still reads null — losing connectivity in
+     * that window shows the blocker and its offline-sign button, which can broadcast the same
+     * transaction twice.
+     */
+    val sendResult: SendResult?
     val isSynced: Boolean
     val hasAdapterError: Boolean
     val syncRetrying: Boolean

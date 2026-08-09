@@ -118,7 +118,7 @@ class SendTronViewModel(
         private set
     var confirmationData by mutableStateOf<SendTronConfirmationData?>(null)
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     override val offlineSignSupported = offlineSignAdapter != null && !wallet.account.isWatchAccount
@@ -156,9 +156,7 @@ class SendTronViewModel(
                 feeCoinRate = it
             }
         }
-        viewModelScope.launch {
-            addressService.setAddress(address)
-        }
+        addressService.setAddress(address)
         if (offlineSignSupported) {
             viewModelScope.launch {
                 // Keep the TAPOS anchor filled whenever online: fetch on connect/reconnect and retry
@@ -196,9 +194,7 @@ class SendTronViewModel(
 
     fun onEnterAddress(address: Address?) {
         resetRiskAccepted()
-        viewModelScope.launch {
-            addressService.setAddress(address)
-        }
+        addressService.setAddress(address)
     }
 
     fun onNavigateToConfirmation() {
@@ -212,8 +208,7 @@ class SendTronViewModel(
             address = address,
             contact = contact(address),
             coin = wallet.coin,
-            feeCoin = feeToken.coin,
-            isInactiveAddress = addressState.isInactiveAddress
+            feeCoin = feeToken.coin
         )
 
         viewModelScope.launch {
@@ -307,15 +302,16 @@ class SendTronViewModel(
     private fun onClickSend() {
         logger.info("click send button")
 
+        val confirmationData = confirmationData ?: return
+        sendResult = SendResult.Sending
+
         viewModelScope.launch {
-            send()
+            send(confirmationData)
         }
     }
 
-    private suspend fun send() = withContext(dispatcherProvider.io) {
+    private suspend fun send(confirmationData: SendTronConfirmationData) = withContext(dispatcherProvider.io) {
         try {
-            val confirmationData = confirmationData ?: return@withContext
-            sendResult = SendResult.Sending
             logger.info("sending tx")
 
             val amount = confirmationData.amount

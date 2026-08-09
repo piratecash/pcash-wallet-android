@@ -104,7 +104,7 @@ class SendMoneroViewModel(
         private set
     var feeCoinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
-    var sendResult by mutableStateOf<SendResult?>(null)
+    override var sendResult by mutableStateOf<SendResult?>(null)
         private set
 
     var memo by mutableStateOf<String?>(null)
@@ -206,14 +206,18 @@ class SendMoneroViewModel(
         recalculateFee()
     }
 
-    fun onClickSend() = viewModelScope.launch(dispatcherProvider.io) {
+    fun onClickSend() {
+        sendResult = SendResult.Sending
+        viewModelScope.launch(dispatcherProvider.io) { send() }
+    }
+
+    private suspend fun send() {
         if (!hasConnection()) {
             sendResult = SendResult.Failed(createCaution(UnknownHostException()))
-            return@launch
+            return
         }
 
         try {
-            sendResult = SendResult.Sending
             val address = destinationAddress.hex
             val amount = decimalAmount
             val fee = adapter.estimateFee(amount, address, memo)

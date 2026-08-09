@@ -8,8 +8,16 @@ import androidx.lifecycle.viewModelScope
 import cash.p.terminal.R
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.IAccountFactory
+import cash.p.terminal.core.managers.CurationResult
+import cash.p.terminal.core.managers.DeclinedToken
 import cash.p.terminal.core.managers.RestoreSettingsManager
+import cash.p.terminal.core.managers.curatedEnabledWallets
+import cash.p.terminal.core.managers.storedToken
 import cash.p.terminal.core.usecase.MoneroWalletUseCase
+import cash.p.terminal.modules.backuplocal.fullbackup.WalletDeclinedTokens
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensReview
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensReviewHost
+import cash.p.terminal.modules.declinedtokens.DeclinedTokensStage
 import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.entities.DataState
 import cash.p.terminal.wallet.Account
@@ -30,10 +38,11 @@ import cash.p.terminal.wallet.AccountType.ZCashUfvKey
 import cash.p.terminal.wallet.IAccountManager
 import cash.p.terminal.wallet.IEnabledWalletStorage
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.PassphraseValidator
 import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
-import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -48,12 +57,14 @@ class DuplicateWalletViewModel(
     private val walletManager: IWalletManager,
     private val restoreSettingsManager: RestoreSettingsManager,
     private val localStorage: ILocalStorage,
-) : ViewModel() {
+    private val marketKit: MarketKitWrapper,
+) : ViewModel(), DeclinedTokensReviewHost {
 
     private val passphraseValidator = PassphraseValidator()
     private val passcodeOld = (accountToCopy.type as? Mnemonic)?.passphrase.orEmpty()
     private var passphrase = passcodeOld
     private var passphraseConfirmation = passcodeOld
+    private var pendingAccount: Account? = null
 
     var uiState by mutableStateOf(
         DuplicateWalletUiState(
@@ -208,46 +219,108 @@ class DuplicateWalletViewModel(
                 backedUp = accountToCopy.isBackedUp,
                 fileBackedUp = accountToCopy.isFileBackedUp
             )
-            copyAccount(newAccount)
+            copyAccount(newAccount, approved = null)
         }
     }
 
-    private suspend fun copyAccount(newAccount: Account) =
-        withContext(Dispatchers.IO + CoroutineExceptionHandler { _, exception ->
-            Timber.e(exception, "Failed to copy account")
-            uiState = uiState.copy(
-                error = exception.message,
-                createButtonEnabled = true
-            )
-        }) {
-            val wallets = enabledWalletStorage.enabledWallets(accountToCopy.id)
-                .map {
-                    EnabledWallet(
-                        tokenQueryId = it.tokenQueryId,
-                        accountId = newAccount.id,
-                        coinName = it.coinName,
-                        coinCode = it.coinCode,
-                        coinDecimals = it.coinDecimals,
-                        coinImage = it.coinImage
-                    )
-                }
+    private suspend fun copyAccount(
+        newAccount: Account,
+        approved: Set<String>?
+    ) = withContext(Dispatchers.IO) {
+        val curation = curatedWalletsToCopy(newAccount.id, approved.orEmpty())
+            ?: return@withContext
 
-            wallets.forEach {
-                val tokenQuery = TokenQuery.fromId(it.tokenQueryId) ?: return@forEach
-                val settings =
-                    restoreSettingsManager.settings(accountToCopy, tokenQuery.blockchainType)
-                restoreSettingsManager.save(settings, newAccount, tokenQuery.blockchainType)
-            }
-
-            accountManager.save(newAccount)
-            walletManager.saveEnabledWallets(wallets)
-
-            uiState = uiState.copy(
-                error = null,
-                createButtonEnabled = false,
-                closeScreen = true
-            )
+        if (approved == null && curation.declined.isNotEmpty()) {
+            requestTokenReview(newAccount, curation.declined)
+            return@withContext
         }
+
+        writeCopiedAccount(newAccount, curation.enabled)
+    }
+
+    /** Parks the account and surfaces declined rows for approval — nothing is persisted until reviewed. */
+    private fun requestTokenReview(
+        newAccount: Account,
+        declined: List<DeclinedToken>
+    ) {
+        pendingAccount = newAccount
+        uiState = uiState.copy(
+            tokenReview = DeclinedTokensReview(
+                listOf(WalletDeclinedTokens(newAccount.id, newAccount.name, declined))
+            )
+        )
+    }
+
+    private suspend fun writeCopiedAccount(newAccount: Account, wallets: List<EnabledWallet>) {
+        wallets.forEach {
+            val tokenQuery = TokenQuery.fromId(it.tokenQueryId) ?: return@forEach
+            val settings = restoreSettingsManager.settings(accountToCopy, tokenQuery.blockchainType)
+            restoreSettingsManager.save(settings, newAccount, tokenQuery.blockchainType)
+        }
+
+        // Not caught: these writes aren't atomic, so letting a failure propagate beats retrying into a duplicate account.
+        accountManager.save(newAccount)
+        walletManager.saveEnabledWallets(wallets)
+
+        uiState = uiState.copy(
+            error = null,
+            createButtonEnabled = false,
+            closeScreen = true
+        )
+    }
+
+    /** Metadata comes from the catalog, never the caller's row. Stored decimals are trusted: the rows are this device's own. */
+    private suspend fun curatedWalletsToCopy(
+        newAccountId: String,
+        approved: Set<String>
+    ): CurationResult? = try {
+        val sourceWallets = enabledWalletStorage.enabledWallets(accountToCopy.id)
+        marketKit.curatedEnabledWallets(
+            accountId = newAccountId,
+            storedTokens = sourceWallets.map {
+                storedToken(
+                    tokenQueryId = it.tokenQueryId,
+                    trustedDecimals = true,
+                    coinName = it.coinName,
+                    coinCode = it.coinCode,
+                    decimals = it.coinDecimals
+                )
+            },
+            approvedTokenQueryIds = approved
+        )
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.e(e, "Failed to look up curated tokens to copy")
+        uiState = uiState.copy(
+            error = e.message,
+            createButtonEnabled = true
+        )
+        null
+    }
+
+    override val tokenReview: DeclinedTokensReview?
+        get() = uiState.tokenReview
+
+    override fun onReviewTokens() {
+        uiState = uiState.copy(tokenReview = uiState.tokenReview?.copy(stage = DeclinedTokensStage.Select))
+    }
+
+    /** Single-wallet flow, so `approvals.values.firstOrNull()` is always the whole review's answer. */
+    override fun onApproveTokens(approvals: Map<String, Set<String>>) {
+        val account = pendingAccount
+        uiState = uiState.copy(tokenReview = null)
+        pendingAccount = null
+        account ?: return
+        viewModelScope.launch {
+            copyAccount(account, approved = approvals.values.firstOrNull().orEmpty())
+        }
+    }
+
+    override fun onDismissTokenReview() {
+        uiState = uiState.copy(tokenReview = null, createButtonEnabled = true)
+        pendingAccount = null
+    }
 }
 
 data class DuplicateWalletUiState(
@@ -260,5 +333,6 @@ data class DuplicateWalletUiState(
     val error: String? = null,
     val passphraseError: String? = null,
     val createButtonEnabled: Boolean = true,
-    val closeScreen: Boolean = false
+    val closeScreen: Boolean = false,
+    val tokenReview: DeclinedTokensReview? = null
 )

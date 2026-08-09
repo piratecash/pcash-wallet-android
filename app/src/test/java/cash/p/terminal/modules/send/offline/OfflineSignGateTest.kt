@@ -1,5 +1,7 @@
 package cash.p.terminal.modules.send.offline
 
+import cash.p.terminal.modules.send.SendErrorLowFee
+import cash.p.terminal.modules.send.SendResult
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,18 +12,39 @@ class OfflineSignGateTest {
 
     @Test
     fun shouldShowOfflineSyncBlocker_notSupported_returnsFalse() {
-        assertFalse(shouldShowOfflineSyncBlocker(false, isConnected = false))
+        assertFalse(shouldShowOfflineSyncBlocker(false, isConnected = false, sendResult = null))
     }
 
     @Test
     fun shouldShowOfflineSyncBlocker_supportedOffline_returnsTrue() {
-        assertTrue(shouldShowOfflineSyncBlocker(true, isConnected = false))
+        assertTrue(shouldShowOfflineSyncBlocker(true, isConnected = false, sendResult = null))
     }
 
     @Test
     fun shouldShowOfflineSyncBlocker_supportedConnected_returnsFalse() {
         // Network present (even while the kit resyncs) → never the offline blocker.
-        assertFalse(shouldShowOfflineSyncBlocker(true, isConnected = true))
+        assertFalse(shouldShowOfflineSyncBlocker(true, isConnected = true, sendResult = null))
+    }
+
+    @Test
+    fun shouldShowOfflineSyncBlocker_sending_returnsFalse() {
+        // A send is in flight: swapping the confirmation screen for the blocker hides its
+        // outcome and offers retry / offline-sign buttons that can broadcast a second time.
+        assertFalse(
+            shouldShowOfflineSyncBlocker(true, isConnected = false, sendResult = SendResult.Sending)
+        )
+    }
+
+    @Test
+    fun shouldShowOfflineSyncBlocker_sendFailed_returnsFalse() {
+        // The failure caution and the offline-sign prompt live on the confirmation screen.
+        assertFalse(
+            shouldShowOfflineSyncBlocker(
+                true,
+                isConnected = false,
+                sendResult = SendResult.Failed(SendErrorLowFee),
+            )
+        )
     }
 
     // endregion

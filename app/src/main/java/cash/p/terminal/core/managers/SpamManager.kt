@@ -3,6 +3,7 @@ package cash.p.terminal.core.managers
 import cash.p.terminal.core.ILocalStorage
 import cash.p.terminal.core.ITransactionsAdapter
 import cash.p.terminal.core.factories.TransferEventFactory
+import cash.p.terminal.core.isSupported
 import cash.p.terminal.core.providers.AppConfigProvider
 import cash.p.terminal.core.storage.SpamAddressStorage
 import cash.p.terminal.entities.SpamAddress
@@ -87,8 +88,14 @@ class SpamManager(
     }
 
     fun shouldHide(record: TransactionRecord): Boolean {
+        if (isUnsupportedTokenTransfer(record)) return true
         if (!hideSuspiciousTx) return false
         return record.spam || isZeroAmountTransfer(record)
+    }
+
+    private fun isUnsupportedTokenTransfer(record: TransactionRecord): Boolean {
+        val rawValue = record.mainValue as? TransactionValue.RawValue ?: return false
+        return rawValue.tokenQuery?.isSupported == false
     }
 
     companion object {
@@ -163,11 +170,7 @@ class SpamManager(
 
             var limit: BigDecimal = BigDecimal.ZERO
             when (transactionValue) {
-                is TransactionValue.CoinValue -> {
-                    if (value?.signum() == 0) return true
-                    limit = spamCoinLimits[transactionValue.coinCode] ?: BigDecimal.ZERO
-                }
-
+                is TransactionValue.CoinValue,
                 is TransactionValue.JettonValue -> {
                     if (value?.signum() == 0) return true
                     limit = spamCoinLimits[transactionValue.coinCode] ?: BigDecimal.ZERO
@@ -178,10 +181,8 @@ class SpamManager(
                         return false
                 }
 
-                is TransactionValue.RawValue,
-                is TransactionValue.TokenValue -> {
-                    return true
-                }
+                is TransactionValue.RawValue -> return transactionValue.tokenQuery == null
+                is TransactionValue.TokenValue -> return true
             }
 
             return limit > value
