@@ -213,5 +213,6 @@ data class BottomSheetSelectorViewItem(
     val title: String,
     val subtitle: String,
     val copyableString: String? = null,
-    val icon: String? = null
+    val icon: String? = null,
+    val header: String? = null
 )

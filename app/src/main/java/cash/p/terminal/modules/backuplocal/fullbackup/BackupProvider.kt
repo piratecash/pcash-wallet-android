@@ -7,6 +7,8 @@ import cash.p.terminal.core.getKoinInstance
 import cash.p.terminal.core.managers.BalanceHiddenManager
 import cash.p.terminal.core.managers.BaseTokenManager
 import cash.p.terminal.core.managers.BtcBlockchainManager
+import cash.p.terminal.core.managers.CurationResult
+import cash.p.terminal.core.managers.DeclinedToken
 import cash.p.terminal.core.managers.DeniableEncryptionManager
 import cash.p.terminal.core.managers.EncryptDecryptManager
 import cash.p.terminal.core.managers.EvmBlockchainManager
@@ -17,6 +19,8 @@ import cash.p.terminal.core.managers.RestoreSettings
 import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.RestoreSettingType
 import cash.p.terminal.core.managers.SolanaRpcSourceManager
+import cash.p.terminal.core.managers.curatedEnabledWallets
+import cash.p.terminal.core.managers.storedToken
 import cash.p.terminal.core.restoreSettingTypes
 import cash.p.terminal.core.storage.BlockchainSettingsStorage
 import cash.p.terminal.core.storage.EvmSyncSourceStorage
@@ -42,8 +46,8 @@ import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
 import cash.p.terminal.wallet.IEnabledWalletStorage
 import cash.p.terminal.wallet.IWalletManager
+import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.balance.BalanceViewType
-import cash.p.terminal.wallet.entities.EnabledWallet
 import cash.p.terminal.wallet.entities.TokenQuery
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -234,20 +238,47 @@ class BackupProvider(
                 a.salt == b.salt
     }
 
+    /** [source] decides only whether a manually-added row's stored decimals may be trusted — never whether the user is asked. */
+    private suspend fun trustedEnabledWallets(
+        accountId: String,
+        backups: List<BackupLocalModule.EnabledWalletBackup>,
+        source: BackupSource,
+        approved: Set<String>
+    ): CurationResult = getKoinInstance<MarketKitWrapper>()
+        .curatedEnabledWallets(
+            accountId,
+            backups.map {
+                storedToken(
+                    tokenQueryId = it.tokenQueryId,
+                    trustedDecimals = source == BackupSource.Authenticated,
+                    coinName = it.coinName,
+                    coinCode = it.coinCode,
+                    decimals = it.decimals
+                )
+            },
+            approvedTokenQueryIds = approved
+        )
+
     /**
      * Restores single wallet from V4 backup using pre-decrypted WalletBackupItem.
+     * [approved] `null` blocks the write instead, returning [RestoreOutcome.TokensNeedReview].
      */
     suspend fun restoreSingleWalletBackup(
-        walletBackupItem: WalletBackupItem
-    ) {
-        restoreWallets(listOf(walletBackupItem))
-    }
+        walletBackupItem: WalletBackupItem,
+        approved: Set<String>? = null,
+    ): RestoreOutcome = restoreWallets(
+        listOf(walletBackupItem),
+        approved?.let { mapOf(walletBackupItem.account.id to it) },
+    )
 
+    /** [source] is the envelope [backup] came from (raw v1/v2 vs. decrypted V3), not the backup itself. */
     suspend fun restoreSingleWalletBackup(
         type: AccountType,
         accountName: String,
-        backup: BackupLocalModule.WalletBackup
-    ) {
+        backup: BackupLocalModule.WalletBackup,
+        source: BackupSource,
+        approved: Set<String>? = null,
+    ): RestoreOutcome {
         val account = accountFactory.account(
             accountName,
             type,
@@ -255,20 +286,19 @@ class BackupProvider(
             backup.manualBackup,
             true
         )
-        accountManager.save(account)
 
+        // Resolved before the account is persisted so a failing lookup can't leave an orphan account.
         val enabledWalletBackups = backup.enabledWallets ?: listOf()
-        val enabledWallets = enabledWalletBackups.map {
-            EnabledWallet(
-                tokenQueryId = it.tokenQueryId,
-                accountId = account.id,
-                coinName = it.coinName,
-                coinCode = it.coinCode,
-                coinDecimals = it.decimals,
-                coinImage = null
+        val curation = trustedEnabledWallets(account.id, enabledWalletBackups, source, approved ?: emptySet())
+
+        if (approved == null && curation.declined.isNotEmpty()) {
+            return RestoreOutcome.TokensNeedReview(
+                listOf(WalletDeclinedTokens(account.id, accountName, curation.declined))
             )
         }
-        walletManager.saveEnabledWallets(enabledWallets)
+
+        accountManager.save(account)
+        walletManager.saveEnabledWallets(curation.enabled)
 
         enabledWalletBackups.forEach { enabledWalletBackup ->
             TokenQuery.fromId(enabledWalletBackup.tokenQueryId)?.let { tokenQuery ->
@@ -283,55 +313,70 @@ class BackupProvider(
                 }
             }
         }
+
+        return RestoreOutcome.Restored
     }
 
-    private suspend fun restoreWallets(walletBackupItems: List<WalletBackupItem>) {
-        val accounts = mutableListOf<Account>()
-        val enabledWallets = mutableListOf<EnabledWallet>()
+    /** No side effects — kept separate from writing so the caller can decide whether to write at all. */
+    private suspend fun curateWalletBackups(
+        walletBackupItems: List<WalletBackupItem>,
+        approved: Map<String, Set<String>>?,
+    ): List<Pair<WalletBackupItem, CurationResult>> = walletBackupItems.map { item ->
+        item to trustedEnabledWallets(
+            item.account.id,
+            item.enabledWallets,
+            item.source,
+            approved?.get(item.account.id) ?: emptySet()
+        )
+    }
 
-        walletBackupItems.forEach {
-            val account = it.account
-            val wallets = it.enabledWallets.map {
-                EnabledWallet(
-                    tokenQueryId = it.tokenQueryId,
-                    accountId = account.id,
-                    coinName = it.coinName,
-                    coinCode = it.coinCode,
-                    coinDecimals = it.decimals,
-                    coinImage = null
-                )
-            }
-
-            accounts.add(account)
-            enabledWallets.addAll(wallets)
-
-            it.enabledWallets.forEach { enabledWalletBackup ->
-                TokenQuery.fromId(enabledWalletBackup.tokenQueryId)?.let { tokenQuery ->
-                    val restoreSettings = enabledWalletBackup.restoreSettings(tokenQuery)
-                    if (restoreSettings != null) {
-                        restoreSettingsManager.save(
-                            restoreSettings,
-                            account,
-                            tokenQuery.blockchainType
-                        )
-                    } else if (account.type is AccountType.MnemonicMonero && tokenQuery.blockchainType == BlockchainType.Monero) {
-                        // For Monero-only accounts without settings in backup, save height from AccountType
-                        val restoreSettings = RestoreSettings()
-                        restoreSettings.birthdayHeight =
-                            (account.type as AccountType.MnemonicMonero).height
-                        restoreSettingsManager.save(
-                            restoreSettings,
-                            account,
-                            tokenQuery.blockchainType
-                        )
-                    }
-                }
-            }
+    /** Null when [approved] was supplied, or nothing in [curated] was declined. */
+    private fun reviewOutcomeOrNull(
+        curated: List<Pair<WalletBackupItem, CurationResult>>,
+        approved: Map<String, Set<String>>?,
+    ): RestoreOutcome.TokensNeedReview? {
+        if (approved != null) return null
+        val declinedWallets = curated.mapNotNull { (item, result) ->
+            result.declined.takeIf { it.isNotEmpty() }
+                ?.let { WalletDeclinedTokens(item.account.id, item.account.name, it) }
         }
+        return declinedWallets.takeIf { it.isNotEmpty() }?.let(RestoreOutcome::TokensNeedReview)
+    }
 
-        if (accounts.isNotEmpty()) {
-            accountManager.import(accounts)
-            walletManager.saveEnabledWallets(enabledWallets)
+    private suspend fun writeCuratedWallets(curated: List<Pair<WalletBackupItem, CurationResult>>) {
+        if (curated.isEmpty()) return
+        curated.forEach { (item, _) -> restoreWalletSettings(item) }
+        accountManager.import(curated.map { it.first.account })
+        walletManager.saveEnabledWallets(curated.flatMap { it.second.enabled })
+    }
+
+    private suspend fun restoreWallets(
+        walletBackupItems: List<WalletBackupItem>,
+        approved: Map<String, Set<String>>?,
+    ): RestoreOutcome {
+        if (walletBackupItems.isEmpty()) return RestoreOutcome.Restored
+
+        val curated = curateWalletBackups(walletBackupItems, approved)
+        reviewOutcomeOrNull(curated, approved)?.let { return it }
+
+        writeCuratedWallets(curated)
+        return RestoreOutcome.Restored
+    }
+
+    /** Saved even for rows [trustedEnabledWallets] dropped, so a birthday height isn't lost. */
+    private fun restoreWalletSettings(walletBackupItem: WalletBackupItem) {
+        val account = walletBackupItem.account
+        walletBackupItem.enabledWallets.forEach { enabledWalletBackup ->
+            val tokenQuery = TokenQuery.fromId(enabledWalletBackup.tokenQueryId) ?: return@forEach
+            val accountType = account.type
+            val restoreSettings = enabledWalletBackup.restoreSettings(tokenQuery)
+                ?: if (accountType is AccountType.MnemonicMonero && tokenQuery.blockchainType == BlockchainType.Monero) {
+                    // Monero-only accounts carry no settings in the backup — take the height from the account
+                    RestoreSettings().apply { birthdayHeight = accountType.height }
+                } else {
+                    return@forEach
+                }
+            restoreSettingsManager.save(restoreSettings, account, tokenQuery.blockchainType)
         }
     }
 
@@ -459,11 +504,17 @@ class BackupProvider(
         chartIndicatorSettingsDao.insertAll(rsiChartSettings + maChartSettings + macdChartSettings)
     }
 
+    /** All accounts are curated before anything is written, so a late decline can't leave earlier accounts partially written. */
     @Throws
-    suspend fun restoreFullBackup(fullBackup: DecryptedFullBackup, passphrase: String) {
-        if (fullBackup.wallets.isNotEmpty()) {
-            restoreWallets(fullBackup.wallets)
-        }
+    suspend fun restoreFullBackup(
+        fullBackup: DecryptedFullBackup,
+        passphrase: String,
+        approved: Map<String, Set<String>>? = null,
+    ): RestoreOutcome {
+        val curatedWallets = curateWalletBackups(fullBackup.wallets, approved)
+        reviewOutcomeOrNull(curatedWallets, approved)?.let { return it }
+
+        writeCuratedWallets(curatedWallets)
 
         if (fullBackup.watchlist.isNotEmpty()) {
             marketFavoritesManager.addAll(fullBackup.watchlist)
@@ -474,13 +525,16 @@ class BackupProvider(
         if (fullBackup.contacts.isNotEmpty()) {
             contactsRepository.restore(fullBackup.contacts)
         }
+
+        return RestoreOutcome.Restored
     }
 
     suspend fun decryptedFullBackup(
         fullBackup: FullBackup,
-        passphrase: String
+        passphrase: String,
+        source: BackupSource
     ): DecryptedFullBackup {
-        return decryptedFullBackupWithKey(fullBackup, null, null, passphrase)
+        return decryptedFullBackupWithKey(fullBackup, null, null, passphrase, source)
     }
 
     /**
@@ -492,7 +546,8 @@ class BackupProvider(
         fullBackup: FullBackup,
         cachedKey: ByteArray?,
         cachedKdfParams: BackupLocalModule.KdfParams?,
-        passphrase: String
+        passphrase: String,
+        source: BackupSource
     ): DecryptedFullBackup {
         val walletBackupItems = mutableListOf<WalletBackupItem>()
         val usedNames = mutableSetOf<String>()
@@ -532,7 +587,8 @@ class BackupProvider(
             walletBackupItems.add(
                 WalletBackupItem(
                     account = account,
-                    enabledWallets = backup.enabledWallets ?: listOf()
+                    enabledWallets = backup.enabledWallets ?: listOf(),
+                    source = source
                 )
             )
         }
@@ -911,8 +967,9 @@ class BackupProvider(
             return null
         }
 
-        // Inner wallet decryption uses kdfParams stored in each wallet's crypto field
-        return decryptedFullBackup(fullBackup, passphrase)
+        // Inner wallet decryption uses kdfParams stored in each wallet's crypto field.
+        // The GCM tag verified above covers enabled_wallets too, hence Authenticated.
+        return decryptedFullBackup(fullBackup, passphrase, BackupSource.Authenticated)
     }
 
     /**
@@ -1213,9 +1270,16 @@ class BackupProvider(
 
 }
 
+/**
+ * [Authenticated] (V4's AES-GCM tag, or V3's MAC'd ciphertext) means `enabled_wallets` could not
+ * be edited without the password. [Legacy] (raw v1/v2) sits outside any MAC and can be edited freely.
+ */
+enum class BackupSource { Authenticated, Legacy }
+
 data class WalletBackupItem(
     val account: Account,
-    val enabledWallets: List<BackupLocalModule.EnabledWalletBackup>
+    val enabledWallets: List<BackupLocalModule.EnabledWalletBackup>,
+    val source: BackupSource
 )
 
 data class DecryptedFullBackup(
@@ -1223,6 +1287,19 @@ data class DecryptedFullBackup(
     val watchlist: List<String>,
     val settings: Settings?,
     val contacts: List<Contact>
+)
+
+sealed interface RestoreOutcome {
+    data object Restored : RestoreOutcome
+
+    /** Nothing was written: these rows need a decision first. */
+    data class TokensNeedReview(val wallets: List<WalletDeclinedTokens>) : RestoreOutcome
+}
+
+data class WalletDeclinedTokens(
+    val accountId: String,
+    val accountName: String,
+    val tokens: List<DeclinedToken>,
 )
 
 data class BackupItems(

@@ -147,7 +147,8 @@ val viewModelModule = module {
             enabledWalletStorage = get(),
             walletManager = get(),
             restoreSettingsManager = get(),
-            localStorage = get()
+            localStorage = get(),
+            marketKit = get()
         )
     }
     viewModel { (accountId: String) ->
