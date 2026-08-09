@@ -120,7 +120,7 @@ class TokenTransactionsServiceSearchTest : KoinTest {
 
         // Deeper page: the real match, scan now exhausted.
         repositoryItemsFlow.emit(RecordsBatch(listOf(matchRecord), searchCompleted = true, searchExhausted = true))
-        waitUntil { service.transactionItemsFlow.value.isNotEmpty() }
+        waitUntil { service.searchScanStateFlow.value == SearchScanState.Finished }
 
         assertEquals(listOf("match-1"), service.transactionItemsFlow.value.map { it.record.uid })
         assertEquals(SearchScanState.Finished, service.searchScanStateFlow.value)
@@ -154,7 +154,7 @@ class TokenTransactionsServiceSearchTest : KoinTest {
         assertTrue(service.transactionItemsFlow.value.isEmpty())
 
         repositoryItemsFlow.emit(RecordsBatch(listOf(matchRecord), searchCompleted = true, searchExhausted = true))
-        waitUntil { service.transactionItemsFlow.value.isNotEmpty() }
+        waitUntil { service.searchScanStateFlow.value == SearchScanState.Finished }
 
         assertEquals(listOf("match-1"), service.transactionItemsFlow.value.map { it.record.uid })
         assertEquals(SearchScanState.Finished, service.searchScanStateFlow.value)
@@ -183,7 +183,7 @@ class TokenTransactionsServiceSearchTest : KoinTest {
 
         val swapMatch = mockRecord("swap-match", source)
         repositoryItemsFlow.emit(RecordsBatch(listOf(swapMatch), searchCompleted = true, searchExhausted = true))
-        waitUntil { service.transactionItemsFlow.value.isNotEmpty() }
+        waitUntil { service.searchScanStateFlow.value == SearchScanState.Finished }
 
         assertEquals(listOf("swap-match"), service.transactionItemsFlow.value.map { it.record.uid })
         assertEquals(SearchScanState.Finished, service.searchScanStateFlow.value)
