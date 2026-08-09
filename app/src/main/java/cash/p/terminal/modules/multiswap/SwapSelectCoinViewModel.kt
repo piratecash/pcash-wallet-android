@@ -122,14 +122,12 @@ class SwapSelectCoinViewModel(
                 if (!PayCoreAssets.isRub(otherToken)) {
                     val topFullCoins = marketKit.fullCoins("", limit = 100)
                     val tokens =
-                        topFullCoins.map { fullCoin ->
-                            fullCoin.tokens.filter { it.blockchainType == otherToken.blockchainType }
+                        topFullCoins.flatMap { fullCoin ->
+                            fullCoin.eligibleTokens(activeAccount.type)
                         }
-                            .flatten()
+                            .filter { it.blockchainType == otherToken.blockchainType }
                     val suggestedTokens = tokens.filter { tokenToFilter ->
-                        tokenToFilter.blockchainType.supports(activeAccount.type) &&
-                            tokenToFilter.supports(activeAccount.type) &&
-                            resultTokens.none { tokenToFilter == it.token }
+                        resultTokens.none { tokenToFilter == it.token }
                     }
 
                     suggestedTokens

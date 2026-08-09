@@ -2,7 +2,9 @@ package cash.p.terminal.modules.send.tron
 
 import cash.p.terminal.R
 import cash.p.terminal.core.ISendTronAdapter
+import cash.p.terminal.core.tryOrNull
 import cash.p.terminal.entities.Address
+import cash.p.terminal.strings.helpers.Translator
 import cash.p.terminal.ui_compose.entities.FormsInputStateWarning
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.entities.TokenType
@@ -18,20 +20,18 @@ class SendTronAddressService(
     private var address: Address? = null
     private var addressError: Throwable? = null
     private var tronAddress: TronAddress? = null
-    private var isInactiveAddress: Boolean = false
 
     private val _stateFlow = MutableStateFlow(
         State(
             address = address,
             tronAddress = tronAddress,
             addressError = addressError,
-            isInactiveAddress = isInactiveAddress,
             canBeSend = tronAddress != null && (addressError == null || addressError is FormsInputStateWarning)
         )
     )
     val stateFlow = _stateFlow.asStateFlow()
 
-    suspend fun setAddress(address: Address?) {
+    fun setAddress(address: Address?) {
         this.address = address
 
         validateAddress()
@@ -39,24 +39,22 @@ class SendTronAddressService(
         emitState()
     }
 
-    private suspend fun validateAddress() {
+    private fun validateAddress() {
         addressError = null
         tronAddress = null
         val address = this.address ?: return
 
-        try {
-            val validAddress = TronAddress.fromBase58(address.hex)
-            isInactiveAddress = !adapter.isAddressActive(validAddress)
-
-            if (token.type == TokenType.Native && adapter.isOwnAddress(validAddress)) {
-                addressError = Throwable(cash.p.terminal.strings.helpers.Translator.getString(R.string.Tron_SelfSendTrxNotAllowed))
-            }
-
-            tronAddress = validAddress
-        } catch (e: Exception) {
-            isInactiveAddress = false
-            addressError = Throwable(cash.p.terminal.strings.helpers.Translator.getString(R.string.SwapSettings_Error_InvalidAddress))
+        val validAddress = tryOrNull { TronAddress.fromBase58(address.hex) }
+        if (validAddress == null) {
+            addressError = Throwable(Translator.getString(R.string.SwapSettings_Error_InvalidAddress))
+            return
         }
+
+        if (token.type == TokenType.Native && adapter.isOwnAddress(validAddress)) {
+            addressError = Throwable(Translator.getString(R.string.Tron_SelfSendTrxNotAllowed))
+        }
+
+        tronAddress = validAddress
     }
 
     private fun emitState() {
@@ -65,7 +63,6 @@ class SendTronAddressService(
                 address = address,
                 tronAddress = tronAddress,
                 addressError = addressError,
-                isInactiveAddress = isInactiveAddress,
                 canBeSend = tronAddress != null && (addressError == null || addressError is FormsInputStateWarning)
             )
         }
@@ -75,7 +72,6 @@ class SendTronAddressService(
         val address: Address?,
         val tronAddress: TronAddress?,
         val addressError: Throwable?,
-        val isInactiveAddress: Boolean,
         val canBeSend: Boolean
     )
 }

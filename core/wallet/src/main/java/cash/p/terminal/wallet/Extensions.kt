@@ -100,6 +100,7 @@ val TokenQuery.protocolType: String?
             }
         }
 
+        is TokenType.Trc10 -> "TRC10"
         is TokenType.Jetton -> "JETTON"
         else -> blockchainType.title
     }

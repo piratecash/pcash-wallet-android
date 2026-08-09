@@ -25,12 +25,12 @@ import cash.p.terminal.wallet.isLitecoinMweb
 import cash.p.terminal.wallet.title
 import cash.p.terminal.wallet.useCases.GetHardwarePublicKeyForWalletUseCase
 import cash.p.terminal.wallet.zcashDefaultTokenQuery
+import io.horizontalsystems.core.DispatcherProvider
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -49,9 +49,10 @@ class RestoreBlockchainsService(
     private val marketKit: MarketKitWrapper,
     private val tokenAutoEnableManager: TokenAutoEnableManager,
     private val blockchainTokensService: BlockchainTokensService,
-    private val restoreSettingsService: RestoreSettingsService
+    private val restoreSettingsService: RestoreSettingsService,
+    dispatcherProvider: DispatcherProvider
 ) : Clearable {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutineScope = CoroutineScope(dispatcherProvider.io)
 
     private var tokens = listOf<Token>()
     private val enabledTokens = CopyOnWriteArrayList<Token>()

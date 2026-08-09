@@ -501,6 +501,9 @@ dependencies {
     testImplementation libs.composable.preview.scanner.android
     testImplementation libs.robolectric
     testImplementation libs.compose.ui.test.junit4
+    // createComposeRule() launches androidx.activity.ComponentActivity, which only exists in the
+    // merged manifest when this artifact is on the debug variant Robolectric reads.
+    debugImplementation libs.compose.ui.test.manifest
     // Robolectric runners are JUnit4; the module runs tests on the JUnit Platform,
     // so the vintage engine is required to discover and run them.
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'

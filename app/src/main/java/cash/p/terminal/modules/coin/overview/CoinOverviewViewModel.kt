@@ -173,6 +173,8 @@ class CoinOverviewViewModel(
                         && token.supports(accountTypeNotWatch)
 
                 when (val tokenType = token.type) {
+                    is TokenType.Trc10 -> return@forEach
+
                     is TokenType.Asset -> {
                         val inWallet =
                             canAddToWallet && activeWallets.any { it.token == token }

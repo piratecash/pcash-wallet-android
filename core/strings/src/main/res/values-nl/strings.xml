@@ -2181,6 +2181,18 @@ De app stelt u in staat een back-up te maken met een eenvoudig wachtwoord voor u
     <string name="transactions_migrate_to_ironwood">naar Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Publiek zichtbaar bedrag</string>
     <string name="zcash_migration_publicly_visible_description">Het verplaatsen van tegoed tussen pools vereist dat het gemigreerde bedrag publiek zichtbaar is op de blockchain. De afzender, ontvanger en je adressen blijven privé.</string>
+    <string name="declined_tokens_title">Aangepaste tokens gevonden</string>
+    <string name="declined_tokens_description">Deze tokens staan niet in de lijst met geverifieerde tokens: %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d token</item>
+        <item quantity="other">%d tokens</item>
+    </plurals>
+    <string name="declined_tokens_warning">Namen, symbolen en decimalen zijn niet geverifieerd. Voeg alleen tokens toe die je herkent.</string>
+    <string name="declined_tokens_select">Selecteren</string>
+    <string name="declined_tokens_add_all">Alles toevoegen</string>
+    <string name="declined_tokens_skip_all">Alles overslaan</string>
+    <string name="declined_tokens_select_title">Tokens selecteren</string>
+    <string name="declined_tokens_wallet">Wallet: %s</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Verbergen door omdraaien</string>
     <string name="balance_hide_on_flip_description">Draai het scherm van het apparaat naar beneden om je saldo snel te verbergen en te tonen.</string>

@@ -1,153 +1,36 @@
 package cash.p.terminal.modules.backuplocal
 
-import android.util.Base64
-import cash.p.terminal.core.IAccountFactory
-import cash.p.terminal.core.ILocalStorage
-import cash.p.terminal.core.managers.BalanceHiddenManager
-import cash.p.terminal.core.managers.BaseTokenManager
-import cash.p.terminal.core.managers.BtcBlockchainManager
 import cash.p.terminal.core.managers.DeniableEncryptionManager
-import cash.p.terminal.core.managers.EvmBlockchainManager
-import cash.p.terminal.core.managers.EvmSyncSourceManager
-import cash.p.terminal.core.managers.LanguageManager
-import cash.p.terminal.core.managers.MarketFavoritesManager
 import cash.p.terminal.core.managers.RestoreSettings
-import cash.p.terminal.core.managers.RestoreSettingsManager
 import cash.p.terminal.core.managers.RestoreSettingType
-import cash.p.terminal.core.managers.SolanaRpcSourceManager
-import cash.p.terminal.core.storage.BlockchainSettingsStorage
-import cash.p.terminal.core.storage.EvmSyncSourceStorage
-import cash.p.terminal.modules.balance.BalanceViewTypeManager
-import cash.p.terminal.modules.chart.ChartIndicatorManager
-import cash.p.terminal.modules.chart.ChartIndicatorSettingsDao
-import cash.p.terminal.modules.backuplocal.fullbackup.BackupProvider
-import cash.p.terminal.modules.contacts.ContactsRepository
-import cash.p.terminal.modules.settings.appearance.AppIconService
-import cash.p.terminal.modules.settings.appearance.LaunchScreenService
-import cash.p.terminal.modules.theme.ThemeService
+import cash.p.terminal.modules.backuplocal.fullbackup.BackupSource
+import cash.p.terminal.modules.backuplocal.fullbackup.DecryptedFullBackup
+import cash.p.terminal.modules.backuplocal.fullbackup.RestoreOutcome
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
-import cash.p.terminal.wallet.IAccountManager
-import cash.p.terminal.wallet.IEnabledWalletStorage
-import cash.p.terminal.wallet.IWalletManager
-import cash.p.terminal.wallet.balance.BalanceViewType
+import cash.p.terminal.wallet.Token
+import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.EnabledWallet
-import io.horizontalsystems.core.CurrencyManager
+import cash.p.terminal.wallet.entities.TokenQuery
+import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
-import io.horizontalsystems.core.entities.Currency
-import io.horizontalsystems.solanakit.models.RpcSource
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
-import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.After
+import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
+import kotlin.test.assertFailsWith
 
 /**
  * Tests for BackupProvider V4 binary backup creation with retry mechanism.
  */
-class BackupProviderV4BinaryTest {
-
-    private lateinit var backupProvider: BackupProvider
-
-    // Mocked dependencies
-    private val localStorage: ILocalStorage = mockk(relaxed = true)
-    private val languageManager: LanguageManager = mockk(relaxed = true)
-    private val walletStorage: IEnabledWalletStorage = mockk(relaxed = true)
-    private val settingsManager: RestoreSettingsManager = mockk(relaxed = true)
-    private val accountManager: IAccountManager = mockk(relaxed = true)
-    private val accountFactory: IAccountFactory = mockk(relaxed = true)
-    private val walletManager: IWalletManager = mockk(relaxed = true)
-    private val restoreSettingsManager: RestoreSettingsManager = mockk(relaxed = true)
-    private val blockchainSettingsStorage: BlockchainSettingsStorage = mockk(relaxed = true)
-    private val evmBlockchainManager: EvmBlockchainManager = mockk(relaxed = true)
-    private val marketFavoritesManager: MarketFavoritesManager = mockk(relaxed = true)
-    private val balanceViewTypeManager: BalanceViewTypeManager = mockk(relaxed = true)
-    private val appIconService: AppIconService = mockk(relaxed = true)
-    private val themeService: ThemeService = mockk(relaxed = true)
-    private val chartIndicatorManager: ChartIndicatorManager = mockk(relaxed = true)
-    private val chartIndicatorSettingsDao: ChartIndicatorSettingsDao = mockk(relaxed = true)
-    private val balanceHiddenManager: BalanceHiddenManager = mockk(relaxed = true)
-    private val baseTokenManager: BaseTokenManager = mockk(relaxed = true)
-    private val launchScreenService: LaunchScreenService = mockk(relaxed = true)
-    private val currencyManager: CurrencyManager = mockk(relaxed = true)
-    private val btcBlockchainManager: BtcBlockchainManager = mockk(relaxed = true)
-    private val evmSyncSourceManager: EvmSyncSourceManager = mockk(relaxed = true)
-    private val evmSyncSourceStorage: EvmSyncSourceStorage = mockk(relaxed = true)
-    private val solanaRpcSourceManager: SolanaRpcSourceManager = mockk(relaxed = true)
-    private val contactsRepository: ContactsRepository = mockk(relaxed = true)
-
-    @Before
-    fun setUp() {
-        mockkStatic(Base64::class)
-        every { Base64.encodeToString(any(), any()) } answers {
-            java.util.Base64.getEncoder().encodeToString(firstArg())
-        }
-        every { Base64.decode(any<String>(), any()) } answers {
-            java.util.Base64.getDecoder().decode(firstArg<String>())
-        }
-
-        // Setup mock responses
-        every { accountManager.accounts } returns emptyList()
-        every { marketFavoritesManager.getAll() } returns emptyList()
-        every { btcBlockchainManager.allBlockchains } returns emptyList()
-        every { evmBlockchainManager.allBlockchains } returns emptyList()
-        every { contactsRepository.contacts } returns emptyList()
-        every { chartIndicatorSettingsDao.getAllBlocking() } returns emptyList()
-
-        // Mock balanceViewTypeManager with proper StateFlow
-        every { balanceViewTypeManager.balanceViewType } returns BalanceViewType.CoinThenFiat
-        every { balanceViewTypeManager.balanceViewTypeFlow } returns MutableStateFlow(BalanceViewType.CoinThenFiat)
-
-        // Mock currencyManager with proper Currency
-        val mockCurrency = Currency("USD", "$", 2, 0)
-        every { currencyManager.baseCurrency } returns mockCurrency
-
-        // Mock solanaRpcSourceManager with proper RpcSource
-        val mockRpcSource = mockk<RpcSource>(relaxed = true)
-        every { mockRpcSource.name } returns "Solana RPC"
-        every { solanaRpcSourceManager.rpcSource } returns mockRpcSource
-
-        backupProvider = BackupProvider(
-            localStorage = localStorage,
-            languageManager = languageManager,
-            walletStorage = walletStorage,
-            settingsManager = settingsManager,
-            accountManager = accountManager,
-            accountFactory = accountFactory,
-            walletManager = walletManager,
-            restoreSettingsManager = restoreSettingsManager,
-            blockchainSettingsStorage = blockchainSettingsStorage,
-            evmBlockchainManager = evmBlockchainManager,
-            marketFavoritesManager = marketFavoritesManager,
-            balanceViewTypeManager = balanceViewTypeManager,
-            appIconService = appIconService,
-            themeService = themeService,
-            chartIndicatorManager = chartIndicatorManager,
-            chartIndicatorSettingsDao = chartIndicatorSettingsDao,
-            balanceHiddenManager = balanceHiddenManager,
-            baseTokenManager = baseTokenManager,
-            launchScreenService = launchScreenService,
-            currencyManager = currencyManager,
-            btcBlockchainManager = btcBlockchainManager,
-            evmSyncSourceManager = evmSyncSourceManager,
-            evmSyncSourceStorage = evmSyncSourceStorage,
-            solanaRpcSourceManager = solanaRpcSourceManager,
-            contactsRepository = contactsRepository
-        )
-    }
-
-    @After
-    fun tearDown() {
-        unmockkStatic(Base64::class)
-    }
+internal class BackupProviderV4BinaryTest : BackupProviderRestoreTestFixture() {
 
     // region V4 Binary Backup Creation with Retry
 
@@ -264,6 +147,448 @@ class BackupProviderV4BinaryTest {
     // The actual wallet encryption with accounts is tested through instrumented tests.
     // @Test
     // fun createFullBackupV4Binary_withAccounts_createsValidBackup() { ... }
+
+    // endregion
+
+    // region Restore filtering
+
+    @Test
+    fun restoreSingleWalletBackup_tokenUnknownToMarketKitLegacySource_dropsIt() = runTest {
+        curate(usdtQueryId)
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(backedUpWallet(usdtQueryId), backedUpWallet(scamQueryId))
+            ),
+            approved = emptySet()
+        )
+
+        assertEquals(listOf(usdtQueryId), saved.captured.map { it.tokenQueryId })
+        assertEquals(restoredAccount.id, saved.captured.single().accountId)
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_manuallyAddedTokenAuthenticatedSource_raisesReview() = runTest {
+        curate(usdtQueryId)
+
+        val outcome = backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(
+                    backedUpWallet(usdtQueryId),
+                    backedUpWallet(manuallyAddedQueryId).copy(
+                        coinName = "My Token",
+                        coinCode = "MYT",
+                        decimals = 8
+                    )
+                ),
+                source = BackupSource.Authenticated
+            )
+        )
+
+        val review = outcome as RestoreOutcome.TokensNeedReview
+        val declined = review.wallets.single().tokens.single()
+        assertEquals(manuallyAddedQueryId, declined.tokenQueryId)
+        assertEquals("My Token", declined.coinName)
+        assertEquals("MYT", declined.coinCode)
+        assertEquals(8, declined.decimals)
+        verify(exactly = 0) { accountManager.save(any(), any()) }
+        coVerify(exactly = 0) { walletManager.saveEnabledWallets(any()) }
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_manuallyAddedTokenAuthenticatedSource_approved_restoresItFromFileMetadata() = runTest {
+        curate(usdtQueryId)
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(
+                    backedUpWallet(usdtQueryId),
+                    backedUpWallet(manuallyAddedQueryId).copy(
+                        coinName = "My Token",
+                        coinCode = "MYT",
+                        decimals = 8
+                    )
+                ),
+                source = BackupSource.Authenticated
+            ),
+            approved = setOf(manuallyAddedQueryId)
+        )
+
+        assertEquals(
+            listOf(usdtQueryId, manuallyAddedQueryId),
+            saved.captured.map { it.tokenQueryId }
+        )
+        val manuallyAdded = saved.captured.last()
+        assertEquals("My Token", manuallyAdded.coinName)
+        assertEquals("MYT", manuallyAdded.coinCode)
+        assertEquals(8, manuallyAdded.coinDecimals)
+        assertNull(manuallyAdded.coinImage)
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_sameContractInTwoCases_savesOneCuratedRow() = runTest {
+        val checksummed = "ethereum|eip20:0xDAC17F958D2ee523a2206206994597C13D831ec7"
+        val curated = Token(
+            coin = Coin(uid = usdtQueryId, name = "Tether", code = "USDT"),
+            blockchain = Blockchain(BlockchainType.Ethereum, "Ethereum", null),
+            type = requireNotNull(TokenQuery.fromId(usdtQueryId)).tokenType,
+            decimals = 6
+        )
+        // MarketKit's `LIKE '%reference'` fallback ignores ASCII case, so both forms resolve to
+        // the same lowercase curated token.
+        every { marketKit.tokens(any<List<TokenQuery>>()) } answers {
+            firstArg<List<TokenQuery>>()
+                .filter { it.id.lowercase() == usdtQueryId }
+                .map { curated }
+                .distinct()
+        }
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(backedUpWallet(checksummed), backedUpWallet(usdtQueryId))
+            )
+        )
+
+        assertEquals(listOf(usdtQueryId), saved.captured.map { it.tokenQueryId })
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_backupCarriesSpoofedMetadata_savesCuratedMetadata() = runTest {
+        curate(usdtQueryId)
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(
+                    backedUpWallet(usdtQueryId).copy(
+                        coinName = "Free Airdrop",
+                        coinCode = "SCAM",
+                        decimals = 18
+                    )
+                )
+            )
+        )
+
+        val restored = saved.captured.single()
+        assertEquals("Curated", restored.coinName)
+        assertEquals("CUR", restored.coinCode)
+        assertEquals(6, restored.coinDecimals)
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_curatedTokenTypeUnsupportedLegacySource_dropsIt() = runTest {
+        val (splQueryId, curated) = unsupportedCuratedSplToken()
+        every { marketKit.tokens(any<List<TokenQuery>>()) } answers {
+            firstArg<List<TokenQuery>>().filter { it.id == splQueryId }.map { curated }
+        }
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(backedUpWallet(splQueryId, decimals = 6)),
+                source = BackupSource.Legacy
+            )
+        )
+
+        assertTrue(saved.captured.isEmpty())
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_curatedTokenTypeUnsupportedAuthenticatedSource_restoresWithFileDecimals() = runTest {
+        val (splQueryId, curated) = unsupportedCuratedSplToken()
+        every { marketKit.tokens(any<List<TokenQuery>>()) } answers {
+            firstArg<List<TokenQuery>>().filter { it.id == splQueryId }.map { curated }
+        }
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(backedUpWallet(splQueryId, decimals = 6)),
+                source = BackupSource.Authenticated
+            )
+        )
+
+        val restored = saved.captured.single()
+        assertEquals(splQueryId, restored.tokenQueryId)
+        assertEquals(6, restored.coinDecimals)
+    }
+
+    @Test
+    fun restoreFromV4BinaryBackup_realRoundTrip_restoresCuratedUnsupportedTokenWithFileDecimals() = runTest {
+        val passphrase = "correct horse battery staple"
+        val accountToBackup = Account(
+            id = "backup-account-id",
+            name = "Backup",
+            type = AccountType.Mnemonic(List(12) { "abandon" }, ""),
+            origin = AccountOrigin.Created,
+            level = 0
+        )
+        val (splQueryId, curated) = unsupportedCuratedSplToken()
+        every { walletStorage.enabledWallets(accountToBackup.id) } returns listOf(
+            EnabledWallet(
+                tokenQueryId = splQueryId,
+                accountId = accountToBackup.id,
+                coinName = "Pyth Network",
+                coinCode = "PYTH",
+                coinDecimals = 6,
+                coinImage = null
+            )
+        )
+
+        val binary = backupProvider.createSingleWalletBackupV4Binary(accountToBackup, passphrase)
+
+        every { accountFactory.account(any(), any(), any(), any(), any()) } returns restoredAccount
+        every { marketKit.tokens(any<List<TokenQuery>>()) } answers {
+            firstArg<List<TokenQuery>>().filter { it.id == splQueryId }.map { curated }
+        }
+        val saved = captureRestoredWallets()
+
+        val decrypted = backupProvider.restoreFromV4BinaryBackup(binary, passphrase)
+
+        assertNotNull(decrypted)
+        assertEquals(BackupSource.Authenticated, requireNotNull(decrypted).wallets.single().source)
+
+        backupProvider.restoreFullBackup(decrypted, passphrase)
+
+        val restored = saved.captured.single()
+        assertEquals(splQueryId, restored.tokenQueryId)
+        assertEquals(6, restored.coinDecimals)
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_walletBackup_dropsTokensUnknownToMarketKit() = runTest {
+        curate(usdtQueryId)
+        val saved = captureRestoredWallets()
+        every { accountFactory.account(any(), any(), any(), any(), any()) } returns restoredAccount
+        val backup = mockk<BackupLocalModule.WalletBackup> {
+            every { manualBackup } returns true
+            every { enabledWallets } returns listOf(
+                backedUpWallet(usdtQueryId),
+                backedUpWallet(scamQueryId)
+            )
+        }
+
+        backupProvider.restoreSingleWalletBackup(
+            restoredAccount.type, "Restored", backup, BackupSource.Legacy, approved = emptySet()
+        )
+
+        assertEquals(listOf(usdtQueryId), saved.captured.map { it.tokenQueryId })
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_noTokenKnownToMarketKit_restoresAccountWithoutWallets() = runTest {
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(backedUpWallet(scamQueryId))
+            ),
+            approved = emptySet()
+        )
+
+        assertTrue(saved.captured.isEmpty())
+        coVerify { accountManager.import(listOf(restoredAccount)) }
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_uncuratedTokenWithBirthdayHeight_stillRestoresItsSettings() = runTest {
+        val saved = captureRestoredWallets()
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(
+                    backedUpWallet(
+                        tokenQueryId = "monero|native",
+                        settings = mapOf(RestoreSettingType.BirthdayHeight to "3000000")
+                    )
+                )
+            ),
+            approved = emptySet()
+        )
+
+        assertTrue(saved.captured.isEmpty())
+        verify {
+            restoreSettingsManager.save(
+                match { it.birthdayHeight == 3_000_000L },
+                restoredAccount,
+                BlockchainType.Monero
+            )
+        }
+    }
+
+    /** The legacy overload keeps its own settings loop, so it needs its own asymmetry test. */
+    @Test
+    fun restoreSingleWalletBackup_legacyPathUncuratedTokenWithBirthdayHeight_stillRestoresItsSettings() = runTest {
+        val saved = captureRestoredWallets()
+        every { accountFactory.account(any(), any(), any(), any(), any()) } returns restoredAccount
+        val backup = mockk<BackupLocalModule.WalletBackup> {
+            every { manualBackup } returns true
+            every { enabledWallets } returns listOf(
+                backedUpWallet(
+                    tokenQueryId = "monero|native",
+                    settings = mapOf(RestoreSettingType.BirthdayHeight to "3000000")
+                )
+            )
+        }
+
+        backupProvider.restoreSingleWalletBackup(
+            restoredAccount.type, "Restored", backup, BackupSource.Legacy, approved = emptySet()
+        )
+
+        assertTrue(saved.captured.isEmpty())
+        verify {
+            restoreSettingsManager.save(
+                match { it.birthdayHeight == 3_000_000L },
+                restoredAccount,
+                BlockchainType.Monero
+            )
+        }
+    }
+
+    @Test
+    fun restoreFullBackup_curatedLookupFailsOnSecondAccount_persistsNothing() = runTest {
+        val secondAccount = restoredAccount.copy(id = "second-account-id", name = "Second")
+        every {
+            marketKit.tokens(any<List<TokenQuery>>())
+        } returns emptyList() andThenThrows IllegalStateException("db down")
+
+        assertFailsWith<IllegalStateException> {
+            backupProvider.restoreFullBackup(
+                DecryptedFullBackup(
+                    wallets = listOf(
+                        walletBackupItem(
+                            account = restoredAccount,
+                            enabledWallets = listOf(
+                                backedUpWallet(
+                                    tokenQueryId = "monero|native",
+                                    settings = mapOf(RestoreSettingType.BirthdayHeight to "3000000")
+                                )
+                            )
+                        ),
+                        walletBackupItem(
+                            account = secondAccount,
+                            enabledWallets = listOf(backedUpWallet(usdtQueryId))
+                        )
+                    ),
+                    watchlist = emptyList(),
+                    settings = null,
+                    contacts = emptyList()
+                ),
+                passphrase = "passphrase"
+            )
+        }
+
+        verify(exactly = 0) { restoreSettingsManager.save(any(), any(), any()) }
+        coVerify(exactly = 0) { accountManager.import(any()) }
+        coVerify(exactly = 0) { walletManager.saveEnabledWallets(any()) }
+    }
+
+    @Test
+    fun restoreFullBackup_multipleAccounts_savesCuratedWalletsOfEveryAccount() = runTest {
+        curate(usdtQueryId, daiQueryId)
+        val saved = captureRestoredWallets()
+        val secondAccount = restoredAccount.copy(id = "second-account-id", name = "Second")
+
+        val outcome = backupProvider.restoreFullBackup(
+            DecryptedFullBackup(
+                wallets = listOf(restoredAccount to usdtQueryId, secondAccount to daiQueryId)
+                    .map { (account, curatedQueryId) ->
+                        walletBackupItem(
+                            account = account,
+                            enabledWallets = listOf(
+                                backedUpWallet(curatedQueryId),
+                                backedUpWallet(scamQueryId)
+                            )
+                        )
+                    },
+                watchlist = emptyList(),
+                settings = null,
+                contacts = emptyList()
+            ),
+            passphrase = "passphrase",
+            approved = emptyMap()
+        )
+
+        assertEquals(RestoreOutcome.Restored, outcome)
+        coVerify { accountManager.import(listOf(restoredAccount, secondAccount)) }
+        assertEquals(
+            listOf(restoredAccount.id to usdtQueryId, secondAccount.id to daiQueryId),
+            saved.captured.map { it.accountId to it.tokenQueryId }
+        )
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_moneroAccountWithoutBackedUpSettings_savesHeightFromAccountType() = runTest {
+        val moneroAccount = restoredAccount.copy(
+            type = AccountType.MnemonicMonero(List(25) { "abandon" }, "", 2_800_000L, "Monero")
+        )
+
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                account = moneroAccount,
+                enabledWallets = listOf(backedUpWallet("monero|native"))
+            ),
+            approved = emptySet()
+        )
+
+        verify {
+            restoreSettingsManager.save(
+                match { it.birthdayHeight == 2_800_000L },
+                moneroAccount,
+                BlockchainType.Monero
+            )
+        }
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_malformedTokenQueryId_skipsItAndKeepsRestoringLaterRows() = runTest {
+        backupProvider.restoreSingleWalletBackup(
+            walletBackupItem(
+                enabledWallets = listOf(
+                    backedUpWallet(
+                        tokenQueryId = "not-a-token-query-id",
+                        settings = mapOf(RestoreSettingType.BirthdayHeight to "1")
+                    ),
+                    backedUpWallet(
+                        tokenQueryId = "monero|native",
+                        settings = mapOf(RestoreSettingType.BirthdayHeight to "3000000")
+                    )
+                )
+            ),
+            approved = emptySet()
+        )
+
+        verify(exactly = 1) { restoreSettingsManager.save(any(), any(), any()) }
+        verify {
+            restoreSettingsManager.save(
+                match { it.birthdayHeight == 3_000_000L },
+                restoredAccount,
+                BlockchainType.Monero
+            )
+        }
+    }
+
+    @Test
+    fun restoreSingleWalletBackup_curatedLookupFails_doesNotPersistAccount() = runTest {
+        every { accountFactory.account(any(), any(), any(), any(), any()) } returns restoredAccount
+        every { marketKit.tokens(any<List<TokenQuery>>()) } throws IllegalStateException("db down")
+        val backup = mockk<BackupLocalModule.WalletBackup> {
+            every { manualBackup } returns true
+            every { enabledWallets } returns listOf(backedUpWallet(usdtQueryId))
+        }
+
+        assertFailsWith<IllegalStateException> {
+            backupProvider.restoreSingleWalletBackup(
+                restoredAccount.type, "Restored", backup, BackupSource.Legacy
+            )
+        }
+
+        verify(exactly = 0) { accountManager.save(any(), any()) }
+        coVerify(exactly = 0) { walletManager.saveEnabledWallets(any()) }
+    }
 
     // endregion
 }

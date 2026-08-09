@@ -89,23 +89,38 @@ class TronTransactionsAdapter(
             is TronKit.SyncState.Syncing -> AdapterState.Syncing()
         }
 
-    private fun coinTagName(token: Token) = when (val type = token.type) {
-        TokenType.Native -> TransactionTag.TRX_COIN
-        is TokenType.Eip20 -> type.address
-        else -> ""
+    private fun coinTags(token: Token) = when (val type = token.type) {
+        TokenType.Native -> listOf(TransactionTag.TRX_COIN)
+        is TokenType.Eip20 -> listOf(type.address)
+        is TokenType.Trc10 -> listOf(
+            directionTag(token, incoming = true),
+            directionTag(token, incoming = false),
+        )
+
+        else -> listOf("")
     }
 
-    private fun incomingTag(token: Token) = when (val type = token.type) {
-        TokenType.Native -> TransactionTag.TRX_COIN_INCOMING
-        is TokenType.Eip20 -> TransactionTag.trc20Incoming(type.address)
-        else -> ""
-    }
+    private fun directionTag(token: Token, incoming: Boolean) =
+        when (val type = token.type) {
+            TokenType.Native ->
+                if (incoming) TransactionTag.TRX_COIN_INCOMING else TransactionTag.TRX_COIN_OUTGOING
 
-    private fun outgoingTag(token: Token) = when (val type = token.type) {
-        TokenType.Native -> TransactionTag.TRX_COIN_OUTGOING
-        is TokenType.Eip20 -> TransactionTag.trc20Outgoing(type.address)
-        else -> ""
-    }
+            is TokenType.Eip20 ->
+                if (incoming) {
+                    TransactionTag.trc20Incoming(type.address)
+                } else {
+                    TransactionTag.trc20Outgoing(type.address)
+                }
+
+            is TokenType.Trc10 ->
+                if (incoming) {
+                    TransactionTag.trc10Incoming(type.assetId)
+                } else {
+                    TransactionTag.trc10Outgoing(type.assetId)
+                }
+
+            else -> ""
+        }
 
     private fun getFilters(
         token: Token?,
@@ -113,18 +128,18 @@ class TronTransactionsAdapter(
         address: String?,
     ) = buildList {
         token?.let {
-            add(listOf(coinTagName(it)))
+            add(coinTags(it))
         }
 
         val filterType = when (transactionType) {
             FilterTransactionType.All -> null
             FilterTransactionType.Incoming -> when {
-                token != null -> incomingTag(token)
+                token != null -> directionTag(token, incoming = true)
                 else -> TransactionTag.INCOMING
             }
 
             FilterTransactionType.Outgoing -> when {
-                token != null -> outgoingTag(token)
+                token != null -> directionTag(token, incoming = false)
                 else -> TransactionTag.OUTGOING
             }
 

@@ -2172,6 +2172,19 @@ La aplicación permite crear una copia de seguridad con una contraseña sencilla
     <string name="transactions_migrate_to_ironwood">vers Ironwood</string>
     <string name="zcash_migration_publicly_visible_title">Montant visible publiquement</string>
     <string name="zcash_migration_publicly_visible_description">Le déplacement de fonds entre les pools nécessite que le montant migré soit visible publiquement sur la blockchain. L\'expéditeur, le destinataire et vos adresses restent privés.</string>
+    <string name="declined_tokens_title">Tokens personnalisés détectés</string>
+    <string name="declined_tokens_description">Ces tokens ne figurent pas dans la liste des tokens vérifiés : %s</string>
+    <plurals name="declined_tokens_count">
+        <item quantity="one">%d token</item>
+        <item quantity="many">%d tokens</item>
+        <item quantity="other">%d tokens</item>
+    </plurals>
+    <string name="declined_tokens_warning">Leurs noms, symboles et décimales ne sont pas vérifiés. N\'ajoutez que les tokens que vous reconnaissez.</string>
+    <string name="declined_tokens_select">Sélectionner</string>
+    <string name="declined_tokens_add_all">Tout ajouter</string>
+    <string name="declined_tokens_skip_all">Tout ignorer</string>
+    <string name="declined_tokens_select_title">Sélectionner les tokens</string>
+    <string name="declined_tokens_wallet">Portefeuille : %s</string>
     <!-- Hide balance on flip -->
     <string name="balance_hide_on_flip_title">Masquer en retournant</string>
     <string name="balance_hide_on_flip_description">Retournez l\'écran de l\'appareil vers le bas pour masquer et afficher rapidement votre solde.</string>
