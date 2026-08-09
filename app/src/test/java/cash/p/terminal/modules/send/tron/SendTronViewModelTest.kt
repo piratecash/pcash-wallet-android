@@ -25,6 +25,7 @@ import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.Wallet
 import cash.p.terminal.wallet.WalletFactory
+import cash.p.terminal.wallet.entities.BalanceData
 import cash.p.terminal.wallet.entities.Coin
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.managers.IBalanceHiddenManager
@@ -143,6 +144,7 @@ class SendTronViewModelTest : KoinTest {
         every { poisonAddressManager.isAddressSuspicious(any(), any(), any()) } returns false
         every { payloadEncoder.encode(any()) } returns "payload"
         coEvery { offlineSignedTransactionRepository.save(any(), any()) } returns Unit
+        every { adapter.trxBalanceData } returns BalanceData(available = BigDecimal.TEN)
         coEvery { adapter.estimateFee(any(), any()) } returns listOf(Fee.Energy(required = 10, price = 2))
         coEvery { adapter.getNowBlock() } returns nowBlock
         coEvery { adapter.signOffline(any()) } returns SignedOfflineTronTransaction(
@@ -157,7 +159,7 @@ class SendTronViewModelTest : KoinTest {
                 canBeSend = value != null && value > BigDecimal.ZERO,
             )
         }
-        coEvery { addressService.setAddress(any()) } coAnswers {
+        every { addressService.setAddress(any()) } answers {
             val value = firstArg<Address?>()
             addressStateFlow.value = createAddressState(
                 address = value,
@@ -267,6 +269,25 @@ class SendTronViewModelTest : KoinTest {
     }
 
     @Test
+    fun onNavigateToConfirmation_accountActivationFee_includesActivationAndTotalFees() = runTest(dispatcher) {
+        coEvery { adapter.estimateFee(any(), any()) } returns listOf(
+            Fee.AccountActivation(amount = 1_000_000),
+            Fee.Bandwidth(points = 10, price = 2),
+        )
+        val viewModel = createViewModel()
+
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+        viewModel.onNavigateToConfirmation()
+        advanceUntilIdle()
+
+        val confirmationData = checkNotNull(viewModel.confirmationData)
+        assertEquals(BigDecimal("1.000000"), confirmationData.activationFee)
+        assertEquals(BigDecimal("1.000020"), confirmationData.fee)
+    }
+
+    @Test
     fun offlineSignSupported_watchAccount_returnsFalse() {
         val watchWallet = createWallet(trxToken, account(AccountType.TronAddress(TRON_ADDRESS)))
 
@@ -322,7 +343,6 @@ class SendTronViewModelTest : KoinTest {
         address = address,
         tronAddress = address?.let { TronAddress.fromBase58(it.hex) },
         addressError = null,
-        isInactiveAddress = false,
         canBeSend = canBeSend,
     )
 
