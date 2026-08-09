@@ -17,6 +17,7 @@ import cash.p.terminal.modules.send.SendResult
 import cash.p.terminal.modules.send.offline.OfflineSignState
 import cash.p.terminal.modules.send.offline.OfflineTransactionFormat
 import cash.p.terminal.modules.xrate.XRateService
+import cash.p.terminal.strings.helpers.TranslatableString
 import cash.p.terminal.wallet.Account
 import cash.p.terminal.wallet.AccountOrigin
 import cash.p.terminal.wallet.AccountType
@@ -46,6 +47,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -64,6 +66,7 @@ import org.koin.dsl.module
 import org.koin.test.KoinTest
 import org.koin.test.KoinTestRule
 import java.math.BigDecimal
+import java.net.UnknownHostException
 import cash.p.terminal.manager.IConnectivityManager
 import cash.p.terminal.modules.send.mockConnectivityManager
 
@@ -88,6 +91,9 @@ class SendMoneroViewModelTest : KoinTest {
     private lateinit var amountStateFlow: MutableStateFlow<SendAmountService.State>
     private lateinit var addressStateFlow: MutableStateFlow<SendMoneroAddressService.State>
     private lateinit var balanceUpdatedFlow: MutableSharedFlow<Unit>
+
+    // Production wires both connectivity reads to one singleton, so the test must too.
+    private val isConnected = MutableStateFlow(true)
 
     private val walletFactory = WalletFactory(object : HardwareWalletTokenPolicy {
         override fun isSupported(blockchainType: BlockchainType, tokenType: TokenType) = true
@@ -115,7 +121,7 @@ class SendMoneroViewModelTest : KoinTest {
     val koinRule = KoinTestRule.create {
         modules(
             module {
-                single<IConnectivityManager> { mockConnectivityManager() }
+                single<IConnectivityManager> { mockConnectivityManager(isConnected) }
                 single<IBalanceHiddenManager> { balanceHiddenManager }
                 single<MarketKitWrapper> { marketKit }
                 single { poisonAddressManager }
@@ -139,7 +145,7 @@ class SendMoneroViewModelTest : KoinTest {
         every { xRateService.getRateFlow(any()) } returns flowOf<CurrencyValue>()
         every { balanceHiddenManager.balanceHiddenFlow } returns MutableStateFlow(false)
         every { poisonAddressManager.isAddressSuspicious(any(), any(), any()) } returns false
-        every { connectivityManager.isConnected } returns MutableStateFlow(true)
+        every { connectivityManager.isConnected } returns isConnected
         every { adapter.balanceData } returns BalanceData(BigDecimal.TEN)
         every { adapter.balanceUpdatedFlow } returns balanceUpdatedFlow
         every { adapter.maxSpendableBalance } returns BigDecimal.TEN
@@ -149,11 +155,7 @@ class SendMoneroViewModelTest : KoinTest {
         coEvery { adapter.estimateFee(any(), any(), any()) } returns FEE
         coEvery { adapter.send(any(), any(), any()) } returns MONERO_TX_HASH
         coEvery { locallyCreatedTransactionRepository.markCreated(any<Wallet>(), any()) } returns Unit
-        coEvery { adapter.signOffline(any()) } returns SignedOfflineMoneroTransaction(
-            rawHex = "deadbeef",
-            txHash = MONERO_TX_HASH,
-            fee = FEE,
-        )
+        coEvery { adapter.signOffline(any()) } returns signedTransaction()
         every { amountService.setAmount(any()) } answers {
             val value = firstArg<BigDecimal?>()
             amountStateFlow.value = createAmountState(
@@ -207,7 +209,7 @@ class SendMoneroViewModelTest : KoinTest {
         assertEquals("deadbeef", draft.rawHex)
         assertEquals(MONERO_TX_HASH, draft.txHash)
         assertEquals(amount, draft.amount)
-        assertEquals(FEE, draft.fee)
+        assertEquals(SIGNED_FEE, draft.fee)
         assertEquals(address.hex, draft.toAddress)
         assertEquals(null, draft.solanaRetryMetadata)
         assertEquals(null, draft.tonRetryMetadata)
@@ -288,6 +290,113 @@ class SendMoneroViewModelTest : KoinTest {
         assertFalse(viewModel.offlineSignSupported)
     }
 
+    @Test
+    fun onClickSignOffline_preparedOnlineThenConnectionLost_signsFromCache() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        goOfflineWithBalanceUpdate()
+
+        viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+        advanceUntilIdle()
+
+        assertSigned(viewModel)
+    }
+
+    @Test
+    fun balanceUpdate_sameInputs_doesNotRebuildSignedTransaction() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        every { adapter.maxSpendableBalance } returns BigDecimal("4")
+        balanceUpdatedFlow.emit(Unit)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { adapter.signOffline(any()) }
+    }
+
+    @Test
+    fun amountChanged_rebuildsSignedTransactionForNewAmount() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        viewModel.onEnterAmount(BigDecimal("2.5"))
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) {
+            adapter.signOffline(match { it is OfflineMoneroSignRequest && it.amount == BigDecimal("2.5") })
+        }
+    }
+
+    @Test
+    fun onClickSignOffline_prepareFailedThenOffline_reportsBuildError() = runTest(dispatcher) {
+        coEvery { adapter.signOffline(any()) } throws IllegalStateException(BUILD_ERROR)
+        val viewModel = createViewModel()
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        goOfflineWithBalanceUpdate()
+
+        viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+        advanceUntilIdle()
+
+        val state = viewModel.offlineSignState as OfflineSignState.Failed
+        assertEquals(BUILD_ERROR, (state.caution.s as TranslatableString.PlainString).text)
+    }
+
+    @Test
+    fun getConfirmationData_transactionPrepared_usesFeeFromSignedTransaction() = runTest(dispatcher) {
+        val viewModel = createViewModel()
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        goOfflineWithBalanceUpdate()
+
+        assertEquals(SIGNED_FEE, viewModel.getConfirmationData().fee)
+    }
+
+    @Test
+    fun prepareFailedThenBalanceUpdate_online_retriesPreparation() = runTest(dispatcher) {
+        coEvery { adapter.signOffline(any()) } throws IllegalStateException(BUILD_ERROR)
+        val viewModel = createViewModel()
+        viewModel.onEnterAddress(address)
+        viewModel.onEnterAmount(amount)
+        advanceUntilIdle()
+
+        coEvery { adapter.signOffline(any()) } returns signedTransaction()
+        every { adapter.maxSpendableBalance } returns BigDecimal("4")
+        balanceUpdatedFlow.emit(Unit)
+        advanceUntilIdle()
+
+        viewModel.onClickSignOffline(OfflineTransactionFormat.Pcash)
+        advanceUntilIdle()
+
+        assertSigned(viewModel)
+    }
+
+    // Losing the daemon makes fee estimation fail and the kit re-emits the balance.
+    private suspend fun TestScope.goOfflineWithBalanceUpdate() {
+        isConnected.value = false
+        coEvery { adapter.estimateFee(any(), any(), any()) } throws UnknownHostException()
+        every { adapter.maxSpendableBalance } returns BigDecimal("4")
+        balanceUpdatedFlow.emit(Unit)
+        advanceUntilIdle()
+    }
+
+    private fun signedTransaction() = SignedOfflineMoneroTransaction(
+        rawHex = "deadbeef",
+        txHash = MONERO_TX_HASH,
+        fee = SIGNED_FEE,
+    )
+
     private fun createViewModel(wallet: Wallet = this.wallet) = SendMoneroViewModel(
         wallet = wallet,
         sendToken = wallet.token,
@@ -350,6 +459,10 @@ class SendMoneroViewModelTest : KoinTest {
         const val MONERO_ADDRESS =
             "84jsRecipienT111111111111111111111111111111111111111111111111111111111111111"
         const val MONERO_TX_HASH = "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+        const val BUILD_ERROR = "not enough outputs"
         val FEE: BigDecimal = BigDecimal("0.000123456789")
+
+        // Distinct from FEE so tests can tell the estimate apart from the signed transaction's fee.
+        val SIGNED_FEE: BigDecimal = BigDecimal("0.000222222222")
     }
 }

@@ -62,16 +62,15 @@ class MoneroAdapterRefreshTest {
     }
 
     @Test
-    fun signOffline_validRequest_returnsRawHexTxHashAndFee() = runTest {
+    fun signOffline_multipleTransactionIds_usesFirstIdForDraftHash() = runTest {
         val moneroKitWrapper = mockk<MoneroKitWrapper>(relaxed = true)
         val adapter = MoneroAdapter(moneroKitWrapper)
         coEvery {
             moneroKitWrapper.createSignedRawTransaction(any(), any(), any())
         } returns SignedRawMoneroTransaction(
             raw = byteArrayOf(0, 1, 2, 3, 4, 5),
-            txId = TX_HASH.uppercase(),
+            txIds = listOf(TX_HASH.uppercase(), SECOND_TX_HASH.uppercase()),
             fee = 12_345_678_901L,
-            txCount = 1,
         )
 
         val signed = adapter.signOffline(
@@ -155,5 +154,6 @@ class MoneroAdapterRefreshTest {
 
     private companion object {
         const val TX_HASH = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        const val SECOND_TX_HASH = "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
     }
 }

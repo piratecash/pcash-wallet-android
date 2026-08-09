@@ -40,6 +40,9 @@ naming:
     active: true
     # Allow PascalCase for Composable functions
     functionPattern: '([a-z][a-zA-Z0-9]*)|([A-Z][a-zA-Z0-9]*)'
+    # Defaults of detekt 1.23.8 plus androidHostTest, the unit-test source set of KMP modules,
+    # which the defaults predate. Test names follow methodName_scenario_expectedOutcome.
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/androidHostTest/**', '**/jsTest/**', '**/iosTest/**']
   TopLevelPropertyNaming:
     active: true
     constantPattern: '[A-Z][A-Za-z0-9_]*'

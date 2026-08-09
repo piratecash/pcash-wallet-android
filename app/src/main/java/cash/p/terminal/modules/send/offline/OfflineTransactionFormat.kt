@@ -1,7 +1,8 @@
 package cash.p.terminal.modules.send.offline
 
 import cash.p.terminal.entities.OfflineSignedTransaction
-import cash.p.terminal.ui.compose.components.canEncodeAsPcashQrCode
+import cash.p.terminal.ui.compose.components.animatedQrFrames
+import cash.p.terminal.ui.compose.components.isReadablePcashQrCode
 
 enum class OfflineTransactionFormat {
     Pcash,
@@ -20,16 +21,18 @@ internal fun OfflineTransactionFormat.preferredTransferFormat(transaction: Offli
         OfflineTransactionFormat.Pcash -> {
             val pcashContent = OfflineTransactionFormat.Pcash.content(transaction)
             val rawContent = OfflineTransactionFormat.Raw.content(transaction)
-            if (!pcashContent.canEncodeAsOfflineQr() &&
-                rawContent.length < pcashContent.length &&
-                rawContent.canEncodeAsOfflineQr()
-            ) {
-                OfflineTransactionFormat.Raw
-            } else {
-                OfflineTransactionFormat.Pcash
+            // Ordered by how pleasant the transfer is: one static QR beats an animated tape,
+            // and Pcash beats Raw at equal effort because it carries the readable metadata.
+            when {
+                pcashContent.canEncodeAsOfflineQr() -> OfflineTransactionFormat.Pcash
+                rawContent.length < pcashContent.length && rawContent.canEncodeAsOfflineQr() ->
+                    OfflineTransactionFormat.Raw
+                animatedQrFrames(pcashContent) != null -> OfflineTransactionFormat.Pcash
+                animatedQrFrames(rawContent) != null -> OfflineTransactionFormat.Raw
+                else -> OfflineTransactionFormat.Pcash
             }
         }
     }
 
 internal fun String.canEncodeAsOfflineQr(): Boolean =
-    canEncodeAsPcashQrCode(this)
+    isReadablePcashQrCode(this)
