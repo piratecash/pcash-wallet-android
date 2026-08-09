@@ -45,6 +45,9 @@ sealed class TokenType : Parcelable {
     data class Eip20(val address: String) : TokenType()
 
     @Parcelize
+    data class Trc10(val assetId: String) : TokenType()
+
+    @Parcelize
     data class Spl(val address: String) : TokenType()
 
     @Parcelize
@@ -62,6 +65,7 @@ sealed class TokenType : Parcelable {
                 Native -> listOf("native")
                 Mweb -> listOf("mweb")
                 is Eip20 -> listOf("eip20", address)
+                is Trc10 -> listOf("trc10", assetId)
                 is Spl -> listOf("spl", address)
                 is Jetton -> listOf("the-open-network", address)
                 is Asset -> listOf("stellar", "$code-$issuer")
@@ -82,6 +86,7 @@ sealed class TokenType : Parcelable {
             is Native -> Value("native", "")
             Mweb -> Value("mweb", "")
             is Eip20 -> Value("eip20", address)
+            is Trc10 -> Value("trc10", assetId)
             is Spl -> Value("spl", address)
             is Jetton -> Value("the-open-network", address)
             is Asset -> Value("stellar", "$code-$issuer")
@@ -108,6 +113,8 @@ sealed class TokenType : Parcelable {
                         return Eip20(reference)
                     }
                 }
+
+                "trc10" -> if (reference.isNotBlank()) return Trc10(reference)
 
                 "spl" -> {
                     if (reference.isNotBlank()) {

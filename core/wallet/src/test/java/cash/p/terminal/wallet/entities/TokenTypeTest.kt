@@ -1,5 +1,7 @@
 package cash.p.terminal.wallet.entities
 
+import cash.p.terminal.wallet.protocolType
+import io.horizontalsystems.core.entities.BlockchainType
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -41,5 +43,46 @@ class TokenTypeTest {
         )
 
         assertEquals(tokenType, TokenType.fromId(tokenType.id))
+    }
+
+    @Test
+    fun fromType_trc10Reference_returnsStableTrc10Id() {
+        val tokenType = TokenType.fromType("trc10", "1005114")
+
+        assertEquals("trc10:1005114", tokenType.id)
+        assertEquals(TokenType.Value(type = "trc10", reference = "1005114"), tokenType.values)
+    }
+
+    @Test
+    fun fromId_trc10_returnsTrc10TokenType() {
+        assertEquals(TokenType.Trc10("1005114"), TokenType.fromId("trc10:1005114"))
+    }
+
+    @Test
+    fun fromType_trc10WithoutReference_returnsUnsupportedTokenType() {
+        assertEquals(
+            TokenType.Unsupported(type = "trc10", reference = ""),
+            TokenType.fromType("trc10"),
+        )
+    }
+
+    @Test
+    fun trc10_assetId_returnsTronTokenQuery() {
+        assertEquals(
+            TokenQuery(BlockchainType.Tron, TokenType.Trc10("1005114")),
+            TokenQuery.trc10("1005114"),
+        )
+    }
+
+    @Test
+    fun fromId_trc10TokenQueryId_returnsTrc10TokenQuery() {
+        val query = TokenQuery.trc10("1005114")
+
+        assertEquals(query, TokenQuery.fromId(query.id))
+    }
+
+    @Test
+    fun protocolType_trc10_returnsTrc10Label() {
+        assertEquals("TRC10", TokenQuery.trc10("1005114").protocolType)
     }
 }

@@ -8,6 +8,7 @@ import cash.p.terminal.entities.nft.NftUid
 import cash.p.terminal.wallet.Token
 import cash.p.terminal.wallet.badge
 import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.entities.TokenQuery
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -79,7 +80,10 @@ sealed interface TransactionValue {
 
     }
 
-    data class RawValue(val value: BigInteger) : TransactionValue {
+    data class RawValue(
+        val value: BigInteger,
+        val tokenQuery: TokenQuery? = null,
+    ) : TransactionValue {
         override val coinUid: String = ""
         override val coin: Coin? = null
         override val badge: String? = null

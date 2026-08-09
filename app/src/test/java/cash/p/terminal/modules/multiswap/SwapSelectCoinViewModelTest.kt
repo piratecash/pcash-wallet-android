@@ -11,6 +11,7 @@ import cash.p.terminal.wallet.IAdapterManager
 import cash.p.terminal.wallet.IWalletManager
 import cash.p.terminal.wallet.MarketKitWrapper
 import cash.p.terminal.wallet.entities.Coin
+import cash.p.terminal.wallet.entities.FullCoin
 import cash.p.terminal.wallet.entities.TokenType
 import cash.p.terminal.wallet.Token
 import io.horizontalsystems.core.CurrencyManager
@@ -18,6 +19,7 @@ import io.horizontalsystems.core.ILanguageManager
 import io.horizontalsystems.core.entities.Blockchain
 import io.horizontalsystems.core.entities.BlockchainType
 import io.horizontalsystems.core.entities.Currency
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
@@ -30,6 +32,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -43,6 +46,7 @@ class SwapSelectCoinViewModelTest {
     private val walletManager = mockk<IWalletManager>(relaxed = true)
     private val adapterManager = mockk<IAdapterManager>(relaxed = true)
     private val currencyManager = mockk<CurrencyManager>(relaxed = true)
+    private val tron = Blockchain(BlockchainType.Tron, "TRON", null)
 
     private val usdtErc20 = Token(
         coin = Coin(uid = "tether", name = "Tether", code = "USDT"),
@@ -89,4 +93,37 @@ class SwapSelectCoinViewModelTest {
         assertFalse(viewModel.uiState.hasFiatSection)
         assertFalse(viewModel.uiState.fiatItems.any { PayCoreAssets.isRub(it.token) })
     }
+
+    @Test
+    fun uiState_suggestedTrc10_excludesUnsupportedToken() {
+        val trx = tronToken("tron", "TRX", TokenType.Native, decimals = 6)
+        val trc10 = tronToken("trc10", "T10", TokenType.Trc10("1005114"), decimals = 0)
+        val trc20 = tronToken("trc20", "T20", TokenType.Eip20("TContract"), decimals = 6)
+        coEvery { marketKit.fullCoins("", limit = 100) } returns listOf(
+            FullCoin(trc10.coin, listOf(trc10)),
+            FullCoin(trc20.coin, listOf(trc20)),
+        )
+
+        val viewModel = SwapSelectCoinViewModel(
+            otherSelectedToken = trx,
+            activeAccount = mnemonicAccount,
+            payCoreFeatureToggle = mockk(relaxed = true),
+            dispatcherProvider = dispatcherProvider,
+        )
+
+        assertFalse(viewModel.uiState.coinBalanceItems.any { it.token == trc10 })
+        assertTrue(viewModel.uiState.coinBalanceItems.any { it.token == trc20 })
+    }
+
+    private fun tronToken(
+        uid: String,
+        code: String,
+        type: TokenType,
+        decimals: Int,
+    ) = Token(
+        coin = Coin(uid = uid, name = code, code = code),
+        blockchain = tron,
+        type = type,
+        decimals = decimals,
+    )
 }
