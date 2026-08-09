@@ -94,6 +94,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import androidx.compose.ui.tooling.preview.Preview as ComposePreview
 
+// Both thresholds were already exceeded before the paste callback was added; the detekt baseline
+// suppressed them by signature, so changing the signature re-keyed those entries.
+@Suppress("LongMethod", "LongParameterList")
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun QRScannerScreen(
@@ -101,12 +104,13 @@ fun QRScannerScreen(
     title: String,
     navController: NavController,
     showPasteButton: Boolean,
-    allowGalleryWithoutPremium: Boolean = false,
     onScan: (String) -> Unit,
+    onPaste: (String) -> Unit,
     onCloseClick: () -> Unit,
     onCameraPermissionSettingsClick: () -> Unit,
     onGalleryImagePicked: (Uri) -> Unit,
     onErrorMessageConsumed: () -> Unit,
+    allowGalleryWithoutPremium: Boolean = false,
     windowInsets: WindowInsets = NavigationBarDefaults.windowInsets,
 ) {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -181,7 +185,7 @@ fun QRScannerScreen(
                         title = stringResource(R.string.Send_Button_Paste),
                         enabled = !uiState.isDecodingFromImage,
                         onClick = {
-                            onScan(TextHelper.getCopiedText())
+                            onPaste(TextHelper.getCopiedText())
                         }
                     )
                 }
@@ -255,7 +259,6 @@ private fun ScannerView(onScan: (String) -> Unit) {
     val previewView = remember { PreviewView(context) }
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
-    val hasScanned = remember { AtomicBoolean(false) }
     val disposed = remember { AtomicBoolean(false) }
     val cameraProviderRef = remember { AtomicReference<ProcessCameraProvider?>() }
     val imageAnalysisRef = remember { AtomicReference<ImageAnalysis?>() }
@@ -320,7 +323,7 @@ private fun ScannerView(onScan: (String) -> Unit) {
                     .also { analysis ->
                         imageAnalysisRef.set(analysis)
                         val analyzer =
-                            createQrCodeAnalyzer(hasScanned, disposed, mainHandler, onScan)
+                            createQrCodeAnalyzer(disposed, mainHandler, onScan)
                         analyzerRef.set(analyzer)
                         analysis.setAnalyzer(cameraExecutor, analyzer)
                     }
@@ -368,16 +371,13 @@ private fun buildResolutionSelector(): ResolutionSelector =
         .build()
 
 private fun createQrCodeAnalyzer(
-    hasScanned: AtomicBoolean,
     disposed: AtomicBoolean,
     mainHandler: Handler,
     onScan: (String) -> Unit,
 ): QrCodeAnalyzer = QrCodeAnalyzer { result ->
-    if (hasScanned.compareAndSet(false, true)) {
-        mainHandler.post {
-            if (!disposed.get()) {
-                onScan(result)
-            }
+    mainHandler.post {
+        if (!disposed.get()) {
+            onScan(result)
         }
     }
 }
@@ -616,6 +616,7 @@ private fun ScannerOverlayPreview() {
             navController = NavController(LocalContext.current),
             showPasteButton = true,
             onScan = {},
+            onPaste = {},
             onCloseClick = {},
             onCameraPermissionSettingsClick = {},
             onGalleryImagePicked = {},

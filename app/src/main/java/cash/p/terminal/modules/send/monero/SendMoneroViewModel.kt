@@ -92,9 +92,11 @@ class SendMoneroViewModel(
     private var addressState = addressService.stateFlow.value
 
     // Monero needs the daemon (ring decoys) to BUILD the transaction, so build+sign it up front while
-    // online and cache it to be returned when signing offline. Rebuilt on every input change.
+    // online and cache it to be returned when signing offline. Rebuilt only when the inputs change.
     private var offlineSignJob: Job? = null
     private var offlineSignResult: OfflineSignResult? = null
+    private var preparedRequest: OfflineMoneroSignRequest? = null
+    private var offlineSignError: Throwable? = null
 
     override var coinRate by mutableStateOf(xRateService.getRate(sendToken.coin.uid))
         private set
@@ -185,7 +187,7 @@ class SendMoneroViewModel(
         ).firstOrNull()
         return SendConfirmationData(
             amount = decimalAmount,
-            fee = fee,
+            fee = offlineSignResult?.signedTransaction?.fee ?: fee,
             address = address,
             contact = contact,
             coin = wallet.coin,
@@ -250,50 +252,69 @@ class SendMoneroViewModel(
         )
     }
 
+    private fun currentSignRequest(): OfflineMoneroSignRequest? {
+        if (!offlineSignSupported) return null
+        val amount = amountState.amount ?: return null
+        if (amount <= BigDecimal.ZERO) return null
+        val address = addressState.address ?: return null
+        return OfflineMoneroSignRequest(amount, address.hex, memo)
+    }
+
+    private fun keepsPreparation(request: OfflineMoneroSignRequest?): Boolean {
+        if (request == null || request != preparedRequest) return false
+        if (offlineSignResult != null || offlineSignJob?.isActive == true) return true
+        // Preserve a failed attempt offline so signing reports its cause;
+        // release it after reconnect so the next emission retries.
+        return offlineSignError != null && !hasConnection()
+    }
+
     // Reactively build+sign while online (needs the daemon for ring decoys) so an offline sign just
-    // returns the cached result. Rebuilds on every input change; a Monero tx has no expiration, so no
-    // block/sync invalidation is needed.
+    // returns the cached result. A Monero tx has no expiration, so only an input change invalidates it.
     private fun prepareOfflineSignedTransaction() {
-        offlineSignJob?.cancel()
-        offlineSignResult = null
-        if (!offlineSignSupported) return
-        val amount = amountState.amount
-        if (amount == null || amount <= BigDecimal.ZERO || addressState.address == null || !hasConnection()) return
+        val request = currentSignRequest()
+        if (keepsPreparation(request)) return
+        discardPreparedTransaction()
+        if (request == null || !hasConnection()) return
+        preparedRequest = request
         offlineSignJob = viewModelScope.launch {
             delay(OFFLINE_BUILD_DEBOUNCE_MS)
+            var error: Throwable? = null
             val result = try {
-                buildOfflineSignedTransaction()
+                buildOfflineSignedTransaction(request)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
+                error = e
                 null
             }
             // cancel() is cooperative: a superseded build must not overwrite a newer result.
             ensureActive()
             offlineSignResult = result
+            offlineSignError = error
         }
     }
 
-    private suspend fun buildOfflineSignedTransaction(): OfflineSignResult {
-        val confirmationData = getConfirmationData()
+    private fun discardPreparedTransaction() {
+        offlineSignJob?.cancel()
+        offlineSignJob = null
+        offlineSignResult = null
+        offlineSignError = null
+        preparedRequest = null
+    }
+
+    private suspend fun buildOfflineSignedTransaction(request: OfflineMoneroSignRequest): OfflineSignResult {
         val signingAdapter = offlineSignAdapter
             ?: throw LocalizedException(R.string.offline_broadcast_unsupported_blockchain)
         return OfflineSignResult(
-            signedTransaction = signingAdapter.signOffline(
-                OfflineMoneroSignRequest(
-                    amount = confirmationData.amount,
-                    address = confirmationData.address.hex,
-                    memo = confirmationData.memo,
-                )
-            ),
-            confirmationData = confirmationData,
+            signedTransaction = signingAdapter.signOffline(request),
+            confirmationData = getConfirmationData(),
         )
     }
 
     private suspend fun signedOfflineTransaction(): OfflineSignResult {
         offlineSignJob?.join()
-        return offlineSignResult
-            ?: throw LocalizedException(R.string.offline_transaction_anchor_required)
+        offlineSignResult?.let { return it }
+        throw offlineSignError ?: LocalizedException(R.string.offline_transaction_anchor_required)
     }
 
     private fun offlineSignedTransactionDraft(result: OfflineSignResult): OfflineSignedTransactionDraft {
