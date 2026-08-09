@@ -25,7 +25,17 @@ jobs:
             | base64 --decode \
             > "$RUNNER_TEMP/firebase-dev.jks"
       - name: Run Unit tests
-        run: ./gradlew :app:testDebugUnitTest :core:core:testDebugUnitTest :core:wallet:testDebugUnitTest :feature-premium:testDebugUnitTest :feature-logging:testDebugUnitTest :feature-trezor:testDebugUnitTest :feature-tangem:testDebugUnitTest
+        run: ./gradlew :app:testDebugUnitTest :core:core:testDebugUnitTest :core:wallet:testDebugUnitTest :feature-premium:testDebugUnitTest :feature-logging:testDebugUnitTest :feature-trezor:testDebugUnitTest :feature-tangem:testDebugUnitTest --stacktrace
+      - name: Upload unit test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-unit-test-reports-${{ github.run_attempt }}
+          path: |
+            app/build/test-results/testDebugUnitTest/**
+            app/build/reports/tests/testDebugUnitTest/**
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Build with Gradle
         run: ./gradlew assembleDebug
         env:
