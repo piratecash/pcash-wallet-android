@@ -59,7 +59,7 @@ jobs:
             | tr -d ':' \
             | tr '[:upper:]' '[:lower:]')"
           ACTUAL_CERT_SHA256="$("$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk \
-            | sed -n 's/^Signer #1 certificate SHA-256 digest: //p')"
+            | awk '/certificate SHA-256 digest:/ { print $NF; exit }')"
           echo "Restored keystore certificate SHA-256: $KEYSTORE_CERT_SHA256"
           echo "APK signer certificate SHA-256: $ACTUAL_CERT_SHA256"
           test "$ACTUAL_CERT_SHA256" = "374992632abe227755163b21d0eec1e109767054ebb956bda9a7b79709a4eec2"
