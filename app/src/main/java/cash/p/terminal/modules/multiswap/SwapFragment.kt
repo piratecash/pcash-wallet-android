@@ -1062,7 +1062,7 @@ private fun SwapInput(
         HorizontalDivider(
             modifier = Modifier.align(Alignment.Center),
             thickness = 1.dp,
-            color = ComposeAppTheme.colors.steel10
+            color = ComposeAppTheme.colors.steel20
         )
         SwapDirectionIndicator(
             modifier = Modifier.align(Alignment.Center),
